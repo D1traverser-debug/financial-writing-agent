@@ -1,0 +1,23 @@
+{
+  "runtime": [
+    "stage_order", "checkpointing", "required_outputs", "delivery_channel", "retry_limits", "no_silent_degradation"
+  ],
+  "research": [
+    "source_quality", "evidence_ledger", "full_topic_research", "universe", "why_this_why_not", "negative_evidence"
+  ],
+  "editorial": [
+    "topic_dna", "structure", "information_density", "headline_hook", "opening_hook", "section_hooks", "dual_version_editing"
+  ],
+  "delivery": [
+    "docx_structure", "typography", "stock_bold", "disclaimer", "file_identity"
+  ],
+  "audit": [
+    "semantic_judge", "mechanical_checks", "final_red_team", "audit_report"
+  ],
+  "platforms": [
+    "distribution_mechanisms", "platform_specific_packaging", "account_performance_samples"
+  ],
+  "maintenance": [
+    "change_classification", "single_owner_update", "regression_testing", "cutover_policy"
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "defaults": {
+    "distribution_mode": "DUAL",
+    "delivery_channel": "WORD_FILE_ONLY",
+    "title_max_rounds": 3,
+    "draft_max_rounds": 2,
+    "research_max_rounds": 2
+  },
+  "finance_compliance": {
+    "hard_fail_phrases": [
+      "买入", "卖出", "加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"
+    ]
+  },
+  "word": {
+    "title_pt": 20,
+    "h1_pt": 18,
+    "h2_pt": 13.5,
+    "h3_pt": 12,
+    "body_pt": 12,
+    "h1_rgb": "FF0000",
+    "allow_tables": false
+  }
+}

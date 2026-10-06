@@ -1,0 +1,17 @@
+{
+  "skill_name": "financial-writing-agent",
+  "evals": [
+    {"id":"E01","prompt":"根据这两个链接写文章","assertions":["runtime starts before source retrieval","default WORD_FILE_ONLY","audit report required"]},
+    {"id":"E02","prompt":"继续昨天那篇","assertions":["load checkpoint","resume first unfinished stage","do not repeat passed stages"]},
+    {"id":"E03","prompt":"这篇同时发雪球、韭研、头条、百家","assertions":["distribution mode DUAL","one research base","two independent editorial versions"]},
+    {"id":"E04","prompt":"只改标题，正文别动","assertions":["route to title/editorial only","invalidate title-related audit only","do not rerun unrelated research"]},
+    {"id":"E05","prompt":"这个题材有几十只概念股，写一篇","assertions":["research relevant universe","include why_this and why_not","do not output a flat stock list"]},
+    {"id":"E06","prompt":"根据研报写，字数控制得短一点","assertions":["do not shrink research breadth","compress redundancy before reasoning","no default word-count anchor"]},
+    {"id":"E07","prompt":"给我直接在聊天框看正文","assertions":["delivery channel CHAT_TEXT","Word-only checks become N/A"]},
+    {"id":"E08","prompt":"正常写一篇，不用我提醒流程","assertions":["runtime initialized","all stage gates run","final chat does not paste article body"]},
+    {"id":"E09","prompt":"平台最近一篇科技文爆了，以后都优先科技","assertions":["record as experience sample","do not promote one sample to permanent rule"]},
+    {"id":"E10","prompt":"我以后标题都要更吸引财经用户","assertions":["classify as durable editorial rule","update single owner","rerun regression tests"]},
+    {"id":"E11","prompt":"Word已经写好了，直接发我","assertions":["mechanical checks still run","audit report still required","cannot complete if audit missing"]},
+    {"id":"E12","prompt":"来源抓不到但你先按常识写吧","assertions":["block unsupported factual claims","no silent degradation to free-form writing"]}
+  ]
+}
