@@ -1,12 +1,28 @@
-import base64
+import binascii
 import json
+import struct
+import zlib
 
 from docx import Document
 
 from financial_writing_agent.checks import check_docx
 from financial_writing_agent.document import ArticleDocument, Block, DocumentImage, build_article_docx
 
-PNG_1X1 = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAusB9Wl6sQAAAABJRU5ErkJggg=="
+
+def _write_test_png(path, width=160, height=90):
+    def chunk(kind: bytes, data: bytes) -> bytes:
+        return (
+            struct.pack(">I", len(data))
+            + kind
+            + data
+            + struct.pack(">I", binascii.crc32(kind + data) & 0xFFFFFFFF)
+        )
+
+    signature = b"\x89PNG\r\n\x1a\n"
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    row = b"\x00" + (b"\x30\x80\xC0" * width)
+    raw = row * height
+    path.write_bytes(signature + chunk(b"IHDR", ihdr) + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b""))
 
 
 def _risk_text() -> str:
@@ -47,7 +63,7 @@ def test_word_builder_normalizes_hierarchy_bolds_stocks_and_checks_risk(tmp_path
 def test_word_builder_inserts_centered_uncropped_images_at_anchors(tmp_path):
     policy = json.loads(open("config/policy.json", encoding="utf-8").read())
     image_path = tmp_path / "cover.png"
-    image_path.write_bytes(base64.b64decode(PNG_1X1))
+    _write_test_png(image_path)
     article = ArticleDocument(
         title="带图测试",
         blocks=[
