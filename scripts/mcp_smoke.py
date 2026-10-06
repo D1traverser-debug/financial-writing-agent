@@ -33,6 +33,11 @@ REQUIRED = {
 }
 
 READ_ONLY = {"get_writing_task", "list_recent_writing_tasks"}
+REQUIRED_RESOURCE_TEMPLATES = {
+    "writing-docx://{task_id}/{kind}",
+    "writing-json://{task_id}/{kind}",
+    "writing-text://{task_id}/{kind}",
+}
 
 
 def wait_for_port(host: str, port: int, timeout: float = 15.0) -> None:
@@ -56,9 +61,8 @@ def validate_descriptor(tool) -> None:
         raise RuntimeError(f"{tool.name} has incorrect readOnlyHint")
     if annotations["destructiveHint"] is not False:
         raise RuntimeError(f"{tool.name} unexpectedly marked destructive")
-    expected_open_world = tool.name == "submit_visual_package"
-    if annotations["openWorldHint"] != expected_open_world:
-        raise RuntimeError(f"{tool.name} has incorrect openWorldHint")
+    if annotations["openWorldHint"] is not False:
+        raise RuntimeError(f"{tool.name} should remain bounded to runtime/file-param state")
     if not descriptor.get("title"):
         raise RuntimeError(f"{tool.name} missing human-readable title")
     if not descriptor.get("description") or len(descriptor["description"].strip()) < 60:
@@ -86,6 +90,12 @@ async def verify() -> None:
             for tool in tools.values():
                 validate_descriptor(tool)
 
+            templates = await session.list_resource_templates()
+            uris = {str(item.uri_template) for item in templates.resource_templates}
+            missing_resources = sorted(REQUIRED_RESOURCE_TEMPLATES - uris)
+            if missing_resources:
+                raise RuntimeError(f"missing artifact resource templates: {missing_resources}; got={sorted(uris)}")
+
             result = await session.call_tool(
                 "start_writing_task",
                 arguments={"prompt": "smoke test only; do not research or draft"},
@@ -97,7 +107,10 @@ async def verify() -> None:
                 raise RuntimeError(f"structured output missing: {structured!r}")
             if structured.get("current_stage") != "RESEARCH" or not structured.get("task_id"):
                 raise RuntimeError(f"unexpected start result: {structured}")
-            print(f"PASS: {len(tools)} typed/annotated MCP tools exposed and structured start result validated")
+            print(
+                f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
+                f"{len(uris)} artifact resource templates exposed, and structured start result validated"
+            )
 
 
 def main() -> None:
