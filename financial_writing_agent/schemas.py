@@ -3,7 +3,9 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from .network_safety import validate_public_https_url
 
 
 class StrictModel(BaseModel):
@@ -211,6 +213,11 @@ class OpenAIFileRef(StrictModel):
     file_id: str = Field(min_length=1)
     mime_type: str | None = None
     file_name: str | None = None
+
+    @field_validator("download_url")
+    @classmethod
+    def download_url_must_be_public_https(cls, value: str) -> str:
+        return validate_public_https_url(value)
 
 
 class VisualAsset(StrictModel):
