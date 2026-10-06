@@ -30,6 +30,11 @@ class DistributionMode(str, Enum):
     DUAL = "DUAL"
 
 
+class ContentMode(str, Enum):
+    FORMAL_ARTICLE = "FORMAL_ARTICLE"
+    WECHAT_STICKER_POST = "WECHAT_STICKER_POST"
+
+
 class DeliveryChannel(str, Enum):
     WORD_FILE_ONLY = "WORD_FILE_ONLY"
     CHAT_TEXT = "CHAT_TEXT"
@@ -46,6 +51,7 @@ class GateStatus(str, Enum):
 class ArtifactKind(str, Enum):
     FINANCE_DEEP_DOCX = "FINANCE_DEEP_DOCX"
     FINANCE_BROAD_DOCX = "FINANCE_BROAD_DOCX"
+    WECHAT_STICKER_DOCX = "WECHAT_STICKER_DOCX"
     AUDIT_DOCX = "AUDIT_DOCX"
     VISUAL_MANIFEST_JSON = "VISUAL_MANIFEST_JSON"
     CHAT_TEXT = "CHAT_TEXT"
@@ -72,6 +78,7 @@ class TaskContract(BaseModel):
     source_refs: list[str] = Field(default_factory=list)
     target_platforms: list[str] = Field(default_factory=list)
     distribution_mode: DistributionMode = DistributionMode.DUAL
+    content_mode: ContentMode = ContentMode.FORMAL_ARTICLE
     delivery_channel: DeliveryChannel = DeliveryChannel.WORD_FILE_ONLY
     visuals_enabled: bool = False
     visual_profile_ref: str | None = None
@@ -88,6 +95,10 @@ class TaskContract(BaseModel):
         required = [ArtifactKind.AUDIT_DOCX]
         if self.visuals_enabled:
             required.append(ArtifactKind.VISUAL_MANIFEST_JSON)
+        if self.content_mode == ContentMode.WECHAT_STICKER_POST:
+            required.append(ArtifactKind.WECHAT_STICKER_DOCX)
+            self.required_outputs = required
+            return self
         if self.distribution_mode in (DistributionMode.FINANCE_DEEP, DistributionMode.DUAL):
             required.append(ArtifactKind.FINANCE_DEEP_DOCX)
         if self.distribution_mode in (DistributionMode.FINANCE_BROAD, DistributionMode.DUAL):

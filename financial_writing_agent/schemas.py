@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 class EvidenceItem(BaseModel):
@@ -78,6 +78,7 @@ class EditorialPlan(BaseModel):
     finance_deep_emphasis: list[str]
     finance_broad_emphasis: list[str]
     side_focus_statement: str
+    wechat_sticker_emphasis: list[str] = Field(default_factory=list)
 
 
 class HeadlineCandidate(BaseModel):
@@ -89,10 +90,12 @@ class HeadlineCandidate(BaseModel):
 
 
 class HeadlinePackage(BaseModel):
-    finance_deep_candidates: list[HeadlineCandidate]
-    finance_broad_candidates: list[HeadlineCandidate]
+    finance_deep_candidates: list[HeadlineCandidate] = Field(default_factory=list)
+    finance_broad_candidates: list[HeadlineCandidate] = Field(default_factory=list)
     finance_deep_selected: str | None = None
     finance_broad_selected: str | None = None
+    wechat_sticker_candidates: list[HeadlineCandidate] = Field(default_factory=list)
+    wechat_sticker_selected: str | None = None
 
 
 class ArticleBlock(BaseModel):
@@ -106,14 +109,42 @@ class ArticlePayload(BaseModel):
     stock_names: list[str] = Field(default_factory=list)
 
 
+class PlatformConstraintSnapshot(BaseModel):
+    platform: str = "微信贴图"
+    verified_at: str
+    source_refs: list[str] = Field(min_length=1)
+    title_max_chars: int | None = Field(default=None, ge=1)
+    body_max_chars: int | None = Field(default=None, ge=1)
+    image_max_count: int | None = Field(default=None, ge=1)
+    notes: list[str] = Field(default_factory=list)
+
+
+class StickerPostPayload(BaseModel):
+    title: str
+    body: str
+    interaction_prompt: str = ""
+    risk_disclaimer: str = Field(min_length=30)
+    constraints: PlatformConstraintSnapshot
+    stock_names: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def enforce_verified_limits(self):
+        if self.constraints.title_max_chars is not None and len(self.title) > self.constraints.title_max_chars:
+            raise ValueError("sticker title exceeds verified platform limit")
+        if self.constraints.body_max_chars is not None and len(self.body) > self.constraints.body_max_chars:
+            raise ValueError("sticker body exceeds verified platform limit")
+        return self
+
+
 class DraftPackage(BaseModel):
     finance_deep: ArticlePayload | None = None
     finance_broad: ArticlePayload | None = None
+    wechat_sticker_post: StickerPostPayload | None = None
 
 
 class VisualAsset(BaseModel):
-    article_mode: Literal["FINANCE_DEEP", "FINANCE_BROAD"]
-    role: Literal["hero", "section"]
+    article_mode: Literal["FINANCE_DEEP", "FINANCE_BROAD", "WECHAT_STICKER_POST"]
+    role: Literal["hero", "section", "sticker"]
     semantic_focus: str
     source_uri: str
     anchor_after_block: int | None = Field(default=None, ge=0)
@@ -123,7 +154,7 @@ class VisualAsset(BaseModel):
 
 
 class VisualPackage(BaseModel):
-    assets: list[VisualAsset]
+    assets: list[VisualAsset] = Field(min_length=1)
     avatar_required: bool = True
     target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
     planning_notes: list[str] = Field(default_factory=list)

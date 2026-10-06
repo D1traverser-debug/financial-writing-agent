@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from collections.abc import Iterable
 
-from .models import DeliveryChannel, DistributionMode, TaskContract
+from .models import ContentMode, DeliveryChannel, DistributionMode, TaskContract
 
 FINANCE_COMMUNITIES = {"雪球", "韭研公社", "东方财富", "东方财富号"}
 BROAD_FEEDS = {"今日头条", "头条号", "百家号", "网易号", "微博头条文章"}
@@ -21,6 +21,15 @@ def infer_distribution_mode(platforms: Iterable[str]) -> DistributionMode:
     if has_broad and not has_deep:
         return DistributionMode.FINANCE_BROAD
     return DistributionMode.DUAL
+
+
+def infer_content_mode(prompt: str, platforms: Iterable[str] | None = None) -> ContentMode:
+    normalized = prompt.replace(" ", "")
+    platform_text = "".join(platforms or [])
+    combined = normalized + platform_text
+    if "微信贴图" in combined or ("微信" in combined and "贴图" in combined):
+        return ContentMode.WECHAT_STICKER_POST
+    return ContentMode.FORMAL_ARTICLE
 
 
 def infer_delivery_channel(prompt: str) -> DeliveryChannel:
@@ -46,15 +55,18 @@ def build_task_contract(
     target_platforms: list[str] | None = None,
     visuals_enabled: bool | None = None,
     visual_profile_ref: str | None = None,
+    content_mode: ContentMode | None = None,
 ) -> TaskContract:
     platforms = target_platforms or []
     delivery = infer_delivery_channel(prompt)
     visuals = infer_visuals_enabled(prompt, delivery) if visuals_enabled is None else visuals_enabled
+    mode = content_mode or infer_content_mode(prompt, platforms)
     return TaskContract(
         prompt=prompt,
         source_refs=source_refs or [],
         target_platforms=platforms,
         distribution_mode=infer_distribution_mode(platforms),
+        content_mode=mode,
         delivery_channel=delivery,
         visuals_enabled=visuals,
         visual_profile_ref=visual_profile_ref,

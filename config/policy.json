@@ -1,6 +1,7 @@
 {
   "defaults": {
     "distribution_mode": "DUAL",
+    "content_mode": "FORMAL_ARTICLE",
     "delivery_channel": "WORD_FILE_ONLY",
     "language": "zh-CN",
     "title_max_rounds": 3,
@@ -17,6 +18,7 @@
     "logical_transitions_required": true,
     "conclusion_first_preferred": true,
     "anti_ai_semantic_audit": true,
+    "anti_ai_judge_required": true,
     "heading_hierarchy": ["一、", "（1）", "①"],
     "forbidden_heading_prefixes": ["·", "•"],
     "hard_fail_extreme_phrases": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆", "注定暴涨", "必然上涨", "唯一机会"],
@@ -37,6 +39,16 @@
     "center_in_word": true,
     "crop_in_word": false,
     "word_width_inches": 6.2
+  },
+  "wechat_sticker": {
+    "content_mode": "WECHAT_STICKER_POST",
+    "require_current_constraint_snapshot": true,
+    "hard_coded_title_limit": null,
+    "hard_coded_body_limit": null,
+    "hard_coded_image_limit": null,
+    "preferred_vertical_aspects": ["3:4", "4:5", "9:16"],
+    "interaction_intent_allowed": true,
+    "pure_clickbait_forbidden": true
   },
   "word": {
     "title_pt": 20,

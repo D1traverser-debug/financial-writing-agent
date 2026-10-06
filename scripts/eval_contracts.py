@@ -4,10 +4,13 @@ import json
 import tempfile
 from pathlib import Path
 
+from pydantic import ValidationError
+
 from financial_writing_agent.engine import WritingEngine
-from financial_writing_agent.models import ArtifactKind, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract
+from financial_writing_agent.models import ArtifactKind, ContentMode, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract
 from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
+from financial_writing_agent.schemas import PlatformConstraintSnapshot, StickerPostPayload
 from financial_writing_agent.store import SQLiteStateStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -111,13 +114,40 @@ def eval_e17() -> list[str]:
     return ["risk mandatory", f"min_chars={policy['risk_disclaimer']['min_body_chars']}"]
 
 
+def eval_e18() -> list[str]:
+    contract = build_task_contract(prompt="做一条微信贴图引流")
+    check(contract.content_mode == ContentMode.WECHAT_STICKER_POST, "E18 must route to WECHAT_STICKER_POST")
+    check(ArtifactKind.WECHAT_STICKER_DOCX in contract.required_outputs, "E18 sticker Word output required")
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))["wechat_sticker"]
+    check(policy["hard_coded_title_limit"] is None and policy["hard_coded_body_limit"] is None, "E18 remembered limits must not be hard-coded")
+    snapshot = PlatformConstraintSnapshot(
+        verified_at="2026-10-06T23:00:00+08:00",
+        source_refs=["current-wechat-publisher-ui"],
+        title_max_chars=4,
+        body_max_chars=100,
+    )
+    try:
+        StickerPostPayload(
+            title="超过限制的标题",
+            body="有用信息",
+            risk_disclaimer="本文基于公开信息整理，仅用于财经信息交流，不构成投资建议或收益承诺，请以最新公告为准并独立判断。",
+            constraints=snapshot,
+        )
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("E18 verified dynamic title limit must be enforced")
+    return ["distinct content mode", "dynamic constraint snapshot", "no remembered hard-coded limits"]
+
+
 def eval_e19() -> list[str]:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
     phrases = set(policy["style"]["hard_fail_extreme_phrases"])
     check("最强" in phrases and "最牛" in phrases, "E19 core extreme phrases missing")
     check("最近" not in phrases and "最后" not in phrases, "E19 factual temporal words must not be mechanically banned")
     check(policy["style"]["anti_ai_semantic_audit"], "E19 anti-AI semantic audit must be enabled")
-    return ["extreme phrase policy", "temporal-word safe", "anti-AI semantic audit"]
+    check(policy["style"]["anti_ai_judge_required"], "E19 independent anti-AI judge must be required")
+    return ["extreme phrase policy", "temporal-word safe", "independent anti-AI semantic judge"]
 
 
 EXECUTABLE = {
@@ -131,6 +161,7 @@ EXECUTABLE = {
     "E13": eval_e13,
     "E14": eval_e14,
     "E17": eval_e17,
+    "E18": eval_e18,
     "E19": eval_e19,
 }
 
@@ -142,7 +173,6 @@ SPEC_ONLY = {
     "E10": "durable-rule promotion is a maintenance-policy assertion",
     "E15": "broad/deep cognition plus connected knowledge reuse/writeback requires semantic/connector regression",
     "E16": "creative image generation is model-side; deterministic insertion is covered by unit/mechanical tests",
-    "E18": "WeChat sticker limits/recommendation mechanics require fresh platform evidence before executable hard limits",
     "E20": "visible checklist is a final-delivery semantic/trajectory assertion",
 }
 
