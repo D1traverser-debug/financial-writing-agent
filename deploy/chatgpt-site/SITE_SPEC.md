@@ -1,89 +1,85 @@
 # ChatGPT Site deployment specification
 
 ## Goal
+Host Financial Writing Agent as a Site-backed MCP plugin so the same runtime is available from ChatGPT at home or work without local installation.
 
-Host the Financial Writing Agent as a Site-backed MCP plugin so the same runtime is available from ChatGPT web at home or work without any local installation.
+## Runtime invariant
+`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
 
-## Non-negotiable workflow
-
-The Site-hosted MCP must enforce this state machine and reject illegal stage submissions:
-
-`INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT -> COMPLETE`
-
-A failed dependency or invalid transition must produce `BLOCKED`. There is no silent fallback to ordinary free-form writing.
+Invalid transitions or failed mandatory dependencies route to `BLOCKED`; never silently fall back to free-form writing.
 
 ## Responsibility split
-
-- ChatGPT model: research, evidence synthesis, TopicDNA, structure, headlines, drafting, semantic audits.
-- Site MCP runtime: legal transitions, schema validation, durable checkpoints, gate status, artifact identity, completion authority.
-- Deterministic delivery: build article Word files and `WRITING_AUDIT_REPORT.docx`; mechanical checks must remain independent from semantic review.
+- ChatGPT/model: connector-side knowledge retrieval/writeback, live web research, synthesis, TopicDNA, structure, titles, drafting, dedicated style judgment, semantic audits, visual planning/generation.
+- Hosted MCP runtime: TaskContract, legal transitions, schema validation, durable checkpointing, knowledge/visual receipts, gate status, required outputs, completion authority.
+- Deterministic delivery: Word construction, image insertion, formatting/mechanical QA, render checks, audit artifact.
 
 ## Durable state
+Persist complete serialized `WritingState` per `task_id`, including contract/content mode, stage, gates, structured outputs, artifacts, trace, attempts, blocked reason and timestamps. Save after every material change; support load-by-id and recent-task listing.
 
-Use the Site's supported structured persistent store for task checkpoints. One record per `task_id` must contain the complete serialized WritingState, including contract, current stage, gates, structured stage outputs, artifacts, trace, attempts, blocked reason, and updated_at.
-
-Required operations:
-- save checkpoint atomically after every material stage change;
-- load by task_id;
-- list most recently updated tasks;
-- recover incomplete work in a fresh conversation without chat-memory dependence.
-
-Notion and Google Drive are mirrors/governance destinations, not the executable checkpoint authority.
+Notion/Drive status pages are mirrors/governance layers, not the executable checkpoint authority.
 
 ## Artifact storage
+The production Site must use persistent object/file storage. Never expose only ephemeral server paths.
 
-Use the Site's supported persistent file/object storage for generated article artifacts. Never store only an ephemeral filesystem path.
+Formal `WORD_FILE_ONLY` tasks may require:
+- `FINANCE_DEEP.docx`;
+- `FINANCE_BROAD.docx`;
+- `WRITING_AUDIT_REPORT.docx`;
+- `VISUAL_MANIFEST.json` when visuals are enabled.
 
-Required artifacts for WORD_FILE_ONLY:
-- `FINANCE_DEEP.docx` when applicable;
-- `FINANCE_BROAD.docx` when applicable;
-- `WRITING_AUDIT_REPORT.docx`.
+`WECHAT_STICKER_POST` tasks require:
+- `WECHAT_STICKER_POST.docx`;
+- `WRITING_AUDIT_REPORT.docx`;
+- `VISUAL_MANIFEST.json` when visuals are enabled.
 
-The final tool result must expose each artifact as a ChatGPT-usable file reference or supported downloadable file result, not merely a server-local path. After delivery, ChatGPT may copy formal outputs to Google Drive and update Notion governance pointers.
+Final tool results must expose ChatGPT-usable file references/downloads, not server-local paths.
 
 ## MCP tools
-
-Expose at least:
+Expose and preserve stage semantics for:
 - `start_writing_task`
 - `get_writing_task`
 - `list_recent_writing_tasks`
+- `record_knowledge_context`
 - `submit_research`
 - `submit_research_audit`
 - `submit_editorial_plan`
 - `submit_headlines`
 - `submit_draft`
+- `submit_style_audit`
 - `submit_editorial_audit`
+- `submit_visual_package`
 - `build_and_mechanically_audit_delivery`
+- `record_knowledge_writeback`
 - `submit_final_audit`
 
-Tool descriptions must accurately describe stage requirements and write side effects.
+## Connected knowledge boundary
+ChatGPT uses actual Notion/Drive/other connected tools, then records references/receipts into MCP state. Hosted runtime does not falsely claim those account connectors. Time-sensitive reused knowledge remains subject to live re-verification.
 
-## Recovery behavior
+## Visual workflow
+Creative image generation remains ChatGPT/model-side. Runtime records only real submitted asset references, embeds them deterministically, verifies expected image counts and fails closed when visuals are required but assets are absent.
 
-For a continuation request such as `继续`, first list recent incomplete tasks. If exactly one relevant task is found, load it and continue from its persisted `current_stage`. Do not ask the user to repeat information already present in the checkpoint.
+## WeChat sticker-post mode
+Explicit 微信贴图 requests use `WECHAT_STICKER_POST`. Current publisher limits/mechanics must be researched at execution time and captured in `PlatformConstraintSnapshot`; remembered limits are not permanent deployment constants.
 
-## Google Drive / Notion mirror
+## Recovery and mirrors
+A continuation request first lists/loads recent incomplete runtime tasks. Do not ask for already persisted task details. Mirror material task status to configured Notion/Drive governance layers when those connectors are available, but mirror failure does not corrupt the runtime checkpoint.
 
-After task start, material stage transitions, block/pause, and completion, mirror a compact status record to Notion `CURRENT_RUN -> ACTIVE_TASK_POINTER` when the connected Notion action is available. Keep Google Drive `CURRENT_STATE` WRITING summary aligned without overwriting unrelated domains.
-
-After COMPLETE, copy formal Word deliverables to the configured Google Drive final-artifact location when Drive write access is available. Runtime completion must not depend on Notion/Drive availability; mirror failures must be surfaced separately and must not corrupt the executable checkpoint.
-
-## Validation before promotion
-
-Do not call the deployment production-ready until all of these pass:
-1. MCP tools discoverable from a fresh ChatGPT conversation.
-2. Start task persists a checkpoint.
-3. Fresh conversation can list and recover that task.
-4. Illegal stage submission is rejected.
-5. A revision loop returns to the correct prior stage.
-6. Word artifact(s) are generated and returned as usable files.
-7. Mechanical audit runs.
-8. Final semantic audit gates COMPLETE.
-9. Notion/Drive mirroring succeeds or reports a precise mirror-only failure.
-10. One real article E2E includes a deliberate interruption and recovery.
+## Promotion validation
+Do not call production-ready until all are true:
+1. tools are discoverable from a fresh ChatGPT conversation;
+2. start persists a durable checkpoint;
+3. a fresh conversation can recover it;
+4. illegal stages are rejected;
+5. revision loops return correctly;
+6. dedicated style audit gate is enforced;
+7. formal and sticker contracts route to correct required outputs;
+8. visual submission and Word image insertion work with real assets;
+9. Word files are returned as usable files and pass render/mechanical QA;
+10. final semantic audit gates COMPLETE and exposes completion checklist;
+11. connected knowledge/mirror work either succeeds with receipts or reports precise N/A/failure boundaries;
+12. one user-authorized real article E2E includes deliberate interruption/recovery.
 
 ## Canonical source
-
 Repository: `D1traverser-debug/financial-writing-agent`
 Branch: `main`
 Skill: `skills/financial-writing-agent/SKILL.md`

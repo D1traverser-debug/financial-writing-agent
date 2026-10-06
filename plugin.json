@@ -2,13 +2,15 @@
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "financial-writing-agent",
   "version": "0.2.0",
-  "description": "Deterministic A-share financial writing workflow with persisted runtime state, hard stage gates, Word delivery, and auditable completion.",
+  "description": "Deterministic A-share financial writing runtime with broad/deep research cognition, dedicated anti-AI audit, publication-ready Word+visual delivery, WeChat sticker-post mode, durable checkpoints and auditable completion.",
   "repository": "https://github.com/D1traverser-debug/financial-writing-agent",
   "keywords": [
     "financial-writing",
     "a-share",
     "research",
     "writing-agent",
-    "mcp"
+    "mcp",
+    "docx",
+    "wechat"
   ]
 }
