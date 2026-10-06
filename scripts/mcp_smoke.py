@@ -43,6 +43,7 @@ async def verify() -> None:
                 "submit_headlines",
                 "submit_draft",
                 "submit_editorial_audit",
+                "submit_visual_package",
                 "build_and_mechanically_audit_delivery",
                 "submit_final_audit",
             }
@@ -51,7 +52,7 @@ async def verify() -> None:
                 raise RuntimeError(f"missing MCP tools: {missing}")
             result = await session.call_tool(
                 "start_writing_task",
-                arguments={"prompt": "smoke test only; do not research or draft"},
+                arguments={"prompt": "smoke test only; do not research or draft", "visuals_enabled": False},
             )
             if result.is_error:
                 raise RuntimeError(f"start_writing_task failed: {result.content}")

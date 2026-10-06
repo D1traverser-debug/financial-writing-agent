@@ -1,13 +1,16 @@
 from __future__ import annotations
 
 import re
+import tempfile
 from pathlib import Path
 from typing import Literal
+from urllib.parse import urlparse
+from urllib.request import urlopen
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
-from docx.shared import Pt, RGBColor
+from docx.shared import Inches, Pt, RGBColor
 from pydantic import BaseModel, Field
 
 
@@ -20,6 +23,13 @@ class ArticleDocument(BaseModel):
     title: str
     blocks: list[Block]
     stock_names: list[str] = Field(default_factory=list)
+
+
+class DocumentImage(BaseModel):
+    source_uri: str
+    role: Literal["hero", "section"]
+    anchor_after_block: int | None = None
+    hook_text: str = ""
 
 
 def _split_bold(text: str, stock_names: list[str]):
@@ -48,7 +58,82 @@ def _set_cn_font(run, name="Microsoft YaHei"):
     run._element.rPr.rFonts.set(qn("w:eastAsia"), name)
 
 
-def build_article_docx(article: ArticleDocument, output: str | Path, policy: dict) -> Path:
+def _chinese_number(n: int) -> str:
+    digits = "零一二三四五六七八九"
+    if n <= 0:
+        return str(n)
+    if n < 10:
+        return digits[n]
+    if n == 10:
+        return "十"
+    if n < 20:
+        return "十" + digits[n - 10]
+    if n < 100:
+        tens, ones = divmod(n, 10)
+        return digits[tens] + "十" + (digits[ones] if ones else "")
+    return str(n)
+
+
+def _strip_heading_prefix(text: str) -> str:
+    text = text.strip()
+    text = re.sub(r"^[·•]\s*", "", text)
+    text = re.sub(r"^[一二三四五六七八九十百]+、\s*", "", text)
+    text = re.sub(r"^（\d+）\s*", "", text)
+    text = re.sub(r"^[①-⑳]\s*", "", text)
+    return text.strip()
+
+
+def _heading_label(kind: str, text: str, h1: int, h2: int, h3: int) -> str:
+    clean = _strip_heading_prefix(text)
+    if kind == "h1":
+        return f"{_chinese_number(h1)}、{clean}"
+    if kind == "h2":
+        return f"（{h2}）{clean}"
+    if kind == "h3":
+        circled = "①②③④⑤⑥⑦⑧⑨⑩⑪⑫⑬⑭⑮⑯⑰⑱⑲⑳"
+        prefix = circled[h3 - 1] if 1 <= h3 <= len(circled) else f"（{h3}）"
+        return f"{prefix}{clean}"
+    return clean
+
+
+def _local_image_path(source_uri: str) -> tuple[Path, Path | None]:
+    parsed = urlparse(source_uri)
+    if parsed.scheme in {"http", "https"}:
+        if parsed.scheme != "https":
+            raise ValueError("remote visual assets must use https")
+        suffix = Path(parsed.path).suffix or ".png"
+        tmp = Path(tempfile.mkstemp(prefix="financial-writing-visual-", suffix=suffix)[1])
+        try:
+            with urlopen(source_uri, timeout=30) as response:
+                tmp.write_bytes(response.read())
+        except Exception:
+            tmp.unlink(missing_ok=True)
+            raise
+        return tmp, tmp
+    path = Path(source_uri)
+    if not path.is_file():
+        raise FileNotFoundError(f"visual asset does not exist: {source_uri}")
+    return path, None
+
+
+def _add_image(doc: Document, image: DocumentImage, width_inches: float) -> None:
+    path, cleanup = _local_image_path(image.source_uri)
+    try:
+        p = doc.add_paragraph()
+        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+        run = p.add_run()
+        run.add_picture(str(path), width=Inches(width_inches))
+    finally:
+        if cleanup is not None:
+            cleanup.unlink(missing_ok=True)
+
+
+def build_article_docx(
+    article: ArticleDocument,
+    output: str | Path,
+    policy: dict,
+    images: list[DocumentImage] | None = None,
+) -> Path:
     doc = Document()
     styles = doc.styles
     styles["Normal"].font.size = Pt(policy["word"]["body_pt"])
@@ -62,30 +147,62 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
     r.font.size = Pt(policy["word"]["title_pt"])
     _set_cn_font(r)
 
-    for block in article.blocks:
+    images = images or []
+    width_inches = float(policy.get("visuals", {}).get("word_width_inches", 6.2))
+    for image in [x for x in images if x.role == "hero"]:
+        _add_image(doc, image, width_inches)
+
+    section_images: dict[int, list[DocumentImage]] = {}
+    for image in [x for x in images if x.role == "section"]:
+        if image.anchor_after_block is None:
+            raise ValueError("section visual requires anchor_after_block")
+        if image.anchor_after_block >= len(article.blocks):
+            raise ValueError(f"section visual anchor out of range: {image.anchor_after_block}")
+        section_images.setdefault(image.anchor_after_block, []).append(image)
+
+    h1 = h2 = h3 = 0
+    for index, block in enumerate(article.blocks):
+        render_text = block.text
         if block.kind == "h1":
+            h1 += 1
+            h2 = h3 = 0
+            render_text = _heading_label("h1", block.text, h1, h2, h3)
             p = doc.add_paragraph(style="Heading 1")
-            for text, bold in _split_bold(block.text, article.stock_names):
+            for text, _ in _split_bold(render_text, article.stock_names):
                 run = p.add_run(text)
                 run.bold = True
                 run.font.size = Pt(policy["word"]["h1_pt"])
                 run.font.color.rgb = RGBColor.from_string(policy["word"]["h1_rgb"])
                 _set_cn_font(run)
-        elif block.kind in {"h2", "h3"}:
+        elif block.kind == "h2":
+            h2 += 1
+            h3 = 0
+            render_text = _heading_label("h2", block.text, h1, h2, h3)
             p = doc.add_paragraph(style="Normal")
-            size = policy["word"]["h2_pt"] if block.kind == "h2" else policy["word"]["h3_pt"]
-            for text, _ in _split_bold(block.text, article.stock_names):
+            for text, _ in _split_bold(render_text, article.stock_names):
                 run = p.add_run(text)
                 run.bold = True
-                run.font.size = Pt(size)
+                run.font.size = Pt(policy["word"]["h2_pt"])
+                _set_cn_font(run)
+        elif block.kind == "h3":
+            h3 += 1
+            render_text = _heading_label("h3", block.text, h1, h2, h3)
+            p = doc.add_paragraph(style="Normal")
+            for text, _ in _split_bold(render_text, article.stock_names):
+                run = p.add_run(text)
+                run.bold = True
+                run.font.size = Pt(policy["word"]["h3_pt"])
                 _set_cn_font(run)
         else:
             p = doc.add_paragraph(style="Normal")
-            for text, bold in _split_bold(block.text, article.stock_names):
+            for text, bold in _split_bold(render_text, article.stock_names):
                 run = p.add_run(text)
                 run.bold = bool(bold)
                 run.font.size = Pt(policy["word"]["body_pt"])
                 _set_cn_font(run)
+
+        for image in section_images.get(index, []):
+            _add_image(doc, image, width_inches)
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)

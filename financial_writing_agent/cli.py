@@ -19,6 +19,11 @@ def main() -> None:
     run.add_argument("--runs-dir", default="runs")
     run.add_argument("--model", default=None)
     run.add_argument("--no-render", action="store_true")
+    run.add_argument(
+        "--with-visuals",
+        action="store_true",
+        help="require an externally supplied visual package before Word delivery; normally orchestrated through the MCP plugin",
+    )
 
     resume = sub.add_parser("resume", help="resume a checkpointed run")
     resume.add_argument("task_id")
@@ -35,7 +40,12 @@ def main() -> None:
         require_render=not args.no_render,
     )
     if args.cmd == "run":
-        contract = build_task_contract(prompt=args.prompt, source_refs=args.source, target_platforms=args.platform)
+        contract = build_task_contract(
+            prompt=args.prompt,
+            source_refs=args.source,
+            target_platforms=args.platform,
+            visuals_enabled=args.with_visuals,
+        )
         state = runtime.start(contract)
     else:
         state = runtime.resume(args.task_id)

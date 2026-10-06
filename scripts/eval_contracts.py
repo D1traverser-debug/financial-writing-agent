@@ -10,9 +10,9 @@ from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
 from financial_writing_agent.store import SQLiteStateStore
 
-
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "evals" / "scenarios.json"
+POLICY = ROOT / "config" / "policy.json"
 
 
 def check(condition: bool, message: str) -> None:
@@ -67,23 +67,57 @@ def eval_e07() -> list[str]:
     contract = build_task_contract(prompt="给我直接在聊天框看正文")
     check(contract.delivery_channel == DeliveryChannel.CHAT_TEXT, "E07 explicit chat request must route CHAT_TEXT")
     check(contract.required_outputs == [ArtifactKind.CHAT_TEXT], "E07 Word outputs must not be required")
-    return ["CHAT_TEXT", "Word-only outputs N/A"]
+    check(not contract.visuals_enabled, "E07 chat-text delivery must not force Word visuals")
+    return ["CHAT_TEXT", "Word-only outputs N/A", "visuals not forced"]
 
 
 def eval_e11() -> list[str]:
     contract = build_task_contract(prompt="Word已经写好了，直接发我")
     check(contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E11 remains Word delivery")
     check(ArtifactKind.AUDIT_DOCX in contract.required_outputs, "E11 audit report remains mandatory")
-    return ["Word delivery", "audit report still required"]
+    check(not contract.visuals_enabled, "E11 existing Word should not invent a new visual requirement")
+    return ["Word delivery", "audit report still required", "no invented visuals"]
 
 
 def eval_e12() -> list[str]:
     with tempfile.TemporaryDirectory() as td:
         runtime = AgentRuntime.with_sqlite(Path(td) / "state.db", executors={})
-        state = runtime.start(build_task_contract(prompt="来源抓不到但你先按常识写吧"))
+        state = runtime.start(build_task_contract(prompt="来源抓不到但你先按常识写吧", visuals_enabled=False))
         state = runtime.run(state)
         check(state.stage == Stage.BLOCKED, "E12 missing executor/source path must block instead of free-form fallback")
     return ["fail closed to BLOCKED"]
+
+
+def eval_e13() -> list[str]:
+    contract = build_task_contract(prompt="没说平台，根据资料正常写")
+    check(contract.distribution_mode == DistributionMode.DUAL, "E13 unspecified platform must route DUAL")
+    check(contract.visuals_enabled, "E13 new Word article visuals must be enabled")
+    check(ArtifactKind.VISUAL_MANIFEST_JSON in contract.required_outputs, "E13 visual manifest must be required")
+    return ["DUAL", "visuals enabled", "visual manifest required"]
+
+
+def eval_e14() -> list[str]:
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    check(policy["defaults"]["language"] == "zh-CN", "E14 default language must be zh-CN")
+    check(policy["style"]["heading_hierarchy"] == ["一、", "（1）", "①"], "E14 hierarchy mismatch")
+    check("·" in policy["style"]["forbidden_heading_prefixes"], "E14 middle dot must be forbidden as heading prefix")
+    return ["zh-CN", "一/（1）/①", "middle dot forbidden"]
+
+
+def eval_e17() -> list[str]:
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    check(policy["risk_disclaimer"]["required"], "E17 risk disclaimer must be mandatory")
+    check(policy["risk_disclaimer"]["min_body_chars"] > 0, "E17 minimum substance must be nonzero")
+    return ["risk mandatory", f"min_chars={policy['risk_disclaimer']['min_body_chars']}"]
+
+
+def eval_e19() -> list[str]:
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    phrases = set(policy["style"]["hard_fail_extreme_phrases"])
+    check("最强" in phrases and "最牛" in phrases, "E19 core extreme phrases missing")
+    check("最近" not in phrases and "最后" not in phrases, "E19 factual temporal words must not be mechanically banned")
+    check(policy["style"]["anti_ai_semantic_audit"], "E19 anti-AI semantic audit must be enabled")
+    return ["extreme phrase policy", "temporal-word safe", "anti-AI semantic audit"]
 
 
 EXECUTABLE = {
@@ -94,6 +128,10 @@ EXECUTABLE = {
     "E07": eval_e07,
     "E11": eval_e11,
     "E12": eval_e12,
+    "E13": eval_e13,
+    "E14": eval_e14,
+    "E17": eval_e17,
+    "E19": eval_e19,
 }
 
 SPEC_ONLY = {
@@ -102,6 +140,10 @@ SPEC_ONLY = {
     "E08": "full all-stage execution is trajectory/E2E coverage, not a contract-only check",
     "E09": "experience-sample promotion is a maintenance-policy assertion",
     "E10": "durable-rule promotion is a maintenance-policy assertion",
+    "E15": "broad/deep cognition plus connected knowledge reuse/writeback requires semantic/connector regression",
+    "E16": "creative image generation is model-side; deterministic insertion is covered by unit/mechanical tests",
+    "E18": "WeChat sticker limits/recommendation mechanics require fresh platform evidence before executable hard limits",
+    "E20": "visible checklist is a final-delivery semantic/trajectory assertion",
 }
 
 

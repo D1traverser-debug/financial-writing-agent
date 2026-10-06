@@ -1,7 +1,8 @@
 """Optional OpenAI Agents SDK implementation for high-judgment stages.
 
 The Python state machine remains authoritative. The SDK is used only inside a stage;
-it cannot skip, insert, or complete stages on its own.
+it cannot skip, insert, or complete stages on its own. Creative image generation is
+orchestrated by the ChatGPT/MCP plugin path, not this standalone adapter.
 """
 from __future__ import annotations
 
@@ -10,7 +11,7 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ..models import ArtifactKind, GateStatus, Stage, WritingState
+from ..models import GateStatus, Stage, WritingState
 from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage
 from .deterministic import finalize_audit_artifact
 
@@ -44,8 +45,6 @@ def _state_context(state: WritingState) -> str:
 
 
 class OpenAIStageExecutor:
-    """One executor instance handles exactly one deterministic runtime stage."""
-
     def __init__(self, stage: Stage, *, model: str | None = None):
         self.stage = stage
         self.model = model or os.getenv("FINANCIAL_WRITING_MODEL", "gpt-6.1-sol")
@@ -66,7 +65,12 @@ class OpenAIStageExecutor:
         return method(state)
 
     def _execute_research(self, state: WritingState) -> WritingState:
-        instructions = load_reference("research.md") + "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article."
+        instructions = (
+            load_reference("research.md")
+            + "\n\n"
+            + load_reference("knowledge.md")
+            + "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article."
+        )
         out: ResearchPackage = self._run(
             name="Financial Writing Researcher",
             instructions=instructions,
@@ -79,7 +83,7 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_research_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\nAudit only the research package against references/research.md."
+        instructions = load_reference("audit.md") + "\n\nAudit only the research package against references/research.md and references/knowledge.md."
         out: GateDecision = self._run(
             name="Financial Writing Research Auditor",
             instructions=instructions,
@@ -87,13 +91,14 @@ class OpenAIStageExecutor:
             web=False,
             prompt=_state_context(state),
         )
-        status = GateStatus(out.status)
-        state.set_gate("research_audit", status, out.evidence, "; ".join(out.defects))
+        state.set_gate("research_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects))
         return state
 
     def _execute_editorial(self, state: WritingState) -> WritingState:
         instructions = (
             load_reference("editorial.md")
+            + "\n\n"
+            + load_reference("style.md")
             + "\n\n"
             + load_reference("structure_patterns.md")
             + "\n\nBuild TopicDNA and multiple candidate structures. Do not draft body text."
@@ -110,7 +115,12 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_title(self, state: WritingState) -> WritingState:
-        instructions = load_reference("editorial.md") + "\n\nGenerate 8-12 candidates per applicable mode and select only after judging finance relevance, factual support, information gap, and cognitive load."
+        instructions = (
+            load_reference("editorial.md")
+            + "\n\n"
+            + load_reference("style.md")
+            + "\n\nGenerate 8-12 candidates per applicable mode and select after judging finance relevance, factual support, information gap, cognitive load and extreme-language risk."
+        )
         out: HeadlinePackage = self._run(
             name="Financial Writing Headline Engine",
             instructions=instructions,
@@ -128,7 +138,14 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_draft(self, state: WritingState) -> WritingState:
-        instructions = load_reference("editorial.md") + "\n\nDraft the applicable article mode(s). Preserve the core reasoning chain and include a topic-specific risk/disclaimer H1 at the end."
+        instructions = (
+            load_reference("editorial.md")
+            + "\n\n"
+            + load_reference("style.md")
+            + "\n\n"
+            + load_reference("delivery.md")
+            + "\n\nDraft the applicable article mode(s). Use Simplified Chinese, continuous logically connected prose and include a topic-specific risk/disclaimer H1 at the end."
+        )
         out: DraftPackage = self._run(
             name="Financial Writing Writer",
             instructions=instructions,
@@ -141,7 +158,12 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_editorial_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\nAudit the frozen draft for evidence support, reasoning continuity, hook兑现, information density, platform fit and compliance."
+        instructions = (
+            load_reference("audit.md")
+            + "\n\n"
+            + load_reference("style.md")
+            + "\n\nAudit the frozen draft for evidence, reasoning continuity, transitions, anti-AI style, extreme language, hook payoff, information density, platform fit and compliance."
+        )
         out: GateDecision = self._run(
             name="Financial Writing Editorial Auditor",
             instructions=instructions,
@@ -155,7 +177,14 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_final_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\nPerform final red-team review of the frozen article content plus recorded mechanical audit."
+        instructions = (
+            load_reference("audit.md")
+            + "\n\n"
+            + load_reference("style.md")
+            + "\n\n"
+            + load_reference("visuals.md")
+            + "\n\nPerform final red-team review of frozen article content plus recorded mechanical/visual audit."
+        )
         out: GateDecision = self._run(
             name="Financial Writing Final Auditor",
             instructions=instructions,
@@ -172,7 +201,6 @@ class OpenAIStageExecutor:
 
 
 def build_openai_executors(*, model: str | None = None) -> dict[Stage, OpenAIStageExecutor]:
-    """High-judgment stages only. DELIVERY/MECHANICAL_AUDIT stay deterministic."""
     return {
         s: OpenAIStageExecutor(s, model=model)
         for s in {

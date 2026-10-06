@@ -11,7 +11,7 @@ from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
 from .models import GateStatus, Stage, WritingState
 from .routing import build_task_contract
-from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage
+from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage, VisualPackage
 from .store import SQLiteStateStore
 
 DATA_DIR = Path(os.getenv("FINANCIAL_WRITING_DATA_DIR", "/data"))
@@ -26,9 +26,10 @@ controller = WorkflowController(engine)
 mcp = MCPServer(
     "Financial Writing Agent",
     instructions=(
-        "Deterministic financial-writing runtime. Always start or resume a writing task before research or drafting. "
-        "Submit structured outputs only to the tool matching the current stage. The server owns legal stage transitions, "
-        "SQLite checkpointing, Word delivery and mechanical audit. Never bypass a failed or revision gate."
+        "Deterministic financial-writing runtime. Start or resume a task before research/drafting. "
+        "The server owns legal transitions, checkpointing, publication-ready Word delivery and mechanical audit. "
+        "For normal new Word articles visuals are enabled by default; generate images on the ChatGPT side, submit them with "
+        "submit_visual_package at DELIVERY, then build the Word files. Never bypass a failed/revision gate."
     ),
 )
 
@@ -45,6 +46,26 @@ def _require_stage(state: WritingState, expected: Stage) -> None:
         raise ValueError(f"task {state.contract.task_id} is at {state.stage.value}, expected {expected.value}")
 
 
+def _next_action(state: WritingState) -> str:
+    if state.stage == Stage.DELIVERY:
+        if state.contract.visuals_enabled and "visual_package" not in state.working:
+            return "plan/generate publication visuals and call submit_visual_package, then call build_and_mechanically_audit_delivery"
+        return "call build_and_mechanically_audit_delivery"
+    return {
+        Stage.INTAKE: "advance runtime initialization",
+        Stage.RESEARCH: "recover relevant durable knowledge, research broadly/currently, and call submit_research",
+        Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
+        Stage.EDITORIAL: "build TopicDNA and candidate structures, then call submit_editorial_plan",
+        Stage.TITLE: "generate and judge headline candidates, then call submit_headlines",
+        Stage.DRAFT: "draft the applicable article mode(s), then call submit_draft",
+        Stage.EDITORIAL_AUDIT: "independently audit the frozen draft, then call submit_editorial_audit",
+        Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
+        Stage.FINAL_AUDIT: "perform final semantic red-team and call submit_final_audit",
+        Stage.COMPLETE: "deliver recorded artifacts plus the visible completion checklist",
+        Stage.BLOCKED: "inspect blocked_reason and repair the runtime dependency before resuming",
+    }[state.stage]
+
+
 def _summary(state: WritingState) -> dict[str, Any]:
     return {
         "task_id": state.contract.task_id,
@@ -52,21 +73,15 @@ def _summary(state: WritingState) -> dict[str, Any]:
         "current_stage": state.stage.value,
         "distribution_mode": state.contract.distribution_mode.value,
         "delivery_channel": state.contract.delivery_channel.value,
+        "visuals_enabled": state.contract.visuals_enabled,
+        "visual_profile_ref": state.contract.visual_profile_ref,
         "required_outputs": [kind.value for kind in state.contract.required_outputs],
         "gates": {
-            name: {
-                "status": gate.status.value,
-                "evidence": gate.evidence,
-                "notes": gate.notes,
-            }
+            name: {"status": gate.status.value, "evidence": gate.evidence, "notes": gate.notes}
             for name, gate in state.gates.items()
         },
         "artifacts": {
-            kind.value: {
-                "path": artifact.path,
-                "exists": artifact.exists,
-                "sha256": artifact.sha256,
-            }
+            kind.value: {"path": artifact.path, "exists": artifact.exists, "sha256": artifact.sha256}
             for kind, artifact in state.artifacts.items()
         },
         "blocked_reason": state.blocked_reason,
@@ -74,23 +89,6 @@ def _summary(state: WritingState) -> dict[str, Any]:
         "next_action": _next_action(state),
         "trace_tail": [event.model_dump(mode="json") for event in state.trace[-8:]],
     }
-
-
-def _next_action(state: WritingState) -> str:
-    return {
-        Stage.INTAKE: "advance runtime initialization",
-        Stage.RESEARCH: "research broadly and call submit_research",
-        Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
-        Stage.EDITORIAL: "build TopicDNA and candidate structures, then call submit_editorial_plan",
-        Stage.TITLE: "generate and judge headline candidates, then call submit_headlines",
-        Stage.DRAFT: "draft the applicable article mode(s), then call submit_draft",
-        Stage.EDITORIAL_AUDIT: "independently audit the frozen draft, then call submit_editorial_audit",
-        Stage.DELIVERY: "call build_and_mechanically_audit_delivery",
-        Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
-        Stage.FINAL_AUDIT: "perform final semantic red-team and call submit_final_audit",
-        Stage.COMPLETE: "deliver the recorded artifacts to the user",
-        Stage.BLOCKED: "inspect blocked_reason and repair the runtime dependency before resuming",
-    }[state.stage]
 
 
 def _save_and_advance(state: WritingState) -> WritingState:
@@ -114,12 +112,16 @@ def start_writing_task(
     prompt: str,
     source_refs: list[str] | None = None,
     target_platforms: list[str] | None = None,
+    visuals_enabled: bool | None = None,
+    visual_profile_ref: str | None = None,
 ) -> dict[str, Any]:
-    """Start a new financial-writing task before doing any research or drafting. Returns the task_id and required next stage."""
+    """Start a new financial-writing task before research/drafting. New Word articles default to visuals unless explicitly disabled."""
     contract = build_task_contract(
         prompt=prompt,
         source_refs=source_refs or [],
         target_platforms=target_platforms or [],
+        visuals_enabled=visuals_enabled,
+        visual_profile_ref=visual_profile_ref,
     )
     state = engine.start(contract)
     state = controller.advance(state)
@@ -134,7 +136,7 @@ def get_writing_task(task_id: str) -> dict[str, Any]:
 
 @mcp.tool()
 def list_recent_writing_tasks(limit: int = 10, include_complete: bool = False) -> list[dict[str, Any]]:
-    """List recent persisted writing tasks so a fresh conversation can recover an unfinished task without relying on chat memory."""
+    """List recent persisted writing tasks for fresh-conversation recovery."""
     states = store.list_recent(limit=max(1, min(limit, 50)))
     if not include_complete:
         states = [state for state in states if state.stage != Stage.COMPLETE]
@@ -143,7 +145,7 @@ def list_recent_writing_tasks(limit: int = 10, include_complete: bool = False) -
 
 @mcp.tool()
 def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
-    """Submit a complete ResearchPackage for a task currently at RESEARCH. This is a write action and advances only through the legal gate."""
+    """Submit a complete ResearchPackage for a task currently at RESEARCH."""
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
     payload = ResearchPackage.model_validate(research)
@@ -151,7 +153,12 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
     state.set_gate(
         "research_output",
         GateStatus.PASS,
-        [f"evidence_items={len(payload.evidence_ledger)}", f"universe={len(payload.universe)}"],
+        [
+            f"evidence_items={len(payload.evidence_ledger)}",
+            f"universe={len(payload.universe)}",
+            f"prior_knowledge_refs={len(payload.cognition.prior_knowledge_refs)}",
+            f"knowledge_writeback_candidates={len(payload.knowledge_writeback_candidates)}",
+        ],
     )
     state.add_trace("MCP_STAGE_OUTPUT", "research package accepted")
     return _summary(_save_and_advance(state))
@@ -159,16 +166,13 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
 
 @mcp.tool()
 def submit_research_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]:
-    """Submit an independent research audit for a task currently at RESEARCH_AUDIT."""
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH_AUDIT)
-    result = _apply_gate_decision(state, "research_audit", GateDecision.model_validate(decision))
-    return _summary(result)
+    return _summary(_apply_gate_decision(state, "research_audit", GateDecision.model_validate(decision)))
 
 
 @mcp.tool()
 def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[str, Any]:
-    """Submit TopicDNA and the selected article structure for a task currently at EDITORIAL."""
     state = _load(task_id)
     _require_stage(state, Stage.EDITORIAL)
     payload = EditorialPlan.model_validate(editorial_plan)
@@ -180,7 +184,6 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
 
 @mcp.tool()
 def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
-    """Submit headline candidates and selections for a task currently at TITLE."""
     state = _load(task_id)
     _require_stage(state, Stage.TITLE)
     payload = HeadlinePackage.model_validate(headlines)
@@ -198,7 +201,6 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
 
 @mcp.tool()
 def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
-    """Submit the frozen structured draft package for a task currently at DRAFT."""
     state = _load(task_id)
     _require_stage(state, Stage.DRAFT)
     payload = DraftPackage.model_validate(draft)
@@ -210,7 +212,6 @@ def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
 
 @mcp.tool()
 def submit_editorial_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]:
-    """Submit an independent draft audit for a task currently at EDITORIAL_AUDIT."""
     state = _load(task_id)
     _require_stage(state, Stage.EDITORIAL_AUDIT)
     result = _apply_gate_decision(
@@ -223,10 +224,42 @@ def submit_editorial_audit(task_id: str, decision: dict[str, Any]) -> dict[str, 
 
 
 @mcp.tool()
+def submit_visual_package(task_id: str, visual_package: dict[str, Any]) -> dict[str, Any]:
+    """Record generated visual assets/anchors before Word delivery. Valid only at DELIVERY when visuals are enabled."""
+    state = _load(task_id)
+    _require_stage(state, Stage.DELIVERY)
+    if not state.contract.visuals_enabled:
+        raise ValueError("task visuals_enabled=false; do not submit a visual package")
+    payload = VisualPackage.model_validate(visual_package)
+    applicable: list[str] = []
+    if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"}:
+        applicable.append("FINANCE_DEEP")
+    if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"}:
+        applicable.append("FINANCE_BROAD")
+    evidence: list[str] = []
+    for mode in applicable:
+        assets = [a for a in payload.assets if a.article_mode == mode]
+        if not assets:
+            raise ValueError(f"missing visuals for applicable mode: {mode}")
+        if not any(a.role == "hero" for a in assets):
+            raise ValueError(f"missing hero visual for applicable mode: {mode}")
+        if payload.avatar_required and any(not a.avatar_included for a in assets):
+            raise ValueError(f"approved avatar missing from one or more {mode} visuals")
+        evidence.append(f"{mode}_visuals={len(assets)}")
+    state.working["visual_package"] = payload.model_dump(mode="json")
+    state.set_gate("visual_assets", GateStatus.PASS, evidence)
+    state.add_trace("MCP_STAGE_OUTPUT", "visual package accepted")
+    store.save(state)
+    return _summary(state)
+
+
+@mcp.tool()
 def build_and_mechanically_audit_delivery(task_id: str) -> dict[str, Any]:
-    """Build required Word artifacts and run deterministic mechanical/render QA. Only valid at DELIVERY or MECHANICAL_AUDIT."""
+    """Build Word artifacts and run mechanical/render QA. If visuals are enabled, submit_visual_package must run first."""
     state = _load(task_id)
     if state.stage == Stage.DELIVERY:
+        if state.contract.visuals_enabled and "visual_package" not in state.working:
+            raise ValueError("visual package required before delivery; call submit_visual_package first")
         state = DeliveryExecutor(root=RUNS_DIR).execute(state)
         state.add_trace("MCP_DETERMINISTIC", "delivery executor completed")
         store.save(state)
@@ -244,7 +277,6 @@ def build_and_mechanically_audit_delivery(task_id: str) -> dict[str, Any]:
 
 @mcp.tool()
 def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]:
-    """Submit the final semantic red-team decision. PASS creates the visible audit report and permits COMPLETE only if every required artifact exists."""
     state = _load(task_id)
     _require_stage(state, Stage.FINAL_AUDIT)
     payload = GateDecision.model_validate(decision)

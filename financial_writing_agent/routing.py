@@ -28,17 +28,34 @@ def infer_delivery_channel(prompt: str) -> DeliveryChannel:
     return DeliveryChannel.CHAT_TEXT if explicit_chat else DeliveryChannel.WORD_FILE_ONLY
 
 
+def infer_visuals_enabled(prompt: str, delivery_channel: DeliveryChannel) -> bool:
+    if delivery_channel == DeliveryChannel.CHAT_TEXT:
+        return False
+    normalized = prompt.replace(" ", "")
+    if any(x in normalized for x in ["不要图片", "不要配图", "不做图", "不需要配图", "纯文字即可", "纯文字就行"]):
+        return False
+    if any(x in normalized.lower() for x in ["word已经写好了", "word已写好", "现成word", "已有word"]):
+        return False
+    return True
+
+
 def build_task_contract(
     *,
     prompt: str,
     source_refs: list[str] | None = None,
     target_platforms: list[str] | None = None,
+    visuals_enabled: bool | None = None,
+    visual_profile_ref: str | None = None,
 ) -> TaskContract:
     platforms = target_platforms or []
+    delivery = infer_delivery_channel(prompt)
+    visuals = infer_visuals_enabled(prompt, delivery) if visuals_enabled is None else visuals_enabled
     return TaskContract(
         prompt=prompt,
         source_refs=source_refs or [],
         target_platforms=platforms,
         distribution_mode=infer_distribution_mode(platforms),
-        delivery_channel=infer_delivery_channel(prompt),
+        delivery_channel=delivery,
+        visuals_enabled=visuals,
+        visual_profile_ref=visual_profile_ref,
     )

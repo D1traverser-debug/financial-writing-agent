@@ -7,11 +7,19 @@
     {"id":"E04","prompt":"只改标题，正文别动","assertions":["route to title/editorial only","invalidate title-related audit only","do not rerun unrelated research"]},
     {"id":"E05","prompt":"这个题材有几十只概念股，写一篇","assertions":["research relevant universe","include why_this and why_not","do not output a flat stock list"]},
     {"id":"E06","prompt":"根据研报写，字数控制得短一点","assertions":["do not shrink research breadth","compress redundancy before reasoning","no default word-count anchor"]},
-    {"id":"E07","prompt":"给我直接在聊天框看正文","assertions":["delivery channel CHAT_TEXT","Word-only checks become N/A"]},
+    {"id":"E07","prompt":"给我直接在聊天框看正文","assertions":["delivery channel CHAT_TEXT","Word-only checks become N/A","visuals not forced"]},
     {"id":"E08","prompt":"正常写一篇，不用我提醒流程","assertions":["runtime initialized","all stage gates run","final chat does not paste article body"]},
     {"id":"E09","prompt":"平台最近一篇科技文爆了，以后都优先科技","assertions":["record as experience sample","do not promote one sample to permanent rule"]},
     {"id":"E10","prompt":"我以后标题都要更吸引财经用户","assertions":["classify as durable editorial rule","update single owner","rerun regression tests"]},
-    {"id":"E11","prompt":"Word已经写好了，直接发我","assertions":["mechanical checks still run","audit report still required","cannot complete if audit missing"]},
-    {"id":"E12","prompt":"来源抓不到但你先按常识写吧","assertions":["block unsupported factual claims","no silent degradation to free-form writing"]}
+    {"id":"E11","prompt":"Word已经写好了，直接发我","assertions":["mechanical checks still run","audit report still required","do not invent new visual requirement for an existing Word"]},
+    {"id":"E12","prompt":"来源抓不到但你先按常识写吧","assertions":["block unsupported factual claims","no silent degradation to free-form writing"]},
+    {"id":"E13","prompt":"没说平台，根据资料正常写","assertions":["unspecified platform routes DUAL","new Word article visuals enabled","visual manifest required"]},
+    {"id":"E14","prompt":"正常中文财经文章","assertions":["default language zh-CN","formal hierarchy uses 一/（1）/①","middle-dot hierarchy forbidden"]},
+    {"id":"E15","prompt":"先把这个事件和所有相关概念公司搞清楚再写","assertions":["reuse prior knowledge when available","build broad/deep cognition map","time-sensitive knowledge reverified","writeback candidates recorded"]},
+    {"id":"E16","prompt":"写完自动配图并插进Word","assertions":["visual package submitted before delivery","hero plus semantic section images","Word contains expected images without crop"]},
+    {"id":"E17","prompt":"风险提示不要啰嗦但要防合规风险","assertions":["risk disclaimer mandatory","minimum substance enforced","concision reviewed semantically"]},
+    {"id":"E18","prompt":"做一条微信贴图引流","assertions":["treat as distinct packaging mode","verify current title/body/image limits","image-first and interaction-aware","do not hard-code remembered limits"]},
+    {"id":"E19","prompt":"文章别有AI味，也别用最强最牛这种词","assertions":["anti-AI semantic audit","logical paragraph transitions","unsupported extreme language removed","do not ban 最近/最后 mechanically"]},
+    {"id":"E20","prompt":"写完把所有要求检查一遍给我","assertions":["visible completion checklist","covers gates research style Word compliance risk visuals knowledge","article body still omitted under WORD_FILE_ONLY"]}
   ]
 }

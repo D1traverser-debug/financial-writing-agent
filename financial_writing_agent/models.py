@@ -47,6 +47,7 @@ class ArtifactKind(str, Enum):
     FINANCE_DEEP_DOCX = "FINANCE_DEEP_DOCX"
     FINANCE_BROAD_DOCX = "FINANCE_BROAD_DOCX"
     AUDIT_DOCX = "AUDIT_DOCX"
+    VISUAL_MANIFEST_JSON = "VISUAL_MANIFEST_JSON"
     CHAT_TEXT = "CHAT_TEXT"
 
 
@@ -72,6 +73,8 @@ class TaskContract(BaseModel):
     target_platforms: list[str] = Field(default_factory=list)
     distribution_mode: DistributionMode = DistributionMode.DUAL
     delivery_channel: DeliveryChannel = DeliveryChannel.WORD_FILE_ONLY
+    visuals_enabled: bool = False
+    visual_profile_ref: str | None = None
     required_outputs: list[ArtifactKind] = Field(default_factory=list)
     run_constraints: dict[str, Any] = Field(default_factory=dict)
 
@@ -83,6 +86,8 @@ class TaskContract(BaseModel):
             self.required_outputs = [ArtifactKind.CHAT_TEXT]
             return self
         required = [ArtifactKind.AUDIT_DOCX]
+        if self.visuals_enabled:
+            required.append(ArtifactKind.VISUAL_MANIFEST_JSON)
         if self.distribution_mode in (DistributionMode.FINANCE_DEEP, DistributionMode.DUAL):
             required.append(ArtifactKind.FINANCE_DEEP_DOCX)
         if self.distribution_mode in (DistributionMode.FINANCE_BROAD, DistributionMode.DUAL):

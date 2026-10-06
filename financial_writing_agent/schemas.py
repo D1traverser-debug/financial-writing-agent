@@ -25,6 +25,18 @@ class CompanyFinding(BaseModel):
     why_this: str = ""
     why_not: list[str] = Field(default_factory=list)
     market_role: str = ""
+    short_term_role: str = ""
+    positioning_signals: list[str] = Field(default_factory=list)
+    fund_flow_signals: list[str] = Field(default_factory=list)
+
+
+class MarketCognition(BaseModel):
+    prior_knowledge_refs: list[str] = Field(default_factory=list)
+    concept_map: list[str] = Field(default_factory=list)
+    adjacent_or_competing_concepts: list[str] = Field(default_factory=list)
+    industry_logic: list[str] = Field(default_factory=list)
+    short_term_market_structure: list[str] = Field(default_factory=list)
+    knowledge_conflicts: list[str] = Field(default_factory=list)
 
 
 class ResearchPackage(BaseModel):
@@ -39,6 +51,8 @@ class ResearchPackage(BaseModel):
     unresolved_gaps: list[str]
     provisional_theses: list[str]
     source_boundary: str
+    cognition: MarketCognition = Field(default_factory=MarketCognition)
+    knowledge_writeback_candidates: list[str] = Field(default_factory=list)
 
 
 class TopicDNA(BaseModel):
@@ -95,6 +109,24 @@ class ArticlePayload(BaseModel):
 class DraftPackage(BaseModel):
     finance_deep: ArticlePayload | None = None
     finance_broad: ArticlePayload | None = None
+
+
+class VisualAsset(BaseModel):
+    article_mode: Literal["FINANCE_DEEP", "FINANCE_BROAD"]
+    role: Literal["hero", "section"]
+    semantic_focus: str
+    source_uri: str
+    anchor_after_block: int | None = Field(default=None, ge=0)
+    hook_text: str = ""
+    aspect_ratio: str = "16:9"
+    avatar_included: bool = True
+
+
+class VisualPackage(BaseModel):
+    assets: list[VisualAsset]
+    avatar_required: bool = True
+    target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
+    planning_notes: list[str] = Field(default_factory=list)
 
 
 class GateDecision(BaseModel):
