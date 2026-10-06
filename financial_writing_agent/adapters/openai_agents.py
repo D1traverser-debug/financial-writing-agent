@@ -1,8 +1,8 @@
 """Optional OpenAI Agents SDK implementation for high-judgment stages.
 
 The Python state machine remains authoritative. The SDK is used only inside a stage;
-it cannot skip, insert, or complete stages on its own. Creative image generation is
-orchestrated by the ChatGPT/MCP plugin path, not this standalone adapter.
+it cannot skip, insert, or complete stages on its own. Creative image generation and
+connected-store I/O are orchestrated by the ChatGPT/MCP plugin path, not this adapter.
 """
 from __future__ import annotations
 
@@ -11,8 +11,8 @@ import os
 from pathlib import Path
 from typing import Any
 
-from ..models import GateStatus, Stage, WritingState
-from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage
+from ..models import ContentMode, GateStatus, Stage, WritingState
+from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage, StyleAuditDecision
 from .deterministic import finalize_audit_artifact
 
 
@@ -65,12 +65,10 @@ class OpenAIStageExecutor:
         return method(state)
 
     def _execute_research(self, state: WritingState) -> WritingState:
-        instructions = (
-            load_reference("research.md")
-            + "\n\n"
-            + load_reference("knowledge.md")
-            + "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article."
-        )
+        instructions = load_reference("research.md") + "\n\n" + load_reference("knowledge.md")
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            instructions += "\n\n" + load_reference("platforms.md") + "\n\nVerify current WeChat sticker-post limits/mechanics with live web evidence and preserve sources for the later PlatformConstraintSnapshot."
+        instructions += "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article."
         out: ResearchPackage = self._run(
             name="Financial Writing Researcher",
             instructions=instructions,
@@ -95,14 +93,10 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_editorial(self, state: WritingState) -> WritingState:
-        instructions = (
-            load_reference("editorial.md")
-            + "\n\n"
-            + load_reference("style.md")
-            + "\n\n"
-            + load_reference("structure_patterns.md")
-            + "\n\nBuild TopicDNA and multiple candidate structures. Do not draft body text."
-        )
+        instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("structure_patterns.md")
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            instructions += "\n\n" + load_reference("platforms.md") + "\n\nDesign a concise image-first sticker-post structure; do not force long-article H1 architecture."
+        instructions += "\n\nBuild TopicDNA and multiple candidate structures. Do not draft body text."
         out: EditorialPlan = self._run(
             name="Financial Writing Editorial Architect",
             instructions=instructions,
@@ -115,12 +109,11 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_title(self, state: WritingState) -> WritingState:
-        instructions = (
-            load_reference("editorial.md")
-            + "\n\n"
-            + load_reference("style.md")
-            + "\n\nGenerate 8-12 candidates per applicable mode and select after judging finance relevance, factual support, information gap, cognitive load and extreme-language risk."
-        )
+        instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md")
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            instructions += "\n\n" + load_reference("platforms.md") + "\n\nGenerate sticker-post title candidates that complement the image hook. Do not assume remembered platform character limits; use the verified research context."
+        else:
+            instructions += "\n\nGenerate 8-12 candidates per applicable mode and select after judging finance relevance, factual support, information gap, cognitive load and extreme-language risk."
         out: HeadlinePackage = self._run(
             name="Financial Writing Headline Engine",
             instructions=instructions,
@@ -129,23 +122,23 @@ class OpenAIStageExecutor:
             prompt=_state_context(state),
         )
         state.working["headlines"] = out.model_dump(mode="json")
-        applicable = []
-        if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"}:
-            applicable.append(bool(out.finance_deep_selected))
-        if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"}:
-            applicable.append(bool(out.finance_broad_selected))
-        state.set_gate("title_audit", GateStatus.PASS if all(applicable) else GateStatus.REVISE, [f"applicable_modes={len(applicable)}"])
+        applicable: list[bool] = []
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            applicable.append(bool(out.wechat_sticker_selected))
+        else:
+            if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"}:
+                applicable.append(bool(out.finance_deep_selected))
+            if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"}:
+                applicable.append(bool(out.finance_broad_selected))
+        state.set_gate("title_audit", GateStatus.PASS if applicable and all(applicable) else GateStatus.REVISE, [f"applicable_modes={len(applicable)}"])
         return state
 
     def _execute_draft(self, state: WritingState) -> WritingState:
-        instructions = (
-            load_reference("editorial.md")
-            + "\n\n"
-            + load_reference("style.md")
-            + "\n\n"
-            + load_reference("delivery.md")
-            + "\n\nDraft the applicable article mode(s). Use Simplified Chinese, continuous logically connected prose and include a topic-specific risk/disclaimer H1 at the end."
-        )
+        instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("delivery.md")
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            instructions += "\n\n" + load_reference("platforms.md") + "\n\nReturn only wechat_sticker_post in DraftPackage. Its PlatformConstraintSnapshot must come from current research evidence; keep copy concise/useful, include an interaction prompt when appropriate, and include a compact information-dense risk disclaimer."
+        else:
+            instructions += "\n\nDraft the applicable article mode(s). Use Simplified Chinese, continuous logically connected prose and include a topic-specific risk/disclaimer H1 at the end."
         out: DraftPackage = self._run(
             name="Financial Writing Writer",
             instructions=instructions,
@@ -158,12 +151,24 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_editorial_audit(self, state: WritingState) -> WritingState:
-        instructions = (
-            load_reference("audit.md")
-            + "\n\n"
-            + load_reference("style.md")
-            + "\n\nAudit the frozen draft for evidence, reasoning continuity, transitions, anti-AI style, extreme language, hook payoff, information density, platform fit and compliance."
+        style_instructions = load_reference("style.md") + "\n\nAct as a dedicated style judge independent from the writer. Audit only AI-template fingerprints, paragraph/section transitions, repetitive rhetorical constructions, rhythm problems, empty bridges and unsupported extreme/superlative language."
+        style_out: StyleAuditDecision = self._run(
+            name="Financial Writing Anti-AI Style Judge",
+            instructions=style_instructions,
+            output_type=StyleAuditDecision,
+            web=False,
+            prompt=_state_context(state),
         )
+        state.set_gate("style_audit", GateStatus(style_out.status), style_out.evidence, "; ".join(style_out.detected_patterns + style_out.transition_findings + style_out.extreme_language_findings + style_out.revision_notes))
+        state.working["style_audit"] = style_out.model_dump(mode="json")
+        if style_out.status != "PASS":
+            state.set_gate("editorial_audit", GateStatus.REVISE, style_out.evidence, "style audit requires draft revision")
+            state.working["revise_target"] = "DRAFT"
+            return state
+
+        instructions = load_reference("audit.md") + "\n\nAudit the frozen draft for evidence, reasoning continuity, hook payoff, information density, platform fit and compliance. The dedicated style gate has already passed; do not replace it with writer self-assessment."
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            instructions += "\n\n" + load_reference("platforms.md")
         out: GateDecision = self._run(
             name="Financial Writing Editorial Auditor",
             instructions=instructions,
@@ -177,14 +182,10 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_final_audit(self, state: WritingState) -> WritingState:
-        instructions = (
-            load_reference("audit.md")
-            + "\n\n"
-            + load_reference("style.md")
-            + "\n\n"
-            + load_reference("visuals.md")
-            + "\n\nPerform final red-team review of frozen article content plus recorded mechanical/visual audit."
-        )
+        instructions = load_reference("audit.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("visuals.md")
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            instructions += "\n\n" + load_reference("platforms.md")
+        instructions += "\n\nPerform final red-team review of frozen content plus recorded mechanical/visual audit."
         out: GateDecision = self._run(
             name="Financial Writing Final Auditor",
             instructions=instructions,

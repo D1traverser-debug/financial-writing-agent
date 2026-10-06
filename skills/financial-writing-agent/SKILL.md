@@ -1,65 +1,40 @@
 ---
 name: financial-writing-agent
-description: Deterministic A-share financial writing workflow. Use whenever the user asks to write, rewrite, continue, audit, retitle, or produce a formal financial article from links, PDFs, news, research reports, or prior drafts. Runtime first; never silently fall back to free-form writing.
+description: Deterministic A-share financial writing workflow for formal articles and image-first WeChat sticker posts. Runtime first; recover via MCP before asking the user to repeat persisted context.
 ---
 
 # Financial Writing Agent
 
-## Runtime first
-Before source retrieval, research, outlining, drafting, rewriting, title work, image planning, or delivery, initialize or recover the Financial Writing Runtime.
+## Runtime and recovery
+Start every task with `start_writing_task`; resume with `list_recent_writing_tasks` + `get_writing_task`. MCP checkpoint is executable authority. Repository `main` is the rule/code truth; Notion/Drive status pages are governance mirrors only.
 
-For a new task call `start_writing_task`. For continuation call `list_recent_writing_tasks` and `get_writing_task` before asking the user to repeat persisted context.
+Stage order: `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
 
-Stage order:
-`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
-
-Never skip a stage or silently continue as ordinary free-form chat when the runtime is unavailable, blocked, or requests revision.
-
-## Recovery authority
-The MCP runtime checkpoint is the executable authority. Notion/Drive pointers may mirror status for governance and fresh-chat discovery, but they do not override the runtime checkpoint.
-
-## Default contract
-Unless the user explicitly overrides the current task:
+## Defaults
 - unspecified platform → `DUAL`;
-- `DUAL` = one research base plus independently edited `FINANCE_DEEP` and `FINANCE_BROAD` articles;
-- formal article language = Simplified Chinese financial prose;
-- delivery = `WORD_FILE_ONLY`;
-- normal new Word-article tasks include publication-ready visuals unless the user opts out or the task is only auditing/delivering an existing document;
-- do not paste full article drafts/previews into chat;
-- Word completion requires applicable article file(s), `WRITING_AUDIT_REPORT.docx`, and—when visuals are enabled—the visual manifest.
+- normal mode → `FORMAL_ARTICLE`;
+- default language → Simplified Chinese financial prose;
+- default delivery → `WORD_FILE_ONLY`;
+- new Word articles include visuals unless explicitly disabled;
+- do not paste body/preview under `WORD_FILE_ONLY`.
 
-## Research/cognition choreography
-At `RESEARCH`, first search available durable knowledge/StockBase/EventBase/approved prior research when accessible, then verify all time-sensitive claims with current sources. Build cognition broad/deep enough to understand the event catalyst, concepts, industry chain, relevant A-share universe, company fundamentals, why-this/why-not, market selection, and relevant short-term roles/signals (leader, 中军/liquidity carrier, 补涨, 卡位,套利,身位,抢筹,封单/订单簿强度). Do not force all of this into the article; use it to write selectively without losing accuracy.
+## Research/cognition
+After runtime start, query accessible durable EventBase/StockBase/knowledge assets before open-web expansion when relevant. Record connector-side reusable refs with `record_knowledge_context`; reverify all current/material facts. Build broad/deep cognition covering catalyst, concepts, industry chain, A-share universe, company fundamentals, why-this/why-not, market selection, and relevant short-term roles/signals. Research emits reusable writeback candidates.
 
-Persist reusable knowledge candidates after research/finalization when a connected knowledge store is available, without duplicating stale or contradictory facts.
+Before final audit, write evidence-bounded reusable candidates back through the connected store when available and call `record_knowledge_writeback` with receipts; otherwise record `N_A`. Runtime never pretends it directly owns Notion/Drive connector credentials.
 
-## Editorial behavior
-- Continuous report-style prose by default; avoid fragment-note writing.
-- Prefer conclusion-first openings when they improve comprehension, but do not force one rigid template.
-- Maintain explicit logical transitions across paragraphs/sections.
-- Formal hierarchy: `一、二、三` → `（1）（2）（3）` → `①②③`; never use `·` as the primary hierarchy marker.
-- Default to Simplified Chinese.
-- Apply `references/style.md`: individualized, evidence-bounded voice; avoid formulaic AI cadence/repetition and unjustified extreme/superlative claims such as rhetorical “最…”.
-- No fixed word-count target.
+## Editorial/style
+Use continuous report prose, logical transitions, topic-specific structure, conclusion-first only when useful, and Chinese hierarchy `一、二、三` → `（1）（2）（3）` → `①②③`; `·` is not a primary hierarchy marker. No fixed word target.
 
-## Visual choreography
-At `DELIVERY`, if `visuals_enabled=true` and no visual package is recorded:
-1. Read `references/visuals.md`.
-2. Plan hero/section images from the frozen article, approximately one image per 700 Chinese characters but primarily aligned to semantic blocks/H1 themes.
-3. Generate images with the available image-generation capability. Image text may be a shorter semantic hook rather than a duplicate H1.
-4. Use the user's approved avatar as a small circular integrated element on every requested image; do not silently replace it.
-5. Call `submit_visual_package` with mode, semantic anchor, source URI/path, hook text and avatar metadata.
-6. Only then call `build_and_mechanically_audit_delivery`.
+At `EDITORIAL_AUDIT`, run a dedicated independent anti-AI/style judge and call `submit_style_audit` before general editorial audit. It checks repetitive AI constructions, over-regular rhythm, empty bridge sentences, stitched-block transitions and unsupported extreme/superlative language including rhetorical “最…”. `submit_editorial_audit` cannot PASS until style audit passes.
 
-The deterministic Word builder inserts the supplied images, centered and uncropped, at the recorded anchors.
+## Formal visuals
+At DELIVERY, generate one 16:9 hero plus semantic section visuals at roughly one per 700 Chinese characters, prioritized by meaning rather than count. Image hooks need not duplicate H1. Use the user's approved avatar as a small circular integrated element. Call `submit_visual_package`; Word delivery inserts images centered and uncropped at recorded anchors.
 
-## WeChat sticker-post mode
-If the user asks for 微信贴图/流量贴, treat it as a distinct packaging task. Verify current title/body limits and current distribution/recommendation mechanics from authoritative/current evidence before writing; do not hard-code remembered limits. Optimize image-first hook, concise copy, and interaction intent without turning the content into misleading clickbait.
+## WeChat sticker posts
+Explicit 微信贴图 requests use `WECHAT_STICKER_POST`. Verify current platform/UI limits and recommendation behavior before drafting. Never hard-code remembered title/body/image limits. Draft a `PlatformConstraintSnapshot` with verification time and sources; runtime enforces available numeric title/body limits. Use concise useful copy, interaction intent, and vertical image-first creative when current evidence supports it. Output is `WECHAT_STICKER_POST.docx` plus visual manifest when visuals are enabled.
 
-## Risk/compliance
-Formal public financial articles must end with a topic-specific risk warning and disclaimer. Keep it concise and information-dense; shortening must not remove material risk information. A disclaimer does not cure actionable trading instructions.
+## Risk and completion
+Public financial content requires a concise, information-dense, topic-specific risk warning/disclaimer. No disclaimer can cure actionable buy/sell guidance.
 
-## Audit/checklist
-Writer and semantic auditor remain separate. Mechanical QA cannot replace semantic review and vice versa. Final semantic audit explicitly checks evidence support, reasoning continuity, paragraph transitions, anti-AI style, extreme/superlative wording, platform fit, risk/disclaimer quality, and visual/article alignment when applicable.
-
-After runtime `COMPLETE`, return artifact links plus a concise visible checklist covering runtime/gates, research/evidence, structure/style, Word/render, compliance/risk, visuals, and knowledge reuse/writeback. Under `WORD_FILE_ONLY`, do not paste article body.
+At `COMPLETE`, return artifact links plus the runtime `completion_checklist` covering gates, research/evidence, structure/style/continuity, Word/render, compliance/risk, visuals and knowledge reuse/writeback. Do not paste article body under `WORD_FILE_ONLY`.

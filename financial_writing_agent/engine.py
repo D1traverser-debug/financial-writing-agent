@@ -32,6 +32,7 @@ class WritingEngine:
         state = WritingState(contract=contract)
         state.add_trace("RUNTIME_STARTED", "TaskContract initialized before source retrieval or drafting")
         state.set_gate("runtime_initialized", GateStatus.PASS, ["TaskContract exists", "State store active"])
+        state.set_gate("knowledge_sync", GateStatus.N_A, [], "No connected knowledge writeback recorded yet")
         self.store.save(state)
         return state
 

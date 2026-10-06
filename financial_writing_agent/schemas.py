@@ -160,6 +160,15 @@ class VisualPackage(BaseModel):
     planning_notes: list[str] = Field(default_factory=list)
 
 
+class StyleAuditDecision(BaseModel):
+    status: Literal["PASS", "REVISE"]
+    evidence: list[str]
+    detected_patterns: list[str] = Field(default_factory=list)
+    transition_findings: list[str] = Field(default_factory=list)
+    extreme_language_findings: list[str] = Field(default_factory=list)
+    revision_notes: list[str] = Field(default_factory=list)
+
+
 class GateDecision(BaseModel):
     status: Literal["PASS", "REVISE", "FAIL"]
     evidence: list[str]
