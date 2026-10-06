@@ -1,22 +1,20 @@
 from __future__ import annotations
 
 import json
-import subprocess
-import sys
 from pathlib import Path
 
 from ..checks import check_docx, load_policy, sha256_file
 from ..document import ArticleDocument, AuditLine, Block, DocumentImage, build_article_docx, build_audit_docx
 from ..models import Artifact, ArtifactKind, ContentMode, DeliveryChannel, DistributionMode, GateStatus, WritingState
+from ..rendering import render_docx_pages
+from ..resources import load_packaged_policy
 from ..schemas import DraftPackage, ResolvedVisualPackage
 
 
 class DeliveryExecutor:
     def __init__(self, *, root: str | Path = "runs", policy_path: str | Path | None = None):
-        project_root = Path(__file__).resolve().parents[2]
         self.root = Path(root)
-        self.policy_path = Path(policy_path) if policy_path else project_root / "config" / "policy.json"
-        self.policy = load_policy(self.policy_path)
+        self.policy = load_policy(policy_path) if policy_path else load_packaged_policy()
 
     @staticmethod
     def _article(payload) -> ArticleDocument:
@@ -48,8 +46,8 @@ class DeliveryExecutor:
         if mode == "WECHAT_STICKER_POST":
             if not any(a.role in {"sticker", "hero"} for a in assets):
                 raise ValueError("WeChat sticker package requires at least one sticker/hero visual")
-        elif not any(a.role == "hero" for a in assets):
-            raise ValueError(f"visual package has no hero for {mode}")
+        elif len([a for a in assets if a.role == "hero"]) != 1:
+            raise ValueError(f"{mode} requires exactly one hero visual")
         if package.avatar_required and any(not a.avatar_included for a in assets):
             raise ValueError(f"visual package has asset without required avatar for {mode}")
         return [
@@ -79,8 +77,12 @@ class DeliveryExecutor:
                 pieces.append("\n".join(x for x in [p.title, p.body, p.interaction_prompt, p.risk_disclaimer] if x))
             text_path = outdir / "CHAT_TEXT.txt"
             text_path.write_text("\n\n---\n\n".join(pieces), encoding="utf-8")
-            art = Artifact(kind=ArtifactKind.CHAT_TEXT, path=str(text_path), exists=True, sha256=sha256_file(text_path))
-            state.artifacts[ArtifactKind.CHAT_TEXT] = art
+            state.artifacts[ArtifactKind.CHAT_TEXT] = Artifact(
+                kind=ArtifactKind.CHAT_TEXT,
+                path=str(text_path),
+                exists=True,
+                sha256=sha256_file(text_path),
+            )
             state.set_gate("delivery_output", GateStatus.PASS, [str(text_path)])
             return state
 
@@ -91,9 +93,8 @@ class DeliveryExecutor:
                 state.set_gate("delivery_output", GateStatus.FAIL, [], "resolved visual package missing while visuals_enabled=true")
                 return state
             visual_package = ResolvedVisualPackage.model_validate(raw_visuals)
-            public_manifest = state.working.get("visual_package")
             manifest_path = outdir / "VISUAL_MANIFEST.json"
-            manifest_path.write_text(json.dumps(public_manifest, ensure_ascii=False, indent=2), encoding="utf-8")
+            manifest_path.write_text(json.dumps(state.working.get("visual_package"), ensure_ascii=False, indent=2), encoding="utf-8")
             state.artifacts[ArtifactKind.VISUAL_MANIFEST_JSON] = Artifact(
                 kind=ArtifactKind.VISUAL_MANIFEST_JSON,
                 path=str(manifest_path),
@@ -138,9 +139,7 @@ class DeliveryExecutor:
 
 class MechanicalAuditExecutor:
     def __init__(self, *, policy_path: str | Path | None = None, require_render: bool = True):
-        project_root = Path(__file__).resolve().parents[2]
-        self.project_root = project_root
-        self.policy = load_policy(policy_path or project_root / "config" / "policy.json")
+        self.policy = load_policy(policy_path) if policy_path else load_packaged_policy()
         self.require_render = require_render
 
     def execute(self, state: WritingState) -> WritingState:
@@ -177,11 +176,11 @@ class MechanicalAuditExecutor:
             errors.extend(result["errors"])
             if self.require_render:
                 outdir = Path(state.working["output_dir"]) / f"render_{kind.value.lower()}"
-                proc = subprocess.run([sys.executable, str(self.project_root / "scripts" / "render_docx.py"), artifact.path, "--out", str(outdir)], capture_output=True, text=True)
-                if proc.returncode != 0:
-                    errors.append(f"render failed for {kind.value}: {proc.stderr.strip() or proc.stdout.strip()}")
+                try:
+                    pages = render_docx_pages(artifact.path, outdir)
+                except Exception as exc:
+                    errors.append(f"render failed for {kind.value}: {type(exc).__name__}: {exc}")
                 else:
-                    pages = [line.strip() for line in proc.stdout.splitlines() if line.strip().endswith(".png")]
                     render_manifest[kind.value] = pages
                     evidence.append(f"rendered {kind.value}: {len(pages)} page(s)")
 
@@ -205,5 +204,11 @@ def finalize_audit_artifact(state: WritingState) -> None:
         f"研究覆盖：{json.dumps(research.get('coverage', {}), ensure_ascii=False)}",
         f"复用知识引用：{len(cognition.get('prior_knowledge_refs', []))}｜知识回写候选：{len(research.get('knowledge_writeback_candidates', []))}｜回写凭据：{len(state.working.get('knowledge_writeback_refs', []))}",
     ]
-    path = build_audit_docx(title=f"写作审计报告｜{state.contract.task_id}", lines=lines, artifacts=artifact_lines, output=outdir / "WRITING_AUDIT_REPORT.docx", summary_lines=summary_lines)
+    path = build_audit_docx(
+        title=f"写作审计报告｜{state.contract.task_id}",
+        lines=lines,
+        artifacts=artifact_lines,
+        output=outdir / "WRITING_AUDIT_REPORT.docx",
+        summary_lines=summary_lines,
+    )
     state.artifacts[ArtifactKind.AUDIT_DOCX] = Artifact(kind=ArtifactKind.AUDIT_DOCX, path=str(path), exists=True, sha256=sha256_file(path))
