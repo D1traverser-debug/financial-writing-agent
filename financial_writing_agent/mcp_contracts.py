@@ -9,6 +9,13 @@ from pydantic import BaseModel, Field
 
 GateStatusText = Literal["NOT_RUN", "PASS", "REVISE", "FAIL", "N_A"]
 TaskStatusText = Literal["IN_PROGRESS", "BLOCKED", "COMPLETE"]
+StageText = Literal[
+    "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
+    "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT", "COMPLETE", "BLOCKED",
+]
+ContentModeText = Literal["FORMAL_ARTICLE", "WECHAT_STICKER_POST"]
+DistributionModeText = Literal["FINANCE_DEEP", "FINANCE_BROAD", "DUAL"]
+DeliveryChannelText = Literal["WORD_FILE_ONLY", "CHAT_TEXT"]
 
 
 READ_ONLY_TOOL = ToolAnnotations(
@@ -25,10 +32,10 @@ STATE_WRITE_TOOL = ToolAnnotations(
     idempotent_hint=False,
 )
 
-FILE_WRITE_TOOL = ToolAnnotations(
+FILE_INGEST_TOOL = ToolAnnotations(
     read_only_hint=False,
     destructive_hint=False,
-    open_world_hint=False,
+    open_world_hint=True,
     idempotent_hint=False,
 )
 
@@ -49,7 +56,7 @@ class ArtifactSummary(BaseModel):
 
 class TraceSummary(BaseModel):
     seq: int
-    stage: str
+    stage: StageText
     event: str
     detail: str = ""
     at: datetime
@@ -80,12 +87,12 @@ class CompletionChecklist(BaseModel):
 class WritingTaskSummary(BaseModel):
     task_id: str
     status: TaskStatusText
-    current_stage: str
+    current_stage: StageText
     topic: str | None = None
     prompt_preview: str
-    content_mode: str
-    distribution_mode: str
-    delivery_channel: str
+    content_mode: ContentModeText
+    distribution_mode: DistributionModeText
+    delivery_channel: DeliveryChannelText
     visuals_enabled: bool
     required_outputs: list[str]
     gate_status: dict[str, GateStatusText] = Field(default_factory=dict)
