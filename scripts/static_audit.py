@@ -12,6 +12,7 @@ PACKAGE_REFS = ROOT / "financial_writing_agent" / "resources" / "references"
 SOURCE_POLICY = ROOT / "config" / "policy.json"
 PACKAGE_POLICY = ROOT / "financial_writing_agent" / "resources" / "policy.json"
 PUBLIC_MCP = ROOT / "financial_writing_agent" / "plugin_server.py"
+MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
 
 EXPECTED_TOOLS = {
     "start_writing_task",
@@ -97,7 +98,18 @@ def _decorator_keywords(decorator: ast.expr) -> set[str]:
 def check_public_mcp_contract() -> int:
     if not PUBLIC_MCP.is_file():
         fail("typed public MCP surface missing: financial_writing_agent/plugin_server.py")
+    if not MCP_CONTRACTS.is_file():
+        fail("shared MCP contract owner missing: financial_writing_agent/mcp_contracts.py")
+
     source = PUBLIC_MCP.read_text(encoding="utf-8")
+    contracts = MCP_CONTRACTS.read_text(encoding="utf-8")
+    for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList"):
+        if marker not in contracts:
+            fail(f"shared MCP contract metadata missing: {marker}")
+    for marker in ("READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList"):
+        if marker not in source:
+            fail(f"public MCP surface does not use shared contract owner: {marker}")
+
     tree = ast.parse(source)
     tool_nodes: dict[str, ast.FunctionDef | ast.AsyncFunctionDef] = {}
     for node in tree.body:
@@ -125,8 +137,6 @@ def check_public_mcp_contract() -> int:
         fail(f"public MCP tool inventory mismatch: missing={sorted(EXPECTED_TOOLS - names)}, extra={sorted(names - EXPECTED_TOOLS)}")
     if 'meta={"openai/fileParams": ["files"]}' not in source:
         fail("submit_visual_package must declare ChatGPT fileParams")
-    if "ToolAnnotations" not in source:
-        fail("public MCP tools must use explicit ToolAnnotations")
     return len(names)
 
 
