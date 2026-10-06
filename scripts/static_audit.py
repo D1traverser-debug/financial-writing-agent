@@ -16,6 +16,7 @@ MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
 RUNTIME_SERVICE = ROOT / "financial_writing_agent" / "runtime_service.py"
 LEGACY_MCP_SHIM = ROOT / "financial_writing_agent" / "mcp_server.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
+SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 
 EXPECTED_TOOLS = {
     "start_writing_task",
@@ -89,11 +90,18 @@ def check_skill_bundle() -> None:
         fail("packaged policy drift from config/policy.json")
 
 
+def _is_tool_decorator(decorator: ast.expr) -> bool:
+    target = decorator.func if isinstance(decorator, ast.Call) else decorator
+    return (
+        isinstance(target, ast.Attribute)
+        and isinstance(target.value, ast.Name)
+        and target.value.id == "mcp"
+        and target.attr == "tool"
+    )
+
+
 def _decorator_keywords(decorator: ast.expr) -> set[str]:
-    if not isinstance(decorator, ast.Call):
-        return set()
-    target = decorator.func
-    if not (isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == "mcp" and target.attr == "tool"):
+    if not _is_tool_decorator(decorator) or not isinstance(decorator, ast.Call):
         return set()
     return {kw.arg for kw in decorator.keywords if kw.arg}
 
@@ -104,7 +112,7 @@ def _tool_names(path: Path) -> set[str]:
     for node in tree.body:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        if any(_decorator_keywords(decorator) for decorator in node.decorator_list):
+        if any(_is_tool_decorator(decorator) for decorator in node.decorator_list):
             names.add(node.name)
     return names
 
@@ -131,22 +139,25 @@ def check_public_mcp_contract() -> int:
     for node in tree.body:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        for decorator in node.decorator_list:
-            keywords = _decorator_keywords(decorator)
-            if not keywords:
-                continue
-            tool_nodes[node.name] = node
-            doc = ast.get_docstring(node) or ""
-            if len(doc.strip()) < 60:
-                fail(f"public MCP tool description too short/missing: {node.name}")
-            required_keywords = {"title", "annotations", "structured_output"}
-            if not required_keywords.issubset(keywords):
-                fail(f"public MCP tool missing decorator metadata {required_keywords - keywords}: {node.name}")
-            if node.returns is None:
-                fail(f"public MCP tool missing return type/output schema: {node.name}")
-            rendered_return = ast.unparse(node.returns)
-            if "Any" in rendered_return or rendered_return.startswith("dict["):
-                fail(f"public MCP tool has weak/indeterminate output type: {node.name} -> {rendered_return}")
+        tool_decorators = [decorator for decorator in node.decorator_list if _is_tool_decorator(decorator)]
+        if not tool_decorators:
+            continue
+        if len(tool_decorators) != 1:
+            fail(f"public MCP function has duplicate tool decorators: {node.name}")
+        decorator = tool_decorators[0]
+        keywords = _decorator_keywords(decorator)
+        tool_nodes[node.name] = node
+        doc = ast.get_docstring(node) or ""
+        if len(doc.strip()) < 60:
+            fail(f"public MCP tool description too short/missing: {node.name}")
+        required_keywords = {"title", "annotations", "structured_output"}
+        if not required_keywords.issubset(keywords):
+            fail(f"public MCP tool missing decorator metadata {required_keywords - keywords}: {node.name}")
+        if node.returns is None:
+            fail(f"public MCP tool missing return type/output schema: {node.name}")
+        rendered_return = ast.unparse(node.returns)
+        if "Any" in rendered_return or rendered_return.startswith("dict["):
+            fail(f"public MCP tool has weak/indeterminate output type: {node.name} -> {rendered_return}")
 
     names = set(tool_nodes)
     if names != EXPECTED_TOOLS:
@@ -179,9 +190,9 @@ def check_schema_strictness() -> None:
     for model in ("ResearchPackage", "EditorialPlan", "HeadlinePackage", "ArticlePayload", "DraftPackage", "VisualPackage", "StyleAuditDecision", "GateDecision"):
         if f"class {model}(StrictModel)" not in text:
             fail(f"stage schema must inherit StrictModel: {model}")
-    for marker in ("candidate structure names must be unique", "candidates must contain unique titles", "platform constraint snapshot is stale"):
+    for marker in ("candidate structure names must be unique", "candidates must contain unique titles", "platform constraint snapshot is stale", "validate_public_https_url"):
         if marker not in text:
-            fail(f"schema ambiguity/freshness guard missing: {marker}")
+            fail(f"schema ambiguity/freshness/safety guard missing: {marker}")
 
 
 def check_activation_inventory() -> None:
@@ -193,6 +204,20 @@ def check_activation_inventory() -> None:
         fail("activation inventory has no positive cases")
     if not any(case.get("should_activate") is False for case in cases):
         fail("activation inventory has no negative cases")
+
+
+def check_deployment_boundary() -> None:
+    if not SITE_SPEC.is_file():
+        fail("ChatGPT Site deployment specification missing")
+    text = SITE_SPEC.read_text(encoding="utf-8")
+    for marker in (
+        "personal/private deployment only",
+        "Do not enable public sharing",
+        "Do not silently fall back to ephemeral container/local disk",
+        "public/multi-user sharing remains disabled for v0.2",
+    ):
+        if marker not in text:
+            fail(f"deployment safety boundary missing: {marker}")
 
 
 def check_packaging_contract() -> None:
@@ -223,11 +248,13 @@ def main() -> None:
     tools = check_public_mcp_contract()
     check_schema_strictness()
     check_activation_inventory()
+    check_deployment_boundary()
     check_packaging_contract()
     check_dead_contracts_removed()
     print(
         f"PASS: {groups} unique rule ownership keys; Skill/source/package references aligned; "
-        f"one {tools}-tool typed/annotated MCP surface; strict schemas; artifact resources; activation and packaging contracts present"
+        f"one {tools}-tool typed/annotated MCP surface; strict schemas; artifact resources; "
+        "activation, deployment-safety and packaging contracts present"
     )
 
 
