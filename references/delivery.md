@@ -1,35 +1,45 @@
 # Delivery module
 
 ## Default channel
-
-Unless the current task explicitly requests plain chat text, deliver through `WORD_FILE_ONLY`.
-
-Do not paste the article body, draft or preview into chat when `WORD_FILE_ONLY` is active. Chat delivery contains artifact links and concise audit status only.
+Unless the task explicitly requests plain chat text, deliver through `WORD_FILE_ONLY`. Under `WORD_FILE_ONLY`, chat contains artifact links and concise audit/checklist status only.
 
 ## Word construction
-
 Mechanical formatting belongs to code, not the drafting model.
-
-- Article title: dedicated title formatting.
+- Article title: dedicated centered title formatting.
 - Only first-level article headings use a Word heading style.
-- First-level headings: red, bold, approximately 18pt.
-- Second-level headings: Normal style + bold, approximately 13.5pt.
-- Third-level headings: Normal style + bold, approximately 12pt.
-- Body: approximately 12pt.
-- Stock/company names supplied by the research state are automatically bolded on every occurrence.
-- Default to prose rather than tables unless the task explicitly benefits from a table.
-- End with a topic-specific risk warning and disclaimer.
+- H1: red, bold, ~18pt.
+- H2: Normal + bold, ~13.5pt.
+- H3: Normal + bold, ~12pt.
+- Body: ~12pt.
+- Formal hierarchy is normalized deterministically to `一、二、三` → `（1）（2）（3）` → `①②③`; `·` is not a primary hierarchy marker.
+- Stock/company names supplied by research state are automatically bolded on every occurrence.
+- Default to prose rather than tables unless a table materially improves the task.
+
+## Risk warning and disclaimer
+Formal public financial articles must end with a topic-specific risk warning and disclaimer. Risk information is mandatory. Optimize for high information density and relatively short wording; do not reduce material risks just to make the paragraph shorter. Generic boilerplate alone is insufficient.
+
+## Visual insertion
+When the TaskContract enables visuals, delivery requires a validated visual package before building Word. The builder:
+- embeds the hero near the start;
+- embeds section images after recorded semantic anchors;
+- centers images;
+- does not crop;
+- keeps a consistent display width while preserving intrinsic aspect ratio;
+- records a visual manifest used by audit.
+
+Creative generation remains model-side; deterministic delivery never invents missing image assets.
 
 ## Financial publishing compliance
-
-Default public-platform output must not become executable buy/sell guidance. Lexical scanners catch obvious red-line phrases; semantic audit catches disguised equivalents. A disclaimer does not cure actionable trading instructions.
+Public-platform output must not become executable buy/sell guidance. Lexical scanners catch obvious red-line phrases; semantic audit catches disguised equivalents. A disclaimer does not cure actionable instructions.
 
 ## Verification
-
 After Word creation:
-1. run programmatic checks;
-2. render the Word document page by page;
-3. inspect every page for clipping, broken pagination, missing glyphs, heading breaks and disclaimer layout;
-4. modify and re-render if needed.
+1. run programmatic checks (heading structure/numbering, stock bolding, disclaimer presence/density floor, forbidden phrases, expected image count);
+2. render Word page by page;
+3. inspect clipping, broken pagination, missing glyphs, heading breaks, image placement and disclaimer layout;
+4. modify/re-render if needed.
 
-Rendered pages are internal QA artifacts, not article deliverables.
+Rendered pages are internal QA artifacts.
+
+## Visible completion checklist
+On COMPLETE, chat returns a concise checklist for runtime/gates, research/evidence, structure/style, Word/render, compliance/risk, visuals and knowledge synchronization where applicable. Detailed evidence remains in `WRITING_AUDIT_REPORT.docx`.

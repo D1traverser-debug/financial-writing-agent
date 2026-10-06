@@ -2,6 +2,7 @@
   "defaults": {
     "distribution_mode": "DUAL",
     "delivery_channel": "WORD_FILE_ONLY",
+    "language": "zh-CN",
     "title_max_rounds": 3,
     "draft_max_rounds": 2,
     "research_max_rounds": 2
@@ -10,6 +11,32 @@
     "hard_fail_phrases": [
       "买入", "卖出", "加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"
     ]
+  },
+  "style": {
+    "continuous_report_prose": true,
+    "logical_transitions_required": true,
+    "conclusion_first_preferred": true,
+    "anti_ai_semantic_audit": true,
+    "heading_hierarchy": ["一、", "（1）", "①"],
+    "forbidden_heading_prefixes": ["·", "•"],
+    "hard_fail_extreme_phrases": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆", "注定暴涨", "必然上涨", "唯一机会"],
+    "review_generic_superlatives_semantically": true
+  },
+  "risk_disclaimer": {
+    "required": true,
+    "min_body_chars": 60,
+    "recommended_max_chars": 320,
+    "topic_specific_required": true
+  },
+  "visuals": {
+    "default_enabled_for_new_word_articles": true,
+    "aspect_ratio": "16:9",
+    "hero_count_per_article": 1,
+    "target_chars_per_section_image": 700,
+    "avatar_required": true,
+    "center_in_word": true,
+    "crop_in_word": false,
+    "word_width_inches": 6.2
   },
   "word": {
     "title_pt": 20,
