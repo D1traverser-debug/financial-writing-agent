@@ -4,7 +4,7 @@ from datetime import datetime
 from typing import Literal
 
 from mcp.types import ToolAnnotations
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, ConfigDict, Field
 
 
 GateStatusText = Literal["NOT_RUN", "PASS", "REVISE", "FAIL", "N_A"]
@@ -16,6 +16,10 @@ StageText = Literal[
 ContentModeText = Literal["FORMAL_ARTICLE", "WECHAT_STICKER_POST"]
 DistributionModeText = Literal["FINANCE_DEEP", "FINANCE_BROAD", "DUAL"]
 DeliveryChannelText = Literal["WORD_FILE_ONLY", "CHAT_TEXT"]
+
+
+class PublicResultModel(BaseModel):
+    model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
 
 
 READ_ONLY_TOOL = ToolAnnotations(
@@ -35,46 +39,38 @@ STATE_WRITE_TOOL = ToolAnnotations(
 FILE_INGEST_TOOL = ToolAnnotations(
     read_only_hint=False,
     destructive_hint=False,
-    open_world_hint=True,
+    open_world_hint=False,
     idempotent_hint=False,
 )
 
 
-class GateSummary(BaseModel):
+class GateSummary(PublicResultModel):
     status: GateStatusText
     evidence: list[str] = Field(default_factory=list)
     notes: str = ""
 
 
-class ArtifactSummary(BaseModel):
-    path: str
+class ArtifactSummary(PublicResultModel):
+    file_name: str
     exists: bool
     sha256: str | None = None
-    download_url: str | None = None
-    resource_uri: str | None = None
+    resource_uri: str
+    mime_type: str
 
 
-class TraceSummary(BaseModel):
-    seq: int
-    stage: StageText
-    event: str
-    detail: str = ""
-    at: datetime
-
-
-class StyleChecklist(BaseModel):
+class StyleChecklist(PublicResultModel):
     editorial: GateStatusText
     anti_ai_style: GateStatusText
 
 
-class KnowledgeChecklist(BaseModel):
+class KnowledgeChecklist(PublicResultModel):
     sync_gate: GateStatusText
     reused_refs: int = Field(ge=0)
     writeback_candidates: int = Field(ge=0)
     writeback_receipts: int = Field(ge=0)
 
 
-class CompletionChecklist(BaseModel):
+class CompletionChecklist(PublicResultModel):
     runtime_gates: Literal["PASS", "INCOMPLETE"]
     research_evidence: GateStatusText
     structure_style_continuity: StyleChecklist
@@ -84,7 +80,7 @@ class CompletionChecklist(BaseModel):
     knowledge: KnowledgeChecklist
 
 
-class WritingTaskSummary(BaseModel):
+class WritingTaskSummary(PublicResultModel):
     task_id: str
     status: TaskStatusText
     current_stage: StageText
@@ -103,9 +99,8 @@ class WritingTaskSummary(BaseModel):
     visual_profile_ref: str | None = None
     gates: dict[str, GateSummary] | None = None
     artifacts: dict[str, ArtifactSummary] | None = None
-    trace_tail: list[TraceSummary] | None = None
     completion_checklist: CompletionChecklist | None = None
 
 
-class WritingTaskList(BaseModel):
+class WritingTaskList(PublicResultModel):
     tasks: list[WritingTaskSummary]
