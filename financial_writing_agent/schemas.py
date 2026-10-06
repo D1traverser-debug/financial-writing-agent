@@ -1,12 +1,16 @@
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timedelta, timezone
 from typing import Literal
 
-from pydantic import BaseModel, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
-class EvidenceItem(BaseModel):
+class StrictModel(BaseModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
+
+
+class EvidenceItem(StrictModel):
     claim: str = Field(min_length=1)
     source: str = Field(min_length=1)
     date: str | None = None
@@ -16,7 +20,7 @@ class EvidenceItem(BaseModel):
     notes: str = ""
 
 
-class CompanyFinding(BaseModel):
+class CompanyFinding(StrictModel):
     name: str = Field(min_length=1)
     ticker: str | None = None
     relevance: str = Field(min_length=1)
@@ -31,7 +35,7 @@ class CompanyFinding(BaseModel):
     fund_flow_signals: list[str] = Field(default_factory=list)
 
 
-class MarketCognition(BaseModel):
+class MarketCognition(StrictModel):
     prior_knowledge_refs: list[str] = Field(default_factory=list)
     concept_map: list[str] = Field(min_length=1)
     adjacent_or_competing_concepts: list[str] = Field(default_factory=list)
@@ -40,7 +44,7 @@ class MarketCognition(BaseModel):
     knowledge_conflicts: list[str] = Field(default_factory=list)
 
 
-class ResearchCoverage(BaseModel):
+class ResearchCoverage(StrictModel):
     sweeps_completed: int = Field(ge=2, le=10)
     coverage_status: Literal["SATURATED", "BOUNDED_WITH_GAPS"]
     material_new_items_last_sweep: int = Field(ge=0)
@@ -51,7 +55,7 @@ class ResearchCoverage(BaseModel):
     stop_reason: str = Field(min_length=1)
 
 
-class ResearchPackage(BaseModel):
+class ResearchPackage(StrictModel):
     topic: str = Field(min_length=1)
     chronology: list[str] = Field(min_length=1)
     what_changed: list[str] = Field(min_length=1)
@@ -68,7 +72,7 @@ class ResearchPackage(BaseModel):
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
 
 
-class TopicDNA(BaseModel):
+class TopicDNA(StrictModel):
     new_fact: str = Field(min_length=1)
     main_transmission: str = Field(min_length=1)
     likely_reader_misjudgment: str = Field(min_length=1)
@@ -78,13 +82,13 @@ class TopicDNA(BaseModel):
     finance_wide_question: str = Field(min_length=1)
 
 
-class StructureCandidate(BaseModel):
+class StructureCandidate(StrictModel):
     name: str = Field(min_length=1)
     rationale: str = Field(min_length=1)
     sections: list[str] = Field(min_length=2)
 
 
-class EditorialPlan(BaseModel):
+class EditorialPlan(StrictModel):
     topic_dna: TopicDNA
     candidates: list[StructureCandidate] = Field(min_length=2)
     selected_structure: StructureCandidate
@@ -94,14 +98,19 @@ class EditorialPlan(BaseModel):
     wechat_sticker_emphasis: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def selected_must_be_candidate(self):
-        names = {candidate.name for candidate in self.candidates}
-        if self.selected_structure.name not in names:
-            raise ValueError("selected_structure must be one of candidates")
+    def selected_must_be_unique_candidate(self):
+        names = [candidate.name for candidate in self.candidates]
+        if len(names) != len(set(names)):
+            raise ValueError("candidate structure names must be unique")
+        matches = [candidate for candidate in self.candidates if candidate.name == self.selected_structure.name]
+        if len(matches) != 1:
+            raise ValueError("selected_structure must identify exactly one candidate")
+        if matches[0].model_dump() != self.selected_structure.model_dump():
+            raise ValueError("selected_structure must exactly match the named candidate")
         return self
 
 
-class HeadlineCandidate(BaseModel):
+class HeadlineCandidate(StrictModel):
     title: str = Field(min_length=1)
     angle: str = Field(min_length=1)
     finance_relevance: str = Field(min_length=1)
@@ -109,7 +118,7 @@ class HeadlineCandidate(BaseModel):
     cognitive_load: Literal["low", "medium", "high"]
 
 
-class HeadlinePackage(BaseModel):
+class HeadlinePackage(StrictModel):
     finance_deep_candidates: list[HeadlineCandidate] = Field(default_factory=list)
     finance_broad_candidates: list[HeadlineCandidate] = Field(default_factory=list)
     finance_deep_selected: str | None = None
@@ -118,23 +127,26 @@ class HeadlinePackage(BaseModel):
     wechat_sticker_selected: str | None = None
 
     @model_validator(mode="after")
-    def selected_titles_must_be_candidates(self):
+    def candidate_sets_are_unambiguous(self):
         for selected, candidates, label in [
             (self.finance_deep_selected, self.finance_deep_candidates, "finance_deep"),
             (self.finance_broad_selected, self.finance_broad_candidates, "finance_broad"),
             (self.wechat_sticker_selected, self.wechat_sticker_candidates, "wechat_sticker"),
         ]:
-            if selected and selected not in {candidate.title for candidate in candidates}:
+            titles = [candidate.title for candidate in candidates]
+            if len(titles) != len(set(titles)):
+                raise ValueError(f"{label}_candidates must contain unique titles")
+            if selected and selected not in set(titles):
                 raise ValueError(f"{label}_selected must be one of its candidates")
         return self
 
 
-class ArticleBlock(BaseModel):
+class ArticleBlock(StrictModel):
     kind: Literal["lead", "h1", "h2", "h3", "body"]
     text: str = Field(min_length=1)
 
 
-class ArticlePayload(BaseModel):
+class ArticlePayload(StrictModel):
     title: str = Field(min_length=1)
     blocks: list[ArticleBlock] = Field(min_length=3)
     risk_disclaimer: str = Field(min_length=60)
@@ -147,7 +159,7 @@ class ArticlePayload(BaseModel):
         return self
 
 
-class PlatformConstraintSnapshot(BaseModel):
+class PlatformConstraintSnapshot(StrictModel):
     platform: str = "微信贴图"
     verified_at: datetime
     source_refs: list[str] = Field(min_length=1)
@@ -156,8 +168,21 @@ class PlatformConstraintSnapshot(BaseModel):
     image_max_count: int | None = Field(default=None, ge=1)
     notes: list[str] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def verification_must_be_current(self):
+        verified = self.verified_at
+        if verified.tzinfo is None:
+            raise ValueError("verified_at must include a timezone")
+        now = datetime.now(timezone.utc)
+        age = now - verified.astimezone(timezone.utc)
+        if age < timedelta(minutes=-15):
+            raise ValueError("verified_at cannot be materially in the future")
+        if age > timedelta(hours=48):
+            raise ValueError("platform constraint snapshot is stale; reverify the current publisher UI/mechanics")
+        return self
 
-class StickerPostPayload(BaseModel):
+
+class StickerPostPayload(StrictModel):
     title: str = Field(min_length=1)
     body: str = Field(min_length=1)
     interaction_prompt: str = ""
@@ -175,20 +200,20 @@ class StickerPostPayload(BaseModel):
         return self
 
 
-class DraftPackage(BaseModel):
+class DraftPackage(StrictModel):
     finance_deep: ArticlePayload | None = None
     finance_broad: ArticlePayload | None = None
     wechat_sticker_post: StickerPostPayload | None = None
 
 
-class OpenAIFileRef(BaseModel):
+class OpenAIFileRef(StrictModel):
     download_url: str = Field(min_length=1)
     file_id: str = Field(min_length=1)
     mime_type: str | None = None
     file_name: str | None = None
 
 
-class VisualAsset(BaseModel):
+class VisualAsset(StrictModel):
     article_mode: Literal["FINANCE_DEEP", "FINANCE_BROAD", "WECHAT_STICKER_POST"]
     role: Literal["hero", "section", "sticker"]
     semantic_focus: str = Field(min_length=1)
@@ -199,7 +224,7 @@ class VisualAsset(BaseModel):
     avatar_included: bool = True
 
 
-class VisualPackage(BaseModel):
+class VisualPackage(StrictModel):
     assets: list[VisualAsset] = Field(min_length=1)
     avatar_required: bool = True
     target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
@@ -210,14 +235,14 @@ class ResolvedVisualAsset(VisualAsset):
     local_path: str = Field(min_length=1)
 
 
-class ResolvedVisualPackage(BaseModel):
+class ResolvedVisualPackage(StrictModel):
     assets: list[ResolvedVisualAsset] = Field(min_length=1)
     avatar_required: bool = True
     target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
     planning_notes: list[str] = Field(default_factory=list)
 
 
-class StyleAuditRubric(BaseModel):
+class StyleAuditRubric(StrictModel):
     template_fingerprint: Literal["PASS", "REVISE"]
     transition_continuity: Literal["PASS", "REVISE"]
     repetition_control: Literal["PASS", "REVISE"]
@@ -225,7 +250,7 @@ class StyleAuditRubric(BaseModel):
     extreme_language_control: Literal["PASS", "REVISE"]
 
 
-class StyleAuditDecision(BaseModel):
+class StyleAuditDecision(StrictModel):
     status: Literal["PASS", "REVISE"]
     evidence: list[str] = Field(min_length=1)
     rubric: StyleAuditRubric
@@ -245,7 +270,7 @@ class StyleAuditDecision(BaseModel):
         return self
 
 
-class GateDecision(BaseModel):
+class GateDecision(StrictModel):
     status: Literal["PASS", "REVISE", "FAIL"]
     evidence: list[str] = Field(min_length=1)
     defects: list[str] = Field(default_factory=list)
