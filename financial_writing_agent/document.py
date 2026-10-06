@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+import os
 import re
 import tempfile
 from pathlib import Path
@@ -102,7 +103,9 @@ def _local_image_path(source_uri: str) -> tuple[Path, Path | None]:
         if parsed.scheme != "https":
             raise ValueError("remote visual assets must use https")
         suffix = Path(parsed.path).suffix or ".png"
-        tmp = Path(tempfile.mkstemp(prefix="financial-writing-visual-", suffix=suffix)[1])
+        fd, name = tempfile.mkstemp(prefix="financial-writing-visual-", suffix=suffix)
+        os.close(fd)
+        tmp = Path(name)
         try:
             with urlopen(source_uri, timeout=30) as response:
                 tmp.write_bytes(response.read())
