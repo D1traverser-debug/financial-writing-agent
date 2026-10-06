@@ -8,10 +8,10 @@ from __future__ import annotations
 
 import json
 import os
-from pathlib import Path
 from typing import Any
 
 from ..models import ContentMode, GateStatus, Stage, WritingState
+from ..resources import read_reference
 from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage, StyleAuditDecision
 from .deterministic import finalize_audit_artifact
 
@@ -31,8 +31,7 @@ def require_sdk():
 
 
 def load_reference(name: str) -> str:
-    root = Path(__file__).resolve().parents[2]
-    return (root / "references" / name).read_text(encoding="utf-8")
+    return read_reference(name)
 
 
 def _state_context(state: WritingState) -> str:
@@ -47,12 +46,20 @@ def _state_context(state: WritingState) -> str:
 class OpenAIStageExecutor:
     def __init__(self, stage: Stage, *, model: str | None = None):
         self.stage = stage
-        self.model = model or os.getenv("FINANCIAL_WRITING_MODEL", "gpt-6.1-sol")
+        self.model = model or os.getenv("FINANCIAL_WRITING_MODEL")
 
     def _run(self, *, name: str, instructions: str, output_type: type[Any], prompt: str, web: bool = False):
         Agent, Runner, WebSearchTool = require_sdk()
         tools = [WebSearchTool(search_context_size="high", external_web_access=True)] if web else []
-        agent = Agent(name=name, model=self.model, instructions=instructions, output_type=output_type, tools=tools)
+        kwargs: dict[str, Any] = {
+            "name": name,
+            "instructions": instructions,
+            "output_type": output_type,
+            "tools": tools,
+        }
+        if self.model:
+            kwargs["model"] = self.model
+        agent = Agent(**kwargs)
         result = Runner.run_sync(agent, prompt, max_turns=16)
         return result.final_output
 
@@ -81,7 +88,7 @@ class OpenAIStageExecutor:
         return state
 
     def _execute_research_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\nAudit only the research package against references/research.md and references/knowledge.md."
+        instructions = load_reference("audit.md") + "\n\nAudit only the research package against the research and knowledge reference rules."
         out: GateDecision = self._run(
             name="Financial Writing Research Auditor",
             instructions=instructions,
@@ -136,9 +143,9 @@ class OpenAIStageExecutor:
     def _execute_draft(self, state: WritingState) -> WritingState:
         instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("delivery.md")
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md") + "\n\nReturn only wechat_sticker_post in DraftPackage. Its PlatformConstraintSnapshot must come from current research evidence; keep copy concise/useful, include an interaction prompt when appropriate, and include a compact information-dense risk disclaimer."
+            instructions += "\n\n" + load_reference("platforms.md") + "\n\nReturn only wechat_sticker_post in DraftPackage. Its PlatformConstraintSnapshot must come from current research evidence; keep copy concise/useful, include an interaction prompt when appropriate, and include a compact information-dense risk_disclaimer field."
         else:
-            instructions += "\n\nDraft the applicable article mode(s). Use Simplified Chinese, continuous logically connected prose and include a topic-specific risk/disclaimer H1 at the end."
+            instructions += "\n\nDraft the applicable article mode(s). Use Simplified Chinese and continuous logically connected prose. Return topic-specific risk text only in each payload's separate risk_disclaimer field; do not place a risk heading/body inside article blocks."
         out: DraftPackage = self._run(
             name="Financial Writing Writer",
             instructions=instructions,
@@ -203,8 +210,8 @@ class OpenAIStageExecutor:
 
 def build_openai_executors(*, model: str | None = None) -> dict[Stage, OpenAIStageExecutor]:
     return {
-        s: OpenAIStageExecutor(s, model=model)
-        for s in {
+        stage: OpenAIStageExecutor(stage, model=model)
+        for stage in {
             Stage.RESEARCH,
             Stage.RESEARCH_AUDIT,
             Stage.EDITORIAL,
