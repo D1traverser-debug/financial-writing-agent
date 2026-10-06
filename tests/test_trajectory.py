@@ -33,6 +33,7 @@ def test_happy_path_trace_is_deterministic(tmp_path):
         p = tmp_path / f"{kind}.docx"
         p.write_bytes(b"stub")
         state.add_artifact(kind, str(p))
+    state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target in trajectory unit test"])
     state.set_gate("final_audit", GateStatus.PASS, ["red team"])
     state = ctl.advance(state)
     assert state.stage == Stage.COMPLETE
