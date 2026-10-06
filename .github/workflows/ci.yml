@@ -16,7 +16,7 @@ jobs:
           python-version: "3.11"
           cache: pip
       - name: Install Python dependencies
-        run: python -m pip install -e '.[dev,openai,mcp]'
+        run: python -m pip install -e '.[dev,openai]'
       - name: OpenAI Agents SDK surface smoke
         run: python scripts/sdk_smoke.py
       - name: MCP Streamable HTTP smoke
@@ -25,8 +25,28 @@ jobs:
         run: pytest -q
       - name: Executable contract eval baseline
         run: python scripts/eval_contracts.py
-      - name: Static rule ownership audit
+      - name: Static rule ownership and bundle audit
         run: python scripts/static_audit.py
+      - name: Build wheel and isolated install smoke
+        run: |
+          python -m build --wheel
+          python -m venv /tmp/fwa-wheel
+          WHEEL=$(ls "$GITHUB_WORKSPACE"/dist/*.whl | head -1)
+          /tmp/fwa-wheel/bin/pip install "$WHEEL"
+          mkdir -p /tmp/fwa-wheel-data
+          cd /tmp
+          FINANCIAL_WRITING_DATA_DIR=/tmp/fwa-wheel-data /tmp/fwa-wheel/bin/python - <<'PY'
+          from financial_writing_agent.resources import load_packaged_policy, read_reference
+          from financial_writing_agent.adapters.deterministic import DeliveryExecutor
+          import financial_writing_agent.mcp_server as server
+
+          policy = load_packaged_policy()
+          assert policy["defaults"]["distribution_mode"] == "DUAL"
+          assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
+          DeliveryExecutor(root="/tmp/fwa-wheel-runs")
+          assert server.mcp is not None
+          print("PASS: clean wheel install contains policy/references and imports MCP runtime outside repo")
+          PY
       - name: Install render dependencies
         run: |
           sudo apt-get update
