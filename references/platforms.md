@@ -14,7 +14,7 @@ Typical targets: Toutiao, Baijiahao, NetEase-style distribution and similar feed
 ## WECHAT_STICKER_POST
 An explicit 微信贴图 request is a separate executable content mode, not a shortened formal article and not DUAL. Its deliverable is `WECHAT_STICKER_POST.docx` plus `VISUAL_MANIFEST.json` when visuals are enabled.
 
-Before writing, verify the **current** publisher UI/documentation and available current platform evidence. Store this as `PlatformConstraintSnapshot` with `verified_at`, source references and any currently verifiable numeric title/body/image limits. Runtime may enforce numeric limits from that snapshot. Permanent policy intentionally keeps remembered title/body/image limits as null rather than hard-coding them.
+Before writing, verify the **current** publisher UI/documentation and available current platform evidence. Store this as `PlatformConstraintSnapshot` with `verified_at`, source references and any currently verifiable numeric title/body/image limits. Runtime enforces available numeric limits. The body limit applies to the publishable text package, including body, interaction prompt and risk/disclaimer text. Permanent policy intentionally keeps remembered title/body/image limits as null rather than hard-coding them.
 
 The image is often the first visual entry point, but treat that as a current platform hypothesis to verify rather than an eternal law. When current evidence supports it, prefer dedicated vertical creative. Separate four jobs: image hook, title hook, useful body information, and interaction/comment/follow prompt. They should complement rather than repeat one another. Avoid pure clickbait with no useful information.
 
