@@ -6,7 +6,7 @@ description: Deterministic A-share financial writing workflow for formal article
 # Financial Writing Agent
 
 ## Runtime and recovery
-Start every task with `start_writing_task`; resume with `list_recent_writing_tasks` + `get_writing_task`. MCP checkpoint is executable authority. Repository `main` is the rule/code truth; Notion/Drive status pages are governance mirrors only.
+Start every task with `start_writing_task`; resume with `list_recent_writing_tasks` + `get_writing_task`. The MCP runtime checkpoint is the executable authority. Repository `main` is the rule/code truth; Notion/Drive status pages are governance mirrors only.
 
 Stage order: `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
 
