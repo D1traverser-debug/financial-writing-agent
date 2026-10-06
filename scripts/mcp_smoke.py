@@ -53,7 +53,7 @@ async def verify() -> None:
                 "start_writing_task",
                 arguments={"prompt": "smoke test only; do not research or draft"},
             )
-            if result.isError:
+            if result.is_error:
                 raise RuntimeError(f"start_writing_task failed: {result.content}")
             print(f"PASS: {len(names)} MCP tools exposed and start_writing_task callable")
 
