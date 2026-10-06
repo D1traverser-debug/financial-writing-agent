@@ -27,7 +27,8 @@ def wait_for_port(host: str, port: int, timeout: float = 15.0) -> None:
 
 
 async def verify() -> None:
-    async with streamable_http_client(URL) as (read_stream, write_stream, _):
+    async with streamable_http_client(URL) as streams:
+        read_stream, write_stream = streams
         async with ClientSession(read_stream, write_stream) as session:
             await session.initialize()
             tools = await session.list_tools()
