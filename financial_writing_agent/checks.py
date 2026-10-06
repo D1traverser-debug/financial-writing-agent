@@ -110,4 +110,10 @@ def check_docx(
 
 
 def load_policy(path: str | Path) -> dict:
-    return json.loads(Path(path).read_text(encoding="utf-8"))
+    candidate = Path(path)
+    if candidate.is_file():
+        return json.loads(candidate.read_text(encoding="utf-8"))
+    if candidate.name == "policy.json":
+        from .resources import load_packaged_policy
+        return load_packaged_policy()
+    raise FileNotFoundError(candidate)
