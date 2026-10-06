@@ -9,6 +9,7 @@ from .models import WritingState
 class SQLiteStateStore:
     def __init__(self, path: str | Path = "financial_writing_state.db"):
         self.path = str(path)
+        Path(self.path).parent.mkdir(parents=True, exist_ok=True)
         with sqlite3.connect(self.path) as conn:
             conn.execute(
                 "CREATE TABLE IF NOT EXISTS runs (task_id TEXT PRIMARY KEY, payload TEXT NOT NULL, updated_at TEXT NOT NULL)"
@@ -27,3 +28,12 @@ class SQLiteStateStore:
         with sqlite3.connect(self.path) as conn:
             row = conn.execute("SELECT payload FROM runs WHERE task_id=?", (task_id,)).fetchone()
         return WritingState.model_validate_json(row[0]) if row else None
+
+    def list_recent(self, limit: int = 10) -> list[WritingState]:
+        safe_limit = max(1, min(int(limit), 100))
+        with sqlite3.connect(self.path) as conn:
+            rows = conn.execute(
+                "SELECT payload FROM runs ORDER BY updated_at DESC LIMIT ?",
+                (safe_limit,),
+            ).fetchall()
+        return [WritingState.model_validate_json(row[0]) for row in rows]
