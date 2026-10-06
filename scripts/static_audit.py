@@ -13,6 +13,9 @@ SOURCE_POLICY = ROOT / "config" / "policy.json"
 PACKAGE_POLICY = ROOT / "financial_writing_agent" / "resources" / "policy.json"
 PUBLIC_MCP = ROOT / "financial_writing_agent" / "plugin_server.py"
 MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
+RUNTIME_SERVICE = ROOT / "financial_writing_agent" / "runtime_service.py"
+LEGACY_MCP_SHIM = ROOT / "financial_writing_agent" / "mcp_server.py"
+SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 
 EXPECTED_TOOLS = {
     "start_writing_task",
@@ -95,15 +98,28 @@ def _decorator_keywords(decorator: ast.expr) -> set[str]:
     return {kw.arg for kw in decorator.keywords if kw.arg}
 
 
+def _tool_names(path: Path) -> set[str]:
+    tree = ast.parse(path.read_text(encoding="utf-8"))
+    names: set[str] = set()
+    for node in tree.body:
+        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+            continue
+        if any(_decorator_keywords(decorator) for decorator in node.decorator_list):
+            names.add(node.name)
+    return names
+
+
 def check_public_mcp_contract() -> int:
-    if not PUBLIC_MCP.is_file():
-        fail("typed public MCP surface missing: financial_writing_agent/plugin_server.py")
-    if not MCP_CONTRACTS.is_file():
-        fail("shared MCP contract owner missing: financial_writing_agent/mcp_contracts.py")
+    for required in (PUBLIC_MCP, MCP_CONTRACTS, RUNTIME_SERVICE, LEGACY_MCP_SHIM):
+        if not required.is_file():
+            fail(f"required MCP/runtime file missing: {required.relative_to(ROOT)}")
 
     source = PUBLIC_MCP.read_text(encoding="utf-8")
     contracts = MCP_CONTRACTS.read_text(encoding="utf-8")
-    for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList"):
+    runtime = RUNTIME_SERVICE.read_text(encoding="utf-8")
+    legacy = LEGACY_MCP_SHIM.read_text(encoding="utf-8")
+
+    for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList", "ArtifactSummary"):
         if marker not in contracts:
             fail(f"shared MCP contract metadata missing: {marker}")
     for marker in ("READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList"):
@@ -135,9 +151,37 @@ def check_public_mcp_contract() -> int:
     names = set(tool_nodes)
     if names != EXPECTED_TOOLS:
         fail(f"public MCP tool inventory mismatch: missing={sorted(EXPECTED_TOOLS - names)}, extra={sorted(names - EXPECTED_TOOLS)}")
+    if _tool_names(RUNTIME_SERVICE):
+        fail("runtime_service.py must not register MCP tools")
+    if _tool_names(LEGACY_MCP_SHIM):
+        fail("mcp_server.py compatibility shim must not register MCP tools")
+    if "MCPServer(" in runtime:
+        fail("runtime_service.py must not instantiate a second MCP server")
+    if "from .plugin_server import main, mcp" not in legacy:
+        fail("legacy mcp_server.py must be a thin compatibility shim")
+
     if 'meta={"openai/fileParams": ["files"]}' not in source:
         fail("submit_visual_package must declare ChatGPT fileParams")
+    for uri in ("writing-docx://{task_id}/{kind}", "writing-json://{task_id}/{kind}", "writing-text://{task_id}/{kind}"):
+        if uri not in source:
+            fail(f"artifact resource template missing: {uri}")
+    if "ResourceLink" not in source or "structured_content=summary.model_dump" not in source:
+        fail("artifact-returning tools must expose both structured output and MCP ResourceLink content")
+    if "path: str" in contracts or "trace_tail" in contracts:
+        fail("public result contract must not expose server-local paths or internal trace logs")
     return len(names)
+
+
+def check_schema_strictness() -> None:
+    text = SCHEMAS.read_text(encoding="utf-8")
+    if 'ConfigDict(extra="forbid", str_strip_whitespace=True)' not in text:
+        fail("stage schemas must fail closed on unknown fields and whitespace-only strings")
+    for model in ("ResearchPackage", "EditorialPlan", "HeadlinePackage", "ArticlePayload", "DraftPackage", "VisualPackage", "StyleAuditDecision", "GateDecision"):
+        if f"class {model}(StrictModel)" not in text:
+            fail(f"stage schema must inherit StrictModel: {model}")
+    for marker in ("candidate structure names must be unique", "candidates must contain unique titles", "platform constraint snapshot is stale"):
+        if marker not in text:
+            fail(f"schema ambiguity/freshness guard missing: {marker}")
 
 
 def check_activation_inventory() -> None:
@@ -177,12 +221,13 @@ def main() -> None:
     groups = check_rule_ownership()
     check_skill_bundle()
     tools = check_public_mcp_contract()
+    check_schema_strictness()
     check_activation_inventory()
     check_packaging_contract()
     check_dead_contracts_removed()
     print(
         f"PASS: {groups} unique rule ownership keys; Skill/source/package references aligned; "
-        f"packaged policy aligned; {tools} typed/annotated public MCP tools; activation and packaging contracts present"
+        f"one {tools}-tool typed/annotated MCP surface; strict schemas; artifact resources; activation and packaging contracts present"
     )
 
 
