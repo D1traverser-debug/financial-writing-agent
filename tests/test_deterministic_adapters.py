@@ -4,34 +4,39 @@ from financial_writing_agent.adapters.deterministic import DeliveryExecutor, Mec
 from financial_writing_agent.models import ArtifactKind, DeliveryChannel, DistributionMode, GateStatus, TaskContract, WritingState
 
 
+def _risk():
+    return (
+        "本文基于公开信息进行行业与公司研究，仅用于财经信息交流，不构成投资建议或收益承诺。"
+        "政策、需求、价格、订单、竞争格局、公司业绩及市场情绪均可能变化，请以最新公告为准并独立判断。"
+    )
+
+
 def _draft():
     return {
         "finance_deep": {
             "title": "测试：利润与估值",
             "stock_names": ["国电南瑞"],
+            "risk_disclaimer": _risk(),
             "blocks": [
                 {"kind": "lead", "text": "导读涉及国电南瑞。"},
-                {"kind": "h1", "text": "一、核心矛盾"},
+                {"kind": "h1", "text": "核心矛盾"},
                 {"kind": "body", "text": "国电南瑞用于验证自动加粗。"},
-                {"kind": "h1", "text": "二、风险提示与免责声明"},
-                {"kind": "body", "text": "本文仅作信息研究，不构成投资建议。"},
             ],
         },
         "finance_broad": {
             "title": "测试：为什么财经读者也该看",
             "stock_names": ["国电南瑞"],
+            "risk_disclaimer": _risk(),
             "blocks": [
                 {"kind": "lead", "text": "导读。"},
-                {"kind": "h1", "text": "一、问题"},
+                {"kind": "h1", "text": "问题"},
                 {"kind": "body", "text": "国电南瑞。"},
-                {"kind": "h1", "text": "二、风险提示与免责声明"},
-                {"kind": "body", "text": "本文仅作信息研究，不构成投资建议。"},
             ],
         },
     }
 
 
-def test_delivery_builds_dual_word(tmp_path):
+def test_delivery_builds_dual_word_and_appends_risk_deterministically(tmp_path):
     state = WritingState(contract=TaskContract(prompt="写文章", distribution_mode=DistributionMode.DUAL))
     state.working["draft"] = _draft()
     state = DeliveryExecutor(root=tmp_path).execute(state)
