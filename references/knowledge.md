@@ -21,7 +21,7 @@ The runtime must start first. Then, when a connected knowledge store exists, the
 The standalone Python runtime intentionally does **not** claim that it can directly authenticate to the user's Notion/Drive connectors. The MCP record is a receipt/boundary between connector-side retrieval and runtime state.
 
 ## Writeback choreography
-Research emits `knowledge_writeback_candidates`. Before final audit, the orchestrator writes back only reusable, evidence-bounded knowledge through the connected store when available, avoiding duplicates and preserving source/date/confidence. Record resulting page/file/item references with `record_knowledge_writeback(status="PASS")`. If there is no connected destination or nothing reusable, record `N_A` with a reason.
+Research emits `knowledge_writeback_candidates`. Before final audit, the orchestrator writes back only reusable, evidence-bounded knowledge through the connected store when available, avoiding duplicates and preserving source/date/confidence. Record resulting page/file/item references with `record_knowledge_writeback(status="PASS")`. If there is no connected destination or nothing reusable, record `N_A` with a reason. The runtime keeps this gate `NOT_RUN` until that explicit decision is recorded.
 
 Article-specific rhetoric, headline wording and temporary stylistic choices are not knowledge-base facts. Contradictions are recorded rather than silently overwritten.
 

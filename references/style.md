@@ -6,7 +6,7 @@ Produce precise, individualized financial prose that reads like an informed huma
 ## Dedicated judge contract
 Anti-AI quality is a separate semantic sub-gate, not writer self-assessment. At `EDITORIAL_AUDIT`, an independent style judge returns `StyleAuditDecision` and the MCP path records it with `submit_style_audit`. The general editorial audit cannot PASS until this style gate is PASS.
 
-The judge must cite concrete text-level evidence rather than merely say “less AI-like”. It records repetitive patterns, transition defects, extreme-language findings and smallest necessary revision notes.
+The judge must provide concrete text-level evidence and a required five-part rubric: template fingerprint, transition continuity, repetition control, rhythm naturalness and extreme-language control. Overall PASS is legal only when every rubric item passes. REVISE requires concrete revision notes.
 
 ## Anti-AI review dimensions
 - Avoid over-regular paragraph lengths and mechanically symmetric section structures.

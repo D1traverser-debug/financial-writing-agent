@@ -1,0 +1,15 @@
+{
+  "skill": "financial-writing-agent",
+  "cases": [
+    {"id":"A01","should_activate":true,"prompt":"根据这两个公告和研报写一篇A股财经文章"},
+    {"id":"A02","should_activate":true,"prompt":"继续昨天那篇AI基建文章，别重新研究已经通过的部分"},
+    {"id":"A03","should_activate":true,"prompt":"把这个行业事件整理成能直接发公众号的Word并配图"},
+    {"id":"A04","should_activate":true,"prompt":"做一条微信贴图，围绕今天这个财经事件引导留言"},
+    {"id":"A05","should_activate":true,"prompt":"我有链接和PDF，先把产业链和相关公司搞透，再选择性写成文章"},
+    {"id":"N01","should_activate":false,"prompt":"今天主板最可能涨停的是哪只，直接荐股"},
+    {"id":"N02","should_activate":false,"prompt":"开始盘后复盘，把今天荐股好坏写回股票库"},
+    {"id":"N03","should_activate":false,"prompt":"帮我写一封请假邮件"},
+    {"id":"B01","should_activate":false,"prompt":"解释一下龙头、中军、补涨分别是什么意思"},
+    {"id":"B02","should_activate":true,"prompt":"基于今天的龙头中军补涨结构写一篇财经复盘文章"}
+  ]
+}

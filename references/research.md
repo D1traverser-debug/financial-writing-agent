@@ -17,6 +17,9 @@ The cognition map should cover what is material to the topic:
 
 This cognition is not a requirement to mention every dimension in the article. It is the knowledge base from which selective writing is allowed.
 
+## Coverage and stop condition
+“全面” must be auditable rather than infinite. Run at least two independent research sweeps using materially different query/source angles. Record `ResearchPackage.coverage` with concept/company/source coverage, what was excluded, whether the search saturated or remains bounded with gaps, how many material new items appeared on the last sweep, and why research stopped. A late sweep that still finds material concepts/companies is evidence to continue or explicitly mark the remaining gap; never declare “all” by intuition.
+
 ## Required reasoning coverage
 - Establish the event, chronology, policy/industry/company facts and what changed.
 - Map the relevant industry chain and economically important transmission path.
@@ -41,4 +44,4 @@ Facts used in the headline, opening, H1 or central conclusion require stronger v
 Research is global **within the current topic**. It may use market-wide knowledge, but does not rerun unrelated pre-market ranking unless that competition is needed to explain the article.
 
 ## Exit gate
-RESEARCH passes only when the main thesis has an evidence chain, the relevant company universe and concept/industry context have been considered, important counterevidence is represented, prior-knowledge conflicts are bounded, and unresolved gaps are explicit.
+RESEARCH passes only when the main thesis has an evidence chain, the relevant company universe and concept/industry context have been considered, important counterevidence is represented, prior-knowledge conflicts are bounded, unresolved gaps are explicit, and `ResearchCoverage` explains why breadth is sufficient to proceed.

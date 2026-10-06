@@ -1,15 +1,12 @@
 from __future__ import annotations
 
-import os
 import re
-import tempfile
 from pathlib import Path
 from typing import Literal
-from urllib.parse import urlparse
-from urllib.request import urlopen
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
+from docx.image.image import Image as DocxImage
 from docx.oxml.ns import qn
 from docx.shared import Inches, Pt, RGBColor
 from pydantic import BaseModel, Field
@@ -27,7 +24,7 @@ class ArticleDocument(BaseModel):
 
 
 class DocumentImage(BaseModel):
-    source_uri: str
+    local_path: str
     role: Literal["hero", "section"]
     anchor_after_block: int | None = None
     hook_text: str = ""
@@ -97,38 +94,20 @@ def _heading_label(kind: str, text: str, h1: int, h2: int, h3: int) -> str:
     return clean
 
 
-def _local_image_path(source_uri: str) -> tuple[Path, Path | None]:
-    parsed = urlparse(source_uri)
-    if parsed.scheme in {"http", "https"}:
-        if parsed.scheme != "https":
-            raise ValueError("remote visual assets must use https")
-        suffix = Path(parsed.path).suffix or ".png"
-        fd, name = tempfile.mkstemp(prefix="financial-writing-visual-", suffix=suffix)
-        os.close(fd)
-        tmp = Path(name)
-        try:
-            with urlopen(source_uri, timeout=30) as response:
-                tmp.write_bytes(response.read())
-        except Exception:
-            tmp.unlink(missing_ok=True)
-            raise
-        return tmp, tmp
-    path = Path(source_uri)
+def _add_image(doc: Document, image: DocumentImage, width_inches: float, max_height_inches: float) -> None:
+    path = Path(image.local_path)
     if not path.is_file():
-        raise FileNotFoundError(f"visual asset does not exist: {source_uri}")
-    return path, None
-
-
-def _add_image(doc: Document, image: DocumentImage, width_inches: float) -> None:
-    path, cleanup = _local_image_path(image.source_uri)
-    try:
-        p = doc.add_paragraph()
-        p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-        run = p.add_run()
+        raise FileNotFoundError(f"visual asset does not exist: {path}")
+    meta = DocxImage.from_file(str(path))
+    natural_ratio = float(meta.height) / float(meta.width) if meta.width else 1.0
+    target_height = width_inches * natural_ratio
+    p = doc.add_paragraph()
+    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = p.add_run()
+    if target_height > max_height_inches:
+        run.add_picture(str(path), height=Inches(max_height_inches))
+    else:
         run.add_picture(str(path), width=Inches(width_inches))
-    finally:
-        if cleanup is not None:
-            cleanup.unlink(missing_ok=True)
 
 
 def build_article_docx(
@@ -152,8 +131,9 @@ def build_article_docx(
 
     images = images or []
     width_inches = float(policy.get("visuals", {}).get("word_width_inches", 6.2))
+    max_height_inches = float(policy.get("visuals", {}).get("word_max_height_inches", 8.0))
     for image in [x for x in images if x.role == "hero"]:
-        _add_image(doc, image, width_inches)
+        _add_image(doc, image, width_inches, max_height_inches)
 
     section_images: dict[int, list[DocumentImage]] = {}
     for image in [x for x in images if x.role == "section"]:
@@ -205,7 +185,7 @@ def build_article_docx(
                 _set_cn_font(run)
 
         for image in section_images.get(index, []):
-            _add_image(doc, image, width_inches)
+            _add_image(doc, image, width_inches, max_height_inches)
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -220,13 +200,18 @@ class AuditLine(BaseModel):
     notes: str = ""
 
 
-def build_audit_docx(title: str, lines: list[AuditLine], artifacts: list[str], output: str | Path) -> Path:
+def build_audit_docx(title: str, lines: list[AuditLine], artifacts: list[str], output: str | Path, summary_lines: list[str] | None = None) -> Path:
     doc = Document()
     h = doc.add_paragraph()
     r = h.add_run(title)
     r.bold = True
     r.font.size = Pt(18)
     _set_cn_font(r)
+
+    for summary in summary_lines or []:
+        p = doc.add_paragraph(summary)
+        for run in p.runs:
+            _set_cn_font(run)
 
     for line in lines:
         p = doc.add_paragraph()

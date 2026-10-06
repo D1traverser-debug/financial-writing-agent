@@ -14,7 +14,7 @@ Before drafting, determine:
 - which company-comparison dimensions matter for this topic;
 - what can be omitted/compressed without breaking reasoning.
 
-Generate multiple candidate structures before reading recent outline fingerprints. Use fingerprints only as collision checks after the current topic produces its own candidates. `references/structure_patterns.md` is a design-pattern library, never a rotation schedule.
+Generate at least two candidate structures before reading recent outline fingerprints. `selected_structure` must be one of those candidates. Use fingerprints only as collision checks after the current topic produces its own candidates. `references/structure_patterns.md` is a design-pattern library, never a rotation schedule.
 
 ## Information density
 No default word-count target. Preserve independent facts, key numbers, causal steps, counterexamples, why-this/why-not, market-selection mechanism, validation/falsification conditions and risk boundaries.
@@ -45,11 +45,14 @@ Hooks are a three-layer system:
 2. Opening/lead proves the click was worth it quickly.
 3. H1 sections create reasons to continue.
 
-Generate 8-12 headline candidates from different logical angles, then judge/revise. Evaluate finance relevance, one primary contradiction/question, credible factual anchor when available, real information gap and cognitive load. Do not turn this into a fixed formula.
+Formal applicable modes generate 8-12 headline candidates from different logical angles before one is selected; runtime validates candidate count and membership. Evaluate finance relevance, one primary contradiction/question, credible factual anchor when available, real information gap and cognitive load. Do not turn this into a fixed formula.
 
 For FINANCE_BROAD ask why a finance reader who mainly follows another sector should care, using profit, valuation, pricing power, orders, cash flow, policy transmission, market selection or another supported cross-sector question.
 
 Headline must be fully paid off by the opening. Do not make the topic unidentifiable, and do not reveal the entire reasoning chain in the headline.
+
+## Risk section
+The writer returns a separate `risk_disclaimer` field for each formal article. Do not place a risk/disclaimer H1 inside article blocks. Deterministic delivery appends the final section so it cannot be omitted or duplicated by formatting drift.
 
 ## Style
 Load `references/style.md` for anti-AI, individuality and extreme-language rules. Style must never override evidence accuracy.

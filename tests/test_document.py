@@ -75,8 +75,8 @@ def test_word_builder_inserts_centered_uncropped_images_at_anchors(tmp_path):
         ],
     )
     images = [
-        DocumentImage(source_uri=str(image_path), role="hero"),
-        DocumentImage(source_uri=str(image_path), role="section", anchor_after_block=2),
+        DocumentImage(local_path=str(image_path), role="hero"),
+        DocumentImage(local_path=str(image_path), role="section", anchor_after_block=2),
     ]
     path = build_article_docx(article, tmp_path / "visual.docx", policy, images=images)
     result = check_docx(path, stock_names=[], policy=policy, expected_images=2)

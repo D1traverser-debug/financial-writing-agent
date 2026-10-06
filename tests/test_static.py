@@ -16,11 +16,18 @@ def test_visual_workflow_is_explicit_and_owned():
     assert "visuals" in ownership
     assert "visual_planning" in ownership["visuals"]
     assert Path("references/visuals.md").is_file()
+    assert not Path("SKILL.md").exists()
 
-    skill = Path("SKILL.md").read_text(encoding="utf-8")
-    packaged = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
-    server = Path("financial_writing_agent/mcp_server.py").read_text(encoding="utf-8")
+    skill = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+    runtime = Path("financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    shim = Path("financial_writing_agent/mcp_server.py").read_text(encoding="utf-8")
+
     assert "references/visuals.md" in skill
-    assert "submit_visual_package" in packaged
-    assert "submit_visual_package" in server
-    assert "deterministic runtime owns asset recording" not in skill.lower() or "image" in skill.lower()
+    assert "submit_visual_package" in skill
+    assert "submit_visual_package" in public_server
+    assert "submit_visual_package" in runtime
+    assert 'openai/fileParams' in public_server
+    assert "@mcp.tool" not in runtime
+    assert "@mcp.tool" not in shim
+    assert "from .plugin_server import main, mcp" in shim
