@@ -32,7 +32,7 @@ class WritingEngine:
         state = WritingState(contract=contract)
         state.add_trace("RUNTIME_STARTED", "TaskContract initialized before source retrieval or drafting")
         state.set_gate("runtime_initialized", GateStatus.PASS, ["TaskContract exists", "State store active"])
-        state.set_gate("knowledge_sync", GateStatus.N_A, [], "No connected knowledge writeback recorded yet")
+        state.set_gate("knowledge_sync", GateStatus.NOT_RUN, [], "Explicit PASS/N_A writeback decision required before final completion")
         self.store.save(state)
         return state
 
@@ -63,7 +63,7 @@ class WritingEngine:
         return state.attempts[key]
 
     def assert_can_complete(self, state: WritingState) -> None:
-        failed = [name for name, g in state.gates.items() if g.status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}]
+        failed = [name for name, gate in state.gates.items() if gate.status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}]
         if failed:
             raise WorkflowError(f"Unresolved gates: {failed}")
         missing: list[ArtifactKind] = []

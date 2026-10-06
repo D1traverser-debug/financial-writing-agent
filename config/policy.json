@@ -9,9 +9,8 @@
     "research_max_rounds": 2
   },
   "finance_compliance": {
-    "hard_fail_phrases": [
-      "买入", "卖出", "加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"
-    ]
+    "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
+    "semantic_review_terms": ["买入", "卖出"]
   },
   "style": {
     "continuous_report_prose": true,
@@ -38,7 +37,9 @@
     "avatar_required": true,
     "center_in_word": true,
     "crop_in_word": false,
-    "word_width_inches": 6.2
+    "word_width_inches": 6.2,
+    "word_max_height_inches": 8.0,
+    "max_file_bytes": 26214400
   },
   "wechat_sticker": {
     "content_mode": "WECHAT_STICKER_POST",

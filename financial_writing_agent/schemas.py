@@ -1,13 +1,14 @@
 from __future__ import annotations
 
+from datetime import datetime
 from typing import Literal
 
 from pydantic import BaseModel, Field, model_validator
 
 
 class EvidenceItem(BaseModel):
-    claim: str
-    source: str
+    claim: str = Field(min_length=1)
+    source: str = Field(min_length=1)
     date: str | None = None
     evidence_type: str = "web"
     confidence: Literal["high", "medium", "low"] = "medium"
@@ -16,9 +17,9 @@ class EvidenceItem(BaseModel):
 
 
 class CompanyFinding(BaseModel):
-    name: str
+    name: str = Field(min_length=1)
     ticker: str | None = None
-    relevance: str
+    relevance: str = Field(min_length=1)
     business_stage: str = ""
     positive_evidence: list[str] = Field(default_factory=list)
     negative_evidence: list[str] = Field(default_factory=list)
@@ -32,60 +33,79 @@ class CompanyFinding(BaseModel):
 
 class MarketCognition(BaseModel):
     prior_knowledge_refs: list[str] = Field(default_factory=list)
-    concept_map: list[str] = Field(default_factory=list)
+    concept_map: list[str] = Field(min_length=1)
     adjacent_or_competing_concepts: list[str] = Field(default_factory=list)
-    industry_logic: list[str] = Field(default_factory=list)
+    industry_logic: list[str] = Field(min_length=1)
     short_term_market_structure: list[str] = Field(default_factory=list)
     knowledge_conflicts: list[str] = Field(default_factory=list)
 
 
+class ResearchCoverage(BaseModel):
+    sweeps_completed: int = Field(ge=2, le=10)
+    coverage_status: Literal["SATURATED", "BOUNDED_WITH_GAPS"]
+    material_new_items_last_sweep: int = Field(ge=0)
+    concept_coverage: str = Field(min_length=1)
+    company_coverage: str = Field(min_length=1)
+    source_diversity: str = Field(min_length=1)
+    excluded_scope: list[str] = Field(default_factory=list)
+    stop_reason: str = Field(min_length=1)
+
+
 class ResearchPackage(BaseModel):
-    topic: str
-    chronology: list[str]
-    what_changed: list[str]
-    industry_chain: list[str]
-    transmission_chain: list[str]
-    universe: list[CompanyFinding]
-    evidence_ledger: list[EvidenceItem]
-    counterevidence: list[str]
-    unresolved_gaps: list[str]
-    provisional_theses: list[str]
-    source_boundary: str
-    cognition: MarketCognition = Field(default_factory=MarketCognition)
+    topic: str = Field(min_length=1)
+    chronology: list[str] = Field(min_length=1)
+    what_changed: list[str] = Field(min_length=1)
+    industry_chain: list[str] = Field(min_length=1)
+    transmission_chain: list[str] = Field(min_length=1)
+    universe: list[CompanyFinding] = Field(default_factory=list)
+    evidence_ledger: list[EvidenceItem] = Field(min_length=1)
+    counterevidence: list[str] = Field(default_factory=list)
+    unresolved_gaps: list[str] = Field(default_factory=list)
+    provisional_theses: list[str] = Field(min_length=1)
+    source_boundary: str = Field(min_length=1)
+    cognition: MarketCognition
+    coverage: ResearchCoverage
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
 
 
 class TopicDNA(BaseModel):
-    new_fact: str
-    main_transmission: str
-    likely_reader_misjudgment: str
-    core_contradictions: list[str]
-    comparison_dimensions: list[str]
-    compression_candidates: list[str]
-    finance_wide_question: str
+    new_fact: str = Field(min_length=1)
+    main_transmission: str = Field(min_length=1)
+    likely_reader_misjudgment: str = Field(min_length=1)
+    core_contradictions: list[str] = Field(min_length=1, max_length=3)
+    comparison_dimensions: list[str] = Field(min_length=1)
+    compression_candidates: list[str] = Field(default_factory=list)
+    finance_wide_question: str = Field(min_length=1)
 
 
 class StructureCandidate(BaseModel):
-    name: str
-    rationale: str
-    sections: list[str]
+    name: str = Field(min_length=1)
+    rationale: str = Field(min_length=1)
+    sections: list[str] = Field(min_length=2)
 
 
 class EditorialPlan(BaseModel):
     topic_dna: TopicDNA
-    candidates: list[StructureCandidate]
+    candidates: list[StructureCandidate] = Field(min_length=2)
     selected_structure: StructureCandidate
-    finance_deep_emphasis: list[str]
-    finance_broad_emphasis: list[str]
-    side_focus_statement: str
+    finance_deep_emphasis: list[str] = Field(default_factory=list)
+    finance_broad_emphasis: list[str] = Field(default_factory=list)
+    side_focus_statement: str = Field(min_length=1)
     wechat_sticker_emphasis: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def selected_must_be_candidate(self):
+        names = {candidate.name for candidate in self.candidates}
+        if self.selected_structure.name not in names:
+            raise ValueError("selected_structure must be one of candidates")
+        return self
 
 
 class HeadlineCandidate(BaseModel):
-    title: str
-    angle: str
-    finance_relevance: str
-    primary_gap: str
+    title: str = Field(min_length=1)
+    angle: str = Field(min_length=1)
+    finance_relevance: str = Field(min_length=1)
+    primary_gap: str = Field(min_length=1)
     cognitive_load: Literal["low", "medium", "high"]
 
 
@@ -97,21 +117,39 @@ class HeadlinePackage(BaseModel):
     wechat_sticker_candidates: list[HeadlineCandidate] = Field(default_factory=list)
     wechat_sticker_selected: str | None = None
 
+    @model_validator(mode="after")
+    def selected_titles_must_be_candidates(self):
+        for selected, candidates, label in [
+            (self.finance_deep_selected, self.finance_deep_candidates, "finance_deep"),
+            (self.finance_broad_selected, self.finance_broad_candidates, "finance_broad"),
+            (self.wechat_sticker_selected, self.wechat_sticker_candidates, "wechat_sticker"),
+        ]:
+            if selected and selected not in {candidate.title for candidate in candidates}:
+                raise ValueError(f"{label}_selected must be one of its candidates")
+        return self
+
 
 class ArticleBlock(BaseModel):
     kind: Literal["lead", "h1", "h2", "h3", "body"]
-    text: str
+    text: str = Field(min_length=1)
 
 
 class ArticlePayload(BaseModel):
-    title: str
-    blocks: list[ArticleBlock]
+    title: str = Field(min_length=1)
+    blocks: list[ArticleBlock] = Field(min_length=3)
+    risk_disclaimer: str = Field(min_length=60)
     stock_names: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def risk_section_is_deterministic(self):
+        if any("风险提示" in block.text and "免责声明" in block.text for block in self.blocks):
+            raise ValueError("do not embed the risk/disclaimer section in blocks; use risk_disclaimer")
+        return self
 
 
 class PlatformConstraintSnapshot(BaseModel):
     platform: str = "微信贴图"
-    verified_at: str
+    verified_at: datetime
     source_refs: list[str] = Field(min_length=1)
     title_max_chars: int | None = Field(default=None, ge=1)
     body_max_chars: int | None = Field(default=None, ge=1)
@@ -120,10 +158,10 @@ class PlatformConstraintSnapshot(BaseModel):
 
 
 class StickerPostPayload(BaseModel):
-    title: str
-    body: str
+    title: str = Field(min_length=1)
+    body: str = Field(min_length=1)
     interaction_prompt: str = ""
-    risk_disclaimer: str = Field(min_length=30)
+    risk_disclaimer: str = Field(min_length=60)
     constraints: PlatformConstraintSnapshot
     stock_names: list[str] = Field(default_factory=list)
 
@@ -131,8 +169,9 @@ class StickerPostPayload(BaseModel):
     def enforce_verified_limits(self):
         if self.constraints.title_max_chars is not None and len(self.title) > self.constraints.title_max_chars:
             raise ValueError("sticker title exceeds verified platform limit")
-        if self.constraints.body_max_chars is not None and len(self.body) > self.constraints.body_max_chars:
-            raise ValueError("sticker body exceeds verified platform limit")
+        publish_body = "\n".join(x for x in [self.body, self.interaction_prompt, self.risk_disclaimer] if x.strip())
+        if self.constraints.body_max_chars is not None and len(publish_body) > self.constraints.body_max_chars:
+            raise ValueError("sticker publish body exceeds verified platform limit")
         return self
 
 
@@ -142,14 +181,21 @@ class DraftPackage(BaseModel):
     wechat_sticker_post: StickerPostPayload | None = None
 
 
+class OpenAIFileRef(BaseModel):
+    download_url: str = Field(min_length=1)
+    file_id: str = Field(min_length=1)
+    mime_type: str | None = None
+    file_name: str | None = None
+
+
 class VisualAsset(BaseModel):
     article_mode: Literal["FINANCE_DEEP", "FINANCE_BROAD", "WECHAT_STICKER_POST"]
     role: Literal["hero", "section", "sticker"]
-    semantic_focus: str
-    source_uri: str
+    semantic_focus: str = Field(min_length=1)
+    file_id: str = Field(min_length=1)
     anchor_after_block: int | None = Field(default=None, ge=0)
     hook_text: str = ""
-    aspect_ratio: str = "16:9"
+    aspect_ratio: str = Field(min_length=3)
     avatar_included: bool = True
 
 
@@ -160,18 +206,56 @@ class VisualPackage(BaseModel):
     planning_notes: list[str] = Field(default_factory=list)
 
 
+class ResolvedVisualAsset(VisualAsset):
+    local_path: str = Field(min_length=1)
+
+
+class ResolvedVisualPackage(BaseModel):
+    assets: list[ResolvedVisualAsset] = Field(min_length=1)
+    avatar_required: bool = True
+    target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
+    planning_notes: list[str] = Field(default_factory=list)
+
+
+class StyleAuditRubric(BaseModel):
+    template_fingerprint: Literal["PASS", "REVISE"]
+    transition_continuity: Literal["PASS", "REVISE"]
+    repetition_control: Literal["PASS", "REVISE"]
+    rhythm_naturalness: Literal["PASS", "REVISE"]
+    extreme_language_control: Literal["PASS", "REVISE"]
+
+
 class StyleAuditDecision(BaseModel):
     status: Literal["PASS", "REVISE"]
-    evidence: list[str]
+    evidence: list[str] = Field(min_length=1)
+    rubric: StyleAuditRubric
     detected_patterns: list[str] = Field(default_factory=list)
     transition_findings: list[str] = Field(default_factory=list)
     extreme_language_findings: list[str] = Field(default_factory=list)
     revision_notes: list[str] = Field(default_factory=list)
 
+    @model_validator(mode="after")
+    def status_matches_rubric(self):
+        rubric_values = self.rubric.model_dump().values()
+        expected = "PASS" if all(value == "PASS" for value in rubric_values) else "REVISE"
+        if self.status != expected:
+            raise ValueError(f"style status must be {expected} for the supplied rubric")
+        if self.status == "REVISE" and not self.revision_notes:
+            raise ValueError("REVISE style audit requires revision_notes")
+        return self
+
 
 class GateDecision(BaseModel):
     status: Literal["PASS", "REVISE", "FAIL"]
-    evidence: list[str]
+    evidence: list[str] = Field(min_length=1)
     defects: list[str] = Field(default_factory=list)
     revision_target: Literal["RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY"] | None = None
     remaining_boundaries: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def decision_is_actionable(self):
+        if self.status == "REVISE" and self.revision_target is None:
+            raise ValueError("REVISE requires revision_target")
+        if self.status == "FAIL" and not self.defects:
+            raise ValueError("FAIL requires at least one defect")
+        return self
