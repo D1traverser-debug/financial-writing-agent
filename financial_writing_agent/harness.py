@@ -13,7 +13,30 @@ from .schemas import (
 )
 
 
+SOURCE_COMPLETION_STATES = ("FULL", "PARTIAL", "UNAVAILABLE")
+
+
+def _validate_task_source_completion(state: WritingState, research: ResearchPackage) -> list[str]:
+    refs = list(dict.fromkeys(state.contract.source_refs))
+    if not refs:
+        return ["task_source_refs=0"]
+
+    boundary = research.source_boundary
+    missing: list[str] = []
+    for ref in refs:
+        if not any(f"[{status}] {ref}" in boundary for status in SOURCE_COMPLETION_STATES):
+            missing.append(ref)
+    if missing:
+        raise ValueError(
+            "ResearchPackage.source_boundary must account for every TaskContract source_ref using "
+            "'[FULL] <ref>', '[PARTIAL] <ref>' or '[UNAVAILABLE] <ref>'; "
+            f"missing={missing}"
+        )
+    return [f"task_source_refs={len(refs)}; source_completion=accounted"]
+
+
 def validate_research_against_knowledge_context(state: WritingState, research: ResearchPackage) -> list[str]:
+    evidence = _validate_task_source_completion(state, research)
     gate = state.gates.get("knowledge_context")
     if gate is None or gate.status not in {GateStatus.PASS, GateStatus.N_A}:
         raise ValueError("knowledge_context must be PASS or N_A before research validation")
@@ -26,7 +49,8 @@ def validate_research_against_knowledge_context(state: WritingState, research: R
             raise ValueError(
                 "ResearchPackage.cognition.prior_knowledge_refs must be empty when knowledge_context=N_A"
             )
-        return ["knowledge_context=N_A; prior_knowledge_refs=0"]
+        evidence.append("knowledge_context=N_A; prior_knowledge_refs=0")
+        return evidence
 
     if not recorded:
         raise ValueError("knowledge_context=PASS requires recorded durable-knowledge references")
@@ -35,9 +59,33 @@ def validate_research_against_knowledge_context(state: WritingState, research: R
         raise ValueError(
             f"ResearchPackage claims prior_knowledge_refs not recorded by knowledge_context: {invented}"
         )
-    return [
+    evidence.append(
         f"knowledge_context=PASS; retrieved_refs={len(recorded)}; reused_refs={len(claimed)}"
-    ]
+    )
+    return evidence
+
+
+def _validated_anchor_claims(state: WritingState) -> set[str]:
+    raw_research = state.working.get("research")
+    if raw_research is None:
+        raise ValueError("headline validation requires frozen ResearchPackage")
+    research = ResearchPackage.model_validate(raw_research)
+    return {item.claim.strip() for item in research.evidence_ledger if item.core_safe}
+
+
+def _validate_headline_candidate_anchors(
+    state: WritingState,
+    candidates: list[HeadlineCandidate],
+    *,
+    label: str,
+) -> None:
+    safe_claims = _validated_anchor_claims(state)
+    missing = [candidate.title for candidate in candidates if candidate.factual_anchor.strip() not in safe_claims]
+    if missing:
+        raise ValueError(
+            f"{label} headline factual_anchor must exactly match a core_safe ResearchPackage evidence claim; "
+            f"invalid_titles={missing}"
+        )
 
 
 def _selected_candidate(candidates: list[HeadlineCandidate], selected_title: str) -> HeadlineCandidate:
@@ -75,6 +123,11 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
         if editorial.wechat_sticker is None or not headlines.wechat_sticker_selected:
             raise ValueError("WECHAT_STICKER_POST acceptance contract requires frozen editorial plan and selected title")
+        _validate_headline_candidate_anchors(
+            state,
+            headlines.wechat_sticker_candidates,
+            label="WECHAT_STICKER_POST",
+        )
         candidate = _selected_candidate(
             headlines.wechat_sticker_candidates,
             headlines.wechat_sticker_selected,
@@ -84,6 +137,11 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
         if state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}:
             if editorial.finance_deep is None or not headlines.finance_deep_selected:
                 raise ValueError("FINANCE_DEEP acceptance contract requires frozen editorial plan and selected title")
+            _validate_headline_candidate_anchors(
+                state,
+                headlines.finance_deep_candidates,
+                label="FINANCE_DEEP",
+            )
             candidate = _selected_candidate(
                 headlines.finance_deep_candidates,
                 headlines.finance_deep_selected,
@@ -92,6 +150,11 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
         if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
             if editorial.finance_broad is None or not headlines.finance_broad_selected:
                 raise ValueError("FINANCE_BROAD acceptance contract requires frozen editorial plan and selected title")
+            _validate_headline_candidate_anchors(
+                state,
+                headlines.finance_broad_candidates,
+                label="FINANCE_BROAD",
+            )
             candidate = _selected_candidate(
                 headlines.finance_broad_candidates,
                 headlines.finance_broad_selected,
@@ -115,6 +178,7 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
             f"finance_deep={'yes' if contract.finance_deep else 'no'}",
             f"finance_broad={'yes' if contract.finance_broad else 'no'}",
             f"wechat_sticker={'yes' if contract.wechat_sticker else 'no'}",
+            "all headline factual anchors exactly match core_safe research claims",
             "selected headline factual anchor/gap/opening payoff frozen per applicable mode",
         ],
     )
