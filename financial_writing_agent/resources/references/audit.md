@@ -8,15 +8,15 @@ The audit is omission-oriented as well as defect-oriented: ask not only whether 
 ## Acceptance contract first
 Before FINAL PASS, read the frozen `WritingAcceptanceContract` and the final draft/artifact state. Audit every applicable mode against the contract rather than asking only whether the article feels acceptable.
 
-The acceptance contract freezes not only the selected title/structure but also the selected headline candidate's `headline_factual_anchor`, `headline_primary_gap` and `headline_opening_payoff`. FINAL must judge the final article against those frozen promises rather than inventing a new explanation of why the title works after the fact.
+The acceptance contract freezes not only the selected title/structure but also the selected headline candidate's `headline_factual_anchor`, `headline_primary_gap`, `headline_opening_payoff`, and every formal H1's section expectation: directional conclusion, reader gap, payoff requirement, logical-block plan and any required H3-bearing H2 indexes. FINAL must judge the final article against those frozen promises rather than inventing a new explanation after the fact.
 
 For each formal mode verify with concrete final-content evidence:
 - selected title is unchanged or the contract was legitimately rebuilt;
 - exactly one independent lead exists before the first H1;
 - the first three sentences materially pay off the **frozen** headline information gap/opening-payoff promise rather than spending the opening on generic background;
 - H1 count and H1 sequence match the frozen selected structure;
-- each H1 carries a real directional judgment and a continuation gap/mechanism/contrast that is actually paid off in its section body rather than functioning as a directory label;
-- where a section genuinely contains multiple explicit logical sub-blocks, the H2/H3 hierarchy reflects that structure instead of hiding the blocks in an undifferentiated wall of text or inventing headings for decoration;
+- each H1 carries its frozen directional judgment and continuation gap, and the section body contains a concrete payoff location satisfying the frozen payoff requirement;
+- frozen H2/H3 hierarchy is realized exactly: multi-block sections expose their frozen H2 labels/order, required H3-bearing H2 blocks have at least three third-level units, and unplanned hierarchy does not silently drift in during drafting;
 - side-focus statement is actually paid off in the article rather than existing only in planning metadata;
 - the company-selection basis is visible in the comparison logic;
 - the **frozen** headline factual anchor is supported by the research evidence boundary and not silently substituted with a different anchor;
@@ -32,6 +32,17 @@ A DUAL task additionally requires both versions to stand on their own while pres
 ## Final acceptance-evidence key contract
 `FinalAuditDecision.acceptance_evidence` is not a free-form summary. Every item uses exactly `KEY: concrete final-content evidence`. `KEY` is machine-checked before COMPLETE.
 
+Every task must provide the following explicit global keys; do not collapse them into one generic “research checked” sentence:
+- `GLOBAL.evidence_boundary`
+- `GLOBAL.source_completion`
+- `GLOBAL.omission_scan`
+- `GLOBAL.count_reconciliation`
+- `GLOBAL.time_integrity`
+- `GLOBAL.counterexample_scan`
+- `GLOBAL.required_outputs`
+
+`GLOBAL.count_reconciliation` is still mandatory as an explicit decision. When there is no material enumerable inventory to reconcile, its evidence must say why it is genuinely N/A rather than silently omitting the check.
+
 Every formal applicable mode (`FINANCE_DEEP` and/or `FINANCE_BROAD`) must provide all of:
 - `<MODE>.selected_title`
 - `<MODE>.independent_lead`
@@ -45,21 +56,27 @@ Every formal applicable mode (`FINANCE_DEEP` and/or `FINANCE_BROAD`) must provid
 - `<MODE>.reasoning_continuity`
 - `<MODE>.compliance_risk`
 
+For every frozen `section_expectations` item in that mode, FINAL also supplies a dynamic key:
+- `<MODE>.H1_<N>.promise_payoff`
+
+The H1 evidence value must identify the final H1, show the frozen directional conclusion is actually expressed, identify the still-open reader gap/continuation reason, and point to the concrete paragraph/portion where the body pays off the frozen requirement. A restatement of planning metadata is not evidence.
+
 `headline_anchor` evidence must explicitly tie the final title/opening to the frozen `headline_factual_anchor`. `opening_first_three_sentences` and `opening_payoff` evidence must explicitly compare the final opening with the frozen `headline_primary_gap` and `headline_opening_payoff`.
 
 Use the existing keys as evidence containers rather than inventing a second checklist vocabulary:
-- `<MODE>.h1_structure` should identify the final H1 sequence and, for each material H1, the directional judgment, continuation gap/payoff location and any required nested hierarchy that materially affects readability.
-- `<MODE>.reasoning_continuity` should cover causal/cross-layer transitions, fact-vs-inference-vs-market-expectation separation, falsification awareness, natural ending and whether compression preserved the core reasoning chain.
-- `<MODE>.bold_scan_skeleton` should state whether title + headings + body bold anchors reconstruct the article's central information skeleton without excessive decorative bold.
-- `<MODE>.compliance_risk` should cover title/lead/H1/bold/ending as well as ordinary body text and confirm that the risk section is topic-specific rather than generic boilerplate.
-- `GLOBAL.evidence_boundary` should cover material task-source completion, all verifiable final facts, evidence-ledger status, source-group independence, stale/time boundaries, unresolved gaps, omission scan, material count reconciliation where applicable, and StockBase read-only/review-queue discipline.
-- `GLOBAL.required_outputs` should cover required artifact identity/checksum/readback plus the audit report itself; when a connected external copy is claimed as saved/uploaded, external readback/metadata evidence is required separately from runtime artifact existence.
+- `<MODE>.h1_structure` identifies the final H1 sequence and confirms frozen H2/H3 hierarchy realization; per-H1 semantic direction/gap/payoff evidence belongs in the dynamic `H1_<N>.promise_payoff` key.
+- `<MODE>.reasoning_continuity` covers causal/cross-layer transitions, fact-vs-inference-vs-market-expectation separation, falsification awareness, natural ending and whether compression preserved the core reasoning chain.
+- `<MODE>.bold_scan_skeleton` states whether title + headings + body bold anchors reconstruct the article's central information skeleton without excessive decorative bold.
+- `<MODE>.compliance_risk` covers title/lead/H1/bold/ending as well as ordinary body text and confirms the risk section is topic-specific rather than generic boilerplate.
+- `GLOBAL.evidence_boundary` summarizes final claim/evidence boundaries, unresolved gaps, source-group independence and StockBase read-only/review-queue discipline.
+- `GLOBAL.source_completion` accounts for every user-supplied `TaskContract.source_ref` using the recorded FULL/PARTIAL/UNAVAILABLE boundary and explains the impact of any PARTIAL/UNAVAILABLE source.
+- `GLOBAL.omission_scan` states what should have been present by rule/topic/universe but was specifically checked for absence.
+- `GLOBAL.count_reconciliation` reconciles material enumerable inventories—sources, company universe, selected companies, H1/required outputs/knowledge items where relevant—or explicitly justifies N/A.
+- `GLOBAL.time_integrity` confirms mutable facts/market data/policy state use the correct effective date/time and that no later information contaminates an earlier decision boundary.
+- `GLOBAL.counterexample_scan` points to counterevidence, excluded peers, falsification conditions or other evidence that could have overturned the main thesis.
+- `GLOBAL.required_outputs` covers required artifact identity/checksum/readback plus the audit report itself; when a connected external copy is claimed as saved/uploaded, external readback/metadata evidence is required separately from runtime artifact existence.
 
 If visuals are enabled, also provide `<MODE>.visual_alignment`.
-
-Every formal task also provides:
-- `GLOBAL.evidence_boundary`
-- `GLOBAL.required_outputs`
 
 A DUAL task additionally provides `DUAL.cross_version_consistency`.
 
@@ -69,8 +86,7 @@ For `WECHAT_STICKER_POST`, provide:
 - `WECHAT_STICKER_POST.useful_body`
 - `WECHAT_STICKER_POST.image_copy_complement`
 - `WECHAT_STICKER_POST.compliance_risk`
-- `GLOBAL.evidence_boundary`
-- `GLOBAL.required_outputs`
+- the full global key set above;
 - and `WECHAT_STICKER_POST.visual_alignment` when visuals are enabled.
 
 Evidence after the colon must point to what is actually present in the frozen final content/state. A bare PASS label, rule name, or statement such as “checked” is not acceptable evidence.
@@ -114,10 +130,12 @@ Runtime PASS requires the reviewed-page set to exactly equal the expected render
 ## Semantic gates
 Use an independent judge for:
 - evidence support, material source completion and source boundary;
+- omission scan, material inventory reconciliation and time integrity;
 - reasoning continuity and cross-layer transitions;
 - counterevidence and `why_this / why_not`;
 - title truthfulness, frozen-anchor fidelity, first-three-sentence payoff and opening-payoff fidelity;
-- H1 continuation value, hierarchy need and structure-topic fit;
+- every frozen H1's directional conclusion, continuation gap and payoff location;
+- H1/H2/H3 hierarchy need and structure-topic fit;
 - bold skim-reading skeleton quality;
 - information density, compression loss and company-selection logic;
 - fact/inference/market-expectation/rumor separation;
@@ -143,9 +161,9 @@ If a final text introduces a material fact that is absent from the frozen resear
 ## Revision targeting and invalidation
 Use the earliest stage that can correctly repair the defect:
 - `RESEARCH` for unsupported/new/conflicting facts, material source-completion defects, stale/time contamination or material universe omissions;
-- `EDITORIAL` for TopicDNA, structure-generation, H1 continuation design or company-selection-basis defects;
+- `EDITORIAL` for TopicDNA, structure-generation, section-acceptance design, H1 continuation design or company-selection-basis defects;
 - `TITLE` for headline/hook/frozen-headline-promise defects when research/editorial remain valid;
-- `DRAFT` for prose, lead, first-three-sentence payoff, prompt leakage, bold skim skeleton, reasoning, section realization or compliance defects within a valid frozen title/structure/headline promise;
+- `DRAFT` for prose, lead, first-three-sentence payoff, prompt leakage, bold skim skeleton, reasoning, section realization or compliance defects within a valid frozen title/structure/section contract;
 - `DELIVERY` for Word/render/artifact-only defects.
 
 A revision invalidates affected downstream PASS records and generated delivery artifacts. Never reuse stale QA because the change looked small.
@@ -153,9 +171,9 @@ A revision invalidates affected downstream PASS records and generated delivery a
 ## Audit report
 Generate `WRITING_AUDIT_REPORT.docx` from the final state after the final semantic decision. It should expose enough evidence to distinguish actual verification from a generic PASS stamp, including:
 - task/distribution/delivery contract and required outputs;
-- acceptance-contract identity, frozen headline promises and applicable mode checks;
-- source/evidence boundary, supplied-source completion and research coverage;
-- omission/count/time-integrity boundaries where applicable;
+- acceptance-contract identity, frozen headline promises, section expectations and applicable mode checks;
+- source/evidence boundary and explicit supplied-source completion;
+- omission scan, count reconciliation, time-integrity and counterexample evidence;
 - stage-by-stage PASS/REVISE/FAIL/N/A;
 - knowledge recall and writeback decisions/receipts;
 - mechanical Word checks and render results;
@@ -173,4 +191,4 @@ When final audit discovers a defect that an already-existing rule/gate should ha
 The final chat response must include a concise checklist status covering runtime/gates, research/evidence, acceptance/structure/style/continuity, Word/render, compliance/risk disclaimer, visuals if applicable, and knowledge recall/writeback if applicable. Under `WORD_FILE_ONLY` this checklist must not paste the article body.
 
 ## Fail closed
-No artifact may be COMPLETE while an applicable mandatory gate is absent, either knowledge decision remains `NOT_RUN`, a Must-Pass item lacks final evidence, a material supplied source is silently unaccounted for, a material count/time/source boundary is unresolved without an explicit boundary, a required output lacks a checksum, required output readback/checksum fails, or a required acceptance-evidence key is missing. Changes to facts, title, headline promise, independent lead, opening, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
+No artifact may be COMPLETE while an applicable mandatory gate is absent, either knowledge decision remains `NOT_RUN`, a Must-Pass item lacks final evidence, a material supplied source is silently unaccounted for, the omission/count/time/counterexample decision is missing, a required output lacks a checksum, required output readback/checksum fails, a required per-mode/per-H1 acceptance-evidence key is missing, or a material source/evidence boundary remains unresolved without an explicit boundary. Changes to facts, title, headline promise, section acceptance contract, independent lead, opening, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
