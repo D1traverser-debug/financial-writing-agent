@@ -90,6 +90,7 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
         "compliance_risk": _gate_status(state, "final_audit"),
         "visuals": _gate_status(state, "visual_assets") if state.contract.visuals_enabled else "N_A",
         "knowledge": {
+            "context_gate": _gate_status(state, "knowledge_context"),
             "sync_gate": _gate_status(state, "knowledge_sync"),
             "reused_refs": len(cognition.get("prior_knowledge_refs", [])),
             "writeback_candidates": len(research.get("knowledge_writeback_candidates", [])),
@@ -107,9 +108,11 @@ def _next_action(state: WritingState) -> str:
         return "run the independent anti-AI/style judge and call submit_style_audit before submit_editorial_audit"
     if state.stage == Stage.FINAL_AUDIT and REQUIRE_RENDER and _expected_render_page_uris(state):
         return "inspect every writing-render resource, record knowledge writeback PASS/N_A, then call submit_final_audit with reviewed_render_pages"
+    if state.stage == Stage.RESEARCH and _gate_status(state, "knowledge_context") not in {"PASS", "N_A"}:
+        return "retrieve durable prior knowledge when available, then call record_knowledge_context with PASS or explicit N_A before submit_research"
     return {
         Stage.INTAKE: "advance runtime initialization",
-        Stage.RESEARCH: "reuse durable prior knowledge when available, research broadly/currently, then submit_research",
+        Stage.RESEARCH: "research broadly/currently, then submit_research",
         Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
         Stage.EDITORIAL: "build TopicDNA and independent mode-specific candidate structures, then call submit_editorial_plan",
         Stage.TITLE: "generate/judge headline candidates, freeze the acceptance contract, then advance to drafting",
@@ -118,7 +121,7 @@ def _next_action(state: WritingState) -> str:
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
         Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
         Stage.COMPLETE: "deliver recorded artifacts plus the visible completion checklist",
-        Stage.BLOCKED: "inspect blocked_reason and repair the dependency or contract defect before resuming",
+        Stage.BLOCKED: "repair the blocked dependency/contract defect, then call resume_writing_task to return to the recorded original stage",
     }[state.stage]
 
 
@@ -282,6 +285,14 @@ def get_writing_task(task_id: str, detail: bool = True) -> dict[str, Any]:
     return _summary(_load(task_id), detail=detail)
 
 
+def resume_writing_task(task_id: str) -> dict[str, Any]:
+    state = _load(task_id)
+    state = engine.resume_from_blocked(state)
+    state.add_trace("MCP_RESUME", "blocked task resumed at recorded original stage")
+    store.save(state)
+    return _summary(state, detail=True)
+
+
 def list_recent_writing_tasks(limit: int = 10, include_complete: bool = False) -> list[dict[str, Any]]:
     states = store.list_recent(limit=max(1, min(limit, 50)))
     if not include_complete:
@@ -289,12 +300,26 @@ def list_recent_writing_tasks(limit: int = 10, include_complete: bool = False) -
     return [_summary(state) for state in states]
 
 
-def record_knowledge_context(task_id: str, refs: list[str], notes: list[str] | None = None) -> dict[str, Any]:
+def record_knowledge_context(
+    task_id: str,
+    status: str,
+    refs: list[str] | None = None,
+    notes: list[str] | None = None,
+) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
-    state.working["knowledge_context_refs"] = list(dict.fromkeys(refs))
-    state.working["knowledge_context_notes"] = notes or []
-    state.add_trace("KNOWLEDGE_CONTEXT", f"refs={len(refs)}")
+    if status not in {"PASS", "N_A"}:
+        raise ValueError("knowledge context status must be PASS or N_A")
+    unique_refs = list(dict.fromkeys(refs or []))
+    note_list = notes or []
+    if status == "PASS" and not unique_refs:
+        raise ValueError("knowledge context PASS requires at least one real retrieved reference")
+    if status == "N_A" and not note_list:
+        raise ValueError("knowledge context N_A requires an explicit reason")
+    state.working["knowledge_context_refs"] = unique_refs
+    state.working["knowledge_context_notes"] = note_list
+    state.set_gate("knowledge_context", GateStatus(status), unique_refs or ["explicit N_A"], "; ".join(note_list))
+    state.add_trace("KNOWLEDGE_CONTEXT", f"status={status}; refs={len(unique_refs)}")
     store.save(state)
     return _summary(state)
 
@@ -302,6 +327,8 @@ def record_knowledge_context(task_id: str, refs: list[str], notes: list[str] | N
 def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
+    if _gate_status(state, "knowledge_context") not in {"PASS", "N_A"}:
+        raise ValueError("record_knowledge_context PASS/N_A before submit_research")
     payload = ResearchPackage.model_validate(research)
     state.working["research"] = payload.model_dump(mode="json")
     state.set_gate(
