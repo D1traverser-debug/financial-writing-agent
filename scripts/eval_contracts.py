@@ -13,7 +13,7 @@ from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
 from financial_writing_agent.runtime_service import _completion_checklist
 from financial_writing_agent.schemas import PlatformConstraintSnapshot, StickerPostPayload
-from financial_writing_agent.store import SQLiteStateStore
+from financial_writing_agent.store import SQLiteStateStore, StateConflictError
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "evals" / "scenarios.json"
@@ -34,7 +34,8 @@ def eval_e01() -> list[str]:
         runtime = AgentRuntime.with_sqlite(Path(td) / "state.db", executors={})
         state = runtime.start(contract)
         check(state.trace[0].event == "RUNTIME_STARTED", "E01 runtime must start before executor activity")
-    return ["runtime starts first", "WORD_FILE_ONLY", "audit report required"]
+        check(state.gates["knowledge_context"].status == GateStatus.N_A, "E01 standalone path must close unavailable recall explicitly")
+    return ["runtime starts first", "WORD_FILE_ONLY", "audit report required", "standalone recall boundary explicit"]
 
 
 def eval_e02() -> list[str]:
@@ -46,10 +47,23 @@ def eval_e02() -> list[str]:
         state.set_gate("research_output", GateStatus.PASS, ["done"])
         store.save(state)
         loaded = store.load(state.contract.task_id)
-        check(loaded is not None, "E02 checkpoint must reload")
+        stale = store.load(state.contract.task_id)
+        check(loaded is not None and stale is not None, "E02 checkpoint must reload")
         check(loaded.stage == Stage.RESEARCH, "E02 stage must survive reload")
         check(loaded.gates["research_output"].status == GateStatus.PASS, "E02 passed gates must survive reload")
-    return ["checkpoint reload", "stage preserved", "passed gate preserved"]
+        loaded.set_gate("newer_writer", GateStatus.PASS, ["new checkpoint"])
+        store.save(loaded)
+        stale.set_gate("stale_writer", GateStatus.PASS, ["must not overwrite"])
+        try:
+            store.save(stale)
+        except StateConflictError:
+            pass
+        else:
+            raise AssertionError("E02 stale concurrent checkpoint write must be rejected")
+        latest = store.load(state.contract.task_id)
+        check(latest is not None and "newer_writer" in latest.gates, "E02 latest checkpoint must survive stale write attempt")
+        check("stale_writer" not in latest.gates, "E02 stale writer must not cause lost update")
+    return ["checkpoint reload", "stage/gates preserved", "stale concurrent write rejected"]
 
 
 def eval_e03() -> list[str]:
@@ -83,15 +97,18 @@ def eval_e08() -> list[str]:
         state = engine.start(build_task_contract(prompt="正常写一篇，不用我提醒流程", visuals_enabled=False))
         required = engine._required_completion_gates(state)
         expected = {
-            "runtime_initialized", "research_output", "research_audit", "editorial_plan",
+            "runtime_initialized", "knowledge_context", "research_output", "research_audit", "editorial_plan",
             "acceptance_contract", "title_audit", "draft_output", "style_audit",
             "editorial_audit", "delivery_output", "mechanical_audit", "knowledge_sync", "final_audit",
         }
         check(expected.issubset(required), f"E08 mandatory gate inventory incomplete: {sorted(expected - required)}")
         check(state.contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E08 normal writing must remain WORD_FILE_ONLY")
+        final_keys = engine._required_final_evidence_keys(state)
+        check("FINANCE_DEEP.opening_first_three_sentences" in final_keys, "E08 first-three-sentence evidence key missing")
+        check("FINANCE_BROAD.bold_scan_skeleton" in final_keys, "E08 bold scan-skeleton evidence key missing")
     skill = SKILL.read_text(encoding="utf-8")
     check("Under `WORD_FILE_ONLY`, do not paste the article body" in skill, "E08 Skill must prohibit body paste under Word-only")
-    return ["mandatory gate inventory", "acceptance contract required", "WORD_FILE_ONLY body omission instruction"]
+    return ["mandatory gate inventory", "knowledge recall gate", "acceptance contract", "opening/bold final evidence", "WORD_FILE_ONLY body omission"]
 
 
 def eval_e11() -> list[str]:
@@ -108,7 +125,11 @@ def eval_e12() -> list[str]:
         state = runtime.start(build_task_contract(prompt="来源抓不到但你先按常识写吧", visuals_enabled=False))
         state = runtime.run(state)
         check(state.stage == Stage.BLOCKED, "E12 missing executor/source path must block instead of free-form fallback")
-    return ["fail closed to BLOCKED"]
+        check(state.working.get("blocked_from_stage") == "RESEARCH", "E12 block must record originating stage")
+        resumed = runtime.resume(state.contract.task_id)
+        check(resumed.stage == Stage.RESEARCH, "E12 resume must return exactly to recorded originating stage")
+        check(resumed.blocked_reason is None, "E12 resume must clear blocked reason")
+    return ["fail closed to BLOCKED", "origin stage recorded", "explicit recovery to original stage"]
 
 
 def eval_e13() -> list[str]:
@@ -174,14 +195,17 @@ def eval_e20() -> list[str]:
     state = WritingState(contract=TaskContract(prompt="写完把所有要求检查一遍给我"), stage=Stage.COMPLETE)
     for name in ["research_audit", "editorial_audit", "style_audit", "mechanical_audit", "final_audit"]:
         state.set_gate(name, GateStatus.PASS, ["eval"])
-    state.set_gate("knowledge_sync", GateStatus.N_A, ["eval boundary"])
+    state.set_gate("knowledge_context", GateStatus.N_A, ["eval recall boundary"])
+    state.set_gate("knowledge_sync", GateStatus.N_A, ["eval writeback boundary"])
     checklist = _completion_checklist(state)
     required_top = {"runtime_gates", "research_evidence", "structure_style_continuity", "word_render", "compliance_risk", "visuals", "knowledge"}
     check(required_top.issubset(checklist), f"E20 checklist missing keys: {sorted(required_top - set(checklist))}")
     check(checklist["runtime_gates"] == "PASS", "E20 completed runtime must expose PASS")
+    check(checklist["knowledge"]["context_gate"] == "N_A", "E20 visible checklist must expose recall decision")
+    check(checklist["knowledge"]["sync_gate"] == "N_A", "E20 visible checklist must expose writeback decision")
     skill = SKILL.read_text(encoding="utf-8")
     check("Under `WORD_FILE_ONLY`, do not paste the article body" in skill, "E20 final checklist must not imply article-body paste")
-    return ["visible completion checklist schema", "research/style/Word/compliance/knowledge coverage", "Word-only body omission"]
+    return ["visible completion checklist schema", "knowledge recall/writeback visible", "research/style/Word/compliance coverage", "Word-only body omission"]
 
 
 EXECUTABLE = {
