@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import json
 import tempfile
+from datetime import datetime, timezone
 from pathlib import Path
 
 from pydantic import ValidationError
@@ -140,7 +141,7 @@ def eval_e18() -> list[str]:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))["wechat_sticker"]
     check(policy["hard_coded_title_limit"] is None and policy["hard_coded_body_limit"] is None, "E18 remembered limits must not be hard-coded")
     snapshot = PlatformConstraintSnapshot(
-        verified_at="2026-10-06T23:00:00+08:00",
+        verified_at=datetime.now(timezone.utc),
         source_refs=["current-wechat-publisher-ui"],
         title_max_chars=4,
         body_max_chars=100,
