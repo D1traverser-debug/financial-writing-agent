@@ -31,7 +31,18 @@ ALLOWED_TRANSITIONS: dict[Stage, set[Stage]] = {
         Stage.BLOCKED,
     },
     Stage.COMPLETE: set(),
-    Stage.BLOCKED: {Stage.INTAKE, Stage.RESEARCH, Stage.EDITORIAL, Stage.DELIVERY, Stage.FINAL_AUDIT},
+    Stage.BLOCKED: {
+        Stage.INTAKE,
+        Stage.RESEARCH,
+        Stage.RESEARCH_AUDIT,
+        Stage.EDITORIAL,
+        Stage.TITLE,
+        Stage.DRAFT,
+        Stage.EDITORIAL_AUDIT,
+        Stage.DELIVERY,
+        Stage.MECHANICAL_AUDIT,
+        Stage.FINAL_AUDIT,
+    },
 }
 
 
@@ -101,6 +112,7 @@ DELIVERY_ARTIFACTS = {
 
 BASE_COMPLETION_GATES = {
     "runtime_initialized",
+    "knowledge_context",
     "research_output",
     "research_audit",
     "editorial_plan",
@@ -119,11 +131,13 @@ BASE_COMPLETION_GATES = {
 FORMAL_FINAL_CRITERIA = (
     "selected_title",
     "independent_lead",
+    "opening_first_three_sentences",
     "h1_structure",
     "side_focus",
     "company_selection_basis",
     "headline_anchor",
     "opening_payoff",
+    "bold_scan_skeleton",
     "reasoning_continuity",
     "compliance_risk",
 )
@@ -145,6 +159,12 @@ class WritingEngine:
         state = WritingState(contract=contract)
         state.add_trace("RUNTIME_STARTED", "TaskContract initialized before source retrieval or drafting")
         state.set_gate("runtime_initialized", GateStatus.PASS, ["TaskContract exists", "State store active"])
+        state.set_gate(
+            "knowledge_context",
+            GateStatus.NOT_RUN,
+            [],
+            "Explicit PASS/N_A durable-knowledge recall decision required before research submission",
+        )
         state.set_gate("knowledge_sync", GateStatus.NOT_RUN, [], "Explicit PASS/N_A writeback decision required before final completion")
         self.store.save(state)
         return state
@@ -161,9 +181,31 @@ class WritingEngine:
     def block(self, state: WritingState, reason: str) -> WritingState:
         state.blocked_reason = reason
         if state.stage != Stage.BLOCKED:
+            blocked_from = state.stage
+            state.working["blocked_from_stage"] = blocked_from.value
+            state.working.setdefault("blocked_history", []).append(
+                {"from_stage": blocked_from.value, "reason": reason}
+            )
             self.transition(state, Stage.BLOCKED, reason=reason)
         self.store.save(state)
         return state
+
+    def resume_from_blocked(self, state: WritingState) -> WritingState:
+        if state.stage != Stage.BLOCKED:
+            raise WorkflowError("resume_from_blocked is only legal from BLOCKED")
+        raw_target = state.working.get("blocked_from_stage")
+        if not raw_target:
+            raise WorkflowError("BLOCKED state is missing blocked_from_stage recovery metadata")
+        try:
+            target = Stage(raw_target)
+        except ValueError as exc:
+            raise WorkflowError(f"invalid blocked_from_stage={raw_target}") from exc
+        if target in {Stage.BLOCKED, Stage.COMPLETE}:
+            raise WorkflowError(f"illegal blocked recovery target={target.value}")
+        state.blocked_reason = None
+        state.working.pop("blocked_from_stage", None)
+        state.add_trace("BLOCKED_RESUME", f"resume target={target.value}")
+        return self.transition(state, target, reason=f"resume blocked task at original stage {target.value}")
 
     def record_gate(self, state: WritingState, name: str, status: GateStatus, evidence: list[str], notes: str = "") -> None:
         state.set_gate(name, status, evidence, notes)
@@ -294,6 +336,7 @@ class WritingEngine:
             raise WorkflowError(f"Unresolved additional gates: {unresolved_extra}")
 
         missing: list[ArtifactKind] = []
+        unidentified: list[ArtifactKind] = []
         corrupted: list[ArtifactKind] = []
         for kind in state.contract.required_outputs:
             artifact = state.artifacts.get(kind)
@@ -304,11 +347,16 @@ class WritingEngine:
             if not path.is_file():
                 missing.append(kind)
                 continue
-            if artifact.sha256 and self._sha256(path) != artifact.sha256:
+            if not artifact.sha256:
+                unidentified.append(kind)
+                continue
+            if self._sha256(path) != artifact.sha256:
                 corrupted.append(kind)
 
         if missing:
             raise WorkflowError(f"Missing required outputs after readback: {missing}")
+        if unidentified:
+            raise WorkflowError(f"Required output checksum missing: {unidentified}")
         if corrupted:
             raise WorkflowError(f"Required output checksum mismatch: {corrupted}")
         self._validate_final_acceptance_evidence(state)
