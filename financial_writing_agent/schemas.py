@@ -141,12 +141,39 @@ class StructureCandidate(StrictModel):
     sections: list[str] = Field(min_length=2)
 
 
+class SectionAcceptanceSpec(StrictModel):
+    h1_title: str = Field(min_length=1)
+    directional_conclusion: str = Field(min_length=1)
+    reader_gap: str = Field(min_length=1)
+    payoff_requirement: str = Field(min_length=1)
+    logical_blocks: list[str] = Field(min_length=1)
+    h3_required_h2_indexes: list[int] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def hierarchy_contract_is_coherent(self):
+        if len(self.logical_blocks) != len(set(self.logical_blocks)):
+            raise ValueError("section logical_blocks must be unique within one H1")
+        if len(self.h3_required_h2_indexes) != len(set(self.h3_required_h2_indexes)):
+            raise ValueError("h3_required_h2_indexes must not contain duplicates")
+        if len(self.logical_blocks) < 2 and self.h3_required_h2_indexes:
+            raise ValueError("H3 requirements are only legal when the section has an H2 hierarchy")
+        invalid = [
+            index
+            for index in self.h3_required_h2_indexes
+            if index < 1 or index > len(self.logical_blocks)
+        ]
+        if invalid:
+            raise ValueError(f"h3_required_h2_indexes outside logical_blocks range: {invalid}")
+        return self
+
+
 class ModeEditorialPlan(StrictModel):
     candidates: list[StructureCandidate] = Field(min_length=2, max_length=3)
     selected_structure: StructureCandidate
     emphasis: list[str] = Field(min_length=1)
     side_focus_statement: str = Field(min_length=1)
     company_selection_basis: list[str] = Field(min_length=1, max_length=2)
+    section_expectations: list[SectionAcceptanceSpec] = Field(default_factory=list)
     outline_fingerprint_refs: list[str] = Field(default_factory=list)
     outline_collision_notes: list[str] = Field(default_factory=list)
 
@@ -160,6 +187,13 @@ class ModeEditorialPlan(StrictModel):
             raise ValueError("selected_structure must identify exactly one candidate in its article mode")
         if matches[0].model_dump() != self.selected_structure.model_dump():
             raise ValueError("selected_structure must exactly match the named candidate")
+        if self.section_expectations:
+            expected_titles = self.selected_structure.sections
+            actual_titles = [section.h1_title for section in self.section_expectations]
+            if actual_titles != expected_titles:
+                raise ValueError(
+                    "section_expectations must match selected_structure.sections exactly and in order"
+                )
         return self
 
 
@@ -245,6 +279,7 @@ class ModeAcceptanceContract(StrictModel):
     selected_structure_name: str = Field(min_length=1)
     expected_h1_count: int = Field(ge=1)
     expected_section_functions: list[str] = Field(min_length=1)
+    section_expectations: list[SectionAcceptanceSpec] = Field(default_factory=list)
     lead_required: Literal[1] = 1
     side_focus_statement: str = Field(min_length=1)
     company_selection_basis: list[str] = Field(min_length=1, max_length=2)
