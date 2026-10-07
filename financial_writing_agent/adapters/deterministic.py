@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import json
+from collections import Counter
 from pathlib import Path
 
 from ..checks import check_docx, load_policy, sha256_file
@@ -190,19 +191,88 @@ class MechanicalAuditExecutor:
         return state
 
 
+def _artifact_identity_lines(state: WritingState) -> list[str]:
+    lines: list[str] = []
+    for kind, artifact in state.artifacts.items():
+        if kind == ArtifactKind.AUDIT_DOCX:
+            continue
+        path = Path(artifact.path)
+        exists = path.is_file()
+        actual_sha = sha256_file(path) if exists else "MISSING"
+        sha_match = bool(exists and artifact.sha256 and actual_sha == artifact.sha256)
+        lines.append(
+            f"{kind.value}: file={path.name} | exists={exists} | sha256={actual_sha} | recorded_sha_match={sha_match}"
+        )
+    return lines
+
+
 def finalize_audit_artifact(state: WritingState) -> None:
     if state.contract.delivery_channel == DeliveryChannel.CHAT_TEXT:
         return
     outdir = Path(state.working["output_dir"])
-    lines = [AuditLine(area=name, status=gate.status.value, evidence=" | ".join(gate.evidence), notes=gate.notes) for name, gate in state.gates.items()]
-    artifact_lines = [f"{kind.value}: {artifact.path} | sha256={artifact.sha256 or ''}" for kind, artifact in state.artifacts.items() if kind != ArtifactKind.AUDIT_DOCX]
     research = state.working.get("research") or {}
     cognition = research.get("cognition") or {}
+    evidence_items = research.get("evidence_ledger") or []
+    verification_counts = Counter(item.get("verification_status", "UNKNOWN") for item in evidence_items)
+    core_safe_count = sum(bool(item.get("core_safe")) for item in evidence_items)
+    acceptance = state.working.get("acceptance_contract") or {}
+    final_audit = state.working.get("final_audit") or {}
+    reviewed_pages = final_audit.get("reviewed_render_pages") or []
+    acceptance_evidence = final_audit.get("acceptance_evidence") or []
+    render_manifest = state.working.get("render_manifest") or {}
+    expected_render_pages = sum(len(pages) for pages in render_manifest.values())
+    revision_history = state.working.get("revision_history") or []
+
+    lines = [
+        AuditLine(area=name, status=gate.status.value, evidence=" | ".join(gate.evidence), notes=gate.notes)
+        for name, gate in state.gates.items()
+    ]
+    lines.extend(
+        [
+            AuditLine(
+                area="Writing Acceptance Contract",
+                status=state.gates.get("acceptance_contract").status.value if state.gates.get("acceptance_contract") else "NOT_RUN",
+                evidence=json.dumps(acceptance, ensure_ascii=False),
+                notes="Frozen article-level contract used for final verification",
+            ),
+            AuditLine(
+                area="Final Acceptance Evidence",
+                status=state.gates.get("final_audit").status.value if state.gates.get("final_audit") else "NOT_RUN",
+                evidence=json.dumps(acceptance_evidence, ensure_ascii=False),
+                notes="Concrete final-content evidence submitted by the independent final auditor",
+            ),
+            AuditLine(
+                area="Render Page Review",
+                status="PASS" if len(reviewed_pages) == expected_render_pages else ("N_A" if expected_render_pages == 0 else "FAIL"),
+                evidence=json.dumps(reviewed_pages, ensure_ascii=False),
+                notes=f"reviewed={len(reviewed_pages)} | expected={expected_render_pages}",
+            ),
+            AuditLine(
+                area="Evidence Verification",
+                status="PASS" if core_safe_count > 0 else "FAIL",
+                evidence=f"items={len(evidence_items)} | core_safe={core_safe_count} | verification={dict(verification_counts)}",
+                notes=f"review_queue={len(research.get('review_queue', []))} | failed_tools_or_sources={len(research.get('failed_tools_or_sources', []))}",
+            ),
+            AuditLine(
+                area="Revision Invalidation History",
+                status="N_A" if not revision_history else "PASS",
+                evidence=json.dumps(revision_history, ensure_ascii=False),
+                notes="Any revision listed here required downstream PASS invalidation/rebuild",
+            ),
+        ]
+    )
+
+    artifact_lines = _artifact_identity_lines(state)
     summary_lines = [
+        f"任务ID：{state.contract.task_id}",
         f"内容模式：{state.contract.content_mode.value}｜分发模式：{state.contract.distribution_mode.value}｜交付：{state.contract.delivery_channel.value}",
+        f"Required Outputs：{', '.join(kind.value for kind in state.contract.required_outputs)}",
         f"来源边界：{research.get('source_boundary', 'N/A')}",
         f"研究覆盖：{json.dumps(research.get('coverage', {}), ensure_ascii=False)}",
-        f"复用知识引用：{len(cognition.get('prior_knowledge_refs', []))}｜知识回写候选：{len(research.get('knowledge_writeback_candidates', []))}｜回写凭据：{len(state.working.get('knowledge_writeback_refs', []))}",
+        f"证据：总数={len(evidence_items)}｜Core Safe={core_safe_count}｜核验状态={dict(verification_counts)}",
+        f"ReviewQueue={len(research.get('review_queue', []))}｜研究失败/降级记录={len(research.get('failed_tools_or_sources', []))}",
+        f"复用知识引用={len(cognition.get('prior_knowledge_refs', []))}｜知识回写候选={len(research.get('knowledge_writeback_candidates', []))}｜回写凭据={len(state.working.get('knowledge_writeback_refs', []))}",
+        f"Render页面：expected={expected_render_pages}｜reviewed={len(reviewed_pages)}",
     ]
     path = build_audit_docx(
         title=f"写作审计报告｜{state.contract.task_id}",
