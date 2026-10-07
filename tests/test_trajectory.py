@@ -19,6 +19,7 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     state.set_gate("editorial_plan", GateStatus.PASS, ["topicdna"])
     state = ctl.advance(state)
     state.set_gate("title_audit", GateStatus.PASS, ["title judge"])
+    state.set_gate("acceptance_contract", GateStatus.PASS, ["article-level contract frozen"])
     state = ctl.advance(state)
     state.set_gate("draft_output", GateStatus.PASS, ["draft frozen"])
     state = ctl.advance(state)
@@ -43,6 +44,27 @@ def test_happy_path_trace_is_deterministic(tmp_path):
         "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
         "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT", "COMPLETE"
     ]
+
+
+def test_title_cannot_advance_without_frozen_acceptance_contract(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    ctl = WorkflowController(engine)
+    state = engine.start(TaskContract(prompt="测试"))
+    state = ctl.advance(state)
+    state.set_gate("research_output", GateStatus.PASS, ["ok"])
+    state = ctl.advance(state)
+    state.set_gate("research_audit", GateStatus.PASS, ["ok"])
+    state = ctl.advance(state)
+    state.set_gate("editorial_plan", GateStatus.PASS, ["ok"])
+    state = ctl.advance(state)
+    state.set_gate("title_audit", GateStatus.PASS, ["ok"])
+
+    try:
+        ctl.advance(state)
+    except Exception as exc:
+        assert "acceptance_contract" in str(exc)
+    else:
+        raise AssertionError("TITLE must not advance without acceptance_contract")
 
 
 def test_state_resume(tmp_path):
