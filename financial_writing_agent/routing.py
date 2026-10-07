@@ -5,7 +5,7 @@ from collections.abc import Iterable
 from .models import ContentMode, DeliveryChannel, DistributionMode, TaskContract
 
 FINANCE_COMMUNITIES = {"雪球", "韭研公社", "东方财富", "东方财富号"}
-BROAD_FEEDS = {"今日头条", "头条号", "百家号", "网易号", "微博头条文章", "微信公众号"}
+BROAD_FEEDS = {"今日头条", "头条号", "百家号", "网易号", "微博头条文章"}
 
 
 def infer_distribution_mode(platforms: Iterable[str]) -> DistributionMode:
@@ -38,12 +38,14 @@ def infer_delivery_channel(prompt: str) -> DeliveryChannel:
 
 
 def infer_visuals_enabled(prompt: str, delivery_channel: DeliveryChannel) -> bool:
-    """Writing never owns image generation or image-asset management.
-
-    Visual/image work is a separate workflow. Keep the field for checkpoint/schema
-    compatibility, but every newly routed writing task starts with visuals disabled.
-    """
-    return False
+    if delivery_channel == DeliveryChannel.CHAT_TEXT:
+        return False
+    normalized = prompt.replace(" ", "")
+    if any(x in normalized for x in ["不要图片", "不要配图", "不做图", "不需要配图", "纯文字即可", "纯文字就行"]):
+        return False
+    if any(x in normalized.lower() for x in ["word已经写好了", "word已写好", "现成word", "已有word"]):
+        return False
+    return True
 
 
 def build_task_contract(
@@ -57,12 +59,7 @@ def build_task_contract(
 ) -> TaskContract:
     platforms = target_platforms or []
     delivery = infer_delivery_channel(prompt)
-    if visuals_enabled is True:
-        raise ValueError(
-            "Image generation/insertion is outside the Writing Agent. "
-            "Run the separate visual workflow instead of enabling visuals on a writing task."
-        )
-    visuals = False
+    visuals = infer_visuals_enabled(prompt, delivery) if visuals_enabled is None else visuals_enabled
     mode = content_mode or infer_content_mode(prompt, platforms)
     return TaskContract(
         prompt=prompt,
