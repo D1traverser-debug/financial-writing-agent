@@ -9,6 +9,7 @@ description: Create and continue A-share financial articles or image-first WeCha
 Do not automatically start a new task.
 
 - If the user says “继续昨天那篇”, “接着写”, “刚才那篇”, or otherwise refers to unfinished writing, call `list_recent_writing_tasks` first, identify the best match from prompt/topic previews, then call `get_writing_task`. Do not ask the user to repeat information already persisted.
+- If the matched task is `BLOCKED`, inspect `blocked_reason`, repair the external dependency/contract defect, then call `resume_writing_task`. The Runtime restores the recorded original stage; never start a duplicate task or choose an arbitrary stage to bypass a block.
 - If more than one unfinished task is genuinely plausible after reading the previews, ask one targeted disambiguation question rather than guessing.
 - For a genuinely new writing task, call `start_writing_task` before connected-knowledge retrieval, web research, outlining, drafting or image planning.
 
@@ -18,7 +19,7 @@ The MCP runtime checkpoint is the executable task authority. GitHub `main` is co
 Follow exactly:
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
 
-Never silently fall back to free-form writing when a mandatory tool/gate fails. Repair the legal stage or report `BLOCKED` clearly.
+Never silently fall back to free-form writing when a mandatory tool/gate fails. Repair the legal stage or report `BLOCKED` clearly. `BLOCKED` is recoverable only through the explicit resume path after the defect is repaired.
 
 A revision is not a cosmetic side path. Use the earliest correct revision target (`RESEARCH`, `EDITORIAL`, `TITLE`, `DRAFT` or `DELIVERY`); the runtime invalidates affected downstream PASS state and delivery artifacts. Never assume an old audit remains valid after a change.
 
@@ -46,7 +47,11 @@ Supporting references are part of this Skill bundle. Load them progressively:
 Do not dump every reference into every stage. The runtime is the stable control plane; references provide only the cognition needed for the active stage.
 
 ## 5. Research/cognition before selective writing
-When relevant connected EventBase/StockBase/knowledge assets are accessible, retrieve them after Runtime start and before open-web expansion, then call `record_knowledge_context` with real references. Reverify current/material claims.
+Knowledge recall is an explicit pre-research gate, not an optional silent side effect. After Runtime start and before `submit_research`:
+- when relevant connected EventBase/StockBase/knowledge assets are accessible, retrieve them and call `record_knowledge_context(status="PASS", refs=[...])` with real references plus reuse/conflict notes when useful;
+- when no relevant durable source is available or the connector/destination is genuinely unavailable, call `record_knowledge_context(status="N_A", notes=[...])` with the explicit reason.
+
+Do not mark `N_A` merely to skip a source that is actually available and relevant. Reverify current/material claims even when prior knowledge is reused.
 
 Research must know materially more than the article says: catalyst/timeline, concept graph, industry/transmission chain, relevant A-share universe, fundamentals, `why_this / why_not`, market-selection logic and relevant short-term roles/signals. `ResearchPackage.coverage` must state repeated-sweep coverage and an explicit stop reason so “全面” is bounded and auditable rather than infinite or hand-wavy.
 
@@ -89,15 +94,28 @@ Writing does not directly mutate a future stock-picking/review Agent's executabl
 ## 12. Final red-team and completion
 At FINAL_AUDIT, treat the current result as potentially wrong. Re-read the frozen acceptance contract, final draft/state, research evidence boundary, mechanical results and every required render page.
 
-Submit `FinalAuditDecision`, not a generic PASS. `acceptance_evidence` uses exact `KEY: concrete final-content evidence` entries defined in `references/audit.md`; the runtime machine-checks the full criterion inventory before COMPLETE. In particular, each formal mode must cover selected title, independent lead, H1 structure, side focus, company-selection basis, headline anchor, opening payoff, reasoning continuity and compliance/risk; DUAL also requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key; all tasks include `GLOBAL.evidence_boundary` and `GLOBAL.required_outputs`.
+Submit `FinalAuditDecision`, not a generic PASS. `acceptance_evidence` uses exact `KEY: concrete final-content evidence` entries defined in `references/audit.md`; the runtime machine-checks the full criterion inventory before COMPLETE. Each formal mode must cover:
+- `selected_title`;
+- `independent_lead`;
+- `opening_first_three_sentences` — the first three sentences must actually pay off the headline/information gap rather than spend the opening on generic background;
+- `h1_structure`;
+- `side_focus`;
+- `company_selection_basis`;
+- `headline_anchor`;
+- `opening_payoff`;
+- `bold_scan_skeleton` — bold emphasis must form a useful skim-reading information skeleton, not decorative/random highlighting;
+- `reasoning_continuity`;
+- `compliance_risk`.
+
+DUAL additionally requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key; all tasks include `GLOBAL.evidence_boundary` and `GLOBAL.required_outputs`.
 
 `reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. DUAL must be checked for both independent validity and cross-version factual/evidence/conclusion-boundary consistency. Unsupported/new material facts revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
 
-Only after the **mandatory gate inventory itself is complete**, every required gate resolves, criterion-level final evidence is complete, final artifact readback/checksums pass, knowledge has an explicit PASS/N_A decision and final audit passes may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body.
+Only after the **mandatory gate inventory itself is complete**, both knowledge decisions (`knowledge_context` and `knowledge_sync`) resolve to PASS/N_A, every other required gate resolves, criterion-level final evidence is complete, every required artifact has a recorded checksum and passes final readback/checksum verification, and final audit passes may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body.
 
 When connected governance mirrors are available, copy final formal artifacts to the configured destination and update mirrors after Runtime completion. Mirror failure must be reported separately and must not rewrite a valid Runtime checkpoint.
 
 ## 13. Scope boundary
 This Skill is for producing publishable financial content. It may use stock-picking/review knowledge as research context, but it must not activate merely because the user asks for a standalone荐股、选股、盘后复盘 or trading decision. Those are separate future workflows unless the user explicitly asks to turn the analysis into an article/post.
 
-Do not claim deterministic support for a use case that has not been implemented and tested. Real article live-model E2E remains **unverified until an actual user-authorized run produces the final required files, every returned Word page is inspected, artifacts are re-read, and interruption/recovery is demonstrated**. A mock/fixture/unit run is not a real article E2E.
+Do not claim deterministic support for a use case that has not been implemented and tested. Real article live-model E2E remains **unverified until an actual user-authorized run produces the final required files, every returned Word page is inspected, artifacts are re-read, and a deliberate interruption/BLOCKED recovery is demonstrated**. A mock/fixture/unit run is not a real article E2E.
