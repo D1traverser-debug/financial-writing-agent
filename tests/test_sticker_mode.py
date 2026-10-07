@@ -95,6 +95,9 @@ def test_sticker_acceptance_contract_freezes_selected_title():
     frozen = freeze_acceptance_contract(state)
     assert frozen.wechat_sticker is not None
     assert frozen.wechat_sticker.selected_title == "事件变化"
+    assert frozen.wechat_sticker.headline_factual_anchor == "经核验的事件事实"
+    assert frozen.wechat_sticker.headline_primary_gap == "谁真正兑现"
+    assert frozen.wechat_sticker.headline_opening_payoff == "正文立即解释变化与影响"
 
     payload = StickerPostPayload(
         title="事件变化",
@@ -107,7 +110,7 @@ def test_sticker_acceptance_contract_freezes_selected_title():
         state,
         DraftPackage(wechat_sticker_post=payload),
     )
-    assert evidence == ["WECHAT_STICKER_POST: title=frozen; platform-specific body contract"]
+    assert evidence == ["WECHAT_STICKER_POST: title=frozen; headline promises=frozen; platform-specific body contract"]
 
     changed = payload.model_copy(update={"title": "临时改标题"})
     with pytest.raises(ValueError, match="frozen selected title"):
