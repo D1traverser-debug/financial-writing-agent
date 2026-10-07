@@ -4,6 +4,7 @@ import struct
 import zlib
 
 from docx import Document
+from docx.shared import RGBColor
 
 from financial_writing_agent.checks import check_docx
 from financial_writing_agent.document import ArticleDocument, Block, DocumentImage, build_article_docx
@@ -33,8 +34,12 @@ def _risk_text() -> str:
     )
 
 
+def _policy():
+    return json.loads(open("config/policy.json", encoding="utf-8").read())
+
+
 def test_word_builder_normalizes_hierarchy_bolds_stocks_and_checks_risk(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = _policy()
     article = ArticleDocument(
         title="测试标题",
         stock_names=["国电南瑞"],
@@ -60,8 +65,53 @@ def test_word_builder_normalizes_hierarchy_bolds_stocks_and_checks_risk(tmp_path
     assert any(p.text.startswith("①") for p in doc.paragraphs)
 
 
+def test_mechanical_qa_catches_style_sequence_markdown_underline_and_blank_regressions(tmp_path):
+    policy = _policy()
+    article = ArticleDocument(
+        title="测试标题",
+        stock_names=["国电南瑞"],
+        blocks=[
+            Block(kind="lead", text="**导读锚点**与国电南瑞。"),
+            Block(kind="h1", text="第一部分"),
+            Block(kind="h2", text="二级标题"),
+            Block(kind="body", text="国电南瑞继续验证。"),
+            Block(kind="h1", text="风险提示与免责声明"),
+            Block(kind="body", text=_risk_text()),
+        ],
+    )
+    path = build_article_docx(article, tmp_path / "broken.docx", policy)
+    doc = Document(path)
+
+    h1s = [p for p in doc.paragraphs if p.style and p.style.name == "Heading 1"]
+    h1s[0].text = "二、错误编号"
+    h1s[0].runs[0].bold = False
+    h1s[0].runs[0].font.color.rgb = RGBColor(0, 0, 0)
+
+    body = next(p for p in doc.paragraphs if p.text == "国电南瑞继续验证。")
+    body.clear()
+    body.add_run("国电")
+    body.add_run("南瑞继续验证。")
+
+    underlined = doc.add_paragraph("不允许下划线")
+    underlined.runs[0].underline = True
+    doc.add_paragraph("残留__Markdown__")
+    doc.add_paragraph("")
+    doc.save(path)
+
+    result = check_docx(path, stock_names=article.stock_names, policy=policy, expected_images=0)
+    assert not result["ok"]
+    joined = " | ".join(result["errors"])
+    assert "H1 sequence mismatch" in joined
+    assert "H1 not fully bold" in joined
+    assert "H1 color mismatch" in joined
+    assert "stock name not fully bold across runs" in joined
+    assert "underlined text found" in joined
+    assert "Markdown bold marker" in joined
+    assert "empty paragraph" in joined
+
+
 def test_word_builder_inserts_centered_uncropped_images_at_anchors(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = _policy()
     image_path = tmp_path / "cover.png"
     _write_test_png(image_path)
     article = ArticleDocument(
