@@ -49,3 +49,67 @@ def test_cannot_complete_without_required_outputs_after_knowledge_decision(tmp_p
         state.set_gate(name, GateStatus.PASS, ["ok"])
     with pytest.raises(WorkflowError, match="Missing required outputs"):
         engine.complete(state)
+
+
+def test_completion_rechecks_artifact_files_instead_of_trusting_stale_exists_flag(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    contract = TaskContract(prompt="x", required_outputs=[ArtifactKind.AUDIT_DOCX])
+    state = engine.start(contract)
+    state.stage = Stage.FINAL_AUDIT
+    state.set_gate("knowledge_sync", GateStatus.N_A, ["test boundary"])
+    state.set_gate("final_audit", GateStatus.PASS, ["ok"])
+    path = tmp_path / "audit.docx"
+    path.write_bytes(b"valid")
+    state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
+    path.unlink()
+
+    with pytest.raises(WorkflowError, match="after readback"):
+        engine.complete(state)
+
+
+def test_completion_rechecks_artifact_checksum(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    contract = TaskContract(prompt="x", required_outputs=[ArtifactKind.AUDIT_DOCX])
+    state = engine.start(contract)
+    state.stage = Stage.FINAL_AUDIT
+    state.set_gate("knowledge_sync", GateStatus.N_A, ["test boundary"])
+    state.set_gate("final_audit", GateStatus.PASS, ["ok"])
+    path = tmp_path / "audit.docx"
+    path.write_bytes(b"original")
+    state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
+    state.artifacts[ArtifactKind.AUDIT_DOCX].sha256 = engine._sha256(path)
+    path.write_bytes(b"tampered")
+
+    with pytest.raises(WorkflowError, match="checksum mismatch"):
+        engine.complete(state)
+
+
+def test_revision_invalidation_clears_stale_downstream_passes_and_outputs(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="x"))
+    state.stage = Stage.FINAL_AUDIT
+    for name in [
+        "research_output",
+        "research_audit",
+        "editorial_plan",
+        "title_audit",
+        "draft_output",
+        "style_audit",
+        "editorial_audit",
+        "delivery_output",
+        "mechanical_audit",
+        "final_audit",
+    ]:
+        state.set_gate(name, GateStatus.PASS, ["old pass"])
+    state.set_gate("knowledge_sync", GateStatus.PASS, ["old receipt"])
+    path = tmp_path / "old.docx"
+    path.write_bytes(b"old")
+    state.add_artifact(ArtifactKind.FINANCE_DEEP_DOCX, str(path))
+
+    engine.invalidate_for_revision(state, Stage.RESEARCH, reason="factual defect")
+
+    assert state.gates["research_output"].status == GateStatus.NOT_RUN
+    assert state.gates["final_audit"].status == GateStatus.NOT_RUN
+    assert state.gates["knowledge_sync"].status == GateStatus.NOT_RUN
+    assert ArtifactKind.FINANCE_DEEP_DOCX not in state.artifacts
+    assert state.working["revision_history"][-1]["target_stage"] == "RESEARCH"
