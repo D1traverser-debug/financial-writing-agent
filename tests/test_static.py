@@ -40,6 +40,30 @@ def test_mcp_entry_requires_explicit_continuation_before_task_restore():
     assert "a new task must start fresh even when unfinished tasks exist" in public_server
 
 
+def test_research_harness_and_effective_time_boundary_are_wired_end_to_end():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    routing = Path("financial_writing_agent/routing.py").read_text(encoding="utf-8")
+    runtime = Path("financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+    public_contracts = Path("financial_writing_agent/mcp_contracts.py").read_text(encoding="utf-8")
+    research = Path("references/research.md").read_text(encoding="utf-8")
+    audit = Path("references/audit.md").read_text(encoding="utf-8")
+
+    assert "effective_time_boundary" in ownership["runtime"]
+    assert "effective_time_boundary: datetime" in models
+    assert "effective_time_boundary: datetime | None = None" in routing
+    assert "validate_research_against_knowledge_context" in runtime
+    assert "harness_evidence = validate_research_against_knowledge_context(state, payload)" in runtime
+    assert 'f"effective_time_boundary={state.contract.effective_time_boundary.isoformat()}"' in runtime
+    assert "GLOBAL.time_integrity must quote the exact frozen effective_time_boundary=" in runtime
+    assert "effective_time_boundary: datetime" in public_contracts
+    assert "effective_time_boundary:" in public_server
+    assert "effective_time_boundary=effective_time_boundary" in public_server
+    assert "TaskContract.effective_time_boundary" in research
+    assert "GLOBAL.time_integrity` must quote the persisted task's exact `TaskContract.effective_time_boundary`" in audit
+
+
 def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
