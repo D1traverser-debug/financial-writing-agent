@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import ast
 import json
+import tomllib
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -17,7 +18,12 @@ RUNTIME_SERVICE = ROOT / "financial_writing_agent" / "runtime_service.py"
 LEGACY_MCP_SHIM = ROOT / "financial_writing_agent" / "mcp_server.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 HARNESS = ROOT / "financial_writing_agent" / "harness.py"
+STORE = ROOT / "financial_writing_agent" / "store.py"
+MODELS = ROOT / "financial_writing_agent" / "models.py"
 SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
+PLUGIN_JSON = ROOT / "plugin.json"
+PYPROJECT = ROOT / "pyproject.toml"
+README = ROOT / "README.md"
 
 EXPECTED_TOOLS = {
     "start_writing_task",
@@ -235,6 +241,16 @@ def check_schema_strictness() -> None:
             fail(f"schema ambiguity/freshness/safety/acceptance guard missing: {marker}")
 
 
+def check_checkpoint_contract() -> None:
+    store = STORE.read_text(encoding="utf-8")
+    models = MODELS.read_text(encoding="utf-8")
+    for marker in ("StateConflictError", "BEGIN IMMEDIATE", "stored_version", "checkpoint changed during save"):
+        if marker not in store:
+            fail(f"checkpoint concurrency guard missing: {marker}")
+    if "checkpoint_version" not in models:
+        fail("WritingState checkpoint_version missing")
+
+
 def check_activation_inventory() -> None:
     payload = json.loads((ROOT / "evals" / "activation_cases.json").read_text(encoding="utf-8"))
     cases = payload.get("cases", [])
@@ -254,21 +270,32 @@ def check_deployment_boundary() -> None:
         "personal/private deployment only",
         "Do not enable public sharing",
         "Do not silently fall back to ephemeral container/local disk",
-        "public/multi-user sharing remains disabled for v0.2",
+        "stale/concurrent checkpoint writes are rejected",
+        "public/multi-user sharing remains disabled for v0.2.1",
     ):
         if marker not in text:
             fail(f"deployment safety boundary missing: {marker}")
 
 
 def check_packaging_contract() -> None:
-    pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
-    base = pyproject.split("[project.optional-dependencies]", 1)[0]
+    pyproject_text = PYPROJECT.read_text(encoding="utf-8")
+    base = pyproject_text.split("[project.optional-dependencies]", 1)[0]
     if '"mcp>=2.0,<3"' not in base:
         fail("MCP must be a base dependency because financial-writing-mcp is a core entry point")
-    if 'financial-writing-mcp = "financial_writing_agent.plugin_server:main"' not in pyproject:
+    if 'financial-writing-mcp = "financial_writing_agent.plugin_server:main"' not in pyproject_text:
         fail("financial-writing-mcp must point at typed public plugin_server")
-    if 'resources/references/*.md' not in pyproject or 'resources/policy.json' not in pyproject:
+    if 'resources/references/*.md' not in pyproject_text or 'resources/policy.json' not in pyproject_text:
         fail("wheel package-data declarations for runtime resources are missing")
+
+    project = tomllib.loads(pyproject_text)
+    package_version = project.get("project", {}).get("version")
+    plugin = json.loads(PLUGIN_JSON.read_text(encoding="utf-8"))
+    plugin_version = plugin.get("version")
+    if not package_version or package_version != plugin_version:
+        fail(f"package/plugin version drift: pyproject={package_version}, plugin={plugin_version}")
+    if f"v{package_version} candidate" not in README.read_text(encoding="utf-8"):
+        fail(f"README candidate version does not match package/plugin version {package_version}")
+
     openai_adapter = (ROOT / "financial_writing_agent" / "adapters" / "openai_agents.py").read_text(encoding="utf-8")
     if "gpt-6.1-sol" in openai_adapter:
         fail("local adapter must not hard-code an unverified model default")
@@ -287,6 +314,7 @@ def main() -> None:
     check_skill_bundle()
     tools = check_public_mcp_contract()
     check_schema_strictness()
+    check_checkpoint_contract()
     check_activation_inventory()
     check_deployment_boundary()
     check_packaging_contract()
@@ -294,7 +322,7 @@ def main() -> None:
     print(
         f"PASS: {groups} unique rule ownership keys; Skill/source/package references aligned; "
         f"one {tools}-tool typed/annotated MCP surface; strict evidence/acceptance schemas; "
-        "artifact and render-QA resources; activation, deployment-safety and packaging contracts present"
+        "versioned conflict-safe checkpoints; artifact/render resources; version, activation, deployment-safety and packaging contracts present"
     )
 
 
