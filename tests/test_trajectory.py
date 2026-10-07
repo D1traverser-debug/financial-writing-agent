@@ -11,6 +11,7 @@ def test_happy_path_trace_is_deterministic(tmp_path):
 
     state = ctl.advance(state)
     assert state.stage == Stage.RESEARCH
+    state.set_gate("knowledge_context", GateStatus.N_A, ["no connected recall in trajectory unit test"])
     state.set_gate("research_output", GateStatus.PASS, ["ledger"])
     state = ctl.advance(state)
     assert state.stage == Stage.RESEARCH_AUDIT
@@ -35,9 +36,12 @@ def test_happy_path_trace_is_deterministic(tmp_path):
         p = tmp_path / f"{kind}.docx"
         p.write_bytes(b"stub")
         state.add_artifact(kind, str(p))
+        state.artifacts[kind].sha256 = engine._sha256(p)
     state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target in trajectory unit test"])
     required_evidence = engine._required_final_evidence_keys(state)
     assert "DUAL.cross_version_consistency" in required_evidence
+    assert "FINANCE_DEEP.opening_first_three_sentences" in required_evidence
+    assert "FINANCE_BROAD.bold_scan_skeleton" in required_evidence
     state.working["final_audit"] = {
         "acceptance_evidence": [f"{key}: verified on frozen final content" for key in sorted(required_evidence)]
     }
@@ -52,11 +56,27 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     ]
 
 
+def test_research_cannot_advance_without_knowledge_context_decision(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    ctl = WorkflowController(engine)
+    state = engine.start(TaskContract(prompt="测试知识召回门禁"))
+    state = ctl.advance(state)
+    state.set_gate("research_output", GateStatus.PASS, ["research done"])
+
+    try:
+        ctl.advance(state)
+    except Exception as exc:
+        assert "knowledge_context" in str(exc)
+    else:
+        raise AssertionError("RESEARCH must not advance before knowledge_context PASS/N_A")
+
+
 def test_title_cannot_advance_without_frozen_acceptance_contract(tmp_path):
     engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
     ctl = WorkflowController(engine)
     state = engine.start(TaskContract(prompt="测试"))
     state = ctl.advance(state)
+    state.set_gate("knowledge_context", GateStatus.N_A, ["test"])
     state.set_gate("research_output", GateStatus.PASS, ["ok"])
     state = ctl.advance(state)
     state.set_gate("research_audit", GateStatus.PASS, ["ok"])
@@ -79,6 +99,7 @@ def test_state_resume(tmp_path):
     ctl = WorkflowController(engine)
     state = engine.start(TaskContract(prompt="继续文章"))
     state = ctl.advance(state)
+    state.set_gate("knowledge_context", GateStatus.N_A, ["test"])
     state.set_gate("research_output", GateStatus.PASS, ["done"])
     store.save(state)
 
@@ -86,3 +107,23 @@ def test_state_resume(tmp_path):
     assert loaded is not None
     assert loaded.stage == Stage.RESEARCH
     assert loaded.gates["research_output"].status == GateStatus.PASS
+
+
+def test_blocked_task_resumes_to_recorded_original_stage(tmp_path):
+    store = SQLiteStateStore(tmp_path / "state.db")
+    engine = WritingEngine(store)
+    state = engine.start(TaskContract(prompt="恢复测试"))
+    state = engine.transition(state, Stage.RESEARCH, reason="test")
+    state = engine.transition(state, Stage.BLOCKED, reason="manual transition should not be used for recovery metadata")
+    assert state.stage == Stage.BLOCKED
+
+    # A genuine block records the original stage; use a fresh state for that contract.
+    state2 = engine.start(TaskContract(prompt="真实阻断恢复"))
+    state2 = engine.transition(state2, Stage.RESEARCH, reason="test")
+    state2 = engine.block(state2, "temporary source outage")
+    assert state2.stage == Stage.BLOCKED
+    assert state2.working["blocked_from_stage"] == "RESEARCH"
+    resumed = engine.resume_from_blocked(state2)
+    assert resumed.stage == Stage.RESEARCH
+    assert resumed.blocked_reason is None
+    assert "blocked_from_stage" not in resumed.working
