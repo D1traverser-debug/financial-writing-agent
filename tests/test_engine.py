@@ -7,7 +7,7 @@ from financial_writing_agent.store import SQLiteStateStore
 
 def _seed_completion_gates(engine: WritingEngine, state, *, knowledge=GateStatus.N_A):
     for name in engine._required_completion_gates(state):
-        if name == "knowledge_sync":
+        if name in {"knowledge_context", "knowledge_sync"}:
             state.set_gate(name, knowledge, ["knowledge boundary"])
         else:
             state.set_gate(name, GateStatus.PASS, [f"{name} ok"])
@@ -19,6 +19,7 @@ def test_start_is_first_trace(tmp_path):
     assert state.stage == Stage.INTAKE
     assert state.trace[0].event == "RUNTIME_STARTED"
     assert state.gates["runtime_initialized"].status == GateStatus.PASS
+    assert state.gates["knowledge_context"].status == GateStatus.NOT_RUN
     assert state.gates["knowledge_sync"].status == GateStatus.NOT_RUN
 
 
@@ -52,8 +53,19 @@ def test_cannot_complete_before_knowledge_sync_decision(tmp_path):
     engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
     state = engine.start(TaskContract(prompt="x"))
     state.stage = Stage.FINAL_AUDIT
-    _seed_completion_gates(engine, state, knowledge=GateStatus.NOT_RUN)
+    _seed_completion_gates(engine, state)
+    state.set_gate("knowledge_sync", GateStatus.NOT_RUN, [])
     with pytest.raises(WorkflowError, match="knowledge_sync"):
+        engine.complete(state)
+
+
+def test_cannot_complete_before_knowledge_context_decision(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="x"))
+    state.stage = Stage.FINAL_AUDIT
+    _seed_completion_gates(engine, state)
+    state.set_gate("knowledge_context", GateStatus.NOT_RUN, [])
+    with pytest.raises(WorkflowError, match="knowledge_context"):
         engine.complete(state)
 
 
@@ -75,9 +87,24 @@ def test_completion_rechecks_artifact_files_instead_of_trusting_stale_exists_fla
     path = tmp_path / "audit.docx"
     path.write_bytes(b"valid")
     state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
+    state.artifacts[ArtifactKind.AUDIT_DOCX].sha256 = engine._sha256(path)
     path.unlink()
 
     with pytest.raises(WorkflowError, match="after readback"):
+        engine.complete(state)
+
+
+def test_completion_rejects_required_output_without_checksum(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    contract = TaskContract(prompt="x", required_outputs=[ArtifactKind.AUDIT_DOCX])
+    state = engine.start(contract)
+    state.stage = Stage.FINAL_AUDIT
+    _seed_completion_gates(engine, state)
+    path = tmp_path / "audit.docx"
+    path.write_bytes(b"valid")
+    state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
+
+    with pytest.raises(WorkflowError, match="checksum missing"):
         engine.complete(state)
 
 
@@ -110,10 +137,13 @@ def test_completion_requires_every_final_acceptance_criterion(tmp_path):
     path = tmp_path / "audit.docx"
     path.write_bytes(b"valid")
     state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
+    state.artifacts[ArtifactKind.AUDIT_DOCX].sha256 = engine._sha256(path)
 
     required = engine._required_final_evidence_keys(state)
     missing_key = "FINANCE_DEEP.opening_payoff"
     assert missing_key in required
+    assert "FINANCE_DEEP.opening_first_three_sentences" in required
+    assert "FINANCE_DEEP.bold_scan_skeleton" in required
     state.working["final_audit"] = {
         "acceptance_evidence": [
             f"{key}: concrete frozen-final evidence"
@@ -142,6 +172,7 @@ def test_revision_invalidation_clears_stale_downstream_passes_and_outputs(tmp_pa
         "final_audit",
     ]:
         state.set_gate(name, GateStatus.PASS, ["old pass"])
+    state.set_gate("knowledge_context", GateStatus.PASS, ["old recall"])
     state.set_gate("knowledge_sync", GateStatus.PASS, ["old receipt"])
     path = tmp_path / "old.docx"
     path.write_bytes(b"old")
@@ -152,5 +183,21 @@ def test_revision_invalidation_clears_stale_downstream_passes_and_outputs(tmp_pa
     assert state.gates["research_output"].status == GateStatus.NOT_RUN
     assert state.gates["final_audit"].status == GateStatus.NOT_RUN
     assert state.gates["knowledge_sync"].status == GateStatus.NOT_RUN
+    assert state.gates["knowledge_context"].status == GateStatus.PASS
     assert ArtifactKind.FINANCE_DEEP_DOCX not in state.artifacts
     assert state.working["revision_history"][-1]["target_stage"] == "RESEARCH"
+
+
+def test_blocked_resume_returns_to_exact_original_stage(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="x"))
+    state = engine.transition(state, Stage.RESEARCH, reason="test")
+    state = engine.transition(state, Stage.RESEARCH_AUDIT, reason="test")
+    state = engine.block(state, "temporary auditor dependency failure")
+
+    assert state.stage == Stage.BLOCKED
+    assert state.working["blocked_from_stage"] == "RESEARCH_AUDIT"
+    resumed = engine.resume_from_blocked(state)
+    assert resumed.stage == Stage.RESEARCH_AUDIT
+    assert resumed.blocked_reason is None
+    assert "blocked_from_stage" not in resumed.working
