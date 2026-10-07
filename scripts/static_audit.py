@@ -22,6 +22,7 @@ SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 EXPECTED_TOOLS = {
     "start_writing_task",
     "get_writing_task",
+    "resume_writing_task",
     "list_recent_writing_tasks",
     "record_knowledge_context",
     "submit_research",
@@ -62,6 +63,8 @@ def check_skill_bundle() -> None:
     required_phrases = [
         "list_recent_writing_tasks",
         "start_writing_task",
+        "resume_writing_task",
+        "record_knowledge_context(status=\"PASS\"",
         "Do not use for standalone stock-picking/recommendation",
         "references/research.md",
         "references/visuals.md",
@@ -69,6 +72,8 @@ def check_skill_bundle() -> None:
         "submit_visual_package",
         "The MCP runtime checkpoint is the executable task authority",
         "WECHAT_STICKER_POST",
+        "opening_first_three_sentences",
+        "bold_scan_skeleton",
     ]
     for phrase in required_phrases:
         if phrase not in text:
@@ -139,6 +144,9 @@ def check_public_mcp_contract() -> int:
     for marker in ("freeze_acceptance_contract", "validate_draft_against_acceptance", "acceptance_contract"):
         if marker not in harness or marker not in runtime:
             fail(f"executable acceptance harness is not wired end-to-end: {marker}")
+    for marker in ("resume_writing_task", "knowledge_context", "record_knowledge_context"):
+        if marker not in source or marker not in runtime:
+            fail(f"recovery/knowledge gate is not wired end-to-end: {marker}")
 
     tree = ast.parse(source)
     tool_nodes: dict[str, ast.FunctionDef | ast.AsyncFunctionDef] = {}
