@@ -16,14 +16,15 @@ A fixture, unit/trajectory test, mock article, manually inspected draft, or a ru
 ## Runtime
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
 
-Failures or unavailable mandatory dependencies route to `BLOCKED`; there is no silent free-form fallback. Revision routes target the earliest valid repair stage and invalidate stale downstream gates/artifacts.
+Failures or unavailable mandatory dependencies route to `BLOCKED`; there is no silent free-form fallback. A genuine block records the originating stage. After the dependency/contract defect is repaired, `resume_writing_task` returns the task to that recorded stage rather than allowing an arbitrary skip. Revision routes target the earliest valid repair stage and invalidate stale downstream gates/artifacts.
 
 ## Control-plane design
 The model owns judgment-heavy work: research synthesis, TopicDNA, independent mode structures, headlines, prose, semantic/style audits and visual planning/generation.
 
 The Python/MCP harness owns what should not rely on model memory:
-- legal stage transitions and checkpoint persistence;
+- legal stage transitions, BLOCKED recovery and checkpoint persistence;
 - mandatory gate inventory;
+- explicit durable-knowledge recall/writeback decisions;
 - strict Pydantic stage contracts;
 - evidence verification status/source-group receipts;
 - DUAL mode-specific editorial plans;
@@ -49,6 +50,8 @@ The Python/MCP harness owns what should not rely on model memory:
 - Completion returns Word artifact(s), `WRITING_AUDIT_REPORT.docx`, visual manifest when applicable, and a visible completion checklist.
 
 ## Research/evidence contract
+Before research submission, durable prior-knowledge recall must be explicitly closed as `knowledge_context=PASS` with real retrieved references or `N_A` with a concrete reason. This prevents a relevant connected StockBase/EventBase/knowledge source from being silently skipped. Before final PASS, durable writeback is separately closed through `knowledge_sync=PASS/N_A`.
+
 Research is deliberately broader/deeper than the article. It covers catalyst, concept map, industry chain, A-share universe, fundamentals, why-this/why-not, market selection, counterevidence and relevant short-term roles/signals.
 
 Evidence explicitly distinguishes:
@@ -61,9 +64,9 @@ Core title/lead/H1/conclusion claims cannot be backed by unresolved evidence. Wr
 ## Acceptance/final audit
 Selected titles and mode-specific structures freeze a `WritingAcceptanceContract` before DRAFT. The draft must match the frozen title and exact H1 sequence.
 
-FINAL PASS requires machine-checked `KEY: concrete evidence` coverage for every applicable criterion (title, lead, H1 structure, side focus, company-selection basis, headline anchor, opening payoff, reasoning continuity, compliance/risk, DUAL cross-version consistency and visual alignment where applicable), plus global evidence/output checks.
+FINAL PASS requires machine-checked `KEY: concrete evidence` coverage for every applicable criterion, including title, independent lead, first-three-sentence payoff, H1 structure, side focus, company-selection basis, headline anchor, opening payoff, bold skim-reading skeleton, reasoning continuity, compliance/risk, DUAL cross-version consistency and visual alignment where applicable, plus global evidence/output checks.
 
-The engine also refuses COMPLETE if any mandatory gate is absent, not only when an existing gate is FAIL/REVISE/NOT_RUN.
+The engine also refuses COMPLETE if any mandatory gate is absent, either knowledge decision is unresolved, a required artifact lacks a recorded checksum, or final file readback/checksum fails.
 
 ## Visual/Word delivery
 Creative generation stays model-side. Runtime accepts a validated `VisualPackage`, records `VISUAL_MANIFEST.json`, and deterministically inserts assets into Word. Formal article defaults: 16:9 hero + semantic section images at roughly one per 700 Chinese characters, centered and uncropped.
@@ -73,7 +76,7 @@ File ingestion validates public HTTPS targets including redirect destinations. W
 Successful DOCX rendering is **not** visual page QA. The MCP surface exposes every rendered page as `writing-render://...`; FINAL must inspect every returned page and provide the exact reviewed resource URI set before PASS.
 
 ## MCP surface
-The hosted/plugin-facing runtime exposes 15 typed tools plus artifact/render resources. Public summaries never expose server-local artifact paths.
+The hosted/plugin-facing runtime exposes 16 typed tools plus artifact/render resources. The additional recovery tool is `resume_writing_task`; it can only restore a BLOCKED task to its recorded originating stage. Public summaries never expose server-local artifact paths.
 
 ## Agents SDK diagnostics
 The optional standalone Agents SDK path exists for developer diagnostics, not as a substitute for the production MCP/ChatGPT visual workflow. Stage calls use structured outputs and task-grouped tracing metadata with sensitive trace content disabled. CI includes an SDK structural smoke and a deterministic `ScriptedModel` orchestration test.
@@ -81,14 +84,16 @@ The optional standalone Agents SDK path exists for developer diagnostics, not as
 ## Deployment boundary
 The included SQLite state store and local run directory are reference/local-CI implementations. A hosted production deployment still requires verified durable state and persistent artifact/object storage that survive runtime restart and fresh ChatGPT sessions. Do not claim production readiness while state/artifacts depend on ephemeral local disk.
 
+The local/reference checkpoint store is also expected to reject stale concurrent writes rather than silently losing a newer checkpoint; production storage must provide an equivalent or stronger consistency guarantee.
+
 ## Validation policy
 Clean CI must pass SDK smoke, MCP HTTP smoke, unit/trajectory/harness tests, executable contract evals, static ownership/reference audit, wheel-isolated install smoke and real DOCX render smoke.
 
 v0.2.1 remains a **candidate** until a user-authorized real article live-model E2E:
 1. starts from a fresh chat;
 2. uses real research/model stages and real generated visuals where applicable;
-3. deliberately interrupts mid-run;
-4. resumes from the durable checkpoint without repeating passed stages/user input;
+3. deliberately interrupts or enters a recoverable BLOCKED condition mid-run;
+4. resumes from the durable checkpoint/original stage without repeating passed stages/user input;
 5. returns the actual final Word artifact(s) + `WRITING_AUDIT_REPORT.docx`;
 6. inspects every rendered Word page;
 7. re-reads artifact identity/checksums;
