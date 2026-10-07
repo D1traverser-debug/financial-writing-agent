@@ -43,3 +43,28 @@ def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identi
     assert "schema/gate/check assertion and a recurrence test" in maintenance
     assert "Canonical system-document identity" in maintenance
     assert "displayed title plus provider identity" in maintenance
+
+
+def test_legacy_cold_start_editorial_and_platform_semantics_remain_present():
+    editorial = Path("references/editorial.md").read_text(encoding="utf-8")
+    platforms = Path("references/platforms.md").read_text(encoding="utf-8")
+
+    # Legacy T06: generate from current TopicDNA before recent-outline collision checks.
+    assert "Candidate structures must be generated from the current TopicDNA before recent-outline fingerprints are consulted" in editorial
+    assert "collision checks, never structure-generation inputs" in editorial
+
+    # Legacy T07: no fixed event/industry/stocks/market/next-stage template.
+    assert "A fixed “event → industry → stocks → market → next stage” skeleton is not a default" in editorial
+
+    # Legacy T09: broad distribution remains financial and cross-sector understandable.
+    assert "finance readers outside the sector understand investment relevance" in platforms
+    assert "Lower entry cost without deleting the strongest contradiction or the core causal chain" in platforms
+
+    # Legacy T10: only load current platform/account experience for relevant optimization work.
+    assert "recommendation, click-through, search, retention or account-specific performance" in platforms
+    assert "retrieve the **current relevant version**" in platforms
+    assert "Do not promote it to a permanent formula without repeated, comparable evidence" in platforms
+
+    # Legacy T13: compress redundancy before reasoning/evidence.
+    assert "Compress repeated explanation, textbook background, synonym restatement" in editorial
+    assert "counterexamples, why-this/why-not, market-selection mechanism" in editorial
