@@ -4,18 +4,20 @@ import hashlib
 import os
 from pathlib import Path
 from typing import Any
-from urllib.parse import urlparse
-from urllib.request import Request, urlopen
+from urllib.request import HTTPRedirectHandler, Request, build_opener
 
 from .adapters.deterministic import DeliveryExecutor, MechanicalAuditExecutor, finalize_audit_artifact
 from .checks import load_policy
 from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
+from .harness import freeze_acceptance_contract, validate_draft_against_acceptance
 from .models import ContentMode, GateStatus, Stage, WritingState
+from .network_safety import validate_public_https_url
 from .routing import build_task_contract
 from .schemas import (
     DraftPackage,
     EditorialPlan,
+    FinalAuditDecision,
     GateDecision,
     HeadlinePackage,
     OpenAIFileRef,
@@ -39,6 +41,12 @@ engine = WritingEngine(store)
 controller = WorkflowController(engine)
 
 
+class _SafeRedirectHandler(HTTPRedirectHandler):
+    def redirect_request(self, req, fp, code, msg, headers, newurl):
+        validate_public_https_url(newurl)
+        return super().redirect_request(req, fp, code, msg, headers, newurl)
+
+
 def _load(task_id: str) -> WritingState:
     state = store.load(task_id)
     if state is None:
@@ -54,6 +62,18 @@ def _require_stage(state: WritingState, expected: Stage) -> None:
 def _gate_status(state: WritingState, name: str) -> str:
     gate = state.gates.get(name)
     return gate.status.value if gate else "NOT_RUN"
+
+
+def _render_page_uris(state: WritingState) -> dict[str, list[str]]:
+    manifest = state.working.get("render_manifest") or {}
+    return {
+        kind: [f"writing-render://{state.contract.task_id}/{kind}/{index}" for index, _ in enumerate(pages, start=1)]
+        for kind, pages in manifest.items()
+    }
+
+
+def _expected_render_page_uris(state: WritingState) -> set[str]:
+    return {uri for uris in _render_page_uris(state).values() for uri in uris}
 
 
 def _completion_checklist(state: WritingState) -> dict[str, Any]:
@@ -85,13 +105,15 @@ def _next_action(state: WritingState) -> str:
         return "call build_and_mechanically_audit_delivery"
     if state.stage == Stage.EDITORIAL_AUDIT and _gate_status(state, "style_audit") != "PASS":
         return "run the independent anti-AI/style judge and call submit_style_audit before submit_editorial_audit"
+    if state.stage == Stage.FINAL_AUDIT and REQUIRE_RENDER and _expected_render_page_uris(state):
+        return "inspect every writing-render resource, record knowledge writeback PASS/N_A, then call submit_final_audit with reviewed_render_pages"
     return {
         Stage.INTAKE: "advance runtime initialization",
         Stage.RESEARCH: "reuse durable prior knowledge when available, research broadly/currently, then submit_research",
         Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
-        Stage.EDITORIAL: "build TopicDNA and multiple candidate structures, then call submit_editorial_plan",
-        Stage.TITLE: "generate/judge headline candidates, then call submit_headlines",
-        Stage.DRAFT: "draft every applicable content output, then call submit_draft",
+        Stage.EDITORIAL: "build TopicDNA and independent mode-specific candidate structures, then call submit_editorial_plan",
+        Stage.TITLE: "generate/judge headline candidates, freeze the acceptance contract, then advance to drafting",
+        Stage.DRAFT: "draft every applicable content output against the frozen acceptance contract, then call submit_draft",
         Stage.EDITORIAL_AUDIT: "call submit_editorial_audit after style_audit passes",
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
         Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
@@ -129,6 +151,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
             kind.value: {"path": artifact.path, "exists": artifact.exists, "sha256": artifact.sha256}
             for kind, artifact in state.artifacts.items()
         }
+        summary["render_pages"] = _render_page_uris(state)
     if state.stage == Stage.COMPLETE:
         summary["completion_checklist"] = _completion_checklist(state)
     return summary
@@ -163,13 +186,13 @@ def _apply_gate_decision(
 
 def _validate_editorial_for_contract(state: WritingState, payload: EditorialPlan) -> None:
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-        if not payload.wechat_sticker_emphasis:
-            raise ValueError("WECHAT_STICKER_POST editorial plan requires wechat_sticker_emphasis")
+        if payload.wechat_sticker is None:
+            raise ValueError("WECHAT_STICKER_POST editorial plan requires wechat_sticker mode plan")
         return
-    if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"} and not payload.finance_deep_emphasis:
-        raise ValueError("applicable FINANCE_DEEP plan requires finance_deep_emphasis")
-    if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"} and not payload.finance_broad_emphasis:
-        raise ValueError("applicable FINANCE_BROAD plan requires finance_broad_emphasis")
+    if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"} and payload.finance_deep is None:
+        raise ValueError("applicable FINANCE_DEEP task requires an independent finance_deep editorial plan")
+    if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"} and payload.finance_broad is None:
+        raise ValueError("applicable FINANCE_BROAD task requires an independent finance_broad editorial plan")
 
 
 def _validate_headlines_for_contract(state: WritingState, payload: HeadlinePackage) -> None:
@@ -213,18 +236,16 @@ def _download_visual_files(task_id: str, files: list[OpenAIFileRef]) -> dict[str
     asset_dir = RUNS_DIR / task_id / "assets"
     asset_dir.mkdir(parents=True, exist_ok=True)
     result: dict[str, str] = {}
+    opener = build_opener(_SafeRedirectHandler())
     for file_ref in files:
         if file_ref.file_id in result:
             raise ValueError(f"duplicate file_id: {file_ref.file_id}")
         if file_ref.mime_type and not file_ref.mime_type.startswith("image/"):
             raise ValueError(f"visual file must be image/*: {file_ref.file_id}")
-        parsed = urlparse(file_ref.download_url)
-        if parsed.scheme != "https" or not parsed.hostname:
-            raise ValueError("ChatGPT file download_url must be an absolute https URL")
+        validate_public_https_url(file_ref.download_url)
         request = Request(file_ref.download_url, headers={"User-Agent": "financial-writing-agent/0.2"})
-        with urlopen(request, timeout=30) as response:
-            if urlparse(response.geturl()).scheme != "https":
-                raise ValueError("visual download redirected to non-https URL")
+        with opener.open(request, timeout=30) as response:
+            validate_public_https_url(response.geturl())
             response_type = (response.headers.get_content_type() or "").lower()
             if response_type and not response_type.startswith("image/") and response_type != "application/octet-stream":
                 raise ValueError(f"visual download returned non-image content type: {response_type}")
@@ -288,9 +309,12 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
         GateStatus.PASS,
         [
             f"evidence_items={len(payload.evidence_ledger)}",
+            f"core_safe={sum(item.core_safe for item in payload.evidence_ledger)}",
             f"universe={len(payload.universe)}",
             f"coverage={payload.coverage.coverage_status}",
             f"sweeps={payload.coverage.sweeps_completed}",
+            f"review_queue={len(payload.review_queue)}",
+            f"failed_tools={len(payload.failed_tools_or_sources)}",
             f"knowledge_writeback_candidates={len(payload.knowledge_writeback_candidates)}",
         ],
     )
@@ -312,8 +336,15 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
     payload = EditorialPlan.model_validate(editorial_plan)
     _validate_editorial_for_contract(state, payload)
     state.working["editorial_plan"] = payload.model_dump(mode="json")
-    state.set_gate("editorial_plan", GateStatus.PASS, ["TopicDNA", f"structures={len(payload.candidates)}", f"selected={payload.selected_structure.name}"])
-    state.add_trace("MCP_STAGE_OUTPUT", "editorial plan accepted")
+    evidence = ["TopicDNA"]
+    if payload.finance_deep:
+        evidence.append(f"FINANCE_DEEP_structures={len(payload.finance_deep.candidates)}; selected={payload.finance_deep.selected_structure.name}")
+    if payload.finance_broad:
+        evidence.append(f"FINANCE_BROAD_structures={len(payload.finance_broad.candidates)}; selected={payload.finance_broad.selected_structure.name}")
+    if payload.wechat_sticker:
+        evidence.append(f"WECHAT_STICKER_structures={len(payload.wechat_sticker.candidates)}; selected={payload.wechat_sticker.selected_structure.name}")
+    state.set_gate("editorial_plan", GateStatus.PASS, evidence)
+    state.add_trace("MCP_STAGE_OUTPUT", "mode-specific editorial plan accepted")
     return _summary(_save_and_advance(state))
 
 
@@ -323,8 +354,9 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
     payload = HeadlinePackage.model_validate(headlines)
     _validate_headlines_for_contract(state, payload)
     state.working["headlines"] = payload.model_dump(mode="json")
-    state.set_gate("title_audit", GateStatus.PASS, ["candidate counts and selected-title membership validated"])
-    state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS")
+    state.set_gate("title_audit", GateStatus.PASS, ["candidate counts, factual anchors, opening payoff and selected-title membership validated"])
+    freeze_acceptance_contract(state)
+    state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS; acceptance_contract frozen")
     return _summary(_save_and_advance(state))
 
 
@@ -333,9 +365,10 @@ def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.DRAFT)
     payload = DraftPackage.model_validate(draft)
     _validate_draft_for_contract(state, payload)
+    acceptance_evidence = validate_draft_against_acceptance(state, payload)
     state.working["draft"] = payload.model_dump(mode="json")
-    state.set_gate("draft_output", GateStatus.PASS, ["all contract-required draft payloads validated and frozen"])
-    state.add_trace("MCP_STAGE_OUTPUT", "draft package accepted")
+    state.set_gate("draft_output", GateStatus.PASS, ["all contract-required draft payloads validated and frozen", *acceptance_evidence])
+    state.add_trace("MCP_STAGE_OUTPUT", "draft package accepted against frozen acceptance contract")
     return _summary(_save_and_advance(state))
 
 
@@ -463,18 +496,33 @@ def record_knowledge_writeback(
     state.set_gate("knowledge_sync", GateStatus(status), receipts or ["explicit N_A"], "; ".join(note_list))
     state.add_trace("KNOWLEDGE_WRITEBACK", f"status={status}; refs={len(receipts)}")
     store.save(state)
-    return _summary(state)
+    return _summary(state, detail=True)
 
 
 def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.FINAL_AUDIT)
-    payload = GateDecision.model_validate(decision)
-    _validate_revision_target(payload, {"EDITORIAL", "DELIVERY"}, "final_audit")
-    if payload.status == "PASS" and _gate_status(state, "knowledge_sync") not in {"PASS", "N_A"}:
-        raise ValueError("record_knowledge_writeback PASS/N_A before final_audit PASS")
+    payload = FinalAuditDecision.model_validate(decision)
+    _validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY"}, "final_audit")
+    if payload.status == "PASS":
+        if _gate_status(state, "knowledge_sync") not in {"PASS", "N_A"}:
+            raise ValueError("record_knowledge_writeback PASS/N_A before final_audit PASS")
+        if _gate_status(state, "acceptance_contract") != "PASS":
+            raise ValueError("acceptance_contract must PASS before final_audit PASS")
+        if not payload.acceptance_evidence:
+            raise ValueError("final_audit PASS requires acceptance_evidence from the frozen final content")
+        expected_pages = _expected_render_page_uris(state) if REQUIRE_RENDER else set()
+        reviewed_pages = set(payload.reviewed_render_pages)
+        if expected_pages != reviewed_pages:
+            missing = sorted(expected_pages - reviewed_pages)
+            unexpected = sorted(reviewed_pages - expected_pages)
+            raise ValueError(f"final render-page review mismatch: missing={missing}, unexpected={unexpected}")
     status = GateStatus(payload.status)
-    state.set_gate("final_audit", status, payload.evidence, "; ".join(payload.defects + payload.remaining_boundaries))
+    evidence = payload.evidence + payload.acceptance_evidence
+    if payload.reviewed_render_pages:
+        evidence.append(f"reviewed_render_pages={len(payload.reviewed_render_pages)}")
+    state.set_gate("final_audit", status, evidence, "; ".join(payload.defects + payload.remaining_boundaries))
+    state.working["final_audit"] = payload.model_dump(mode="json")
     if payload.revision_target:
         state.working["final_revise_target"] = payload.revision_target
     state.add_trace("MCP_STAGE_OUTPUT", f"final_audit={status.value}")
