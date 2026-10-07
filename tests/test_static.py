@@ -31,3 +31,15 @@ def test_visual_workflow_is_explicit_and_owned():
     assert "@mcp.tool" not in runtime
     assert "@mcp.tool" not in shim
     assert "from .plugin_server import main, mcp" in shim
+
+
+def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
+
+    assert "mechanically_decidable_rule_enforcement" in ownership["maintenance"]
+    assert "canonical_system_document_identity" in ownership["maintenance"]
+    assert "not migrated merely because prose was updated" in maintenance
+    assert "schema/gate/check assertion and a recurrence test" in maintenance
+    assert "Canonical system-document identity" in maintenance
+    assert "displayed title plus provider identity" in maintenance
