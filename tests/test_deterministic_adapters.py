@@ -60,6 +60,19 @@ def test_chat_delivery_makes_mechanical_audit_na(tmp_path):
     assert state.gates["mechanical_audit"].status == GateStatus.N_A
 
 
+def test_low_judgment_word_rule_violation_forces_mechanical_revise(tmp_path):
+    state = WritingState(contract=TaskContract(prompt="写文章", distribution_mode=DistributionMode.DUAL))
+    draft = _draft()
+    draft["finance_deep"]["blocks"][2]["text"] = "国电南瑞低吸用于验证机械红线不能被优先级跳过。"
+    state.working["draft"] = draft
+    state = DeliveryExecutor(root=tmp_path).execute(state)
+    assert state.gates["delivery_output"].status == GateStatus.PASS
+
+    state = MechanicalAuditExecutor(require_render=False).execute(state)
+    assert state.gates["mechanical_audit"].status == GateStatus.REVISE
+    assert "actionable-finance redline" in state.gates["mechanical_audit"].notes
+
+
 def test_audit_artifact_contains_acceptance_evidence_and_safe_artifact_identity(tmp_path):
     state = WritingState(contract=TaskContract(prompt="写文章", distribution_mode=DistributionMode.FINANCE_DEEP))
     state.working["output_dir"] = str(tmp_path)
