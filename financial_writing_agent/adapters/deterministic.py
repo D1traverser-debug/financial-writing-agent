@@ -84,7 +84,7 @@ class DeliveryExecutor:
                 exists=True,
                 sha256=sha256_file(text_path),
             )
-            state.set_gate("delivery_output", GateStatus.PASS, [str(text_path)])
+            state.set_gate("delivery_output", GateStatus.PASS, [text_path.name])
             return state
 
         visual_package: ResolvedVisualPackage | None = None
@@ -112,7 +112,7 @@ class DeliveryExecutor:
             p = build_article_docx(self._sticker_article(draft.wechat_sticker_post), outdir / "WECHAT_STICKER_POST.docx", self.policy, images=images)
             state.artifacts[ArtifactKind.WECHAT_STICKER_DOCX] = Artifact(kind=ArtifactKind.WECHAT_STICKER_DOCX, path=str(p), exists=True, sha256=sha256_file(p))
             state.working["platform_constraint_snapshot"] = draft.wechat_sticker_post.constraints.model_dump(mode="json")
-            built.append(str(p))
+            built.append(p.name)
             state.set_gate("delivery_output", GateStatus.PASS, built)
             return state
 
@@ -123,7 +123,7 @@ class DeliveryExecutor:
             images = self._images(visual_package, "FINANCE_DEEP") if state.contract.visuals_enabled else []
             p = build_article_docx(self._article(draft.finance_deep), outdir / "FINANCE_DEEP.docx", self.policy, images=images)
             state.artifacts[ArtifactKind.FINANCE_DEEP_DOCX] = Artifact(kind=ArtifactKind.FINANCE_DEEP_DOCX, path=str(p), exists=True, sha256=sha256_file(p))
-            built.append(str(p))
+            built.append(p.name)
 
         if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
             if draft.finance_broad is None:
@@ -132,7 +132,7 @@ class DeliveryExecutor:
             images = self._images(visual_package, "FINANCE_BROAD") if state.contract.visuals_enabled else []
             p = build_article_docx(self._article(draft.finance_broad), outdir / "FINANCE_BROAD.docx", self.policy, images=images)
             state.artifacts[ArtifactKind.FINANCE_BROAD_DOCX] = Artifact(kind=ArtifactKind.FINANCE_BROAD_DOCX, path=str(p), exists=True, sha256=sha256_file(p))
-            built.append(str(p))
+            built.append(p.name)
 
         state.set_gate("delivery_output", GateStatus.PASS, built)
         return state
