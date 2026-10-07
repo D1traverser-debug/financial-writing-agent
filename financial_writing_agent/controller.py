@@ -17,8 +17,9 @@ class WorkflowController:
             return self.engine.transition(state, Stage.RESEARCH, reason="runtime initialized")
 
         if s == Stage.RESEARCH:
+            self._require_satisfied(state, "knowledge_context")
             self._require_pass(state, "research_output")
-            return self.engine.transition(state, Stage.RESEARCH_AUDIT, reason="research package ready")
+            return self.engine.transition(state, Stage.RESEARCH_AUDIT, reason="knowledge recall decision and research package ready")
 
         if s == Stage.RESEARCH_AUDIT:
             status = self._status(state, "research_audit")
@@ -107,3 +108,8 @@ class WorkflowController:
     def _require_pass(cls, state: WritingState, name: str) -> None:
         if cls._status(state, name) != GateStatus.PASS:
             raise WorkflowError(f"gate {name} must PASS before leaving {state.stage}")
+
+    @classmethod
+    def _require_satisfied(cls, state: WritingState, name: str) -> None:
+        if cls._status(state, name) not in {GateStatus.PASS, GateStatus.N_A}:
+            raise WorkflowError(f"gate {name} must be PASS or N_A before leaving {state.stage}")
