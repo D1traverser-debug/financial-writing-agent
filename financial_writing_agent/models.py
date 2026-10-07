@@ -118,6 +118,7 @@ class TraceEvent(BaseModel):
 class WritingState(BaseModel):
     contract: TaskContract
     stage: Stage = Stage.INTAKE
+    checkpoint_version: int = Field(default=0, ge=0)
     gates: dict[str, GateRecord] = Field(default_factory=dict)
     artifacts: dict[ArtifactKind, Artifact] = Field(default_factory=dict)
     working: dict[str, Any] = Field(default_factory=dict)
