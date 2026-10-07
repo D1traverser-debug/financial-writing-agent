@@ -25,6 +25,8 @@ class WorkflowController:
             if status == GateStatus.PASS:
                 return self.engine.transition(state, Stage.EDITORIAL, reason="research audit passed")
             if status == GateStatus.REVISE:
+                reason = state.gates["research_audit"].notes or "research audit requested revision"
+                self.engine.invalidate_for_revision(state, Stage.RESEARCH, reason=reason)
                 return self.engine.transition(state, Stage.RESEARCH, reason="research audit requested revision")
             raise WorkflowError("research_audit must be PASS or REVISE before advancing")
 
@@ -37,6 +39,8 @@ class WorkflowController:
             if status == GateStatus.PASS:
                 return self.engine.transition(state, Stage.DRAFT, reason="headline hook passed")
             if status == GateStatus.REVISE:
+                reason = state.gates["title_audit"].notes or "headline revision loop"
+                self.engine.invalidate_for_revision(state, Stage.TITLE, reason=reason)
                 return self.engine.transition(state, Stage.TITLE, reason="headline revision loop")
             raise WorkflowError("title_audit must be PASS or REVISE")
 
@@ -51,6 +55,8 @@ class WorkflowController:
             if status == GateStatus.REVISE:
                 target = state.working.get("revise_target", "DRAFT")
                 next_stage = Stage.TITLE if target == "TITLE" else Stage.DRAFT
+                reason = state.gates["editorial_audit"].notes or f"editorial revision target={target}"
+                self.engine.invalidate_for_revision(state, next_stage, reason=reason)
                 return self.engine.transition(state, next_stage, reason=f"editorial revision target={target}")
             raise WorkflowError("editorial_audit must be PASS or REVISE")
 
@@ -63,6 +69,8 @@ class WorkflowController:
             if status in {GateStatus.PASS, GateStatus.N_A}:
                 return self.engine.transition(state, Stage.FINAL_AUDIT, reason="mechanical audit satisfied")
             if status == GateStatus.REVISE:
+                reason = state.gates["mechanical_audit"].notes or "mechanical defects require rebuild"
+                self.engine.invalidate_for_revision(state, Stage.DELIVERY, reason=reason)
                 return self.engine.transition(state, Stage.DELIVERY, reason="mechanical defects require rebuild")
             raise WorkflowError("mechanical_audit must be PASS or REVISE")
 
@@ -72,7 +80,18 @@ class WorkflowController:
                 return self.engine.complete(state)
             if status == GateStatus.REVISE:
                 target = state.working.get("final_revise_target", "EDITORIAL")
-                next_stage = Stage.DELIVERY if target == "DELIVERY" else Stage.EDITORIAL
+                mapping = {
+                    "RESEARCH": Stage.RESEARCH,
+                    "EDITORIAL": Stage.EDITORIAL,
+                    "TITLE": Stage.TITLE,
+                    "DRAFT": Stage.DRAFT,
+                    "DELIVERY": Stage.DELIVERY,
+                }
+                next_stage = mapping.get(target)
+                if next_stage is None:
+                    raise WorkflowError(f"unsupported final revision target={target}")
+                reason = state.gates["final_audit"].notes or f"final audit revision target={target}"
+                self.engine.invalidate_for_revision(state, next_stage, reason=reason)
                 return self.engine.transition(state, next_stage, reason=f"final audit revision target={target}")
             raise WorkflowError("final_audit must be PASS or REVISE")
 
