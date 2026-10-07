@@ -1,8 +1,9 @@
 """Optional OpenAI Agents SDK implementation for high-judgment stages.
 
 The Python state machine remains authoritative. The SDK is used only inside a stage;
-it cannot skip, insert, or complete stages on its own. Creative image generation and
-connected-store I/O are orchestrated by the ChatGPT/MCP plugin path, not this adapter.
+it cannot skip, insert, or complete stages on its own. Creative image generation,
+render-page visual inspection and connected-store I/O are orchestrated by the
+ChatGPT/MCP plugin path, not this standalone diagnostic adapter.
 """
 from __future__ import annotations
 
@@ -10,9 +11,10 @@ import json
 import os
 from typing import Any
 
+from ..harness import freeze_acceptance_contract, validate_draft_against_acceptance
 from ..models import ContentMode, GateStatus, Stage, WritingState
 from ..resources import read_reference
-from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage, StyleAuditDecision
+from ..schemas import DraftPackage, EditorialPlan, FinalAuditDecision, GateDecision, HeadlinePackage, ResearchPackage, StyleAuditDecision
 from .deterministic import finalize_audit_artifact
 
 
@@ -75,7 +77,11 @@ class OpenAIStageExecutor:
         instructions = load_reference("research.md") + "\n\n" + load_reference("knowledge.md")
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             instructions += "\n\n" + load_reference("platforms.md") + "\n\nVerify current WeChat sticker-post limits/mechanics with live web evidence and preserve sources for the later PlatformConstraintSnapshot."
-        instructions += "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article."
+        instructions += (
+            "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article. "
+            "For evidence that can support a headline, opening, H1 or central conclusion, set core_safe=true only after recording an auditable verification_status. "
+            "Independent cross-checks must identify a genuinely independent source group; a lone authoritative source must use SINGLE_SOURCE_ATTRIBUTED with allowed_wording."
+        )
         out: ResearchPackage = self._run(
             name="Financial Writing Researcher",
             instructions=instructions,
@@ -84,11 +90,21 @@ class OpenAIStageExecutor:
             prompt=f"USER TASK:\n{state.contract.prompt}\n\nSOURCE REFS:\n{state.contract.source_refs}\n",
         )
         state.working["research"] = out.model_dump(mode="json")
-        state.set_gate("research_output", GateStatus.PASS, [f"evidence_items={len(out.evidence_ledger)}", f"universe={len(out.universe)}"])
+        state.set_gate(
+            "research_output",
+            GateStatus.PASS,
+            [
+                f"evidence_items={len(out.evidence_ledger)}",
+                f"core_safe={sum(item.core_safe for item in out.evidence_ledger)}",
+                f"universe={len(out.universe)}",
+                f"review_queue={len(out.review_queue)}",
+                f"failed_tools={len(out.failed_tools_or_sources)}",
+            ],
+        )
         return state
 
     def _execute_research_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\nAudit only the research package against the research and knowledge reference rules."
+        instructions = load_reference("audit.md") + "\n\nAudit only the research package against the research and knowledge reference rules. Check evidence verification status and source independence rather than accepting core_safe labels at face value."
         out: GateDecision = self._run(
             name="Financial Writing Research Auditor",
             instructions=instructions,
@@ -96,14 +112,21 @@ class OpenAIStageExecutor:
             web=False,
             prompt=_state_context(state),
         )
-        state.set_gate("research_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects))
+        state.set_gate("research_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects + out.remaining_boundaries))
+        if out.revision_target:
+            state.working["research_revise_target"] = out.revision_target
         return state
 
     def _execute_editorial(self, state: WritingState) -> WritingState:
         instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("structure_patterns.md")
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md") + "\n\nDesign a concise image-first sticker-post structure; do not force long-article H1 architecture."
-        instructions += "\n\nBuild TopicDNA and multiple candidate structures. Do not draft body text."
+            instructions += "\n\n" + load_reference("platforms.md") + "\n\nReturn a wechat_sticker mode plan. Design a concise image-first structure; do not force long-article H1 architecture."
+        else:
+            instructions += (
+                "\n\nReturn one independent ModeEditorialPlan for every applicable distribution mode. "
+                "For DUAL, finance_deep and finance_broad must each generate their own 2-3 candidate structures and select independently after TopicDNA; sharing the research base does not mean sharing one outline."
+            )
+        instructions += "\n\nBuild TopicDNA and candidate structures. Do not draft body text."
         out: EditorialPlan = self._run(
             name="Financial Writing Editorial Architect",
             instructions=instructions,
@@ -112,7 +135,14 @@ class OpenAIStageExecutor:
             prompt=_state_context(state),
         )
         state.working["editorial_plan"] = out.model_dump(mode="json")
-        state.set_gate("editorial_plan", GateStatus.PASS, ["TopicDNA", f"structures={len(out.candidates)}"])
+        evidence = ["TopicDNA"]
+        if out.finance_deep:
+            evidence.append(f"FINANCE_DEEP_structures={len(out.finance_deep.candidates)}")
+        if out.finance_broad:
+            evidence.append(f"FINANCE_BROAD_structures={len(out.finance_broad.candidates)}")
+        if out.wechat_sticker:
+            evidence.append(f"WECHAT_STICKER_structures={len(out.wechat_sticker.candidates)}")
+        state.set_gate("editorial_plan", GateStatus.PASS, evidence)
         return state
 
     def _execute_title(self, state: WritingState) -> WritingState:
@@ -120,7 +150,9 @@ class OpenAIStageExecutor:
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             instructions += "\n\n" + load_reference("platforms.md") + "\n\nGenerate sticker-post title candidates that complement the image hook. Do not assume remembered platform character limits; use the verified research context."
         else:
-            instructions += "\n\nGenerate 8-12 candidates per applicable mode and select after judging finance relevance, factual support, information gap, cognitive load and extreme-language risk."
+            instructions += (
+                "\n\nGenerate 8-12 genuinely different candidates per applicable mode. Every candidate must record a verified factual_anchor, one primary information gap, and the opening_payoff that will satisfy the click."
+            )
         out: HeadlinePackage = self._run(
             name="Financial Writing Headline Engine",
             instructions=instructions,
@@ -137,7 +169,10 @@ class OpenAIStageExecutor:
                 applicable.append(bool(out.finance_deep_selected))
             if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"}:
                 applicable.append(bool(out.finance_broad_selected))
-        state.set_gate("title_audit", GateStatus.PASS if applicable and all(applicable) else GateStatus.REVISE, [f"applicable_modes={len(applicable)}"])
+        status = GateStatus.PASS if applicable and all(applicable) else GateStatus.REVISE
+        state.set_gate("title_audit", status, [f"applicable_modes={len(applicable)}"])
+        if status == GateStatus.PASS:
+            freeze_acceptance_contract(state)
         return state
 
     def _execute_draft(self, state: WritingState) -> WritingState:
@@ -145,7 +180,11 @@ class OpenAIStageExecutor:
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             instructions += "\n\n" + load_reference("platforms.md") + "\n\nReturn only wechat_sticker_post in DraftPackage. Its PlatformConstraintSnapshot must come from current research evidence; keep copy concise/useful, include an interaction prompt when appropriate, and include a compact information-dense risk_disclaimer field."
         else:
-            instructions += "\n\nDraft the applicable article mode(s). Use Simplified Chinese and continuous logically connected prose. Return topic-specific risk text only in each payload's separate risk_disclaimer field; do not place a risk heading/body inside article blocks."
+            instructions += (
+                "\n\nDraft the applicable article mode(s) against the frozen acceptance_contract. "
+                "Each formal article must start with exactly one independent lead, followed immediately by the first H1. "
+                "Use the frozen selected title and selected structure; return risk text only in risk_disclaimer."
+            )
         out: DraftPackage = self._run(
             name="Financial Writing Writer",
             instructions=instructions,
@@ -153,8 +192,9 @@ class OpenAIStageExecutor:
             web=False,
             prompt=_state_context(state),
         )
+        evidence = validate_draft_against_acceptance(state, out)
         state.working["draft"] = out.model_dump(mode="json")
-        state.set_gate("draft_output", GateStatus.PASS, ["structured draft package frozen"])
+        state.set_gate("draft_output", GateStatus.PASS, ["structured draft package frozen", *evidence])
         return state
 
     def _execute_editorial_audit(self, state: WritingState) -> WritingState:
@@ -173,7 +213,7 @@ class OpenAIStageExecutor:
             state.working["revise_target"] = "DRAFT"
             return state
 
-        instructions = load_reference("audit.md") + "\n\nAudit the frozen draft for evidence, reasoning continuity, hook payoff, information density, platform fit and compliance. The dedicated style gate has already passed; do not replace it with writer self-assessment."
+        instructions = load_reference("audit.md") + "\n\nAudit the frozen draft and acceptance_contract for evidence, reasoning continuity, hook payoff, information density, platform fit and compliance. The dedicated style gate has already passed; do not replace it with writer self-assessment."
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             instructions += "\n\n" + load_reference("platforms.md")
         out: GateDecision = self._run(
@@ -183,24 +223,34 @@ class OpenAIStageExecutor:
             web=False,
             prompt=_state_context(state),
         )
-        state.set_gate("editorial_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects))
+        state.set_gate("editorial_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects + out.remaining_boundaries))
         if out.revision_target:
             state.working["revise_target"] = out.revision_target
         return state
 
     def _execute_final_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("visuals.md")
+        instructions = load_reference("audit.md") + "\n\n" + load_reference("style.md")
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             instructions += "\n\n" + load_reference("platforms.md")
-        instructions += "\n\nPerform final red-team review of frozen content plus recorded mechanical/visual audit."
-        out: GateDecision = self._run(
+        instructions += (
+            "\n\nPerform final red-team review of the frozen content against the acceptance_contract and recorded mechanical audit. "
+            "This standalone diagnostic path does not provide rendered page images to the judge, so reviewed_render_pages must be empty and you must not claim visual page inspection. "
+            "A PASS requires concrete acceptance_evidence from the final frozen content."
+        )
+        out: FinalAuditDecision = self._run(
             name="Financial Writing Final Auditor",
             instructions=instructions,
-            output_type=GateDecision,
+            output_type=FinalAuditDecision,
             web=False,
             prompt=_state_context(state),
         )
-        state.set_gate("final_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects + out.remaining_boundaries))
+        if out.status == "PASS" and not out.acceptance_evidence:
+            raise RuntimeError("standalone final PASS requires acceptance_evidence")
+        if out.reviewed_render_pages:
+            raise RuntimeError("standalone final auditor cannot claim render-page inspection")
+        evidence = out.evidence + out.acceptance_evidence
+        state.set_gate("final_audit", GateStatus(out.status), evidence, "; ".join(out.defects + out.remaining_boundaries))
+        state.working["final_audit"] = out.model_dump(mode="json")
         if out.revision_target:
             state.working["final_revise_target"] = out.revision_target
         if out.status == "PASS":
