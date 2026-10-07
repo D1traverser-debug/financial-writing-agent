@@ -21,7 +21,7 @@ For every applicable output mode, build a separate `ModeEditorialPlan`.
 
 - `FINANCE_DEEP` and `FINANCE_BROAD` in a DUAL task each generate **2–3 independent candidate structures** and select one independently.
 - Do not generate one outline and merely change emphasis labels for two versions.
-- Each mode plan records its selected structure, emphasis, natural side-focus statement, one or two company-selection dimensions, and any outline-fingerprint collision evidence.
+- Each mode plan records its selected structure, emphasis, natural side-focus statement, one or two company-selection dimensions, section-level acceptance expectations, and any outline-fingerprint collision evidence.
 - Candidate structures must be generated from the current TopicDNA before recent-outline fingerprints are consulted. Fingerprints are collision checks, never structure-generation inputs or a rotation schedule.
 - When a usable recent-outline history exists, compare against the most recent small set (normally up to the latest three relevant fingerprints) rather than searching old structures first and letting them seed the new outline.
 - A mode may arrive at a structurally similar outline only when the current TopicDNA genuinely justifies it; record why the collision is acceptable rather than assuming DUAL means artificial difference.
@@ -77,29 +77,35 @@ Every formal `ArticlePayload` contains exactly one `lead` block, and it is the f
 The opening should quickly perform three jobs without sounding formulaic: establish immediate relevance, upgrade the central contradiction, and make the reading payoff clear. These may span the first three sentences in a natural way. Opening facts must respect the same evidence boundary as title/H1 claims.
 
 ## H1 continuation contract
-Every H1 is more than a directory label. Before drafting a selected structure, know for each H1:
-- the directional conclusion or judgment the heading carries;
-- the real information gap, mechanism, contrast, cost, benefit or unresolved quantity that remains worth reading for;
-- where/how the section body will pay that promise off;
-- the number and relationship of its major logical sub-blocks.
+Every H1 is more than a directory label. Before drafting a selected structure, define for each H1:
+- `directional_conclusion`: the directional conclusion or judgment the heading carries;
+- `reader_gap`: the real information gap, mechanism, contrast, cost, benefit or unresolved quantity that remains worth reading for;
+- `payoff_requirement`: what the section body must actually establish to pay off that gap;
+- `logical_blocks`: the section's major semantic blocks, in order;
+- `h3_required_h2_indexes`: only those second-level blocks that truly contain at least three explicit evidence/condition/dimension units and therefore need a third-level hierarchy.
 
-An H1 that only summarizes a topic, reports a number, names a category, or gives away the entire section without a continuation reason is weak. If a section contains two or more explicit parallel/progressive/screening/evidence blocks, the structure should normally expose a second-level hierarchy; when a second-level block itself contains three or more explicit evidence/condition/dimension units, a third-level hierarchy may be required. This is a semantic structure decision first and a delivery-format check second—do not create headings merely to satisfy a count.
+`logical_blocks` has a dual role. A one-item list means the section remains one continuous H1-level reasoning block and should not invent H2 headings. A list with two or more items freezes the expected H2 labels/order. If an H2 later develops a real three-or-more-unit internal structure, mark its 1-based index in `h3_required_h2_indexes`; do not create H3 merely for decoration.
 
-The final auditor should be able to map each H1 to its directional judgment, continuation gap and payoff location in the final prose. If that mapping cannot be made, the section design was not actually fulfilled.
+An H1 that only summarizes a topic, reports a number, names a category, or gives away the entire section without a continuation reason is weak. Hierarchy is a semantic structure decision first and a delivery-format check second—do not create headings merely to satisfy a count.
+
+The final auditor must be able to map each H1 to its frozen directional judgment, continuation gap and concrete payoff location in the final prose. If that mapping cannot be made, the section design was not actually fulfilled.
 
 ## Acceptance contract
 After mode-specific structures and selected headlines are frozen, the runtime builds a `WritingAcceptanceContract` before drafting proceeds. For each formal mode it freezes at least:
 - selected title;
 - selected structure identity;
-- expected H1 count and section functions;
+- expected H1 count and section sequence;
+- the serialized `section_expectations` for every H1: directional conclusion, reader gap, payoff requirement, logical-block plan and any required H3-bearing H2 indexes;
 - independent-lead requirement;
 - side-focus statement;
 - company-selection basis;
 - required outputs/delivery channel and visual boundary.
 
-The semantic acceptance evidence additionally preserves the H1 continuation contract above: each H1's directional judgment, remaining information gap and actual payoff location must be recoverable from the final article even where the current serialized runtime contract does not yet model those subfields explicitly.
+Formal acceptance freezing fails closed when an applicable mode lacks section expectations. The draft is then checked mechanically against the frozen H1/H2/H3 hierarchy. Semantic truth is not inferred from heading counts: FINAL separately supplies concrete frozen-final evidence for each H1's direction/gap/payoff contract.
 
-Drafting is constrained by this contract. If later revision changes title/structure or upstream facts, the relevant contract/gates are invalidated and must be rebuilt rather than silently reusing stale PASS results.
+Risk/disclaimer substance, Word/render status, artifact identity and knowledge-writeback status remain downstream schema/gate responsibilities rather than duplicated per-mode contract state. This prevents two competing sources of truth while preserving their mandatory completion gates.
+
+Drafting is constrained by this contract. If later revision changes title/structure/section contract or upstream facts, the relevant contract/gates are invalidated and must be rebuilt rather than silently reusing stale PASS results.
 
 ## Company selection
 Do not prescribe a fixed number of stocks or a fixed leader/mid-cap/follower template. Before deep company writing, establish one or two topic-specific selection dimensions such as industrial position, realization stage, budget entry, customer/order exposure, market role or another relevant contradiction.
