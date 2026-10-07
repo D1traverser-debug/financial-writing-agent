@@ -37,6 +37,7 @@ REQUIRED_RESOURCE_TEMPLATES = {
     "writing-docx://{task_id}/{kind}",
     "writing-json://{task_id}/{kind}",
     "writing-text://{task_id}/{kind}",
+    "writing-render://{task_id}/{kind}/{page}",
 }
 
 
@@ -94,7 +95,7 @@ async def verify() -> None:
             uris = {str(item.uri_template) for item in templates.resource_templates}
             missing_resources = sorted(REQUIRED_RESOURCE_TEMPLATES - uris)
             if missing_resources:
-                raise RuntimeError(f"missing artifact resource templates: {missing_resources}; got={sorted(uris)}")
+                raise RuntimeError(f"missing artifact/QA resource templates: {missing_resources}; got={sorted(uris)}")
 
             result = await session.call_tool(
                 "start_writing_task",
@@ -109,7 +110,7 @@ async def verify() -> None:
                 raise RuntimeError(f"unexpected start result: {structured}")
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} artifact resource templates exposed, and structured start result validated"
+                f"{len(uris)} artifact/QA resource templates exposed, and structured start result validated"
             )
 
 
