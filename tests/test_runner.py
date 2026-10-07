@@ -1,5 +1,5 @@
 from financial_writing_agent.adapters.mock import ExplodingExecutor, PassExecutor
-from financial_writing_agent.models import Stage, TaskContract
+from financial_writing_agent.models import GateStatus, Stage, TaskContract
 from financial_writing_agent.runner import AgentRuntime
 
 
@@ -34,3 +34,13 @@ def test_runtime_starts_before_research_executor(tmp_path):
     state = runtime.run(state)
     events = [e.event for e in state.trace]
     assert events.index("RUNTIME_STARTED") < events.index("EXECUTOR_START")
+
+
+def test_standalone_runtime_records_explicit_knowledge_na_boundary(tmp_path):
+    runtime = AgentRuntime.with_sqlite(tmp_path / "state.db", executors={})
+    state = runtime.start(TaskContract(prompt="本地诊断"))
+    assert state.gates["knowledge_sync"].status == GateStatus.N_A
+    assert any(event.event == "KNOWLEDGE_SYNC_BOUNDARY" for event in state.trace)
+
+    resumed = runtime.resume(state.contract.task_id)
+    assert resumed.gates["knowledge_sync"].status == GateStatus.N_A
