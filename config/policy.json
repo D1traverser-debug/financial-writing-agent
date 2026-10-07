@@ -30,8 +30,15 @@
     "topic_specific_required": true
   },
   "visuals": {
-    "writing_workflow_enabled": false,
-    "default_enabled_for_new_word_articles": false,
+    "default_enabled_for_new_word_articles": true,
+    "aspect_ratio": "16:9",
+    "hero_count_per_article": 1,
+    "target_chars_per_section_image": 700,
+    "avatar_required": true,
+    "center_in_word": true,
+    "crop_in_word": false,
+    "word_width_inches": 6.2,
+    "word_max_height_inches": 8.0,
     "max_file_bytes": 26214400
   },
   "wechat_sticker": {
@@ -40,9 +47,9 @@
     "hard_coded_title_limit": null,
     "hard_coded_body_limit": null,
     "hard_coded_image_limit": null,
+    "preferred_vertical_aspects": ["3:4", "4:5", "9:16"],
     "interaction_intent_allowed": true,
-    "pure_clickbait_forbidden": true,
-    "image_generation_owned_by_writing": false
+    "pure_clickbait_forbidden": true
   },
   "word": {
     "title_pt": 20,
