@@ -1,3 +1,7 @@
+from datetime import datetime, timedelta, timezone
+
+import pytest
+
 from financial_writing_agent.models import ArtifactKind, DeliveryChannel, DistributionMode
 from financial_writing_agent.routing import build_task_contract, infer_distribution_mode
 
@@ -15,12 +19,36 @@ def test_broad_only_routes_finance_broad():
 
 
 def test_unspecified_platform_routes_dual_and_new_word_article_enables_visuals():
+    before = datetime.now(timezone.utc)
     c = build_task_contract(prompt="根据这两个链接写文章")
+    after = datetime.now(timezone.utc)
     assert c.distribution_mode == DistributionMode.DUAL
     assert c.delivery_channel == DeliveryChannel.WORD_FILE_ONLY
     assert c.visuals_enabled is True
     assert ArtifactKind.AUDIT_DOCX in c.required_outputs
     assert ArtifactKind.VISUAL_MANIFEST_JSON in c.required_outputs
+    assert c.effective_time_boundary.tzinfo is not None
+    assert before <= c.effective_time_boundary.astimezone(timezone.utc) <= after
+
+
+def test_explicit_historical_effective_time_boundary_is_preserved():
+    boundary = datetime(2026, 9, 30, 15, 0, tzinfo=timezone.utc)
+    c = build_task_contract(prompt="截至指定时点写文章", effective_time_boundary=boundary)
+    assert c.effective_time_boundary == boundary
+
+
+def test_effective_time_boundary_rejects_naive_or_future_values():
+    with pytest.raises(ValueError, match="must include a timezone"):
+        build_task_contract(
+            prompt="历史时点文章",
+            effective_time_boundary=datetime(2026, 9, 30, 15, 0),
+        )
+
+    with pytest.raises(ValueError, match="cannot be materially in the future"):
+        build_task_contract(
+            prompt="未来时点文章",
+            effective_time_boundary=datetime.now(timezone.utc) + timedelta(days=1),
+        )
 
 
 def test_chat_and_existing_word_do_not_force_visuals():
