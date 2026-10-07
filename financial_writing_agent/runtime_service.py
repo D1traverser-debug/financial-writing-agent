@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import hashlib
 import os
+from datetime import datetime
 from pathlib import Path
 from typing import Any
 from urllib.request import HTTPRedirectHandler, Request, build_opener
@@ -10,7 +11,11 @@ from .adapters.deterministic import DeliveryExecutor, MechanicalAuditExecutor, f
 from .checks import load_policy
 from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
-from .harness import freeze_acceptance_contract, validate_draft_against_acceptance
+from .harness import (
+    freeze_acceptance_contract,
+    validate_draft_against_acceptance,
+    validate_research_against_knowledge_context,
+)
 from .models import ContentMode, GateStatus, Stage, WritingState
 from .network_safety import validate_public_https_url
 from .routing import build_task_contract
@@ -112,7 +117,7 @@ def _next_action(state: WritingState) -> str:
         return "retrieve durable prior knowledge when available, then call record_knowledge_context with PASS or explicit N_A before submit_research"
     return {
         Stage.INTAKE: "advance runtime initialization",
-        Stage.RESEARCH: "research broadly/currently, then submit_research",
+        Stage.RESEARCH: "research broadly/currently within effective_time_boundary, then submit_research",
         Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
         Stage.EDITORIAL: "build TopicDNA and independent mode-specific candidate structures, then call submit_editorial_plan",
         Stage.TITLE: "generate/judge headline candidates, freeze the acceptance contract, then advance to drafting",
@@ -133,6 +138,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         "current_stage": state.stage.value,
         "topic": research.get("topic"),
         "prompt_preview": state.contract.prompt[:180],
+        "effective_time_boundary": state.contract.effective_time_boundary.isoformat(),
         "content_mode": state.contract.content_mode.value,
         "distribution_mode": state.contract.distribution_mode.value,
         "delivery_channel": state.contract.delivery_channel.value,
@@ -268,6 +274,7 @@ def start_writing_task(
     visuals_enabled: bool | None = None,
     visual_profile_ref: str | None = None,
     content_mode: str | None = None,
+    effective_time_boundary: datetime | None = None,
 ) -> dict[str, Any]:
     explicit_mode = ContentMode(content_mode) if content_mode else None
     contract = build_task_contract(
@@ -277,6 +284,7 @@ def start_writing_task(
         visuals_enabled=visuals_enabled,
         visual_profile_ref=visual_profile_ref,
         content_mode=explicit_mode,
+        effective_time_boundary=effective_time_boundary,
     )
     return _summary(controller.advance(engine.start(contract)))
 
@@ -330,11 +338,13 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
     if _gate_status(state, "knowledge_context") not in {"PASS", "N_A"}:
         raise ValueError("record_knowledge_context PASS/N_A before submit_research")
     payload = ResearchPackage.model_validate(research)
+    harness_evidence = validate_research_against_knowledge_context(state, payload)
     state.working["research"] = payload.model_dump(mode="json")
     state.set_gate(
         "research_output",
         GateStatus.PASS,
         [
+            f"effective_time_boundary={state.contract.effective_time_boundary.isoformat()}",
             f"evidence_items={len(payload.evidence_ledger)}",
             f"core_safe={sum(item.core_safe for item in payload.evidence_ledger)}",
             f"universe={len(payload.universe)}",
@@ -343,6 +353,7 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
             f"review_queue={len(payload.review_queue)}",
             f"failed_tools={len(payload.failed_tools_or_sources)}",
             f"knowledge_writeback_candidates={len(payload.knowledge_writeback_candidates)}",
+            *harness_evidence,
         ],
     )
     state.add_trace("MCP_STAGE_OUTPUT", "research package accepted")
@@ -538,6 +549,16 @@ def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]
             raise ValueError("acceptance_contract must PASS before final_audit PASS")
         if not payload.acceptance_evidence:
             raise ValueError("final_audit PASS requires acceptance_evidence from the frozen final content")
+        evidence_map = {
+            entry.split(":", 1)[0].strip(): entry.split(":", 1)[1].strip()
+            for entry in payload.acceptance_evidence
+            if isinstance(entry, str) and ":" in entry and entry.split(":", 1)[0].strip()
+        }
+        frozen_boundary = state.contract.effective_time_boundary.isoformat()
+        if frozen_boundary not in evidence_map.get("GLOBAL.time_integrity", ""):
+            raise ValueError(
+                "GLOBAL.time_integrity must quote the exact frozen effective_time_boundary=" + frozen_boundary
+            )
         expected_pages = _expected_render_page_uris(state) if REQUIRE_RENDER else set()
         reviewed_pages = set(payload.reviewed_render_pages)
         if expected_pages != reviewed_pages:
