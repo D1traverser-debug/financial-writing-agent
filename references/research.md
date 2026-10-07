@@ -17,10 +17,14 @@ The cognition map should cover what is material to the topic:
 
 This cognition is not a requirement to mention every dimension in the article. It is the knowledge base from which selective writing is allowed.
 
+For an A-share topic that materially involves listed-company/concept mapping, connected StockBase/EventBase knowledge is relevant by default when it is actually accessible. Retrieve it before open-web expansion and keep StockBase READ ONLY. If the connected knowledge source is unavailable, close the knowledge-context gate explicitly rather than silently pretending the recall step was unnecessary.
+
 ## Coverage and stop condition
 “全面” must be auditable rather than infinite. Run at least two independent research sweeps using materially different query/source angles. Record `ResearchPackage.coverage` with concept/company/source coverage, what was excluded, whether the search saturated or remains bounded with gaps, how many material new items appeared on the last sweep, and why research stopped.
 
 A late sweep that still finds material concepts/companies is evidence to continue or explicitly mark the remaining gap; never declare “all” by intuition.
+
+Coverage is omission-oriented, not only a review of what was already found. Ask explicitly what material source, concept node, listed-company mapping, counterexample, relationship, fact class or time-sensitive update should exist under the topic but is still absent. For quantity-bearing inputs or universes, reconcile known input/source totals against processed totals when a trustworthy total exists. An unexplained mismatch is a research defect or explicit boundary, never an invisible omission.
 
 ## Required reasoning coverage
 - Establish the event, chronology, policy/industry/company facts and what changed.
@@ -31,6 +35,16 @@ A late sweep that still finds material concepts/companies is evidence to continu
 - Record negative evidence, counterexamples, stale facts and unresolved gaps.
 - When discussing market selection, answer both `why_this` and `why_not`.
 - Separate industrial beneficiary, earnings beneficiary, sentiment leader, liquidity carrier and other market roles instead of assuming they coincide.
+- Keep confirmed fact, evidence-bounded industrial inference, market-traded expectation and unverified rumor distinct; one layer must not silently be rewritten as another.
+
+## Source completion and source hierarchy
+Task-provided sources are obligations, not merely hints. Every user-supplied link/PDF/report/attachment that is material to the task must be accounted for before research can honestly be called complete. A search snippet, abstract, generated summary, truncated page, table of contents or tool-success response is not equivalent to reading the relevant source content.
+
+For every material supplied source, preserve its practical completion state in the research/evidence boundary: `FULL` when the relevant original content was actually read; `PARTIAL` when only part was accessible/read and the missing scope is stated; or `UNAVAILABLE` when it could not be read and the fallback path plus impact are stated. Do not silently drop a supplied source because another source was easier to access. If two inputs are copies/rewrites of the same original, record that equivalence rather than treating them as independent evidence.
+
+Prefer evidence in this order when the proposition permits: original regulator/government/exchange material; company filing/official site/earnings-call or original meeting material; original paper/product/technical documentation; reliable structured market data; high-quality secondary reporting. Secondary articles, snippets and summaries are discovery aids or viewpoint comparisons, not automatic factual endpoints.
+
+Drive/long-term knowledge may reuse stable original documents, historical reports, accepted EventBase/IndustryBase/EvidenceCache material and read-only StockBase mappings, but old articles are not current dynamic-fact evidence. Notion is a navigation/index/governance layer unless the retrieved page itself is authoritative original content; a stale summary is not upgraded into a current fact merely because it is easy to retrieve.
 
 ## Evidence ledger: evidence strength is data, not prose
 Every reusable factual claim goes into `EvidenceItem`. At minimum record the claim, source, date/time when material, evidence type, confidence, source group, verification status, allowed wording where required, conflict/notes and whether the item is safe for core use.
@@ -56,6 +70,8 @@ All verifiable facts in the final article must be supported. The following deser
 - major technology/person/event claims such as first/only/breakthrough/success/commercialization;
 - disputed claims and facts that materially change `why_this / why_not`.
 
+For mutable facts—orders, capacity, customers, executive roles, cooperation progress, policy status and similar items—refresh the latest effective disclosure for each article rather than inheriting an old cache as current. Price, market cap, daily move, float, market pools and short-term market roles must carry a comparable trading date/time boundary. On a non-trading day, using the latest trading day is acceptable only when it is described as such rather than presented as same-day trading feedback.
+
 ## StockBase and review queue
 Persistent knowledge is a prior, not a verdict. For every reused knowledge item record its reference and recency; identify conflicts with new evidence. Never allow an old stock/concept label to override current business facts or current market structure.
 
@@ -66,17 +82,22 @@ Fast-changing price action,封单,抢筹,身位 and similar signals should be ti
 ## Failure and fallback receipts
 Tool success is not evidence success. When a material research path fails or returns only a snippet/template/empty payload, record a `ResearchFailure` with failed action, reason, retry status, alternative source/tool, impact and whether it was resolved.
 
-Switch sources/tools when possible; do not shrink the required universe or silently remove a verification obligation because one tool failed. A core unresolved gap blocks or weakens the claim. A non-core gap may proceed only with explicit boundary language.
+Switch sources/tools when possible; do not shrink the required universe, source-completion obligation or verification obligation because one tool failed. A core unresolved gap blocks or weakens the claim. A non-core gap may proceed only with explicit boundary language. Known quota/permission exhaustion is not a reason for repeated blind retries; move to an independent reliable path and preserve the failure receipt.
 
 ## Knowledge writeback candidates
-Research output should identify reusable knowledge candidates after the task: stable company/business mappings, industry-chain relationships, recurring concept definitions, source-quality notes and unresolved questions. These candidates do not authorize writeback by themselves; final writeback follows the connected-store permission boundary and explicit PASS/N_A receipt flow.
+Research output should identify reusable knowledge candidates after the task: stable company/business mappings, industry-chain relationships, recurring concept definitions, event chronology/catalyst facts, source-quality notes, reusable evidence and unresolved questions. These candidates do not authorize writeback by themselves; final writeback follows the connected-store permission boundary and explicit PASS/N_A receipt flow.
+
+Article-specific rhetoric, headline wording, temporary emphasis and one-off stylistic choices are not market-knowledge facts. A StockBase correction remains a review-queue item rather than a writing-side direct mutation.
 
 ## Exit gate
 RESEARCH passes only when:
 - the main thesis has an evidence chain;
+- material task-provided sources are accounted for, including partial/unavailable boundaries;
 - the relevant company universe and concept/industry context have been considered;
+- omission/count checks do not contain an unexplained material mismatch;
 - important counterevidence is represented;
 - prior-knowledge conflicts are bounded;
+- mutable facts and market-state claims have an explicit current/comparable time boundary;
 - unresolved gaps are explicit;
 - `ResearchCoverage` explains why breadth is sufficient to proceed;
 - at least one publishable `core_safe` evidence item exists;
