@@ -5,7 +5,7 @@ from typing import Protocol
 
 from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
-from .models import Stage, TaskContract, WritingState
+from .models import GateStatus, Stage, TaskContract, WritingState
 from .store import SQLiteStateStore
 
 
@@ -21,7 +21,12 @@ class RuntimeUnavailable(RuntimeError):
 
 
 class AgentRuntime:
-    """Owns the outer loop. It never silently falls back to free-form generation."""
+    """Owns the standalone/local outer loop. It never silently falls back to free-form generation.
+
+    Connected-knowledge reads/writes are intentionally orchestrated by the ChatGPT/MCP path.
+    A standalone AgentRuntime therefore records knowledge_sync=N_A instead of leaving an
+    impossible NOT_RUN gate that can never be resolved by this runner.
+    """
 
     def __init__(self, engine: WritingEngine, executors: dict[Stage, StageExecutor], *, max_steps: int = 50):
         self.engine = engine
@@ -33,14 +38,28 @@ class AgentRuntime:
     def with_sqlite(cls, path: str | Path, executors: dict[Stage, StageExecutor], *, max_steps: int = 50):
         return cls(WritingEngine(SQLiteStateStore(path)), executors, max_steps=max_steps)
 
+    def _record_standalone_knowledge_boundary(self, state: WritingState) -> None:
+        gate = state.gates.get("knowledge_sync")
+        if gate is None or gate.status == GateStatus.NOT_RUN:
+            state.set_gate(
+                "knowledge_sync",
+                GateStatus.N_A,
+                ["standalone AgentRuntime has no connected durable-knowledge writeback surface"],
+                "Use the MCP/ChatGPT path when connected knowledge writeback is required.",
+            )
+            state.add_trace("KNOWLEDGE_SYNC_BOUNDARY", "standalone runtime -> N_A")
+            self.engine.store.save(state)
+
     def start(self, contract: TaskContract) -> WritingState:
         state = self.engine.start(contract)
+        self._record_standalone_knowledge_boundary(state)
         return self.controller.advance(state)
 
     def resume(self, task_id: str) -> WritingState:
         state = self.engine.store.load(task_id)
         if state is None:
             raise RuntimeUnavailable(f"checkpoint not found: {task_id}")
+        self._record_standalone_knowledge_boundary(state)
         state.add_trace("RUNTIME_RESUMED", "checkpoint loaded")
         self.engine.store.save(state)
         return state
