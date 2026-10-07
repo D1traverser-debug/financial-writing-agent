@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .models import ContentMode, DistributionMode, GateStatus, WritingState
 from .schemas import (
+    ArticlePayload,
     DraftPackage,
     EditorialPlan,
     HeadlineCandidate,
@@ -99,7 +100,13 @@ def _mode_contract(
     plan: ModeEditorialPlan,
     selected_title: str,
     selected_candidate: HeadlineCandidate,
+    *,
+    require_section_expectations: bool,
 ) -> ModeAcceptanceContract:
+    if require_section_expectations and not plan.section_expectations:
+        raise ValueError(
+            "formal article acceptance contract requires section_expectations for every selected H1"
+        )
     return ModeAcceptanceContract(
         selected_title=selected_title,
         headline_factual_anchor=selected_candidate.factual_anchor,
@@ -108,6 +115,7 @@ def _mode_contract(
         selected_structure_name=plan.selected_structure.name,
         expected_h1_count=len(plan.selected_structure.sections),
         expected_section_functions=plan.selected_structure.sections,
+        section_expectations=plan.section_expectations,
         side_focus_statement=plan.side_focus_statement,
         company_selection_basis=plan.company_selection_basis,
     )
@@ -132,7 +140,12 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
             headlines.wechat_sticker_candidates,
             headlines.wechat_sticker_selected,
         )
-        sticker = _mode_contract(editorial.wechat_sticker, headlines.wechat_sticker_selected, candidate)
+        sticker = _mode_contract(
+            editorial.wechat_sticker,
+            headlines.wechat_sticker_selected,
+            candidate,
+            require_section_expectations=False,
+        )
     else:
         if state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}:
             if editorial.finance_deep is None or not headlines.finance_deep_selected:
@@ -146,7 +159,12 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
                 headlines.finance_deep_candidates,
                 headlines.finance_deep_selected,
             )
-            deep = _mode_contract(editorial.finance_deep, headlines.finance_deep_selected, candidate)
+            deep = _mode_contract(
+                editorial.finance_deep,
+                headlines.finance_deep_selected,
+                candidate,
+                require_section_expectations=True,
+            )
         if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
             if editorial.finance_broad is None or not headlines.finance_broad_selected:
                 raise ValueError("FINANCE_BROAD acceptance contract requires frozen editorial plan and selected title")
@@ -159,7 +177,12 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
                 headlines.finance_broad_candidates,
                 headlines.finance_broad_selected,
             )
-            broad = _mode_contract(editorial.finance_broad, headlines.finance_broad_selected, candidate)
+            broad = _mode_contract(
+                editorial.finance_broad,
+                headlines.finance_broad_selected,
+                candidate,
+                require_section_expectations=True,
+            )
 
     contract = WritingAcceptanceContract(
         finance_deep=deep,
@@ -179,10 +202,89 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
             f"finance_broad={'yes' if contract.finance_broad else 'no'}",
             f"wechat_sticker={'yes' if contract.wechat_sticker else 'no'}",
             "all headline factual anchors exactly match core_safe research claims",
+            "formal H1 direction/gap/payoff/hierarchy expectations frozen",
             "selected headline factual anchor/gap/opening payoff frozen per applicable mode",
         ],
     )
     return contract
+
+
+def _article_sections(article: ArticlePayload) -> list[tuple[str, list]]:
+    sections: list[tuple[str, list]] = []
+    current_title: str | None = None
+    current_children: list = []
+    for block in article.blocks:
+        if block.kind == "lead":
+            continue
+        if block.kind == "h1":
+            if current_title is not None:
+                sections.append((current_title, current_children))
+            current_title = block.text
+            current_children = []
+            continue
+        if current_title is None:
+            raise ValueError("article content appears before the first H1")
+        current_children.append(block)
+    if current_title is not None:
+        sections.append((current_title, current_children))
+    return sections
+
+
+def _validate_section_hierarchy(label: str, article: ArticlePayload, expected: ModeAcceptanceContract) -> list[str]:
+    if not expected.section_expectations:
+        raise ValueError(f"{label} frozen acceptance contract is missing section_expectations")
+    sections = _article_sections(article)
+    if len(sections) != len(expected.section_expectations):
+        raise ValueError(
+            f"{label} section count differs from section acceptance contract: "
+            f"actual={len(sections)}, expected={len(expected.section_expectations)}"
+        )
+
+    evidence: list[str] = []
+    for section_index, (spec, actual) in enumerate(zip(expected.section_expectations, sections), start=1):
+        actual_h1, children = actual
+        if actual_h1 != spec.h1_title:
+            raise ValueError(
+                f"{label} H1[{section_index}] differs from section acceptance contract: "
+                f"actual={actual_h1!r}, expected={spec.h1_title!r}"
+            )
+
+        actual_h2 = [block.text for block in children if block.kind == "h2"]
+        expected_h2 = spec.logical_blocks if len(spec.logical_blocks) >= 2 else []
+        if actual_h2 != expected_h2:
+            raise ValueError(
+                f"{label} H1[{section_index}] H2 hierarchy differs from frozen logical blocks: "
+                f"actual={actual_h2}, expected={expected_h2}"
+            )
+
+        h3_counts: dict[int, int] = {index: 0 for index in range(1, len(actual_h2) + 1)}
+        current_h2 = 0
+        for block in children:
+            if block.kind == "h2":
+                current_h2 += 1
+            elif block.kind == "h3":
+                if current_h2 == 0:
+                    raise ValueError(f"{label} H1[{section_index}] contains H3 before any H2")
+                h3_counts[current_h2] += 1
+
+        required_h3 = set(spec.h3_required_h2_indexes)
+        for h2_index, count in h3_counts.items():
+            if h2_index in required_h3 and count < 3:
+                raise ValueError(
+                    f"{label} H1[{section_index}] H2[{h2_index}] requires at least 3 H3 units; actual={count}"
+                )
+            if h2_index not in required_h3 and count:
+                raise ValueError(
+                    f"{label} H1[{section_index}] H2[{h2_index}] has unexpected H3 hierarchy; "
+                    "revise the section contract instead of drifting during drafting"
+                )
+
+        evidence.append(
+            f"{label}.H1_{section_index}: direction/gap/payoff=frozen; "
+            f"logical_blocks={len(spec.logical_blocks)}; h2={len(actual_h2)}; "
+            f"h3_required={sorted(required_h3)}"
+        )
+    return evidence
 
 
 def validate_draft_against_acceptance(state: WritingState, draft: DraftPackage) -> list[str]:
@@ -216,7 +318,9 @@ def validate_draft_against_acceptance(state: WritingState, draft: DraftPackage) 
             raise ValueError(
                 f"{label} H1 sequence differs from frozen structure: actual={actual_h1}, expected={expected.expected_section_functions}"
             )
+        hierarchy_evidence = _validate_section_hierarchy(label, article, expected)
         evidence.append(
             f"{label}: lead=1; h1={len(actual_h1)}; title=frozen; h1_sequence=frozen; headline_promises=frozen"
         )
+        evidence.extend(hierarchy_evidence)
     return evidence
