@@ -37,6 +37,8 @@ def _artifact_public_fields(kind: str, path_value: str) -> dict[str, str]:
 def _publicize(raw: dict) -> dict:
     clean = dict(raw)
     task_id = clean.get("task_id")
+    if task_id and "effective_time_boundary" not in clean:
+        clean["effective_time_boundary"] = impl._load(task_id).contract.effective_time_boundary
     clean.pop("trace_tail", None)
     artifacts: dict[str, dict] = {}
     for kind, value in (clean.get("artifacts") or {}).items():
@@ -130,6 +132,7 @@ mcp = MCPServer(
         "Decide explicit continuation versus a genuinely new task before using persisted task state. "
         "Only explicit continuation intent may restore an unfinished task; a new task must start fresh even when unfinished tasks exist, while durable learning may still be reused. "
         "Start runtime state before research. "
+        "Treat effective_time_boundary returned by the task summary as the frozen evidence cutoff for research and final time-integrity review. "
         "Record durable-knowledge recall as PASS or explicit N_A before research submission. "
         "If a task is BLOCKED, repair the dependency and call resume_writing_task; never start a duplicate task merely to bypass BLOCKED. "
         "Follow the returned next_action and never skip a gate. The model owns research, writing, audits and image generation; "
