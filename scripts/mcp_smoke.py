@@ -17,6 +17,7 @@ URL = f"http://127.0.0.1:{PORT}/mcp"
 REQUIRED = {
     "start_writing_task",
     "get_writing_task",
+    "resume_writing_task",
     "list_recent_writing_tasks",
     "record_knowledge_context",
     "submit_research",
@@ -108,9 +109,20 @@ async def verify() -> None:
                 raise RuntimeError(f"structured output missing: {structured!r}")
             if structured.get("current_stage") != "RESEARCH" or not structured.get("task_id"):
                 raise RuntimeError(f"unexpected start result: {structured}")
+            task_id = structured["task_id"]
+            if structured.get("gate_status", {}).get("knowledge_context") != "NOT_RUN":
+                raise RuntimeError(f"knowledge_context must start NOT_RUN: {structured}")
+
+            recall = await session.call_tool(
+                "record_knowledge_context",
+                arguments={"task_id": task_id, "status": "N_A", "notes": ["smoke has no connected durable knowledge"]},
+            )
+            if recall.is_error or recall.structured_content.get("gate_status", {}).get("knowledge_context") != "N_A":
+                raise RuntimeError(f"knowledge_context N_A decision failed: {recall.content}")
+
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} artifact/QA resource templates exposed, and structured start result validated"
+                f"{len(uris)} artifact/QA resource templates exposed, structured start and knowledge-context decision validated"
             )
 
 
