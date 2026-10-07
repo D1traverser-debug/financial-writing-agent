@@ -24,12 +24,12 @@ class OpenAIAgentsUnavailable(RuntimeError):
 
 def require_sdk():
     try:
-        from agents import Agent, Runner, WebSearchTool  # type: ignore
+        from agents import Agent, RunConfig, Runner, WebSearchTool  # type: ignore
     except ImportError as exc:  # pragma: no cover
         raise OpenAIAgentsUnavailable(
             "Install optional dependency with: pip install 'financial-writing-agent[openai]'"
         ) from exc
-    return Agent, Runner, WebSearchTool
+    return Agent, RunConfig, Runner, WebSearchTool
 
 
 def load_reference(name: str) -> str:
@@ -50,8 +50,17 @@ class OpenAIStageExecutor:
         self.stage = stage
         self.model = model or os.getenv("FINANCIAL_WRITING_MODEL")
 
-    def _run(self, *, name: str, instructions: str, output_type: type[Any], prompt: str, web: bool = False):
-        Agent, Runner, WebSearchTool = require_sdk()
+    def _run(
+        self,
+        *,
+        name: str,
+        instructions: str,
+        output_type: type[Any],
+        prompt: str,
+        group_id: str,
+        web: bool = False,
+    ):
+        Agent, RunConfig, Runner, WebSearchTool = require_sdk()
         tools = [WebSearchTool(search_context_size="high", external_web_access=True)] if web else []
         kwargs: dict[str, Any] = {
             "name": name,
@@ -62,7 +71,13 @@ class OpenAIStageExecutor:
         if self.model:
             kwargs["model"] = self.model
         agent = Agent(**kwargs)
-        result = Runner.run_sync(agent, prompt, max_turns=16)
+        run_config = RunConfig(
+            workflow_name="Financial Writing Agent",
+            group_id=group_id,
+            trace_metadata={"stage": self.stage.value, "executor": name},
+            trace_include_sensitive_data=False,
+        )
+        result = Runner.run_sync(agent, prompt, max_turns=16, run_config=run_config)
         return result.final_output
 
     def execute(self, state: WritingState) -> WritingState:
@@ -87,6 +102,7 @@ class OpenAIStageExecutor:
             instructions=instructions,
             output_type=ResearchPackage,
             web=True,
+            group_id=state.contract.task_id,
             prompt=f"USER TASK:\n{state.contract.prompt}\n\nSOURCE REFS:\n{state.contract.source_refs}\n",
         )
         state.working["research"] = out.model_dump(mode="json")
@@ -110,6 +126,7 @@ class OpenAIStageExecutor:
             instructions=instructions,
             output_type=GateDecision,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         state.set_gate("research_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects + out.remaining_boundaries))
@@ -132,6 +149,7 @@ class OpenAIStageExecutor:
             instructions=instructions,
             output_type=EditorialPlan,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         state.working["editorial_plan"] = out.model_dump(mode="json")
@@ -158,6 +176,7 @@ class OpenAIStageExecutor:
             instructions=instructions,
             output_type=HeadlinePackage,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         state.working["headlines"] = out.model_dump(mode="json")
@@ -190,6 +209,7 @@ class OpenAIStageExecutor:
             instructions=instructions,
             output_type=DraftPackage,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         evidence = validate_draft_against_acceptance(state, out)
@@ -204,6 +224,7 @@ class OpenAIStageExecutor:
             instructions=style_instructions,
             output_type=StyleAuditDecision,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         state.set_gate("style_audit", GateStatus(style_out.status), style_out.evidence, "; ".join(style_out.detected_patterns + style_out.transition_findings + style_out.extreme_language_findings + style_out.revision_notes))
@@ -221,6 +242,7 @@ class OpenAIStageExecutor:
             instructions=instructions,
             output_type=GateDecision,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         state.set_gate("editorial_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects + out.remaining_boundaries))
@@ -234,14 +256,15 @@ class OpenAIStageExecutor:
             instructions += "\n\n" + load_reference("platforms.md")
         instructions += (
             "\n\nPerform final red-team review of the frozen content against the acceptance_contract and recorded mechanical audit. "
-            "This standalone diagnostic path does not provide rendered page images to the judge, so reviewed_render_pages must be empty and you must not claim visual page inspection. "
-            "A PASS requires concrete acceptance_evidence from the final frozen content."
+            "Follow the exact acceptance_evidence KEY: evidence inventory in audit.md. "
+            "This standalone diagnostic path does not provide rendered page images to the judge, so reviewed_render_pages must be empty and you must not claim visual page inspection."
         )
         out: FinalAuditDecision = self._run(
             name="Financial Writing Final Auditor",
             instructions=instructions,
             output_type=FinalAuditDecision,
             web=False,
+            group_id=state.contract.task_id,
             prompt=_state_context(state),
         )
         if out.status == "PASS" and not out.acceptance_evidence:
