@@ -43,6 +43,8 @@ Every task must provide the following explicit global keys; do not collapse them
 
 `GLOBAL.count_reconciliation` is still mandatory as an explicit decision. When there is no material enumerable inventory to reconcile, its evidence must say why it is genuinely N/A rather than silently omitting the check.
 
+`GLOBAL.time_integrity` must quote the persisted task's exact `TaskContract.effective_time_boundary` (including timezone) and explain how mutable facts, market data and policy/event status were bounded to information effective on or before that cutoff. Generic phrases such as “checked freshness”, “used latest data” or “time boundary OK” do not satisfy this evidence key. For a historical cutoff, later facts must be explicitly excluded even when they are easier to retrieve today.
+
 Every formal applicable mode (`FINANCE_DEEP` and/or `FINANCE_BROAD`) must provide all of:
 - `<MODE>.selected_title`
 - `<MODE>.independent_lead`
@@ -72,7 +74,7 @@ Use the existing keys as evidence containers rather than inventing a second chec
 - `GLOBAL.source_completion` accounts for every user-supplied `TaskContract.source_ref` using the recorded FULL/PARTIAL/UNAVAILABLE boundary and explains the impact of any PARTIAL/UNAVAILABLE source.
 - `GLOBAL.omission_scan` states what should have been present by rule/topic/universe but was specifically checked for absence.
 - `GLOBAL.count_reconciliation` reconciles material enumerable inventories—sources, company universe, selected companies, H1/required outputs/knowledge items where relevant—or explicitly justifies N/A.
-- `GLOBAL.time_integrity` confirms mutable facts/market data/policy state use the correct effective date/time and that no later information contaminates an earlier decision boundary.
+- `GLOBAL.time_integrity` quotes the exact frozen `effective_time_boundary`, identifies the effective dates/times used for mutable evidence, and proves no post-cutoff information contaminated the article.
 - `GLOBAL.counterexample_scan` points to counterevidence, excluded peers, falsification conditions or other evidence that could have overturned the main thesis.
 - `GLOBAL.required_outputs` covers required artifact identity/checksum/readback plus the audit report itself; when a connected external copy is claimed as saved/uploaded, external readback/metadata evidence is required separately from runtime artifact existence.
 
@@ -104,8 +106,8 @@ Research PASS is not established merely because the final article has citations.
 - the relevant concept/company universe was broad enough for the topic and any known count mismatch is explained;
 - the omission scan asked what should have been present but was missing, not only what was already processed;
 - counterevidence/negative evidence was actively represented;
-- mutable company/policy/order/customer/capacity facts were refreshed to the effective article boundary;
-- market-price/market-cap/float/fund-flow/role claims use a stated comparable trading date/time and do not use later information to explain an earlier decision boundary;
+- mutable company/policy/order/customer/capacity facts were refreshed to the latest state effective on or before the persisted `TaskContract.effective_time_boundary`;
+- market-price/market-cap/float/fund-flow/role claims use a stated comparable trading date/time at or before that cutoff and do not use later information to explain an earlier decision boundary;
 - every verifiable fact that survived into the final article is supported, with stronger checks for title/lead/H1/bold/core-conclusion claims.
 
 A tool reporting success, a search result existing, or a source being listed in notes does not prove its relevant content was read or that the claim was verified.
@@ -170,7 +172,7 @@ A revision invalidates affected downstream PASS records and generated delivery a
 
 ## Audit report
 Generate `WRITING_AUDIT_REPORT.docx` from the final state after the final semantic decision. It should expose enough evidence to distinguish actual verification from a generic PASS stamp, including:
-- task/distribution/delivery contract and required outputs;
+- task/distribution/delivery contract, exact `effective_time_boundary` and required outputs;
 - acceptance-contract identity, frozen headline promises, section expectations and applicable mode checks;
 - source/evidence boundary and explicit supplied-source completion;
 - omission scan, count reconciliation, time-integrity and counterexample evidence;
