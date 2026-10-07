@@ -64,6 +64,7 @@ class StyleChecklist(PublicResultModel):
 
 
 class KnowledgeChecklist(PublicResultModel):
+    context_gate: GateStatusText
     sync_gate: GateStatusText
     reused_refs: int = Field(ge=0)
     writeback_candidates: int = Field(ge=0)
