@@ -11,11 +11,12 @@ from pydantic import Field
 from . import runtime_service as impl
 from .mcp_contracts import FILE_INGEST_TOOL, READ_ONLY_TOOL, STATE_WRITE_TOOL, WritingTaskList, WritingTaskSummary
 from .models import ArtifactKind, ContentMode
-from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, OpenAIFileRef, ResearchPackage, StyleAuditDecision, VisualPackage
+from .schemas import DraftPackage, EditorialPlan, FinalAuditDecision, GateDecision, HeadlinePackage, OpenAIFileRef, ResearchPackage, StyleAuditDecision, VisualPackage
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 JSON_MIME = "application/json"
 TEXT_MIME = "text/plain; charset=utf-8"
+PNG_MIME = "image/png"
 
 
 def _artifact_public_fields(kind: str, path_value: str) -> dict[str, str]:
@@ -73,6 +74,22 @@ def _resource_bytes(task_id: str, kind: str, allowed: set[ArtifactKind]) -> byte
     return path.read_bytes()
 
 
+def _render_page_bytes(task_id: str, kind: str, page: int) -> bytes:
+    state = impl._load(task_id)
+    pages = (state.working.get("render_manifest") or {}).get(kind)
+    if not pages:
+        raise FileNotFoundError(f"render pages not available for {kind}")
+    if page < 1 or page > len(pages):
+        raise FileNotFoundError(f"render page out of range: {kind} page {page}")
+    path = Path(pages[page - 1]).resolve()
+    runs_root = impl.RUNS_DIR.resolve()
+    if not path.is_relative_to(runs_root):
+        raise ValueError("render page path escaped configured runs storage")
+    if not path.is_file() or path.suffix.lower() != ".png":
+        raise FileNotFoundError(f"render page missing: {kind} page {page}")
+    return path.read_bytes()
+
+
 def _result_with_artifacts(summary: WritingTaskSummary) -> CallToolResult:
     content = [TextContent(type="text", text=f"Writing task {summary.task_id} is {summary.status} at {summary.current_stage}. {summary.next_action}")]
     for kind, artifact in (summary.artifacts or {}).items():
@@ -86,6 +103,17 @@ def _result_with_artifacts(summary: WritingTaskSummary) -> CallToolResult:
                     description=f"{kind} publication artifact for writing task {summary.task_id}",
                 )
             )
+    for kind, uris in (summary.render_pages or {}).items():
+        for index, uri in enumerate(uris, start=1):
+            content.append(
+                ResourceLink(
+                    type="resource_link",
+                    uri=uri,
+                    name=f"{kind}-page-{index}.png",
+                    mime_type=PNG_MIME,
+                    description=f"Rendered page {index} of {kind}; inspect before claiming visual page QA PASS",
+                )
+            )
     return CallToolResult(content=content, structured_content=summary.model_dump(mode="json"))
 
 
@@ -95,7 +123,8 @@ mcp = MCPServer(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones. Start runtime state before research. "
         "Follow the returned next_action and never skip a gate. The model owns research, writing, audits and image generation; "
-        "the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
+        "the runtime owns state, schemas, legal transitions, acceptance contracts, Word construction and mechanical QA. "
+        "When render-page resources are returned, inspect every page before submitting a PASS final audit."
     ),
 )
 
@@ -118,6 +147,12 @@ def read_text_artifact(task_id: str, kind: str) -> bytes:
     return _resource_bytes(task_id, kind, {ArtifactKind.CHAT_TEXT})
 
 
+@mcp.resource("writing-render://{task_id}/{kind}/{page}", mime_type=PNG_MIME)
+def read_render_page(task_id: str, kind: str, page: int) -> bytes:
+    """Read one rendered Word page PNG so the final auditor can actually inspect pagination, clipping, whitespace and image placement."""
+    return _render_page_bytes(task_id, kind, page)
+
+
 @mcp.tool(title="Start financial writing task", annotations=STATE_WRITE_TOOL, structured_output=True)
 def start_writing_task(
     prompt: Annotated[str, Field(min_length=1, description="The user's concrete publishable financial-writing request.")],
@@ -132,7 +167,7 @@ def start_writing_task(
 
 
 @mcp.tool(title="Get writing task", annotations=READ_ONLY_TOOL, structured_output=True)
-def get_writing_task(task_id: Annotated[str, Field(min_length=1, description="Exact persisted task ID returned by this runtime.")], detail: Annotated[bool, Field(description="Return gates and publication artifact resources when true.")] = True) -> WritingTaskSummary:
+def get_writing_task(task_id: Annotated[str, Field(min_length=1, description="Exact persisted task ID returned by this runtime.")], detail: Annotated[bool, Field(description="Return gates, publication artifact resources and rendered-page evidence when true.")] = True) -> WritingTaskSummary:
     """Read one persisted writing task without changing it. Use after task listing or when an exact task ID is already known."""
     return _summary(impl.get_writing_task(task_id, detail=detail))
 
@@ -151,7 +186,7 @@ def record_knowledge_context(task_id: Annotated[str, Field(min_length=1)], refs:
 
 @mcp.tool(title="Submit research package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research(task_id: Annotated[str, Field(min_length=1)], research: ResearchPackage) -> WritingTaskSummary:
-    """Validate and freeze the complete ResearchPackage at RESEARCH, including evidence, broad/deep cognition and explicit bounded-coverage stopping conditions."""
+    """Validate and freeze the complete ResearchPackage at RESEARCH, including auditable evidence verification, broad/deep cognition, review-queue receipts and bounded coverage."""
     return _summary(impl.submit_research(task_id, research.model_dump(mode="json")))
 
 
@@ -163,19 +198,19 @@ def submit_research_audit(task_id: Annotated[str, Field(min_length=1)], decision
 
 @mcp.tool(title="Submit editorial plan", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_plan(task_id: Annotated[str, Field(min_length=1)], editorial_plan: EditorialPlan) -> WritingTaskSummary:
-    """Validate TopicDNA and multiple candidate structures at EDITORIAL, including all emphasis fields required by the current content contract."""
+    """Validate TopicDNA and independent mode-specific candidate structures at EDITORIAL, including focus, company-selection basis and outline-collision evidence."""
     return _summary(impl.submit_editorial_plan(task_id, editorial_plan.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit headline package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_headlines(task_id: Annotated[str, Field(min_length=1)], headlines: HeadlinePackage) -> WritingTaskSummary:
-    """Validate unique candidate headline sets and selected-title membership at TITLE. Required candidate counts differ by formal article and WeChat sticker mode."""
+    """Validate unique candidate headline sets, factual anchors, opening-payoff design and selected-title membership, then freeze the article acceptance contract."""
     return _summary(impl.submit_headlines(task_id, headlines.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit draft package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_draft(task_id: Annotated[str, Field(min_length=1)], draft: DraftPackage) -> WritingTaskSummary:
-    """Validate every draft required by the TaskContract at DRAFT. DUAL must contain both articles and risk text is an explicit required field rather than an optional prose convention."""
+    """Validate every required draft against the frozen acceptance contract, including independent lead placement, selected title and frozen H1 structure."""
     return _summary(impl.submit_draft(task_id, draft.model_dump(mode="json")))
 
 
@@ -187,31 +222,31 @@ def submit_style_audit(task_id: Annotated[str, Field(min_length=1)], report: Sty
 
 @mcp.tool(title="Submit editorial audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record the independent semantic editorial verdict. PASS requires a passed style gate; REVISE may target only TITLE or DRAFT; FAIL blocks."""
+    """Record the independent semantic editorial verdict. PASS requires a passed style gate; REVISE may target TITLE or DRAFT and invalidates stale downstream checks."""
     return _summary(impl.submit_editorial_audit(task_id, decision.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit publication visuals", annotations=FILE_INGEST_TOOL, meta={"openai/fileParams": ["files"]}, structured_output=True)
 def submit_visual_package(task_id: Annotated[str, Field(min_length=1)], visual_package: VisualPackage, files: Annotated[list[OpenAIFileRef], Field(min_length=1, description="ChatGPT-authorized generated/uploaded image file parameters referenced by file_id.")]) -> WritingTaskSummary:
-    """Accept authorized image file parameters at DELIVERY, validate mode/count/ratio/avatar requirements, copy bytes into task storage and record the visual gate. It never accepts arbitrary server paths as model input."""
+    """Accept authorized image file parameters at DELIVERY, validate mode/count/ratio/avatar requirements, safely copy bytes into task storage and record the visual gate."""
     return _summary(impl.submit_visual_package(task_id, visual_package.model_dump(mode="json"), files))
 
 
 @mcp.tool(title="Build and mechanically audit delivery", annotations=STATE_WRITE_TOOL, structured_output=True)
 def build_and_mechanically_audit_delivery(task_id: Annotated[str, Field(min_length=1)]) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Build the contract-required publication artifacts, run deterministic mechanical/render checks, and return readable MCP resource links for artifacts already produced."""
+    """Build required publication artifacts, run deterministic Word/render checks, and return both final-artifact links and page-render resources for visual inspection."""
     return _result_with_artifacts(_summary(impl.build_and_mechanically_audit_delivery(task_id)))
 
 
 @mcp.tool(title="Record knowledge writeback outcome", annotations=STATE_WRITE_TOOL, structured_output=True)
 def record_knowledge_writeback(task_id: Annotated[str, Field(min_length=1)], status: Literal["PASS", "N_A"], refs: Annotated[list[str] | None, Field(description="Actual durable-store receipt references when writeback succeeded.")] = None, notes: Annotated[list[str] | None, Field(description="Reason/boundary notes; required by the runtime for N_A.")] = None) -> WritingTaskSummary:
-    """Record the explicit durable-knowledge writeback decision at FINAL_AUDIT. PASS needs real receipts; N_A needs an explicit reason; no external store is required for the runtime itself to complete."""
+    """Record the explicit durable-knowledge writeback decision at FINAL_AUDIT. PASS needs real receipts; N_A needs an explicit reason; core writing can continue without an external store."""
     return _summary(impl.record_knowledge_writeback(task_id, status, refs, notes))
 
 
 @mcp.tool(title="Submit final audit", annotations=STATE_WRITE_TOOL, structured_output=True)
-def submit_final_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Record the final independent red-team verdict. PASS requires prior artifact/gate completion plus an explicit knowledge-sync decision and returns all completed publication artifacts as MCP resource links."""
+def submit_final_audit(task_id: Annotated[str, Field(min_length=1)], decision: FinalAuditDecision) -> Annotated[CallToolResult, WritingTaskSummary]:
+    """Record the final red-team verdict. PASS requires acceptance evidence, explicit knowledge-sync status and an exact list of every rendered page actually inspected."""
     return _result_with_artifacts(_summary(impl.submit_final_audit(task_id, decision.model_dump(mode="json"))))
 
 
