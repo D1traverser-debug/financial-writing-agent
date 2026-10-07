@@ -35,6 +35,11 @@ def test_happy_path_trace_is_deterministic(tmp_path):
         p.write_bytes(b"stub")
         state.add_artifact(kind, str(p))
     state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target in trajectory unit test"])
+    required_evidence = engine._required_final_evidence_keys(state)
+    assert "DUAL.cross_version_consistency" in required_evidence
+    state.working["final_audit"] = {
+        "acceptance_evidence": [f"{key}: verified on frozen final content" for key in sorted(required_evidence)]
+    }
     state.set_gate("final_audit", GateStatus.PASS, ["red team"])
     state = ctl.advance(state)
     assert state.stage == Stage.COMPLETE
