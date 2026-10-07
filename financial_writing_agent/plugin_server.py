@@ -9,6 +9,7 @@ from mcp.types import CallToolResult, ResourceLink, TextContent
 from pydantic import Field
 
 from . import runtime_service as impl
+from .checks import sha256_file
 from .mcp_contracts import FILE_INGEST_TOOL, READ_ONLY_TOOL, STATE_WRITE_TOOL, WritingTaskList, WritingTaskSummary
 from .models import ArtifactKind, ContentMode
 from .schemas import DraftPackage, EditorialPlan, FinalAuditDecision, GateDecision, HeadlinePackage, OpenAIFileRef, ResearchPackage, StyleAuditDecision, VisualPackage
@@ -71,6 +72,11 @@ def _resource_bytes(task_id: str, kind: str, allowed: set[ArtifactKind]) -> byte
         raise ValueError("artifact path escaped configured runs storage")
     if not path.is_file():
         raise FileNotFoundError(f"artifact file missing: {kind}")
+    if not artifact.sha256:
+        raise ValueError(f"artifact has no recorded checksum: {kind}")
+    actual_sha = sha256_file(path)
+    if actual_sha != artifact.sha256:
+        raise ValueError(f"artifact checksum mismatch at resource read: {kind}")
     return path.read_bytes()
 
 
