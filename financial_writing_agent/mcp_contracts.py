@@ -87,6 +87,7 @@ class WritingTaskSummary(PublicResultModel):
     current_stage: StageText
     topic: str | None = None
     prompt_preview: str
+    effective_time_boundary: datetime
     content_mode: ContentModeText
     distribution_mode: DistributionModeText
     delivery_channel: DeliveryChannelText
