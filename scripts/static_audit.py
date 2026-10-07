@@ -16,6 +16,7 @@ MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
 RUNTIME_SERVICE = ROOT / "financial_writing_agent" / "runtime_service.py"
 LEGACY_MCP_SHIM = ROOT / "financial_writing_agent" / "mcp_server.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
+HARNESS = ROOT / "financial_writing_agent" / "harness.py"
 SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 
 EXPECTED_TOOLS = {
@@ -118,13 +119,14 @@ def _tool_names(path: Path) -> set[str]:
 
 
 def check_public_mcp_contract() -> int:
-    for required in (PUBLIC_MCP, MCP_CONTRACTS, RUNTIME_SERVICE, LEGACY_MCP_SHIM):
+    for required in (PUBLIC_MCP, MCP_CONTRACTS, RUNTIME_SERVICE, LEGACY_MCP_SHIM, HARNESS):
         if not required.is_file():
-            fail(f"required MCP/runtime file missing: {required.relative_to(ROOT)}")
+            fail(f"required MCP/runtime/harness file missing: {required.relative_to(ROOT)}")
 
     source = PUBLIC_MCP.read_text(encoding="utf-8")
     contracts = MCP_CONTRACTS.read_text(encoding="utf-8")
     runtime = RUNTIME_SERVICE.read_text(encoding="utf-8")
+    harness = HARNESS.read_text(encoding="utf-8")
     legacy = LEGACY_MCP_SHIM.read_text(encoding="utf-8")
 
     for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList", "ArtifactSummary"):
@@ -133,6 +135,10 @@ def check_public_mcp_contract() -> int:
     for marker in ("READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList"):
         if marker not in source:
             fail(f"public MCP surface does not use shared contract owner: {marker}")
+
+    for marker in ("freeze_acceptance_contract", "validate_draft_against_acceptance", "acceptance_contract"):
+        if marker not in harness or marker not in runtime:
+            fail(f"executable acceptance harness is not wired end-to-end: {marker}")
 
     tree = ast.parse(source)
     tool_nodes: dict[str, ast.FunctionDef | ast.AsyncFunctionDef] = {}
@@ -173,9 +179,14 @@ def check_public_mcp_contract() -> int:
 
     if 'meta={"openai/fileParams": ["files"]}' not in source:
         fail("submit_visual_package must declare ChatGPT fileParams")
-    for uri in ("writing-docx://{task_id}/{kind}", "writing-json://{task_id}/{kind}", "writing-text://{task_id}/{kind}"):
+    for uri in (
+        "writing-docx://{task_id}/{kind}",
+        "writing-json://{task_id}/{kind}",
+        "writing-text://{task_id}/{kind}",
+        "writing-render://{task_id}/{kind}/{page}",
+    ):
         if uri not in source:
-            fail(f"artifact resource template missing: {uri}")
+            fail(f"artifact/QA resource template missing: {uri}")
     if "ResourceLink" not in source or "structured_content=summary.model_dump" not in source:
         fail("artifact-returning tools must expose both structured output and MCP ResourceLink content")
     if "path: str" in contracts or "trace_tail" in contracts:
@@ -187,12 +198,33 @@ def check_schema_strictness() -> None:
     text = SCHEMAS.read_text(encoding="utf-8")
     if 'ConfigDict(extra="forbid", str_strip_whitespace=True)' not in text:
         fail("stage schemas must fail closed on unknown fields and whitespace-only strings")
-    for model in ("ResearchPackage", "EditorialPlan", "HeadlinePackage", "ArticlePayload", "DraftPackage", "VisualPackage", "StyleAuditDecision", "GateDecision"):
-        if f"class {model}(StrictModel)" not in text:
-            fail(f"stage schema must inherit StrictModel: {model}")
-    for marker in ("candidate structure names must be unique", "candidates must contain unique titles", "platform constraint snapshot is stale", "validate_public_https_url"):
+    for model in (
+        "ResearchPackage",
+        "EditorialPlan",
+        "HeadlinePackage",
+        "ArticlePayload",
+        "DraftPackage",
+        "VisualPackage",
+        "StyleAuditDecision",
+        "GateDecision",
+        "FinalAuditDecision",
+        "WritingAcceptanceContract",
+    ):
+        inheritance = "StrictModel" if model not in {"FinalAuditDecision"} else "GateDecision"
+        if f"class {model}({inheritance})" not in text:
+            fail(f"stage schema has unexpected owner/inheritance: {model}")
+    for marker in (
+        "candidate structure names must be unique",
+        "candidates must contain unique titles",
+        "platform constraint snapshot is stale",
+        "validate_public_https_url",
+        "verification_status",
+        "factual_anchor",
+        "opening_payoff",
+        "independent lead as the first block",
+    ):
         if marker not in text:
-            fail(f"schema ambiguity/freshness/safety guard missing: {marker}")
+            fail(f"schema ambiguity/freshness/safety/acceptance guard missing: {marker}")
 
 
 def check_activation_inventory() -> None:
@@ -253,8 +285,8 @@ def main() -> None:
     check_dead_contracts_removed()
     print(
         f"PASS: {groups} unique rule ownership keys; Skill/source/package references aligned; "
-        f"one {tools}-tool typed/annotated MCP surface; strict schemas; artifact resources; "
-        "activation, deployment-safety and packaging contracts present"
+        f"one {tools}-tool typed/annotated MCP surface; strict evidence/acceptance schemas; "
+        "artifact and render-QA resources; activation, deployment-safety and packaging contracts present"
     )
 
 
