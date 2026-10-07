@@ -36,7 +36,7 @@ This separation is a hard anti-contamination principle for cold start: **inherit
 ## Change protocol
 1. Identify the feedback class, canonical rule owner and affected runtime stages.
 2. For `SYSTEM_ERROR`, first explain why the existing rule/gate failed before writing new wording; prefer repairing the execution boundary/test over adding duplicate instructions.
-3. Modify the canonical skill reference/runtime contract. High-judgment behavior should gain decision criteria/failure conditions; low-judgment behavior should become deterministic schema/gate/check assertions where practical.
+3. Modify the canonical skill reference/runtime contract. High-judgment behavior should gain decision criteria/failure conditions. A low-judgment `STABLE_RULE` that is mechanically decidable is **not migrated merely because prose was updated**: maintenance is incomplete until the applicable schema/gate/check assertion and a recurrence test exist. If the current runtime cannot enforce it yet, label the capability as not implemented/blocked instead of advertising it as active.
 4. Search contradictory/duplicate legacy wording, old names and opposite defaults. Retire or convert stale copies into references rather than leaving both semantics live.
 5. Check whether routing/Skill loading conditions need to change. If not, do not touch them merely because another rule changed.
 6. Check whether audit needs a new **observable outcome/evidence requirement**. Audit should not re-copy the method prose.
@@ -52,7 +52,10 @@ A documentation edit is not proof that an Agent executes the behavior. Runtime t
 ## High-judgment vs low-judgment changes
 Titles, TopicDNA, structure, hooks, emphasis and prose are high-judgment domains. Improve their evaluation dimensions, evidence requirements and failure conditions rather than accumulating universal sentence templates.
 
-File identity, required outputs, stage order, StockBase permissions, Word styles, checksums, gate state and source/count reconciliation are low-judgment domains. Prefer explicit schemas, programmatic assertions and fail-closed gates over reminders in prose.
+File identity, required outputs, stage order, StockBase permissions, Word styles, checksums, gate state and source/count reconciliation are low-judgment domains. Prefer explicit schemas, programmatic assertions and fail-closed gates over reminders in prose. Priority resolves conflicts; it is not permission to skip an applicable mechanically decidable requirement.
+
+## Canonical system-document identity
+When the user asks for the writing rules, Skill, Controller, maintenance specification or another system document/link, return the current canonical connected source rather than a remembered historical attachment or similarly named file. Read back and verify the displayed title plus provider identity (`ID`/canonical URL or repository path/ref) before presenting it. A successful search result, stale file citation, screenshot/image card or an unrelated historical copy is not proof of canonical identity. If title and provider identity do not match the intended target, treat the link/file identity as failed rather than guessing.
 
 ## Error learning without false claims
 When an existing gate should have caught a defect, record enough information to reconstruct: error type, symptom, root cause, where detected, why the gate missed it, detection rule, prevention rule and affected regression. Repeated independent failures should increase test/gate strength.
@@ -66,6 +69,7 @@ A maintenance change is not complete until:
 - contradictory/duplicate old semantics are removed or clearly superseded;
 - routing references remain valid;
 - affected acceptance evidence is updated without duplicating method rules;
+- every newly applicable mechanically decidable stable rule has executable enforcement plus recurrence coverage, or is explicitly labeled not implemented;
 - regression coverage exists;
 - cold-start reasoning does not rely on the current conversation;
 - the modified files are read back and mirrors are synchronized;
