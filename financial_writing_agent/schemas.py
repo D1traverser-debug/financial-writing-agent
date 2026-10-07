@@ -19,7 +19,30 @@ class EvidenceItem(StrictModel):
     evidence_type: str = "web"
     confidence: Literal["high", "medium", "low"] = "medium"
     core_safe: bool = False
+    verification_status: Literal[
+        "UNRESOLVED",
+        "SINGLE_SOURCE_ATTRIBUTED",
+        "INDEPENDENTLY_CROSS_CHECKED",
+    ] = "UNRESOLVED"
+    source_group: str = ""
+    second_check_source: str | None = None
+    second_check_source_group: str | None = None
+    allowed_wording: str = ""
+    conflict: str = ""
     notes: str = ""
+
+    @model_validator(mode="after")
+    def verification_is_auditable(self):
+        if self.core_safe and self.verification_status == "UNRESOLVED":
+            raise ValueError("core_safe evidence cannot remain UNRESOLVED")
+        if self.verification_status == "INDEPENDENTLY_CROSS_CHECKED":
+            if not self.second_check_source:
+                raise ValueError("independent cross-check requires second_check_source")
+            if self.source_group and self.second_check_source_group and self.source_group == self.second_check_source_group:
+                raise ValueError("independent cross-check must not reuse the same source group")
+        if self.verification_status == "SINGLE_SOURCE_ATTRIBUTED" and not self.allowed_wording:
+            raise ValueError("single-source evidence requires explicit allowed_wording")
+        return self
 
 
 class CompanyFinding(StrictModel):
@@ -35,6 +58,26 @@ class CompanyFinding(StrictModel):
     short_term_role: str = ""
     positioning_signals: list[str] = Field(default_factory=list)
     fund_flow_signals: list[str] = Field(default_factory=list)
+
+
+class StockBasePendingUpdate(StrictModel):
+    stock_code: str = Field(min_length=1)
+    field_or_relation: str = Field(min_length=1)
+    old_value_if_known: str = ""
+    proposed_value: str = Field(min_length=1)
+    source: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    verified_at: str = Field(min_length=1)
+    status: Literal["PENDING_REVIEW"] = "PENDING_REVIEW"
+
+
+class ResearchFailure(StrictModel):
+    failed_action: str = Field(min_length=1)
+    failure_reason: str = Field(min_length=1)
+    retry_attempted: bool = False
+    alternative_source_or_tool: str = ""
+    impact_on_result: str = Field(min_length=1)
+    resolved: bool = False
 
 
 class MarketCognition(StrictModel):
@@ -71,7 +114,15 @@ class ResearchPackage(StrictModel):
     source_boundary: str = Field(min_length=1)
     cognition: MarketCognition
     coverage: ResearchCoverage
+    review_queue: list[StockBasePendingUpdate] = Field(default_factory=list)
+    failed_tools_or_sources: list[ResearchFailure] = Field(default_factory=list)
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def core_thesis_requires_publishable_evidence(self):
+        if not any(item.core_safe for item in self.evidence_ledger):
+            raise ValueError("research package requires at least one core_safe evidence item")
+        return self
 
 
 class TopicDNA(StrictModel):
@@ -90,25 +141,38 @@ class StructureCandidate(StrictModel):
     sections: list[str] = Field(min_length=2)
 
 
-class EditorialPlan(StrictModel):
-    topic_dna: TopicDNA
-    candidates: list[StructureCandidate] = Field(min_length=2)
+class ModeEditorialPlan(StrictModel):
+    candidates: list[StructureCandidate] = Field(min_length=2, max_length=3)
     selected_structure: StructureCandidate
-    finance_deep_emphasis: list[str] = Field(default_factory=list)
-    finance_broad_emphasis: list[str] = Field(default_factory=list)
+    emphasis: list[str] = Field(min_length=1)
     side_focus_statement: str = Field(min_length=1)
-    wechat_sticker_emphasis: list[str] = Field(default_factory=list)
+    company_selection_basis: list[str] = Field(min_length=1, max_length=2)
+    outline_fingerprint_refs: list[str] = Field(default_factory=list)
+    outline_collision_notes: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def selected_must_be_unique_candidate(self):
         names = [candidate.name for candidate in self.candidates]
         if len(names) != len(set(names)):
-            raise ValueError("candidate structure names must be unique")
+            raise ValueError("candidate structure names must be unique within each article mode")
         matches = [candidate for candidate in self.candidates if candidate.name == self.selected_structure.name]
         if len(matches) != 1:
-            raise ValueError("selected_structure must identify exactly one candidate")
+            raise ValueError("selected_structure must identify exactly one candidate in its article mode")
         if matches[0].model_dump() != self.selected_structure.model_dump():
             raise ValueError("selected_structure must exactly match the named candidate")
+        return self
+
+
+class EditorialPlan(StrictModel):
+    topic_dna: TopicDNA
+    finance_deep: ModeEditorialPlan | None = None
+    finance_broad: ModeEditorialPlan | None = None
+    wechat_sticker: ModeEditorialPlan | None = None
+
+    @model_validator(mode="after")
+    def at_least_one_mode_plan(self):
+        if not any([self.finance_deep, self.finance_broad, self.wechat_sticker]):
+            raise ValueError("editorial plan requires at least one mode-specific plan")
         return self
 
 
@@ -116,7 +180,9 @@ class HeadlineCandidate(StrictModel):
     title: str = Field(min_length=1)
     angle: str = Field(min_length=1)
     finance_relevance: str = Field(min_length=1)
+    factual_anchor: str = Field(min_length=1)
     primary_gap: str = Field(min_length=1)
+    opening_payoff: str = Field(min_length=1)
     cognitive_load: Literal["low", "medium", "high"]
 
 
@@ -155,10 +221,39 @@ class ArticlePayload(StrictModel):
     stock_names: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def risk_section_is_deterministic(self):
+    def article_structure_is_publishable(self):
         if any("风险提示" in block.text and "免责声明" in block.text for block in self.blocks):
             raise ValueError("do not embed the risk/disclaimer section in blocks; use risk_disclaimer")
+        lead_indexes = [index for index, block in enumerate(self.blocks) if block.kind == "lead"]
+        if lead_indexes != [0]:
+            raise ValueError("formal article requires exactly one independent lead as the first block")
+        if len(self.blocks) < 2 or self.blocks[1].kind != "h1":
+            raise ValueError("the first article chapter must follow the independent lead directly")
+        h1_titles = [block.text for block in self.blocks if block.kind == "h1"]
+        if not h1_titles:
+            raise ValueError("formal article requires at least one H1 section")
+        if len(h1_titles) != len(set(h1_titles)):
+            raise ValueError("formal article H1 titles must be unique")
         return self
+
+
+class ModeAcceptanceContract(StrictModel):
+    selected_title: str = Field(min_length=1)
+    selected_structure_name: str = Field(min_length=1)
+    expected_h1_count: int = Field(ge=1)
+    expected_section_functions: list[str] = Field(min_length=1)
+    lead_required: Literal[1] = 1
+    side_focus_statement: str = Field(min_length=1)
+    company_selection_basis: list[str] = Field(min_length=1, max_length=2)
+
+
+class WritingAcceptanceContract(StrictModel):
+    finance_deep: ModeAcceptanceContract | None = None
+    finance_broad: ModeAcceptanceContract | None = None
+    wechat_sticker: ModeAcceptanceContract | None = None
+    required_outputs: list[str] = Field(min_length=1)
+    delivery_channel: Literal["WORD_FILE_ONLY", "CHAT_TEXT"]
+    visuals_enabled: bool
 
 
 class PlatformConstraintSnapshot(StrictModel):
@@ -291,3 +386,8 @@ class GateDecision(StrictModel):
         if self.status == "FAIL" and not self.defects:
             raise ValueError("FAIL requires at least one defect")
         return self
+
+
+class FinalAuditDecision(GateDecision):
+    acceptance_evidence: list[str] = Field(default_factory=list)
+    reviewed_render_pages: list[str] = Field(default_factory=list)
