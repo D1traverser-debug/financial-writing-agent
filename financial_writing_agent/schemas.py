@@ -239,6 +239,9 @@ class ArticlePayload(StrictModel):
 
 class ModeAcceptanceContract(StrictModel):
     selected_title: str = Field(min_length=1)
+    headline_factual_anchor: str = Field(min_length=1)
+    headline_primary_gap: str = Field(min_length=1)
+    headline_opening_payoff: str = Field(min_length=1)
     selected_structure_name: str = Field(min_length=1)
     expected_h1_count: int = Field(ge=1)
     expected_section_functions: list[str] = Field(min_length=1)
