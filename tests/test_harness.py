@@ -31,12 +31,12 @@ def _mode(prefix: str, sections: list[str]):
     }
 
 
-def _headline(title: str):
+def _headline(title: str, anchor: str = "核心事实"):
     return {
         "title": title,
         "angle": "事实冲突",
         "finance_relevance": "利润与估值",
-        "factual_anchor": f"{title}对应的经核验公告数字",
+        "factual_anchor": anchor,
         "primary_gap": f"{title}对应的市场信息差",
         "opening_payoff": f"{title}前三句交代变化、矛盾和判断收益",
         "cognitive_load": "low",
@@ -50,7 +50,7 @@ def _risk():
     )
 
 
-def _research(prior_refs: list[str]) -> ResearchPackage:
+def _research(prior_refs: list[str], source_boundary: str = "公开来源") -> ResearchPackage:
     return ResearchPackage.model_validate(
         {
             "topic": "测试主题",
@@ -71,7 +71,7 @@ def _research(prior_refs: list[str]) -> ResearchPackage:
             "counterevidence": [],
             "unresolved_gaps": [],
             "provisional_theses": ["待验证判断"],
-            "source_boundary": "公开来源",
+            "source_boundary": source_boundary,
             "cognition": {
                 "prior_knowledge_refs": prior_refs,
                 "concept_map": ["核心概念"],
@@ -90,7 +90,7 @@ def _research(prior_refs: list[str]) -> ResearchPackage:
     )
 
 
-def _state() -> WritingState:
+def _state(headline_anchor: str = "核心事实") -> WritingState:
     state = WritingState(contract=TaskContract(prompt="双版本文章", distribution_mode=DistributionMode.DUAL))
     editorial = EditorialPlan.model_validate(
         {
@@ -109,12 +109,13 @@ def _state() -> WritingState:
     )
     headlines = HeadlinePackage.model_validate(
         {
-            "finance_deep_candidates": [_headline("深度版标题")],
-            "finance_broad_candidates": [_headline("综合版标题")],
+            "finance_deep_candidates": [_headline("深度版标题", headline_anchor)],
+            "finance_broad_candidates": [_headline("综合版标题", headline_anchor)],
             "finance_deep_selected": "深度版标题",
             "finance_broad_selected": "综合版标题",
         }
     )
+    state.working["research"] = _research([]).model_dump(mode="json")
     state.working["editorial_plan"] = editorial.model_dump(mode="json")
     state.working["headlines"] = headlines.model_dump(mode="json")
     freeze_acceptance_contract(state)
@@ -139,8 +140,46 @@ def test_knowledge_context_pass_forbids_unrecorded_prior_refs():
         )
 
     evidence = validate_research_against_knowledge_context(state, _research(["kb://recorded"]))
-    assert "retrieved_refs=1" in evidence[0]
-    assert "reused_refs=1" in evidence[0]
+    assert any("retrieved_refs=1" in item for item in evidence)
+    assert any("reused_refs=1" in item for item in evidence)
+
+
+def test_task_source_completion_requires_every_source_ref():
+    state = WritingState(
+        contract=TaskContract(
+            prompt="根据两个来源写文章",
+            source_refs=["source://one", "source://two"],
+        )
+    )
+    state.set_gate("knowledge_context", GateStatus.N_A, ["无可用知识库"])
+    research = _research([], source_boundary="[FULL] source://one")
+    with pytest.raises(ValueError, match="source_boundary must account for every TaskContract source_ref"):
+        validate_research_against_knowledge_context(state, research)
+
+
+def test_task_source_completion_accepts_full_partial_unavailable_receipts():
+    state = WritingState(
+        contract=TaskContract(
+            prompt="根据三个来源写文章",
+            source_refs=["source://one", "source://two", "source://three"],
+        )
+    )
+    state.set_gate("knowledge_context", GateStatus.N_A, ["无可用知识库"])
+    research = _research(
+        [],
+        source_boundary=(
+            "[FULL] source://one\n"
+            "[PARTIAL] source://two — 正文被截断，已用可访问部分核边界\n"
+            "[UNAVAILABLE] source://three — 原件不可访问，不能作为已读来源"
+        ),
+    )
+    evidence = validate_research_against_knowledge_context(state, research)
+    assert "task_source_refs=3; source_completion=accounted" in evidence
+
+
+def test_headline_anchor_must_match_core_safe_research_claim():
+    with pytest.raises(ValueError, match="headline factual_anchor must exactly match a core_safe"):
+        _state(headline_anchor="不存在于研究证据中的标题锚点")
 
 
 def test_dual_acceptance_contract_freezes_independent_structures_and_headline_promises():
@@ -149,7 +188,7 @@ def test_dual_acceptance_contract_freezes_independent_structures_and_headline_pr
     assert contract["finance_deep"]["expected_h1_count"] == 3
     assert contract["finance_broad"]["expected_h1_count"] == 2
     assert contract["finance_deep"]["selected_structure_name"] != contract["finance_broad"]["selected_structure_name"]
-    assert contract["finance_deep"]["headline_factual_anchor"] == "深度版标题对应的经核验公告数字"
+    assert contract["finance_deep"]["headline_factual_anchor"] == "核心事实"
     assert contract["finance_deep"]["headline_primary_gap"] == "深度版标题对应的市场信息差"
     assert "前三句" in contract["finance_deep"]["headline_opening_payoff"]
     assert state.gates["acceptance_contract"].status == GateStatus.PASS
