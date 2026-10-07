@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from collections.abc import Iterable
+from datetime import datetime
 
 from .models import ContentMode, DeliveryChannel, DistributionMode, TaskContract
 
@@ -56,18 +57,22 @@ def build_task_contract(
     visuals_enabled: bool | None = None,
     visual_profile_ref: str | None = None,
     content_mode: ContentMode | None = None,
+    effective_time_boundary: datetime | None = None,
 ) -> TaskContract:
     platforms = target_platforms or []
     delivery = infer_delivery_channel(prompt)
     visuals = infer_visuals_enabled(prompt, delivery) if visuals_enabled is None else visuals_enabled
     mode = content_mode or infer_content_mode(prompt, platforms)
-    return TaskContract(
-        prompt=prompt,
-        source_refs=source_refs or [],
-        target_platforms=platforms,
-        distribution_mode=infer_distribution_mode(platforms),
-        content_mode=mode,
-        delivery_channel=delivery,
-        visuals_enabled=visuals,
-        visual_profile_ref=visual_profile_ref,
-    )
+    kwargs = {
+        "prompt": prompt,
+        "source_refs": source_refs or [],
+        "target_platforms": platforms,
+        "distribution_mode": infer_distribution_mode(platforms),
+        "content_mode": mode,
+        "delivery_channel": delivery,
+        "visuals_enabled": visuals,
+        "visual_profile_ref": visual_profile_ref,
+    }
+    if effective_time_boundary is not None:
+        kwargs["effective_time_boundary"] = effective_time_boundary
+    return TaskContract(**kwargs)
