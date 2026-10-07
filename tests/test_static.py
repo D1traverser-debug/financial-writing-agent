@@ -33,6 +33,13 @@ def test_visual_workflow_is_explicit_and_owned():
     assert "from .plugin_server import main, mcp" in shim
 
 
+def test_mcp_entry_requires_explicit_continuation_before_task_restore():
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+    assert "Resume unfinished tasks before starting new ones." not in public_server
+    assert "Only explicit continuation intent may restore an unfinished task" in public_server
+    assert "a new task must start fresh even when unfinished tasks exist" in public_server
+
+
 def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
