@@ -89,14 +89,11 @@ Writing does not directly mutate a future stock-picking/review Agent's executabl
 ## 12. Final red-team and completion
 At FINAL_AUDIT, treat the current result as potentially wrong. Re-read the frozen acceptance contract, final draft/state, research evidence boundary, mechanical results and every required render page.
 
-Submit `FinalAuditDecision`, not a generic PASS:
-- `acceptance_evidence` must cite concrete final-content evidence for the applicable contract/semantic checks;
-- `reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required;
-- DUAL must be checked for both independent validity and cross-version factual/evidence/conclusion-boundary consistency;
-- unsupported/new material facts revise to RESEARCH rather than being silently accepted;
-- repair targets must point to the earliest correct legal stage.
+Submit `FinalAuditDecision`, not a generic PASS. `acceptance_evidence` uses exact `KEY: concrete final-content evidence` entries defined in `references/audit.md`; the runtime machine-checks the full criterion inventory before COMPLETE. In particular, each formal mode must cover selected title, independent lead, H1 structure, side focus, company-selection basis, headline anchor, opening payoff, reasoning continuity and compliance/risk; DUAL also requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key; all tasks include `GLOBAL.evidence_boundary` and `GLOBAL.required_outputs`.
 
-Only after all required gates, final artifact readback/checksums, explicit knowledge decision and final audit pass may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body.
+`reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. DUAL must be checked for both independent validity and cross-version factual/evidence/conclusion-boundary consistency. Unsupported/new material facts revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
+
+Only after the **mandatory gate inventory itself is complete**, every required gate resolves, criterion-level final evidence is complete, final artifact readback/checksums pass, knowledge has an explicit PASS/N_A decision and final audit passes may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body.
 
 When connected governance mirrors are available, copy final formal artifacts to the configured destination and update mirrors after Runtime completion. Mirror failure must be reported separately and must not rewrite a valid Runtime checkpoint.
 
