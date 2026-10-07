@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from datetime import datetime, timezone
+from datetime import datetime, timedelta, timezone
 from enum import Enum
 from pathlib import Path
 from typing import Any
@@ -75,6 +75,7 @@ class Artifact(BaseModel):
 class TaskContract(BaseModel):
     task_id: str = Field(default_factory=lambda: str(uuid4()))
     prompt: str
+    effective_time_boundary: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     source_refs: list[str] = Field(default_factory=list)
     target_platforms: list[str] = Field(default_factory=list)
     distribution_mode: DistributionMode = DistributionMode.DUAL
@@ -86,7 +87,13 @@ class TaskContract(BaseModel):
     run_constraints: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def populate_required_outputs(self):
+    def validate_contract(self):
+        boundary = self.effective_time_boundary
+        if boundary.tzinfo is None:
+            raise ValueError("effective_time_boundary must include a timezone")
+        if boundary.astimezone(timezone.utc) > datetime.now(timezone.utc) + timedelta(minutes=5):
+            raise ValueError("effective_time_boundary cannot be materially in the future")
+
         if self.required_outputs:
             return self
         if self.delivery_channel == DeliveryChannel.CHAT_TEXT:
