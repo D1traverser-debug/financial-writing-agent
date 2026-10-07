@@ -24,6 +24,6 @@
     "distribution_mechanisms", "platform_specific_packaging", "connected_platform_experience", "account_performance_samples", "wechat_sticker_mode", "fresh_platform_limits"
   ],
   "maintenance": [
-    "change_classification", "single_owner_update", "system_error_handling", "cold_start_regression", "regression_testing", "cutover_policy", "style_sample_promotion"
+    "change_classification", "single_owner_update", "system_error_handling", "cold_start_regression", "regression_testing", "cutover_policy", "style_sample_promotion", "mechanically_decidable_rule_enforcement", "canonical_system_document_identity"
   ]
 }
