@@ -7,15 +7,17 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from financial_writing_agent.engine import WritingEngine
-from financial_writing_agent.models import ArtifactKind, ContentMode, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract
+from financial_writing_agent.models import ArtifactKind, ContentMode, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract, WritingState
 from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
+from financial_writing_agent.runtime_service import _completion_checklist
 from financial_writing_agent.schemas import PlatformConstraintSnapshot, StickerPostPayload
 from financial_writing_agent.store import SQLiteStateStore
 
 ROOT = Path(__file__).resolve().parents[1]
 SCENARIOS = ROOT / "evals" / "scenarios.json"
 POLICY = ROOT / "config" / "policy.json"
+SKILL = ROOT / "skills" / "financial-writing-agent" / "SKILL.md"
 
 
 def check(condition: bool, message: str) -> None:
@@ -72,6 +74,23 @@ def eval_e07() -> list[str]:
     check(contract.required_outputs == [ArtifactKind.CHAT_TEXT], "E07 Word outputs must not be required")
     check(not contract.visuals_enabled, "E07 chat-text delivery must not force Word visuals")
     return ["CHAT_TEXT", "Word-only outputs N/A", "visuals not forced"]
+
+
+def eval_e08() -> list[str]:
+    with tempfile.TemporaryDirectory() as td:
+        engine = WritingEngine(SQLiteStateStore(Path(td) / "state.db"))
+        state = engine.start(build_task_contract(prompt="正常写一篇，不用我提醒流程", visuals_enabled=False))
+        required = engine._required_completion_gates(state)
+        expected = {
+            "runtime_initialized", "research_output", "research_audit", "editorial_plan",
+            "acceptance_contract", "title_audit", "draft_output", "style_audit",
+            "editorial_audit", "delivery_output", "mechanical_audit", "knowledge_sync", "final_audit",
+        }
+        check(expected.issubset(required), f"E08 mandatory gate inventory incomplete: {sorted(expected - required)}")
+        check(state.contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E08 normal writing must remain WORD_FILE_ONLY")
+    skill = SKILL.read_text(encoding="utf-8")
+    check("Under `WORD_FILE_ONLY`, do not paste the article body" in skill, "E08 Skill must prohibit body paste under Word-only")
+    return ["mandatory gate inventory", "acceptance contract required", "WORD_FILE_ONLY body omission instruction"]
 
 
 def eval_e11() -> list[str]:
@@ -150,12 +169,27 @@ def eval_e19() -> list[str]:
     return ["extreme phrase policy", "temporal-word safe", "independent anti-AI semantic judge"]
 
 
+def eval_e20() -> list[str]:
+    state = WritingState(contract=TaskContract(prompt="写完把所有要求检查一遍给我"), stage=Stage.COMPLETE)
+    for name in ["research_audit", "editorial_audit", "style_audit", "mechanical_audit", "final_audit"]:
+        state.set_gate(name, GateStatus.PASS, ["eval"])
+    state.set_gate("knowledge_sync", GateStatus.N_A, ["eval boundary"])
+    checklist = _completion_checklist(state)
+    required_top = {"runtime_gates", "research_evidence", "structure_style_continuity", "word_render", "compliance_risk", "visuals", "knowledge"}
+    check(required_top.issubset(checklist), f"E20 checklist missing keys: {sorted(required_top - set(checklist))}")
+    check(checklist["runtime_gates"] == "PASS", "E20 completed runtime must expose PASS")
+    skill = SKILL.read_text(encoding="utf-8")
+    check("Under `WORD_FILE_ONLY`, do not paste the article body" in skill, "E20 final checklist must not imply article-body paste")
+    return ["visible completion checklist schema", "research/style/Word/compliance/knowledge coverage", "Word-only body omission"]
+
+
 EXECUTABLE = {
     "E01": eval_e01,
     "E02": eval_e02,
     "E03": eval_e03,
     "E06": eval_e06,
     "E07": eval_e07,
+    "E08": eval_e08,
     "E11": eval_e11,
     "E12": eval_e12,
     "E13": eval_e13,
@@ -163,17 +197,19 @@ EXECUTABLE = {
     "E17": eval_e17,
     "E18": eval_e18,
     "E19": eval_e19,
+    "E20": eval_e20,
 }
 
-SPEC_ONLY = {
-    "E04": "partial retitle/resume routing requires an existing live task and is validated in targeted regression",
-    "E05": "universe breadth and why-this/why-not are semantic research assertions",
-    "E08": "full all-stage execution is trajectory/E2E coverage, not a contract-only check",
-    "E09": "experience-sample promotion is a maintenance-policy assertion",
-    "E10": "durable-rule promotion is a maintenance-policy assertion",
-    "E15": "broad/deep cognition plus connected knowledge reuse/writeback requires semantic/connector regression",
-    "E16": "creative image generation is model-side; deterministic insertion is covered by unit/mechanical tests",
-    "E20": "visible checklist is a final-delivery semantic/trajectory assertion",
+SEMANTIC_OR_LIVE = {
+    "E05": "universe breadth, material-company depth and why-this/why-not require semantic research/live-model evaluation",
+    "E15": "connected prior-knowledge recall, current re-verification and writeback receipts require connector/live regression",
+    "E16": "creative image generation is model-side; deterministic file ingest/insertion/render are covered separately, full visual behavior requires live E2E",
+}
+
+KNOWN_GAPS = {
+    "E04": "title-only mutation of an existing persisted article is not yet a dedicated public MCP workflow; do not claim deterministic support",
+    "E09": "promotion of one platform-performance sample into durable experience memory is governance/maintenance work, not yet an executable runtime action",
+    "E10": "durable user rule promotion/update is documented but not yet exposed as an executable maintenance workflow in this Writing Agent",
 }
 
 
@@ -182,7 +218,7 @@ def main() -> None:
     scenarios = payload.get("evals", [])
     ids = [row["id"] for row in scenarios]
     check(len(ids) == len(set(ids)), "scenario IDs must be unique")
-    expected = set(EXECUTABLE) | set(SPEC_ONLY)
+    expected = set(EXECUTABLE) | set(SEMANTIC_OR_LIVE) | set(KNOWN_GAPS)
     check(set(ids) == expected, f"scenario registry mismatch: file={sorted(ids)} registry={sorted(expected)}")
 
     report: list[dict[str, object]] = []
@@ -198,8 +234,10 @@ def main() -> None:
             except Exception as exc:
                 failures.append(f"{sid}: {type(exc).__name__}: {exc}")
                 report.append({"id": sid, "status": "FAIL", "error": str(exc)})
+        elif sid in SEMANTIC_OR_LIVE:
+            report.append({"id": sid, "status": "LIVE_OR_SEMANTIC_REQUIRED", "reason": SEMANTIC_OR_LIVE[sid]})
         else:
-            report.append({"id": sid, "status": "SPEC_ONLY", "reason": SPEC_ONLY[sid]})
+            report.append({"id": sid, "status": "KNOWN_GAP", "reason": KNOWN_GAPS[sid]})
 
     print(json.dumps({"results": report, "failures": failures}, ensure_ascii=False, indent=2))
     if failures:
