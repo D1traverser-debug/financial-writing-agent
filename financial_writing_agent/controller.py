@@ -1,7 +1,9 @@
 from __future__ import annotations
 
 from .engine import WorkflowError, WritingEngine
+from .harness import validate_research_against_knowledge_context
 from .models import GateStatus, Stage, WritingState
+from .schemas import ResearchPackage
 
 
 class WorkflowController:
@@ -19,6 +21,12 @@ class WorkflowController:
         if s == Stage.RESEARCH:
             self._require_satisfied(state, "knowledge_context")
             self._require_pass(state, "research_output")
+            raw_research = state.working.get("research")
+            if raw_research is not None:
+                payload = ResearchPackage.model_validate(raw_research)
+                validate_research_against_knowledge_context(state, payload)
+            elif any(event.event == "EXECUTOR_START" and event.stage == Stage.RESEARCH for event in state.trace):
+                raise WorkflowError("research executor passed research_output without a structured ResearchPackage")
             return self.engine.transition(state, Stage.RESEARCH_AUDIT, reason="knowledge recall decision and research package ready")
 
         if s == Stage.RESEARCH_AUDIT:
