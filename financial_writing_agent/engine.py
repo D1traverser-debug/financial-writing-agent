@@ -128,6 +128,16 @@ BASE_COMPLETION_GATES = {
 }
 
 
+GLOBAL_FINAL_CRITERIA = (
+    "evidence_boundary",
+    "source_completion",
+    "omission_scan",
+    "count_reconciliation",
+    "time_integrity",
+    "counterexample_scan",
+    "required_outputs",
+)
+
 FORMAL_FINAL_CRITERIA = (
     "selected_title",
     "independent_lead",
@@ -277,7 +287,7 @@ class WritingEngine:
 
     @staticmethod
     def _required_final_evidence_keys(state: WritingState) -> set[str]:
-        keys = {"GLOBAL.evidence_boundary", "GLOBAL.required_outputs"}
+        keys = {f"GLOBAL.{criterion}" for criterion in GLOBAL_FINAL_CRITERIA}
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             keys.update(f"WECHAT_STICKER_POST.{criterion}" for criterion in STICKER_FINAL_CRITERIA)
             if state.contract.visuals_enabled:
@@ -289,10 +299,19 @@ class WritingEngine:
             modes.append("FINANCE_DEEP")
         if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
             modes.append("FINANCE_BROAD")
+
+        acceptance = state.working.get("acceptance_contract") or {}
+        acceptance_key_by_mode = {
+            "FINANCE_DEEP": "finance_deep",
+            "FINANCE_BROAD": "finance_broad",
+        }
         for mode in modes:
             keys.update(f"{mode}.{criterion}" for criterion in FORMAL_FINAL_CRITERIA)
             if state.contract.visuals_enabled:
                 keys.add(f"{mode}.visual_alignment")
+            mode_contract = acceptance.get(acceptance_key_by_mode[mode]) or {}
+            for index, _ in enumerate(mode_contract.get("section_expectations") or [], start=1):
+                keys.add(f"{mode}.H1_{index}.promise_payoff")
         if state.contract.distribution_mode == DistributionMode.DUAL:
             keys.add("DUAL.cross_version_consistency")
         return keys
