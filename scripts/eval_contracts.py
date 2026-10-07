@@ -7,12 +7,13 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
-from financial_writing_agent.engine import WritingEngine
+from financial_writing_agent.engine import WorkflowError, WritingEngine
+from financial_writing_agent.harness import validate_research_against_knowledge_context
 from financial_writing_agent.models import ArtifactKind, ContentMode, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract, WritingState
 from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
 from financial_writing_agent.runtime_service import _completion_checklist
-from financial_writing_agent.schemas import PlatformConstraintSnapshot, StickerPostPayload
+from financial_writing_agent.schemas import PlatformConstraintSnapshot, ResearchPackage, SectionAcceptanceSpec, StickerPostPayload
 from financial_writing_agent.store import SQLiteStateStore, StateConflictError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -208,6 +209,157 @@ def eval_e20() -> list[str]:
     return ["visible completion checklist schema", "knowledge recall/writeback visible", "research/style/Word/compliance coverage", "Word-only body omission"]
 
 
+def _eval_research(source_boundary: str) -> ResearchPackage:
+    return ResearchPackage.model_validate(
+        {
+            "topic": "来源完成度测试",
+            "chronology": ["事件发生"],
+            "what_changed": ["口径变化"],
+            "industry_chain": ["上游→中游→下游"],
+            "transmission_chain": ["事件→需求→利润"],
+            "universe": [],
+            "evidence_ledger": [
+                {
+                    "claim": "核心事实",
+                    "source": "原始公告",
+                    "core_safe": True,
+                    "verification_status": "SINGLE_SOURCE_ATTRIBUTED",
+                    "allowed_wording": "据原始公告披露",
+                }
+            ],
+            "counterevidence": ["存在相反情形待比较"],
+            "unresolved_gaps": [],
+            "provisional_theses": ["待验证判断"],
+            "source_boundary": source_boundary,
+            "cognition": {
+                "prior_knowledge_refs": [],
+                "concept_map": ["核心概念"],
+                "industry_logic": ["产业逻辑"],
+            },
+            "coverage": {
+                "sweeps_completed": 2,
+                "coverage_status": "SATURATED",
+                "material_new_items_last_sweep": 0,
+                "concept_coverage": "核心与相邻概念已覆盖",
+                "company_coverage": "相关公司已扫描",
+                "source_diversity": "用户来源与公告",
+                "stop_reason": "第二轮无重大新增",
+            },
+        }
+    )
+
+
+def eval_e21() -> list[str]:
+    with tempfile.TemporaryDirectory() as td:
+        runtime = AgentRuntime.with_sqlite(Path(td) / "state.db", executors={})
+        old = runtime.start(TaskContract(prompt="上一篇文章"))
+        old.working["selected_title"] = "旧标题"
+        old.working["draft"] = {"body": "旧正文"}
+        old.working["next_exact_action"] = "继续旧稿"
+        old.set_gate("old_task_only", GateStatus.PASS, ["old marker"])
+        runtime.engine.store.save(old)
+
+        new = runtime.start(TaskContract(prompt="新开一篇文章"))
+        check(new.contract.task_id != old.contract.task_id, "E21 new task must get a fresh task_id")
+        check(new.stage == Stage.RESEARCH, "E21 new task must start its own trajectory")
+        check("selected_title" not in new.working and "draft" not in new.working, "E21 old article working state leaked into new task")
+        check("next_exact_action" not in new.working, "E21 old next action leaked into new task")
+        check("old_task_only" not in new.gates, "E21 old task-only gate leaked into new task")
+
+        resumed = runtime.resume(old.contract.task_id)
+        check(resumed.contract.task_id == old.contract.task_id, "E21 explicit resume must target requested task_id")
+        check(resumed.working.get("selected_title") == "旧标题", "E21 explicit resume must restore requested task state")
+    return ["fresh task_id", "no prior working/gate leakage", "explicit task-id resume only"]
+
+
+def eval_e22() -> list[str]:
+    refs = ["source://one", "source://two", "source://three"]
+    state = WritingState(contract=TaskContract(prompt="三个来源都要读", source_refs=refs))
+    state.set_gate("knowledge_context", GateStatus.N_A, ["eval has no connected knowledge store"])
+
+    incomplete = _eval_research("[FULL] source://one\n[PARTIAL] source://two")
+    try:
+        validate_research_against_knowledge_context(state, incomplete)
+    except ValueError as exc:
+        check("source_boundary" in str(exc), "E22 missing source must fail specifically at source completion")
+    else:
+        raise AssertionError("E22 silently omitted source_ref must fail")
+
+    complete = _eval_research(
+        "[FULL] source://one\n"
+        "[PARTIAL] source://two — 正文截断，边界已记录\n"
+        "[UNAVAILABLE] source://three — 原件不可访问，不能假装已读"
+    )
+    evidence = validate_research_against_knowledge_context(state, complete)
+    check("task_source_refs=3; source_completion=accounted" in evidence, "E22 all source refs must be explicitly accounted")
+    return ["silent omission rejected", "FULL/PARTIAL/UNAVAILABLE accepted", "explicit source boundary preserved"]
+
+
+def eval_e23() -> list[str]:
+    section = SectionAcceptanceSpec(
+        h1_title="产业传导",
+        directional_conclusion="需求变化正在向利润端传导",
+        reader_gap="哪些环节能真正兑现利润",
+        payoff_requirement="正文必须用订单、价格和盈利链条兑现",
+        logical_blocks=["供需变化", "盈利兑现"],
+        h3_required_h2_indexes=[1],
+    )
+    state = WritingState(
+        contract=TaskContract(
+            prompt="章节合同测试",
+            distribution_mode=DistributionMode.FINANCE_DEEP,
+            visuals_enabled=False,
+        )
+    )
+    state.working["acceptance_contract"] = {
+        "finance_deep": {"section_expectations": [section.model_dump(mode="json")]},
+        "finance_broad": None,
+    }
+    keys = WritingEngine._required_final_evidence_keys(state)
+    check("FINANCE_DEEP.H1_1.promise_payoff" in keys, "E23 per-H1 semantic payoff evidence must be mandatory")
+    check(section.logical_blocks == ["供需变化", "盈利兑现"], "E23 logical block order must remain frozen")
+    check(section.h3_required_h2_indexes == [1], "E23 required H3-bearing H2 index must remain frozen")
+    return ["section contract schema", "frozen logical hierarchy", "dynamic per-H1 final evidence key"]
+
+
+def eval_e24() -> list[str]:
+    engine = WritingEngine(SQLiteStateStore(":memory:"))
+    state = WritingState(
+        contract=TaskContract(
+            prompt="终稿逐项检查",
+            distribution_mode=DistributionMode.FINANCE_DEEP,
+            visuals_enabled=False,
+        ),
+        stage=Stage.FINAL_AUDIT,
+    )
+    required = engine._required_final_evidence_keys(state)
+    global_required = {
+        "GLOBAL.evidence_boundary",
+        "GLOBAL.source_completion",
+        "GLOBAL.omission_scan",
+        "GLOBAL.count_reconciliation",
+        "GLOBAL.time_integrity",
+        "GLOBAL.counterexample_scan",
+        "GLOBAL.required_outputs",
+    }
+    check(global_required.issubset(required), f"E24 explicit global evidence inventory incomplete: {sorted(global_required - required)}")
+
+    omitted = "GLOBAL.omission_scan"
+    state.working["final_audit"] = {
+        "acceptance_evidence": [
+            f"{key}: concrete frozen-final evidence or explicit N/A reason"
+            for key in sorted(required - {omitted})
+        ]
+    }
+    try:
+        engine._validate_final_acceptance_evidence(state)
+    except WorkflowError as exc:
+        check("GLOBAL.omission_scan" in str(exc), "E24 fail-closed error must identify omitted evidence key")
+    else:
+        raise AssertionError("E24 completion evidence validator must fail when a mandatory key is absent")
+    return ["explicit global QA keys", "N/A must still be explicit evidence", "missing key fails closed"]
+
+
 EXECUTABLE = {
     "E01": eval_e01,
     "E02": eval_e02,
@@ -223,6 +375,10 @@ EXECUTABLE = {
     "E18": eval_e18,
     "E19": eval_e19,
     "E20": eval_e20,
+    "E21": eval_e21,
+    "E22": eval_e22,
+    "E23": eval_e23,
+    "E24": eval_e24,
 }
 
 SEMANTIC_OR_LIVE = {
