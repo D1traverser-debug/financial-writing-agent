@@ -122,6 +122,8 @@ mcp = MCPServer(
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones. Start runtime state before research. "
+        "Record durable-knowledge recall as PASS or explicit N_A before research submission. "
+        "If a task is BLOCKED, repair the dependency and call resume_writing_task; never start a duplicate task merely to bypass BLOCKED. "
         "Follow the returned next_action and never skip a gate. The model owns research, writing, audits and image generation; "
         "the runtime owns state, schemas, legal transitions, acceptance contracts, Word construction and mechanical QA. "
         "When render-page resources are returned, inspect every page before submitting a PASS final audit."
@@ -172,21 +174,32 @@ def get_writing_task(task_id: Annotated[str, Field(min_length=1, description="Ex
     return _summary(impl.get_writing_task(task_id, detail=detail))
 
 
+@mcp.tool(title="Resume blocked writing task", annotations=STATE_WRITE_TOOL, structured_output=True)
+def resume_writing_task(task_id: Annotated[str, Field(min_length=1, description="Exact BLOCKED task ID to resume at its recorded original stage.")]) -> WritingTaskSummary:
+    """Resume only a BLOCKED task after its external dependency or contract defect has been repaired. The runtime chooses the recorded original stage; callers cannot skip to an arbitrary stage."""
+    return _summary(impl.resume_writing_task(task_id))
+
+
 @mcp.tool(title="List recent writing tasks", annotations=READ_ONLY_TOOL, structured_output=True)
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50, description="Maximum number of recent tasks to return.")] = 10, include_complete: Annotated[bool, Field(description="Include already completed tasks when true.")] = False) -> WritingTaskList:
     """List recent persisted writing tasks for reliable continuation. Read-only and intended to prevent starting duplicate workflows or asking the user to repeat context."""
     return WritingTaskList(tasks=[_summary(item) for item in impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)])
 
 
-@mcp.tool(title="Record retrieved knowledge context", annotations=STATE_WRITE_TOOL, structured_output=True)
-def record_knowledge_context(task_id: Annotated[str, Field(min_length=1)], refs: Annotated[list[str], Field(min_length=1, description="Real references already retrieved through durable knowledge available to the current ChatGPT workflow.")], notes: Annotated[list[str] | None, Field(description="Optional concise notes about reuse boundaries or conflicts.")] = None) -> WritingTaskSummary:
-    """Record receipts for durable knowledge that was actually retrieved during RESEARCH. This tool records runtime state only; knowledge reuse is optional when no connected source exists."""
-    return _summary(impl.record_knowledge_context(task_id, refs, notes))
+@mcp.tool(title="Record durable knowledge recall outcome", annotations=STATE_WRITE_TOOL, structured_output=True)
+def record_knowledge_context(
+    task_id: Annotated[str, Field(min_length=1)],
+    status: Literal["PASS", "N_A"],
+    refs: Annotated[list[str] | None, Field(description="Real references actually retrieved from durable prior knowledge when status=PASS.")] = None,
+    notes: Annotated[list[str] | None, Field(description="Reuse/conflict notes, or the explicit reason durable knowledge is unavailable/not applicable when status=N_A.")] = None,
+) -> WritingTaskSummary:
+    """Close the pre-research durable-knowledge recall gate. PASS requires real retrieved references; N_A requires an explicit reason. This prevents silently skipping connected prior knowledge."""
+    return _summary(impl.record_knowledge_context(task_id, status, refs, notes))
 
 
 @mcp.tool(title="Submit research package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research(task_id: Annotated[str, Field(min_length=1)], research: ResearchPackage) -> WritingTaskSummary:
-    """Validate and freeze the complete ResearchPackage at RESEARCH, including auditable evidence verification, broad/deep cognition, review-queue receipts and bounded coverage."""
+    """Validate and freeze the complete ResearchPackage at RESEARCH after the knowledge-context PASS/N_A decision, including auditable evidence verification, broad/deep cognition, review-queue receipts and bounded coverage."""
     return _summary(impl.submit_research(task_id, research.model_dump(mode="json")))
 
 
@@ -246,7 +259,7 @@ def record_knowledge_writeback(task_id: Annotated[str, Field(min_length=1)], sta
 
 @mcp.tool(title="Submit final audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_final_audit(task_id: Annotated[str, Field(min_length=1)], decision: FinalAuditDecision) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Record the final red-team verdict. PASS requires acceptance evidence, explicit knowledge-sync status and an exact list of every rendered page actually inspected."""
+    """Record the final red-team verdict. PASS requires criterion-keyed acceptance evidence, explicit knowledge-sync status and an exact list of every rendered page actually inspected."""
     return _result_with_artifacts(_summary(impl.submit_final_audit(task_id, decision.model_dump(mode="json"))))
 
 
