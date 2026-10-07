@@ -23,6 +23,7 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     state = ctl.advance(state)
     state.set_gate("draft_output", GateStatus.PASS, ["draft frozen"])
     state = ctl.advance(state)
+    state.set_gate("style_audit", GateStatus.PASS, ["style judge"])
     state.set_gate("editorial_audit", GateStatus.PASS, ["editor judge"])
     state = ctl.advance(state)
     state.set_gate("delivery_output", GateStatus.PASS, ["docx built"])
