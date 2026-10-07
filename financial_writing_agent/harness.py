@@ -74,10 +74,14 @@ def validate_draft_against_acceptance(state: WritingState, draft: DraftPackage) 
             raise ValueError(f"{label} draft missing against acceptance contract")
         if article.title != expected.selected_title:
             raise ValueError(f"{label} draft title differs from frozen selected title")
-        h1_count = sum(block.kind == "h1" for block in article.blocks)
-        if h1_count != expected.expected_h1_count:
+        actual_h1 = [block.text for block in article.blocks if block.kind == "h1"]
+        if len(actual_h1) != expected.expected_h1_count:
             raise ValueError(
-                f"{label} H1 count differs from frozen structure: actual={h1_count}, expected={expected.expected_h1_count}"
+                f"{label} H1 count differs from frozen structure: actual={len(actual_h1)}, expected={expected.expected_h1_count}"
             )
-        evidence.append(f"{label}: lead=1; h1={h1_count}; title=frozen")
+        if actual_h1 != expected.expected_section_functions:
+            raise ValueError(
+                f"{label} H1 sequence differs from frozen structure: actual={actual_h1}, expected={expected.expected_section_functions}"
+            )
+        evidence.append(f"{label}: lead=1; h1={len(actual_h1)}; title=frozen; h1_sequence=frozen")
     return evidence
