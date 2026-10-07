@@ -28,7 +28,12 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
 
     deep = None
     broad = None
-    if state.contract.content_mode != ContentMode.WECHAT_STICKER_POST:
+    sticker = None
+    if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+        if editorial.wechat_sticker is None or not headlines.wechat_sticker_selected:
+            raise ValueError("WECHAT_STICKER_POST acceptance contract requires frozen editorial plan and selected title")
+        sticker = _mode_contract(editorial.wechat_sticker, headlines.wechat_sticker_selected)
+    else:
         if state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}:
             if editorial.finance_deep is None or not headlines.finance_deep_selected:
                 raise ValueError("FINANCE_DEEP acceptance contract requires frozen editorial plan and selected title")
@@ -41,6 +46,7 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
     contract = WritingAcceptanceContract(
         finance_deep=deep,
         finance_broad=broad,
+        wechat_sticker=sticker,
         required_outputs=[kind.value for kind in state.contract.required_outputs],
         delivery_channel=state.contract.delivery_channel.value,
         visuals_enabled=state.contract.visuals_enabled,
@@ -53,16 +59,23 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
             f"required_outputs={len(contract.required_outputs)}",
             f"finance_deep={'yes' if contract.finance_deep else 'no'}",
             f"finance_broad={'yes' if contract.finance_broad else 'no'}",
+            f"wechat_sticker={'yes' if contract.wechat_sticker else 'no'}",
         ],
     )
     return contract
 
 
 def validate_draft_against_acceptance(state: WritingState, draft: DraftPackage) -> list[str]:
-    if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-        return ["sticker mode uses platform-specific draft contract"]
-
     contract = WritingAcceptanceContract.model_validate(state.working.get("acceptance_contract"))
+    if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+        expected = contract.wechat_sticker
+        article = draft.wechat_sticker_post
+        if expected is None or article is None:
+            raise ValueError("WECHAT_STICKER_POST draft missing against frozen acceptance contract")
+        if article.title != expected.selected_title:
+            raise ValueError("WECHAT_STICKER_POST draft title differs from frozen selected title")
+        return ["WECHAT_STICKER_POST: title=frozen; platform-specific body contract"]
+
     evidence: list[str] = []
     for label, expected, article in [
         ("FINANCE_DEEP", contract.finance_deep, draft.finance_deep),
