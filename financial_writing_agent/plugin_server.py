@@ -127,7 +127,9 @@ mcp = MCPServer(
     "Financial Writing Agent",
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
-        "Resume unfinished tasks before starting new ones. Start runtime state before research. "
+        "Decide explicit continuation versus a genuinely new task before using persisted task state. "
+        "Only explicit continuation intent may restore an unfinished task; a new task must start fresh even when unfinished tasks exist, while durable learning may still be reused. "
+        "Start runtime state before research. "
         "Record durable-knowledge recall as PASS or explicit N_A before research submission. "
         "If a task is BLOCKED, repair the dependency and call resume_writing_task; never start a duplicate task merely to bypass BLOCKED. "
         "Follow the returned next_action and never skip a gate. The model owns research, writing, audits and image generation; "
