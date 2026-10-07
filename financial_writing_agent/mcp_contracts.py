@@ -99,6 +99,7 @@ class WritingTaskSummary(PublicResultModel):
     visual_profile_ref: str | None = None
     gates: dict[str, GateSummary] | None = None
     artifacts: dict[str, ArtifactSummary] | None = None
+    render_pages: dict[str, list[str]] | None = None
     completion_checklist: CompletionChecklist | None = None
 
 
