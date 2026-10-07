@@ -1,8 +1,16 @@
 import pytest
 
 from financial_writing_agent.engine import WorkflowError, WritingEngine
-from financial_writing_agent.models import ArtifactKind, GateStatus, Stage, TaskContract
+from financial_writing_agent.models import ArtifactKind, DistributionMode, GateStatus, Stage, TaskContract
 from financial_writing_agent.store import SQLiteStateStore
+
+
+def _seed_completion_gates(engine: WritingEngine, state, *, knowledge=GateStatus.N_A):
+    for name in engine._required_completion_gates(state):
+        if name == "knowledge_sync":
+            state.set_gate(name, knowledge, ["knowledge boundary"])
+        else:
+            state.set_gate(name, GateStatus.PASS, [f"{name} ok"])
 
 
 def test_start_is_first_trace(tmp_path):
@@ -30,12 +38,21 @@ def test_dual_word_outputs_are_required():
     }
 
 
+def test_cannot_complete_when_mandatory_gate_is_absent(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="x"))
+    state.stage = Stage.FINAL_AUDIT
+    _seed_completion_gates(engine, state)
+    state.gates.pop("style_audit")
+    with pytest.raises(WorkflowError, match="Mandatory completion gates missing"):
+        engine.complete(state)
+
+
 def test_cannot_complete_before_knowledge_sync_decision(tmp_path):
     engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
     state = engine.start(TaskContract(prompt="x"))
     state.stage = Stage.FINAL_AUDIT
-    for name in ["research", "editorial", "mechanical", "final"]:
-        state.set_gate(name, GateStatus.PASS, ["ok"])
+    _seed_completion_gates(engine, state, knowledge=GateStatus.NOT_RUN)
     with pytest.raises(WorkflowError, match="knowledge_sync"):
         engine.complete(state)
 
@@ -44,9 +61,7 @@ def test_cannot_complete_without_required_outputs_after_knowledge_decision(tmp_p
     engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
     state = engine.start(TaskContract(prompt="x"))
     state.stage = Stage.FINAL_AUDIT
-    state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target"])
-    for name in ["research", "editorial", "mechanical", "final"]:
-        state.set_gate(name, GateStatus.PASS, ["ok"])
+    _seed_completion_gates(engine, state)
     with pytest.raises(WorkflowError, match="Missing required outputs"):
         engine.complete(state)
 
@@ -56,8 +71,7 @@ def test_completion_rechecks_artifact_files_instead_of_trusting_stale_exists_fla
     contract = TaskContract(prompt="x", required_outputs=[ArtifactKind.AUDIT_DOCX])
     state = engine.start(contract)
     state.stage = Stage.FINAL_AUDIT
-    state.set_gate("knowledge_sync", GateStatus.N_A, ["test boundary"])
-    state.set_gate("final_audit", GateStatus.PASS, ["ok"])
+    _seed_completion_gates(engine, state)
     path = tmp_path / "audit.docx"
     path.write_bytes(b"valid")
     state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
@@ -72,8 +86,7 @@ def test_completion_rechecks_artifact_checksum(tmp_path):
     contract = TaskContract(prompt="x", required_outputs=[ArtifactKind.AUDIT_DOCX])
     state = engine.start(contract)
     state.stage = Stage.FINAL_AUDIT
-    state.set_gate("knowledge_sync", GateStatus.N_A, ["test boundary"])
-    state.set_gate("final_audit", GateStatus.PASS, ["ok"])
+    _seed_completion_gates(engine, state)
     path = tmp_path / "audit.docx"
     path.write_bytes(b"original")
     state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
@@ -81,6 +94,33 @@ def test_completion_rechecks_artifact_checksum(tmp_path):
     path.write_bytes(b"tampered")
 
     with pytest.raises(WorkflowError, match="checksum mismatch"):
+        engine.complete(state)
+
+
+def test_completion_requires_every_final_acceptance_criterion(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    contract = TaskContract(
+        prompt="x",
+        distribution_mode=DistributionMode.FINANCE_DEEP,
+        required_outputs=[ArtifactKind.AUDIT_DOCX],
+    )
+    state = engine.start(contract)
+    state.stage = Stage.FINAL_AUDIT
+    _seed_completion_gates(engine, state)
+    path = tmp_path / "audit.docx"
+    path.write_bytes(b"valid")
+    state.add_artifact(ArtifactKind.AUDIT_DOCX, str(path))
+
+    required = engine._required_final_evidence_keys(state)
+    missing_key = "FINANCE_DEEP.opening_payoff"
+    assert missing_key in required
+    state.working["final_audit"] = {
+        "acceptance_evidence": [
+            f"{key}: concrete frozen-final evidence"
+            for key in sorted(required - {missing_key})
+        ]
+    }
+    with pytest.raises(WorkflowError, match="opening_payoff"):
         engine.complete(state)
 
 
@@ -92,6 +132,7 @@ def test_revision_invalidation_clears_stale_downstream_passes_and_outputs(tmp_pa
         "research_output",
         "research_audit",
         "editorial_plan",
+        "acceptance_contract",
         "title_audit",
         "draft_output",
         "style_audit",
