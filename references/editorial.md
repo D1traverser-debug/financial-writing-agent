@@ -23,21 +23,26 @@ For every applicable output mode, build a separate `ModeEditorialPlan`.
 - Do not generate one outline and merely change emphasis labels for two versions.
 - Each mode plan records its selected structure, emphasis, natural side-focus statement, one or two company-selection dimensions, and any outline-fingerprint collision evidence.
 - Candidate structures must be generated from the current TopicDNA before recent-outline fingerprints are consulted. Fingerprints are collision checks, never structure-generation inputs or a rotation schedule.
+- When a usable recent-outline history exists, compare against the most recent small set (normally up to the latest three relevant fingerprints) rather than searching old structures first and letting them seed the new outline.
 - A mode may arrive at a structurally similar outline only when the current TopicDNA genuinely justifies it; record why the collision is acceptable rather than assuming DUAL means artificial difference.
+
+A fixed “event → industry → stocks → market → next stage” skeleton is not a default. Market/fund flow, company comparison, policy, technical background, validation and “what next” are modules that may be integrated, demoted or omitted when they do not advance the current topic's causal logic.
 
 ## Information density
 No default word-count target. Preserve independent facts, key numbers, causal steps, counterexamples, why-this/why-not, market-selection mechanism, validation/falsification conditions and risk boundaries.
 
 Compress repeated explanation, textbook background, synonym restatement, examples that do not change judgment and long company lists without comparison value before cutting reasoning.
 
+Research can be exhaustive while the article is selective, but the article must not imply that a selected subset is the whole universe. Make the chosen focus legible naturally in the lead or early prose when omission of non-focus branches could otherwise mislead the reader.
+
 ## Prose and continuity
 Default to continuous report-style prose rather than fragmented notes or bullet-heavy pseudo-analysis. Lists are allowed when the content is genuinely list-like, but the article's reasoning should move through paragraphs.
 
-Sections/paragraphs must have a visible relationship: cause, consequence, contrast, chronology, narrowing, comparison, or inference. Avoid abrupt topic jumps and stitched-block feel.
+Sections/paragraphs must have a visible relationship: cause, consequence, contrast, chronology, narrowing, comparison, or inference. Avoid abrupt topic jumps and stitched-block feel. Every major cross-layer move—news/event to industry, industry to company, company to market selection—should explain what the previous layer established and why the next layer is necessary.
 
 Prefer conclusion-first openings when they reduce reader uncertainty: quickly establish what changed, why it matters and the central judgment. This is a soft editorial preference, not a mandatory identical opening formula.
 
-Formal structural hierarchy maps to `一、二、三` → `（1）（2）（3）` → `①②③`. Mechanical numbering is owned by delivery code; the writer should not use `·` as a structural hierarchy marker.
+Formal structural hierarchy maps to `一、二、三` → `（1）（2）（3）` → `①②③`. Mechanical numbering is owned by delivery code; the writer should not use `·` as a structural hierarchy marker. Use numbering to clarify real logical blocks, not to fragment continuous reasoning.
 
 ## Two article modes
 ### FINANCE_DEEP
@@ -69,7 +74,18 @@ For FINANCE_BROAD ask why a finance reader who mainly follows another sector sho
 ## Independent lead
 Every formal `ArticlePayload` contains exactly one `lead` block, and it is the first block. The first H1 follows immediately after it. A body paragraph that happens to be near the top is not an independent lead.
 
-The lead should establish immediate relevance, upgrade the contradiction and state the reading payoff without mechanically restating the headline. The opening facts must respect the same evidence boundary as title/H1 claims.
+The opening should quickly perform three jobs without sounding formulaic: establish immediate relevance, upgrade the central contradiction, and make the reading payoff clear. These may span the first three sentences in a natural way. Opening facts must respect the same evidence boundary as title/H1 claims.
+
+## H1 continuation contract
+Every H1 is more than a directory label. Before drafting a selected structure, know for each H1:
+- the directional conclusion or judgment the heading carries;
+- the real information gap, mechanism, contrast, cost, benefit or unresolved quantity that remains worth reading for;
+- where/how the section body will pay that promise off;
+- the number and relationship of its major logical sub-blocks.
+
+An H1 that only summarizes a topic, reports a number, names a category, or gives away the entire section without a continuation reason is weak. If a section contains two or more explicit parallel/progressive/screening/evidence blocks, the structure should normally expose a second-level hierarchy; when a second-level block itself contains three or more explicit evidence/condition/dimension units, a third-level hierarchy may be required. This is a semantic structure decision first and a delivery-format check second—do not create headings merely to satisfy a count.
+
+The final auditor should be able to map each H1 to its directional judgment, continuation gap and payoff location in the final prose. If that mapping cannot be made, the section design was not actually fulfilled.
 
 ## Acceptance contract
 After mode-specific structures and selected headlines are frozen, the runtime builds a `WritingAcceptanceContract` before drafting proceeds. For each formal mode it freezes at least:
@@ -81,18 +97,32 @@ After mode-specific structures and selected headlines are frozen, the runtime bu
 - company-selection basis;
 - required outputs/delivery channel and visual boundary.
 
+The semantic acceptance evidence additionally preserves the H1 continuation contract above: each H1's directional judgment, remaining information gap and actual payoff location must be recoverable from the final article even where the current serialized runtime contract does not yet model those subfields explicitly.
+
 Drafting is constrained by this contract. If later revision changes title/structure or upstream facts, the relevant contract/gates are invalidated and must be rebuilt rather than silently reusing stale PASS results.
 
 ## Company selection
 Do not prescribe a fixed number of stocks or a fixed leader/mid-cap/follower template. Before deep company writing, establish one or two topic-specific selection dimensions such as industrial position, realization stage, budget entry, customer/order exposure, market role or another relevant contradiction.
 
-The article must make the selection logic understandable. Research breadth may be much larger than the number of companies deeply written about.
+The article must make the selection logic understandable. Research breadth may be much larger than the number of companies deeply written about. Industrial authenticity, earnings benefit, sentiment leadership and liquidity role can diverge; do not collapse them into a single ranking merely because one stock is prominent.
+
+## Fact / inference / market layer
+Keep four layers legible in the prose and editing logic:
+- confirmed facts;
+- industrial/economic inference built from those facts;
+- expectations currently being traded by the market;
+- unverified rumor or hypothesis.
+
+Industry logic answers who may benefit and how profit transmits. Market logic answers whom the market is choosing, which name carries liquidity and which names are dropping out. They may corroborate one another but cannot impersonate one another. Market/fund-flow material belongs in the article only when it explains the topic.
+
+## Ending and falsification
+Do not force a universal “next stage / what to watch next / summary” ending. Close where the topic naturally closes: return to the opening contradiction, the decisive company difference, a policy/price/order/technology validation point, or a live disagreement. Preserve falsification awareness, but it need not be a dedicated section.
 
 ## Risk section
 The writer returns a separate `risk_disclaimer` field for each formal article. Do not place a risk/disclaimer H1 inside article blocks. Deterministic delivery appends the final section so it cannot be omitted or duplicated by formatting drift.
 
 ## Style
-Load `references/style.md` for anti-AI, individuality and extreme-language rules. Style must never override evidence accuracy.
+Load `references/style.md` for anti-AI, individuality, backstage/prompt-leakage and extreme-language rules. Style must never override evidence accuracy.
 
 ## Editorial judge
-Judge title/opening/structure separately from the writer. Use PASS/REVISE/FAIL with concrete evidence. Revision feedback identifies the first point where reasoning, transition, information density, reader motivation, acceptance-contract fidelity or evidence-bounded style breaks.
+Judge title/opening/structure separately from the writer. Use PASS/REVISE/FAIL with concrete evidence. Revision feedback identifies the first point where reasoning, transition, information density, reader motivation, H1 continuation promise, acceptance-contract fidelity or evidence-bounded style breaks.
