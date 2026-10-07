@@ -37,7 +37,8 @@ class WorkflowController:
         if s == Stage.TITLE:
             status = self._status(state, "title_audit")
             if status == GateStatus.PASS:
-                return self.engine.transition(state, Stage.DRAFT, reason="headline hook passed")
+                self._require_pass(state, "acceptance_contract")
+                return self.engine.transition(state, Stage.DRAFT, reason="headline hook and acceptance contract passed")
             if status == GateStatus.REVISE:
                 reason = state.gates["title_audit"].notes or "headline revision loop"
                 self.engine.invalidate_for_revision(state, Stage.TITLE, reason=reason)
