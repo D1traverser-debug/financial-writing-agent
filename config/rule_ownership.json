@@ -9,7 +9,7 @@
     "prior_knowledge_reuse", "learning_vs_task_state", "stable_vs_ephemeral_knowledge", "knowledge_conflict_handling", "knowledge_target_classification", "knowledge_writeback"
   ],
   "editorial": [
-    "topic_dna", "structure", "information_density", "headline_hook", "opening_hook", "section_hooks", "h1_continuation_contract", "dual_version_editing", "continuous_report_prose", "logical_transitions", "natural_ending", "default_language", "chinese_hierarchy", "anti_ai_style", "backstage_prompt_leakage", "extreme_language"
+    "topic_dna", "structure", "information_density", "headline_hook", "opening_hook", "section_hooks", "h1_continuation_contract", "section_acceptance_contract", "dual_version_editing", "continuous_report_prose", "logical_transitions", "natural_ending", "default_language", "chinese_hierarchy", "anti_ai_style", "backstage_prompt_leakage", "extreme_language"
   ],
   "visuals": [
     "visual_planning", "visual_density", "visual_hook_copy", "avatar_treatment", "visual_asset_recording", "word_image_placement"
@@ -18,7 +18,7 @@
     "docx_structure", "typography", "stock_bold", "bold_scan_skeleton", "risk_disclaimer", "content_metrics", "file_identity", "external_artifact_readback", "publication_ready_word", "visible_completion_checklist"
   ],
   "audit": [
-    "semantic_judge", "mechanical_checks", "final_red_team", "omission_red_team", "source_completion_audit", "time_integrity_audit", "acceptance_evidence_mapping", "system_error_detection", "audit_report", "risk_quality_audit", "visual_alignment_audit"
+    "semantic_judge", "mechanical_checks", "final_red_team", "omission_red_team", "source_completion_audit", "count_reconciliation_audit", "time_integrity_audit", "counterexample_scan_audit", "acceptance_evidence_mapping", "per_h1_promise_payoff_evidence", "system_error_detection", "audit_report", "risk_quality_audit", "visual_alignment_audit"
   ],
   "platforms": [
     "distribution_mechanisms", "platform_specific_packaging", "connected_platform_experience", "account_performance_samples", "wechat_sticker_mode", "fresh_platform_limits"
