@@ -1,6 +1,6 @@
 {
   "runtime": [
-    "stage_order", "checkpointing", "required_outputs", "delivery_channel", "retry_limits", "no_silent_degradation", "runtime_recovery_authority", "new_task_state_isolation", "revision_invalidation"
+    "stage_order", "checkpointing", "required_outputs", "delivery_channel", "retry_limits", "no_silent_degradation", "runtime_recovery_authority", "new_task_state_isolation", "revision_invalidation", "effective_time_boundary"
   ],
   "research": [
     "source_quality", "source_completion", "evidence_ledger", "full_topic_research", "omission_scan", "count_reconciliation", "time_integrity", "universe", "why_this_why_not", "negative_evidence", "fact_inference_expectation_separation", "cognition_baseline", "short_term_market_roles", "stockbase_read_only_review_queue"
