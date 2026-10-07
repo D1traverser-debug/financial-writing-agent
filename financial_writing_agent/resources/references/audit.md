@@ -14,12 +14,47 @@ For each formal mode verify with concrete final-content evidence:
 - the company-selection basis is visible in the comparison logic;
 - the headline's factual anchor is supported by the research evidence boundary;
 - the opening pays off the selected headline rather than switching questions;
-- risk/disclaimer and required output boundaries remain satisfied.
+- reasoning remains continuous through sections and cross-layer transitions;
+- risk/compliance boundaries remain satisfied.
 
 A DUAL task additionally requires both versions to stand on their own while preserving the same factual identities, numerical facts, evidence strength, central conclusion boundary and risk boundary. Difference in structure/emphasis is expected; contradictory factual strength is not.
 
+## Final acceptance-evidence key contract
+`FinalAuditDecision.acceptance_evidence` is not a free-form summary. Every item uses exactly `KEY: concrete final-content evidence`. `KEY` is machine-checked before COMPLETE.
+
+Every formal applicable mode (`FINANCE_DEEP` and/or `FINANCE_BROAD`) must provide all of:
+- `<MODE>.selected_title`
+- `<MODE>.independent_lead`
+- `<MODE>.h1_structure`
+- `<MODE>.side_focus`
+- `<MODE>.company_selection_basis`
+- `<MODE>.headline_anchor`
+- `<MODE>.opening_payoff`
+- `<MODE>.reasoning_continuity`
+- `<MODE>.compliance_risk`
+
+If visuals are enabled, also provide `<MODE>.visual_alignment`.
+
+Every formal task also provides:
+- `GLOBAL.evidence_boundary`
+- `GLOBAL.required_outputs`
+
+A DUAL task additionally provides `DUAL.cross_version_consistency`.
+
+For `WECHAT_STICKER_POST`, provide:
+- `WECHAT_STICKER_POST.platform_constraints`
+- `WECHAT_STICKER_POST.title_body_payoff`
+- `WECHAT_STICKER_POST.useful_body`
+- `WECHAT_STICKER_POST.image_copy_complement`
+- `WECHAT_STICKER_POST.compliance_risk`
+- `GLOBAL.evidence_boundary`
+- `GLOBAL.required_outputs`
+- and `WECHAT_STICKER_POST.visual_alignment` when visuals are enabled.
+
+Evidence after the colon must point to what is actually present in the frozen final content/state. A bare PASS label, rule name, or statement such as “checked” is not acceptable evidence.
+
 ## Mechanical gates
-Use deterministic code where possible for required artifacts, delivery channel, file identity/readback/checksum, Word styles/numbering, stock-name bolding, unambiguous actionable red-line phrases, risk/disclaimer presence/minimum substance, expected embedded image count and successful render output.
+Use deterministic code where possible for required artifacts, mandatory gate inventory, delivery channel, file identity/readback/checksum, Word styles/numbering, stock-name bolding, underlines/Markdown leakage/empty paragraphs, unambiguous actionable red-line phrases, risk/disclaimer presence/minimum substance, expected embedded image count and successful render output.
 
 Mechanical PASS means only that those machine-checkable assertions passed. It does not prove hook quality, causal reasoning, anti-AI quality, page appearance or factual truth.
 
@@ -46,8 +81,6 @@ Use an independent judge for:
 - topic-specific risk-warning quality;
 - visual/article semantic alignment and avatar treatment when visuals are enabled;
 - remaining uncertainty and falsification conditions.
-
-A PASS `FinalAuditDecision` must include concrete `acceptance_evidence` from the frozen final content. Generic statements such as “checked all rules” are insufficient.
 
 ## Evidence audit
 Do not trust `core_safe` labels blindly. Inspect the evidence ledger for the claims that materially support the title, lead, H1 and central conclusion.
@@ -76,10 +109,10 @@ Generate `WRITING_AUDIT_REPORT.docx` from the final state after the final semant
 - source/evidence boundary and research coverage;
 - stage-by-stage PASS/REVISE/FAIL/N/A;
 - mechanical Word checks and render results;
-- final semantic/red-team evidence and repaired defects/boundaries;
+- criterion-level final acceptance evidence and repaired defects/boundaries;
 - knowledge reuse/writeback receipts when available;
 - visual manifest identity when applicable;
-- final artifact identities/checksums.
+- final artifact identities/checksums, using public-safe file identity rather than server-local paths.
 
 A missing audit report is a completion failure under `WORD_FILE_ONLY`.
 
@@ -87,4 +120,4 @@ A missing audit report is a completion failure under `WORD_FILE_ONLY`.
 The final chat response must include a concise checklist status covering runtime/gates, research/evidence, acceptance/structure/style/continuity, Word/render, compliance/risk disclaimer, visuals if applicable, and knowledge reuse/writeback if applicable. Under `WORD_FILE_ONLY` this checklist must not paste the article body.
 
 ## Fail closed
-No artifact may be COMPLETE while an applicable Must-Pass item lacks final evidence. Changes to facts, title, independent lead, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
+No artifact may be COMPLETE while an applicable mandatory gate is absent, a Must-Pass item lacks final evidence, required output readback/checksum fails, or a required acceptance-evidence key is missing. Changes to facts, title, independent lead, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
