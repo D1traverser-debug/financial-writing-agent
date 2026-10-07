@@ -6,7 +6,7 @@ from typing import Protocol
 from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
 from .models import GateStatus, Stage, TaskContract, WritingState
-from .store import SQLiteStateStore
+from .store import SQLiteStateStore, StateConflictError
 
 
 class StageExecutor(Protocol):
@@ -96,6 +96,10 @@ class AgentRuntime:
                 if state.stage in {Stage.COMPLETE, Stage.BLOCKED}:
                     break
                 state = self.controller.advance(state)
+            except StateConflictError as exc:
+                raise RuntimeUnavailable(
+                    f"checkpoint changed concurrently for {state.contract.task_id}; reload the latest state before retrying"
+                ) from exc
             except (WorkflowError, RuntimeUnavailable) as exc:
                 return self.engine.block(state, str(exc))
             except Exception as exc:
