@@ -99,6 +99,23 @@ DELIVERY_ARTIFACTS = {
 }
 
 
+BASE_COMPLETION_GATES = {
+    "runtime_initialized",
+    "research_output",
+    "research_audit",
+    "editorial_plan",
+    "acceptance_contract",
+    "title_audit",
+    "draft_output",
+    "style_audit",
+    "editorial_audit",
+    "delivery_output",
+    "mechanical_audit",
+    "knowledge_sync",
+    "final_audit",
+}
+
+
 FORMAL_FINAL_CRITERIA = (
     "selected_title",
     "independent_lead",
@@ -210,6 +227,13 @@ class WritingEngine:
         return digest.hexdigest()
 
     @staticmethod
+    def _required_completion_gates(state: WritingState) -> set[str]:
+        required = set(BASE_COMPLETION_GATES)
+        if state.contract.visuals_enabled:
+            required.add("visual_assets")
+        return required
+
+    @staticmethod
     def _required_final_evidence_keys(state: WritingState) -> set[str]:
         keys = {"GLOBAL.evidence_boundary", "GLOBAL.required_outputs"}
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
@@ -248,13 +272,26 @@ class WritingEngine:
             raise WorkflowError(f"Final acceptance evidence missing required criterion(s): {missing}")
 
     def assert_can_complete(self, state: WritingState) -> None:
-        failed = [
+        required_gates = self._required_completion_gates(state)
+        missing_gates = sorted(required_gates - set(state.gates))
+        if missing_gates:
+            raise WorkflowError(f"Mandatory completion gates missing: {missing_gates}")
+
+        unresolved_required = [
+            name
+            for name in sorted(required_gates)
+            if state.gates[name].status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}
+        ]
+        if unresolved_required:
+            raise WorkflowError(f"Unresolved mandatory gates: {unresolved_required}")
+
+        unresolved_extra = [
             name
             for name, gate in state.gates.items()
-            if gate.status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}
+            if name not in required_gates and gate.status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}
         ]
-        if failed:
-            raise WorkflowError(f"Unresolved gates: {failed}")
+        if unresolved_extra:
+            raise WorkflowError(f"Unresolved additional gates: {unresolved_extra}")
 
         missing: list[ArtifactKind] = []
         corrupted: list[ArtifactKind] = []
@@ -280,4 +317,4 @@ class WritingEngine:
 
     def complete(self, state: WritingState) -> WritingState:
         self.assert_can_complete(state)
-        return self.transition(state, Stage.COMPLETE, reason="All applicable gates, acceptance evidence and required outputs passed")
+        return self.transition(state, Stage.COMPLETE, reason="All mandatory gates, acceptance evidence and required outputs passed")
