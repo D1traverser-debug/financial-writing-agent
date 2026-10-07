@@ -15,14 +15,16 @@ def test_agents_sdk_scripted_model_drives_structured_stage_without_network():
 
     model = ScriptedModel(
         [
-            assistant_message(
-                json.dumps(
-                    {
-                        "verdict": "PASS",
-                        "evidence": ["deterministic scripted final output"],
-                    }
+            [
+                assistant_message(
+                    json.dumps(
+                        {
+                            "verdict": "PASS",
+                            "evidence": ["deterministic scripted final output"],
+                        }
+                    )
                 )
-            )
+            ]
         ]
     )
     agent = Agent(
