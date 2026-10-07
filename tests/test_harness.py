@@ -1,8 +1,12 @@
 import pytest
 
-from financial_writing_agent.harness import freeze_acceptance_contract, validate_draft_against_acceptance
+from financial_writing_agent.harness import (
+    freeze_acceptance_contract,
+    validate_draft_against_acceptance,
+    validate_research_against_knowledge_context,
+)
 from financial_writing_agent.models import DistributionMode, GateStatus, TaskContract, WritingState
-from financial_writing_agent.schemas import DraftPackage, EditorialPlan, HeadlinePackage
+from financial_writing_agent.schemas import DraftPackage, EditorialPlan, HeadlinePackage, ResearchPackage
 
 
 def _mode(prefix: str, sections: list[str]):
@@ -32,9 +36,9 @@ def _headline(title: str):
         "title": title,
         "angle": "事实冲突",
         "finance_relevance": "利润与估值",
-        "factual_anchor": "经核验的公告数字",
-        "primary_gap": "谁真正兑现",
-        "opening_payoff": "前三句交代变化、矛盾和判断收益",
+        "factual_anchor": f"{title}对应的经核验公告数字",
+        "primary_gap": f"{title}对应的市场信息差",
+        "opening_payoff": f"{title}前三句交代变化、矛盾和判断收益",
         "cognitive_load": "low",
     }
 
@@ -43,6 +47,46 @@ def _risk():
     return (
         "本文基于公开信息进行研究，仅用于财经信息交流，不构成投资建议或收益承诺。"
         "相关政策、需求、价格、订单、竞争格局、公司业绩和市场环境均可能变化，请以最新披露为准并独立判断。"
+    )
+
+
+def _research(prior_refs: list[str]) -> ResearchPackage:
+    return ResearchPackage.model_validate(
+        {
+            "topic": "测试主题",
+            "chronology": ["事件发生"],
+            "what_changed": ["口径变化"],
+            "industry_chain": ["上游→中游→下游"],
+            "transmission_chain": ["事件→需求→利润"],
+            "universe": [],
+            "evidence_ledger": [
+                {
+                    "claim": "核心事实",
+                    "source": "原始公告",
+                    "core_safe": True,
+                    "verification_status": "SINGLE_SOURCE_ATTRIBUTED",
+                    "allowed_wording": "据公司公告披露",
+                }
+            ],
+            "counterevidence": [],
+            "unresolved_gaps": [],
+            "provisional_theses": ["待验证判断"],
+            "source_boundary": "公开来源",
+            "cognition": {
+                "prior_knowledge_refs": prior_refs,
+                "concept_map": ["核心概念"],
+                "industry_logic": ["产业逻辑"],
+            },
+            "coverage": {
+                "sweeps_completed": 2,
+                "coverage_status": "SATURATED",
+                "material_new_items_last_sweep": 0,
+                "concept_coverage": "核心与相邻概念已覆盖",
+                "company_coverage": "相关公司已扫描",
+                "source_diversity": "公告与公开资料",
+                "stop_reason": "第二轮无新增重大信息",
+            },
+        }
     )
 
 
@@ -77,12 +121,37 @@ def _state() -> WritingState:
     return state
 
 
-def test_dual_acceptance_contract_freezes_independent_structures():
+def test_knowledge_context_na_forbids_claimed_prior_refs():
+    state = WritingState(contract=TaskContract(prompt="知识测试"))
+    state.set_gate("knowledge_context", GateStatus.N_A, ["无可用知识库"])
+    with pytest.raises(ValueError, match="must be empty"):
+        validate_research_against_knowledge_context(state, _research(["kb://invented"]))
+
+
+def test_knowledge_context_pass_forbids_unrecorded_prior_refs():
+    state = WritingState(contract=TaskContract(prompt="知识测试"))
+    state.working["knowledge_context_refs"] = ["kb://recorded"]
+    state.set_gate("knowledge_context", GateStatus.PASS, ["kb://recorded"])
+    with pytest.raises(ValueError, match="not recorded"):
+        validate_research_against_knowledge_context(
+            state,
+            _research(["kb://recorded", "kb://invented"]),
+        )
+
+    evidence = validate_research_against_knowledge_context(state, _research(["kb://recorded"]))
+    assert "retrieved_refs=1" in evidence[0]
+    assert "reused_refs=1" in evidence[0]
+
+
+def test_dual_acceptance_contract_freezes_independent_structures_and_headline_promises():
     state = _state()
     contract = state.working["acceptance_contract"]
     assert contract["finance_deep"]["expected_h1_count"] == 3
     assert contract["finance_broad"]["expected_h1_count"] == 2
     assert contract["finance_deep"]["selected_structure_name"] != contract["finance_broad"]["selected_structure_name"]
+    assert contract["finance_deep"]["headline_factual_anchor"] == "深度版标题对应的经核验公告数字"
+    assert contract["finance_deep"]["headline_primary_gap"] == "深度版标题对应的市场信息差"
+    assert "前三句" in contract["finance_deep"]["headline_opening_payoff"]
     assert state.gates["acceptance_contract"].status == GateStatus.PASS
 
 
