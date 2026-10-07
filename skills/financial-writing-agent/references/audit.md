@@ -6,15 +6,17 @@ The final auditor re-evaluates the frozen final content, artifacts and current r
 ## Acceptance contract first
 Before FINAL PASS, read the frozen `WritingAcceptanceContract` and the final draft/artifact state. Audit every applicable mode against the contract rather than asking only whether the article feels acceptable.
 
+The acceptance contract freezes not only the selected title/structure but also the selected headline candidate's `headline_factual_anchor`, `headline_primary_gap` and `headline_opening_payoff`. FINAL must judge the final article against those frozen promises rather than inventing a new explanation of why the title works after the fact.
+
 For each formal mode verify with concrete final-content evidence:
 - selected title is unchanged or the contract was legitimately rebuilt;
 - exactly one independent lead exists before the first H1;
-- the first three sentences materially pay off the headline/information gap rather than spending the opening on generic background;
+- the first three sentences materially pay off the **frozen** headline information gap/opening-payoff promise rather than spending the opening on generic background;
 - H1 count and H1 sequence match the frozen selected structure;
 - side-focus statement is actually paid off in the article rather than existing only in planning metadata;
 - the company-selection basis is visible in the comparison logic;
-- the headline's factual anchor is supported by the research evidence boundary;
-- the opening pays off the selected headline rather than switching questions;
+- the **frozen** headline factual anchor is supported by the research evidence boundary and not silently substituted with a different anchor;
+- the opening pays off the frozen selected headline promise rather than switching questions;
 - bold emphasis forms a useful skim-reading information skeleton rather than decorative/random highlighting;
 - reasoning remains continuous through sections and cross-layer transitions;
 - risk/compliance boundaries remain satisfied.
@@ -36,6 +38,8 @@ Every formal applicable mode (`FINANCE_DEEP` and/or `FINANCE_BROAD`) must provid
 - `<MODE>.bold_scan_skeleton`
 - `<MODE>.reasoning_continuity`
 - `<MODE>.compliance_risk`
+
+`headline_anchor` evidence must explicitly tie the final title/opening to the frozen `headline_factual_anchor`. `opening_first_three_sentences` and `opening_payoff` evidence must explicitly compare the final opening with the frozen `headline_primary_gap` and `headline_opening_payoff`.
 
 If visuals are enabled, also provide `<MODE>.visual_alignment`.
 
@@ -67,7 +71,8 @@ Mechanical PASS means only that those machine-checkable assertions passed. It do
 ## Knowledge gates
 Durable-knowledge recall and writeback are separate explicit decisions.
 
-- `knowledge_context` must be `PASS` with real retrieved references when relevant durable knowledge was actually reused, or `N_A` with an explicit reason when no relevant/available durable source exists. It cannot remain `NOT_RUN` when RESEARCH is submitted or when the task completes.
+- `knowledge_context` must be `PASS` with real retrieved references when relevant durable knowledge was actually retrieved, or `N_A` with an explicit reason when no relevant/available durable source exists. It cannot remain `NOT_RUN` when RESEARCH is submitted or when the task completes.
+- If `knowledge_context=N_A`, `ResearchPackage.cognition.prior_knowledge_refs` must be empty. If `knowledge_context=PASS`, any `prior_knowledge_refs` claimed by ResearchPackage must be a subset of the refs actually recorded by the recall gate; the research payload cannot invent durable references.
 - `knowledge_sync` must be `PASS` with real writeback receipts or `N_A` with an explicit reason before final PASS.
 
 Do not use `N_A` merely to bypass an available, relevant connected source or writable destination.
@@ -84,7 +89,7 @@ Use an independent judge for:
 - evidence support and source boundary;
 - reasoning continuity and cross-layer transitions;
 - counterevidence and `why_this / why_not`;
-- title truthfulness, first-three-sentence payoff and opening payoff;
+- title truthfulness, frozen-anchor fidelity, first-three-sentence payoff and opening-payoff fidelity;
 - H1 continuation value and structure-topic fit;
 - bold skim-reading skeleton quality;
 - information density and company-selection logic;
@@ -111,8 +116,8 @@ If a final text introduces a material fact that is absent from the frozen resear
 Use the earliest stage that can correctly repair the defect:
 - `RESEARCH` for unsupported/new/conflicting facts or material universe omissions;
 - `EDITORIAL` for TopicDNA, structure-generation or company-selection-basis defects;
-- `TITLE` for headline/hook defects when research/editorial remain valid;
-- `DRAFT` for prose, lead, first-three-sentence payoff, bold skim skeleton, reasoning, section realization or compliance defects within a valid frozen structure;
+- `TITLE` for headline/hook/frozen-headline-promise defects when research/editorial remain valid;
+- `DRAFT` for prose, lead, first-three-sentence payoff, bold skim skeleton, reasoning, section realization or compliance defects within a valid frozen title/structure/headline promise;
 - `DELIVERY` for Word/render/artifact-only defects.
 
 A revision invalidates affected downstream PASS records and generated delivery artifacts. Never reuse stale QA because the change looked small.
@@ -120,7 +125,7 @@ A revision invalidates affected downstream PASS records and generated delivery a
 ## Audit report
 Generate `WRITING_AUDIT_REPORT.docx` from the final state after the final semantic decision. It should expose enough evidence to distinguish actual verification from a generic PASS stamp, including:
 - task/distribution/delivery contract and required outputs;
-- acceptance-contract identity and applicable mode checks;
+- acceptance-contract identity, frozen headline promises and applicable mode checks;
 - source/evidence boundary and research coverage;
 - stage-by-stage PASS/REVISE/FAIL/N/A;
 - knowledge recall and writeback decisions/receipts;
@@ -135,4 +140,4 @@ A missing audit report is a completion failure under `WORD_FILE_ONLY`.
 The final chat response must include a concise checklist status covering runtime/gates, research/evidence, acceptance/structure/style/continuity, Word/render, compliance/risk disclaimer, visuals if applicable, and knowledge recall/writeback if applicable. Under `WORD_FILE_ONLY` this checklist must not paste the article body.
 
 ## Fail closed
-No artifact may be COMPLETE while an applicable mandatory gate is absent, either knowledge decision remains `NOT_RUN`, a Must-Pass item lacks final evidence, a required output lacks a checksum, required output readback/checksum fails, or a required acceptance-evidence key is missing. Changes to facts, title, independent lead, opening, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
+No artifact may be COMPLETE while an applicable mandatory gate is absent, either knowledge decision remains `NOT_RUN`, a Must-Pass item lacks final evidence, a required output lacks a checksum, required output readback/checksum fails, or a required acceptance-evidence key is missing. Changes to facts, title, headline promise, independent lead, opening, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
