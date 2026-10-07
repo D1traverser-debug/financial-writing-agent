@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 from pathlib import Path
 
-from .models import ArtifactKind, GateStatus, Stage, TaskContract, WritingState
+from .models import ArtifactKind, ContentMode, DistributionMode, GateStatus, Stage, TaskContract, WritingState
 from .store import SQLiteStateStore
 
 
@@ -99,6 +99,27 @@ DELIVERY_ARTIFACTS = {
 }
 
 
+FORMAL_FINAL_CRITERIA = (
+    "selected_title",
+    "independent_lead",
+    "h1_structure",
+    "side_focus",
+    "company_selection_basis",
+    "headline_anchor",
+    "opening_payoff",
+    "reasoning_continuity",
+    "compliance_risk",
+)
+
+STICKER_FINAL_CRITERIA = (
+    "platform_constraints",
+    "title_body_payoff",
+    "useful_body",
+    "image_copy_complement",
+    "compliance_risk",
+)
+
+
 class WritingEngine:
     def __init__(self, store: SQLiteStateStore):
         self.store = store
@@ -188,6 +209,44 @@ class WritingEngine:
                 digest.update(chunk)
         return digest.hexdigest()
 
+    @staticmethod
+    def _required_final_evidence_keys(state: WritingState) -> set[str]:
+        keys = {"GLOBAL.evidence_boundary", "GLOBAL.required_outputs"}
+        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+            keys.update(f"WECHAT_STICKER_POST.{criterion}" for criterion in STICKER_FINAL_CRITERIA)
+            if state.contract.visuals_enabled:
+                keys.add("WECHAT_STICKER_POST.visual_alignment")
+            return keys
+
+        modes: list[str] = []
+        if state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}:
+            modes.append("FINANCE_DEEP")
+        if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
+            modes.append("FINANCE_BROAD")
+        for mode in modes:
+            keys.update(f"{mode}.{criterion}" for criterion in FORMAL_FINAL_CRITERIA)
+            if state.contract.visuals_enabled:
+                keys.add(f"{mode}.visual_alignment")
+        if state.contract.distribution_mode == DistributionMode.DUAL:
+            keys.add("DUAL.cross_version_consistency")
+        return keys
+
+    @classmethod
+    def _validate_final_acceptance_evidence(cls, state: WritingState) -> None:
+        final_audit = state.working.get("final_audit") or {}
+        entries = final_audit.get("acceptance_evidence") or []
+        provided: dict[str, str] = {}
+        for entry in entries:
+            if not isinstance(entry, str) or ":" not in entry:
+                continue
+            key, evidence = entry.split(":", 1)
+            if key.strip() and evidence.strip():
+                provided[key.strip()] = evidence.strip()
+        required = cls._required_final_evidence_keys(state)
+        missing = sorted(required - set(provided))
+        if missing:
+            raise WorkflowError(f"Final acceptance evidence missing required criterion(s): {missing}")
+
     def assert_can_complete(self, state: WritingState) -> None:
         failed = [
             name
@@ -215,9 +274,10 @@ class WritingEngine:
             raise WorkflowError(f"Missing required outputs after readback: {missing}")
         if corrupted:
             raise WorkflowError(f"Required output checksum mismatch: {corrupted}")
+        self._validate_final_acceptance_evidence(state)
         if state.stage != Stage.FINAL_AUDIT:
             raise WorkflowError("Completion is only legal from FINAL_AUDIT")
 
     def complete(self, state: WritingState) -> WritingState:
         self.assert_can_complete(state)
-        return self.transition(state, Stage.COMPLETE, reason="All applicable gates and required outputs passed")
+        return self.transition(state, Stage.COMPLETE, reason="All applicable gates, acceptance evidence and required outputs passed")
