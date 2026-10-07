@@ -44,6 +44,8 @@ def test_delivery_builds_dual_word_and_appends_risk_deterministically(tmp_path):
     state.working["draft"] = _draft()
     state = DeliveryExecutor(root=tmp_path).execute(state)
     assert state.gates["delivery_output"].status == GateStatus.PASS
+    assert state.gates["delivery_output"].evidence == ["FINANCE_DEEP.docx", "FINANCE_BROAD.docx"]
+    assert all(str(tmp_path) not in item for item in state.gates["delivery_output"].evidence)
     assert Path(state.artifacts[ArtifactKind.FINANCE_DEEP_DOCX].path).exists()
     assert Path(state.artifacts[ArtifactKind.FINANCE_BROAD_DOCX].path).exists()
 
@@ -53,6 +55,7 @@ def test_chat_delivery_makes_mechanical_audit_na(tmp_path):
     state = WritingState(contract=c)
     state.working["draft"] = _draft()
     state = DeliveryExecutor(root=tmp_path).execute(state)
+    assert state.gates["delivery_output"].evidence == ["CHAT_TEXT.txt"]
     state = MechanicalAuditExecutor(require_render=False).execute(state)
     assert state.gates["mechanical_audit"].status == GateStatus.N_A
 
