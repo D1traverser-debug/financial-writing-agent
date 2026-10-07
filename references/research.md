@@ -70,7 +70,9 @@ All verifiable facts in the final article must be supported. The following deser
 - major technology/person/event claims such as first/only/breakthrough/success/commercialization;
 - disputed claims and facts that materially change `why_this / why_not`.
 
-For mutable facts—orders, capacity, customers, executive roles, cooperation progress, policy status and similar items—refresh the latest effective disclosure for each article rather than inheriting an old cache as current. Price, market cap, daily move, float, market pools and short-term market roles must carry a comparable trading date/time boundary. On a non-trading day, using the latest trading day is acceptable only when it is described as such rather than presented as same-day trading feedback.
+`TaskContract.effective_time_boundary` is the single upper cutoff for what information the task is allowed to treat as known. The default is the task-creation time; an explicitly supplied historical cutoff may be earlier. Current-source refresh means “latest information effective on or before that boundary”, not “latest information available today regardless of the task cutoff”. No later disclosure, later market move or later platform state may be used to explain an earlier frozen decision boundary.
+
+For mutable facts—orders, capacity, customers, executive roles, cooperation progress, policy status and similar items—refresh the latest effective disclosure **on or before `effective_time_boundary`** for each article rather than inheriting an old cache as current. Price, market cap, daily move, float, market pools and short-term market roles must carry a comparable trading date/time boundary. On a non-trading day, using the latest trading day is acceptable only when it is described as such rather than presented as same-day trading feedback.
 
 ## StockBase and review queue
 Persistent knowledge is a prior, not a verdict. For every reused knowledge item record its reference and recency; identify conflicts with new evidence. Never allow an old stock/concept label to override current business facts or current market structure.
@@ -97,7 +99,7 @@ RESEARCH passes only when:
 - omission/count checks do not contain an unexplained material mismatch;
 - important counterevidence is represented;
 - prior-knowledge conflicts are bounded;
-- mutable facts and market-state claims have an explicit current/comparable time boundary;
+- mutable facts and market-state claims respect the frozen `effective_time_boundary` and carry a comparable explicit time boundary;
 - unresolved gaps are explicit;
 - `ResearchCoverage` explains why breadth is sufficient to proceed;
 - at least one publishable `core_safe` evidence item exists;
