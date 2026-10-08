@@ -37,6 +37,21 @@ Coverage is omission-oriented, not only a review of what was already found. Ask 
 - Separate industrial beneficiary, earnings beneficiary, sentiment leader, liquidity carrier and other market roles instead of assuming they coincide.
 - Keep confirmed fact, evidence-bounded industrial inference, market-traded expectation and unverified rumor distinct; one layer must not silently be rewritten as another.
 
+## Recommendation-oriented stock research depth
+When the requested article recommends, compares, ranks or materially selects A-share stocks, the research obligation is **broader than the final written stock list**. Do not start from a few familiar names and then rationalize them.
+
+Before selecting the article's final companies:
+- build the material concept/company universe first, including meaningful alternatives and adjacent/competing concept mappings;
+- identify one or two topic-specific comparison dimensions that actually decide the current question rather than using a fixed leader/mid-cap/follower template;
+- research every material candidate deeply enough to support a relative judgment, not merely a concept-membership label;
+- verify, when material, actual business/industry-chain position, customer/order exposure, revenue/profit realization, capacity/price sensitivity, business-stage differences and any other transmission variable that can change the ranking;
+- record positive evidence, negative/counterevidence, `why_this`, `why_not`, and the reason a company should rank above/below meaningful alternatives on the chosen dimensions;
+- distinguish industrial beneficiary, earnings beneficiary, sentiment leader, liquidity carrier,补涨/卡位/arbitrage roles and other short-term market roles instead of treating them as interchangeable;
+- when short-term structure matters, timestamp the relevant role/身位/market signal and keep it inside the declared market-data capability boundary;
+- preserve the current evidence-bounded company/stock judgment: what is confirmed, what remains expected, what is narrative-only, and what specific unresolved fact prevents a firmer conclusion.
+
+A final article may omit low-value names, but omission is editorial compression **after** research. The research package must be sufficient to explain why the selected stocks were selected and why material alternatives were not. FINANCE_DEEP should be able to reconstruct that comparison; FINANCE_BROAD may later compress it but must not invent a different ranking.
+
 ## Source completion and source hierarchy
 Task-provided sources are obligations, not merely hints. Every user-supplied link/PDF/report/attachment that is material to the task must be accounted for before research can honestly be called complete. A search snippet, abstract, generated summary, truncated page, table of contents or tool-success response is not equivalent to reading the relevant source content.
 
@@ -103,6 +118,7 @@ RESEARCH passes only when:
 - the main thesis has an evidence chain;
 - material task-provided sources are accounted for, including partial/unavailable boundaries;
 - the relevant company universe and concept/industry context have been considered;
+- for recommendation-oriented/stock-comparison writing, material company research is deep enough to support explicit relative/current judgments rather than only concept labels;
 - omission/count checks do not contain an unexplained material mismatch;
 - important counterevidence is represented;
 - prior-knowledge conflicts are bounded;
