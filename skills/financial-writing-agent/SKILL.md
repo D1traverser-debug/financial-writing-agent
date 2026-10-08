@@ -27,7 +27,7 @@ A revision is not a cosmetic side path. Use the earliest correct revision target
 ## 3. Defaults
 Unless the current user explicitly overrides a soft preference:
 - unspecified formal-article platform → `DUAL`;
-- `DUAL` = one broad/deep research base + independently edited `FINANCE_DEEP` and `FINANCE_BROAD`;
+- `DUAL` = one exhaustive research base → completed `FINANCE_DEEP` analytical mother version → derived/compressed `FINANCE_BROAD` distribution version; do **not** independently invent two analyses;
 - formal language → Simplified Chinese financial prose;
 - delivery → `WORD_FILE_ONLY`;
 - explicit direct-chat/plain-text only → `CHAT_TEXT`;
@@ -59,6 +59,8 @@ Do not mark `N_A` merely to skip a source that is actually available and relevan
 
 Research must know materially more than the article says: catalyst/timeline, concept graph, industry/transmission chain, relevant A-share universe, fundamentals, `why_this / why_not`, market-selection logic and relevant short-term roles/signals. `ResearchPackage.coverage` must state repeated-sweep coverage and an explicit stop reason so “全面” is bounded and auditable rather than infinite or hand-wavy.
 
+For recommendation-oriented or stock-comparison articles, **selection comes after research**. Do not research only the final familiar names. Build the relevant universe first, then deeply verify every material company that may affect the ranking/selection: real business exposure, industry-chain position, business/earnings realization stage, customers/orders/revenue/profit/capacity/price where material, positive and negative evidence, `why_this / why_not`, industrial-beneficiary role, sentiment/market role, liquidity role and current short-term身位/structure when supported by the declared market-data capability. The final written subset may be selective; the research basis must not be shallow.
+
 User-supplied links/PDFs/reports/attachments are source obligations, not decorative inputs. Account for each material source as actually read, partially read/truncated, duplicative of another original, or unavailable with a fallback/impact boundary. Tool success, snippets and summaries do not equal source completion.
 
 Run omission/count/time checks as part of research judgment: ask what should exist but is missing; reconcile trustworthy source/universe counts where applicable; refresh mutable company/policy/order/customer/capacity facts; timestamp market-state claims; and never use later information as if it were known after `TaskContract.effective_time_boundary`.
@@ -69,20 +71,48 @@ Use the evidence ledger as an executable boundary, not decorative notes. Core ti
 
 A temporary same-path research failure may be retried at most once when there is a reason to believe the failure is transient. Quota/permission exhaustion is not a reason for blind retry. Consolidate same-path failure history into one `ResearchFailure` receipt and switch to an independent reliable fallback or keep the evidence boundary explicit.
 
-## 6. Editorial, DUAL separation and acceptance contract
+## 6. Editorial, hook system, DUAL derivation and acceptance contract
 Use topic-specific structure, continuous report prose and real paragraph/section transitions. Formal hierarchy is `一、二、三 → （1）（2）（3） → ①②③`; `·` is not a structural level marker. Conclusion-first is a soft preference, not a fixed opening template.
 
-For every applicable formal mode create its own `ModeEditorialPlan`. In DUAL, `FINANCE_DEEP` and `FINANCE_BROAD` each generate 2–3 candidate structures and select independently after the shared TopicDNA is known. Do not reuse one selected structure with two emphasis lists merely to satisfy DUAL.
+### DUAL is deep-first, not parallel
+For DUAL, `FINANCE_DEEP` is the analytical mother version. Solve it first: complete the causal chain, company comparison, `why_this / why_not`, industry realization stage, market-selection logic, current stock judgments, counterevidence and risk boundary. There is no default short length target; preserve useful reasoning and use roughly **10,000 Chinese characters as an upper guardrail rather than a target**.
 
+Only after that analysis is solved may `FINANCE_BROAD` be derived by controlled compression/repackaging. The broad version may change title, lead, section order, density and explanatory burden to improve click-through and continuation for a wider finance audience, but it must not invent new facts, upgrade evidence strength, reverse company/stock ranking, change the decisive causal conclusion or weaken the risk boundary. It should be materially lower-friction and more acquisition-oriented than the deep mother version while preserving at least one complete core causal chain.
+
+A FINANCE_BROAD-only task may still be written directly from TopicDNA/research because no deep output exists in that task. The deep-first derivation rule applies specifically when DUAL requires both versions.
+
+### Hook engine
+Treat hooks as a linked system, not a title-only trick:
+1. headline hook earns the click truthfully;
+2. first-screen/opening hook proves the click was worth it within the first 1–3 sentences;
+3. every material H1 preserves a real continuation gap and pays it off;
+4. when stocks are material, company/stock comparison can itself be the hook by resolving `why_this / why_not`, realization-stage or 身位 divergence.
+
+Before generating titles, identify target reader, why the topic matters now, primary contradiction/consequence/anti-expectation, default expectation, strongest verified anchor, concrete stake, one primary information gap, cognitive-load risk and the exact opening payoff.
+
+Generate 8–12 candidates from **genuinely different reasons to click**, not superficial paraphrases. When evidence permits, candidate angles may include contradiction/anti-expectation, consequence/stakes, verified number/scale, company divergence, market selection/身位, timing/policy inflection, causal “why”, result-first framing and finance-wide relevance. Do not force any hook mechanism that the evidence does not support.
+
+Every headline candidate must stay inside the evidence boundary, keep the topic identifiable, preserve a real information gap and have an opening payoff. Reject generic “重磅/机会来了/风口来了/谁将受益” packaging without a specific verified tension, emotional certainty stronger than evidence, fake mystery boxes, complete-answer dumps and multiple candidates that are really the same angle with different wording.
+
+For FINANCE_DEEP prioritize specificity + analytical tension + selection value. For FINANCE_BROAD prioritize cross-sector relevance + low entry cost + curiosity + concrete stakes, but derive those hooks from conclusions already established by the deep mother version.
+
+### H1 and acceptance
 Every H1 must function as an advancing judgment, not a directory label. The final article should make recoverable for each material H1: its directional conclusion, the remaining information gap/mechanism/contrast worth reading for, and where the body pays that promise off. Use H2/H3 only when real logical sub-blocks require them; do not add hierarchy for decoration or hide obvious multi-block logic in a wall of text.
 
-Every headline candidate carries a verified factual anchor, a real information gap and an opening-payoff design. After selected titles and mode structures are submitted, the runtime freezes a `WritingAcceptanceContract`. Do not enter drafting unless the returned state shows both `title_audit=PASS` and `acceptance_contract=PASS`.
+After applicable selected titles and structures are ready, the runtime freezes a `WritingAcceptanceContract`. Do not draft outside the legal frozen contract. Formal draft payloads start with exactly one independent `lead`, immediately followed by the first H1. If title/structure/section promises need changing, revise through the legal stage rather than altering the draft behind the contract.
 
-Formal draft payloads must start with exactly one independent `lead`, immediately followed by the first H1. Draft title and H1 sequence must remain faithful to the frozen acceptance contract. If the title or structure needs changing, revise through the legal stage instead of altering the draft behind the contract.
+### Stock/company judgment must be current and explicit
+When evidence is sufficient, do **not** replace a stock/company judgment with an observation checklist. State what is already confirmed, what remains only expected, where the company sits in the industrial realization chain, its current market role/身位 when supported, why it ranks stronger/weaker/ahead/behind meaningful alternatives, and the decisive limitation preventing a higher ranking when relevant.
+
+Avoid empty endings such as “接下来先看A再看B”, “后续继续观察”, “能否走出来还要看市场”, “值得关注”, “有待验证” or equivalent phrases when the available evidence already supports a present-tense conclusion. Conditions/falsification points may follow the judgment; they must not substitute for it.
+
+When evidence genuinely cannot support a firmer conclusion, say exactly **what is unknown, why it is unknown, what concrete fact/data would resolve it and how the possible outcomes would change the judgment**. Do not manufacture certainty, but do not use vague hedging to avoid the best evidence-bounded conclusion.
+
+This is analytical clarity, not a license for actionable trading instructions. Do not turn it into buy/sell imperatives, position size, entry timing, target price, stop-loss or guaranteed-return language.
 
 Keep confirmed fact, industrial/economic inference, market-traded expectation and unverified rumor/hypothesis distinct in the prose. Industry benefit and market selection may corroborate one another but must not be presented as the same claim.
 
-At `EDITORIAL_AUDIT`, run the independent style judge first and call `submit_style_audit`. Its rubric makes anti-AI output explicit. General editorial audit cannot PASS until style audit passes. Remove unsupported extreme/superlative rhetoric without mechanically banning factual temporal words such as “最近/最后”. Published prose must not leak user prompts, hidden selection instructions, gate/tool names or backstage workflow language.
+At `EDITORIAL_AUDIT`, run the independent style judge first and call `submit_style_audit`. General editorial audit cannot PASS until style audit passes. Remove unsupported extreme/superlative rhetoric, prompt leakage, template fingerprints and empty hedge language without mechanically banning genuine uncertainty.
 
 ## 7. Risk/compliance
 Every formal public-finance payload carries `risk_disclaimer` as a separate required field. Delivery appends the risk/disclaimer section deterministically so the writer cannot omit or duplicate it through formatting drift. Keep it concise but materially complete and topic-specific. A disclaimer never cures actionable buy/sell guidance.
@@ -120,7 +150,7 @@ At FINAL_AUDIT, treat the current result as potentially wrong. Re-read the froze
 
 Submit `FinalAuditDecision`, not a generic PASS. `acceptance_evidence` uses exact `KEY: concrete final-content evidence` entries defined in `references/audit.md`; the runtime machine-checks the criterion inventory it currently models before COMPLETE.
 
-The final evidence must prove, not merely assert: source/evidence boundary and material supplied-source completion; omission/count/time/market-data boundaries where applicable; title/opening/H1 payoff; side focus/company-selection basis; bold skim skeleton; causal continuity; fact/inference/market-expectation separation; anti-AI and prompt-leakage cleanliness; compliance/risk; DUAL consistency; required artifact identity/readback; and every inspected render page.
+The final evidence must prove, not merely assert: source/evidence boundary and material supplied-source completion; omission/count/time/market-data boundaries where applicable; title/opening/H1 payoff and hook fidelity; side focus/company-selection basis; stock/company judgment specificity; bold skim skeleton; causal continuity; fact/inference/market-expectation separation; anti-AI and prompt-leakage cleanliness; compliance/risk; DUAL mother-to-derivative consistency; required artifact identity/readback; and every inspected render page.
 
 For the current machine-checked formal keys, each applicable mode includes:
 - `selected_title`;
@@ -135,9 +165,9 @@ For the current machine-checked formal keys, each applicable mode includes:
 - `reasoning_continuity`;
 - `compliance_risk`.
 
-DUAL additionally requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key. All tasks require the full global evidence set from `references/audit.md`, including `GLOBAL.evidence_boundary`, `GLOBAL.source_completion`, `GLOBAL.omission_scan`, `GLOBAL.count_reconciliation`, `GLOBAL.time_integrity`, `GLOBAL.market_data_boundary`, `GLOBAL.counterexample_scan` and `GLOBAL.required_outputs`. Use those existing evidence keys to carry the richer checks rather than inventing a competing checklist.
+DUAL additionally requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key. During the SOP/runtime-hardening phase, DUAL consistency must be strengthened from generic consistency into explicit deep-master → broad-derivation fidelity rather than treated as two independent valid articles. All tasks require the full global evidence set from `references/audit.md`, including `GLOBAL.evidence_boundary`, `GLOBAL.source_completion`, `GLOBAL.omission_scan`, `GLOBAL.count_reconciliation`, `GLOBAL.time_integrity`, `GLOBAL.market_data_boundary`, `GLOBAL.counterexample_scan` and `GLOBAL.required_outputs`.
 
-`reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. DUAL must be checked for both independent validity and cross-version factual/evidence/conclusion-boundary consistency. Unsupported/new material facts, silently incomplete supplied sources, time-contaminated claims or market-data capability overreach revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
+`reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. Unsupported/new material facts, silently incomplete supplied sources, time-contaminated claims or market-data capability overreach revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
 
 Only after the **mandatory gate inventory itself is complete**, both knowledge decisions (`knowledge_context` and `knowledge_sync`) resolve to PASS/N_A, every other required gate resolves, criterion-level final evidence is complete, every required artifact has a recorded checksum and passes final readback/checksum verification, and final audit passes may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body. Under explicit `WORD_AND_CHAT`, return both the requested chat-body artifact/content path and the audited Word/audit artifacts.
 
