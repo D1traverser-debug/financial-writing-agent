@@ -54,6 +54,18 @@ def test_policy_locks_completion_oriented_broad_and_compact_risk_boundary():
     ).read_bytes()
 
 
+def test_cold_start_skill_exposes_current_density_and_layout_defaults():
+    skill = (ROOT / "skills" / "financial-writing-agent" / "SKILL.md").read_text(encoding="utf-8")
+    assert "shortest complete expression" in skill
+    assert "900–1500 Chinese characters" in skill
+    assert "default hard cap **1800**" in skill
+    assert "Use it proactively when real logic exists" in skill
+    assert "left-aligned" in skill
+    assert "minimum sufficient disclosure" in skill
+    assert "No generic finance filler" in skill
+    assert "completion/end reach" in skill
+
+
 def test_word_title_is_left_aligned_and_hierarchy_is_preserved(tmp_path):
     policy = _policy()
     article = _article("公司与股票结论必须落到实际证据。")
