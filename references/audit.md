@@ -38,12 +38,15 @@ Every task must provide the following explicit global keys; do not collapse them
 - `GLOBAL.omission_scan`
 - `GLOBAL.count_reconciliation`
 - `GLOBAL.time_integrity`
+- `GLOBAL.market_data_boundary`
 - `GLOBAL.counterexample_scan`
 - `GLOBAL.required_outputs`
 
 `GLOBAL.count_reconciliation` is still mandatory as an explicit decision. When there is no material enumerable inventory to reconcile, its evidence must say why it is genuinely N/A rather than silently omitting the check.
 
 `GLOBAL.time_integrity` must quote the persisted task's exact `TaskContract.effective_time_boundary` (including timezone) and explain how mutable facts, market data and policy/event status were bounded to information effective on or before that cutoff. Generic phrases such as “checked freshness”, “used latest data” or “time boundary OK” do not satisfy this evidence key. For a historical cutoff, later facts must be explicitly excluded even when they are easier to retrieve today.
+
+`GLOBAL.market_data_boundary` must identify the frozen `ResearchPackage.market_data_boundary`: its `as_of`, `data_level`, capability receipts and whether order-book/tick evidence was actually available. If the article contains microstructure language such as 封单/order-book queues, 逐笔/tick behavior or 抢筹 inference, the evidence must show that the required Level-2 capability existed. If it did not, FINAL must show that those claims were removed/downgraded rather than treating ordinary quotes as Level-2 evidence.
 
 Every formal applicable mode (`FINANCE_DEEP` and/or `FINANCE_BROAD`) must provide all of:
 - `<MODE>.selected_title`
@@ -75,6 +78,7 @@ Use the existing keys as evidence containers rather than inventing a second chec
 - `GLOBAL.omission_scan` states what should have been present by rule/topic/universe but was specifically checked for absence.
 - `GLOBAL.count_reconciliation` reconciles material enumerable inventories—sources, company universe, selected companies, H1/required outputs/knowledge items where relevant—or explicitly justifies N/A.
 - `GLOBAL.time_integrity` quotes the exact frozen `effective_time_boundary`, identifies the effective dates/times used for mutable evidence, and proves no post-cutoff information contaminated the article.
+- `GLOBAL.market_data_boundary` names the actual market-data level/capabilities and demonstrates that final market/microstructure language stays within them.
 - `GLOBAL.counterexample_scan` points to counterevidence, excluded peers, falsification conditions or other evidence that could have overturned the main thesis.
 - `GLOBAL.required_outputs` covers required artifact identity/checksum/readback plus the audit report itself; when a connected external copy is claimed as saved/uploaded, external readback/metadata evidence is required separately from runtime artifact existence.
 
@@ -108,6 +112,8 @@ Research PASS is not established merely because the final article has citations.
 - counterevidence/negative evidence was actively represented;
 - mutable company/policy/order/customer/capacity facts were refreshed to the latest state effective on or before the persisted `TaskContract.effective_time_boundary`;
 - market-price/market-cap/float/fund-flow/role claims use a stated comparable trading date/time at or before that cutoff and do not use later information to explain an earlier decision boundary;
+- order-book/tick/microstructure claims stay within the declared `MarketDataBoundary`; standard quote access is not proof of Level-2 capability;
+- repeated failed-path receipts do not conceal more than one same-path retry, and quota/permission failures do not trigger blind retry loops;
 - every verifiable fact that survived into the final article is supported, with stronger checks for title/lead/H1/bold/core-conclusion claims.
 
 A tool reporting success, a search result existing, or a source being listed in notes does not prove its relevant content was read or that the claim was verified.
@@ -132,7 +138,7 @@ Runtime PASS requires the reviewed-page set to exactly equal the expected render
 ## Semantic gates
 Use an independent judge for:
 - evidence support, material source completion and source boundary;
-- omission scan, material inventory reconciliation and time integrity;
+- omission scan, material inventory reconciliation, time integrity and market-data capability boundary;
 - reasoning continuity and cross-layer transitions;
 - counterevidence and `why_this / why_not`;
 - title truthfulness, frozen-anchor fidelity, first-three-sentence payoff and opening-payoff fidelity;
@@ -162,20 +168,20 @@ If a final text introduces a material fact that is absent from the frozen resear
 
 ## Revision targeting and invalidation
 Use the earliest stage that can correctly repair the defect:
-- `RESEARCH` for unsupported/new/conflicting facts, material source-completion defects, stale/time contamination or material universe omissions;
+- `RESEARCH` for unsupported/new/conflicting facts, material source-completion defects, stale/time contamination, market-data capability overreach or material universe omissions;
 - `EDITORIAL` for TopicDNA, structure-generation, section-acceptance design, H1 continuation design or company-selection-basis defects;
 - `TITLE` for headline/hook/frozen-headline-promise defects when research/editorial remain valid;
 - `DRAFT` for prose, lead, first-three-sentence payoff, prompt leakage, bold skim skeleton, reasoning, section realization or compliance defects within a valid frozen title/structure/section contract;
 - `DELIVERY` for Word/render/artifact-only defects.
 
-A revision invalidates affected downstream PASS records and generated delivery artifacts. Never reuse stale QA because the change looked small.
+A revision invalidates affected downstream PASS records and generated delivery artifacts. Never reuse stale QA because the change looked small. Stage-specific revision budgets frozen in `TaskContract.run_constraints` are fail-closed limits against infinite revise loops; exhausting a configured budget blocks the task rather than silently starting another round or bypassing the defect.
 
 ## Audit report
 Generate `WRITING_AUDIT_REPORT.docx` from the final state after the final semantic decision. It should expose enough evidence to distinguish actual verification from a generic PASS stamp, including:
 - task/distribution/delivery contract, exact `effective_time_boundary` and required outputs;
 - acceptance-contract identity, frozen headline promises, section expectations and applicable mode checks;
 - source/evidence boundary and explicit supplied-source completion;
-- omission scan, count reconciliation, time-integrity and counterexample evidence;
+- omission scan, count reconciliation, time-integrity, market-data-boundary and counterexample evidence;
 - stage-by-stage PASS/REVISE/FAIL/N/A;
 - knowledge recall and writeback decisions/receipts;
 - mechanical Word checks and render results;
@@ -184,13 +190,13 @@ Generate `WRITING_AUDIT_REPORT.docx` from the final state after the final semant
 - visual manifest identity when applicable;
 - final artifact identities/checksums, using public-safe file identity rather than server-local paths.
 
-A missing audit report is a completion failure under `WORD_FILE_ONLY`.
+A missing audit report is a completion failure for every delivery mode that includes Word (`WORD_FILE_ONLY` or `WORD_AND_CHAT`).
 
 ## System-error learning
 When final audit discovers a defect that an already-existing rule/gate should have prevented, do not solve it by copying the same rule into more files. Treat it as a `SYSTEM_ERROR` candidate: record the symptom/root cause/where detected/why the earlier gate missed it in the audit or maintenance record, repair the canonical owner/runtime/test boundary, and add a regression case before claiming the system has learned from the failure. Until a cross-task recurrence ledger is implemented, do not falsely claim automatic global repeat-count escalation merely because this task recorded the defect.
 
 ## Visible checklist
-The final chat response must include a concise checklist status covering runtime/gates, research/evidence, acceptance/structure/style/continuity, Word/render, compliance/risk disclaimer, visuals if applicable, and knowledge recall/writeback if applicable. Under `WORD_FILE_ONLY` this checklist must not paste the article body.
+The final chat response must include a concise checklist status covering runtime/gates, research/evidence, acceptance/structure/style/continuity, Word/render, compliance/risk disclaimer, visuals if applicable, and knowledge recall/writeback if applicable. Under `WORD_FILE_ONLY` this checklist must not paste the article body; under explicit `WORD_AND_CHAT`, the requested chat body and the audited Word artifacts are both deliverables.
 
 ## Fail closed
-No artifact may be COMPLETE while an applicable mandatory gate is absent, either knowledge decision remains `NOT_RUN`, a Must-Pass item lacks final evidence, a material supplied source is silently unaccounted for, the omission/count/time/counterexample decision is missing, a required output lacks a checksum, required output readback/checksum fails, a required per-mode/per-H1 acceptance-evidence key is missing, or a material source/evidence boundary remains unresolved without an explicit boundary. Changes to facts, title, headline promise, section acceptance contract, independent lead, opening, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
+No artifact may be COMPLETE while an applicable mandatory gate is absent, either knowledge decision remains `NOT_RUN`, a Must-Pass item lacks final evidence, a material supplied source is silently unaccounted for, the omission/count/time/market-data/counterexample decision is missing, a required output lacks a checksum, required output readback/checksum fails, a required per-mode/per-H1 acceptance-evidence key is missing, or a material source/evidence boundary remains unresolved without an explicit boundary. Changes to facts, title, headline promise, section acceptance contract, independent lead, opening, H1 structure, body logic, visual placement/assets or formatting invalidate affected checks and require re-audit.
