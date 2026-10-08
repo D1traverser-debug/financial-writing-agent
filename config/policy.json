@@ -34,6 +34,7 @@
     "required": true,
     "min_body_chars": 60,
     "recommended_max_chars": 120,
+    "hard_max_chars": 160,
     "topic_specific_required": true,
     "compact_preferred": true
   },
