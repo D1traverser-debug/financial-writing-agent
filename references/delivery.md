@@ -3,6 +3,8 @@
 ## Default channel
 Unless the task explicitly requests plain chat text, deliver through `WORD_FILE_ONLY`. Under `WORD_FILE_ONLY`, chat contains artifact links/references and concise audit/checklist status only.
 
+If the user explicitly requests **both** the article body in chat and a Word file, route `WORD_AND_CHAT`. This is not equivalent to `CHAT_TEXT`: the runtime must require the chat-text artifact **and** every normal Word/audit artifact for the applicable content/distribution mode. Word construction, mechanical QA, render review, final artifact identity and `WRITING_AUDIT_REPORT.docx` remain mandatory. `CHAT_TEXT` is reserved for a request that actually excludes Word/file delivery or otherwise asks only for direct chat/plain-text output.
+
 ## Word construction
 Mechanical formatting belongs to code, not the drafting model.
 - Article title: dedicated centered title formatting.
