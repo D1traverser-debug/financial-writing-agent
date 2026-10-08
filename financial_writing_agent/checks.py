@@ -7,6 +7,7 @@ from pathlib import Path
 from typing import Iterable
 
 from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from .models import ArtifactKind, TaskContract
 
@@ -119,6 +120,14 @@ def check_docx(
     h3_pt = float(word_policy["h3_pt"])
     h1_rgb = str(word_policy["h1_rgb"])
 
+    if not doc.paragraphs:
+        errors.append("document has no paragraphs")
+    else:
+        title_paragraph = doc.paragraphs[0]
+        expected_alignment = str(word_policy.get("title_alignment", "left")).lower()
+        if expected_alignment == "left" and title_paragraph.alignment != WD_ALIGN_PARAGRAPH.LEFT:
+            errors.append("article title must be left-aligned")
+
     heading2_plus = [
         p.text for p in doc.paragraphs
         if p.style and p.style.name.startswith("Heading ") and p.style.name != "Heading 1"
@@ -199,8 +208,10 @@ def check_docx(
         (i for i, p in enumerate(doc.paragraphs) if "风险" in p.text and "免责声明" in p.text),
         None,
     )
+    article_content_chars = 0
     if risk_idx is None:
         errors.append("risk/disclaimer heading not found")
+        article_content_chars = sum(len(p.text.strip()) for p in doc.paragraphs[1:] if p.text.strip())
     else:
         risk_heading = doc.paragraphs[risk_idx]
         if not risk_heading.style or risk_heading.style.name != "Heading 1":
@@ -210,8 +221,39 @@ def check_docx(
         if len(risk_body) < min_chars:
             errors.append(f"risk/disclaimer body too thin: {len(risk_body)} < {min_chars} chars")
         recommended_max = int(policy.get("risk_disclaimer", {}).get("recommended_max_chars", 0) or 0)
-        if recommended_max and len(risk_body) > recommended_max:
+        hard_max = int(policy.get("risk_disclaimer", {}).get("hard_max_chars", 0) or 0)
+        if hard_max and len(risk_body) > hard_max:
+            errors.append(f"risk/disclaimer body too verbose: {len(risk_body)} > {hard_max} chars")
+        elif recommended_max and len(risk_body) > recommended_max:
             warnings.append(f"risk/disclaimer body may be verbose: {len(risk_body)} > {recommended_max} chars")
+        article_content_chars = sum(
+            len(p.text.strip())
+            for p in doc.paragraphs[1:risk_idx]
+            if p.text.strip()
+        )
+
+    filename = Path(path).name.upper()
+    editorial_policy = policy.get("editorial", {})
+    if "FINANCE_BROAD" in filename:
+        preferred_max = int(editorial_policy.get("finance_broad_preferred_max_chars", 0) or 0)
+        hard_max = int(editorial_policy.get("finance_broad_hard_max_chars", 0) or 0)
+        if hard_max and article_content_chars > hard_max:
+            errors.append(
+                f"FINANCE_BROAD exceeds default completion-oriented hard cap: {article_content_chars} > {hard_max} chars"
+            )
+        elif preferred_max and article_content_chars > preferred_max:
+            warnings.append(
+                f"FINANCE_BROAD exceeds preferred distribution range: {article_content_chars} > {preferred_max} chars"
+            )
+    elif "FINANCE_DEEP" in filename:
+        density_review = int(editorial_policy.get("finance_deep_density_review_chars", 0) or 0)
+        hard_max = int(editorial_policy.get("finance_deep_max_chars", 0) or 0)
+        if hard_max and article_content_chars > hard_max:
+            errors.append(f"FINANCE_DEEP exceeds hard editorial ceiling: {article_content_chars} > {hard_max} chars")
+        elif density_review and article_content_chars > density_review:
+            warnings.append(
+                f"FINANCE_DEEP exceeds density-review threshold: {article_content_chars} > {density_review} chars; verify that every retained section changes the judgment"
+            )
 
     if not word_policy.get("allow_tables", False) and doc.tables:
         warnings.append(f"document contains {len(doc.tables)} table(s); default policy prefers prose")
@@ -256,6 +298,7 @@ def check_docx(
         "h1_count": len(h1_paragraphs),
         "empty_paragraphs": empty_paragraphs,
         "body_bold_anchor_paragraphs": body_with_bold,
+        "article_content_chars": article_content_chars,
         "inline_images": image_count,
     }
 
