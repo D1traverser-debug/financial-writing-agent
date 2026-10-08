@@ -133,6 +133,7 @@ mcp = MCPServer(
         "Start runtime state before research. "
         "Treat effective_time_boundary returned by the task summary as the frozen evidence cutoff for research and final time-integrity review. "
         "Record durable-knowledge recall as PASS or explicit N_A before research submission. "
+        "For DUAL formal tasks, complete FINANCE_DEEP editorial, title and draft first; only after the runtime enters BROAD_DERIVATION may FINANCE_BROAD be derived by reusing submit_editorial_plan, submit_headlines and submit_draft in the returned next_action order. Never submit the two analyses in parallel. "
         "If a task is BLOCKED, repair the dependency and call resume_writing_task; never start a duplicate task merely to bypass BLOCKED. "
         "Follow the returned next_action and never skip a gate. The model owns research, writing, audits and image generation; "
         "the runtime owns state, schemas, legal transitions, acceptance contracts, Word construction and mechanical QA. "
@@ -232,19 +233,19 @@ def submit_research_audit(task_id: Annotated[str, Field(min_length=1)], decision
 
 @mcp.tool(title="Submit editorial plan", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_plan(task_id: Annotated[str, Field(min_length=1)], editorial_plan: EditorialPlan) -> WritingTaskSummary:
-    """Validate TopicDNA and independent mode-specific candidate structures at EDITORIAL, including focus, company-selection basis and outline-collision evidence."""
+    """Submit the editorial plan for the runtime's current phase. Initial DUAL EDITORIAL accepts FINANCE_DEEP only; BROAD_DERIVATION later reuses this same tool for FINANCE_BROAD only after the deep mother draft is frozen."""
     return _summary(impl.submit_editorial_plan(task_id, editorial_plan.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit headline package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_headlines(task_id: Annotated[str, Field(min_length=1)], headlines: HeadlinePackage) -> WritingTaskSummary:
-    """Validate unique candidate headline sets, factual anchors, opening-payoff design and selected-title membership, then freeze the article acceptance contract."""
+    """Submit hook/title candidates for the runtime's current phase. DUAL freezes FINANCE_DEEP titles first, then BROAD_DERIVATION reuses this tool for FINANCE_BROAD titles after broad editorial derivation; candidate diversity, factual anchors and opening payoff are validated."""
     return _summary(impl.submit_headlines(task_id, headlines.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit draft package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_draft(task_id: Annotated[str, Field(min_length=1)], draft: DraftPackage) -> WritingTaskSummary:
-    """Validate every required draft against the frozen acceptance contract, including independent lead placement, selected title and frozen H1 structure."""
+    """Submit the draft for the runtime's current phase. DUAL accepts and freezes FINANCE_DEEP first; only BROAD_DERIVATION may then accept a shorter FINANCE_BROAD derivative against the frozen acceptance contract and mother-draft boundary."""
     return _summary(impl.submit_draft(task_id, draft.model_dump(mode="json")))
 
 
@@ -256,7 +257,7 @@ def submit_style_audit(task_id: Annotated[str, Field(min_length=1)], report: Sty
 
 @mcp.tool(title="Submit editorial audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record the independent semantic editorial verdict. PASS requires a passed style gate; REVISE may target TITLE or DRAFT and invalidates stale downstream checks."""
+    """Record the independent semantic editorial verdict. PASS requires a passed style gate and, for DUAL, a passed broad-derivation gate; REVISE may target TITLE or DRAFT and invalidates stale downstream checks."""
     return _summary(impl.submit_editorial_audit(task_id, decision.model_dump(mode="json")))
 
 
