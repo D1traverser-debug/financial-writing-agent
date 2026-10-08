@@ -38,6 +38,7 @@ class ContentMode(str, Enum):
 class DeliveryChannel(str, Enum):
     WORD_FILE_ONLY = "WORD_FILE_ONLY"
     CHAT_TEXT = "CHAT_TEXT"
+    WORD_AND_CHAT = "WORD_AND_CHAT"
 
 
 class GateStatus(str, Enum):
@@ -100,6 +101,8 @@ class TaskContract(BaseModel):
             self.required_outputs = [ArtifactKind.CHAT_TEXT]
             return self
         required = [ArtifactKind.AUDIT_DOCX]
+        if self.delivery_channel == DeliveryChannel.WORD_AND_CHAT:
+            required.append(ArtifactKind.CHAT_TEXT)
         if self.visuals_enabled:
             required.append(ArtifactKind.VISUAL_MANIFEST_JSON)
         if self.content_mode == ContentMode.WECHAT_STICKER_POST:
