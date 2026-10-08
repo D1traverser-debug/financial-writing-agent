@@ -89,6 +89,24 @@ def _validate_headline_candidate_anchors(
         )
 
 
+def validate_headline_hook_diversity(candidates: list[HeadlineCandidate], *, label: str) -> list[str]:
+    """Mechanical floor only; semantic audit still judges whether angles are truly distinct/useful."""
+    if not candidates:
+        return []
+    normalized_angles = {" ".join(candidate.angle.lower().split()) for candidate in candidates if candidate.angle.strip()}
+    required = 4 if len(candidates) >= 8 else min(2, len(candidates))
+    if len(normalized_angles) < required:
+        raise ValueError(
+            f"{label} headline set lacks hook-angle diversity: distinct_angles={len(normalized_angles)}, required>={required}"
+        )
+    normalized_gaps = {" ".join(candidate.primary_gap.lower().split()) for candidate in candidates if candidate.primary_gap.strip()}
+    if len(candidates) >= 8 and len(normalized_gaps) < 3:
+        raise ValueError(
+            f"{label} headline set lacks information-gap diversity: distinct_gaps={len(normalized_gaps)}, required>=3"
+        )
+    return [f"{label}: hook_angles={len(normalized_angles)}; information_gaps={len(normalized_gaps)}"]
+
+
 def _selected_candidate(candidates: list[HeadlineCandidate], selected_title: str) -> HeadlineCandidate:
     matches = [candidate for candidate in candidates if candidate.title == selected_title]
     if len(matches) != 1:
@@ -121,25 +139,24 @@ def _mode_contract(
     )
 
 
-def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract:
+def freeze_acceptance_contract(state: WritingState, *, mode: str | None = None) -> WritingAcceptanceContract:
     editorial = EditorialPlan.model_validate(state.working["editorial_plan"])
     headlines = HeadlinePackage.model_validate(state.working["headlines"])
 
-    deep = None
-    broad = None
-    sticker = None
+    existing_raw = state.working.get("acceptance_contract")
+    existing = WritingAcceptanceContract.model_validate(existing_raw) if existing_raw else None
+    deep = existing.finance_deep if existing else None
+    broad = existing.finance_broad if existing else None
+    sticker = existing.wechat_sticker if existing else None
+
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+        if mode not in {None, "WECHAT_STICKER_POST"}:
+            raise ValueError(f"invalid acceptance mode for sticker task: {mode}")
         if editorial.wechat_sticker is None or not headlines.wechat_sticker_selected:
             raise ValueError("WECHAT_STICKER_POST acceptance contract requires frozen editorial plan and selected title")
-        _validate_headline_candidate_anchors(
-            state,
-            headlines.wechat_sticker_candidates,
-            label="WECHAT_STICKER_POST",
-        )
-        candidate = _selected_candidate(
-            headlines.wechat_sticker_candidates,
-            headlines.wechat_sticker_selected,
-        )
+        _validate_headline_candidate_anchors(state, headlines.wechat_sticker_candidates, label="WECHAT_STICKER_POST")
+        validate_headline_hook_diversity(headlines.wechat_sticker_candidates, label="WECHAT_STICKER_POST")
+        candidate = _selected_candidate(headlines.wechat_sticker_candidates, headlines.wechat_sticker_selected)
         sticker = _mode_contract(
             editorial.wechat_sticker,
             headlines.wechat_sticker_selected,
@@ -147,36 +164,33 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
             require_section_expectations=False,
         )
     else:
-        if state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}:
+        want_deep = mode == "FINANCE_DEEP" or (
+            mode is None and state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}
+        )
+        want_broad = mode == "FINANCE_BROAD" or (
+            mode is None and state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}
+        )
+        if mode not in {None, "FINANCE_DEEP", "FINANCE_BROAD"}:
+            raise ValueError(f"unknown acceptance mode: {mode}")
+
+        if want_deep:
             if editorial.finance_deep is None or not headlines.finance_deep_selected:
                 raise ValueError("FINANCE_DEEP acceptance contract requires frozen editorial plan and selected title")
-            _validate_headline_candidate_anchors(
-                state,
-                headlines.finance_deep_candidates,
-                label="FINANCE_DEEP",
-            )
-            candidate = _selected_candidate(
-                headlines.finance_deep_candidates,
-                headlines.finance_deep_selected,
-            )
+            _validate_headline_candidate_anchors(state, headlines.finance_deep_candidates, label="FINANCE_DEEP")
+            validate_headline_hook_diversity(headlines.finance_deep_candidates, label="FINANCE_DEEP")
+            candidate = _selected_candidate(headlines.finance_deep_candidates, headlines.finance_deep_selected)
             deep = _mode_contract(
                 editorial.finance_deep,
                 headlines.finance_deep_selected,
                 candidate,
                 require_section_expectations=True,
             )
-        if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
+        if want_broad:
             if editorial.finance_broad is None or not headlines.finance_broad_selected:
                 raise ValueError("FINANCE_BROAD acceptance contract requires frozen editorial plan and selected title")
-            _validate_headline_candidate_anchors(
-                state,
-                headlines.finance_broad_candidates,
-                label="FINANCE_BROAD",
-            )
-            candidate = _selected_candidate(
-                headlines.finance_broad_candidates,
-                headlines.finance_broad_selected,
-            )
+            _validate_headline_candidate_anchors(state, headlines.finance_broad_candidates, label="FINANCE_BROAD")
+            validate_headline_hook_diversity(headlines.finance_broad_candidates, label="FINANCE_BROAD")
+            candidate = _selected_candidate(headlines.finance_broad_candidates, headlines.finance_broad_selected)
             broad = _mode_contract(
                 editorial.finance_broad,
                 headlines.finance_broad_selected,
@@ -201,7 +215,8 @@ def freeze_acceptance_contract(state: WritingState) -> WritingAcceptanceContract
             f"finance_deep={'yes' if contract.finance_deep else 'no'}",
             f"finance_broad={'yes' if contract.finance_broad else 'no'}",
             f"wechat_sticker={'yes' if contract.wechat_sticker else 'no'}",
-            "all headline factual anchors exactly match core_safe research claims",
+            "all applicable headline factual anchors exactly match core_safe research claims",
+            "headline hook-angle/information-gap diversity mechanical floor passed",
             "formal H1 direction/gap/payoff/hierarchy expectations frozen",
             "selected headline factual anchor/gap/opening payoff frozen per applicable mode",
         ],
@@ -287,9 +302,52 @@ def _validate_section_hierarchy(label: str, article: ArticlePayload, expected: M
     return evidence
 
 
-def validate_draft_against_acceptance(state: WritingState, draft: DraftPackage) -> list[str]:
+def article_text_char_count(article: ArticlePayload) -> int:
+    return len(article.title) + sum(len(block.text) for block in article.blocks) + len(article.risk_disclaimer)
+
+
+def validate_dual_broad_derivation(state: WritingState, broad: ArticlePayload) -> dict[str, object]:
+    raw_draft = state.working.get("draft") or {}
+    raw_deep = raw_draft.get("finance_deep") if isinstance(raw_draft, dict) else None
+    if raw_deep is None:
+        raise ValueError("FINANCE_BROAD derivation requires a frozen FINANCE_DEEP mother draft")
+    deep = ArticlePayload.model_validate(raw_deep)
+    deep_chars = article_text_char_count(deep)
+    broad_chars = article_text_char_count(broad)
+    if broad_chars >= deep_chars:
+        raise ValueError(
+            f"FINANCE_BROAD must be a compressed derivative of FINANCE_DEEP: broad_chars={broad_chars}, deep_chars={deep_chars}"
+        )
+    deep_stocks = set(deep.stock_names)
+    broad_stocks = set(broad.stock_names)
+    invented_stocks = sorted(broad_stocks - deep_stocks)
+    if invented_stocks:
+        raise ValueError(
+            f"FINANCE_BROAD may omit mother-version stocks but must not introduce new stocks: {invented_stocks}"
+        )
+    return {
+        "source_deep_title": deep.title,
+        "deep_chars": deep_chars,
+        "broad_chars": broad_chars,
+        "compression_chars": deep_chars - broad_chars,
+        "compression_ratio": round(broad_chars / deep_chars, 4) if deep_chars else 0.0,
+        "deep_stock_names": sorted(deep_stocks),
+        "broad_stock_names": sorted(broad_stocks),
+        "omitted_stock_names": sorted(deep_stocks - broad_stocks),
+        "new_stock_names": [],
+    }
+
+
+def validate_draft_against_acceptance(
+    state: WritingState,
+    draft: DraftPackage,
+    *,
+    mode: str | None = None,
+) -> list[str]:
     contract = WritingAcceptanceContract.model_validate(state.working.get("acceptance_contract"))
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
+        if mode not in {None, "WECHAT_STICKER_POST"}:
+            raise ValueError(f"invalid draft validation mode for sticker task: {mode}")
         expected = contract.wechat_sticker
         article = draft.wechat_sticker_post
         if expected is None or article is None:
@@ -299,10 +357,13 @@ def validate_draft_against_acceptance(state: WritingState, draft: DraftPackage) 
         return ["WECHAT_STICKER_POST: title=frozen; headline promises=frozen; platform-specific body contract"]
 
     evidence: list[str] = []
-    for label, expected, article in [
+    modes = [
         ("FINANCE_DEEP", contract.finance_deep, draft.finance_deep),
         ("FINANCE_BROAD", contract.finance_broad, draft.finance_broad),
-    ]:
+    ]
+    for label, expected, article in modes:
+        if mode is not None and label != mode:
+            continue
         if expected is None:
             continue
         if article is None:
