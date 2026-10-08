@@ -4,6 +4,7 @@ from collections.abc import Iterable
 from datetime import datetime
 
 from .models import ContentMode, DeliveryChannel, DistributionMode, TaskContract
+from .resources import load_packaged_policy
 
 FINANCE_COMMUNITIES = {"雪球", "韭研公社", "东方财富", "东方财富号"}
 BROAD_FEEDS = {"今日头条", "头条号", "百家号", "网易号", "微博头条文章"}
@@ -34,7 +35,16 @@ def infer_content_mode(prompt: str, platforms: Iterable[str] | None = None) -> C
 
 
 def infer_delivery_channel(prompt: str) -> DeliveryChannel:
-    explicit_chat = ("聊天框" in prompt and any(x in prompt for x in ["正文", "纯文本", "直接看"])) or "只要纯文本" in prompt
+    normalized = prompt.replace(" ", "")
+    lower = normalized.lower()
+    explicit_chat = (
+        ("聊天框" in normalized and any(x in normalized for x in ["正文", "纯文本", "直接看"]))
+        or "只要纯文本" in normalized
+    )
+    word_forbidden = any(x in lower for x in ["不要word", "不需要word", "不用word", "不要docx", "不需要docx"])
+    explicit_word = ("word" in lower or "docx" in lower) and not word_forbidden
+    if explicit_chat and explicit_word:
+        return DeliveryChannel.WORD_AND_CHAT
     return DeliveryChannel.CHAT_TEXT if explicit_chat else DeliveryChannel.WORD_FILE_ONLY
 
 
@@ -47,6 +57,15 @@ def infer_visuals_enabled(prompt: str, delivery_channel: DeliveryChannel) -> boo
     if any(x in normalized.lower() for x in ["word已经写好了", "word已写好", "现成word", "已有word"]):
         return False
     return True
+
+
+def _default_run_constraints() -> dict[str, int]:
+    defaults = load_packaged_policy()["defaults"]
+    return {
+        "research_max_rounds": int(defaults["research_max_rounds"]),
+        "title_max_rounds": int(defaults["title_max_rounds"]),
+        "draft_max_rounds": int(defaults["draft_max_rounds"]),
+    }
 
 
 def build_task_contract(
@@ -72,6 +91,7 @@ def build_task_contract(
         "delivery_channel": delivery,
         "visuals_enabled": visuals,
         "visual_profile_ref": visual_profile_ref,
+        "run_constraints": _default_run_constraints(),
     }
     if effective_time_boundary is not None:
         kwargs["effective_time_boundary"] = effective_time_boundary
