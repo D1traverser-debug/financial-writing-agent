@@ -14,9 +14,11 @@ from .engine import WorkflowError, WritingEngine
 from .harness import (
     freeze_acceptance_contract,
     validate_draft_against_acceptance,
+    validate_dual_broad_derivation,
+    validate_headline_hook_diversity,
     validate_research_against_knowledge_context,
 )
-from .models import ContentMode, GateStatus, Stage, WritingState
+from .models import ContentMode, DistributionMode, GateStatus, Stage, WritingState
 from .network_safety import validate_public_https_url
 from .routing import build_task_contract
 from .schemas import (
@@ -40,6 +42,7 @@ DB_PATH = Path(os.getenv("FINANCIAL_WRITING_DB", str(DATA_DIR / "financial_writi
 RUNS_DIR = Path(os.getenv("FINANCIAL_WRITING_RUNS", str(DATA_DIR / "runs")))
 REQUIRE_RENDER = os.getenv("FINANCIAL_WRITING_REQUIRE_RENDER", "1").lower() not in {"0", "false", "no"}
 POLICY = load_policy(PROJECT_ROOT / "config" / "policy.json")
+FINANCE_DEEP_MAX_CHARS = int(POLICY.get("editorial", {}).get("finance_deep_max_chars", 10000))
 
 store = SQLiteStateStore(DB_PATH)
 engine = WritingEngine(store)
@@ -62,6 +65,12 @@ def _load(task_id: str) -> WritingState:
 def _require_stage(state: WritingState, expected: Stage) -> None:
     if state.stage != expected:
         raise ValueError(f"task {state.contract.task_id} is at {state.stage.value}, expected {expected.value}")
+
+
+def _require_stage_in(state: WritingState, allowed: set[Stage]) -> None:
+    if state.stage not in allowed:
+        expected = ", ".join(sorted(stage.value for stage in allowed))
+        raise ValueError(f"task {state.contract.task_id} is at {state.stage.value}, expected one of [{expected}]")
 
 
 def _gate_status(state: WritingState, name: str) -> str:
@@ -90,6 +99,9 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
         "structure_style_continuity": {
             "editorial": _gate_status(state, "editorial_audit"),
             "anti_ai_style": _gate_status(state, "style_audit"),
+            "broad_derivation": _gate_status(state, "broad_derivation")
+            if state.contract.distribution_mode == DistributionMode.DUAL
+            else "N_A",
         },
         "word_render": _gate_status(state, "mechanical_audit"),
         "compliance_risk": _gate_status(state, "final_audit"),
@@ -105,6 +117,14 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
 
 
 def _next_action(state: WritingState) -> str:
+    if state.stage == Stage.BROAD_DERIVATION:
+        phase = state.working.get("broad_derivation_phase", "EDITORIAL")
+        return {
+            "EDITORIAL": "derive FINANCE_BROAD editorial structure from the frozen FINANCE_DEEP mother draft, then call submit_editorial_plan with finance_broad only",
+            "TITLE": "generate/judge FINANCE_BROAD hook candidates from the frozen deep conclusions, then call submit_headlines with finance_broad only",
+            "DRAFT": "compress/repackage the frozen FINANCE_DEEP mother draft into FINANCE_BROAD, then call submit_draft with finance_broad only",
+            "COMPLETE": "advance to independent editorial/style audit",
+        }.get(str(phase), "repair invalid broad_derivation_phase before continuing")
     if state.stage == Stage.DELIVERY:
         if state.contract.visuals_enabled and "resolved_visual_package" not in state.working:
             return "generate real publication images and call submit_visual_package with file params, then call build_and_mechanically_audit_delivery"
@@ -119,9 +139,9 @@ def _next_action(state: WritingState) -> str:
         Stage.INTAKE: "advance runtime initialization",
         Stage.RESEARCH: "research broadly/currently within effective_time_boundary, then submit_research",
         Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
-        Stage.EDITORIAL: "build TopicDNA and independent mode-specific candidate structures, then call submit_editorial_plan",
-        Stage.TITLE: "generate/judge headline candidates, freeze the acceptance contract, then advance to drafting",
-        Stage.DRAFT: "draft every applicable content output against the frozen acceptance contract, then call submit_draft",
+        Stage.EDITORIAL: "for DUAL build FINANCE_DEEP only; otherwise build the applicable mode plan; then call submit_editorial_plan",
+        Stage.TITLE: "for DUAL generate FINANCE_DEEP titles only; otherwise generate the applicable title set; freeze acceptance then draft",
+        Stage.DRAFT: "for DUAL draft FINANCE_DEEP mother article only; otherwise draft the applicable outputs; then call submit_draft",
         Stage.EDITORIAL_AUDIT: "call submit_editorial_audit after style_audit passes",
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
         Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
@@ -149,6 +169,8 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         "updated_at": state.updated_at.isoformat(),
         "next_action": _next_action(state),
     }
+    if state.stage == Stage.BROAD_DERIVATION:
+        summary["broad_derivation_phase"] = state.working.get("broad_derivation_phase")
     if detail:
         summary["source_refs"] = state.contract.source_refs
         summary["visual_profile_ref"] = state.contract.visual_profile_ref
@@ -161,6 +183,8 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
             for kind, artifact in state.artifacts.items()
         }
         summary["render_pages"] = _render_page_uris(state)
+        if "dual_derivation_receipt" in state.working:
+            summary["dual_derivation_receipt"] = state.working["dual_derivation_receipt"]
     if state.stage == Stage.COMPLETE:
         summary["completion_checklist"] = _completion_checklist(state)
     return summary
@@ -193,41 +217,115 @@ def _apply_gate_decision(
     return _save_and_advance(state)
 
 
+def _is_dual_formal(state: WritingState) -> bool:
+    return state.contract.content_mode == ContentMode.FORMAL_ARTICLE and state.contract.distribution_mode == DistributionMode.DUAL
+
+
 def _validate_editorial_for_contract(state: WritingState, payload: EditorialPlan) -> None:
+    if state.stage == Stage.BROAD_DERIVATION:
+        if not _is_dual_formal(state) or state.working.get("broad_derivation_phase") != "EDITORIAL":
+            raise ValueError("submit_editorial_plan is not legal in the current broad-derivation subphase")
+        if payload.finance_broad is None or payload.finance_deep is not None or payload.wechat_sticker is not None:
+            raise ValueError("BROAD_DERIVATION editorial subphase requires finance_broad only")
+        original = EditorialPlan.model_validate(state.working["editorial_plan"])
+        if payload.topic_dna.model_dump() != original.topic_dna.model_dump():
+            raise ValueError("FINANCE_BROAD derivation must reuse the frozen FINANCE_DEEP TopicDNA")
+        raw_draft = state.working.get("draft") or {}
+        if not isinstance(raw_draft, dict) or raw_draft.get("finance_deep") is None:
+            raise ValueError("FINANCE_BROAD editorial derivation requires a frozen FINANCE_DEEP mother draft")
+        return
+
+    _require_stage(state, Stage.EDITORIAL)
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
         if payload.wechat_sticker is None:
             raise ValueError("WECHAT_STICKER_POST editorial plan requires wechat_sticker mode plan")
         return
-    if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"} and payload.finance_deep is None:
-        raise ValueError("applicable FINANCE_DEEP task requires an independent finance_deep editorial plan")
-    if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"} and payload.finance_broad is None:
-        raise ValueError("applicable FINANCE_BROAD task requires an independent finance_broad editorial plan")
+    if _is_dual_formal(state):
+        if payload.finance_deep is None:
+            raise ValueError("DUAL initial editorial stage requires FINANCE_DEEP mother plan")
+        if payload.finance_broad is not None:
+            raise ValueError("DUAL must not pre-plan FINANCE_BROAD before the FINANCE_DEEP mother draft is frozen")
+        return
+    if state.contract.distribution_mode == DistributionMode.FINANCE_DEEP and payload.finance_deep is None:
+        raise ValueError("FINANCE_DEEP task requires finance_deep editorial plan")
+    if state.contract.distribution_mode == DistributionMode.FINANCE_BROAD and payload.finance_broad is None:
+        raise ValueError("FINANCE_BROAD task requires finance_broad editorial plan")
 
 
-def _validate_headlines_for_contract(state: WritingState, payload: HeadlinePackage) -> None:
+def _validate_headlines_for_contract(state: WritingState, payload: HeadlinePackage) -> list[str]:
+    evidence: list[str] = []
+    if state.stage == Stage.BROAD_DERIVATION:
+        if not _is_dual_formal(state) or state.working.get("broad_derivation_phase") != "TITLE":
+            raise ValueError("submit_headlines is not legal in the current broad-derivation subphase")
+        if payload.finance_deep_candidates or payload.finance_deep_selected or payload.wechat_sticker_candidates or payload.wechat_sticker_selected:
+            raise ValueError("BROAD_DERIVATION title subphase requires FINANCE_BROAD headline fields only")
+        if not (8 <= len(payload.finance_broad_candidates) <= 12) or not payload.finance_broad_selected:
+            raise ValueError("FINANCE_BROAD requires 8-12 candidates and one selected title")
+        evidence.extend(validate_headline_hook_diversity(payload.finance_broad_candidates, label="FINANCE_BROAD"))
+        return evidence
+
+    _require_stage(state, Stage.TITLE)
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
         if not (4 <= len(payload.wechat_sticker_candidates) <= 12) or not payload.wechat_sticker_selected:
             raise ValueError("WECHAT_STICKER_POST requires 4-12 candidates and one selected title")
-        return
-    if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"}:
+        evidence.extend(validate_headline_hook_diversity(payload.wechat_sticker_candidates, label="WECHAT_STICKER_POST"))
+        return evidence
+    if _is_dual_formal(state):
+        if payload.finance_broad_candidates or payload.finance_broad_selected:
+            raise ValueError("DUAL must not generate FINANCE_BROAD titles before the FINANCE_DEEP mother draft is frozen")
+        if not (8 <= len(payload.finance_deep_candidates) <= 12) or not payload.finance_deep_selected:
+            raise ValueError("DUAL initial title stage requires 8-12 FINANCE_DEEP candidates and one selected title")
+        evidence.extend(validate_headline_hook_diversity(payload.finance_deep_candidates, label="FINANCE_DEEP"))
+        return evidence
+    if state.contract.distribution_mode == DistributionMode.FINANCE_DEEP:
         if not (8 <= len(payload.finance_deep_candidates) <= 12) or not payload.finance_deep_selected:
             raise ValueError("FINANCE_DEEP requires 8-12 candidates and one selected title")
-    if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"}:
+        evidence.extend(validate_headline_hook_diversity(payload.finance_deep_candidates, label="FINANCE_DEEP"))
+    if state.contract.distribution_mode == DistributionMode.FINANCE_BROAD:
         if not (8 <= len(payload.finance_broad_candidates) <= 12) or not payload.finance_broad_selected:
             raise ValueError("FINANCE_BROAD requires 8-12 candidates and one selected title")
+        evidence.extend(validate_headline_hook_diversity(payload.finance_broad_candidates, label="FINANCE_BROAD"))
+    return evidence
+
+
+def _main_article_chars(article) -> int:
+    return len(article.title) + sum(len(block.text) for block in article.blocks)
 
 
 def _validate_draft_for_contract(state: WritingState, payload: DraftPackage) -> None:
+    if state.stage == Stage.BROAD_DERIVATION:
+        if not _is_dual_formal(state) or state.working.get("broad_derivation_phase") != "DRAFT":
+            raise ValueError("submit_draft is not legal in the current broad-derivation subphase")
+        if payload.finance_broad is None or payload.finance_deep is not None or payload.wechat_sticker_post is not None:
+            raise ValueError("BROAD_DERIVATION draft subphase requires FINANCE_BROAD only")
+        return
+
+    _require_stage(state, Stage.DRAFT)
     if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
         if payload.wechat_sticker_post is None:
             raise ValueError("WECHAT_STICKER_POST task requires draft.wechat_sticker_post")
         if payload.finance_deep is not None or payload.finance_broad is not None:
             raise ValueError("WECHAT_STICKER_POST must not include formal-article payloads")
         return
-    if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"} and payload.finance_deep is None:
-        raise ValueError("applicable FINANCE_DEEP draft is missing")
-    if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"} and payload.finance_broad is None:
-        raise ValueError("applicable FINANCE_BROAD draft is missing")
+    if _is_dual_formal(state):
+        if payload.finance_deep is None:
+            raise ValueError("DUAL initial draft stage requires FINANCE_DEEP mother article")
+        if payload.finance_broad is not None:
+            raise ValueError("DUAL must not submit FINANCE_BROAD before the mother draft is frozen")
+        if _main_article_chars(payload.finance_deep) > FINANCE_DEEP_MAX_CHARS:
+            raise ValueError(
+                f"FINANCE_DEEP exceeds the configured {FINANCE_DEEP_MAX_CHARS}-character upper guardrail"
+            )
+        return
+    if state.contract.distribution_mode == DistributionMode.FINANCE_DEEP:
+        if payload.finance_deep is None:
+            raise ValueError("FINANCE_DEEP draft is missing")
+        if _main_article_chars(payload.finance_deep) > FINANCE_DEEP_MAX_CHARS:
+            raise ValueError(
+                f"FINANCE_DEEP exceeds the configured {FINANCE_DEEP_MAX_CHARS}-character upper guardrail"
+            )
+    if state.contract.distribution_mode == DistributionMode.FINANCE_BROAD and payload.finance_broad is None:
+        raise ValueError("FINANCE_BROAD draft is missing")
     if payload.wechat_sticker_post is not None:
         raise ValueError("formal-article task must not include WECHAT_STICKER_POST payload")
 
@@ -370,9 +468,19 @@ def submit_research_audit(task_id: str, decision: dict[str, Any]) -> dict[str, A
 
 def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
-    _require_stage(state, Stage.EDITORIAL)
+    _require_stage_in(state, {Stage.EDITORIAL, Stage.BROAD_DERIVATION})
     payload = EditorialPlan.model_validate(editorial_plan)
     _validate_editorial_for_contract(state, payload)
+
+    if state.stage == Stage.BROAD_DERIVATION:
+        original = EditorialPlan.model_validate(state.working["editorial_plan"])
+        merged = original.model_copy(update={"finance_broad": payload.finance_broad})
+        state.working["editorial_plan"] = merged.model_dump(mode="json")
+        state.working["broad_derivation_phase"] = "TITLE"
+        state.add_trace("BROAD_DERIVATION", "FINANCE_BROAD editorial plan derived after deep mother draft")
+        store.save(state)
+        return _summary(state)
+
     state.working["editorial_plan"] = payload.model_dump(mode="json")
     evidence = ["TopicDNA"]
     if payload.finance_deep:
@@ -381,31 +489,94 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
         evidence.append(f"FINANCE_BROAD_structures={len(payload.finance_broad.candidates)}; selected={payload.finance_broad.selected_structure.name}")
     if payload.wechat_sticker:
         evidence.append(f"WECHAT_STICKER_structures={len(payload.wechat_sticker.candidates)}; selected={payload.wechat_sticker.selected_structure.name}")
+    if _is_dual_formal(state):
+        evidence.append("DUAL deep-first: FINANCE_BROAD intentionally absent until deep mother draft is frozen")
     state.set_gate("editorial_plan", GateStatus.PASS, evidence)
-    state.add_trace("MCP_STAGE_OUTPUT", "mode-specific editorial plan accepted")
+    state.add_trace("MCP_STAGE_OUTPUT", "applicable initial editorial plan accepted")
     return _summary(_save_and_advance(state))
 
 
 def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
-    _require_stage(state, Stage.TITLE)
+    _require_stage_in(state, {Stage.TITLE, Stage.BROAD_DERIVATION})
     payload = HeadlinePackage.model_validate(headlines)
-    _validate_headlines_for_contract(state, payload)
+    hook_evidence = _validate_headlines_for_contract(state, payload)
+
+    if state.stage == Stage.BROAD_DERIVATION:
+        existing = HeadlinePackage.model_validate(state.working["headlines"])
+        merged = existing.model_copy(
+            update={
+                "finance_broad_candidates": payload.finance_broad_candidates,
+                "finance_broad_selected": payload.finance_broad_selected,
+            }
+        )
+        state.working["headlines"] = merged.model_dump(mode="json")
+        freeze_acceptance_contract(state, mode="FINANCE_BROAD")
+        state.working["broad_derivation_phase"] = "DRAFT"
+        state.add_trace("BROAD_DERIVATION", "FINANCE_BROAD hook/title contract frozen after deep mother draft")
+        store.save(state)
+        return _summary(state)
+
     state.working["headlines"] = payload.model_dump(mode="json")
-    state.set_gate("title_audit", GateStatus.PASS, ["candidate counts, factual anchors, opening payoff and selected-title membership validated"])
-    freeze_acceptance_contract(state)
-    state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS; acceptance_contract frozen")
+    state.set_gate(
+        "title_audit",
+        GateStatus.PASS,
+        ["candidate counts, factual anchors, hook diversity, opening payoff and selected-title membership validated", *hook_evidence],
+    )
+    if _is_dual_formal(state):
+        freeze_acceptance_contract(state, mode="FINANCE_DEEP")
+    else:
+        freeze_acceptance_contract(state)
+    state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS; applicable acceptance contract frozen")
     return _summary(_save_and_advance(state))
 
 
 def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
-    _require_stage(state, Stage.DRAFT)
+    _require_stage_in(state, {Stage.DRAFT, Stage.BROAD_DERIVATION})
     payload = DraftPackage.model_validate(draft)
     _validate_draft_for_contract(state, payload)
-    acceptance_evidence = validate_draft_against_acceptance(state, payload)
+
+    if state.stage == Stage.BROAD_DERIVATION:
+        acceptance_evidence = validate_draft_against_acceptance(state, payload, mode="FINANCE_BROAD")
+        if payload.finance_broad is None:
+            raise ValueError("FINANCE_BROAD draft unexpectedly missing")
+        receipt = validate_dual_broad_derivation(state, payload.finance_broad)
+        existing = DraftPackage.model_validate(state.working["draft"])
+        merged = existing.model_copy(update={"finance_broad": payload.finance_broad})
+        state.working["draft"] = merged.model_dump(mode="json")
+        state.working["dual_derivation_receipt"] = receipt
+        state.working["broad_derivation_phase"] = "COMPLETE"
+        state.set_gate(
+            "draft_output",
+            GateStatus.PASS,
+            ["FINANCE_DEEP mother and FINANCE_BROAD derived drafts validated", *acceptance_evidence],
+        )
+        state.set_gate(
+            "broad_derivation",
+            GateStatus.PASS,
+            [
+                f"source_deep_title={receipt['source_deep_title']}",
+                f"deep_chars={receipt['deep_chars']}",
+                f"broad_chars={receipt['broad_chars']}",
+                f"compression_ratio={receipt['compression_ratio']}",
+                "FINANCE_BROAD stock set is a subset of FINANCE_DEEP stock set",
+                "Broad structure/title/draft were submitted only after deep mother draft was frozen",
+            ],
+        )
+        state.add_trace("BROAD_DERIVATION", "FINANCE_BROAD derived draft accepted; broad_derivation=PASS")
+        return _summary(_save_and_advance(state))
+
+    if _is_dual_formal(state):
+        acceptance_evidence = validate_draft_against_acceptance(state, payload, mode="FINANCE_DEEP")
+    else:
+        acceptance_evidence = validate_draft_against_acceptance(state, payload)
     state.working["draft"] = payload.model_dump(mode="json")
-    state.set_gate("draft_output", GateStatus.PASS, ["all contract-required draft payloads validated and frozen", *acceptance_evidence])
+    state.set_gate(
+        "draft_output",
+        GateStatus.PASS,
+        ["all currently applicable draft payloads validated and frozen", *acceptance_evidence],
+    )
     state.add_trace("MCP_STAGE_OUTPUT", "draft package accepted against frozen acceptance contract")
     return _summary(_save_and_advance(state))
 
@@ -430,6 +601,8 @@ def submit_editorial_audit(task_id: str, decision: dict[str, Any]) -> dict[str, 
     _validate_revision_target(payload, {"TITLE", "DRAFT"}, "editorial_audit")
     if payload.status == "PASS" and _gate_status(state, "style_audit") != "PASS":
         raise ValueError("style_audit must PASS before editorial_audit can PASS")
+    if payload.status == "PASS" and _is_dual_formal(state) and _gate_status(state, "broad_derivation") != "PASS":
+        raise ValueError("broad_derivation must PASS before DUAL editorial_audit can PASS")
     return _summary(_apply_gate_decision(state, "editorial_audit", payload, revision_key="revise_target"))
 
 
@@ -467,8 +640,8 @@ def submit_visual_package(
         if mode == "WECHAT_STICKER_POST":
             if not any(asset.role in {"sticker", "hero"} for asset in assets):
                 raise ValueError("WeChat sticker mode requires at least one sticker/hero image")
-            draft = DraftPackage.model_validate(state.working["draft"])
-            limit = draft.wechat_sticker_post.constraints.image_max_count if draft.wechat_sticker_post else None
+            draft_payload = DraftPackage.model_validate(state.working["draft"])
+            limit = draft_payload.wechat_sticker_post.constraints.image_max_count if draft_payload.wechat_sticker_post else None
             if limit is not None and len(assets) > limit:
                 raise ValueError(f"sticker image count exceeds verified platform limit: {len(assets)} > {limit}")
         else:
@@ -547,6 +720,8 @@ def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]
             raise ValueError("record_knowledge_writeback PASS/N_A before final_audit PASS")
         if _gate_status(state, "acceptance_contract") != "PASS":
             raise ValueError("acceptance_contract must PASS before final_audit PASS")
+        if _is_dual_formal(state) and _gate_status(state, "broad_derivation") != "PASS":
+            raise ValueError("broad_derivation must PASS before DUAL final_audit PASS")
         if not payload.acceptance_evidence:
             raise ValueError("final_audit PASS requires acceptance_evidence from the frozen final content")
         evidence_map = {
