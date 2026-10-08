@@ -68,7 +68,7 @@ Explicit user instructions may override soft presentation preferences, but canno
 Do not dump every reference into every stage. The Runtime checkpoint or ShadowTaskLedger is the control plane; the references are the stage-specific cognition/rules.
 
 ## 5. Research before selection
-Knowledge recall is an explicit pre-research decision: use relevant durable StockBase/EventBase/knowledge when actually accessible, record real refs, and reverify current/material claims. StockBase remains READ ONLY; stable corrections go to the review queue.
+Knowledge recall is an explicit pre-research decision: use relevant durable StockBase/EventBase/knowledge when actually accessible, record real refs, and reverify current/material claims. Under Runtime, a successful recall/context decision is recorded explicitly through `record_knowledge_context(status="PASS", ...)`; unavailable or blocked recall must be recorded with the appropriate non-PASS status rather than invented. StockBase remains READ ONLY; stable corrections go to the review queue.
 
 Research must know materially more than the article says. Cover catalyst/timeline, concept graph, industry/economic transmission, relevant A-share universe, company fundamentals/realization stage, `why_this / why_not`, negative evidence/counterexamples, market-selection logic and relevant short-term roles/signals.
 
@@ -147,14 +147,14 @@ Mechanical QA checks title alignment, hierarchy/numbering, stock bolding, discla
 Bold emphasis should form a useful skim-reading skeleton; semantic audit judges whether title + headings + bold anchors reconstruct the article's central line.
 
 ## 12. Knowledge writeback
-Before final PASS, make an explicit reusable-knowledge writeback decision. Write back only evidence-bounded durable cognition through an actually authorized durable store. Article rhetoric/title/temporary emphasis are not market knowledge. StockBase corrections stay in the review queue.
+Before final PASS, make an explicit reusable-knowledge writeback decision. Under Runtime, record that decision through `record_knowledge_writeback`; write back only evidence-bounded durable cognition through an actually authorized durable store. Article rhetoric/title/temporary emphasis are not market knowledge. StockBase corrections stay in the review queue.
 
 Do not claim cross-agent synchronization unless the agents actually share an implemented knowledge layer.
 
 ## 13. Final red-team and completion
 At FINAL_AUDIT, treat the result as potentially wrong. Re-read frozen acceptance, final content/artifacts, research evidence, mechanical results and every required render page.
 
-The final evidence inventory must prove source/evidence boundary, supplied-source completion, omission/count/time/market-data checks, headline/opening/H1 payoff, hierarchy realization, concrete company/stock application, stock-judgment clarity, bold skim skeleton, causal continuity, fact/inference/market-expectation separation, anti-AI cleanliness, compliance/risk, DUAL mother-to-derivative consistency and artifact identity.
+The final evidence inventory must prove source/evidence boundary, supplied-source completion, omission/count/time/market-data checks, headline/opening/H1 payoff, hierarchy realization, concrete company/stock application, stock-judgment clarity, bold skim skeleton, causal continuity, fact/inference/market-expectation separation, anti-AI cleanliness, compliance/risk, DUAL mother-to-derivative consistency and artifact identity. Applicable formal modes must include the explicit final evidence keys `opening_first_three_sentences` and `bold_scan_skeleton` rather than merely asserting that the opening and bolding were checked.
 
 DUAL additionally proves:
 - `DUAL.cross_version_consistency`;
