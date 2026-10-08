@@ -24,6 +24,9 @@
     {"id":"E21","prompt":"新开一篇文章，不要继续上一篇；学习成果可以用，但旧稿任务状态不要带过来","assertions":["new task gets a fresh task_id","prior task working state and gates are not inherited","explicit resume restores only the requested task"]},
     {"id":"E22","prompt":"这三个来源都要读，漏一个不行；读不全也要明确告诉我","assertions":["every source_ref has FULL PARTIAL or UNAVAILABLE receipt","silent source omission fails research validation","partial or unavailable source remains an explicit boundary"]},
     {"id":"E23","prompt":"每一章都要有明确判断和续读点，该有二三级结构就必须有，不能写着写着漂掉","assertions":["section expectations freeze direction gap payoff and logical blocks","draft hierarchy must match frozen H1 H2 H3 contract","final audit requires per-H1 promise-payoff evidence"]},
-    {"id":"E24","prompt":"终稿前把遗漏、来源完成度、数量对账、时点和反例都逐项查清，不能一句QA通过带过","assertions":["final audit requires separate source completion omission count time and counterexample evidence keys","N/A decisions must be explicit rather than omitted","completion fails closed when any required final evidence key is absent"]}
+    {"id":"E24","prompt":"终稿前把遗漏、来源完成度、数量对账、时点和反例都逐项查清，不能一句QA通过带过","assertions":["final audit requires separate source completion omission count time and counterexample evidence keys","N/A decisions must be explicit rather than omitted","completion fails closed when any required final evidence key is absent"]},
+    {"id":"E25","prompt":"聊天框里也把正文给我，同时还要Word文件","assertions":["delivery channel WORD_AND_CHAT","CHAT_TEXT and Word outputs are both required","Word mechanical audit and audit report remain mandatory"]},
+    {"id":"E26","prompt":"没有Level-2也把封单、逐笔和抢筹强弱写清楚","assertions":["do not infer unavailable microstructure","order-book or tick claims require declared LEVEL2 capability receipts","final audit exposes market-data boundary"]},
+    {"id":"E27","prompt":"如果研究或标题一直不过就一直改，别停","assertions":["task freezes policy revision budgets at start","revisions beyond the stage budget block rather than loop forever","blocked state preserves exact recovery stage"]}
   ]
 }
