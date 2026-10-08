@@ -17,13 +17,18 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     assert state.stage == Stage.RESEARCH_AUDIT
     state.set_gate("research_audit", GateStatus.PASS, ["judge"])
     state = ctl.advance(state)
-    state.set_gate("editorial_plan", GateStatus.PASS, ["topicdna"])
+    state.set_gate("editorial_plan", GateStatus.PASS, ["deep topicdna"])
     state = ctl.advance(state)
-    state.set_gate("title_audit", GateStatus.PASS, ["title judge"])
-    state.set_gate("acceptance_contract", GateStatus.PASS, ["article-level contract frozen"])
+    state.set_gate("title_audit", GateStatus.PASS, ["deep title judge"])
+    state.set_gate("acceptance_contract", GateStatus.PASS, ["deep article-level contract frozen"])
     state = ctl.advance(state)
-    state.set_gate("draft_output", GateStatus.PASS, ["draft frozen"])
+    state.set_gate("draft_output", GateStatus.PASS, ["deep mother draft frozen"])
     state = ctl.advance(state)
+    assert state.stage == Stage.BROAD_DERIVATION
+    assert state.working["broad_derivation_phase"] == "EDITORIAL"
+    state.set_gate("broad_derivation", GateStatus.PASS, ["broad derived from frozen deep mother"])
+    state = ctl.advance(state)
+    assert state.stage == Stage.EDITORIAL_AUDIT
     state.set_gate("style_audit", GateStatus.PASS, ["style judge"])
     state.set_gate("editorial_audit", GateStatus.PASS, ["editor judge"])
     state = ctl.advance(state)
@@ -40,7 +45,12 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target in trajectory unit test"])
     required_evidence = engine._required_final_evidence_keys(state)
     assert "DUAL.cross_version_consistency" in required_evidence
+    assert "DUAL.deep_master_quality" in required_evidence
+    assert "DUAL.broad_derivation_fidelity" in required_evidence
+    assert "DUAL.broad_hook_strength" in required_evidence
     assert "FINANCE_DEEP.opening_first_three_sentences" in required_evidence
+    assert "FINANCE_DEEP.hook_quality" in required_evidence
+    assert "FINANCE_BROAD.stock_judgment_clarity" in required_evidence
     assert "FINANCE_BROAD.bold_scan_skeleton" in required_evidence
     state.working["final_audit"] = {
         "acceptance_evidence": [f"{key}: verified on frozen final content" for key in sorted(required_evidence)]
@@ -51,7 +61,7 @@ def test_happy_path_trace_is_deterministic(tmp_path):
 
     entered = [e.stage.value for e in state.trace if e.event == "STAGE_ENTER"]
     assert entered == [
-        "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
+        "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT", "BROAD_DERIVATION",
         "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT", "COMPLETE"
     ]
 
