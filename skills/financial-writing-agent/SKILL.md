@@ -16,7 +16,7 @@ Do not begin research, outlining or drafting until the control plane is selected
 The standalone profile exists so a fresh conversation can execute this Agent without deployment while retaining explicit stage accounting, acceptance contracts, invalidation, evidence and completion barriers. It reduces drift but does not become deterministic simply because the rules are written down.
 
 ## 1. Decide resume vs new before doing anything else
-- Under `RUNTIME`, explicit continuation intent such as “继续昨天那篇/接着写/刚才那篇” may restore an unfinished task through `list_recent_writing_tasks` → `get_writing_task`; a blocked task is repaired and resumed, not duplicated.
+- Under `RUNTIME`, explicit continuation intent such as “继续昨天那篇/接着写/刚才那篇” may restore an unfinished task through `list_recent_writing_tasks` → `get_writing_task`; a blocked task is repaired through `resume_writing_task` and resumed, not duplicated.
 - Under `RUNTIME`, a genuinely new task starts with `start_writing_task` before research or drafting; do not inspect unrelated unfinished tasks just because they exist.
 - Under `STANDALONE_SKILL`, a genuinely new task always starts with a fresh `ShadowTaskLedger`. Cross-conversation continuation requires an actual unambiguous prior checkpoint/artifact set.
 - New work may reuse durable knowledge/experience, but must not inherit an old task's stage, blockers, selected title/outline, draft, artifacts, pending actions or next step. **Inherit learning, not unfinished work.**
