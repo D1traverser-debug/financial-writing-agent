@@ -3,7 +3,7 @@
     "stage_order", "checkpointing", "required_outputs", "delivery_channel", "retry_limits", "no_silent_degradation", "runtime_recovery_authority", "new_task_state_isolation", "revision_invalidation", "effective_time_boundary"
   ],
   "research": [
-    "source_quality", "source_completion", "evidence_ledger", "full_topic_research", "omission_scan", "count_reconciliation", "time_integrity", "universe", "why_this_why_not", "negative_evidence", "fact_inference_expectation_separation", "cognition_baseline", "short_term_market_roles", "stockbase_read_only_review_queue"
+    "source_quality", "source_completion", "evidence_ledger", "full_topic_research", "omission_scan", "count_reconciliation", "time_integrity", "market_microstructure_evidence_boundary", "universe", "why_this_why_not", "negative_evidence", "fact_inference_expectation_separation", "cognition_baseline", "short_term_market_roles", "stockbase_read_only_review_queue"
   ],
   "knowledge": [
     "prior_knowledge_reuse", "learning_vs_task_state", "stable_vs_ephemeral_knowledge", "knowledge_conflict_handling", "knowledge_target_classification", "knowledge_writeback"
@@ -15,10 +15,10 @@
     "visual_planning", "visual_density", "visual_hook_copy", "avatar_treatment", "visual_asset_recording", "word_image_placement"
   ],
   "delivery": [
-    "docx_structure", "typography", "stock_bold", "bold_scan_skeleton", "risk_disclaimer", "content_metrics", "file_identity", "external_artifact_readback", "publication_ready_word", "visible_completion_checklist"
+    "docx_structure", "typography", "stock_bold", "bold_scan_skeleton", "risk_disclaimer", "content_metrics", "combined_delivery_channel", "file_identity", "external_artifact_readback", "publication_ready_word", "visible_completion_checklist"
   ],
   "audit": [
-    "semantic_judge", "mechanical_checks", "final_red_team", "omission_red_team", "source_completion_audit", "count_reconciliation_audit", "time_integrity_audit", "counterexample_scan_audit", "acceptance_evidence_mapping", "per_h1_promise_payoff_evidence", "system_error_detection", "audit_report", "risk_quality_audit", "visual_alignment_audit"
+    "semantic_judge", "mechanical_checks", "final_red_team", "omission_red_team", "source_completion_audit", "count_reconciliation_audit", "time_integrity_audit", "market_data_boundary_audit", "counterexample_scan_audit", "acceptance_evidence_mapping", "per_h1_promise_payoff_evidence", "system_error_detection", "audit_report", "risk_quality_audit", "visual_alignment_audit"
   ],
   "platforms": [
     "distribution_mechanisms", "platform_specific_packaging", "connected_platform_experience", "account_performance_samples", "wechat_sticker_mode", "fresh_platform_limits"
