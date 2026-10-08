@@ -57,10 +57,10 @@ Explicit user instructions may override soft presentation preferences, but canno
 
 ## 4. Load stage references progressively
 - `STANDALONE_SKILL`: `references/standalone.md` once before execution.
-- RESEARCH: `references/research.md` + `references/knowledge.md`.
-- RESEARCH_AUDIT: `references/audit.md`.
-- EDITORIAL / TITLE / DRAFT / BROAD_DERIVATION: `references/editorial.md` + `references/style.md` + `references/reader_value.md`; use `references/structure_patterns.md` only after TopicDNA candidate structures exist, as a collision check rather than a template source.
-- FINAL_AUDIT: `references/audit.md` + `references/reader_value.md`.
+- RESEARCH: `references/research.md` + `references/knowledge.md` + `references/professional_analysis.md`.
+- RESEARCH_AUDIT: `references/audit.md` + `references/professional_analysis.md`.
+- EDITORIAL / TITLE / DRAFT / BROAD_DERIVATION: `references/editorial.md` + `references/style.md` + `references/reader_value.md` + `references/professional_analysis.md`; use `references/structure_patterns.md` only after TopicDNA candidate structures exist, as a collision check rather than a template source.
+- FINAL_AUDIT: `references/audit.md` + `references/reader_value.md` + `references/professional_analysis.md`.
 - Platform and post-publication experience: `references/platforms.md`; combine with `references/reader_value.md` only when interpreting reader/business value, not to invent platform rules.
 - Visuals: `references/visuals.md`.
 - Word/output/compliance: `references/delivery.md`.
@@ -78,6 +78,19 @@ For recommendation-oriented or stock-comparison articles, **selection comes afte
 User-supplied links/PDFs/reports/attachments are source obligations. Account for each material input as FULL/PARTIAL/UNAVAILABLE (or duplicate-original equivalent where supported); snippets/tool-success are not source completion.
 
 Respect `effective_time_boundary`, omission/count checks and the `market_data_boundary`. Ordinary quote data does not authorize Level-2 order-book/tick/抢筹 claims. Core title/lead/H1/conclusion evidence cannot remain unresolved.
+
+### Professional financial-analysis integrity
+When a thesis spans layers, validate the applicable chain rather than jumping from a correct upstream fact to an unsupported stock conclusion:
+
+`event/policy/technology/demand shock → industry variable → company exposure/competitive position → revenue/margin/earnings/cash-flow realization → valuation/expectation gap → market pricing/stock role`.
+
+Each material arrow is a separate claim. Industry benefit is not automatically company profit; revenue is not profit; profit is not cash; a good company is not automatically a cheap stock; a positive fundamental change is not automatically an expectation surprise; a positive surprise does not guarantee price appreciation; market leadership is not proof of strongest fundamental realization. Reduce downstream conclusion strength when an intermediate link is unresolved.
+
+For material financial/operating numbers, preserve enough definition to test comparability: entity/segment, period, unit/currency, actual versus preliminary/forecast/guidance, consolidated versus segment scope, gross versus net where material, ratio numerator/denominator, accounting-standard versus company-defined metric, source/date and material definition/restatement changes. Do not confuse YoY/QoQ, TTM/FY/forward periods, nominal/real growth, capacity/output/shipment/order/backlog/revenue, or mismatched peer metrics.
+
+When earnings quality matters, inspect recurring versus one-off contribution, current PRC non-recurring-gain/loss treatment, cash/working-capital support and material accounting-estimate effects. When valuation/“超预期” is material, require a real valuation/expectation baseline and time boundary rather than decorative adjectives or invented consensus. Separate fundamental value, expectations, catalyst, current pricing and short-term liquidity/sentiment.
+
+For material causal claims, test mechanism, intermediate observations, competing explanations and an observable falsification condition. Correlation or chronology alone is not causation.
 
 ## 6. Editorial, reader value, hooks, hierarchy and concrete application
 Build TopicDNA before structure. Candidate structures come from the current topic, not a fixed “event → industry → stocks → market → next” template.
@@ -97,6 +110,8 @@ At paragraph level, front-load the real job when feasible: do not routinely bury
 Material analytical paragraphs should normally add a specific event/fact, number, mechanism, named company/stock, comparison, market role or present judgment. If a paragraph could be pasted into an unrelated sector article with only nouns changed, revise it.
 
 When stocks matter, do not stop at “行业受益/政策催化/景气提升”. Show the actual transmission to companies/stocks: factual exposure, realization stage, narrative-only elements, current market role/身位 when supported, meaningful alternatives and why the relative judgment follows.
+
+Do not turn professional-analysis checks into a generic six-section template. Use only the financial layers material to the current thesis. Technical detail that does not change the conclusion or help the reader test it should be cut.
 
 ### Hook engine
 Treat hooks as a linked system:
@@ -173,6 +188,8 @@ At FINAL_AUDIT, treat the result as potentially wrong. Re-read frozen acceptance
 The final evidence inventory must prove source/evidence boundary, supplied-source completion, omission/count/time/market-data checks, headline/opening/H1 payoff, hierarchy realization, concrete company/stock application, stock-judgment clarity, bold skim skeleton, causal continuity, fact/inference/market-expectation separation, anti-AI cleanliness, compliance/risk, DUAL mother-to-derivative consistency and artifact identity. Applicable formal modes must include the explicit final evidence keys `opening_first_three_sentences` and `bold_scan_skeleton` rather than merely asserting that the opening and bolding were checked.
 
 Use the existing final-evidence keys to prove reader value rather than creating a second checklist vocabulary. `hook_quality`, `opening_first_three_sentences`/`opening_payoff`, per-H1 `promise_payoff`, `reasoning_continuity`, `bold_scan_skeleton`, `side_focus`, `company_selection_basis`, `DUAL.deep_master_quality` and `DUAL.broad_hook_strength` must collectively show what the target reader learns that was not obvious before reading, how quickly that value becomes visible, and whether the scan path preserves it. Factual correctness without a material reader-information gain is an EDITORIAL/DRAFT defect, not an automatic PASS.
+
+Also use the existing evidence keys to prove professional financial-analysis integrity. `GLOBAL.evidence_boundary`, `GLOBAL.time_integrity`, `GLOBAL.counterexample_scan`, `<MODE>.company_selection_basis`, `<MODE>.stock_judgment_clarity`, `<MODE>.reasoning_continuity`, `<MODE>.side_focus` and per-H1 `promise_payoff` must show that material layer transitions are supported or explicitly bounded, numeric/expectation comparisons are definition- and time-consistent, competing explanations were considered, and fundamentals/earnings quality/valuation/expectations/market role were not silently conflated. Revise rather than PASS when a headline or conclusion depends on a missing analytical bridge.
 
 DUAL additionally proves:
 - `DUAL.cross_version_consistency`;
