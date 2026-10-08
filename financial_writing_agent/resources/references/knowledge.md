@@ -21,10 +21,12 @@ When a connected durable store supports these distinctions, route reusable candi
 - event/catalyst chronology and event-specific facts → EventBase-like knowledge;
 - stable industry structure/transmission relationships → IndustryBase-like knowledge;
 - reusable factual evidence/source-quality/conflict records → EvidenceCache-like knowledge;
-- article TopicDNA, accepted structural fingerprint, title/structure decision rationale, user feedback and platform-performance experience → ArticleBase-like knowledge/experience;
+- article TopicDNA, accepted structural fingerprint, title/structure decision rationale, user feedback and **structured `ArticleExperienceSample` records owned by `platforms.md`** → ArticleBase-like knowledge/experience;
 - company/concept/relation corrections discovered during writing → StockBase review queue only, never a direct writing-side mutation.
 
 These are semantic target classes, not a claim that the standalone runtime owns connector credentials or that all named stores are already implemented as one executable database.
+
+For article-performance experience, knowledge storage preserves the platform-owned sample as evidence. It does not reinterpret missing metrics, collapse the observation window, discard confounders or silently upgrade `SAMPLE_ONLY` into a durable rule. `0`, missing and unavailable remain distinct. Promotion semantics remain governed by `platforms.md` plus maintenance review.
 
 ## Stable vs ephemeral
 Promote stable business/industry relationships cautiously. Timestamp ephemeral market-state observations such as price action,身位,抢筹,封单/订单簿 strength, intraday leadership or crowding; they are evidence for a dated market state, not permanent company identity.
@@ -36,10 +38,14 @@ The runtime must start first. Then, when a connected knowledge store exists, the
 
 For A-share company/concept writing, connected StockBase/EventBase is relevant by default when actually accessible. StockBase remains READ ONLY during writing. If unavailable, record the unavailable boundary rather than pretending the knowledge layer was consulted.
 
+When ArticleBase/platform experience is relevant to packaging, retrieve the **current comparable samples/method state**, not merely the most memorable successful article. Preserve whether an input is `SAMPLE_ONLY`, a user-declared objective, a repeated-evidence method or an authoritative-platform mechanism. Do not treat historical performance correlation as a current platform law without re-verification.
+
 The standalone Python runtime intentionally does **not** claim that it can directly authenticate to the user's Notion/Drive connectors. The MCP record is a receipt/boundary between connector-side retrieval and runtime state.
 
 ## Writeback choreography
 Research emits `knowledge_writeback_candidates`. Before final audit, the orchestrator writes back only reusable, evidence-bounded knowledge through the connected store when available, avoiding duplicates and preserving source/date/confidence. Record resulting page/file/item references with `record_knowledge_writeback(status="PASS")`. If there is no connected destination or nothing reusable, record `N_A` with a reason. The runtime keeps this gate `NOT_RUN` until that explicit decision is recorded.
+
+When post-publication performance is later available, a platform-owned `ArticleExperienceSample` may also be persisted into the appropriate ArticleBase-like experience store with its identity, measurement window, available metrics, baseline/context, confounders, hypothesis, confidence and current promotion status intact. This is a later learning/maintenance action, not something the writing run should fabricate before performance exists.
 
 Article-specific rhetoric, headline wording and temporary stylistic choices are not knowledge-base facts. Contradictions are recorded rather than silently overwritten. A StockBase correction remains in the task's review queue for the authorized review workflow; generic knowledge writeback must not be used to bypass that permission boundary.
 
@@ -47,8 +53,8 @@ Article-specific rhetoric, headline wording and temporary stylistic choices are 
 On a genuinely new task, durable knowledge may be recalled, but task-local state is not a prior. Do not search recent writing tasks merely to discover something unfinished and continue it automatically. The resume path is activated only by explicit continuation intent or an unambiguous reference to that unfinished task.
 
 This is the operational distinction:
-- **inherit:** cognition, evidence, validated source notes, platform experience, style lessons, regression/prevention knowledge;
+- **inherit:** cognition, evidence, validated source notes, structured platform experience, style lessons, regression/prevention knowledge;
 - **do not inherit by default:** task_id, stage, gates, blockers, selected title/outline, draft, artifacts, pending steps, next action or visual state.
 
 ## Current implementation boundary
-Writing now has an explicit connector/runtime boundary and reusable candidate/receipt contract. Stock-picking/review agents still do not share one executable store, so never claim cross-agent synchronization until those agents are implemented against the same layer.
+Writing now has an explicit connector/runtime boundary and reusable candidate/receipt contract. The repository does not yet expose an executable automatic ArticleExperienceSample-to-rule promotion workflow, and stock-picking/review agents still do not share one executable store. Never claim automatic causal learning, rule promotion or cross-agent synchronization until those paths are implemented against the same durable layer.
