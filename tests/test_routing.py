@@ -29,6 +29,11 @@ def test_unspecified_platform_routes_dual_and_new_word_article_enables_visuals()
     assert ArtifactKind.VISUAL_MANIFEST_JSON in c.required_outputs
     assert c.effective_time_boundary.tzinfo is not None
     assert before <= c.effective_time_boundary.astimezone(timezone.utc) <= after
+    assert c.run_constraints == {
+        "research_max_rounds": 2,
+        "title_max_rounds": 3,
+        "draft_max_rounds": 2,
+    }
 
 
 def test_explicit_historical_effective_time_boundary_is_preserved():
@@ -60,6 +65,24 @@ def test_chat_and_existing_word_do_not_force_visuals():
     c2 = build_task_contract(prompt="Word已经写好了，直接发我")
     assert c2.delivery_channel == DeliveryChannel.WORD_FILE_ONLY
     assert c2.visuals_enabled is False
+
+
+def test_explicit_chat_plus_word_requires_both_channels_and_word_audit():
+    c = build_task_contract(prompt="聊天框把正文也给我，同时给我Word文件，不要配图")
+    assert c.delivery_channel == DeliveryChannel.WORD_AND_CHAT
+    assert c.visuals_enabled is False
+    assert set(c.required_outputs) == {
+        ArtifactKind.CHAT_TEXT,
+        ArtifactKind.AUDIT_DOCX,
+        ArtifactKind.FINANCE_DEEP_DOCX,
+        ArtifactKind.FINANCE_BROAD_DOCX,
+    }
+
+
+def test_negative_word_mention_does_not_accidentally_enable_combined_delivery():
+    c = build_task_contract(prompt="聊天框直接给正文，不要Word，不需要docx")
+    assert c.delivery_channel == DeliveryChannel.CHAT_TEXT
+    assert c.required_outputs == [ArtifactKind.CHAT_TEXT]
 
 
 def test_explicit_no_images_disables_visuals():
