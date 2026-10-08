@@ -22,9 +22,39 @@ Separate:
 - platform/distribution mechanics that are currently evidenced;
 - account-specific observed performance;
 - hypotheses still being tested;
-- generic article-quality/editorial method, which remains owned by editorial/style references.
+- generic article-quality/editorial method, which remains owned by editorial/style/reader-value references.
 
 One viral or failed article, one title pattern, one topic category, one reader comment about length or one short observation window is an experience sample. Do not promote it to a permanent formula without repeated, comparable evidence that controls for topic, distribution conditions, timing and obvious outliers. A user-specified business objective such as prioritizing completion for downstream monetization may still be used as an optimization target without pretending it is a universal platform law.
+
+## Structured ArticleExperienceSample
+When real post-publication/account performance is available, preserve it as a structured `ArticleExperienceSample` rather than an unqualified note such as “这个标题有效”. This is an experience/governance contract, not a claim that the current Writing Runtime automatically fetches or promotes platform analytics.
+
+Record only fields the platform/account actually exposes, preserving unavailable values as unavailable rather than inventing zeroes. A useful sample should include when available:
+- stable `article_ref` / article identity;
+- platform/account context and distribution mode;
+- topic/category;
+- publish time and explicit observation window;
+- final title/hook mechanism and article character count;
+- available exposure/impression, click/read, completion/read-duration, comment, share, follow, search, conversion or monetization measurements;
+- traffic-source mix;
+- comparable account/topic baseline or cohort;
+- material confounders such as topic heat, account growth, paid versus organic distribution, external traffic, timing, policy/event intensity or platform-feature changes;
+- reader-feedback samples kept separate from behavioral metrics;
+- the hypothesis the sample supports or challenges;
+- confidence `LOW / MEDIUM / HIGH` with rationale;
+- `promotion_status = SAMPLE_ONLY` by default.
+
+`0`, missing and unavailable are distinct states. Do not backfill unavailable metrics with estimates merely to make samples comparable.
+
+### Experience promotion discipline
+One high- or low-performing article is not a durable method. A platform/account experience may be promoted beyond `SAMPLE_ONLY` only when at least one defensible authority exists:
+1. the user explicitly declares a stable business objective/rule;
+2. repeated, reasonably comparable samples support the same relationship after obvious confounders are considered; or
+3. a current authoritative platform source establishes the mechanism.
+
+Even after promotion, retain source/sample window, scope and reversibility because platform mechanics change. Reader comments are qualitative evidence; one comment is not audience-level behavioral proof. Correlation between article design and performance is not automatically causal.
+
+The current repository does **not** implement an automatic cross-task causal-learning/promotion engine. Promotion remains maintenance/governance work unless and until an executable workflow and regression boundary are added.
 
 ## WECHAT_STICKER_POST
 An explicit 微信贴图 request is a separate executable content mode, not a shortened formal article and not DUAL. Its deliverable is `WECHAT_STICKER_POST.docx` plus `VISUAL_MANIFEST.json` when visuals are enabled.
