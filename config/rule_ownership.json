@@ -2,6 +2,9 @@
   "runtime": [
     "stage_order", "checkpointing", "required_outputs", "delivery_channel", "retry_limits", "no_silent_degradation", "runtime_recovery_authority", "new_task_state_isolation", "revision_invalidation", "effective_time_boundary"
   ],
+  "standalone": [
+    "standalone_execution_profile", "shadow_task_ledger", "standalone_stage_gating", "standalone_revision_invalidation", "standalone_completion_barrier", "standalone_assurance_boundary"
+  ],
   "research": [
     "source_quality", "source_completion", "evidence_ledger", "full_topic_research", "omission_scan", "count_reconciliation", "time_integrity", "market_microstructure_evidence_boundary", "universe", "recommendation_stock_research_depth", "why_this_why_not", "negative_evidence", "fact_inference_expectation_separation", "cognition_baseline", "short_term_market_roles", "stockbase_read_only_review_queue"
   ],
