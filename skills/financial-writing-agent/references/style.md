@@ -23,6 +23,17 @@ The judge must provide concrete text-level evidence and a required five-part rub
 - Within an H1, paragraph order should normally reflect a real progression. If multiple paragraphs can be arbitrarily permuted without changing the reasoning, the section likely lacks a sufficient causal/problem/constraint/validation chain.
 - When switching companies, make the changed comparison dimension, industrial handoff or market-role difference legible instead of using a repeated company-introduction template.
 
+## Anti-genericity / concrete application
+Generic financial prose is a quality defect even when it is grammatically correct.
+
+A material analytical paragraph should normally contain at least one topic-specific anchor: a verified event/fact, number, policy detail, named company/stock, causal mechanism, comparison, market role or present judgment. If a paragraph can be pasted into an unrelated sector article with only the nouns changed, revise it.
+
+When stocks are material to the topic, industry/policy/technology claims must eventually resolve into actual company/stock consequences. Do not stop at “行业受益、景气提升、政策催化、需求增长”. Explain which company is factually exposed, what part of the economic transmission reaches it, how far realization has progressed, what remains narrative/expected, and how this changes the relative stock/company judgment.
+
+Abstract background is acceptable only when it is needed to understand the specific case. Move quickly from background to the actual event, number, company or market-selection question. Do not use generic industry exposition to create the appearance of depth.
+
+For FINANCE_BROAD, every paragraph competes with completion. A paragraph that neither advances the hook, adds an independent fact/mechanism, sharpens a company/stock comparison nor changes the conclusion should normally be cut. Do not add ceremonial recap paragraphs after the article has already landed its judgment.
+
 ## Backstage/prompt leakage
 Published prose must not expose orchestration or user-prompt language. Remove phrases such as “你提到”“按你的要求”“我的筛选顺序”“以后我会”, internal gate/tool names, task-routing language, hidden selection instructions, or descriptions of what the agent was told to do. The article should read as an authored research product, not a transcript of its production workflow.
 
