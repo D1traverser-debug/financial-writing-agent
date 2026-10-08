@@ -74,6 +74,11 @@ All verifiable facts in the final article must be supported. The following deser
 
 For mutable facts—orders, capacity, customers, executive roles, cooperation progress, policy status and similar items—refresh the latest effective disclosure **on or before `effective_time_boundary`** for each article rather than inheriting an old cache as current. Price, market cap, daily move, float, market pools and short-term market roles must carry a comparable trading date/time boundary. On a non-trading day, using the latest trading day is acceptable only when it is described as such rather than presented as same-day trading feedback.
 
+## Market-data capability boundary
+Market microstructure is an evidence-permission boundary, not a stylistic flourish. `ResearchPackage.market_data_boundary` records the actual market-data capability used for the task: `NONE`, `STANDARD` or `LEVEL2`, the data `as_of`, real source receipts, and whether order-book and/or tick data were actually available.
+
+Standard quotes may support ordinary price/volume/market-cap or other fields the source actually returns. They do **not** authorize invented Level-2 interpretations. Claims about `封单`, order-book/queue depth, `买一/卖一` queue behavior or similar order-book structure require a declared `LEVEL2` boundary with `order_book_available=true`. `逐笔/逐单/tick` claims require declared Level-2 tick capability. `抢筹` or equivalent microstructure inference requires actual order-book or tick evidence. If the capability is unavailable, omit/downgrade the claim and record the limitation; never reverse-engineer Level-2 conclusions from ordinary quote fields.
+
 ## StockBase and review queue
 Persistent knowledge is a prior, not a verdict. For every reused knowledge item record its reference and recency; identify conflicts with new evidence. Never allow an old stock/concept label to override current business facts or current market structure.
 
@@ -82,9 +87,11 @@ Writing remains READ ONLY against StockBase. A stable company/concept/relation c
 Fast-changing price action,封单,抢筹,身位 and similar signals should be timestamped/treated as ephemeral rather than promoted as timeless knowledge.
 
 ## Failure and fallback receipts
-Tool success is not evidence success. When a material research path fails or returns only a snippet/template/empty payload, record a `ResearchFailure` with failed action, reason, retry status, alternative source/tool, impact and whether it was resolved.
+Tool success is not evidence success. When a material research path fails or returns only a snippet/template/empty payload, record one consolidated `ResearchFailure` per failed action/path with failed action, reason, retry count, alternative source/tool, impact and whether it was resolved.
 
-Switch sources/tools when possible; do not shrink the required universe, source-completion obligation or verification obligation because one tool failed. A core unresolved gap blocks or weakens the claim. A non-core gap may proceed only with explicit boundary language. Known quota/permission exhaustion is not a reason for repeated blind retries; move to an independent reliable path and preserve the failure receipt.
+A temporary same-path failure may receive **at most one justified retry**. A second same-path retry is not allowed by the research contract; move to an independent reliable path or keep the boundary unresolved. Known quota/permission exhaustion receives no blind probe/retry. Duplicate receipts for the same failed action must be consolidated rather than disguising repeated retries as separate failures.
+
+Switch sources/tools when possible; do not shrink the required universe, source-completion obligation or verification obligation because one tool failed. A core unresolved gap blocks or weakens the claim. A non-core gap may proceed only with explicit boundary language. Preserve the failure/fallback receipt so “tool succeeded” can never be confused with “evidence succeeded”.
 
 ## Knowledge writeback candidates
 Research output should identify reusable knowledge candidates after the task: stable company/business mappings, industry-chain relationships, recurring concept definitions, event chronology/catalyst facts, source-quality notes, reusable evidence and unresolved questions. These candidates do not authorize writeback by themselves; final writeback follows the connected-store permission boundary and explicit PASS/N_A receipt flow.
@@ -100,6 +107,8 @@ RESEARCH passes only when:
 - important counterevidence is represented;
 - prior-knowledge conflicts are bounded;
 - mutable facts and market-state claims respect the frozen `effective_time_boundary` and carry a comparable explicit time boundary;
+- any market-microstructure claim stays inside the declared `market_data_boundary` capability;
+- failed-path retry receipts respect the single-retry/fallback boundary;
 - unresolved gaps are explicit;
 - `ResearchCoverage` explains why breadth is sufficient to proceed;
 - at least one publishable `core_safe` evidence item exists;
