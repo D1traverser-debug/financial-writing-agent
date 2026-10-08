@@ -123,7 +123,7 @@ def build_article_docx(
     styles["Normal"]._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
 
     title = doc.add_paragraph()
-    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    title.alignment = WD_ALIGN_PARAGRAPH.LEFT
     r = title.add_run(article.title)
     r.bold = True
     r.font.size = Pt(policy["word"]["title_pt"])
