@@ -103,6 +103,40 @@ def test_combined_delivery_market_data_and_revision_budgets_are_executable_not_p
     assert "market_data_boundary" in skill
 
 
+def test_deep_first_dual_hook_and_stock_judgment_rules_are_executable_or_audited():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    controller = Path("financial_writing_agent/controller.py").read_text(encoding="utf-8")
+    runtime = Path("financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    engine = Path("financial_writing_agent/engine.py").read_text(encoding="utf-8")
+    editorial = Path("references/editorial.md").read_text(encoding="utf-8")
+    research = Path("references/research.md").read_text(encoding="utf-8")
+    audit = Path("references/audit.md").read_text(encoding="utf-8")
+    style = Path("references/style.md").read_text(encoding="utf-8")
+    skill = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+
+    assert "dual_deep_master_broad_derivation" in ownership["editorial"]
+    assert "recommendation_stock_research_depth" in ownership["research"]
+    assert "hook_quality_audit" in ownership["audit"]
+    assert "stock_judgment_clarity_audit" in ownership["audit"]
+
+    assert 'BROAD_DERIVATION = "BROAD_DERIVATION"' in models
+    assert "Stage.BROAD_DERIVATION" in controller
+    assert "Broad structure/title/draft were submitted only after deep mother draft was frozen" in runtime
+    assert "FINANCE_BROAD may omit mother-version stocks but must not introduce new stocks" in Path("financial_writing_agent/harness.py").read_text(encoding="utf-8")
+    assert '"hook_quality",' in engine
+    assert '"stock_judgment_clarity",' in engine
+    assert '"DUAL.deep_master_quality"' in engine
+    assert '"DUAL.broad_derivation_fidelity"' in engine
+    assert '"DUAL.broad_hook_strength"' in engine
+
+    assert "DUAL is sequential, not parallel" in editorial
+    assert "Recommendation-oriented stock research depth" in research
+    assert "Judgment specificity / anti-empty-hedging" in style
+    assert "DUAL.deep_master_quality" in audit
+    assert "DUAL is deep-first, not parallel" in skill
+
+
 def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
@@ -137,4 +171,4 @@ def test_legacy_cold_start_editorial_and_platform_semantics_remain_present():
 
     # Legacy T13: compress redundancy before reasoning/evidence.
     assert "Compress repeated explanation, textbook background, synonym restatement" in editorial
-    assert "counterexamples, why-this/why-not, market-selection mechanism" in editorial
+    assert "Preserve counterexamples, `why_this / why_not`, market-selection logic" in editorial
