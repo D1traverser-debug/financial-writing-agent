@@ -9,10 +9,13 @@
     "source_quality", "source_completion", "evidence_ledger", "full_topic_research", "omission_scan", "count_reconciliation", "time_integrity", "market_microstructure_evidence_boundary", "universe", "recommendation_stock_research_depth", "why_this_why_not", "negative_evidence", "fact_inference_expectation_separation", "cognition_baseline", "short_term_market_roles", "stockbase_read_only_review_queue"
   ],
   "knowledge": [
-    "prior_knowledge_reuse", "learning_vs_task_state", "stable_vs_ephemeral_knowledge", "knowledge_conflict_handling", "knowledge_target_classification", "knowledge_writeback"
+    "prior_knowledge_reuse", "learning_vs_task_state", "stable_vs_ephemeral_knowledge", "knowledge_conflict_handling", "knowledge_target_classification", "knowledge_writeback", "experience_storage_integrity"
   ],
   "editorial": [
     "topic_dna", "structure", "information_density", "deep_master_length_guardrail", "deep_density_review", "broad_completion_length", "concrete_application", "headline_hook", "opening_hook", "section_hooks", "hook_mechanism_diversity", "hook_payoff", "h1_continuation_contract", "section_acceptance_contract", "hierarchy_scanability", "dual_deep_master_broad_derivation", "broad_compression_packaging", "stock_judgment_specificity", "continuous_report_prose", "logical_transitions", "natural_ending", "default_language", "chinese_hierarchy", "anti_ai_style", "backstage_prompt_leakage", "empty_hedge_control", "extreme_language"
+  ],
+  "reader_value": [
+    "target_reader_value", "primary_reader_need", "non_obvious_information_delta", "decision_understanding_delta", "trust_reason", "information_scent", "paragraph_frontloading", "reader_scan_path", "professional_synthesis_value", "commercial_value_chain", "repeat_trust_value"
   ],
   "visuals": [
     "visual_planning", "visual_density", "visual_hook_copy", "avatar_treatment", "visual_asset_recording", "word_image_placement"
@@ -24,7 +27,7 @@
     "semantic_judge", "mechanical_checks", "final_red_team", "omission_red_team", "source_completion_audit", "count_reconciliation_audit", "time_integrity_audit", "market_data_boundary_audit", "counterexample_scan_audit", "acceptance_evidence_mapping", "per_h1_promise_payoff_evidence", "hook_quality_audit", "stock_judgment_clarity_audit", "dual_derivation_audit", "system_error_detection", "audit_report", "risk_quality_audit", "visual_alignment_audit"
   ],
   "platforms": [
-    "distribution_mechanisms", "platform_specific_packaging", "connected_platform_experience", "account_performance_samples", "wechat_sticker_mode", "fresh_platform_limits"
+    "distribution_mechanisms", "platform_specific_packaging", "connected_platform_experience", "account_performance_samples", "structured_article_experience_sample", "experience_promotion_discipline", "wechat_sticker_mode", "fresh_platform_limits"
   ],
   "maintenance": [
     "change_classification", "single_owner_update", "system_error_handling", "cold_start_regression", "regression_testing", "cutover_policy", "style_sample_promotion", "mechanically_decidable_rule_enforcement", "canonical_system_document_identity"

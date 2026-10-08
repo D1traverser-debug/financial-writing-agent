@@ -58,9 +58,10 @@ Explicit user instructions may override soft presentation preferences, but canno
 ## 4. Load stage references progressively
 - `STANDALONE_SKILL`: `references/standalone.md` once before execution.
 - RESEARCH: `references/research.md` + `references/knowledge.md`.
-- RESEARCH_AUDIT / FINAL_AUDIT: `references/audit.md`.
-- EDITORIAL / TITLE / DRAFT / BROAD_DERIVATION: `references/editorial.md` + `references/style.md`; use `references/structure_patterns.md` only after TopicDNA candidate structures exist, as a collision check rather than a template source.
-- Platform: `references/platforms.md`.
+- RESEARCH_AUDIT: `references/audit.md`.
+- EDITORIAL / TITLE / DRAFT / BROAD_DERIVATION: `references/editorial.md` + `references/style.md` + `references/reader_value.md`; use `references/structure_patterns.md` only after TopicDNA candidate structures exist, as a collision check rather than a template source.
+- FINAL_AUDIT: `references/audit.md` + `references/reader_value.md`.
+- Platform and post-publication experience: `references/platforms.md`; combine with `references/reader_value.md` only when interpreting reader/business value, not to invent platform rules.
 - Visuals: `references/visuals.md`.
 - Word/output/compliance: `references/delivery.md`.
 - Durable changes/system errors: `references/maintenance.md`.
@@ -78,10 +79,19 @@ User-supplied links/PDFs/reports/attachments are source obligations. Account for
 
 Respect `effective_time_boundary`, omission/count checks and the `market_data_boundary`. Ordinary quote data does not authorize Level-2 order-book/tick/抢筹 claims. Core title/lead/H1/conclusion evidence cannot remain unresolved.
 
-## 6. Editorial, hooks, hierarchy and concrete application
+## 6. Editorial, reader value, hooks, hierarchy and concrete application
 Build TopicDNA before structure. Candidate structures come from the current topic, not a fixed “event → industry → stocks → market → next” template.
 
 For DUAL, solve FINANCE_DEEP completely first: causal chain, actual company comparison, realization stage, market-selection logic, present stock judgments, counterevidence and risk boundary. Broad is then a controlled compression/repackaging: title/lead/order/density may change, but facts, evidence strength, decisive causal chain, ranking, stock judgment and risk boundary may not silently change.
+
+### Reader value and commercial value
+Before selecting structure, make the existing TopicDNA/editorial fields resolve: target reader, primary reader need, starting misunderstanding/question, the non-obvious information delta beyond source restatement, the concrete decision/understanding delta after reading, and the trust reason that makes the judgment worth relying on.
+
+Professional depth is not fact count. A publishable article should contribute a material synthesis layer—such as a non-obvious causal link, definition/denominator correction, company divergence, `why_this / why_not` elimination, market-vs-fundamental mismatch, counterevidence that narrows a thesis, or another evidence-bounded perspective. Do not manufacture novelty when the evidence only supports a straightforward update.
+
+Optimize the reader-value chain as `truthful acquisition → immediate information scent → sustained value density → useful perspective/judgment → completion → trust/repeat value`. Account-specific monetization, comments, follows, search or downstream inventory may be optimized only when current platform/account evidence makes them relevant; they never authorize clickbait, delayed payoff, manufactured controversy, keyword stuffing or weaker evidence/compliance.
+
+At paragraph level, front-load the real job when feasible: do not routinely bury the decisive fact, number, comparison or conclusion at the end. Title + lead + headings + bold anchors + material paragraph openings should form a coherent scan path. This is a semantic standard, not a fixed sentence/paragraph-length formula; do not create choppy pseudo-web prose.
 
 ### No generic finance filler
 Material analytical paragraphs should normally add a specific event/fact, number, mechanism, named company/stock, comparison, market role or present judgment. If a paragraph could be pasted into an unrelated sector article with only nouns changed, revise it.
@@ -116,7 +126,7 @@ At `EDITORIAL_AUDIT`, run the independent style judge before general editorial a
 
 Do not “humanize” with random slang/fragments. Human quality means evidence-led prioritization, natural pacing, topic-specific choices and clear analytical judgment.
 
-For FINANCE_BROAD, any paragraph that does not advance the hook, add an independent fact/mechanism, sharpen a company/stock comparison or change the conclusion should normally be cut.
+For FINANCE_BROAD, any paragraph that does not advance the hook, add an independent fact/mechanism, sharpen a company/stock comparison or change the conclusion should normally be cut. A Broad version is defective when it is merely shorter but still slow to reveal relevance, jargon-heavy or difficult to scan.
 
 ## 8. Risk/compliance
 Every formal public-finance payload carries a separate `risk_disclaimer`. Delivery appends it deterministically. Keep it compact and materially sufficient; do not create a long boilerplate tail that harms completion.
@@ -130,12 +140,16 @@ When visuals are enabled, Runtime delivery uses `submit_visual_package` with rea
 
 Formal articles default to one 16:9 hero plus semantic section images at roughly one per 700 Chinese characters, with meaning taking priority over counting. Use the approved avatar as a small circular integrated element when required by the active visual profile.
 
-## 10. Platform-specific work
+## 10. Platform-specific work and performance learning
 Explicit 微信贴图 uses `WECHAT_STICKER_POST`, not a shortened DUAL article. Verify current platform mechanics/limits at execution time; do not hard-code remembered numeric platform limits.
 
 Connected platform/account experience may inform recommendation/click/search/retention packaging when relevant, but one viral or failed article is an experience sample, not a universal formula.
 
 For FINANCE_BROAD, distribution optimization includes not just the click but **completion/end reach**. Do not add low-value background, repeated examples, ceremonial summaries or oversized disclaimers that delay the final payoff.
+
+When real post-publication performance later becomes available, preserve it through the structured `ArticleExperienceSample` discipline in `references/platforms.md`: stable article identity, platform/account context, observation window, only actually available metrics, baseline/cohort when available, material confounders, qualitative reader feedback kept separate from behavioral metrics, hypothesis/confidence, and `promotion_status=SAMPLE_ONLY` by default. `0`, missing and unavailable are distinct; never invent metrics to fill gaps.
+
+Do not promote one high/low performer or one reader comment into an algorithm law. The current Writing Agent does not expose an automatic cross-task causal-learning/promotion workflow; experience promotion remains platform/maintenance governance until an executable path exists.
 
 ## 11. Delivery and mechanical QA
 Mechanical formatting is deterministic where possible. Article title is left-aligned. H1 is red/bold (~18pt); H2/H3 use Normal + bold; body ~12pt. Stock/company names supplied by research are bolded on every occurrence. Underline is not an article emphasis system.
@@ -149,12 +163,16 @@ Bold emphasis should form a useful skim-reading skeleton; semantic audit judges 
 ## 12. Knowledge writeback
 Before final PASS, make an explicit reusable-knowledge writeback decision. Under Runtime, record that decision through `record_knowledge_writeback`; write back only evidence-bounded durable cognition through an actually authorized durable store. Article rhetoric/title/temporary emphasis are not market knowledge. StockBase corrections stay in the review queue.
 
-Do not claim cross-agent synchronization unless the agents actually share an implemented knowledge layer.
+When structured platform-performance experience is persisted later, preserve the platform-owned sample's article identity, measurement window, available-vs-unavailable metrics, baseline/context, confounders, hypothesis, confidence and promotion status. Knowledge storage must not silently upgrade `SAMPLE_ONLY` into a durable rule.
+
+Do not claim automatic causal learning, durable rule promotion or cross-agent synchronization unless those agents/workflows actually share an implemented knowledge layer and executable promotion path.
 
 ## 13. Final red-team and completion
 At FINAL_AUDIT, treat the result as potentially wrong. Re-read frozen acceptance, final content/artifacts, research evidence, mechanical results and every required render page.
 
 The final evidence inventory must prove source/evidence boundary, supplied-source completion, omission/count/time/market-data checks, headline/opening/H1 payoff, hierarchy realization, concrete company/stock application, stock-judgment clarity, bold skim skeleton, causal continuity, fact/inference/market-expectation separation, anti-AI cleanliness, compliance/risk, DUAL mother-to-derivative consistency and artifact identity. Applicable formal modes must include the explicit final evidence keys `opening_first_three_sentences` and `bold_scan_skeleton` rather than merely asserting that the opening and bolding were checked.
+
+Use the existing final-evidence keys to prove reader value rather than creating a second checklist vocabulary. `hook_quality`, `opening_first_three_sentences`/`opening_payoff`, per-H1 `promise_payoff`, `reasoning_continuity`, `bold_scan_skeleton`, `side_focus`, `company_selection_basis`, `DUAL.deep_master_quality` and `DUAL.broad_hook_strength` must collectively show what the target reader learns that was not obvious before reading, how quickly that value becomes visible, and whether the scan path preserves it. Factual correctness without a material reader-information gain is an EDITORIAL/DRAFT defect, not an automatic PASS.
 
 DUAL additionally proves:
 - `DUAL.cross_version_consistency`;
