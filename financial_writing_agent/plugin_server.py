@@ -38,8 +38,6 @@ def _artifact_public_fields(kind: str, path_value: str) -> dict[str, str]:
 def _publicize(raw: dict) -> dict:
     clean = dict(raw)
     task_id = clean.get("task_id")
-    if task_id and "effective_time_boundary" not in clean:
-        clean["effective_time_boundary"] = impl._load(task_id).contract.effective_time_boundary
     clean.pop("trace_tail", None)
     artifacts: dict[str, dict] = {}
     for kind, value in (clean.get("artifacts") or {}).items():
