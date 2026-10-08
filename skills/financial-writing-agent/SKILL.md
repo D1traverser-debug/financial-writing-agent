@@ -43,7 +43,7 @@ Unless the user explicitly overrides a soft preference:
 - direct chat only → `CHAT_TEXT`;
 - explicit chat body + Word → `WORD_AND_CHAT`; Word mechanical/render/final-audit gates remain mandatory;
 - new Word articles use the integrated visual workflow unless opted out or the task is only review of an existing document;
-- under `WORD_FILE_ONLY`, do not paste the article body into chat.
+- Under `WORD_FILE_ONLY`, do not paste the article body into chat.
 
 ### Publication-density defaults
 - Research may be exhaustive; writing should be the **shortest complete expression** of the material evidence and judgment.
