@@ -75,9 +75,34 @@ class ResearchFailure(StrictModel):
     failed_action: str = Field(min_length=1)
     failure_reason: str = Field(min_length=1)
     retry_attempted: bool = False
+    retry_attempts: int | None = Field(default=None, ge=0, le=1)
     alternative_source_or_tool: str = ""
     impact_on_result: str = Field(min_length=1)
     resolved: bool = False
+
+    @model_validator(mode="after")
+    def normalize_retry_receipt(self):
+        if self.retry_attempts is None:
+            self.retry_attempts = 1 if self.retry_attempted else 0
+        self.retry_attempted = bool(self.retry_attempts)
+        return self
+
+
+class MarketDataBoundary(StrictModel):
+    as_of: str = Field(min_length=1)
+    data_level: Literal["NONE", "STANDARD", "LEVEL2"] = "NONE"
+    source_refs: list[str] = Field(default_factory=list)
+    order_book_available: bool = False
+    tick_data_available: bool = False
+    limitations: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def capability_claims_are_coherent(self):
+        if self.data_level != "NONE" and not self.source_refs:
+            raise ValueError("market-data evidence requires at least one source reference")
+        if (self.order_book_available or self.tick_data_available) and self.data_level != "LEVEL2":
+            raise ValueError("order-book/tick capability requires data_level=LEVEL2")
+        return self
 
 
 class MarketCognition(StrictModel):
@@ -114,14 +139,42 @@ class ResearchPackage(StrictModel):
     source_boundary: str = Field(min_length=1)
     cognition: MarketCognition
     coverage: ResearchCoverage
+    market_data_boundary: MarketDataBoundary = Field(
+        default_factory=lambda: MarketDataBoundary(
+            as_of="N/A",
+            data_level="NONE",
+            limitations=["No market microstructure evidence declared"],
+        )
+    )
     review_queue: list[StockBasePendingUpdate] = Field(default_factory=list)
     failed_tools_or_sources: list[ResearchFailure] = Field(default_factory=list)
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def core_thesis_requires_publishable_evidence(self):
+    def research_contract_is_auditable(self):
         if not any(item.core_safe for item in self.evidence_ledger):
             raise ValueError("research package requires at least one core_safe evidence item")
+
+        failed_actions = [item.failed_action for item in self.failed_tools_or_sources]
+        if len(failed_actions) != len(set(failed_actions)):
+            raise ValueError("duplicate failed_action receipts are forbidden; consolidate same-path retry history")
+
+        signal_texts = list(self.cognition.short_term_market_structure)
+        for company in self.universe:
+            signal_texts.extend(company.positioning_signals)
+            signal_texts.extend(company.fund_flow_signals)
+        joined = "\n".join(signal_texts)
+        order_book_terms = ("封单", "委托队列", "买一", "卖一", "盘口深度")
+        tick_terms = ("逐笔", "逐单", "tick")
+        grabbing_terms = ("抢筹",)
+        if any(term in joined for term in order_book_terms) and not self.market_data_boundary.order_book_available:
+            raise ValueError("order-book/seal-queue claims require declared LEVEL2 order-book evidence")
+        if any(term.lower() in joined.lower() for term in tick_terms) and not self.market_data_boundary.tick_data_available:
+            raise ValueError("tick-level claims require declared LEVEL2 tick-data evidence")
+        if any(term in joined for term in grabbing_terms) and not (
+            self.market_data_boundary.order_book_available or self.market_data_boundary.tick_data_available
+        ):
+            raise ValueError("抢筹 inference requires declared LEVEL2 order-book or tick-data evidence")
         return self
 
 
@@ -141,12 +194,39 @@ class StructureCandidate(StrictModel):
     sections: list[str] = Field(min_length=2)
 
 
+class SectionAcceptanceSpec(StrictModel):
+    h1_title: str = Field(min_length=1)
+    directional_conclusion: str = Field(min_length=1)
+    reader_gap: str = Field(min_length=1)
+    payoff_requirement: str = Field(min_length=1)
+    logical_blocks: list[str] = Field(min_length=1)
+    h3_required_h2_indexes: list[int] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def hierarchy_contract_is_coherent(self):
+        if len(self.logical_blocks) != len(set(self.logical_blocks)):
+            raise ValueError("section logical_blocks must be unique within one H1")
+        if len(self.h3_required_h2_indexes) != len(set(self.h3_required_h2_indexes)):
+            raise ValueError("h3_required_h2_indexes must not contain duplicates")
+        if len(self.logical_blocks) < 2 and self.h3_required_h2_indexes:
+            raise ValueError("H3 requirements are only legal when the section has an H2 hierarchy")
+        invalid = [
+            index
+            for index in self.h3_required_h2_indexes
+            if index < 1 or index > len(self.logical_blocks)
+        ]
+        if invalid:
+            raise ValueError(f"h3_required_h2_indexes outside logical_blocks range: {invalid}")
+        return self
+
+
 class ModeEditorialPlan(StrictModel):
     candidates: list[StructureCandidate] = Field(min_length=2, max_length=3)
     selected_structure: StructureCandidate
     emphasis: list[str] = Field(min_length=1)
     side_focus_statement: str = Field(min_length=1)
     company_selection_basis: list[str] = Field(min_length=1, max_length=2)
+    section_expectations: list[SectionAcceptanceSpec] = Field(default_factory=list)
     outline_fingerprint_refs: list[str] = Field(default_factory=list)
     outline_collision_notes: list[str] = Field(default_factory=list)
 
@@ -160,6 +240,13 @@ class ModeEditorialPlan(StrictModel):
             raise ValueError("selected_structure must identify exactly one candidate in its article mode")
         if matches[0].model_dump() != self.selected_structure.model_dump():
             raise ValueError("selected_structure must exactly match the named candidate")
+        if self.section_expectations:
+            expected_titles = self.selected_structure.sections
+            actual_titles = [section.h1_title for section in self.section_expectations]
+            if actual_titles != expected_titles:
+                raise ValueError(
+                    "section_expectations must match selected_structure.sections exactly and in order"
+                )
         return self
 
 
@@ -245,6 +332,7 @@ class ModeAcceptanceContract(StrictModel):
     selected_structure_name: str = Field(min_length=1)
     expected_h1_count: int = Field(ge=1)
     expected_section_functions: list[str] = Field(min_length=1)
+    section_expectations: list[SectionAcceptanceSpec] = Field(default_factory=list)
     lead_required: Literal[1] = 1
     side_focus_statement: str = Field(min_length=1)
     company_selection_basis: list[str] = Field(min_length=1, max_length=2)
@@ -255,7 +343,7 @@ class WritingAcceptanceContract(StrictModel):
     finance_broad: ModeAcceptanceContract | None = None
     wechat_sticker: ModeAcceptanceContract | None = None
     required_outputs: list[str] = Field(min_length=1)
-    delivery_channel: Literal["WORD_FILE_ONLY", "CHAT_TEXT"]
+    delivery_channel: Literal["WORD_FILE_ONLY", "CHAT_TEXT", "WORD_AND_CHAT"]
     visuals_enabled: bool
 
 

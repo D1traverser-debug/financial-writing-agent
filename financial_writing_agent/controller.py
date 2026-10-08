@@ -2,8 +2,15 @@ from __future__ import annotations
 
 from .engine import WorkflowError, WritingEngine
 from .harness import validate_research_against_knowledge_context
-from .models import GateStatus, Stage, WritingState
+from .models import ContentMode, DistributionMode, GateStatus, Stage, WritingState
 from .schemas import ResearchPackage
+
+
+REVISION_LIMIT_KEY = {
+    Stage.RESEARCH: "research_max_rounds",
+    Stage.TITLE: "title_max_rounds",
+    Stage.DRAFT: "draft_max_rounds",
+}
 
 
 class WorkflowController:
@@ -11,6 +18,37 @@ class WorkflowController:
 
     def __init__(self, engine: WritingEngine):
         self.engine = engine
+
+    def _consume_revision_budget(self, state: WritingState, target: Stage) -> bool:
+        constraint_key = REVISION_LIMIT_KEY.get(target)
+        if constraint_key is None:
+            return True
+        raw_limit = state.contract.run_constraints.get(constraint_key)
+        if raw_limit is None:
+            return True
+        try:
+            max_rounds = int(raw_limit)
+        except (TypeError, ValueError):
+            self.engine.block(state, f"invalid {constraint_key}={raw_limit!r}")
+            return False
+        if max_rounds < 1:
+            self.engine.block(state, f"invalid {constraint_key}={max_rounds}; must be >=1")
+            return False
+
+        revision_count = self.engine.increment_attempt(state, f"{target.value.lower()}_revision_count")
+        requested_round = revision_count + 1  # initial execution is round 1
+        state.add_trace(
+            "REVISION_BUDGET",
+            f"target={target.value}; requested_round={requested_round}; max_rounds={max_rounds}",
+        )
+        self.engine.store.save(state)
+        if requested_round > max_rounds:
+            self.engine.block(
+                state,
+                f"{target.value} revision budget exhausted: requested_round={requested_round}, max_rounds={max_rounds}",
+            )
+            return False
+        return True
 
     def advance(self, state: WritingState) -> WritingState:
         s = state.stage
@@ -34,6 +72,8 @@ class WorkflowController:
             if status == GateStatus.PASS:
                 return self.engine.transition(state, Stage.EDITORIAL, reason="research audit passed")
             if status == GateStatus.REVISE:
+                if not self._consume_revision_budget(state, Stage.RESEARCH):
+                    return state
                 reason = state.gates["research_audit"].notes or "research audit requested revision"
                 self.engine.invalidate_for_revision(state, Stage.RESEARCH, reason=reason)
                 return self.engine.transition(state, Stage.RESEARCH, reason="research audit requested revision")
@@ -41,14 +81,16 @@ class WorkflowController:
 
         if s == Stage.EDITORIAL:
             self._require_pass(state, "editorial_plan")
-            return self.engine.transition(state, Stage.TITLE, reason="TopicDNA and structures frozen")
+            return self.engine.transition(state, Stage.TITLE, reason="TopicDNA and applicable initial structure frozen")
 
         if s == Stage.TITLE:
             status = self._status(state, "title_audit")
             if status == GateStatus.PASS:
                 self._require_pass(state, "acceptance_contract")
-                return self.engine.transition(state, Stage.DRAFT, reason="headline hook and acceptance contract passed")
+                return self.engine.transition(state, Stage.DRAFT, reason="headline hook and applicable acceptance contract passed")
             if status == GateStatus.REVISE:
+                if not self._consume_revision_budget(state, Stage.TITLE):
+                    return state
                 reason = state.gates["title_audit"].notes or "headline revision loop"
                 self.engine.invalidate_for_revision(state, Stage.TITLE, reason=reason)
                 return self.engine.transition(state, Stage.TITLE, reason="headline revision loop")
@@ -56,7 +98,26 @@ class WorkflowController:
 
         if s == Stage.DRAFT:
             self._require_pass(state, "draft_output")
+            if (
+                state.contract.content_mode == ContentMode.FORMAL_ARTICLE
+                and state.contract.distribution_mode == DistributionMode.DUAL
+            ):
+                state.working["broad_derivation_phase"] = "EDITORIAL"
+                self.engine.store.save(state)
+                return self.engine.transition(
+                    state,
+                    Stage.BROAD_DERIVATION,
+                    reason="FINANCE_DEEP mother draft frozen; derive FINANCE_BROAD now",
+                )
             return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audit")
+
+        if s == Stage.BROAD_DERIVATION:
+            self._require_pass(state, "broad_derivation")
+            return self.engine.transition(
+                state,
+                Stage.EDITORIAL_AUDIT,
+                reason="FINANCE_BROAD derived from frozen FINANCE_DEEP mother draft",
+            )
 
         if s == Stage.EDITORIAL_AUDIT:
             status = self._status(state, "editorial_audit")
@@ -65,6 +126,8 @@ class WorkflowController:
             if status == GateStatus.REVISE:
                 target = state.working.get("revise_target", "DRAFT")
                 next_stage = Stage.TITLE if target == "TITLE" else Stage.DRAFT
+                if not self._consume_revision_budget(state, next_stage):
+                    return state
                 reason = state.gates["editorial_audit"].notes or f"editorial revision target={target}"
                 self.engine.invalidate_for_revision(state, next_stage, reason=reason)
                 return self.engine.transition(state, next_stage, reason=f"editorial revision target={target}")
@@ -100,6 +163,8 @@ class WorkflowController:
                 next_stage = mapping.get(target)
                 if next_stage is None:
                     raise WorkflowError(f"unsupported final revision target={target}")
+                if not self._consume_revision_budget(state, next_stage):
+                    return state
                 reason = state.gates["final_audit"].notes or f"final audit revision target={target}"
                 self.engine.invalidate_for_revision(state, next_stage, reason=reason)
                 return self.engine.transition(state, next_stage, reason=f"final audit revision target={target}")

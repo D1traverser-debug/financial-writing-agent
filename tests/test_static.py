@@ -31,3 +31,157 @@ def test_visual_workflow_is_explicit_and_owned():
     assert "@mcp.tool" not in runtime
     assert "@mcp.tool" not in shim
     assert "from .plugin_server import main, mcp" in shim
+
+
+def test_mcp_entry_requires_explicit_continuation_before_task_restore():
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+    assert "Resume unfinished tasks before starting new ones." not in public_server
+    assert "Only explicit continuation intent may restore an unfinished task" in public_server
+    assert "a new task must start fresh even when unfinished tasks exist" in public_server
+
+
+def test_research_harness_and_effective_time_boundary_are_wired_end_to_end():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    routing = Path("financial_writing_agent/routing.py").read_text(encoding="utf-8")
+    runtime = Path("financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+    public_contracts = Path("financial_writing_agent/mcp_contracts.py").read_text(encoding="utf-8")
+    research = Path("references/research.md").read_text(encoding="utf-8")
+    audit = Path("references/audit.md").read_text(encoding="utf-8")
+
+    assert "effective_time_boundary" in ownership["runtime"]
+    assert "effective_time_boundary: datetime" in models
+    assert "effective_time_boundary: datetime | None = None" in routing
+    assert "validate_research_against_knowledge_context" in runtime
+    assert "harness_evidence = validate_research_against_knowledge_context(state, payload)" in runtime
+    assert 'f"effective_time_boundary={state.contract.effective_time_boundary.isoformat()}"' in runtime
+    assert "GLOBAL.time_integrity must quote the exact frozen effective_time_boundary=" in runtime
+    assert "effective_time_boundary: datetime" in public_contracts
+    assert "effective_time_boundary:" in public_server
+    assert "effective_time_boundary=effective_time_boundary" in public_server
+    assert "TaskContract.effective_time_boundary" in research
+    assert "GLOBAL.time_integrity` must quote the persisted task's exact `TaskContract.effective_time_boundary`" in audit
+
+
+def test_combined_delivery_market_data_and_revision_budgets_are_executable_not_prose_only():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    contracts = Path("financial_writing_agent/mcp_contracts.py").read_text(encoding="utf-8")
+    routing = Path("financial_writing_agent/routing.py").read_text(encoding="utf-8")
+    schemas = Path("financial_writing_agent/schemas.py").read_text(encoding="utf-8")
+    controller = Path("financial_writing_agent/controller.py").read_text(encoding="utf-8")
+    engine = Path("financial_writing_agent/engine.py").read_text(encoding="utf-8")
+    delivery_ref = Path("references/delivery.md").read_text(encoding="utf-8")
+    research_ref = Path("references/research.md").read_text(encoding="utf-8")
+    audit_ref = Path("references/audit.md").read_text(encoding="utf-8")
+    skill = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+
+    assert "combined_delivery_channel" in ownership["delivery"]
+    assert "market_microstructure_evidence_boundary" in ownership["research"]
+    assert "market_data_boundary_audit" in ownership["audit"]
+
+    assert 'WORD_AND_CHAT = "WORD_AND_CHAT"' in models
+    assert 'Literal["WORD_FILE_ONLY", "CHAT_TEXT", "WORD_AND_CHAT"]' in contracts
+    assert "return DeliveryChannel.WORD_AND_CHAT" in routing
+    assert '"research_max_rounds": int(defaults["research_max_rounds"])' in routing
+
+    assert "class MarketDataBoundary" in schemas
+    assert "retry_attempts: int | None = Field(default=None, ge=0, le=1)" in schemas
+    assert "抢筹 inference requires declared LEVEL2" in schemas
+    assert "duplicate failed_action receipts are forbidden" in schemas
+
+    assert "REVISION_LIMIT_KEY" in controller
+    assert "revision budget exhausted" in controller
+    assert '"market_data_boundary",' in engine
+
+    assert "route `WORD_AND_CHAT`" in delivery_ref
+    assert "Market-data capability boundary" in research_ref
+    assert "at most one justified retry" in research_ref
+    assert "GLOBAL.market_data_boundary" in audit_ref
+    assert "WORD_AND_CHAT" in skill
+    assert "market_data_boundary" in skill
+
+
+def test_deep_first_dual_hook_and_stock_judgment_rules_are_executable_or_audited():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    controller = Path("financial_writing_agent/controller.py").read_text(encoding="utf-8")
+    runtime = Path("financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    engine = Path("financial_writing_agent/engine.py").read_text(encoding="utf-8")
+    editorial = Path("references/editorial.md").read_text(encoding="utf-8")
+    research = Path("references/research.md").read_text(encoding="utf-8")
+    audit = Path("references/audit.md").read_text(encoding="utf-8")
+    style = Path("references/style.md").read_text(encoding="utf-8")
+    skill = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+
+    assert "dual_deep_master_broad_derivation" in ownership["editorial"]
+    assert "recommendation_stock_research_depth" in ownership["research"]
+    assert "hook_quality_audit" in ownership["audit"]
+    assert "stock_judgment_clarity_audit" in ownership["audit"]
+
+    assert 'BROAD_DERIVATION = "BROAD_DERIVATION"' in models
+    assert "Stage.BROAD_DERIVATION" in controller
+    assert "Broad structure/title/draft were submitted only after deep mother draft was frozen" in runtime
+    assert "FINANCE_BROAD may omit mother-version stocks but must not introduce new stocks" in Path("financial_writing_agent/harness.py").read_text(encoding="utf-8")
+    assert '"hook_quality",' in engine
+    assert '"stock_judgment_clarity",' in engine
+    assert '"DUAL.deep_master_quality"' in engine
+    assert '"DUAL.broad_derivation_fidelity"' in engine
+    assert '"DUAL.broad_hook_strength"' in engine
+
+    assert "Do **not** treat DUAL as two independently invented analyses" in editorial
+    assert "Recommendation-oriented stock research depth" in research
+    assert "Judgment specificity / anti-empty-hedging" in style
+    assert "DUAL.deep_master_quality" in audit
+    assert "DUAL is deep-first, not parallel" in skill
+
+
+def test_public_mcp_discovery_teaches_deep_first_dual_sop():
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+
+    assert "For DUAL formal tasks, complete FINANCE_DEEP editorial, title and draft first" in public_server
+    assert "only after the runtime enters BROAD_DERIVATION" in public_server
+    assert "Never submit the two analyses in parallel" in public_server
+    assert "Initial DUAL EDITORIAL accepts FINANCE_DEEP only" in public_server
+    assert "DUAL freezes FINANCE_DEEP titles first" in public_server
+    assert "DUAL accepts and freezes FINANCE_DEEP first" in public_server
+    assert "broad-derivation gate" in public_server
+    assert "independent mode-specific candidate structures" not in public_server
+
+
+def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
+
+    assert "mechanically_decidable_rule_enforcement" in ownership["maintenance"]
+    assert "canonical_system_document_identity" in ownership["maintenance"]
+    assert "not migrated merely because prose was updated" in maintenance
+    assert "schema/gate/check assertion and a recurrence test" in maintenance
+    assert "Canonical system-document identity" in maintenance
+    assert "displayed title plus provider identity" in maintenance
+
+
+def test_legacy_cold_start_editorial_and_platform_semantics_remain_present():
+    editorial = Path("references/editorial.md").read_text(encoding="utf-8")
+    platforms = Path("references/platforms.md").read_text(encoding="utf-8")
+
+    # Legacy T06: generate from current TopicDNA before recent-outline collision checks.
+    assert "Candidate structures must be generated from the current TopicDNA before recent-outline fingerprints are consulted" in editorial
+    assert "collision checks, never structure-generation inputs" in editorial
+
+    # Legacy T07: no fixed event/industry/stocks/market/next-stage template.
+    assert "A fixed “event → industry → stocks → market → next stage” skeleton is not a default" in editorial
+
+    # Legacy T09: broad distribution remains financial and cross-sector understandable.
+    assert "finance readers outside the sector understand investment relevance" in platforms
+    assert "Lower entry cost without deleting the strongest contradiction or the core causal chain" in platforms
+
+    # Legacy T10: only load current platform/account experience for relevant optimization work.
+    assert "recommendation, click-through, search, retention or account-specific performance" in platforms
+    assert "retrieve the **current relevant version**" in platforms
+    assert "Do not promote it to a permanent formula without repeated, comparable evidence" in platforms
+
+    # Legacy T13: compress redundancy before reasoning/evidence.
+    assert "Compress repeated explanation, textbook background, synonym restatement" in editorial
+    assert "Preserve independent facts, key numbers, causal steps, counterexamples, `why_this / why_not`, market-selection mechanism" in editorial

@@ -8,6 +8,9 @@
     "draft_max_rounds": 2,
     "research_max_rounds": 2
   },
+  "editorial": {
+    "finance_deep_max_chars": 10000
+  },
   "finance_compliance": {
     "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
     "semantic_review_terms": ["买入", "卖出"]

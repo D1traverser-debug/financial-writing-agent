@@ -9,7 +9,13 @@ from financial_writing_agent.models import DistributionMode, GateStatus, TaskCon
 from financial_writing_agent.schemas import DraftPackage, EditorialPlan, HeadlinePackage, ResearchPackage
 
 
-def _mode(prefix: str, sections: list[str]):
+def _mode(
+    prefix: str,
+    sections: list[str],
+    *,
+    logical_blocks_by_section: dict[str, list[str]] | None = None,
+    h3_required_by_section: dict[str, list[int]] | None = None,
+):
     selected = {
         "name": f"{prefix}-A",
         "rationale": "最贴合当前题材主矛盾",
@@ -20,23 +26,36 @@ def _mode(prefix: str, sections: list[str]):
         "rationale": "备用比较路径",
         "sections": [f"{prefix}备用一", f"{prefix}备用二"],
     }
+    logical_blocks_by_section = logical_blocks_by_section or {}
+    h3_required_by_section = h3_required_by_section or {}
     return {
         "candidates": [selected, alternate],
         "selected_structure": selected,
         "emphasis": ["核心因果链"],
         "side_focus_statement": f"{prefix}侧重点",
         "company_selection_basis": ["产业传导位置"],
+        "section_expectations": [
+            {
+                "h1_title": section,
+                "directional_conclusion": f"{section}的方向性结论",
+                "reader_gap": f"{section}仍需正文回答的关键信息缺口",
+                "payoff_requirement": f"{section}正文必须用证据和因果链兑现",
+                "logical_blocks": logical_blocks_by_section.get(section, [f"{section}核心逻辑"]),
+                "h3_required_h2_indexes": h3_required_by_section.get(section, []),
+            }
+            for section in sections
+        ],
         "outline_fingerprint_refs": ["recent-outline-1"],
         "outline_collision_notes": ["未发现高度重复"],
     }
 
 
-def _headline(title: str):
+def _headline(title: str, anchor: str = "核心事实"):
     return {
         "title": title,
         "angle": "事实冲突",
         "finance_relevance": "利润与估值",
-        "factual_anchor": f"{title}对应的经核验公告数字",
+        "factual_anchor": anchor,
         "primary_gap": f"{title}对应的市场信息差",
         "opening_payoff": f"{title}前三句交代变化、矛盾和判断收益",
         "cognitive_load": "low",
@@ -50,7 +69,7 @@ def _risk():
     )
 
 
-def _research(prior_refs: list[str]) -> ResearchPackage:
+def _research(prior_refs: list[str], source_boundary: str = "公开来源") -> ResearchPackage:
     return ResearchPackage.model_validate(
         {
             "topic": "测试主题",
@@ -71,7 +90,7 @@ def _research(prior_refs: list[str]) -> ResearchPackage:
             "counterevidence": [],
             "unresolved_gaps": [],
             "provisional_theses": ["待验证判断"],
-            "source_boundary": "公开来源",
+            "source_boundary": source_boundary,
             "cognition": {
                 "prior_knowledge_refs": prior_refs,
                 "concept_map": ["核心概念"],
@@ -90,7 +109,12 @@ def _research(prior_refs: list[str]) -> ResearchPackage:
     )
 
 
-def _state() -> WritingState:
+def _state(
+    headline_anchor: str = "核心事实",
+    *,
+    deep_mode: dict | None = None,
+    broad_mode: dict | None = None,
+) -> WritingState:
     state = WritingState(contract=TaskContract(prompt="双版本文章", distribution_mode=DistributionMode.DUAL))
     editorial = EditorialPlan.model_validate(
         {
@@ -103,18 +127,19 @@ def _state() -> WritingState:
                 "compression_candidates": ["教材式背景"],
                 "finance_wide_question": "利润兑现速度如何改变估值",
             },
-            "finance_deep": _mode("deep", ["深度矛盾", "公司比较", "证伪条件"]),
-            "finance_broad": _mode("broad", ["财经相关性", "利润传导"]),
+            "finance_deep": deep_mode or _mode("deep", ["深度矛盾", "公司比较", "证伪条件"]),
+            "finance_broad": broad_mode or _mode("broad", ["财经相关性", "利润传导"]),
         }
     )
     headlines = HeadlinePackage.model_validate(
         {
-            "finance_deep_candidates": [_headline("深度版标题")],
-            "finance_broad_candidates": [_headline("综合版标题")],
+            "finance_deep_candidates": [_headline("深度版标题", headline_anchor)],
+            "finance_broad_candidates": [_headline("综合版标题", headline_anchor)],
             "finance_deep_selected": "深度版标题",
             "finance_broad_selected": "综合版标题",
         }
     )
+    state.working["research"] = _research([]).model_dump(mode="json")
     state.working["editorial_plan"] = editorial.model_dump(mode="json")
     state.working["headlines"] = headlines.model_dump(mode="json")
     freeze_acceptance_contract(state)
@@ -139,8 +164,46 @@ def test_knowledge_context_pass_forbids_unrecorded_prior_refs():
         )
 
     evidence = validate_research_against_knowledge_context(state, _research(["kb://recorded"]))
-    assert "retrieved_refs=1" in evidence[0]
-    assert "reused_refs=1" in evidence[0]
+    assert any("retrieved_refs=1" in item for item in evidence)
+    assert any("reused_refs=1" in item for item in evidence)
+
+
+def test_task_source_completion_requires_every_source_ref():
+    state = WritingState(
+        contract=TaskContract(
+            prompt="根据两个来源写文章",
+            source_refs=["source://one", "source://two"],
+        )
+    )
+    state.set_gate("knowledge_context", GateStatus.N_A, ["无可用知识库"])
+    research = _research([], source_boundary="[FULL] source://one")
+    with pytest.raises(ValueError, match="source_boundary must account for every TaskContract source_ref"):
+        validate_research_against_knowledge_context(state, research)
+
+
+def test_task_source_completion_accepts_full_partial_unavailable_receipts():
+    state = WritingState(
+        contract=TaskContract(
+            prompt="根据三个来源写文章",
+            source_refs=["source://one", "source://two", "source://three"],
+        )
+    )
+    state.set_gate("knowledge_context", GateStatus.N_A, ["无可用知识库"])
+    research = _research(
+        [],
+        source_boundary=(
+            "[FULL] source://one\n"
+            "[PARTIAL] source://two — 正文被截断，已用可访问部分核边界\n"
+            "[UNAVAILABLE] source://three — 原件不可访问，不能作为已读来源"
+        ),
+    )
+    evidence = validate_research_against_knowledge_context(state, research)
+    assert "task_source_refs=3; source_completion=accounted" in evidence
+
+
+def test_headline_anchor_must_match_core_safe_research_claim():
+    with pytest.raises(ValueError, match="headline factual_anchor must exactly match a core_safe"):
+        _state(headline_anchor="不存在于研究证据中的标题锚点")
 
 
 def test_dual_acceptance_contract_freezes_independent_structures_and_headline_promises():
@@ -149,15 +212,16 @@ def test_dual_acceptance_contract_freezes_independent_structures_and_headline_pr
     assert contract["finance_deep"]["expected_h1_count"] == 3
     assert contract["finance_broad"]["expected_h1_count"] == 2
     assert contract["finance_deep"]["selected_structure_name"] != contract["finance_broad"]["selected_structure_name"]
-    assert contract["finance_deep"]["headline_factual_anchor"] == "深度版标题对应的经核验公告数字"
+    assert contract["finance_deep"]["headline_factual_anchor"] == "核心事实"
     assert contract["finance_deep"]["headline_primary_gap"] == "深度版标题对应的市场信息差"
     assert "前三句" in contract["finance_deep"]["headline_opening_payoff"]
+    assert len(contract["finance_deep"]["section_expectations"]) == 3
+    assert contract["finance_deep"]["section_expectations"][0]["directional_conclusion"] == "深度矛盾的方向性结论"
     assert state.gates["acceptance_contract"].status == GateStatus.PASS
 
 
-def test_draft_must_match_frozen_title_and_h1_count():
-    state = _state()
-    draft = DraftPackage.model_validate(
+def _normal_dual_draft() -> DraftPackage:
+    return DraftPackage.model_validate(
         {
             "finance_deep": {
                 "title": "深度版标题",
@@ -185,6 +249,11 @@ def test_draft_must_match_frozen_title_and_h1_count():
             },
         }
     )
+
+
+def test_draft_must_match_frozen_title_and_h1_count():
+    state = _state()
+    draft = _normal_dual_draft()
     evidence = validate_draft_against_acceptance(state, draft)
     assert any("FINANCE_DEEP" in item for item in evidence)
     assert any("FINANCE_BROAD" in item for item in evidence)
@@ -193,3 +262,72 @@ def test_draft_must_match_frozen_title_and_h1_count():
     bad.finance_broad.title = "临时改掉的标题"
     with pytest.raises(ValueError, match="frozen selected title"):
         validate_draft_against_acceptance(state, bad)
+
+
+def test_draft_fails_when_frozen_h2_hierarchy_is_missing():
+    deep_mode = _mode(
+        "deep",
+        ["深度矛盾", "公司比较", "证伪条件"],
+        logical_blocks_by_section={"深度矛盾": ["供需变化", "盈利传导"]},
+    )
+    state = _state(deep_mode=deep_mode)
+    draft = _normal_dual_draft()
+    with pytest.raises(ValueError, match="H2 hierarchy differs from frozen logical blocks"):
+        validate_draft_against_acceptance(state, draft)
+
+
+def test_draft_requires_three_h3_units_when_contract_marks_h2_block():
+    deep_mode = _mode(
+        "deep",
+        ["深度矛盾", "公司比较", "证伪条件"],
+        logical_blocks_by_section={"深度矛盾": ["供需变化", "盈利传导"]},
+        h3_required_by_section={"深度矛盾": [1]},
+    )
+    state = _state(deep_mode=deep_mode)
+    draft = _normal_dual_draft()
+    draft.finance_deep.blocks = [
+        {"kind": "lead", "text": "独立导读"},
+        {"kind": "h1", "text": "深度矛盾"},
+        {"kind": "h2", "text": "供需变化"},
+        {"kind": "h3", "text": "需求证据"},
+        {"kind": "h3", "text": "供给证据"},
+        {"kind": "body", "text": "只有两个三级证据"},
+        {"kind": "h2", "text": "盈利传导"},
+        {"kind": "body", "text": "盈利正文"},
+        {"kind": "h1", "text": "公司比较"},
+        {"kind": "body", "text": "正文二"},
+        {"kind": "h1", "text": "证伪条件"},
+        {"kind": "body", "text": "正文三"},
+    ]
+    draft = DraftPackage.model_validate(draft.model_dump(mode="json"))
+    with pytest.raises(ValueError, match="requires at least 3 H3 units"):
+        validate_draft_against_acceptance(state, draft)
+
+
+def test_draft_passes_frozen_h2_h3_hierarchy_when_fully_realized():
+    deep_mode = _mode(
+        "deep",
+        ["深度矛盾", "公司比较", "证伪条件"],
+        logical_blocks_by_section={"深度矛盾": ["供需变化", "盈利传导"]},
+        h3_required_by_section={"深度矛盾": [1]},
+    )
+    state = _state(deep_mode=deep_mode)
+    draft = _normal_dual_draft()
+    draft.finance_deep.blocks = [
+        {"kind": "lead", "text": "独立导读"},
+        {"kind": "h1", "text": "深度矛盾"},
+        {"kind": "h2", "text": "供需变化"},
+        {"kind": "h3", "text": "需求证据"},
+        {"kind": "h3", "text": "供给证据"},
+        {"kind": "h3", "text": "价格证据"},
+        {"kind": "body", "text": "三级证据完整"},
+        {"kind": "h2", "text": "盈利传导"},
+        {"kind": "body", "text": "盈利正文"},
+        {"kind": "h1", "text": "公司比较"},
+        {"kind": "body", "text": "正文二"},
+        {"kind": "h1", "text": "证伪条件"},
+        {"kind": "body", "text": "正文三"},
+    ]
+    draft = DraftPackage.model_validate(draft.model_dump(mode="json"))
+    evidence = validate_draft_against_acceptance(state, draft)
+    assert any("h3_required=[1]" in item for item in evidence)

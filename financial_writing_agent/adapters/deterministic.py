@@ -61,31 +61,38 @@ class DeliveryExecutor:
             for a in assets
         ]
 
+    @staticmethod
+    def _chat_text(draft: DraftPackage) -> str:
+        pieces: list[str] = []
+        for payload in [draft.finance_deep, draft.finance_broad]:
+            if payload:
+                body = "\n".join(b.text for b in payload.blocks)
+                pieces.append("\n".join([payload.title, body, "风险提示与免责声明", payload.risk_disclaimer]))
+        if draft.wechat_sticker_post:
+            p = draft.wechat_sticker_post
+            pieces.append("\n".join(x for x in [p.title, p.body, p.interaction_prompt, p.risk_disclaimer] if x))
+        return "\n\n---\n\n".join(pieces)
+
     def execute(self, state: WritingState) -> WritingState:
         outdir = self.root / state.contract.task_id
         outdir.mkdir(parents=True, exist_ok=True)
         state.working["output_dir"] = str(outdir)
         draft = DraftPackage.model_validate(state.working["draft"])
+        built: list[str] = []
 
-        if state.contract.delivery_channel == DeliveryChannel.CHAT_TEXT:
-            pieces: list[str] = []
-            for payload in [draft.finance_deep, draft.finance_broad]:
-                if payload:
-                    body = "\n".join(b.text for b in payload.blocks)
-                    pieces.append("\n".join([payload.title, body, "风险提示与免责声明", payload.risk_disclaimer]))
-            if draft.wechat_sticker_post:
-                p = draft.wechat_sticker_post
-                pieces.append("\n".join(x for x in [p.title, p.body, p.interaction_prompt, p.risk_disclaimer] if x))
+        if state.contract.delivery_channel in {DeliveryChannel.CHAT_TEXT, DeliveryChannel.WORD_AND_CHAT}:
             text_path = outdir / "CHAT_TEXT.txt"
-            text_path.write_text("\n\n---\n\n".join(pieces), encoding="utf-8")
+            text_path.write_text(self._chat_text(draft), encoding="utf-8")
             state.artifacts[ArtifactKind.CHAT_TEXT] = Artifact(
                 kind=ArtifactKind.CHAT_TEXT,
                 path=str(text_path),
                 exists=True,
                 sha256=sha256_file(text_path),
             )
-            state.set_gate("delivery_output", GateStatus.PASS, [text_path.name])
-            return state
+            built.append(text_path.name)
+            if state.contract.delivery_channel == DeliveryChannel.CHAT_TEXT:
+                state.set_gate("delivery_output", GateStatus.PASS, built)
+                return state
 
         visual_package: ResolvedVisualPackage | None = None
         if state.contract.visuals_enabled:
@@ -103,7 +110,6 @@ class DeliveryExecutor:
                 sha256=sha256_file(manifest_path),
             )
 
-        built: list[str] = []
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             if draft.wechat_sticker_post is None:
                 state.set_gate("delivery_output", GateStatus.FAIL, [], "WECHAT_STICKER_POST payload missing")
@@ -269,6 +275,7 @@ def finalize_audit_artifact(state: WritingState) -> None:
         f"Required Outputs：{', '.join(kind.value for kind in state.contract.required_outputs)}",
         f"来源边界：{research.get('source_boundary', 'N/A')}",
         f"研究覆盖：{json.dumps(research.get('coverage', {}), ensure_ascii=False)}",
+        f"市场数据边界：{json.dumps(research.get('market_data_boundary', {}), ensure_ascii=False)}",
         f"证据：总数={len(evidence_items)}｜Core Safe={core_safe_count}｜核验状态={dict(verification_counts)}",
         f"ReviewQueue={len(research.get('review_queue', []))}｜研究失败/降级记录={len(research.get('failed_tools_or_sources', []))}",
         f"复用知识引用={len(cognition.get('prior_knowledge_refs', []))}｜知识回写候选={len(research.get('knowledge_writeback_candidates', []))}｜回写凭据={len(state.working.get('knowledge_writeback_refs', []))}",

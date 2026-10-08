@@ -17,7 +17,8 @@ ALLOWED_TRANSITIONS: dict[Stage, set[Stage]] = {
     Stage.RESEARCH_AUDIT: {Stage.RESEARCH, Stage.EDITORIAL, Stage.BLOCKED},
     Stage.EDITORIAL: {Stage.TITLE, Stage.BLOCKED},
     Stage.TITLE: {Stage.TITLE, Stage.DRAFT, Stage.BLOCKED},
-    Stage.DRAFT: {Stage.EDITORIAL_AUDIT, Stage.BLOCKED},
+    Stage.DRAFT: {Stage.BROAD_DERIVATION, Stage.EDITORIAL_AUDIT, Stage.BLOCKED},
+    Stage.BROAD_DERIVATION: {Stage.EDITORIAL_AUDIT, Stage.BLOCKED},
     Stage.EDITORIAL_AUDIT: {Stage.TITLE, Stage.DRAFT, Stage.DELIVERY, Stage.BLOCKED},
     Stage.DELIVERY: {Stage.MECHANICAL_AUDIT, Stage.BLOCKED},
     Stage.MECHANICAL_AUDIT: {Stage.DELIVERY, Stage.FINAL_AUDIT, Stage.BLOCKED},
@@ -38,6 +39,7 @@ ALLOWED_TRANSITIONS: dict[Stage, set[Stage]] = {
         Stage.EDITORIAL,
         Stage.TITLE,
         Stage.DRAFT,
+        Stage.BROAD_DERIVATION,
         Stage.EDITORIAL_AUDIT,
         Stage.DELIVERY,
         Stage.MECHANICAL_AUDIT,
@@ -54,6 +56,7 @@ REVISION_GATES: dict[Stage, tuple[str, ...]] = {
         "acceptance_contract",
         "title_audit",
         "draft_output",
+        "broad_derivation",
         "style_audit",
         "editorial_audit",
         "visual_assets",
@@ -66,6 +69,7 @@ REVISION_GATES: dict[Stage, tuple[str, ...]] = {
         "acceptance_contract",
         "title_audit",
         "draft_output",
+        "broad_derivation",
         "style_audit",
         "editorial_audit",
         "visual_assets",
@@ -77,6 +81,7 @@ REVISION_GATES: dict[Stage, tuple[str, ...]] = {
         "acceptance_contract",
         "title_audit",
         "draft_output",
+        "broad_derivation",
         "style_audit",
         "editorial_audit",
         "visual_assets",
@@ -86,6 +91,7 @@ REVISION_GATES: dict[Stage, tuple[str, ...]] = {
     ),
     Stage.DRAFT: (
         "draft_output",
+        "broad_derivation",
         "style_audit",
         "editorial_audit",
         "visual_assets",
@@ -128,6 +134,17 @@ BASE_COMPLETION_GATES = {
 }
 
 
+GLOBAL_FINAL_CRITERIA = (
+    "evidence_boundary",
+    "source_completion",
+    "omission_scan",
+    "count_reconciliation",
+    "time_integrity",
+    "market_data_boundary",
+    "counterexample_scan",
+    "required_outputs",
+)
+
 FORMAL_FINAL_CRITERIA = (
     "selected_title",
     "independent_lead",
@@ -137,6 +154,8 @@ FORMAL_FINAL_CRITERIA = (
     "company_selection_basis",
     "headline_anchor",
     "opening_payoff",
+    "hook_quality",
+    "stock_judgment_clarity",
     "bold_scan_skeleton",
     "reasoning_continuity",
     "compliance_risk",
@@ -166,6 +185,14 @@ class WritingEngine:
             "Explicit PASS/N_A durable-knowledge recall decision required before research submission",
         )
         state.set_gate("knowledge_sync", GateStatus.NOT_RUN, [], "Explicit PASS/N_A writeback decision required before final completion")
+        if contract.distribution_mode == DistributionMode.DUAL and contract.content_mode == ContentMode.FORMAL_ARTICLE:
+            state.set_gate(
+                "broad_derivation",
+                GateStatus.NOT_RUN,
+                [],
+                "FINANCE_BROAD must be derived only after the FINANCE_DEEP mother draft is frozen",
+            )
+            state.working["broad_derivation_phase"] = "WAITING_FOR_DEEP"
         self.store.save(state)
         return state
 
@@ -257,6 +284,15 @@ class WritingEngine:
             state.working.pop("resolved_visual_package", None)
             state.working.pop("render_manifest", None)
 
+        if state.contract.distribution_mode == DistributionMode.DUAL and target in {
+            Stage.RESEARCH,
+            Stage.EDITORIAL,
+            Stage.TITLE,
+            Stage.DRAFT,
+        }:
+            state.working["broad_derivation_phase"] = "WAITING_FOR_DEEP"
+            state.working.pop("dual_derivation_receipt", None)
+
         state.add_trace("REVISION_INVALIDATION", f"target={target.value}; reason={reason}")
         self.store.save(state)
 
@@ -273,11 +309,13 @@ class WritingEngine:
         required = set(BASE_COMPLETION_GATES)
         if state.contract.visuals_enabled:
             required.add("visual_assets")
+        if state.contract.content_mode == ContentMode.FORMAL_ARTICLE and state.contract.distribution_mode == DistributionMode.DUAL:
+            required.add("broad_derivation")
         return required
 
     @staticmethod
     def _required_final_evidence_keys(state: WritingState) -> set[str]:
-        keys = {"GLOBAL.evidence_boundary", "GLOBAL.required_outputs"}
+        keys = {f"GLOBAL.{criterion}" for criterion in GLOBAL_FINAL_CRITERIA}
         if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
             keys.update(f"WECHAT_STICKER_POST.{criterion}" for criterion in STICKER_FINAL_CRITERIA)
             if state.contract.visuals_enabled:
@@ -289,12 +327,28 @@ class WritingEngine:
             modes.append("FINANCE_DEEP")
         if state.contract.distribution_mode in {DistributionMode.FINANCE_BROAD, DistributionMode.DUAL}:
             modes.append("FINANCE_BROAD")
+
+        acceptance = state.working.get("acceptance_contract") or {}
+        acceptance_key_by_mode = {
+            "FINANCE_DEEP": "finance_deep",
+            "FINANCE_BROAD": "finance_broad",
+        }
         for mode in modes:
             keys.update(f"{mode}.{criterion}" for criterion in FORMAL_FINAL_CRITERIA)
             if state.contract.visuals_enabled:
                 keys.add(f"{mode}.visual_alignment")
+            mode_contract = acceptance.get(acceptance_key_by_mode[mode]) or {}
+            for index, _ in enumerate(mode_contract.get("section_expectations") or [], start=1):
+                keys.add(f"{mode}.H1_{index}.promise_payoff")
         if state.contract.distribution_mode == DistributionMode.DUAL:
-            keys.add("DUAL.cross_version_consistency")
+            keys.update(
+                {
+                    "DUAL.cross_version_consistency",
+                    "DUAL.deep_master_quality",
+                    "DUAL.broad_derivation_fidelity",
+                    "DUAL.broad_hook_strength",
+                }
+            )
         return keys
 
     @classmethod

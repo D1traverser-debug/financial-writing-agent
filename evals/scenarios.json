@@ -20,6 +20,10 @@
     {"id":"E17","prompt":"风险提示不要啰嗦但要防合规风险","assertions":["risk disclaimer mandatory","minimum substance enforced","concision reviewed semantically"]},
     {"id":"E18","prompt":"做一条微信贴图引流","assertions":["treat as distinct packaging mode","verify current title/body/image limits","image-first and interaction-aware","do not hard-code remembered limits"]},
     {"id":"E19","prompt":"文章别有AI味，也别用最强最牛这种词","assertions":["anti-AI semantic audit","logical paragraph transitions","unsupported extreme language removed","do not ban 最近/最后 mechanically"]},
-    {"id":"E20","prompt":"写完把所有要求检查一遍给我","assertions":["visible completion checklist","covers gates research style Word compliance risk visuals knowledge","article body still omitted under WORD_FILE_ONLY"]}
+    {"id":"E20","prompt":"写完把所有要求检查一遍给我","assertions":["visible completion checklist","covers gates research style Word compliance risk visuals knowledge","article body still omitted under WORD_FILE_ONLY"]},
+    {"id":"E21","prompt":"新开一篇文章，不要继续上一篇；学习成果可以用，但旧稿任务状态不要带过来","assertions":["new task gets a fresh task_id","prior task working state and gates are not inherited","explicit resume restores only the requested task"]},
+    {"id":"E22","prompt":"这三个来源都要读，漏一个不行；读不全也要明确告诉我","assertions":["every source_ref has FULL PARTIAL or UNAVAILABLE receipt","silent source omission fails research validation","partial or unavailable source remains an explicit boundary"]},
+    {"id":"E23","prompt":"每一章都要有明确判断和续读点，该有二三级结构就必须有，不能写着写着漂掉","assertions":["section expectations freeze direction gap payoff and logical blocks","draft hierarchy must match frozen H1 H2 H3 contract","final audit requires per-H1 promise-payoff evidence"]},
+    {"id":"E24","prompt":"终稿前把遗漏、来源完成度、数量对账、时点、市场数据边界和反例都逐项查清，不能一句QA通过带过","assertions":["final audit requires separate source completion omission count time market-data and counterexample evidence keys","N/A decisions must be explicit rather than omitted","completion fails closed when any required final evidence key is absent"]}
   ]
 }

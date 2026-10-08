@@ -7,7 +7,7 @@ from financial_writing_agent.adapters.deterministic import DeliveryExecutor
 from financial_writing_agent.harness import freeze_acceptance_contract, validate_draft_against_acceptance
 from financial_writing_agent.models import ArtifactKind, ContentMode, WritingState
 from financial_writing_agent.routing import build_task_contract
-from financial_writing_agent.schemas import DraftPackage, EditorialPlan, HeadlinePackage, PlatformConstraintSnapshot, StickerPostPayload
+from financial_writing_agent.schemas import DraftPackage, EditorialPlan, HeadlinePackage, PlatformConstraintSnapshot, ResearchPackage, StickerPostPayload
 
 
 def _snapshot(title_max=20, body_max=200):
@@ -24,6 +24,49 @@ def _risk():
     return (
         "本文基于公开信息整理，仅用于财经信息交流，不构成投资建议或收益承诺。"
         "政策、价格、订单、业绩与市场情绪均可能变化，请以最新公告为准并独立判断。"
+    )
+
+
+def _sticker_research():
+    return ResearchPackage.model_validate(
+        {
+            "topic": "微信贴图事件",
+            "chronology": ["事件发生并出现可核验变化"],
+            "what_changed": ["事件事实已由原始来源确认"],
+            "industry_chain": ["事件→需求→利润预期"],
+            "transmission_chain": ["变化→预期差→兑现判断"],
+            "universe": [],
+            "evidence_ledger": [
+                {
+                    "claim": "经核验的事件事实",
+                    "source": "原始公告",
+                    "evidence_type": "official",
+                    "confidence": "high",
+                    "core_safe": True,
+                    "verification_status": "SINGLE_SOURCE_ATTRIBUTED",
+                    "source_group": "official-origin",
+                    "allowed_wording": "据原始公告披露，事件已出现该变化",
+                }
+            ],
+            "counterevidence": ["兑现程度仍需区分"],
+            "unresolved_gaps": [],
+            "provisional_theses": ["事件热度与业绩兑现并不等价"],
+            "source_boundary": "原始公告已读；未把未核实传闻作为核心事实",
+            "cognition": {
+                "prior_knowledge_refs": [],
+                "concept_map": ["事件变化", "兑现阶段"],
+                "industry_logic": ["事件变化影响利润预期但兑现存在差异"],
+            },
+            "coverage": {
+                "sweeps_completed": 2,
+                "coverage_status": "SATURATED",
+                "material_new_items_last_sweep": 0,
+                "concept_coverage": "核心事件与兑现差异已覆盖",
+                "company_coverage": "本测试不要求具体公司宇宙",
+                "source_diversity": "原始公告与独立检查路径",
+                "stop_reason": "第二轮无影响标题锚点的新事实",
+            },
+        }
     )
 
 
@@ -61,18 +104,20 @@ def _sticker_editorial_plan():
 
 
 def _sticker_headlines():
-    candidate = {
-        "title": "事件变化",
-        "angle": "事实反差",
+    base = {
         "finance_relevance": "影响利润预期",
         "factual_anchor": "经核验的事件事实",
-        "primary_gap": "谁真正兑现",
         "opening_payoff": "正文立即解释变化与影响",
         "cognitive_load": "low",
     }
     return HeadlinePackage.model_validate(
         {
-            "wechat_sticker_candidates": [candidate, {**candidate, "title": "变化之后，谁在兑现"}, {**candidate, "title": "热度背后的兑现差"}, {**candidate, "title": "同一事件，两种结果"}],
+            "wechat_sticker_candidates": [
+                {**base, "title": "事件变化", "angle": "事实反差", "primary_gap": "谁真正兑现"},
+                {**base, "title": "变化之后，谁在兑现", "angle": "兑现分化", "primary_gap": "哪些环节已进入兑现"},
+                {**base, "title": "热度背后的兑现差", "angle": "叙事与业绩", "primary_gap": "热度为什么没有同步变成利润"},
+                {**base, "title": "同一事件，两种结果", "angle": "结果比较", "primary_gap": "为什么同一催化产生不同结果"},
+            ],
             "wechat_sticker_selected": "事件变化",
         }
     )
@@ -90,6 +135,7 @@ def test_wechat_sticker_is_distinct_content_mode_and_artifact():
 def test_sticker_acceptance_contract_freezes_selected_title():
     contract = build_task_contract(prompt="做一条微信贴图引流", visuals_enabled=False)
     state = WritingState(contract=contract)
+    state.working["research"] = _sticker_research().model_dump(mode="json")
     state.working["editorial_plan"] = _sticker_editorial_plan().model_dump(mode="json")
     state.working["headlines"] = _sticker_headlines().model_dump(mode="json")
     frozen = freeze_acceptance_contract(state)
