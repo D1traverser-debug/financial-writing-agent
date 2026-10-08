@@ -11,7 +11,7 @@ Do not automatically start or resume the wrong task.
 - If the user says “继续昨天那篇”, “接着写”, “刚才那篇”, or otherwise refers to unfinished writing, call `list_recent_writing_tasks` first, identify the best match from prompt/topic previews, then call `get_writing_task`. Do not ask the user to repeat information already persisted.
 - If the matched task is `BLOCKED`, inspect `blocked_reason`, repair the external dependency/contract defect, then call `resume_writing_task`. The Runtime restores the recorded original stage; never start a duplicate task or choose an arbitrary stage to bypass a block.
 - If more than one unfinished task is genuinely plausible after reading the previews, ask one targeted disambiguation question rather than guessing.
-- For a genuinely new writing task, call `start_writing_task` before connected-knowledge retrieval, web research, outlining, drafting or image planning.
+- For a genuinely new writing task, call `start_writing_task` before connected-knowledge retrieval, web research, outlining, drafting or image planning. Do **not** inspect or restore unrelated unfinished task state merely because another task exists.
 - A new task may reuse durable knowledge/experience, but it must **not** inherit an old task's stage, blockers, selected title/outline, draft, artifacts, visual package, pending actions or next step merely because an unfinished/recent task exists. Only explicit continuation intent restores task state. In short: inherit learning, not unfinished work.
 
 The MCP runtime checkpoint is the executable task authority. GitHub `main` is code/rule authority after promotion. Notion/Drive status pages are mirrors or research/governance inputs, not competing runtime checkpoints.
@@ -22,7 +22,7 @@ Follow exactly:
 
 Never silently fall back to free-form writing when a mandatory tool/gate fails. Repair the legal stage or report `BLOCKED` clearly. `BLOCKED` is recoverable only through the explicit resume path after the defect is repaired.
 
-A revision is not a cosmetic side path. Use the earliest correct revision target (`RESEARCH`, `EDITORIAL`, `TITLE`, `DRAFT` or `DELIVERY`); the runtime invalidates affected downstream PASS state and delivery artifacts. Never assume an old audit remains valid after a change.
+A revision is not a cosmetic side path. Use the earliest correct revision target (`RESEARCH`, `EDITORIAL`, `TITLE`, `DRAFT` or `DELIVERY`); the runtime invalidates affected downstream PASS state and delivery artifacts. Never assume an old audit remains valid after a change. Stage-specific research/title/draft revision budgets are frozen into `TaskContract.run_constraints` at task start. When a configured budget is exhausted, the runtime blocks instead of looping forever, silently resetting counters or starting a duplicate task.
 
 ## 3. Defaults
 Unless the current user explicitly overrides a soft preference:
@@ -30,6 +30,8 @@ Unless the current user explicitly overrides a soft preference:
 - `DUAL` = one broad/deep research base + independently edited `FINANCE_DEEP` and `FINANCE_BROAD`;
 - formal language → Simplified Chinese financial prose;
 - delivery → `WORD_FILE_ONLY`;
+- explicit direct-chat/plain-text only → `CHAT_TEXT`;
+- explicit request for both chat body **and** Word → `WORD_AND_CHAT`; both output families are required and Word mechanical/render/audit gates still run;
 - new Word articles use the current integrated visual workflow unless the user opts out or the task is only about an already-existing document;
 - do not paste the article body/preview in chat under `WORD_FILE_ONLY`.
 
@@ -59,9 +61,13 @@ Research must know materially more than the article says: catalyst/timeline, con
 
 User-supplied links/PDFs/reports/attachments are source obligations, not decorative inputs. Account for each material source as actually read, partially read/truncated, duplicative of another original, or unavailable with a fallback/impact boundary. Tool success, snippets and summaries do not equal source completion.
 
-Run omission/count/time checks as part of research judgment: ask what should exist but is missing; reconcile trustworthy source/universe counts where applicable; refresh mutable company/policy/order/customer/capacity facts; timestamp market-state claims; and never use later information as if it were known at an earlier stated boundary.
+Run omission/count/time checks as part of research judgment: ask what should exist but is missing; reconcile trustworthy source/universe counts where applicable; refresh mutable company/policy/order/customer/capacity facts; timestamp market-state claims; and never use later information as if it were known after `TaskContract.effective_time_boundary`.
+
+Market microstructure claims must remain inside the declared `ResearchPackage.market_data_boundary`. Ordinary quotes do not authorize Level-2 inferences. Order-book/封单/queue claims require real Level-2 order-book receipts; 逐笔/tick claims require tick capability; 抢筹 inference requires actual order-book or tick evidence. When unavailable, omit/downgrade the claim and record the limitation rather than fabricating precision.
 
 Use the evidence ledger as an executable boundary, not decorative notes. Core title/lead/H1/bold/conclusion facts cannot remain `UNRESOLVED`. Distinguish `SINGLE_SOURCE_ATTRIBUTED` from `INDEPENDENTLY_CROSS_CHECKED`, including real source-group independence. Writing keeps StockBase read-only; stable corrections go to the research `review_queue`, not directly into StockBase.
+
+A temporary same-path research failure may be retried at most once when there is a reason to believe the failure is transient. Quota/permission exhaustion is not a reason for blind retry. Consolidate same-path failure history into one `ResearchFailure` receipt and switch to an independent reliable fallback or keep the evidence boundary explicit.
 
 ## 6. Editorial, DUAL separation and acceptance contract
 Use topic-specific structure, continuous report prose and real paragraph/section transitions. Formal hierarchy is `一、二、三 → （1）（2）（3） → ①②③`; `·` is not a structural level marker. Conclusion-first is a soft preference, not a fixed opening template.
@@ -96,7 +102,7 @@ Explicit 微信贴图 requests use `WECHAT_STICKER_POST`, not a shortened DUAL a
 When the user asks for platform recommendation/click/search/retention optimization and a connected platform/ArticleBase experience store is available, retrieve the current relevant evidence. Platform/account experience informs packaging but never overrides research accuracy or generic editorial rules; one viral/failed article is an experience sample, not a universal formula.
 
 ## 10. Mechanical QA is not final QA
-`build_and_mechanically_audit_delivery` builds the required publication artifacts and runs deterministic Word/render checks. Mechanical success does not prove semantic quality, research/source completeness or visual page correctness.
+`build_and_mechanically_audit_delivery` builds the required publication artifacts and runs deterministic Word/render checks. Mechanical success does not prove semantic quality, research/source completeness or visual page correctness. `WORD_AND_CHAT` still traverses this Word mechanical path; only pure `CHAT_TEXT` makes Word-specific checks N/A.
 
 When render is enabled, the tool returns `writing-render://...` page resources. Inspect **every returned page** before claiming page QA. Check clipping, overlap, pagination, orphan headings, abnormal blank space/pages, broken image placement and risk-section layout. Do not infer page quality merely because render succeeded.
 
@@ -114,7 +120,7 @@ At FINAL_AUDIT, treat the current result as potentially wrong. Re-read the froze
 
 Submit `FinalAuditDecision`, not a generic PASS. `acceptance_evidence` uses exact `KEY: concrete final-content evidence` entries defined in `references/audit.md`; the runtime machine-checks the criterion inventory it currently models before COMPLETE.
 
-The final evidence must prove, not merely assert: source/evidence boundary and material supplied-source completion; omission/count/time boundaries where applicable; title/opening/H1 payoff; side focus/company-selection basis; bold skim skeleton; causal continuity; fact/inference/market-expectation separation; anti-AI and prompt-leakage cleanliness; compliance/risk; DUAL consistency; required artifact identity/readback; and every inspected render page.
+The final evidence must prove, not merely assert: source/evidence boundary and material supplied-source completion; omission/count/time/market-data boundaries where applicable; title/opening/H1 payoff; side focus/company-selection basis; bold skim skeleton; causal continuity; fact/inference/market-expectation separation; anti-AI and prompt-leakage cleanliness; compliance/risk; DUAL consistency; required artifact identity/readback; and every inspected render page.
 
 For the current machine-checked formal keys, each applicable mode includes:
 - `selected_title`;
@@ -129,11 +135,11 @@ For the current machine-checked formal keys, each applicable mode includes:
 - `reasoning_continuity`;
 - `compliance_risk`.
 
-DUAL additionally requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key; all tasks include `GLOBAL.evidence_boundary` and `GLOBAL.required_outputs`. Use those existing evidence keys to carry the richer checks from `references/audit.md` rather than inventing a competing checklist.
+DUAL additionally requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key. All tasks require the full global evidence set from `references/audit.md`, including `GLOBAL.evidence_boundary`, `GLOBAL.source_completion`, `GLOBAL.omission_scan`, `GLOBAL.count_reconciliation`, `GLOBAL.time_integrity`, `GLOBAL.market_data_boundary`, `GLOBAL.counterexample_scan` and `GLOBAL.required_outputs`. Use those existing evidence keys to carry the richer checks rather than inventing a competing checklist.
 
-`reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. DUAL must be checked for both independent validity and cross-version factual/evidence/conclusion-boundary consistency. Unsupported/new material facts, silently incomplete supplied sources or time-contaminated claims revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
+`reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. DUAL must be checked for both independent validity and cross-version factual/evidence/conclusion-boundary consistency. Unsupported/new material facts, silently incomplete supplied sources, time-contaminated claims or market-data capability overreach revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
 
-Only after the **mandatory gate inventory itself is complete**, both knowledge decisions (`knowledge_context` and `knowledge_sync`) resolve to PASS/N_A, every other required gate resolves, criterion-level final evidence is complete, every required artifact has a recorded checksum and passes final readback/checksum verification, and final audit passes may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body.
+Only after the **mandatory gate inventory itself is complete**, both knowledge decisions (`knowledge_context` and `knowledge_sync`) resolve to PASS/N_A, every other required gate resolves, criterion-level final evidence is complete, every required artifact has a recorded checksum and passes final readback/checksum verification, and final audit passes may the runtime reach `COMPLETE`. At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body. Under explicit `WORD_AND_CHAT`, return both the requested chat-body artifact/content path and the audited Word/audit artifacts.
 
 When connected governance mirrors are available, copy final formal artifacts to the configured destination and update mirrors after Runtime completion. Mirror failure must be reported separately and must not rewrite a valid Runtime checkpoint. If claiming an external copy/upload succeeded, verify it by connected readback/metadata rather than by tool-call success alone.
 
