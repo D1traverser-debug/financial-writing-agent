@@ -104,18 +104,20 @@ def _sticker_editorial_plan():
 
 
 def _sticker_headlines():
-    candidate = {
-        "title": "事件变化",
-        "angle": "事实反差",
+    base = {
         "finance_relevance": "影响利润预期",
         "factual_anchor": "经核验的事件事实",
-        "primary_gap": "谁真正兑现",
         "opening_payoff": "正文立即解释变化与影响",
         "cognitive_load": "low",
     }
     return HeadlinePackage.model_validate(
         {
-            "wechat_sticker_candidates": [candidate, {**candidate, "title": "变化之后，谁在兑现"}, {**candidate, "title": "热度背后的兑现差"}, {**candidate, "title": "同一事件，两种结果"}],
+            "wechat_sticker_candidates": [
+                {**base, "title": "事件变化", "angle": "事实反差", "primary_gap": "谁真正兑现"},
+                {**base, "title": "变化之后，谁在兑现", "angle": "兑现分化", "primary_gap": "哪些环节已进入兑现"},
+                {**base, "title": "热度背后的兑现差", "angle": "叙事与业绩", "primary_gap": "热度为什么没有同步变成利润"},
+                {**base, "title": "同一事件，两种结果", "angle": "结果比较", "primary_gap": "为什么同一催化产生不同结果"},
+            ],
             "wechat_sticker_selected": "事件变化",
         }
     )
