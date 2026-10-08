@@ -130,7 +130,7 @@ def test_deep_first_dual_hook_and_stock_judgment_rules_are_executable_or_audited
     assert '"DUAL.broad_derivation_fidelity"' in engine
     assert '"DUAL.broad_hook_strength"' in engine
 
-    assert "DUAL is sequential, not parallel" in editorial
+    assert "Do **not** treat DUAL as two independently invented analyses" in editorial
     assert "Recommendation-oriented stock research depth" in research
     assert "Judgment specificity / anti-empty-hedging" in style
     assert "DUAL.deep_master_quality" in audit
@@ -171,4 +171,4 @@ def test_legacy_cold_start_editorial_and_platform_semantics_remain_present():
 
     # Legacy T13: compress redundancy before reasoning/evidence.
     assert "Compress repeated explanation, textbook background, synonym restatement" in editorial
-    assert "Preserve counterexamples, `why_this / why_not`, market-selection logic" in editorial
+    assert "Preserve independent facts, key numbers, causal steps, counterexamples, `why_this / why_not`, market-selection mechanism" in editorial
