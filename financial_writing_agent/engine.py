@@ -134,6 +134,7 @@ GLOBAL_FINAL_CRITERIA = (
     "omission_scan",
     "count_reconciliation",
     "time_integrity",
+    "market_data_boundary",
     "counterexample_scan",
     "required_outputs",
 )
