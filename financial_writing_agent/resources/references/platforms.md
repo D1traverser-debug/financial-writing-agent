@@ -16,7 +16,7 @@ For broad distribution, optimize the full funnel rather than click-through alone
 Under the current default editorial policy, FINANCE_BROAD normally targets roughly 900–1500 Chinese characters and should not exceed 1800 without an explicit policy override. The point is not shortness for its own sake: compress background, repeated examples, secondary branches and ceremonial recap so the reader reaches the decisive payoff and article end sooner.
 
 ## Connected platform/account knowledge
-When the user explicitly asks to optimize recommendation, click-through, search, retention, completion/end reach, engagement or account-specific performance and a connected ArticleBase/platform-method store is available, retrieve the **current relevant version** as an input after Runtime start. Treat it as platform evidence/experience, not as a second copy of the generic headline/editorial rules.
+When the user explicitly asks to optimize recommendation, click-through, search, retention or account-specific performance, include completion/end reach and engagement when they are part of the current account objective. If a connected ArticleBase/platform-method store is available, retrieve the **current relevant version** as an input after Runtime start. Treat it as platform evidence/experience, not as a second copy of the generic headline/editorial rules.
 
 Separate:
 - platform/distribution mechanics that are currently evidenced;
