@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from .engine import WorkflowError, WritingEngine
 from .harness import validate_research_against_knowledge_context
-from .models import GateStatus, Stage, WritingState
+from .models import ContentMode, DistributionMode, GateStatus, Stage, WritingState
 from .schemas import ResearchPackage
 
 
@@ -81,13 +81,13 @@ class WorkflowController:
 
         if s == Stage.EDITORIAL:
             self._require_pass(state, "editorial_plan")
-            return self.engine.transition(state, Stage.TITLE, reason="TopicDNA and structures frozen")
+            return self.engine.transition(state, Stage.TITLE, reason="TopicDNA and applicable initial structure frozen")
 
         if s == Stage.TITLE:
             status = self._status(state, "title_audit")
             if status == GateStatus.PASS:
                 self._require_pass(state, "acceptance_contract")
-                return self.engine.transition(state, Stage.DRAFT, reason="headline hook and acceptance contract passed")
+                return self.engine.transition(state, Stage.DRAFT, reason="headline hook and applicable acceptance contract passed")
             if status == GateStatus.REVISE:
                 if not self._consume_revision_budget(state, Stage.TITLE):
                     return state
@@ -98,7 +98,26 @@ class WorkflowController:
 
         if s == Stage.DRAFT:
             self._require_pass(state, "draft_output")
+            if (
+                state.contract.content_mode == ContentMode.FORMAL_ARTICLE
+                and state.contract.distribution_mode == DistributionMode.DUAL
+            ):
+                state.working["broad_derivation_phase"] = "EDITORIAL"
+                self.engine.store.save(state)
+                return self.engine.transition(
+                    state,
+                    Stage.BROAD_DERIVATION,
+                    reason="FINANCE_DEEP mother draft frozen; derive FINANCE_BROAD now",
+                )
             return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audit")
+
+        if s == Stage.BROAD_DERIVATION:
+            self._require_pass(state, "broad_derivation")
+            return self.engine.transition(
+                state,
+                Stage.EDITORIAL_AUDIT,
+                reason="FINANCE_BROAD derived from frozen FINANCE_DEEP mother draft",
+            )
 
         if s == Stage.EDITORIAL_AUDIT:
             status = self._status(state, "editorial_audit")
