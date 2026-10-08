@@ -30,6 +30,19 @@ The author stance is a researcher who has checked the material, is willing to pr
 
 When evidence is already closed, state the conclusion directly. Do not manufacture suspense with “能不能/会不会/看三件事” after the answer is already known. Conditional language is appropriate when the evidence is genuinely incomplete; state what remains unresolved.
 
+## Judgment specificity / anti-empty-hedging
+For recommendation-oriented or stock-comparison articles, vagueness is a quality defect when the evidence already supports a present-tense judgment.
+
+Do not end a stock paragraph or the whole article with generic deferral language such as “后续关注”“继续观察”“先看A再看B”“有待验证”“值得关注”“能否走出来还要看市场” when the body has already established enough evidence to say where the stock/company stands now.
+
+Prefer explicit evidence-bounded judgments that identify the current state: industrial realization stage, factual versus narrative exposure, relative company position, market role/身位/liquidity role when supported, what is confirmed versus merely expected, and the specific reason one name currently ranks above/below another on the chosen dimensions.
+
+A condition or falsification trigger is useful **after** the present judgment. It must not replace the judgment.
+
+When the evidence truly cannot support a firmer conclusion, uncertainty must itself be specific: name the missing fact/data, why it cannot currently be resolved, the concrete trigger that would resolve it, and how alternative outcomes would change the judgment. Do not manufacture certainty, but do not hide behind noncommittal prose.
+
+This rule never authorizes direct trading instructions, position sizing, entry timing, target prices or guaranteed returns.
+
 ## Extreme/superlative language
 Remove rhetorical superlatives and absolutes that exceed evidence strength. This includes unsupported “最…” claims and phrases such as 最强、最牛、最值得、顶级、史诗级、彻底颠覆、注定、必然、唯一机会. “最近/最后” and strictly factual ranked claims are not automatically violations; factual superlatives require explicit evidence and should be used only when materially necessary.
 
