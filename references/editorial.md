@@ -7,6 +7,8 @@ Default formal output is Simplified Chinese financial prose.
 
 For recommendation-oriented A-share articles, selection is allowed only after broad research. Editorial compression must never be used to hide shallow company work.
 
+The article is not a transcript of the research process. Research may be exhaustive; publication should be the **shortest complete expression** of the facts, causal chain, comparison and judgment that materially change the reader's understanding.
+
 ## TopicDNA
 Before drafting, determine:
 - what genuinely changed;
@@ -38,13 +40,40 @@ A fixed “event → industry → stocks → market → next stage” skeleton i
 ## Information density and length
 There is no minimum word-count target. Preserve independent facts, key numbers, causal steps, counterexamples, `why_this / why_not`, market-selection mechanism, validation/falsification conditions and risk boundaries.
 
-For FINANCE_DEEP, completeness takes priority over arbitrary brevity. Do not cut a useful reasoning chain merely to satisfy a cosmetic target. The default hard editorial ceiling is approximately **10,000 Chinese characters** for the publishable article body unless the user explicitly requests another ceiling; this is an upper bound, not a target.
+### FINANCE_DEEP: shortest complete analytical version
+Completeness does **not** mean maximum length. Keep every piece of information that can change the thesis, ranking, company judgment, causal chain or risk boundary; compress or delete material that only repeats the same conclusion.
 
-Compress repeated explanation, textbook background, synonym restatement, examples that do not change judgment and long company lists without comparison value before cutting reasoning.
+Before cutting an independent fact or causal step, cut these first:
+- repeated explanation of a point already proved;
+- textbook/background material the target reader does not need;
+- synonym restatement and throat-clearing;
+- long examples that do not change the judgment;
+- company lists without comparative value;
+- generic macro/industry prose that is not tied to the actual event, company or stock-selection question.
 
-FINANCE_BROAD must be materially more compressed than the completed FINANCE_DEEP mother version. Compression may remove low-value background and secondary branches, but it must retain the strongest contradiction, at least one complete core causal chain, the important company/stock conclusion and the evidence boundary that makes that conclusion defensible.
+The default hard editorial ceiling remains approximately **10,000 Chinese characters**, but it is a ceiling, not an invitation to fill the space. Above roughly **6,000 characters**, trigger a density review: every remaining H1/H2 should be able to answer “what judgment changes if this section disappears?” If the answer is “none”, compress it.
 
-Research can be exhaustive while the article is selective, but the article must not imply that a selected subset is the whole universe. Make the chosen focus legible naturally in the lead or early prose when omission of non-focus branches could otherwise mislead the reader.
+### FINANCE_BROAD: acquisition + completion version
+FINANCE_BROAD is not a shorter research report. It is a distribution product whose first objectives are click-through, first-screen retention, continuation and **end-of-article reach** while preserving truthfulness.
+
+The preferred default length is roughly **900–1500 Chinese characters**. The default hard cap is **1800**. Shorter is valid when the article still preserves the strongest contradiction, at least one complete causal chain, the decisive company/stock judgment and the evidence/risk boundary. A Broad article above 1800 is a defect under the default policy rather than a normal outcome.
+
+Broad compression should preferentially remove:
+- secondary background and second-order branches;
+- repeated examples/data points proving the same thing;
+- low-value company lists;
+- technical detail already necessary only for Deep readers;
+- verbose transitions and recap paragraphs;
+- long risk boilerplate that can be expressed with the same information in fewer words.
+
+Do not remove an independent fact, number, causal step, counterexample or company comparison if its removal changes the conclusion. Broad may contain fewer companies than Deep, but the retained companies must be the smallest high-value subset needed to make the comparison/judgment concrete. Never imply that the displayed subset is the whole researched universe.
+
+## Concrete application: no generic finance filler
+A material paragraph should normally add at least one of the following: a specific event/fact, a number, a causal mechanism, a named company/stock, a comparison, a market-role observation or a present judgment. Paragraphs that could be pasted unchanged into another industry's article are presumptively too generic.
+
+When the topic materially involves stocks, do not stop at abstract industry logic. Where a section affects stock selection or ranking, connect the industry conclusion to the actual companies/stocks: who is factually exposed, whose earnings realization is further along, who is still mainly narrative, who carries the current market role/liquidity, and why those differences matter **now**.
+
+Macro/policy/technical background is allowed when it is necessary to understand the current causal chain, but it should quickly resolve into actual transmission, companies, numbers or stock-selection consequences rather than remaining a floating lecture.
 
 ## Prose and continuity
 Default to continuous report-style prose rather than fragmented notes or bullet-heavy pseudo-analysis. Lists are allowed when the content is genuinely list-like, but the article's reasoning should move through paragraphs.
@@ -53,14 +82,14 @@ Sections/paragraphs must have a visible relationship: cause, consequence, contra
 
 Prefer conclusion-first openings when they reduce reader uncertainty: quickly establish what changed, why it matters and the central judgment. This is a soft editorial preference, not a mandatory identical opening formula.
 
-Formal structural hierarchy maps to `一、二、三` → `（1）（2）（3）` → `①②③`. Mechanical numbering is owned by delivery code; the writer should not use `·` as a structural hierarchy marker. Use numbering to clarify real logical blocks, not to fragment continuous reasoning.
+Formal structural hierarchy maps to `一、二、三` → `（1）（2）（3）` → `①②③`. **Use and expose this hierarchy proactively when real logic exists.** If an H1 contains two or more distinct sub-arguments, comparisons or causal blocks, surface them as H2 instead of hiding them in a wall of text. If an H2 contains three or more explicit evidence/condition/dimension units, surface H3 when that improves scanning. Do not manufacture hierarchy for decoration, but err on the side of making genuine structure visible—especially in FINANCE_DEEP. FINANCE_BROAD should keep fewer levels when possible, but still use them when they materially improve scanability.
 
 ## Two article modes
 ### FINANCE_DEEP
-For finance communities. This is the analytical mother version. Preserve the full reasoning path, counterevidence, company comparison, `why_this / why_not`, market-selection logic, current company/stock state and the evidence needed to explain why one stock ranks above or below another. Readers should be able to recover how the conclusion was derived.
+For finance communities. This is the analytical mother version. Preserve the full reasoning path, counterevidence, company comparison, `why_this / why_not`, market-selection logic, current company/stock state and the evidence needed to explain why one stock ranks above or below another. Readers should be able to recover how the conclusion was derived without being forced through repeated background or filler.
 
 ### FINANCE_BROAD
-For broad-distribution platforms while remaining a financial article. It is derived **after** the finance logic has been solved in FINANCE_DEEP. Translate that result into a lower-friction finance-wide question, compress secondary detail, improve scanability and strengthen the hook. Reader acquisition has higher packaging priority here, but hook strength never authorizes factual distortion, fake suspense or a weaker analytical boundary.
+For broad-distribution platforms while remaining a financial article. It is derived **after** the finance logic has been solved in FINANCE_DEEP. Translate that result into a lower-friction finance-wide question, compress secondary detail, improve scanability and strengthen the hook. Reader acquisition **and completion** have higher packaging priority here, but hook strength or brevity never authorizes factual distortion, fake suspense or a weaker analytical boundary.
 
 DUAL therefore uses one research/evidence base and one FINANCE_DEEP analytical mother version. FINANCE_BROAD is a controlled derivative: title, lead, section order and emphasis may change for click/read efficiency, but facts, evidence strength, entity identity, core causal chain, stock judgment, conclusion boundary and risk boundary must remain consistent.
 
@@ -112,7 +141,7 @@ Every formal `ArticlePayload` contains exactly one `lead` block, and it is the f
 
 The opening should quickly perform three jobs without sounding formulaic: establish immediate relevance, upgrade the central contradiction, and make the reading payoff clear. These may span the first three sentences naturally. Opening facts must respect the same evidence boundary as title/H1 claims.
 
-For FINANCE_BROAD, the opening must also convert the mother version's analysis into a low-friction entry point: the reader should understand within the first screen why this matters and what concrete judgment will be resolved.
+For FINANCE_BROAD, the opening must also convert the mother version's analysis into a low-friction entry point: the reader should understand within the first screen why this matters and what concrete judgment will be resolved. Do not spend Broad's opening on background that Deep already solved.
 
 ## H1 continuation contract
 Every H1 is more than a directory label. Before drafting a selected structure, define for each H1:
@@ -122,9 +151,9 @@ Every H1 is more than a directory label. Before drafting a selected structure, d
 - `logical_blocks`: the section's major semantic blocks, in order;
 - `h3_required_h2_indexes`: only those second-level blocks that truly contain at least three explicit evidence/condition/dimension units and therefore need a third-level hierarchy.
 
-`logical_blocks` has a dual role. A one-item list means the section remains one continuous H1-level reasoning block and should not invent H2 headings. A list with two or more items freezes the expected H2 labels/order. If an H2 later develops a real three-or-more-unit internal structure, mark its 1-based index in `h3_required_h2_indexes`; do not create H3 merely for decoration.
+`logical_blocks` has a dual role. A one-item list means the section remains one continuous H1-level reasoning block and should not invent H2 headings. A list with two or more items freezes the expected H2 labels/order. If an H2 later develops a real three-or-more-unit internal structure, mark its 1-based index in `h3_required_h2_indexes`; do not suppress H3 merely to keep the layout flat, and do not create H3 merely for decoration.
 
-An H1 that only summarizes a topic, reports a number, names a category, or gives away the entire section without a continuation reason is weak. Hierarchy is a semantic structure decision first and a delivery-format check second—do not create headings merely to satisfy a count.
+An H1 that only summarizes a topic, reports a number, names a category, or gives away the entire section without a continuation reason is weak. Hierarchy is a semantic structure decision first and a delivery-format check second—use it to expose real structure, not to satisfy a count.
 
 The final auditor must be able to map each H1 to its frozen directional judgment, continuation gap and concrete payoff location in the final prose. If that mapping cannot be made, the section design was not actually fulfilled.
 
@@ -163,6 +192,8 @@ Any stock/company actually mentioned as part of the article's recommendation/com
 
 The article must make the selection logic understandable. Industrial authenticity, earnings benefit, sentiment leadership and liquidity role can diverge; do not collapse them into a single ranking merely because one stock is prominent.
 
+When an abstract industry claim materially affects the company ranking, explicitly show its company/stock transmission. “行业受益”“景气提升”“政策催化” without explaining **which company gets what economic/market effect and why** is incomplete analysis.
+
 ### No empty hedge endings
 When evidence is sufficient, state the present judgment directly and connect it to the stock/company: what is already confirmed, what is still only expected, which stock is currently stronger/weaker/ahead/behind on the relevant dimensions, and why.
 
@@ -184,11 +215,15 @@ Do not force a universal “next stage / what to watch next / summary” ending.
 
 If the topic is recommendation/comparison-oriented and the evidence is adequate, the ending should leave the reader with a concrete current-state conclusion rather than a generic watchlist. Preserve falsification awareness, but it need not be a dedicated section and must not be used as an excuse to avoid a supported judgment.
 
+For FINANCE_BROAD, do not add a long recap after the judgment has landed. Once the core payoff and concise risk boundary are delivered, end. Completion is more valuable than a ceremonial summary.
+
 ## Risk section
 The writer returns a separate `risk_disclaimer` field for each formal article. Do not place a risk/disclaimer H1 inside article blocks. Deterministic delivery appends the final section so it cannot be omitted or duplicated by formatting drift.
 
+Risk language should use **minimum sufficient disclosure**. Default to a compact 60–120 Chinese-character risk paragraph, preserve the actual boundary, and avoid long boilerplate that delays article-end reach. A disclaimer does not legalize actionable securities advice or replace substantive compliance.
+
 ## Style
-Load `references/style.md` for anti-AI, individuality, backstage/prompt-leakage, judgment-specificity and extreme-language rules. Style must never override evidence accuracy.
+Load `references/style.md` for anti-AI, individuality, backstage/prompt-leakage, judgment-specificity, concreteness and extreme-language rules. Style must never override evidence accuracy.
 
 ## Editorial judge
-Judge title/opening/structure separately from the writer. Use PASS/REVISE/FAIL with concrete evidence. Revision feedback identifies the first point where reasoning, transition, information density, reader motivation, H1 continuation promise, stock-judgment specificity, mother-to-derivative consistency, acceptance-contract fidelity or evidence-bounded style breaks.
+Judge title/opening/structure separately from the writer. Use PASS/REVISE/FAIL with concrete evidence. Revision feedback identifies the first point where reasoning, transition, information density, reader motivation, H1 continuation promise, hierarchy scanability, concrete company/stock application, stock-judgment specificity, mother-to-derivative consistency, acceptance-contract fidelity or evidence-bounded style breaks.
