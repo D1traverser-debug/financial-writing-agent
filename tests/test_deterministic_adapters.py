@@ -60,6 +60,26 @@ def test_chat_delivery_makes_mechanical_audit_na(tmp_path):
     assert state.gates["mechanical_audit"].status == GateStatus.N_A
 
 
+def test_word_and_chat_builds_both_and_keeps_word_mechanical_gate(tmp_path):
+    c = TaskContract(
+        prompt="聊天框正文和Word都要",
+        delivery_channel=DeliveryChannel.WORD_AND_CHAT,
+        distribution_mode=DistributionMode.FINANCE_DEEP,
+    )
+    state = WritingState(contract=c)
+    state.working["draft"] = _draft()
+    state = DeliveryExecutor(root=tmp_path).execute(state)
+
+    assert state.gates["delivery_output"].status == GateStatus.PASS
+    assert state.gates["delivery_output"].evidence == ["CHAT_TEXT.txt", "FINANCE_DEEP.docx"]
+    assert ArtifactKind.CHAT_TEXT in state.artifacts
+    assert ArtifactKind.FINANCE_DEEP_DOCX in state.artifacts
+    assert ArtifactKind.AUDIT_DOCX in c.required_outputs
+
+    state = MechanicalAuditExecutor(require_render=False).execute(state)
+    assert state.gates["mechanical_audit"].status == GateStatus.PASS
+
+
 def test_low_judgment_word_rule_violation_forces_mechanical_revise(tmp_path):
     state = WritingState(contract=TaskContract(prompt="写文章", distribution_mode=DistributionMode.DUAL))
     draft = _draft()
@@ -87,6 +107,7 @@ def test_audit_artifact_contains_acceptance_evidence_and_safe_artifact_identity(
     state.working["research"] = {
         "source_boundary": "公开一手来源 + 独立核验",
         "coverage": {"coverage_status": "SATURATED", "sweeps_completed": 2},
+        "market_data_boundary": {"as_of": "N/A", "data_level": "NONE"},
         "cognition": {"prior_knowledge_refs": ["stockbase-readonly"]},
         "evidence_ledger": [
             {
