@@ -170,6 +170,31 @@ STICKER_FINAL_CRITERIA = (
 )
 
 
+VACUOUS_FINAL_EVIDENCE_VALUES = {
+    "pass",
+    "passed",
+    "ok",
+    "checked",
+    "done",
+    "na",
+    "n/a",
+    "通过",
+    "已通过",
+    "已检查",
+    "检查通过",
+    "符合",
+    "已符合",
+    "无问题",
+    "没问题",
+    "完成",
+}
+
+
+def _is_vacuous_final_evidence(value: str) -> bool:
+    normalized = "".join(value.lower().split()).strip(".,。!！;；:：")
+    return normalized in VACUOUS_FINAL_EVIDENCE_VALUES
+
+
 class WritingEngine:
     def __init__(self, store: SQLiteStateStore):
         self.store = store
@@ -356,16 +381,37 @@ class WritingEngine:
         final_audit = state.working.get("final_audit") or {}
         entries = final_audit.get("acceptance_evidence") or []
         provided: dict[str, str] = {}
+        duplicates: set[str] = set()
         for entry in entries:
             if not isinstance(entry, str) or ":" not in entry:
                 continue
             key, evidence = entry.split(":", 1)
-            if key.strip() and evidence.strip():
-                provided[key.strip()] = evidence.strip()
+            key = key.strip()
+            evidence = evidence.strip()
+            if not key or not evidence:
+                continue
+            if key in provided:
+                duplicates.add(key)
+            provided[key] = evidence
+
+        if duplicates:
+            raise WorkflowError(f"Final acceptance evidence contains duplicate criterion key(s): {sorted(duplicates)}")
+
         required = cls._required_final_evidence_keys(state)
         missing = sorted(required - set(provided))
         if missing:
             raise WorkflowError(f"Final acceptance evidence missing required criterion(s): {missing}")
+
+        vacuous = sorted(
+            key
+            for key in required
+            if _is_vacuous_final_evidence(provided[key])
+        )
+        if vacuous:
+            raise WorkflowError(
+                "Final acceptance evidence must contain concrete criterion-specific proof, not a bare PASS/checked label; "
+                f"vacuous={vacuous}"
+            )
 
     def assert_can_complete(self, state: WritingState) -> None:
         required_gates = self._required_completion_gates(state)
