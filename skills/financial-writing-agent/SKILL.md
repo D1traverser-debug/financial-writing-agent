@@ -17,8 +17,13 @@ Do not automatically start or resume the wrong task.
 The MCP runtime checkpoint is the executable task authority. GitHub `main` is code/rule authority after promotion. Notion/Drive status pages are mirrors or research/governance inputs, not competing runtime checkpoints.
 
 ## 2. Workflow invariant
-Follow exactly:
+For a normal single formal mode or sticker task, follow exactly:
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
+
+For a `DUAL` formal task, follow exactly:
+`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL[FINANCE_DEEP] → TITLE[FINANCE_DEEP] → DRAFT[FINANCE_DEEP] → BROAD_DERIVATION[FINANCE_BROAD: EDITORIAL → TITLE → DRAFT] → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
+
+`BROAD_DERIVATION` is an internal mandatory stage only for DUAL formal tasks. It does **not** add a new MCP tool: follow `next_action` and reuse the existing `submit_editorial_plan`, `submit_headlines`, and `submit_draft` tools in that order. The runtime rejects FINANCE_BROAD planning/title/draft before the FINANCE_DEEP mother draft has been frozen, and it will not let DUAL reach editorial audit or COMPLETE unless the broad-derivation gate passes.
 
 Never silently fall back to free-form writing when a mandatory tool/gate fails. Repair the legal stage or report `BLOCKED` clearly. `BLOCKED` is recoverable only through the explicit resume path after the defect is repaired.
 
@@ -41,7 +46,7 @@ Explicit user instructions can override soft editorial preferences for the curre
 Supporting references are part of this Skill bundle. Load them progressively:
 - RESEARCH: `references/research.md` + `references/knowledge.md`.
 - RESEARCH_AUDIT / FINAL_AUDIT: `references/audit.md`.
-- EDITORIAL / TITLE / DRAFT: `references/editorial.md` + `references/style.md`; load `references/structure_patterns.md` only after TopicDNA/current-mode candidate structures exist, for collision checking rather than template generation.
+- EDITORIAL / TITLE / DRAFT / BROAD_DERIVATION: `references/editorial.md` + `references/style.md`; load `references/structure_patterns.md` only after TopicDNA/current-mode candidate structures exist, for collision checking rather than template generation.
 - Platform routing / WeChat sticker: `references/platforms.md`.
 - Visual planning / insertion: `references/visuals.md`.
 - Word/output: `references/delivery.md`.
@@ -77,7 +82,7 @@ Use topic-specific structure, continuous report prose and real paragraph/section
 ### DUAL is deep-first, not parallel
 For DUAL, `FINANCE_DEEP` is the analytical mother version. Solve it first: complete the causal chain, company comparison, `why_this / why_not`, industry realization stage, market-selection logic, current stock judgments, counterevidence and risk boundary. There is no default short length target; preserve useful reasoning and use roughly **10,000 Chinese characters as an upper guardrail rather than a target**.
 
-Only after that analysis is solved may `FINANCE_BROAD` be derived by controlled compression/repackaging. The broad version may change title, lead, section order, density and explanatory burden to improve click-through and continuation for a wider finance audience, but it must not invent new facts, upgrade evidence strength, reverse company/stock ranking, change the decisive causal conclusion or weaken the risk boundary. It should be materially lower-friction and more acquisition-oriented than the deep mother version while preserving at least one complete core causal chain.
+Only after the FINANCE_DEEP **draft is frozen by the runtime** may `FINANCE_BROAD` be planned, titled and drafted through `BROAD_DERIVATION`. The broad version may change title, lead, section order, density and explanatory burden to improve click-through and continuation for a wider finance audience, but it must not invent new facts, upgrade evidence strength, reverse company/stock ranking, change the decisive causal conclusion or weaken the risk boundary. It should be materially lower-friction and more acquisition-oriented than the deep mother version while preserving at least one complete core causal chain.
 
 A FINANCE_BROAD-only task may still be written directly from TopicDNA/research because no deep output exists in that task. The deep-first derivation rule applies specifically when DUAL requires both versions.
 
@@ -99,7 +104,7 @@ For FINANCE_DEEP prioritize specificity + analytical tension + selection value. 
 ### H1 and acceptance
 Every H1 must function as an advancing judgment, not a directory label. The final article should make recoverable for each material H1: its directional conclusion, the remaining information gap/mechanism/contrast worth reading for, and where the body pays that promise off. Use H2/H3 only when real logical sub-blocks require them; do not add hierarchy for decoration or hide obvious multi-block logic in a wall of text.
 
-After applicable selected titles and structures are ready, the runtime freezes a `WritingAcceptanceContract`. Do not draft outside the legal frozen contract. Formal draft payloads start with exactly one independent `lead`, immediately followed by the first H1. If title/structure/section promises need changing, revise through the legal stage rather than altering the draft behind the contract.
+After applicable selected titles and structures are ready, the runtime freezes a `WritingAcceptanceContract`. Do not draft outside the legal frozen contract. Formal draft payloads start with exactly one independent `lead`, immediately followed by the first H1. In DUAL, the deep acceptance contract freezes first; the broad acceptance contract is added only during `BROAD_DERIVATION` after the deep mother draft exists. If title/structure/section promises need changing, revise through the legal stage rather than altering the draft behind the contract.
 
 ### Stock/company judgment must be current and explicit
 When evidence is sufficient, do **not** replace a stock/company judgment with an observation checklist. State what is already confirmed, what remains only expected, where the company sits in the industrial realization chain, its current market role/身位 when supported, why it ranks stronger/weaker/ahead/behind meaningful alternatives, and the decisive limitation preventing a higher ranking when relevant.
@@ -161,11 +166,19 @@ For the current machine-checked formal keys, each applicable mode includes:
 - `company_selection_basis`;
 - `headline_anchor`;
 - `opening_payoff`;
+- `hook_quality`;
+- `stock_judgment_clarity`;
 - `bold_scan_skeleton`;
 - `reasoning_continuity`;
 - `compliance_risk`.
 
-DUAL additionally requires `DUAL.cross_version_consistency`; enabled visuals add the applicable `visual_alignment` key. During the SOP/runtime-hardening phase, DUAL consistency must be strengthened from generic consistency into explicit deep-master → broad-derivation fidelity rather than treated as two independent valid articles. All tasks require the full global evidence set from `references/audit.md`, including `GLOBAL.evidence_boundary`, `GLOBAL.source_completion`, `GLOBAL.omission_scan`, `GLOBAL.count_reconciliation`, `GLOBAL.time_integrity`, `GLOBAL.market_data_boundary`, `GLOBAL.counterexample_scan` and `GLOBAL.required_outputs`.
+DUAL additionally requires all four explicit derivation checks:
+- `DUAL.cross_version_consistency`;
+- `DUAL.deep_master_quality`;
+- `DUAL.broad_derivation_fidelity`;
+- `DUAL.broad_hook_strength`.
+
+Enabled visuals add the applicable `visual_alignment` key. All tasks require the full global evidence set from `references/audit.md`, including `GLOBAL.evidence_boundary`, `GLOBAL.source_completion`, `GLOBAL.omission_scan`, `GLOBAL.count_reconciliation`, `GLOBAL.time_integrity`, `GLOBAL.market_data_boundary`, `GLOBAL.counterexample_scan` and `GLOBAL.required_outputs`.
 
 `reviewed_render_pages` must exactly list the render resource URIs actually inspected when render is required. Unsupported/new material facts, silently incomplete supplied sources, time-contaminated claims or market-data capability overreach revise to RESEARCH rather than being silently accepted, and repair targets must point to the earliest correct legal stage.
 
