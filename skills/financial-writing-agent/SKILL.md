@@ -1,16 +1,26 @@
 ---
 name: financial-writing-agent
-description: Create and continue A-share financial articles or image-first WeChat finance sticker posts through a persisted MCP workflow, or through an explicit standalone Skill execution profile when the Runtime is not deployed. Use for new financial-writing tasks from links/PDFs/news/research and for continuing an unfinished writing task. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
+description: Create and continue A-share financial articles or image-first WeChat finance sticker posts through a compatible persisted MCP workflow, or through an explicit standalone Skill execution profile when the Runtime is unavailable or incompatible with the current Agent contract. Use for new financial-writing tasks from links/PDFs/news/research and for continuing an unfinished writing task. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
 # Financial Writing Agent
 
-## 0. Choose the execution profile before doing anything else
-Do not begin research, outlining or drafting until the control plane is selected.
+## 0. Choose and verify the execution profile before doing anything else
+Do not begin research, outlining or drafting until the control plane is selected **and its capability contract is compatible**.
 
-- If Financial Writing Agent MCP Runtime tools are available, use `RUNTIME`. The MCP runtime checkpoint is the executable task authority.
-- If the Runtime is genuinely unavailable/not deployed and the conversation is executing by reading this Skill, use `STANDALONE_SKILL` and load `references/standalone.md` before the task begins. Create its mandatory `ShadowTaskLedger` and use it as the in-session control plane.
-- Do **not** choose standalone merely because Runtime is inconvenient, and do not silently switch an already-started Runtime task into standalone after a tool/gate failure. Repair/resume the Runtime task or report it BLOCKED.
+Tool presence alone does not make a Runtime authoritative. Before a new Runtime task begins, perform a cold-start capability/schema handshake against the current Skill invariants. At minimum, the available Runtime must not contradict:
+- DUAL is deep-first, not parallel;
+- `FINANCE_DEEP` can complete before `FINANCE_BROAD` derivation begins;
+- Broad can be submitted through a phased `BROAD_DERIVATION`-equivalent path rather than requiring both mode plans/drafts up front;
+- current research/evidence boundaries can be represented without dropping material source-completion, market-data capability or failure receipts;
+- current editorial acceptance can preserve section-level promise/payoff/hierarchy obligations rather than silently discarding them.
+
+Execution-profile rules:
+- If Financial Writing Agent MCP Runtime tools are available **and compatible with the current Skill contract**, use `RUNTIME`. The MCP runtime checkpoint is the executable task authority.
+- If the Runtime is unavailable/not deployed **or is present but contract-incompatible**, use `STANDALONE_SKILL` and load `references/standalone.md` before the task begins. Create its mandatory `ShadowTaskLedger` and record the unavailable/incompatible Runtime reason rather than pretending that no Runtime was checked.
+- Do **not** choose standalone merely because a compatible Runtime is inconvenient.
+- If incompatibility is discovered only after a Runtime task was already created, stop mixing control planes. Treat the Runtime task as blocked by version/capability mismatch. Do not import stale Runtime PASS receipts into standalone. Restart the user task under a fresh ShadowTaskLedger using only reusable research facts/evidence whose provenance remains valid, and record the mismatch as a `SYSTEM_ERROR` for maintenance.
+- A normal tool/gate failure inside a **compatible** Runtime does not authorize silent fallback. Repair/resume the Runtime task or report it BLOCKED.
 - In standalone mode, never invent MCP calls, task IDs, gate receipts, checksums or render resources. `STANDALONE_COMPLETE` is a disciplined self-audited completion state, not Runtime `COMPLETE`.
 
 The standalone profile exists so a fresh conversation can execute this Agent without deployment while retaining explicit stage accounting, acceptance contracts, invalidation, evidence and completion barriers. It reduces drift but does not become deterministic simply because the rules are written down.
@@ -48,6 +58,7 @@ Unless the user explicitly overrides a soft preference:
 ### Publication-density defaults
 - Research may be exhaustive; writing should be the **shortest complete expression** of the material evidence and judgment.
 - `FINANCE_DEEP`: preserve all independent facts/numbers/causal steps/comparisons that can change the conclusion, but remove repeated explanation, textbook background and generic filler. Roughly 6,000 Chinese characters triggers a density review; ~10,000 remains the hard ceiling, not a target.
+- For a **complex thematic stock article** with several causal layers and roughly five or more material companies, use **6,000–9,000 Chinese characters as a diagnostic range, not a quota**. A Deep draft below roughly 5,500 characters is presumptively at risk of over-compression and must prove it did not drop causal bridges, counterevidence, `why_this / why_not`, realization-stage differences, current stock judgments or the mechanism connecting adjacent analytical layers.
 - `FINANCE_BROAD`: optimize for click-through, first-screen retention, continuation and end-of-article reach. Preferred default is roughly **900–1500 Chinese characters**; default hard cap **1800**. Shorter is valid when the hook, one complete causal chain, decisive company/stock judgment and evidence/risk boundary remain intact.
 - Formal hierarchy is `一、二、三 → （1）（2）（3） → ①②③`. Use it proactively when real logic exists: multi-block H1 → H2; H2 with three or more explicit evidence/condition/dimension units → H3 when helpful. Do not create decorative hierarchy, but do not hide real structure in walls of text.
 - Word article title is **left-aligned**, not centered.
@@ -139,7 +150,20 @@ Keep confirmed fact, industrial/economic inference, market-traded expectation an
 ## 7. Style and anti-AI
 At `EDITORIAL_AUDIT`, run the independent style judge before general editorial audit. It checks template fingerprints, transition continuity, repetition, natural rhythm, extreme language, prompt/backstage leakage, empty hedge language and concrete application.
 
-Do not “humanize” with random slang/fragments. Human quality means evidence-led prioritization, natural pacing, topic-specific choices and clear analytical judgment.
+For public-facing long-form finance articles, default to the **NARRATIVE_FINANCE_EXPLAINER** house voice in `references/style.md` unless a memo/report tone is clearly more appropriate. This is not imitation of a named writer. It means:
+- enter through a verified concrete situation/action/object/number/contradiction when useful;
+- keep one live reader question/tension moving through the piece;
+- move between concrete fact and abstraction rather than staying in jargon;
+- introduce companies because the reasoning now needs them, not as rearrangeable profile cards;
+- use dry/light humor only when it clarifies mechanism or reduces cognitive load;
+- make major sections depend on one another so the article deepens instead of merely changing categories.
+
+Run a **non-permutability check** on company passages and a **tic-density check** on long prose. If company blocks can be shuffled without changing the argument, or one rhetorical family (“不是X而是Y / 真正 / 核心 / 所以 / 如果…那么…”) repeats across many sections, revise rather than calling the prose human.
+
+### Source invisibility
+The published article should digest research material rather than expose the production process. Unless attribution itself is necessary for truthfulness or explicitly requested, keep backstage phrases such as “用户给的报告 / 原报告 / 原摘要 / 选股通认为 / 我们查到 / 我检索了 / 付费墙 / 抓取 / 工具限制” out of final prose. Evidence provenance remains in the research ledger/audit. This rule never authorizes plagiarism or removal of attribution when a named claim/source must be identified.
+
+Do not “humanize” with random slang/fragments. Human quality means evidence-led prioritization, natural pacing, topic-specific choices, controlled humor, a recognizable authored voice and clear analytical judgment.
 
 For FINANCE_BROAD, any paragraph that does not advance the hook, add an independent fact/mechanism, sharpen a company/stock comparison or change the conclusion should normally be cut. A Broad version is defective when it is merely shorter but still slow to reveal relevance, jargon-heavy or difficult to scan.
 
@@ -205,6 +229,8 @@ Runtime reaches `COMPLETE` only after mandatory gates, knowledge decisions, crit
 When the user changes an “以后都这样” rule or an existing rule is skipped, load `references/maintenance.md`. Classify the change, modify one semantic owner, remove/supersede contradictory wording, add cold-start/regression coverage and validate before promotion.
 
 If a defect should have been caught by an existing rule/gate, treat it as `SYSTEM_ERROR`: repair the execution/test boundary instead of duplicating reminder prose.
+
+Runtime/Skill capability drift is a `SYSTEM_ERROR`. Tool availability without schema/behavior compatibility must never be treated as proof that the deployed Runtime implements the current Agent.
 
 ## 15. Scope and assurance boundary
 This Skill produces publishable financial content. Standalone荐股/选股/盘后复盘 are separate workflows unless the user explicitly asks to turn that analysis into an article/post.
