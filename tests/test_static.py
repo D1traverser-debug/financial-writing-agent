@@ -64,6 +64,45 @@ def test_research_harness_and_effective_time_boundary_are_wired_end_to_end():
     assert "GLOBAL.time_integrity` must quote the persisted task's exact `TaskContract.effective_time_boundary`" in audit
 
 
+def test_combined_delivery_market_data_and_revision_budgets_are_executable_not_prose_only():
+    ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    contracts = Path("financial_writing_agent/mcp_contracts.py").read_text(encoding="utf-8")
+    routing = Path("financial_writing_agent/routing.py").read_text(encoding="utf-8")
+    schemas = Path("financial_writing_agent/schemas.py").read_text(encoding="utf-8")
+    controller = Path("financial_writing_agent/controller.py").read_text(encoding="utf-8")
+    engine = Path("financial_writing_agent/engine.py").read_text(encoding="utf-8")
+    delivery_ref = Path("references/delivery.md").read_text(encoding="utf-8")
+    research_ref = Path("references/research.md").read_text(encoding="utf-8")
+    audit_ref = Path("references/audit.md").read_text(encoding="utf-8")
+    skill = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+
+    assert "combined_delivery_channel" in ownership["delivery"]
+    assert "market_microstructure_evidence_boundary" in ownership["research"]
+    assert "market_data_boundary_audit" in ownership["audit"]
+
+    assert 'WORD_AND_CHAT = "WORD_AND_CHAT"' in models
+    assert 'Literal["WORD_FILE_ONLY", "CHAT_TEXT", "WORD_AND_CHAT"]' in contracts
+    assert "return DeliveryChannel.WORD_AND_CHAT" in routing
+    assert '"research_max_rounds": int(defaults["research_max_rounds"])' in routing
+
+    assert "class MarketDataBoundary" in schemas
+    assert "retry_attempts: int | None = Field(default=None, ge=0, le=1)" in schemas
+    assert "抢筹 inference requires declared LEVEL2" in schemas
+    assert "duplicate failed_action receipts are forbidden" in schemas
+
+    assert "REVISION_LIMIT_KEY" in controller
+    assert "revision budget exhausted" in controller
+    assert '"market_data_boundary",' in engine
+
+    assert "route `WORD_AND_CHAT`" in delivery_ref
+    assert "Market-data capability boundary" in research_ref
+    assert "at most one justified retry" in research_ref
+    assert "GLOBAL.market_data_boundary" in audit_ref
+    assert "WORD_AND_CHAT" in skill
+    assert "market_data_boundary" in skill
+
+
 def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
