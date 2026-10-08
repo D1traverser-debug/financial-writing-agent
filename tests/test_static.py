@@ -137,6 +137,19 @@ def test_deep_first_dual_hook_and_stock_judgment_rules_are_executable_or_audited
     assert "DUAL is deep-first, not parallel" in skill
 
 
+def test_public_mcp_discovery_teaches_deep_first_dual_sop():
+    public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+
+    assert "For DUAL formal tasks, complete FINANCE_DEEP editorial, title and draft first" in public_server
+    assert "only after the runtime enters BROAD_DERIVATION" in public_server
+    assert "Never submit the two analyses in parallel" in public_server
+    assert "Initial DUAL EDITORIAL accepts FINANCE_DEEP only" in public_server
+    assert "DUAL freezes FINANCE_DEEP titles first" in public_server
+    assert "DUAL accepts and freezes FINANCE_DEEP first" in public_server
+    assert "broad-derivation gate" in public_server
+    assert "independent mode-specific candidate structures" not in public_server
+
+
 def test_maintenance_requires_executable_low_judgment_rules_and_canonical_identity():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     maintenance = Path("references/maintenance.md").read_text(encoding="utf-8")
