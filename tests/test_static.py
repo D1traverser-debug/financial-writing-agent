@@ -183,5 +183,8 @@ def test_legacy_cold_start_editorial_and_platform_semantics_remain_present():
     assert "Do not promote it to a permanent formula without repeated, comparable evidence" in platforms
 
     # Legacy T13: compress redundancy before reasoning/evidence.
-    assert "Compress repeated explanation, textbook background, synonym restatement" in editorial
+    assert "Before cutting an independent fact or causal step, cut these first" in editorial
+    assert "repeated explanation of a point already proved" in editorial
+    assert "textbook/background material" in editorial
+    assert "synonym restatement" in editorial
     assert "Preserve independent facts, key numbers, causal steps, counterexamples, `why_this / why_not`, market-selection mechanism" in editorial
