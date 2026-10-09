@@ -1,11 +1,8 @@
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
-
-from .network_safety import validate_public_https_url
+from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 
 class StrictModel(BaseModel):
@@ -75,12 +72,12 @@ class ResearchPackage(StrictModel):
 
 
 class TopicDNA(StrictModel):
+    """Shared factual/topic DNA. Selection/compression is mode-specific, not shared."""
+
     new_fact: str = Field(min_length=1)
     main_transmission: str = Field(min_length=1)
     likely_reader_misjudgment: str = Field(min_length=1)
-    core_contradictions: list[str] = Field(min_length=1, max_length=3)
     comparison_dimensions: list[str] = Field(min_length=1)
-    compression_candidates: list[str] = Field(default_factory=list)
     finance_wide_question: str = Field(min_length=1)
 
 
@@ -90,34 +87,49 @@ class StructureCandidate(StrictModel):
     sections: list[str] = Field(min_length=2)
 
 
-class EditorialPlan(StrictModel):
-    topic_dna: TopicDNA
+class ModeEditorialPlan(StrictModel):
+    coverage_policy: Literal["MATERIAL_COMPLETE", "SELECTIVE_TRAFFIC"]
     candidates: list[StructureCandidate] = Field(min_length=2)
     selected_structure: StructureCandidate
-    finance_deep_emphasis: list[str] = Field(default_factory=list)
-    finance_broad_emphasis: list[str] = Field(default_factory=list)
-    side_focus_statement: str = Field(min_length=1)
-    wechat_sticker_emphasis: list[str] = Field(default_factory=list)
+    emphasis: list[str] = Field(default_factory=list)
+    completeness_obligations: list[str] = Field(default_factory=list)
+    core_contradictions: list[str] = Field(default_factory=list, max_length=3)
+    compression_candidates: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def selected_must_be_unique_candidate(self):
+    def validate_mode_contract(self):
         names = [candidate.name for candidate in self.candidates]
         if len(names) != len(set(names)):
             raise ValueError("candidate structure names must be unique")
         matches = [candidate for candidate in self.candidates if candidate.name == self.selected_structure.name]
-        if len(matches) != 1:
-            raise ValueError("selected_structure must identify exactly one candidate")
-        if matches[0].model_dump() != self.selected_structure.model_dump():
-            raise ValueError("selected_structure must exactly match the named candidate")
+        if len(matches) != 1 or matches[0].model_dump() != self.selected_structure.model_dump():
+            raise ValueError("selected_structure must exactly match one candidate")
+        if self.coverage_policy == "MATERIAL_COMPLETE":
+            if not self.completeness_obligations:
+                raise ValueError("MATERIAL_COMPLETE plan requires completeness_obligations")
+            if self.core_contradictions or self.compression_candidates:
+                raise ValueError("FINANCE_DEEP material-complete plan must not use contradiction/compression selection fields")
+        else:
+            if not self.core_contradictions:
+                raise ValueError("SELECTIVE_TRAFFIC plan requires 1-3 core_contradictions")
         return self
+
+
+class EditorialPlan(StrictModel):
+    topic_dna: TopicDNA
+    finance_deep: ModeEditorialPlan | None = None
+    finance_broad: ModeEditorialPlan | None = None
 
 
 class HeadlineCandidate(StrictModel):
     title: str = Field(min_length=1)
     angle: str = Field(min_length=1)
     finance_relevance: str = Field(min_length=1)
+    cross_finance_click_reason: str = Field(min_length=1)
     primary_gap: str = Field(min_length=1)
     cognitive_load: Literal["low", "medium", "high"]
+    wechat_search_terms: list[str] = Field(min_length=1)
+    search_evidence_refs: list[str] = Field(min_length=1)
 
 
 class HeadlinePackage(StrictModel):
@@ -125,15 +137,12 @@ class HeadlinePackage(StrictModel):
     finance_broad_candidates: list[HeadlineCandidate] = Field(default_factory=list)
     finance_deep_selected: str | None = None
     finance_broad_selected: str | None = None
-    wechat_sticker_candidates: list[HeadlineCandidate] = Field(default_factory=list)
-    wechat_sticker_selected: str | None = None
 
     @model_validator(mode="after")
     def candidate_sets_are_unambiguous(self):
         for selected, candidates, label in [
             (self.finance_deep_selected, self.finance_deep_candidates, "finance_deep"),
             (self.finance_broad_selected, self.finance_broad_candidates, "finance_broad"),
-            (self.wechat_sticker_selected, self.wechat_sticker_candidates, "wechat_sticker"),
         ]:
             titles = [candidate.title for candidate in candidates]
             if len(titles) != len(set(titles)):
@@ -153,127 +162,77 @@ class ArticlePayload(StrictModel):
     blocks: list[ArticleBlock] = Field(min_length=3)
     risk_disclaimer: str = Field(min_length=60)
     stock_names: list[str] = Field(default_factory=list)
+    skim_path_anchors: list[str] = Field(min_length=3)
 
     @model_validator(mode="after")
-    def risk_section_is_deterministic(self):
+    def validate_payload_contract(self):
         if any("风险提示" in block.text and "免责声明" in block.text for block in self.blocks):
             raise ValueError("do not embed the risk/disclaimer section in blocks; use risk_disclaimer")
-        return self
-
-
-class PlatformConstraintSnapshot(StrictModel):
-    platform: str = "微信贴图"
-    verified_at: datetime
-    source_refs: list[str] = Field(min_length=1)
-    title_max_chars: int | None = Field(default=None, ge=1)
-    body_max_chars: int | None = Field(default=None, ge=1)
-    image_max_count: int | None = Field(default=None, ge=1)
-    notes: list[str] = Field(default_factory=list)
-
-    @model_validator(mode="after")
-    def verification_must_be_current(self):
-        verified = self.verified_at
-        if verified.tzinfo is None:
-            raise ValueError("verified_at must include a timezone")
-        now = datetime.now(timezone.utc)
-        age = now - verified.astimezone(timezone.utc)
-        if age < timedelta(minutes=-15):
-            raise ValueError("verified_at cannot be materially in the future")
-        if age > timedelta(hours=48):
-            raise ValueError("platform constraint snapshot is stale; reverify the current publisher UI/mechanics")
-        return self
-
-
-class StickerPostPayload(StrictModel):
-    title: str = Field(min_length=1)
-    body: str = Field(min_length=1)
-    interaction_prompt: str = ""
-    risk_disclaimer: str = Field(min_length=60)
-    constraints: PlatformConstraintSnapshot
-    stock_names: list[str] = Field(default_factory=list)
-
-    @model_validator(mode="after")
-    def enforce_verified_limits(self):
-        if self.constraints.title_max_chars is not None and len(self.title) > self.constraints.title_max_chars:
-            raise ValueError("sticker title exceeds verified platform limit")
-        publish_body = "\n".join(x for x in [self.body, self.interaction_prompt, self.risk_disclaimer] if x.strip())
-        if self.constraints.body_max_chars is not None and len(publish_body) > self.constraints.body_max_chars:
-            raise ValueError("sticker publish body exceeds verified platform limit")
+        full_text = "\n".join(block.text for block in self.blocks)
+        for anchor in self.skim_path_anchors:
+            if f"**{anchor}**" not in full_text:
+                raise ValueError(f"skim_path_anchor must appear as an exact explicit bold span: {anchor}")
         return self
 
 
 class DraftPackage(StrictModel):
     finance_deep: ArticlePayload | None = None
     finance_broad: ArticlePayload | None = None
-    wechat_sticker_post: StickerPostPayload | None = None
 
 
-class OpenAIFileRef(StrictModel):
-    download_url: str = Field(min_length=1)
-    file_id: str = Field(min_length=1)
-    mime_type: str | None = None
-    file_name: str | None = None
-
-    @field_validator("download_url")
-    @classmethod
-    def download_url_must_be_public_https(cls, value: str) -> str:
-        return validate_public_https_url(value)
-
-
-class VisualAsset(StrictModel):
-    article_mode: Literal["FINANCE_DEEP", "FINANCE_BROAD", "WECHAT_STICKER_POST"]
-    role: Literal["hero", "section", "sticker"]
-    semantic_focus: str = Field(min_length=1)
-    file_id: str = Field(min_length=1)
-    anchor_after_block: int | None = Field(default=None, ge=0)
-    hook_text: str = ""
-    aspect_ratio: str = Field(min_length=3)
-    avatar_included: bool = True
-
-
-class VisualPackage(StrictModel):
-    assets: list[VisualAsset] = Field(min_length=1)
-    avatar_required: bool = True
-    target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
-    planning_notes: list[str] = Field(default_factory=list)
-
-
-class ResolvedVisualAsset(VisualAsset):
-    local_path: str = Field(min_length=1)
-
-
-class ResolvedVisualPackage(StrictModel):
-    assets: list[ResolvedVisualAsset] = Field(min_length=1)
-    avatar_required: bool = True
-    target_chars_per_section_image: int = Field(default=700, ge=200, le=2000)
-    planning_notes: list[str] = Field(default_factory=list)
-
-
-class StyleAuditRubric(StrictModel):
+class HumanVoiceAuditRubric(StrictModel):
     template_fingerprint: Literal["PASS", "REVISE"]
     transition_continuity: Literal["PASS", "REVISE"]
     repetition_control: Literal["PASS", "REVISE"]
     rhythm_naturalness: Literal["PASS", "REVISE"]
+    reader_dialogue: Literal["PASS", "REVISE"]
+    narrative_flow: Literal["PASS", "REVISE"]
+    judgment_persona: Literal["PASS", "REVISE"]
     extreme_language_control: Literal["PASS", "REVISE"]
 
 
 class StyleAuditDecision(StrictModel):
     status: Literal["PASS", "REVISE"]
     evidence: list[str] = Field(min_length=1)
-    rubric: StyleAuditRubric
+    rubric: HumanVoiceAuditRubric
     detected_patterns: list[str] = Field(default_factory=list)
     transition_findings: list[str] = Field(default_factory=list)
-    extreme_language_findings: list[str] = Field(default_factory=list)
     revision_notes: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def status_matches_rubric(self):
-        rubric_values = self.rubric.model_dump().values()
-        expected = "PASS" if all(value == "PASS" for value in rubric_values) else "REVISE"
+        expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
-            raise ValueError(f"style status must be {expected} for the supplied rubric")
+            raise ValueError(f"human-voice status must be {expected} for the supplied rubric")
         if self.status == "REVISE" and not self.revision_notes:
-            raise ValueError("REVISE style audit requires revision_notes")
+            raise ValueError("REVISE human-voice audit requires revision_notes")
+        return self
+
+
+class HookAuditRubric(StrictModel):
+    title_cross_finance_clickability: Literal["PASS", "REVISE"]
+    title_wechat_search_intent: Literal["PASS", "REVISE"]
+    opening_three_sentence_retention: Literal["PASS", "REVISE"]
+    h1_continuation_power: Literal["PASS", "REVISE"]
+    paragraph_forward_pull: Literal["PASS", "REVISE"]
+    title_opening_payoff: Literal["PASS", "REVISE"]
+
+
+class HookAuditDecision(StrictModel):
+    status: Literal["PASS", "REVISE"]
+    evidence: list[str] = Field(min_length=1)
+    rubric: HookAuditRubric
+    search_terms_checked: list[str] = Field(min_length=1)
+    search_evidence_refs: list[str] = Field(min_length=1)
+    revision_notes: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def status_matches_rubric(self):
+        expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
+        if self.status != expected:
+            raise ValueError(f"hook status must be {expected} for the supplied rubric")
+        if self.status == "REVISE" and not self.revision_notes:
+            raise ValueError("REVISE hook audit requires revision_notes")
         return self
 
 
