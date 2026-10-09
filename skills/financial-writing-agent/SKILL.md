@@ -70,8 +70,11 @@ Explicit user instructions may override soft presentation preferences, but canno
 - `STANDALONE_SKILL`: `references/standalone.md` once before execution.
 - RESEARCH: `references/research.md` + `references/knowledge.md` + `references/professional_analysis.md`.
 - RESEARCH_AUDIT: `references/audit.md` + `references/professional_analysis.md`.
-- EDITORIAL / TITLE / DRAFT / BROAD_DERIVATION: `references/editorial.md` + `references/style.md` + `references/reader_value.md` + `references/professional_analysis.md`; use `references/structure_patterns.md` only after TopicDNA candidate structures exist, as a collision check rather than a template source.
-- FINAL_AUDIT: `references/audit.md` + `references/reader_value.md` + `references/professional_analysis.md`.
+- EDITORIAL: `references/editorial.md` + `references/style.md` + `references/reader_value.md` + `references/professional_analysis.md`; use `references/structure_patterns.md` only after TopicDNA candidate structures exist, as a collision check rather than a template source.
+- TITLE: everything required by EDITORIAL plus **`references/headline_craft.md`**. The title skill pack is mandatory for formal headline generation/selection rather than optional inspiration.
+- DRAFT / BROAD_DERIVATION: everything required by EDITORIAL plus **`references/human_voice_craft.md`**; during Broad headline selection also load **`references/headline_craft.md`**.
+- EDITORIAL_AUDIT: `references/audit.md` + `references/style.md` + `references/human_voice_craft.md` + `references/reader_value.md` + `references/professional_analysis.md`.
+- FINAL_AUDIT: `references/audit.md` + `references/reader_value.md` + `references/professional_analysis.md` + **`references/human_voice_craft.md` + `references/headline_craft.md`** so the final reader-visible artifact is rechecked for human voice and title-promise payoff.
 - Platform and post-publication experience: `references/platforms.md`; combine with `references/reader_value.md` only when interpreting reader/business value, not to invent platform rules.
 - Visuals: `references/visuals.md`.
 - Word/output/compliance: `references/delivery.md`.
@@ -133,6 +136,10 @@ Treat hooks as a linked system:
 
 Formal applicable modes generate 8–12 **genuinely different** headline mechanisms, not paraphrases. Each candidate stays inside the evidence boundary and records its factual anchor, reader stake, primary information gap, opening payoff and cognitive load.
 
+At TITLE, the `headline_craft.md` pack is mandatory. Extract `HeadlineRawMaterial` before wording candidates, then run a destructive title tournament: reject candidates that fail accuracy, natural-reader interpretation, subject clarity, first-screen payoff, uniqueness or backstage-leak checks. Prefer **recognizable anchor + reader stake/tension + one valuable information gap + credible payoff signal**. A headline may withhold the answer; it must not withhold the subject or reason to care.
+
+Do not select a title merely because it sounds more dramatic. The winner is the strongest truthful promise with enough information scent to be understood out of context and enough unresolved value to justify the click. Repeated headline skeletons are an AI/template smell even when each title is individually grammatical.
+
 ### H1 / H2 / H3 acceptance
 Every H1 must advance a judgment, not act as a directory label. Freeze per-H1 `directional_conclusion`, `reader_gap`, `payoff_requirement`, `logical_blocks` and any real H3 requirement before drafting. Genuine multi-level logic should be surfaced through the formal Chinese hierarchy rather than hidden in dense paragraphs.
 
@@ -158,7 +165,11 @@ For public-facing long-form finance articles, default to the **NARRATIVE_FINANCE
 - use dry/light humor only when it clarifies mechanism or reduces cognitive load;
 - make major sections depend on one another so the article deepens instead of merely changing categories.
 
+`human_voice_craft.md` is the mandatory execution pack for public-facing prose. Borrow only truth-safe craft from narrative nonfiction/fiction/essay writing: verified scene/action, selective detail, real friction, setup→complication→payoff, movement up/down the ladder of abstraction, authored judgment and responsive sentence rhythm. Never invent a scene, dialogue, inner thought or cinematic detail merely to sound human.
+
 Run a **non-permutability check** on company passages and a **tic-density check** on long prose. If company blocks can be shuffled without changing the argument, or one rhetorical family (“不是X而是Y / 真正 / 核心 / 所以 / 如果…那么…”) repeats across many sections, revise rather than calling the prose human.
+
+Before final release, run the finance **Fresh Reader blind pass** from `human_voice_craft.md` on reader-visible text only. It must identify the first real engagement point, likely exit points, productive curiosity versus confusion, checklist/report smell, repeated rhetorical devices, the most generic AI-like paragraph, the most memorable concrete detail and whether the author sounds like a real analyst with a point of view. A serious Fresh Reader failure is a DRAFT/EDITORIAL defect even if factual checks pass.
 
 ### Source invisibility
 The published article should digest research material rather than expose the production process. Unless attribution itself is necessary for truthfulness or explicitly requested, keep backstage phrases such as “用户给的报告 / 原报告 / 原摘要 / 选股通认为 / 我们查到 / 我检索了 / 付费墙 / 抓取 / 工具限制” out of final prose. Evidence provenance remains in the research ledger/audit. This rule never authorizes plagiarism or removal of attribution when a named claim/source must be identified.
@@ -212,6 +223,8 @@ At FINAL_AUDIT, treat the result as potentially wrong. Re-read frozen acceptance
 The final evidence inventory must prove source/evidence boundary, supplied-source completion, omission/count/time/market-data checks, headline/opening/H1 payoff, hierarchy realization, concrete company/stock application, stock-judgment clarity, bold skim skeleton, causal continuity, fact/inference/market-expectation separation, anti-AI cleanliness, compliance/risk, DUAL mother-to-derivative consistency and artifact identity. Applicable formal modes must include the explicit final evidence keys `opening_first_three_sentences` and `bold_scan_skeleton` rather than merely asserting that the opening and bolding were checked.
 
 Use the existing final-evidence keys to prove reader value rather than creating a second checklist vocabulary. `hook_quality`, `opening_first_three_sentences`/`opening_payoff`, per-H1 `promise_payoff`, `reasoning_continuity`, `bold_scan_skeleton`, `side_focus`, `company_selection_basis`, `DUAL.deep_master_quality` and `DUAL.broad_hook_strength` must collectively show what the target reader learns that was not obvious before reading, how quickly that value becomes visible, and whether the scan path preserves it. Factual correctness without a material reader-information gain is an EDITORIAL/DRAFT defect, not an automatic PASS.
+
+Final `hook_quality` evidence must now also demonstrate the headline-craft contract: recognizable subject, reader stake, one useful unresolved hinge, no stronger natural interpretation than the evidence supports, and visible first-screen payoff. Final style/`reasoning_continuity` evidence must include the Fresh Reader blind-pass result and identify any revised exit point/template smell rather than merely asserting that prose was checked.
 
 Also use the existing evidence keys to prove professional financial-analysis integrity. `GLOBAL.evidence_boundary`, `GLOBAL.time_integrity`, `GLOBAL.counterexample_scan`, `<MODE>.company_selection_basis`, `<MODE>.stock_judgment_clarity`, `<MODE>.reasoning_continuity`, `<MODE>.side_focus` and per-H1 `promise_payoff` must show that material layer transitions are supported or explicitly bounded, numeric/expectation comparisons are definition- and time-consistent, competing explanations were considered, and fundamentals/earnings quality/valuation/expectations/market role were not silently conflated. Revise rather than PASS when a headline or conclusion depends on a missing analytical bridge.
 
