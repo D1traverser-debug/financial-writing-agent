@@ -1,7 +1,13 @@
 # Delivery module
 
 ## Default channel
-Unless the task explicitly requests plain chat text, deliver through `WORD_FILE_ONLY`. Under `WORD_FILE_ONLY`, chat contains artifact links/references and concise audit/checklist status only.
+Formal writing delivers **publication content only as Word**. Do not paste the article body or preview into chat.
+
+Completion has two QA surfaces:
+1. `WRITING_AUDIT_REPORT.docx` — durable detailed QA evidence;
+2. a concise **chat checklist/list** — visible status for every required gate.
+
+Therefore “Word only” describes article-content delivery, not silent QA. The chat checklist must never substitute for the audit Word file, and the audit Word file must never suppress the chat checklist.
 
 ## Word construction
 Mechanical formatting belongs to code, not the drafting model.
@@ -10,24 +16,42 @@ Mechanical formatting belongs to code, not the drafting model.
 - H1: red, bold, ~18pt.
 - H2: Normal + bold, ~13.5pt.
 - H3: Normal + bold, ~12pt.
-- Body: ~12pt.
-- Formal hierarchy is normalized deterministically to `一、二、三` → `（1）（2）（3）` → `①②③`; `·` is not a primary hierarchy marker.
-- Stock/company names supplied by research state are automatically bolded on every occurrence.
-- Default to prose rather than tables unless a table materially improves the task.
+- Body: readable mobile-transfer working size; current policy owns the exact point size.
+- Formal hierarchy is normalized deterministically to `一、二、三` → `（1）（2）（3）` → `①②③`.
+- Use numbered H2/H3 levels frequently when the reasoning genuinely has layers/steps/categories; do not add empty levels merely to increase numbering.
+- Company/stock names supplied by research state are automatically bolded on every occurrence.
+- Explicit `**...**` spans are preserved as Word bold for key terms, key numbers and key judgment sentences.
+- **Tables are prohibited in publication articles.** Convert comparisons into numbered prose.
+
+## Bold skim-path contract
+The final article must contain a deliberate emphasis skeleton. A fast reader who sees only:
+**title + H1s + bold spans**
+should still recover the topic, main economic transmission, major comparison/selection logic and conclusion boundary.
+
+Mechanical QA verifies required explicit bold anchors and company-name bolding. Semantic audit verifies that the resulting skim path actually makes sense. Do not bold whole paragraphs or large percentages of the article.
 
 ## Risk warning and disclaimer
-Formal public financial article payloads must provide a topic-specific `risk_disclaimer` field. Delivery, not the writer, appends the final risk/disclaimer H1 and body. Risk information is mandatory. Optimize for high information density and relatively short wording; do not reduce material risks just to make the paragraph shorter. Generic boilerplate alone is insufficient.
+Formal public financial article payloads must provide a topic-specific `risk_disclaimer` field. Delivery, not the writer, appends the final risk/disclaimer H1 and body. Risk information is mandatory, concise and materially complete. Generic boilerplate alone is insufficient. A disclaimer never cures actionable buy/sell guidance.
 
-## Visual insertion
-When TaskContract enables visuals, delivery requires a validated visual package backed by real ChatGPT file parameters before Word construction. The builder embeds hero near the start, section images after semantic anchors, centers images, never crops, caps overly tall images while preserving aspect ratio, and records a visual manifest.
+## No visual workflow
+Financial Writing has no image-generation, cover, section-image, avatar or visual-asset step. Image work belongs outside this writing runtime and must not block or alter article completion.
 
 ## Financial publishing compliance
-Public-platform output must not become executable buy/sell guidance. Deterministic scanners catch unambiguous action phrases. Ambiguous words such as “买入/卖出” can also describe factual corporate transactions, so context-sensitive equivalents belong to semantic compliance audit rather than an unconditional substring ban. A disclaimer does not cure actionable instructions.
+Public-platform output must not become executable buy/sell guidance. Deterministic scanners catch unambiguous action phrases. Context-sensitive equivalents belong to semantic compliance audit. A disclaimer does not cure actionable instructions.
 
 ## Verification
-After Word creation, run deterministic checks for heading structure/numbering, stock bolding, disclaimer presence/density, unambiguous forbidden phrases and expected image count, then render Word page by page. Render success proves files can be rendered; visual clipping/pagination/image-placement judgment remains a semantic/render review obligation and must not be falsely reported as inspected when page images were not actually viewed.
-
-Rendered pages are internal QA artifacts unless the deployed host exposes them for inspection.
+After Word creation, run deterministic checks for heading structure/numbering, **absence of tables**, company-name and explicit-key-point bolding, disclaimer presence/density, unambiguous forbidden phrases and successful render. Then inspect rendered pages when page evidence is actually available; render success alone is not visual proof of good pagination.
 
 ## Visible completion checklist
-On COMPLETE, chat returns a concise checklist for runtime/gates, research/evidence, structure/style, Word/render, compliance/risk, visuals and knowledge synchronization where applicable. Detailed evidence remains in `WRITING_AUDIT_REPORT.docx`.
+On COMPLETE, chat returns a concise list covering at least:
+- runtime/stage gates;
+- research/evidence and FINANCE_DEEP material-completeness where applicable;
+- Hook Gate;
+- Human Voice Gate;
+- general editorial audit;
+- bold skim path;
+- Word/no-table/render;
+- compliance/risk;
+- knowledge reuse/writeback.
+
+Detailed evidence remains in `WRITING_AUDIT_REPORT.docx`. No article body is pasted into chat.
