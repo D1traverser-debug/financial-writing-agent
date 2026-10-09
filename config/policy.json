@@ -22,6 +22,11 @@
     "numbering_encouraged": true,
     "forbidden_heading_prefixes": ["·", "•"],
     "bold_skim_path_required": true,
+    "semantic_progression_required": true,
+    "authorial_specificity_required": true,
+    "uncertainty_calibration_required": true,
+    "concrete_evidence_density_required": true,
+    "optimize_for_ai_detector": false,
     "hard_fail_extreme_phrases": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆", "注定暴涨", "必然上涨", "唯一机会"],
     "review_generic_superlatives_semantically": true
   },
@@ -29,6 +34,14 @@
     "finance_deep_material_complete": true,
     "finance_broad_selective_compression": true,
     "finance_broad_core_contradictions_max": 3
+  },
+  "market_explanation": {
+    "required_when_stock_universe_present": true,
+    "multi_hypothesis_required": true,
+    "separate_economic_benefit_from_market_selection": true,
+    "why_this_why_not_required": true,
+    "continuation_and_reversal_conditions_required": true,
+    "causal_confidence_ladder": ["VERIFIED_FACT", "SUPPORTED_MECHANISM", "PLAUSIBLE_INTERPRETATION", "UNRESOLVED"]
   },
   "hooks": {
     "formal_headline_candidates_min": 8,
@@ -47,9 +60,12 @@
   },
   "word": {
     "title_pt": 20,
+    "h1_px": 24,
     "h1_pt": 18,
-    "h2_pt": 13.5,
+    "h2_px": 20,
+    "h2_pt": 15,
     "h3_pt": 12,
+    "body_px": 18,
     "body_pt": 13.5,
     "h1_rgb": "FF0000",
     "allow_tables": false,
