@@ -24,9 +24,9 @@ REQUIRED = {
     "submit_editorial_plan",
     "submit_headlines",
     "submit_draft",
+    "submit_hook_audit",
     "submit_style_audit",
     "submit_editorial_audit",
-    "submit_visual_package",
     "build_and_mechanically_audit_delivery",
     "record_knowledge_writeback",
     "submit_final_audit",
@@ -35,7 +35,6 @@ REQUIRED = {
 READ_ONLY = {"get_writing_task", "list_recent_writing_tasks"}
 REQUIRED_RESOURCE_TEMPLATES = {
     "writing-docx://{task_id}/{kind}",
-    "writing-json://{task_id}/{kind}",
     "writing-text://{task_id}/{kind}",
 }
 
@@ -62,7 +61,7 @@ def validate_descriptor(tool) -> None:
     if annotations["destructiveHint"] is not False:
         raise RuntimeError(f"{tool.name} unexpectedly marked destructive")
     if annotations["openWorldHint"] is not False:
-        raise RuntimeError(f"{tool.name} should remain bounded to runtime/file-param state")
+        raise RuntimeError(f"{tool.name} should remain bounded to runtime state")
     if not descriptor.get("title"):
         raise RuntimeError(f"{tool.name} missing human-readable title")
     if not descriptor.get("description") or len(descriptor["description"].strip()) < 60:
@@ -70,10 +69,6 @@ def validate_descriptor(tool) -> None:
     output_schema = descriptor.get("outputSchema")
     if not isinstance(output_schema, dict) or output_schema.get("type") != "object":
         raise RuntimeError(f"{tool.name} missing concrete object outputSchema")
-    if tool.name == "submit_visual_package":
-        meta = descriptor.get("_meta") or descriptor.get("meta") or {}
-        if meta.get("openai/fileParams") != ["files"]:
-            raise RuntimeError("submit_visual_package missing openai/fileParams metadata")
 
 
 async def verify() -> None:
@@ -93,8 +88,12 @@ async def verify() -> None:
             templates = await session.list_resource_templates()
             uris = {str(item.uri_template) for item in templates.resource_templates}
             missing_resources = sorted(REQUIRED_RESOURCE_TEMPLATES - uris)
-            if missing_resources:
-                raise RuntimeError(f"missing artifact resource templates: {missing_resources}; got={sorted(uris)}")
+            unexpected_resources = sorted(uris - REQUIRED_RESOURCE_TEMPLATES)
+            if missing_resources or unexpected_resources:
+                raise RuntimeError(
+                    f"artifact resource template mismatch; missing={missing_resources}; "
+                    f"unexpected={unexpected_resources}; got={sorted(uris)}"
+                )
 
             result = await session.call_tool(
                 "start_writing_task",
@@ -107,9 +106,13 @@ async def verify() -> None:
                 raise RuntimeError(f"structured output missing: {structured!r}")
             if structured.get("current_stage") != "RESEARCH" or not structured.get("task_id"):
                 raise RuntimeError(f"unexpected start result: {structured}")
+            if structured.get("delivery_channel") != "WORD_FILE_ONLY":
+                raise RuntimeError(f"v0.3 task must be Word-only: {structured}")
+            if any("VISUAL" in item for item in structured.get("required_outputs", [])):
+                raise RuntimeError(f"visual artifact leaked into v0.3 contract: {structured}")
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} artifact resource templates exposed, and structured start result validated"
+                f"{len(uris)} artifact resource templates exposed, and v0.3 structured start result validated"
             )
 
 
