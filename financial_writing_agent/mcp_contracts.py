@@ -13,7 +13,7 @@ StageText = Literal[
     "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
     "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT", "COMPLETE", "BLOCKED",
 ]
-ContentModeText = Literal["FORMAL_ARTICLE", "WECHAT_STICKER_POST"]
+ContentModeText = Literal["FORMAL_ARTICLE"]
 DistributionModeText = Literal["FINANCE_DEEP", "FINANCE_BROAD", "DUAL"]
 DeliveryChannelText = Literal["WORD_FILE_ONLY", "CHAT_TEXT"]
 
@@ -22,26 +22,8 @@ class PublicResultModel(BaseModel):
     model_config = ConfigDict(extra="ignore", str_strip_whitespace=True)
 
 
-READ_ONLY_TOOL = ToolAnnotations(
-    read_only_hint=True,
-    destructive_hint=False,
-    open_world_hint=False,
-    idempotent_hint=True,
-)
-
-STATE_WRITE_TOOL = ToolAnnotations(
-    read_only_hint=False,
-    destructive_hint=False,
-    open_world_hint=False,
-    idempotent_hint=False,
-)
-
-FILE_INGEST_TOOL = ToolAnnotations(
-    read_only_hint=False,
-    destructive_hint=False,
-    open_world_hint=False,
-    idempotent_hint=False,
-)
+READ_ONLY_TOOL = ToolAnnotations(read_only_hint=True, destructive_hint=False, open_world_hint=False, idempotent_hint=True)
+STATE_WRITE_TOOL = ToolAnnotations(read_only_hint=False, destructive_hint=False, open_world_hint=False, idempotent_hint=False)
 
 
 class GateSummary(PublicResultModel):
@@ -58,9 +40,10 @@ class ArtifactSummary(PublicResultModel):
     mime_type: str
 
 
-class StyleChecklist(PublicResultModel):
-    editorial: GateStatusText
-    anti_ai_style: GateStatusText
+class EditorialChecklist(PublicResultModel):
+    general_editorial: GateStatusText
+    hook: GateStatusText
+    human_voice: GateStatusText
 
 
 class KnowledgeChecklist(PublicResultModel):
@@ -73,10 +56,10 @@ class KnowledgeChecklist(PublicResultModel):
 class CompletionChecklist(PublicResultModel):
     runtime_gates: Literal["PASS", "INCOMPLETE"]
     research_evidence: GateStatusText
-    structure_style_continuity: StyleChecklist
+    editorial: EditorialChecklist
+    bold_skim_path: GateStatusText
     word_render: GateStatusText
     compliance_risk: GateStatusText
-    visuals: GateStatusText
     knowledge: KnowledgeChecklist
 
 
@@ -89,14 +72,12 @@ class WritingTaskSummary(PublicResultModel):
     content_mode: ContentModeText
     distribution_mode: DistributionModeText
     delivery_channel: DeliveryChannelText
-    visuals_enabled: bool
     required_outputs: list[str]
     gate_status: dict[str, GateStatusText] = Field(default_factory=dict)
     blocked_reason: str | None = None
     updated_at: datetime
     next_action: str
     source_refs: list[str] | None = None
-    visual_profile_ref: str | None = None
     gates: dict[str, GateSummary] | None = None
     artifacts: dict[str, ArtifactSummary] | None = None
     completion_checklist: CompletionChecklist | None = None
