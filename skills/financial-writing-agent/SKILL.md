@@ -8,9 +8,9 @@ description: Create and continue publishable A-share financial articles through 
 ## 1. Decide resume vs new first
 Do not automatically start a new task.
 
-- If the user refers to unfinished writing, list recent persisted tasks first, identify the best match, then load it. Do not ask for information already persisted.
+- If the user refers to unfinished writing, call `list_recent_writing_tasks` first, identify the best persisted match, then load the exact task. Do not ask for information already persisted.
 - If multiple unfinished tasks are genuinely plausible, ask one targeted disambiguation question.
-- For genuinely new publishable writing, start the persisted task before research, outlining or drafting.
+- For genuinely new publishable writing, call `start_writing_task` before research, outlining or drafting.
 
 Runtime checkpoint is executable task authority. GitHub `main` is code/rule authority. Notion/Drive pages are knowledge/mirrors unless explicitly designated otherwise.
 
