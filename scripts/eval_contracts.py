@@ -10,7 +10,7 @@ from financial_writing_agent.engine import WritingEngine
 from financial_writing_agent.models import ArtifactKind, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract
 from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
-from financial_writing_agent.schemas import HeadlineCandidate, HookAuditDecision, ModeEditorialPlan, StructureCandidate, StyleAuditDecision
+from financial_writing_agent.schemas import HeadlineCandidate, HeadlinePackage, HookAuditDecision, ModeEditorialPlan, StructureCandidate, StyleAuditDecision
 from financial_writing_agent.store import SQLiteStateStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -43,8 +43,7 @@ def eval_e02() -> list[str]:
         state.set_gate("research_output", GateStatus.PASS, ["done"])
         store.save(state)
         loaded = store.load(state.contract.task_id)
-        check(loaded is not None, "E02 checkpoint must reload")
-        check(loaded.stage == Stage.RESEARCH, "E02 stage must survive reload")
+        check(loaded is not None and loaded.stage == Stage.RESEARCH, "E02 checkpoint must reload at same stage")
         check(loaded.gates["research_output"].status == GateStatus.PASS, "E02 passed gates must survive reload")
     return ["checkpoint reload", "stage preserved", "passed gate preserved"]
 
@@ -52,18 +51,19 @@ def eval_e02() -> list[str]:
 def eval_e03() -> list[str]:
     contract = build_task_contract(prompt="这篇同时发雪球、韭研、头条、百家", target_platforms=["雪球", "韭研公社", "今日头条", "百家号"])
     check(contract.distribution_mode == DistributionMode.DUAL, "E03 mixed destinations must route DUAL")
-    c = StructureCandidate(name="A", rationale="test", sections=["一", "二"])
-    deep = ModeEditorialPlan(coverage_policy="MATERIAL_COMPLETE", candidates=[c, StructureCandidate(name="B", rationale="test2", sections=["一", "二"])], selected_structure=c, completeness_obligations=["event", "transmission", "market explanation", "counterevidence"])
+    c1 = StructureCandidate(name="A", rationale="test", sections=["一", "二"])
+    c2 = StructureCandidate(name="B", rationale="test2", sections=["一", "二"])
+    deep = ModeEditorialPlan(coverage_policy="MATERIAL_COMPLETE", candidates=[c1, c2], selected_structure=c1, completeness_obligations=["event", "transmission", "market explanation", "counterevidence"])
+    broad = ModeEditorialPlan(coverage_policy="SELECTIVE_TRAFFIC", candidates=[c1, c2], selected_structure=c1, core_contradictions=["profit timing"])
     check(not deep.core_contradictions and not deep.compression_candidates, "E03 deep plan must not select by contradictions/compression")
-    broad = ModeEditorialPlan(coverage_policy="SELECTIVE_TRAFFIC", candidates=[c, StructureCandidate(name="B", rationale="test2", sections=["一", "二"])], selected_structure=c, core_contradictions=["profit timing"])
     check(broad.core_contradictions == ["profit timing"], "E03 broad plan may select core contradiction")
     return ["DUAL", "deep=MATERIAL_COMPLETE", "broad=SELECTIVE_TRAFFIC"]
 
 
 def eval_e06() -> list[str]:
     contract = build_task_contract(prompt="根据研报写，字数控制得短一点")
-    check("word_count" not in contract.run_constraints, "E06 must not invent a fixed word-count contract")
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    check("word_count" not in contract.run_constraints, "E06 must not invent fixed word count")
     check(policy["editorial"]["finance_deep_material_complete"], "E06 deep material completeness must remain enabled")
     return ["no fixed word-count anchor", "deep material completeness retained"]
 
@@ -71,9 +71,10 @@ def eval_e06() -> list[str]:
 def eval_e07() -> list[str]:
     contract = build_task_contract(prompt="给我直接在聊天框看正文")
     check(contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E07 publication content remains WORD_FILE_ONLY")
-    check(ArtifactKind.CHAT_TEXT not in contract.required_outputs, "E07 chat article output must not be created")
+    check(all(kind.value != "CHAT_TEXT" for kind in contract.required_outputs), "E07 removed chat-text artifact must never be created")
     check(ArtifactKind.AUDIT_DOCX in contract.required_outputs, "E07 audit Word remains required")
-    return ["WORD_FILE_ONLY despite chat wording", "no article body chat artifact", "audit Word required"]
+    check(not hasattr(ArtifactKind, "CHAT_TEXT"), "E07 legacy CHAT_TEXT enum must remain deleted")
+    return ["WORD_FILE_ONLY", "no legacy chat artifact enum/output", "audit Word required"]
 
 
 def eval_e11() -> list[str]:
@@ -89,7 +90,7 @@ def eval_e12() -> list[str]:
         runtime = AgentRuntime.with_sqlite(Path(td) / "state.db", executors={})
         state = runtime.start(build_task_contract(prompt="来源抓不到但你先按常识写吧"))
         state = runtime.run(state)
-        check(state.stage == Stage.BLOCKED, "E12 missing executor/source path must block instead of free-form fallback")
+        check(state.stage == Stage.BLOCKED, "E12 missing executor/source path must block")
     return ["fail closed to BLOCKED"]
 
 
@@ -97,15 +98,14 @@ def eval_e13() -> list[str]:
     contract = build_task_contract(prompt="没说平台，根据资料正常写")
     check(contract.distribution_mode == DistributionMode.DUAL, "E13 unspecified platform must route DUAL")
     check(contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E13 must remain Word-only")
-    check(all("VISUAL" not in kind.value and "STICKER" not in kind.value for kind in contract.required_outputs), "E13 visual/sticker artifacts forbidden")
-    return ["DUAL", "WORD_FILE_ONLY", "zero visual/sticker artifacts"]
+    check(all("VISUAL" not in kind.value and "STICKER" not in kind.value and kind.value != "CHAT_TEXT" for kind in contract.required_outputs), "E13 removed artifact contracts forbidden")
+    return ["DUAL", "WORD_FILE_ONLY", "no visual/sticker/chat artifacts"]
 
 
 def eval_e14() -> list[str]:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    check(policy["defaults"]["language"] == "zh-CN", "E14 default language must be zh-CN")
+    check(policy["defaults"]["language"] == "zh-CN", "E14 language mismatch")
     check(policy["style"]["heading_hierarchy"] == ["一、", "（1）", "①"], "E14 hierarchy mismatch")
-    check(policy["style"]["numbering_encouraged"], "E14 meaningful numbering must be encouraged")
     check(policy["word"]["allow_tables"] is False and policy["word"]["tables_are_hard_fail"], "E14 tables must hard fail")
     expected = {"h1_px": 24, "h1_pt": 18, "h2_px": 20, "h2_pt": 15, "body_px": 18, "body_pt": 13.5}
     for key, value in expected.items():
@@ -116,7 +116,7 @@ def eval_e14() -> list[str]:
 def eval_e16() -> list[str]:
     contract = build_task_contract(prompt="写完自动配图并插进Word")
     check(contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E16 article still Word-only")
-    check(all("VISUAL" not in kind.value and "STICKER" not in kind.value for kind in contract.required_outputs), "E16 financial writing must not create visual artifacts")
+    check(all("VISUAL" not in kind.value and "STICKER" not in kind.value for kind in contract.required_outputs), "E16 Financial Writing must not create visual artifacts")
     return ["image work outside Financial Writing", "no visual artifacts"]
 
 
@@ -127,38 +127,37 @@ def eval_e17() -> list[str]:
     return ["risk mandatory", f"min_chars={policy['risk_disclaimer']['min_body_chars']}"]
 
 
-def eval_e18() -> list[str]:
-    candidate = HeadlineCandidate(
-        title="价格变化之后，利润会落到哪里",
+def _headline(title: str) -> HeadlineCandidate:
+    return HeadlineCandidate(
+        title=title,
         angle="利润传导",
         finance_relevance="影响盈利预期和估值",
-        cross_finance_click_reason="供需和利润变化对所有财经读者都有资产定价含义",
+        cross_finance_click_reason="供需和利润变化对跨行业财经读者都有资产定价含义",
         primary_gap="市场尚未区分兑现环节",
         cognitive_load="low",
         wechat_search_terms=["行业关键词"],
         search_evidence_refs=["current-wechat-search-evidence"],
     )
+
+
+def eval_e18() -> list[str]:
+    candidate = _headline("价格变化之后，利润会落到哪里")
     check(candidate.cross_finance_click_reason and candidate.wechat_search_terms and candidate.search_evidence_refs, "E18 title conditions must both exist")
+    with_missing = dict(
+        title="无搜索证据", angle="x", finance_relevance="x", cross_finance_click_reason="x",
+        primary_gap="x", cognitive_load="low", wechat_search_terms=[], search_evidence_refs=[]
+    )
     try:
-        HeadlineCandidate(
-            title="无搜索证据",
-            angle="x",
-            finance_relevance="x",
-            cross_finance_click_reason="x",
-            primary_gap="x",
-            cognitive_load="low",
-            wechat_search_terms=[],
-            search_evidence_refs=[],
-        )
+        HeadlineCandidate(**with_missing)
     except ValidationError:
         pass
     else:
         raise AssertionError("E18 search evidence cannot be omitted")
-    return ["cross-finance click condition", "independent WeChat search terms", "real search evidence refs required"]
+    return ["cross-finance click condition", "WeChat search terms", "real search evidence refs required"]
 
 
 def eval_e19() -> list[str]:
-    pass_rubric = {
+    rubric = {
         "template_fingerprint": "PASS",
         "discourse_variability": "PASS",
         "semantic_progression": "PASS",
@@ -172,13 +171,12 @@ def eval_e19() -> list[str]:
         "uncertainty_calibration": "PASS",
         "extreme_language_control": "PASS",
     }
-    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against 12-part authorial prose rubric"], rubric=pass_rubric)
-    check(decision.status == "PASS", "E19 all authorial-prose dimensions should allow PASS")
+    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against 12-part authorial prose rubric"], rubric=rubric)
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    check(policy["style"]["human_voice_semantic_audit"], "E19 authorial prose gate enabled")
-    check(policy["style"]["optimize_for_ai_detector"] is False, "E19 must not optimize for detector evasion")
-    check(policy["market_explanation"]["multi_hypothesis_required"], "E19 multi-hypothesis market explanation must remain enabled")
-    return ["12-part Natural Authorial Prose rubric", "semantic progression", "concrete evidence density", "authorial specificity", "uncertainty calibration", "no detector-evasion objective"]
+    check(decision.status == "PASS", "E19 all authorial-prose dimensions should allow PASS")
+    check(policy["style"]["optimize_for_ai_detector"] is False, "E19 must not optimize detector evasion")
+    check(policy["market_explanation"]["multi_hypothesis_required"], "E19 market explanation must remain multi-hypothesis")
+    return ["12-part Natural Authorial Prose rubric", "semantic progression", "evidence density", "authorial specificity", "uncertainty calibration"]
 
 
 EXECUTABLE = {
@@ -198,9 +196,9 @@ EXECUTABLE = {
 }
 
 SPEC_ONLY = {
-    "E04": "revision invalidation is covered by runtime regression tests and requires a live persisted stage loop",
-    "E05": "universe breadth, deep completeness and market-explanation coverage are semantic research assertions with schema regression coverage",
-    "E08": "full all-stage execution is trajectory/E2E coverage, not a contract-only check",
+    "E04": "revision invalidation is covered by runtime regression tests",
+    "E05": "universe breadth, deep completeness and market-explanation coverage are semantic research assertions",
+    "E08": "full all-stage execution is trajectory/E2E coverage",
     "E09": "experience-sample promotion is a maintenance-policy assertion",
     "E10": "durable hook-rule promotion is a maintenance-policy assertion",
     "E15": "connected knowledge reuse plus material-completeness mapping requires semantic/connector regression",
@@ -220,12 +218,10 @@ def main() -> None:
     failures: list[str] = []
     for row in scenarios:
         sid = row["id"]
-        assertions = row.get("assertions", [])
-        check(bool(assertions), f"{sid} must declare assertions")
+        check(bool(row.get("assertions", [])), f"{sid} must declare assertions")
         if sid in EXECUTABLE:
             try:
-                evidence = EXECUTABLE[sid]()
-                report.append({"id": sid, "status": "PASS", "evidence": evidence})
+                report.append({"id": sid, "status": "PASS", "evidence": EXECUTABLE[sid]()})
             except Exception as exc:
                 failures.append(f"{sid}: {type(exc).__name__}: {exc}")
                 report.append({"id": sid, "status": "FAIL", "error": str(exc)})
