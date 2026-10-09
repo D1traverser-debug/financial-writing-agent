@@ -14,7 +14,7 @@ def _risk_text() -> str:
     )
 
 
-def test_word_builder_normalizes_hierarchy_and_preserves_bold_skim_path(tmp_path):
+def test_word_builder_normalizes_hierarchy_preserves_bold_and_exact_typography(tmp_path):
     policy = json.loads(open("config/policy.json", encoding="utf-8").read())
     article = ArticleDocument(
         title="测试标题",
@@ -39,11 +39,19 @@ def test_word_builder_normalizes_hierarchy_and_preserves_bold_skim_path(tmp_path
     assert result["ok"], result
 
     doc = Document(path)
-    h1s = [p.text for p in doc.paragraphs if p.style and p.style.name == "Heading 1"]
-    assert h1s[0].startswith("一、")
-    assert h1s[1].startswith("二、")
-    assert any(p.text.startswith("（1）") for p in doc.paragraphs)
-    assert any(p.text.startswith("①") for p in doc.paragraphs)
+    h1s = [p for p in doc.paragraphs if p.style and p.style.name == "Heading 1"]
+    assert h1s[0].text.startswith("一、")
+    assert h1s[1].text.startswith("二、")
+    assert all(run.font.size is not None and run.font.size.pt == 18 for p in h1s for run in p.runs)
+
+    h2 = next(p for p in doc.paragraphs if p.text.startswith("（1）"))
+    assert all(run.font.size is not None and run.font.size.pt == 15 for run in h2.runs)
+
+    h3 = next(p for p in doc.paragraphs if p.text.startswith("①"))
+    assert all(run.font.size is not None and run.font.size.pt == 12 for run in h3.runs)
+
+    body = next(p for p in doc.paragraphs if p.text.startswith("国电南瑞在这里再次出现"))
+    assert all(run.font.size is not None and run.font.size.pt == 13.5 for run in body.runs)
 
 
 def test_tables_are_hard_fail(tmp_path):
