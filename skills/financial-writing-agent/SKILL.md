@@ -100,7 +100,7 @@ Do not let the article wind down halfway through. The final substantive section 
 Every formal public-finance payload carries a separate topic-specific `risk_disclaimer`. Public output must not become executable buy/sell guidance; a disclaimer never cures actionable instructions.
 
 ## 13. Knowledge writeback
-Before final PASS, record reusable evidence-bounded knowledge when a writable connected store exists, or record explicit N/A. Writing does not directly mutate another trading/review agent's executable state.
+Before final PASS, write reusable evidence-bounded knowledge when a writable connected store exists, then call `record_knowledge_writeback(status="PASS", refs=[...])` with real receipts. If no reusable item or writable destination exists, call `record_knowledge_writeback(status="N_A", notes=[...])` with an explicit reason. Writing does not directly mutate another trading/review agent's executable state.
 
 ## 14. Completion
 At COMPLETE return **only publication Word artifact links/references**, the audit Word artifact, and the concise chat QA checklist/list. Do not paste the article body.
