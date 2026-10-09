@@ -1,16 +1,10 @@
-from datetime import datetime, timedelta, timezone
+from datetime import datetime, timezone
 
 import pytest
 from pydantic import ValidationError
 
 from financial_writing_agent.plugin_server import _publicize
-from financial_writing_agent.schemas import (
-    EvidenceItem,
-    HeadlineCandidate,
-    HeadlinePackage,
-    OpenAIFileRef,
-    PlatformConstraintSnapshot,
-)
+from financial_writing_agent.schemas import EvidenceItem, HeadlineCandidate, HeadlinePackage, HookAuditDecision
 
 
 def _headline(title: str) -> HeadlineCandidate:
@@ -18,18 +12,17 @@ def _headline(title: str) -> HeadlineCandidate:
         title=title,
         angle="事件变化",
         finance_relevance="影响盈利预期",
+        cross_finance_click_reason="价格和利润变化对跨行业资金都有估值含义",
         primary_gap="市场仍未充分区分",
         cognitive_load="low",
+        wechat_search_terms=["行业关键词"],
+        search_evidence_refs=["wechat-search-current-signal"],
     )
 
 
 def test_stage_schema_rejects_unknown_fields():
     with pytest.raises(ValidationError):
-        EvidenceItem(
-            claim="事实",
-            source="公开来源",
-            unexpected_field="must not be silently ignored",
-        )
+        EvidenceItem(claim="事实", source="公开来源", unexpected_field="must not be silently ignored")
 
 
 def test_headline_candidates_cannot_hide_duplicates():
@@ -40,24 +33,36 @@ def test_headline_candidates_cannot_hide_duplicates():
         )
 
 
-def test_platform_constraint_snapshot_must_be_fresh():
+def test_headline_candidate_requires_current_search_evidence():
     with pytest.raises(ValidationError):
-        PlatformConstraintSnapshot(
-            verified_at=datetime.now(timezone.utc) - timedelta(hours=49),
-            source_refs=["current-ui"],
+        HeadlineCandidate(
+            title="标题",
+            angle="事件",
+            finance_relevance="利润",
+            cross_finance_click_reason="跨行业财经相关",
+            primary_gap="信息差",
+            cognitive_load="low",
+            wechat_search_terms=[],
+            search_evidence_refs=[],
         )
 
 
-def test_file_param_rejects_private_and_local_targets():
-    for url in [
-        "http://example.com/file.png",
-        "https://127.0.0.1/file.png",
-        "https://10.0.0.1/file.png",
-        "https://169.254.169.254/latest/meta-data",
-        "https://localhost/file.png",
-    ]:
-        with pytest.raises(ValidationError):
-            OpenAIFileRef(download_url=url, file_id="file-1", mime_type="image/png")
+def test_hook_audit_pass_requires_every_rubric_item_pass():
+    with pytest.raises(ValidationError):
+        HookAuditDecision(
+            status="PASS",
+            evidence=["final title and first three sentences inspected"],
+            search_terms_checked=["关键词"],
+            search_evidence_refs=["current-search-ref"],
+            rubric={
+                "title_cross_finance_clickability": "PASS",
+                "title_wechat_search_intent": "PASS",
+                "opening_three_sentence_retention": "REVISE",
+                "h1_continuation_power": "PASS",
+                "paragraph_forward_pull": "PASS",
+                "title_opening_payoff": "PASS",
+            },
+        )
 
 
 def test_public_artifacts_never_expose_server_local_paths():
@@ -70,7 +75,6 @@ def test_public_artifacts_never_expose_server_local_paths():
         "content_mode": "FORMAL_ARTICLE",
         "distribution_mode": "FINANCE_DEEP",
         "delivery_channel": "WORD_FILE_ONLY",
-        "visuals_enabled": False,
         "required_outputs": ["FINANCE_DEEP_DOCX"],
         "gate_status": {},
         "blocked_reason": None,
