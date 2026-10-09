@@ -1,30 +1,70 @@
-# Style and anti-AI module
+# Human voice and anti-AI module
 
 ## Goal
-Produce precise, individualized financial prose that reads like an informed human analyst/writer rather than a generic language-model template. “Human” does not mean random slang or forced imperfection; it means evidence-led judgment, natural pacing and topic-specific choices.
+Produce financial prose that feels written by an informed person who has actually worked through the evidence and is explaining the conclusion to another investor. “活人感” does not mean slang, deliberate mistakes or random fragments. It means **evidence-led judgment + natural reasoning trajectory + reader awareness + varied but controlled rhythm**.
+
+This is a dedicated semantic gate, separate from the Hook Gate and the general editorial audit.
+
+## What “娓娓道来” means here
+The reader should feel that one question naturally produces the next:
+- a fact creates a consequence;
+- a consequence creates a comparison;
+- a comparison exposes an exception;
+- an exception changes the judgment;
+- the revised judgment points to the next piece of evidence.
+
+Paragraphs must therefore connect through real causal, comparative, chronological, narrowing, corrective or inferential work. Do not stitch independently good paragraphs into a report-shaped pile.
+
+## What “交流感” means here
+Write as if explaining the issue to a financially literate reader, not presenting to an abstract committee.
+- Anticipate the reader's likely question or misjudgment and answer it where it naturally arises.
+- Use occasional direct questions, first-person judgment or reader-oriented phrasing only when it reflects a real reasoning move.
+- Make uncertainty and self-correction visible when evidence genuinely changes the conclusion.
+- Do not use fake intimacy, engagement-bait, empty rhetorical questions or forced colloquialism.
 
 ## Dedicated judge contract
-Anti-AI quality is a separate semantic sub-gate, not writer self-assessment. At `EDITORIAL_AUDIT`, an independent style judge returns `StyleAuditDecision` and the MCP path records it with `submit_style_audit`. The general editorial audit cannot PASS until this style gate is PASS.
+At `EDITORIAL_AUDIT`, an independent Human Voice Judge must review the frozen draft. Writer self-assessment is not evidence. PASS is legal only when every rubric item passes.
 
-The judge must provide concrete text-level evidence and a required five-part rubric: template fingerprint, transition continuity, repetition control, rhythm naturalness and extreme-language control. Overall PASS is legal only when every rubric item passes. REVISE requires concrete revision notes.
+Required rubric:
+1. `template_fingerprint` — no obvious reusable LLM template or mechanically symmetric section architecture.
+2. `transition_continuity` — section/paragraph transitions perform real logical work.
+3. `repetition_control` — no repeated recap, synonym restatement or rhetorical tic.
+4. `rhythm_naturalness` — sentence/paragraph length varies naturally without staccato fragmentation or walls of text.
+5. `reader_dialogue` — reader questions/misjudgments are anticipated naturally without fake conversation.
+6. `narrative_flow` — the reasoning unfolds step by step; later paragraphs feel earned by earlier ones.
+7. `judgment_persona` — prioritization and author judgment are visible instead of equal-weight neutral boilerplate.
+8. `extreme_language_control` — claim strength matches evidence.
 
-## Anti-AI review dimensions
-- Avoid over-regular paragraph lengths and mechanically symmetric section structures.
-- Avoid repetitive framing phrases and repeated recap of points the reader already understood.
-- Avoid generic bridge sentences that add no evidence or inference.
-- Avoid automatic “首先/其次/最后” scaffolding when the topic's logic is causal/competitive rather than enumerative.
-- Avoid excessive “不是X，而是Y / 真正值得关注的是 / 核心在于” constructions when they become a repeated rhetorical tic.
-- Vary sentence length and paragraph rhythm naturally while preserving readability.
-- Prefer concrete entities, dates, numbers, mechanisms and comparisons over abstract motivational prose.
-- Preserve the writer's judgment and prioritization; do not flatten every side into equal-weight neutral boilerplate.
-- Do not repeat the headline/H1 as the first sentence of every section in slightly different words.
-- Audit paragraph and section transitions for stitched-block feeling: each transition should have a real causal, comparative, chronological, narrowing or inferential job.
+## AI-pattern watchlist
+Audit for, but do not mechanically ban, these recurring patterns:
+- overly regular paragraph lengths and identical section shapes;
+- automatic “首先/其次/最后” when the logic is not actually enumerative;
+- repeated “不是X，而是Y / 真正值得关注的是 / 核心在于 / 值得注意的是” constructions;
+- generic bridges that add no evidence or inference;
+- each H1 being restated in the first sentence;
+- colon-heavy headings built from one repeated grammatical mold;
+- section endings that recap instead of advancing;
+- forced balance that gives weak and strong evidence equal weight;
+- choppy one-sentence fragments used merely to look human;
+- decorative metaphors or slang that obscure the financial mechanism.
+
+## Natural rhythm and older-reader usability
+The audience currently skews toward readers around 45 with a substantial 55+ group. Keep analysis sophisticated while reducing avoidable reading friction:
+- prefer clear referents over long pronoun chains;
+- break genuinely complex reasoning into numbered logical layers when useful;
+- avoid very long nested sentences and very dense unbroken paragraphs;
+- do not fragment the article into endless one- or two-sentence blocks;
+- let H1/H2/H3 numbering and selective bold carry navigation.
+
+## Bold skim path
+Bold is semantic navigation, not decoration.
+- Bold important keywords, key numbers and the minimum set of key judgment sentences.
+- The sequence **title → H1s → bold spans** must allow a fast reader to reconstruct the article's main causal chain, comparison logic and conclusion boundary.
+- Do not bold whole paragraphs or so much text that emphasis loses signal.
+- Company/stock names remain bold on every occurrence under the delivery rule.
 
 ## Extreme/superlative language
-Remove rhetorical superlatives and absolutes that exceed evidence strength. This includes unsupported “最…” claims and phrases such as 最强、最牛、最值得、顶级、史诗级、彻底颠覆、注定、必然、唯一机会. “最近/最后” and strictly factual ranked claims are not automatically violations; factual superlatives require explicit evidence and should be used only when materially necessary.
-
-## Personalization without distortion
-Use topic-specific judgment, ordering and emphasis. Personal voice cannot invent facts, certainty or actionable trading instructions. Accepted user articles/edits may become style samples; one successful article is an experience sample, not a permanent formula.
+Remove rhetorical superlatives and absolutes that exceed evidence strength, including unsupported “最强、最牛、最值得、顶级、史诗级、彻底颠覆、注定、必然、唯一机会”. Factual ranked claims require explicit evidence and material relevance. Words such as “最近/最后” are not automatically violations.
 
 ## Revision method
-Revise the smallest affected passages. Do not “humanize” by adding slang, filler, random fragments or decorative metaphors. Remove template fingerprints and improve evidence/logic flow instead.
+Revise the smallest affected passages while preserving evidence and author judgment. Do not “humanize” by adding filler, typos, random sentence fragments or decorative conversational noise.
