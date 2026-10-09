@@ -11,12 +11,13 @@ Therefore “Word only” describes article-content delivery, not silent QA. The
 
 ## Word construction
 Mechanical formatting belongs to code, not the drafting model.
-- Article title: dedicated centered title formatting.
+- Article title: dedicated centered title formatting; current policy owns its exact size.
 - Only first-level article headings use a Word heading style.
-- H1: red, bold, ~18pt.
-- H2: Normal + bold, ~13.5pt.
-- H3: Normal + bold, ~12pt.
-- Body: readable mobile-transfer working size; current policy owns the exact point size.
+- H1: red + bold, **24px equivalent = 18pt**.
+- H2: Normal + bold, **20px equivalent = 15pt**.
+- H3: Normal + bold, current policy 12pt unless the user explicitly changes it.
+- Body: **18px equivalent = 13.5pt**.
+- The px→pt mapping uses the standard CSS/96-dpi equivalence `1px = 0.75pt`; Word stores point sizes, so the deterministic builder uses the pt values above.
 - Formal hierarchy is normalized deterministically to `一、二、三` → `（1）（2）（3）` → `①②③`.
 - Use numbered H2/H3 levels frequently when the reasoning genuinely has layers/steps/categories; do not add empty levels merely to increase numbering.
 - Company/stock names supplied by research state are automatically bolded on every occurrence.
@@ -40,14 +41,15 @@ Financial Writing has no image-generation, cover, section-image, avatar or visua
 Public-platform output must not become executable buy/sell guidance. Deterministic scanners catch unambiguous action phrases. Context-sensitive equivalents belong to semantic compliance audit. A disclaimer does not cure actionable instructions.
 
 ## Verification
-After Word creation, run deterministic checks for heading structure/numbering, **absence of tables**, company-name and explicit-key-point bolding, disclaimer presence/density, unambiguous forbidden phrases and successful render. Then inspect rendered pages when page evidence is actually available; render success alone is not visual proof of good pagination.
+After Word creation, run deterministic checks for heading structure/numbering, exact policy typography, **absence of tables**, company-name and explicit-key-point bolding, disclaimer presence/density, unambiguous forbidden phrases and successful render. Then inspect rendered pages when page evidence is actually available; render success alone is not visual proof of good pagination.
 
 ## Visible completion checklist
 On COMPLETE, chat returns a concise list covering at least:
 - runtime/stage gates;
 - research/evidence and FINANCE_DEEP material-completeness where applicable;
+- market-explanation completeness where applicable;
 - Hook Gate;
-- Human Voice Gate;
+- Natural Authorial Prose / Human Voice Gate;
 - general editorial audit;
 - bold skim path;
 - Word/no-table/render;
