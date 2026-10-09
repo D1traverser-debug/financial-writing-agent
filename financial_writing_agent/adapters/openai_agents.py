@@ -1,8 +1,7 @@
 """Optional OpenAI Agents SDK implementation for high-judgment stages.
 
 The Python state machine remains authoritative. The SDK is used only inside a stage;
-it cannot skip, insert, or complete stages on its own. Creative image generation and
-connected-store I/O are orchestrated by the ChatGPT/MCP plugin path, not this adapter.
+it cannot skip, insert, or complete stages on its own.
 """
 from __future__ import annotations
 
@@ -10,9 +9,9 @@ import json
 import os
 from typing import Any
 
-from ..models import ContentMode, GateStatus, Stage, WritingState
+from ..models import GateStatus, Stage, WritingState
 from ..resources import read_reference
-from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, ResearchPackage, StyleAuditDecision
+from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 from .deterministic import finalize_audit_artifact
 
 
@@ -24,9 +23,7 @@ def require_sdk():
     try:
         from agents import Agent, Runner, WebSearchTool  # type: ignore
     except ImportError as exc:  # pragma: no cover
-        raise OpenAIAgentsUnavailable(
-            "Install optional dependency with: pip install 'financial-writing-agent[openai]'"
-        ) from exc
+        raise OpenAIAgentsUnavailable("Install optional dependency with: pip install 'financial-writing-agent[openai]'") from exc
     return Agent, Runner, WebSearchTool
 
 
@@ -51,12 +48,7 @@ class OpenAIStageExecutor:
     def _run(self, *, name: str, instructions: str, output_type: type[Any], prompt: str, web: bool = False):
         Agent, Runner, WebSearchTool = require_sdk()
         tools = [WebSearchTool(search_context_size="high", external_web_access=True)] if web else []
-        kwargs: dict[str, Any] = {
-            "name": name,
-            "instructions": instructions,
-            "output_type": output_type,
-            "tools": tools,
-        }
+        kwargs: dict[str, Any] = {"name": name, "instructions": instructions, "output_type": output_type, "tools": tools}
         if self.model:
             kwargs["model"] = self.model
         agent = Agent(**kwargs)
@@ -73,14 +65,9 @@ class OpenAIStageExecutor:
 
     def _execute_research(self, state: WritingState) -> WritingState:
         instructions = load_reference("research.md") + "\n\n" + load_reference("knowledge.md")
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md") + "\n\nVerify current WeChat sticker-post limits/mechanics with live web evidence and preserve sources for the later PlatformConstraintSnapshot."
         instructions += "\n\nReturn the required ResearchPackage. Use live web research. Do not draft the article."
         out: ResearchPackage = self._run(
-            name="Financial Writing Researcher",
-            instructions=instructions,
-            output_type=ResearchPackage,
-            web=True,
+            name="Financial Writing Researcher", instructions=instructions, output_type=ResearchPackage, web=True,
             prompt=f"USER TASK:\n{state.contract.prompt}\n\nSOURCE REFS:\n{state.contract.source_refs}\n",
         )
         state.working["research"] = out.model_dump(mode="json")
@@ -89,117 +76,74 @@ class OpenAIStageExecutor:
 
     def _execute_research_audit(self, state: WritingState) -> WritingState:
         instructions = load_reference("audit.md") + "\n\nAudit only the research package against the research and knowledge reference rules."
-        out: GateDecision = self._run(
-            name="Financial Writing Research Auditor",
-            instructions=instructions,
-            output_type=GateDecision,
-            web=False,
-            prompt=_state_context(state),
-        )
+        out: GateDecision = self._run(name="Financial Writing Research Auditor", instructions=instructions, output_type=GateDecision, prompt=_state_context(state))
         state.set_gate("research_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects))
         return state
 
     def _execute_editorial(self, state: WritingState) -> WritingState:
-        instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("structure_patterns.md")
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md") + "\n\nDesign a concise image-first sticker-post structure; do not force long-article H1 architecture."
-        instructions += "\n\nBuild TopicDNA and multiple candidate structures. Do not draft body text."
-        out: EditorialPlan = self._run(
-            name="Financial Writing Editorial Architect",
-            instructions=instructions,
-            output_type=EditorialPlan,
-            web=False,
-            prompt=_state_context(state),
+        instructions = load_reference("editorial.md") + "\n\n" + load_reference("hooks.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("structure_patterns.md")
+        instructions += (
+            "\n\nBuild shared TopicDNA and separate applicable mode plans. FINANCE_DEEP must use MATERIAL_COMPLETE with explicit completeness_obligations and no core_contradictions/compression_candidates. "
+            "FINANCE_BROAD must use SELECTIVE_TRAFFIC with 1-3 core_contradictions. Do not draft body text."
         )
+        out: EditorialPlan = self._run(name="Financial Writing Editorial Architect", instructions=instructions, output_type=EditorialPlan, prompt=_state_context(state))
         state.working["editorial_plan"] = out.model_dump(mode="json")
-        state.set_gate("editorial_plan", GateStatus.PASS, ["TopicDNA", f"structures={len(out.candidates)}"])
+        state.set_gate("editorial_plan", GateStatus.PASS, ["shared TopicDNA", "mode-specific editorial contracts"])
         return state
 
     def _execute_title(self, state: WritingState) -> WritingState:
-        instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md")
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md") + "\n\nGenerate sticker-post title candidates that complement the image hook. Do not assume remembered platform character limits; use the verified research context."
-        else:
-            instructions += "\n\nGenerate 8-12 candidates per applicable mode and select after judging finance relevance, factual support, information gap, cognitive load and extreme-language risk."
-        out: HeadlinePackage = self._run(
-            name="Financial Writing Headline Engine",
-            instructions=instructions,
-            output_type=HeadlinePackage,
-            web=False,
-            prompt=_state_context(state),
+        instructions = load_reference("editorial.md") + "\n\n" + load_reference("hooks.md") + "\n\n" + load_reference("platforms.md")
+        instructions += (
+            "\n\nUse current web/search evidence for WeChat search-intent terms before final selection. Generate 8-12 candidates per applicable mode. "
+            "Each candidate must state a cross-finance click reason, current search term(s) and real evidence refs. Do not invent search volume."
         )
+        out: HeadlinePackage = self._run(name="Financial Writing Headline Engine", instructions=instructions, output_type=HeadlinePackage, web=True, prompt=_state_context(state))
         state.working["headlines"] = out.model_dump(mode="json")
-        applicable: list[bool] = []
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            applicable.append(bool(out.wechat_sticker_selected))
-        else:
-            if state.contract.distribution_mode.value in {"FINANCE_DEEP", "DUAL"}:
-                applicable.append(bool(out.finance_deep_selected))
-            if state.contract.distribution_mode.value in {"FINANCE_BROAD", "DUAL"}:
-                applicable.append(bool(out.finance_broad_selected))
-        state.set_gate("title_audit", GateStatus.PASS if applicable and all(applicable) else GateStatus.REVISE, [f"applicable_modes={len(applicable)}"])
+        state.set_gate("title_audit", GateStatus.PASS, ["headline candidate/search evidence package"])
         return state
 
     def _execute_draft(self, state: WritingState) -> WritingState:
-        instructions = load_reference("editorial.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("delivery.md")
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md") + "\n\nReturn only wechat_sticker_post in DraftPackage. Its PlatformConstraintSnapshot must come from current research evidence; keep copy concise/useful, include an interaction prompt when appropriate, and include a compact information-dense risk_disclaimer field."
-        else:
-            instructions += "\n\nDraft the applicable article mode(s). Use Simplified Chinese and continuous logically connected prose. Return topic-specific risk text only in each payload's separate risk_disclaimer field; do not place a risk heading/body inside article blocks."
-        out: DraftPackage = self._run(
-            name="Financial Writing Writer",
-            instructions=instructions,
-            output_type=DraftPackage,
-            web=False,
-            prompt=_state_context(state),
+        instructions = load_reference("editorial.md") + "\n\n" + load_reference("hooks.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("delivery.md")
+        instructions += (
+            "\n\nDraft every applicable formal article in Simplified Chinese. Use numbered hierarchy frequently when it clarifies logic. Never use tables. "
+            "FINANCE_DEEP must discharge every completeness_obligation. FINANCE_BROAD may use its selective traffic route. "
+            "Use explicit **bold** for key terms, key data and key judgment sentences; provide at least three exact skim_path_anchors per article. "
+            "The title + H1s + bold spans must reconstruct the main line. Return risk text only in risk_disclaimer."
         )
+        out: DraftPackage = self._run(name="Financial Writing Writer", instructions=instructions, output_type=DraftPackage, prompt=_state_context(state))
         state.working["draft"] = out.model_dump(mode="json")
         state.set_gate("draft_output", GateStatus.PASS, ["structured draft package frozen"])
         return state
 
     def _execute_editorial_audit(self, state: WritingState) -> WritingState:
-        style_instructions = load_reference("style.md") + "\n\nAct as a dedicated style judge independent from the writer. Audit only AI-template fingerprints, paragraph/section transitions, repetitive rhetorical constructions, rhythm problems, empty bridges and unsupported extreme/superlative language."
-        style_out: StyleAuditDecision = self._run(
-            name="Financial Writing Anti-AI Style Judge",
-            instructions=style_instructions,
-            output_type=StyleAuditDecision,
-            web=False,
-            prompt=_state_context(state),
-        )
-        state.set_gate("style_audit", GateStatus(style_out.status), style_out.evidence, "; ".join(style_out.detected_patterns + style_out.transition_findings + style_out.extreme_language_findings + style_out.revision_notes))
-        state.working["style_audit"] = style_out.model_dump(mode="json")
-        if style_out.status != "PASS":
-            state.set_gate("editorial_audit", GateStatus.REVISE, style_out.evidence, "style audit requires draft revision")
+        hook_instructions = load_reference("hooks.md") + "\n\nAct as an independent Hook Judge. Audit the frozen selected title, actual first three complete sentences, H1s and representative paragraph transitions."
+        hook_out: HookAuditDecision = self._run(name="Financial Writing Hook Judge", instructions=hook_instructions, output_type=HookAuditDecision, prompt=_state_context(state))
+        state.set_gate("hook_audit", GateStatus(hook_out.status), hook_out.evidence, "; ".join(hook_out.revision_notes))
+        state.working["hook_audit"] = hook_out.model_dump(mode="json")
+
+        voice_instructions = load_reference("style.md") + "\n\nAct as an independent Human Voice Judge. Audit the frozen draft for human reasoning trajectory, reader dialogue, narrative flow, rhythm, repetition, template fingerprints and claim-strength control."
+        voice_out: StyleAuditDecision = self._run(name="Financial Writing Human Voice Judge", instructions=voice_instructions, output_type=StyleAuditDecision, prompt=_state_context(state))
+        state.set_gate("style_audit", GateStatus(voice_out.status), voice_out.evidence, "; ".join(voice_out.detected_patterns + voice_out.transition_findings + voice_out.revision_notes))
+        state.working["style_audit"] = voice_out.model_dump(mode="json")
+
+        if hook_out.status != "PASS" or voice_out.status != "PASS":
+            evidence = hook_out.evidence + voice_out.evidence
+            notes = "dedicated hook/human-voice gate requires draft revision"
+            state.set_gate("editorial_audit", GateStatus.REVISE, evidence, notes)
             state.working["revise_target"] = "DRAFT"
             return state
 
-        instructions = load_reference("audit.md") + "\n\nAudit the frozen draft for evidence, reasoning continuity, hook payoff, information density, platform fit and compliance. The dedicated style gate has already passed; do not replace it with writer self-assessment."
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md")
-        out: GateDecision = self._run(
-            name="Financial Writing Editorial Auditor",
-            instructions=instructions,
-            output_type=GateDecision,
-            web=False,
-            prompt=_state_context(state),
-        )
+        instructions = load_reference("audit.md") + "\n\nAudit the frozen draft for evidence, FINANCE_DEEP completeness / FINANCE_BROAD legal compression, reasoning, skim-path coherence and compliance. Dedicated Hook and Human Voice gates already passed."
+        out: GateDecision = self._run(name="Financial Writing Editorial Auditor", instructions=instructions, output_type=GateDecision, prompt=_state_context(state))
         state.set_gate("editorial_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects))
         if out.revision_target:
             state.working["revise_target"] = out.revision_target
         return state
 
     def _execute_final_audit(self, state: WritingState) -> WritingState:
-        instructions = load_reference("audit.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("visuals.md")
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            instructions += "\n\n" + load_reference("platforms.md")
-        instructions += "\n\nPerform final red-team review of frozen content plus recorded mechanical/visual audit."
-        out: GateDecision = self._run(
-            name="Financial Writing Final Auditor",
-            instructions=instructions,
-            output_type=GateDecision,
-            web=False,
-            prompt=_state_context(state),
-        )
+        instructions = load_reference("audit.md") + "\n\n" + load_reference("hooks.md") + "\n\n" + load_reference("style.md")
+        instructions += "\n\nPerform final red-team review of frozen Word content plus recorded mechanical audit. Do not audit or request images; Financial Writing has no visual workflow."
+        out: GateDecision = self._run(name="Financial Writing Final Auditor", instructions=instructions, output_type=GateDecision, prompt=_state_context(state))
         state.set_gate("final_audit", GateStatus(out.status), out.evidence, "; ".join(out.defects + out.remaining_boundaries))
         if out.revision_target:
             state.working["final_revise_target"] = out.revision_target
@@ -209,15 +153,4 @@ class OpenAIStageExecutor:
 
 
 def build_openai_executors(*, model: str | None = None) -> dict[Stage, OpenAIStageExecutor]:
-    return {
-        stage: OpenAIStageExecutor(stage, model=model)
-        for stage in {
-            Stage.RESEARCH,
-            Stage.RESEARCH_AUDIT,
-            Stage.EDITORIAL,
-            Stage.TITLE,
-            Stage.DRAFT,
-            Stage.EDITORIAL_AUDIT,
-            Stage.FINAL_AUDIT,
-        }
-    }
+    return {stage: OpenAIStageExecutor(stage, model=model) for stage in {Stage.RESEARCH, Stage.RESEARCH_AUDIT, Stage.EDITORIAL, Stage.TITLE, Stage.DRAFT, Stage.EDITORIAL_AUDIT, Stage.FINAL_AUDIT}}
