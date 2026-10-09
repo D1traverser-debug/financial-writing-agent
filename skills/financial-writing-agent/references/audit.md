@@ -15,28 +15,50 @@ Load `references/hooks.md`. Audit, with text-level evidence:
 - paragraph forward pull;
 - title/opening payoff.
 
-### Human Voice Gate
-Load `references/style.md`. Audit, with text-level evidence:
+### Natural Authorial Prose / Human Voice Gate
+Load `references/style.md`. Do not judge “humanity” by slang, typos or AI-detector scores. Audit, with text-level evidence, all 12 dimensions:
 - template fingerprint;
+- discourse variability;
+- semantic progression;
 - transition continuity;
 - repetition control;
 - rhythm naturalness;
-- reader dialogue/交流感;
-- narrative flow/娓娓道来;
-- visible judgment/persona;
+- concrete evidence density;
+- reader modeling;
+- narrative flow;
+- authorial specificity / evidence-bounded prioritization;
+- uncertainty calibration;
 - extreme-language control.
 
 General editorial audit cannot PASS unless both dedicated gates PASS.
 
 ## Mode-specific content audit
-For `FINANCE_DEEP`, audit **material completeness**, not selective-expression elegance. Compare the final article against the research package and editorial `completeness_obligations`. A material event leg, transmission link, company class, counterexample, why-this/why-not branch, validation/falsification condition or risk cannot be omitted merely to improve brevity.
+For `FINANCE_DEEP`, audit **material completeness**, not selective-expression elegance. Compare the final article against the research package and editorial `completeness_obligations`. A material event leg, transmission link, company class, counterexample, why-this/why-not branch, validation/falsification condition, market-explanation branch or risk cannot be omitted merely to improve brevity.
 
 For `FINANCE_BROAD`, selective compression is legal, but every retained conclusion must still have a complete supporting causal/evidence chain.
+
+## Market-explanation audit
+Load `references/market_explanation.md` whenever `ResearchPackage.market_explanation` is present.
+
+The final auditor must independently check:
+1. **economic benefit vs market selection are not conflated**;
+2. relevant concept/subtheme/company coverage is represented or explicitly bounded;
+3. material companies/classes are compared on topic-specific sensitivity dimensions rather than mere concept membership;
+4. `why_this / why_not` is actually answered where market selection is discussed;
+5. at least the material competing mechanisms from research are represented rather than collapsed into a hindsight single-cause story;
+6. causal wording respects the research confidence ladder (`VERIFIED_FACT`, `SUPPORTED_MECHANISM`, `PLAUSIBLE_INTERPRETATION`, `UNRESOLVED`);
+7. a limit-up, strong return, turnover spike, fund-flow proxy, concept label or continued advance is not used as self-proving causal evidence;
+8. continuation conditions and exhaustion/reversal conditions are both considered when persistence is material;
+9. unresolved questions remain visible if the evidence cannot identify a cause;
+10. none of this analysis turns into executable trading advice.
+
+A polished causal story with weak identification is a **REVISE**, not a stylistic success.
 
 ## Mechanical gates
 Use deterministic code where possible for:
 - required Word artifacts and file identity;
 - Word styles and Chinese numbering hierarchy;
+- exact policy typography where mechanically inspectable;
 - **zero tables**;
 - company-name bolding;
 - required explicit bold skim anchors;
@@ -48,10 +70,11 @@ Use deterministic code where possible for:
 Use independent judgment for:
 - evidence support/source boundary;
 - FINANCE_DEEP completeness or FINANCE_BROAD legal compression;
+- market-explanation completeness and causal-confidence discipline when applicable;
 - reasoning continuity/transitions;
 - negative evidence and why-this/why-not;
 - Hook Gate;
-- Human Voice Gate;
+- Natural Authorial Prose / Human Voice Gate;
 - **skim-path coherence: title + H1s + bold spans must recover the article's main line**;
 - platform fit;
 - context-sensitive compliance;
@@ -61,12 +84,12 @@ Use independent judgment for:
 A successful render process is not itself proof of no clipping or bad pagination. Claim page inspection only when rendered pages were actually made available to and viewed by the auditor.
 
 ## Audit report
-Generate `WRITING_AUDIT_REPORT.docx` from final state. Include task contract/distribution, source/evidence boundary, research coverage, mode-specific coverage obligations, Hook Gate, Human Voice Gate, general editorial, bold skim path, mechanical results, defects/fixes, remaining boundaries, knowledge reuse/writeback references and final artifact identities.
+Generate `WRITING_AUDIT_REPORT.docx` from final state. Include task contract/distribution, source/evidence boundary, research coverage, mode-specific coverage obligations, market-explanation audit when applicable, Hook Gate, Natural Authorial Prose / Human Voice Gate, general editorial, bold skim path, mechanical results, defects/fixes, remaining boundaries, knowledge reuse/writeback references and final artifact identities.
 
 A missing audit report is a completion failure under Word delivery.
 
 ## Visible chat checklist
-The final chat response must include a concise list of all required QA areas and statuses. It accompanies the audit Word document. It must not paste the article body.
+The final chat response must include a concise list of all required QA areas and statuses, including market-explanation completeness when applicable. It accompanies the audit Word document. It must not paste the article body.
 
 ## Fail closed
-No artifact may be COMPLETE while an applicable Must-Pass item lacks evidence. Changes to facts, title, opening three sentences, H1 structure, body logic, bold skim anchors or formatting invalidate affected checks and require re-audit.
+No artifact may be COMPLETE while an applicable Must-Pass item lacks evidence. Changes to facts, market-explanation confidence/mechanisms, title, opening three sentences, H1 structure, body logic, bold skim anchors or formatting invalidate affected checks and require re-audit.
