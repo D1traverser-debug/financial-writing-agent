@@ -1,6 +1,6 @@
-# Financial Writing Agent v0.2
+# Financial Writing Agent v0.3
 
-A deterministic A-share financial-writing runtime for research-heavy formal articles and image-first WeChat sticker posts.
+A deterministic A-share financial-writing runtime for research-heavy formal articles with mode-specific completeness, dedicated hook/human-voice audits and publication-ready Word delivery.
 
 ## Identity
 - Repository: `D1traverser-debug/financial-writing-agent`
@@ -15,29 +15,54 @@ A deterministic A-share financial-writing runtime for research-heavy formal arti
 Failures or unavailable mandatory dependencies route to `BLOCKED`; there is no silent free-form fallback.
 
 ## Core behavior
-- Unspecified formal-article destination → `DUAL`.
-- `DUAL` = one broad/deep research base + independently edited `FINANCE_DEEP` and `FINANCE_BROAD` articles.
+- Unspecified destination → `DUAL`.
+- `FINANCE_DEEP` = bounded research universe with **material-complete expression**; it may compress repetition/immaterial detail but not omit material branches for elegance or brevity.
+- `FINANCE_BROAD` = traffic-oriented selective expression around 1–3 core contradictions/information gaps while preserving full support for retained claims.
 - Default formal language = Simplified Chinese financial prose.
-- Default formal delivery = `WORD_FILE_ONLY`.
-- New Word articles enable publication visuals by default unless explicitly disabled or the task concerns an existing document.
-- Formal hierarchy is normalized to `一、二、三 → （1）（2）（3） → ①②③`.
-- A dedicated anti-AI/style judge must pass before general editorial audit can pass.
-- Public financial output requires a concise but materially complete risk warning/disclaimer.
-- Completion returns Word artifact(s), `WRITING_AUDIT_REPORT.docx`, visual manifest when applicable, and a visible completion checklist.
+- Publication content = **Word only**; do not paste article body/preview in chat.
+- QA = `WRITING_AUDIT_REPORT.docx` + visible chat checklist/list.
+- No image, cover, section-visual, avatar or sticker-post workflow exists in Financial Writing.
+- Publication articles contain **no tables**.
+- Formal hierarchy is normalized to `一、二、三 → （1）（2）（3） → ①②③` and used frequently when the reasoning contains real layers/categories/steps.
+- Key terms, key numbers and selected key judgment sentences form an explicit bold skim path; company/stock names are bold on every occurrence.
+- Public financial output requires a concise, topic-specific risk warning/disclaimer.
+
+## Dedicated Hook Gate
+Hook quality is independently audited on the frozen draft:
+- total-title cross-finance clickability;
+- current WeChat search-intent consideration with real evidence refs;
+- first three complete sentences;
+- H1 continuation power;
+- paragraph forward pull;
+- title/opening payoff.
+
+Formal modes generate 8–12 headline candidates. Current search terms are researched per task rather than stored as a permanent keyword list; exact search volume is never invented.
+
+## Dedicated Human Voice Gate
+A separate Human Voice Judge audits:
+- template fingerprints;
+- transition continuity;
+- repetition;
+- rhythm naturalness;
+- reader dialogue / 交流感;
+- reasoning narrative / 娓娓道来;
+- visible author judgment/persona;
+- extreme-language control.
+
+“Human” never means adding slang, typos, random fragments or decorative filler.
+
+## Reader/completion design
+The current audience profile supplied by the user skews older (45 common, substantial 55+). The runtime therefore favors strong visible hierarchy, frequent meaningful numbering, readable paragraph density, clear referents and a bold skim path while preserving analytical depth.
+
+The final substantive section must still add information or close an earlier question/causal loop; recap-only mechanical endings are discouraged.
 
 ## Cognition and connected knowledge
-Research is deliberately broader/deeper than the article. It covers catalyst, concept map, industry chain, A-share universe, fundamentals, why-this/why-not, market selection and relevant short-term roles/signals.
+Research remains deliberately broad/deep: catalyst, concept map, industry chain, relevant A-share universe, fundamentals/business stage, why-this/why-not, counterevidence, market selection and relevant short-term roles/signals. At least two materially different sweeps are required with an auditable stop reason.
 
-Connected Notion/Drive/StockBase/EventBase access is orchestrated by ChatGPT with the actual connector, not impersonated by the standalone Python process. Retrieved references are recorded with `record_knowledge_context`; reusable writeback receipts are recorded with `record_knowledge_writeback` before final audit when available.
-
-## Visual delivery
-Creative generation stays model-side. Runtime accepts a validated `VisualPackage`, records `VISUAL_MANIFEST.json`, and deterministically inserts assets into Word. Formal article defaults: 16:9 hero + semantic section images at roughly one per 700 Chinese characters, centered and uncropped. Image copy may use a shorter hook rather than repeating the section heading. The user's approved avatar is treated as a small integrated circular element when required by the task profile.
-
-## WeChat sticker posts
-Explicit 微信贴图 requests route to `WECHAT_STICKER_POST`, not DUAL. The draft carries a current `PlatformConstraintSnapshot` with verification time and source references. Remembered title/body/image limits are not hard-coded; numeric limits are enforced only when current evidence supplies them. Output is `WECHAT_STICKER_POST.docx` plus the visual manifest when visuals are enabled.
+Connected Notion/Drive/StockBase/EventBase access is orchestrated by ChatGPT with the actual connector. Retrieved references are recorded with `record_knowledge_context`; reusable writeback receipts are recorded with `record_knowledge_writeback` before final audit when available.
 
 ## MCP surface
-The hosted/plugin-facing runtime exposes 15 tools covering task recovery, connected-knowledge receipts, research/editorial stages, a dedicated style audit, visual package submission, deterministic delivery/mechanical audit, knowledge writeback receipt and final audit.
+The hosted/plugin-facing runtime exposes task recovery, research/editorial stages, a dedicated Hook Gate, a dedicated Human Voice Gate, deterministic Word delivery/mechanical audit, knowledge writeback receipt and final red-team audit. There is no visual-package tool.
 
 ## Validation policy
-`main` is executable truth. Clean CI must pass SDK smoke, MCP HTTP smoke, unit/trajectory tests, executable contract evals, static ownership audit and real DOCX render smoke. v0.2 still remains a candidate until a user-authorized real article E2E runs through the live model chain and a deliberate interruption/recovery.
+`main` is code/rule truth. Promotion requires SDK/MCP smoke, unit/trajectory/static checks, contract evaluation and real DOCX render smoke. A documentation change alone is not proof that the Agent executes the behavior.
