@@ -30,8 +30,22 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "22.13.0"
-          cache: npm
-          cache-dependency-path: deploy/chatgpt-site/site/package-lock.json
+      - name: Recover malformed Site lockfile for this repair branch
+        working-directory: deploy/chatgpt-site/site
+        run: |
+          if node -e "JSON.parse(require('fs').readFileSync('package-lock.json','utf8'))" 2>/dev/null; then
+            echo 'Existing package-lock.json is valid UTF-8 JSON.'
+          else
+            echo 'Existing package-lock.json is malformed; regenerating from package.json for repository repair.'
+            rm -f package-lock.json
+            npm install --package-lock-only --ignore-scripts
+          fi
+          node -e "JSON.parse(require('fs').readFileSync('package-lock.json','utf8')); console.log('Recovered package-lock.json parses as UTF-8 JSON')"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: recovered-site-package-lock
+          path: deploy/chatgpt-site/site/package-lock.json
+          if-no-files-found: error
       - name: Site Runtime TypeScript contract tests
         working-directory: deploy/chatgpt-site/site
         run: |
