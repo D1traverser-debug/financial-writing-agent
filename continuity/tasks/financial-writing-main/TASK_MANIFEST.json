@@ -1,0 +1,22 @@
+{
+  "schema_version": "3.3",
+  "manifest_version": 1,
+  "task_id": "financial-writing:main",
+  "task_class": "USER",
+  "domain": "FINANCIAL_WRITING",
+  "title": "Financial article writing workspace",
+  "display_name_zh": "金融文章写作",
+  "status": "ACTIVE",
+  "resume_eligible": true,
+  "resume_visibility": "DEFAULT",
+  "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
+  "updated_at": "2026-10-09T12:55:00Z",
+  "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
+  "next_action": "恢复到当前 Financial Writing Agent；若用户未明确点名旧文章，则按当前主题/来源启动新的文章任务，不自动续跑历史文章。",
+  "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
+  "contract_version": "CONTINUITY_V3_3",
+  "resume_epoch": 0,
+  "active_lease": null,
+  "keywords": ["金融文章", "财经文章", "写金融文章", "写作"],
+  "artifact_refs": []
+}
