@@ -31,12 +31,8 @@ REQUIRED = {
     "record_knowledge_writeback",
     "submit_final_audit",
 }
-
 READ_ONLY = {"get_writing_task", "list_recent_writing_tasks"}
-REQUIRED_RESOURCE_TEMPLATES = {
-    "writing-docx://{task_id}/{kind}",
-    "writing-text://{task_id}/{kind}",
-}
+REQUIRED_RESOURCE_TEMPLATES = {"writing-docx://{task_id}/{kind}"}
 
 
 def wait_for_port(host: str, port: int, timeout: float = 15.0) -> None:
@@ -108,11 +104,11 @@ async def verify() -> None:
                 raise RuntimeError(f"unexpected start result: {structured}")
             if structured.get("delivery_channel") != "WORD_FILE_ONLY":
                 raise RuntimeError(f"v0.4 task must be Word-only: {structured}")
-            if any("VISUAL" in item for item in structured.get("required_outputs", [])):
-                raise RuntimeError(f"visual artifact leaked into v0.4 contract: {structured}")
+            if any("VISUAL" in item or "CHAT_TEXT" in item for item in structured.get("required_outputs", [])):
+                raise RuntimeError(f"removed artifact contract leaked into v0.4 task: {structured}")
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} artifact resource templates exposed, and v0.4 structured start result validated"
+                f"{len(uris)} Word-only resource template exposed, and v0.4 start result validated"
             )
 
 
