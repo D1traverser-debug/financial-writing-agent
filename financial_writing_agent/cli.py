@@ -14,7 +14,7 @@ def main() -> None:
     )
     sub = ap.add_subparsers(dest="cmd", required=True)
 
-    run = sub.add_parser("run", help="start a new local diagnostic writing run")
+    run = sub.add_parser("run", help="start a new local diagnostic formal financial-writing run")
     run.add_argument("prompt")
     run.add_argument("--source", action="append", default=[])
     run.add_argument("--platform", action="append", default=[])
@@ -22,11 +22,6 @@ def main() -> None:
     run.add_argument("--runs-dir", default="runs")
     run.add_argument("--model", default=None)
     run.add_argument("--no-render", action="store_true")
-    run.add_argument(
-        "--no-visuals",
-        action="store_true",
-        help="explicitly disable the normal visual-delivery contract for a local diagnostic run",
-    )
 
     resume = sub.add_parser("resume", help="resume a checkpointed local diagnostic run")
     resume.add_argument("task_id")
@@ -47,7 +42,6 @@ def main() -> None:
             prompt=args.prompt,
             source_refs=args.source,
             target_platforms=args.platform,
-            visuals_enabled=False if args.no_visuals else None,
         )
         state = runtime.start(contract)
     else:
