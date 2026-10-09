@@ -16,8 +16,11 @@ def test_standalone_profile_is_discoverable_from_cold_start_skill():
     assert "STANDALONE_SKILL" in skill
     assert "ShadowTaskLedger" in skill
     assert "STANDALONE_COMPLETE" in skill
-    assert "If Financial Writing Agent MCP Runtime tools are available, use `RUNTIME`" in skill
-    assert "do not silently switch an already-started Runtime task into standalone" in skill
+    assert "Tool presence alone does not make a Runtime authoritative" in skill
+    assert "capability/schema handshake" in skill
+    assert "available **and compatible with the current Skill contract**" in skill
+    assert "contract-incompatible" in skill
+    assert "A normal tool/gate failure inside a **compatible** Runtime does not authorize silent fallback" in skill
     assert "genuinely new task always starts with a fresh `ShadowTaskLedger`" in skill
     assert "Never describe it as deployment-grade determinism or 100% guaranteed execution" in skill
 
