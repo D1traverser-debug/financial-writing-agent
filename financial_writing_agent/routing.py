@@ -3,7 +3,16 @@ from __future__ import annotations
 from collections.abc import Iterable
 from datetime import datetime
 
-from .models import ContentMode, DeliveryChannel, DistributionMode, TaskContract
+from .models import (
+    CURRENT_CONTRACT_VERSION,
+    CURRENT_RUNTIME_VERSION,
+    ContentMode,
+    DeliveryChannel,
+    DistributionMode,
+    ResumeVisibility,
+    TaskClass,
+    TaskContract,
+)
 from .resources import load_packaged_policy
 
 FINANCE_COMMUNITIES = {"雪球", "韭研公社", "东方财富", "东方财富号"}
@@ -77,11 +86,23 @@ def build_task_contract(
     visual_profile_ref: str | None = None,
     content_mode: ContentMode | None = None,
     effective_time_boundary: datetime | None = None,
+    task_class: TaskClass = TaskClass.USER,
+    resume_eligible: bool | None = None,
+    resume_visibility: ResumeVisibility | None = None,
 ) -> TaskContract:
     platforms = target_platforms or []
     delivery = infer_delivery_channel(prompt)
     visuals = infer_visuals_enabled(prompt, delivery) if visuals_enabled is None else visuals_enabled
     mode = content_mode or infer_content_mode(prompt, platforms)
+
+    # User-facing task creation is resumable by default. Internal fixtures/tests
+    # can call this builder with their explicit TaskClass and will fail closed
+    # unless they also explicitly opt into resumability.
+    if resume_eligible is None:
+        resume_eligible = task_class == TaskClass.USER
+    if resume_visibility is None:
+        resume_visibility = ResumeVisibility.DEFAULT if task_class == TaskClass.USER else ResumeVisibility.HIDDEN
+
     kwargs = {
         "prompt": prompt,
         "source_refs": source_refs or [],
@@ -92,6 +113,11 @@ def build_task_contract(
         "visuals_enabled": visuals,
         "visual_profile_ref": visual_profile_ref,
         "run_constraints": _default_run_constraints(),
+        "task_class": task_class,
+        "resume_eligible": resume_eligible,
+        "resume_visibility": resume_visibility,
+        "contract_version": CURRENT_CONTRACT_VERSION,
+        "runtime_version": CURRENT_RUNTIME_VERSION,
     }
     if effective_time_boundary is not None:
         kwargs["effective_time_boundary"] = effective_time_boundary
