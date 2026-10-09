@@ -9,6 +9,10 @@ from uuid import uuid4
 from pydantic import BaseModel, Field, model_validator
 
 
+CURRENT_CONTRACT_VERSION = "2.0"
+CURRENT_RUNTIME_VERSION = "0.2.1"
+
+
 class Stage(str, Enum):
     INTAKE = "INTAKE"
     RESEARCH = "RESEARCH"
@@ -50,6 +54,21 @@ class GateStatus(str, Enum):
     N_A = "N_A"
 
 
+class TaskClass(str, Enum):
+    USER = "USER"
+    TEST = "TEST"
+    FIXTURE = "FIXTURE"
+    EVAL = "EVAL"
+    SYSTEM_INFRA = "SYSTEM_INFRA"
+    MIGRATION = "MIGRATION"
+
+
+class ResumeVisibility(str, Enum):
+    DEFAULT = "DEFAULT"
+    EXPLICIT_ONLY = "EXPLICIT_ONLY"
+    HIDDEN = "HIDDEN"
+
+
 class ArtifactKind(str, Enum):
     FINANCE_DEEP_DOCX = "FINANCE_DEEP_DOCX"
     FINANCE_BROAD_DOCX = "FINANCE_BROAD_DOCX"
@@ -87,6 +106,16 @@ class TaskContract(BaseModel):
     visual_profile_ref: str | None = None
     required_outputs: list[ArtifactKind] = Field(default_factory=list)
     run_constraints: dict[str, Any] = Field(default_factory=dict)
+
+    # Universal Continuity v2. Defaults are intentionally fail-closed so an
+    # old persisted checkpoint that predates these fields cannot silently
+    # enter ordinary bare-inherit discovery as a USER task.
+    task_class: TaskClass = TaskClass.MIGRATION
+    resume_eligible: bool = False
+    resume_visibility: ResumeVisibility = ResumeVisibility.EXPLICIT_ONLY
+    contract_version: str = "legacy-unclassified"
+    runtime_version: str | None = None
+    skill_version: str | None = None
 
     @model_validator(mode="after")
     def validate_contract(self):
