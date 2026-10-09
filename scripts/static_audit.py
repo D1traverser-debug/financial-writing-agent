@@ -49,10 +49,17 @@ def check_rule_ownership() -> int:
             if key in seen:
                 fail(f"duplicate rule owner: {key}: {seen[key]} and {owner}")
             seen[key] = owner
-    if "hooks" not in ownership or "style" not in ownership:
-        fail("v0.3 must have dedicated hook and human-voice rule owners")
+    for required_owner in ("hooks", "style", "market_explanation"):
+        if required_owner not in ownership:
+            fail(f"v0.4 must have dedicated rule owner: {required_owner}")
     if "visuals" in ownership:
         fail("visual ownership must be removed from Financial Writing")
+    for marker in ("market_explanation_completeness", "causal_confidence_ladder", "hindsight_causality_control"):
+        if marker not in ownership["market_explanation"]:
+            fail(f"market-explanation ownership missing: {marker}")
+    for marker in ("semantic_progression", "authorial_specificity", "uncertainty_calibration"):
+        if marker not in ownership["style"]:
+            fail(f"authorial-prose ownership missing: {marker}")
     return len(seen)
 
 
@@ -67,14 +74,19 @@ def check_skill_bundle() -> None:
         "start_writing_task",
         "Do not use for standalone stock-picking/recommendation",
         "references/research.md",
+        "references/market_explanation.md",
         "references/hooks.md",
         "references/style.md",
         "record_knowledge_writeback",
         "FINANCE_DEEP — 财经完整版本",
         "Hook Gate",
-        "Human Voice Gate",
+        "Natural Authorial Prose",
+        "VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED",
         "Publication articles do not use tables",
         "no image/cover/section-visual/avatar workflow",
+        "24px = 18pt",
+        "20px = 15pt",
+        "18px = 13.5pt",
     ]
     for phrase in required_phrases:
         if phrase not in text:
@@ -91,8 +103,9 @@ def check_skill_bundle() -> None:
     }
     if "visuals.md" in sets["source"] or "visuals.md" in sets["skill"] or "visuals.md" in sets["package"]:
         fail("visuals.md must be removed from all Financial Writing rule bundles")
-    if "hooks.md" not in sets["source"]:
-        fail("hooks.md missing from canonical reference set")
+    for required_ref in ("hooks.md", "style.md", "market_explanation.md"):
+        if required_ref not in sets["source"]:
+            fail(f"required reference missing from canonical set: {required_ref}")
     if not sets["source"] or sets["source"] != sets["skill"] or sets["source"] != sets["package"]:
         fail(f"reference-set mismatch: { {k: sorted(v) for k, v in sets.items()} }")
     for name in sorted(sets["source"]):
@@ -103,6 +116,16 @@ def check_skill_bundle() -> None:
             fail(f"package/source reference drift: {name}")
     if SOURCE_POLICY.read_bytes() != PACKAGE_POLICY.read_bytes():
         fail("packaged policy drift from config/policy.json")
+
+    policy = json.loads(SOURCE_POLICY.read_text(encoding="utf-8"))
+    expected_sizes = {"h1_px": 24, "h1_pt": 18, "h2_px": 20, "h2_pt": 15, "body_px": 18, "body_pt": 13.5}
+    for key, value in expected_sizes.items():
+        if policy["word"].get(key) != value:
+            fail(f"exact publication typography drift: {key}={policy['word'].get(key)!r}, expected={value!r}")
+    if policy["style"].get("optimize_for_ai_detector") is not False:
+        fail("v0.4 must explicitly reject AI-detector-evasion as style objective")
+    if policy["market_explanation"].get("multi_hypothesis_required") is not True:
+        fail("v0.4 market explanation must remain multi-hypothesis")
 
 
 def _is_tool_decorator(decorator: ast.expr) -> bool:
@@ -179,7 +202,7 @@ def check_public_mcp_contract() -> int:
         fail("legacy mcp_server.py must be a thin compatibility shim")
 
     if "submit_visual_package" in source or "writing-json://" in source:
-        fail("v0.3 public MCP must not expose visual-package or visual-manifest surfaces")
+        fail("v0.4 public MCP must not expose visual-package or visual-manifest surfaces")
     for uri in ("writing-docx://{task_id}/{kind}", "writing-text://{task_id}/{kind}"):
         if uri not in source:
             fail(f"artifact resource template missing: {uri}")
@@ -194,18 +217,28 @@ def check_schema_strictness() -> None:
     text = SCHEMAS.read_text(encoding="utf-8")
     if 'ConfigDict(extra="forbid", str_strip_whitespace=True)' not in text:
         fail("stage schemas must fail closed on unknown fields and whitespace-only strings")
-    for model in ("ResearchPackage", "EditorialPlan", "HeadlinePackage", "ArticlePayload", "DraftPackage", "HookAuditDecision", "StyleAuditDecision", "GateDecision"):
+    for model in (
+        "ResearchPackage", "MarketExplanationHypothesis", "MarketExplanationMap", "EditorialPlan",
+        "HeadlinePackage", "ArticlePayload", "DraftPackage", "HookAuditDecision", "StyleAuditDecision", "GateDecision",
+    ):
         if f"class {model}(StrictModel)" not in text:
             fail(f"stage schema must inherit StrictModel: {model}")
     for marker in (
         "MATERIAL_COMPLETE plan requires completeness_obligations",
         "FINANCE_DEEP material-complete plan must not use contradiction/compression selection fields",
+        "stock/theme research with a company universe requires market_explanation",
+        "non-UNRESOLVED market explanation requires evidence_refs",
         "skim_path_anchor must appear as an exact explicit bold span",
         "hook status must be",
         "human-voice status must be",
+        "discourse_variability",
+        "semantic_progression",
+        "concrete_evidence_density",
+        "authorial_specificity",
+        "uncertainty_calibration",
     ):
         if marker not in text:
-            fail(f"v0.3 schema guard missing: {marker}")
+            fail(f"v0.4 schema guard missing: {marker}")
     for removed in ("VisualPackage", "PlatformConstraintSnapshot", "StickerPostPayload", "OpenAIFileRef"):
         if f"class {removed}(" in text:
             fail(f"removed visual/sticker schema still active: {removed}")
@@ -263,9 +296,9 @@ def main() -> None:
     check_packaging_contract()
     check_dead_contracts_removed()
     print(
-        f"PASS: {groups} unique rule ownership keys; v0.3 references aligned; "
-        f"one {tools}-tool typed MCP surface; dedicated Hook/Human Voice schemas; zero visual workflow; "
-        "activation, deployment-safety and packaging contracts present"
+        f"PASS: {groups} unique rule ownership keys; v0.4 references aligned; "
+        f"one {tools}-tool typed MCP surface; Hook + 12-part authorial-prose + market-explanation contracts; "
+        "zero visual workflow; exact typography, activation, deployment-safety and packaging contracts present"
     )
 
 
