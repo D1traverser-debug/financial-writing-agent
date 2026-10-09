@@ -107,12 +107,12 @@ async def verify() -> None:
             if structured.get("current_stage") != "RESEARCH" or not structured.get("task_id"):
                 raise RuntimeError(f"unexpected start result: {structured}")
             if structured.get("delivery_channel") != "WORD_FILE_ONLY":
-                raise RuntimeError(f"v0.3 task must be Word-only: {structured}")
+                raise RuntimeError(f"v0.4 task must be Word-only: {structured}")
             if any("VISUAL" in item for item in structured.get("required_outputs", [])):
-                raise RuntimeError(f"visual artifact leaked into v0.3 contract: {structured}")
+                raise RuntimeError(f"visual artifact leaked into v0.4 contract: {structured}")
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} artifact resource templates exposed, and v0.3 structured start result validated"
+                f"{len(uris)} artifact resource templates exposed, and v0.4 structured start result validated"
             )
 
 
