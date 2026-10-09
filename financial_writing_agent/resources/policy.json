@@ -15,13 +15,29 @@
   "style": {
     "continuous_report_prose": true,
     "logical_transitions_required": true,
-    "conclusion_first_preferred": true,
-    "anti_ai_semantic_audit": true,
-    "anti_ai_judge_required": true,
+    "conclusion_first_preferred": false,
+    "human_voice_semantic_audit": true,
+    "hook_semantic_audit": true,
     "heading_hierarchy": ["一、", "（1）", "①"],
+    "numbering_encouraged": true,
     "forbidden_heading_prefixes": ["·", "•"],
+    "bold_skim_path_required": true,
     "hard_fail_extreme_phrases": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆", "注定暴涨", "必然上涨", "唯一机会"],
     "review_generic_superlatives_semantically": true
+  },
+  "editorial": {
+    "finance_deep_material_complete": true,
+    "finance_broad_selective_compression": true,
+    "finance_broad_core_contradictions_max": 3
+  },
+  "hooks": {
+    "formal_headline_candidates_min": 8,
+    "formal_headline_candidates_max": 12,
+    "cross_finance_clickability_required": true,
+    "wechat_search_intent_required": true,
+    "first_three_sentences_required": true,
+    "h1_continuation_required": true,
+    "paragraph_forward_pull_required": true
   },
   "risk_disclaimer": {
     "required": true,
@@ -29,35 +45,14 @@
     "recommended_max_chars": 320,
     "topic_specific_required": true
   },
-  "visuals": {
-    "default_enabled_for_new_word_articles": true,
-    "aspect_ratio": "16:9",
-    "hero_count_per_article": 1,
-    "target_chars_per_section_image": 700,
-    "avatar_required": true,
-    "center_in_word": true,
-    "crop_in_word": false,
-    "word_width_inches": 6.2,
-    "word_max_height_inches": 8.0,
-    "max_file_bytes": 26214400
-  },
-  "wechat_sticker": {
-    "content_mode": "WECHAT_STICKER_POST",
-    "require_current_constraint_snapshot": true,
-    "hard_coded_title_limit": null,
-    "hard_coded_body_limit": null,
-    "hard_coded_image_limit": null,
-    "preferred_vertical_aspects": ["3:4", "4:5", "9:16"],
-    "interaction_intent_allowed": true,
-    "pure_clickbait_forbidden": true
-  },
   "word": {
     "title_pt": 20,
     "h1_pt": 18,
     "h2_pt": 13.5,
     "h3_pt": 12,
-    "body_pt": 12,
+    "body_pt": 13.5,
     "h1_rgb": "FF0000",
-    "allow_tables": false
+    "allow_tables": false,
+    "tables_are_hard_fail": true
   }
 }
