@@ -1,27 +1,140 @@
-import { addTrace, setGate, type ArtifactKind, type Stage, type WritingState } from './types.ts';
+import { addTrace, setGate, type ArtifactKind, type Stage, type WritingAcceptanceContract, type WritingState } from './types.ts';
 
 export class WorkflowError extends Error {}
 
 export const ALLOWED_TRANSITIONS: Record<Stage, ReadonlySet<Stage>> = {
-  INTAKE:new Set(['RESEARCH','BLOCKED']), RESEARCH:new Set(['RESEARCH_AUDIT','BLOCKED']), RESEARCH_AUDIT:new Set(['RESEARCH','EDITORIAL','BLOCKED']), EDITORIAL:new Set(['TITLE','BLOCKED']), TITLE:new Set(['TITLE','DRAFT','BLOCKED']), DRAFT:new Set(['EDITORIAL_AUDIT','BLOCKED']), EDITORIAL_AUDIT:new Set(['TITLE','DRAFT','DELIVERY','BLOCKED']), DELIVERY:new Set(['MECHANICAL_AUDIT','BLOCKED']), MECHANICAL_AUDIT:new Set(['DELIVERY','FINAL_AUDIT','BLOCKED']), FINAL_AUDIT:new Set(['RESEARCH','EDITORIAL','TITLE','DRAFT','DELIVERY','COMPLETE','BLOCKED']), COMPLETE:new Set(), BLOCKED:new Set(['INTAKE','RESEARCH','RESEARCH_AUDIT','EDITORIAL','TITLE','DRAFT','EDITORIAL_AUDIT','DELIVERY','MECHANICAL_AUDIT','FINAL_AUDIT'])
+  INTAKE: new Set(['RESEARCH','BLOCKED']),
+  RESEARCH: new Set(['RESEARCH_AUDIT','BLOCKED']),
+  RESEARCH_AUDIT: new Set(['RESEARCH','EDITORIAL','BLOCKED']),
+  EDITORIAL: new Set(['TITLE','BLOCKED']),
+  TITLE: new Set(['TITLE','DRAFT','BLOCKED']),
+  DRAFT: new Set(['BROAD_DERIVATION','EDITORIAL_AUDIT','BLOCKED']),
+  BROAD_DERIVATION: new Set(['EDITORIAL_AUDIT','BLOCKED']),
+  EDITORIAL_AUDIT: new Set(['TITLE','DRAFT','DELIVERY','BLOCKED']),
+  DELIVERY: new Set(['MECHANICAL_AUDIT','BLOCKED']),
+  MECHANICAL_AUDIT: new Set(['DELIVERY','FINAL_AUDIT','BLOCKED']),
+  FINAL_AUDIT: new Set(['RESEARCH','EDITORIAL','TITLE','DRAFT','DELIVERY','COMPLETE','BLOCKED']),
+  COMPLETE: new Set(),
+  BLOCKED: new Set(['INTAKE','RESEARCH','RESEARCH_AUDIT','EDITORIAL','TITLE','DRAFT','BROAD_DERIVATION','EDITORIAL_AUDIT','DELIVERY','MECHANICAL_AUDIT','FINAL_AUDIT']),
 };
 
 export const REVISION_GATES: Partial<Record<Stage, readonly string[]>> = {
-  RESEARCH:['research_output','research_audit','editorial_plan','acceptance_contract','title_audit','draft_output','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
-  EDITORIAL:['editorial_plan','acceptance_contract','title_audit','draft_output','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
-  TITLE:['acceptance_contract','title_audit','draft_output','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
-  DRAFT:['draft_output','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
-  DELIVERY:['delivery_output','mechanical_audit','final_audit'],
+  RESEARCH: ['research_output','research_audit','editorial_plan','acceptance_contract','title_audit','draft_output','broad_derivation','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
+  EDITORIAL: ['editorial_plan','acceptance_contract','title_audit','draft_output','broad_derivation','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
+  TITLE: ['acceptance_contract','title_audit','draft_output','broad_derivation','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
+  DRAFT: ['draft_output','broad_derivation','style_audit','editorial_audit','visual_assets','delivery_output','mechanical_audit','final_audit'],
+  DELIVERY: ['delivery_output','mechanical_audit','final_audit'],
 };
+
 export const DELIVERY_ARTIFACTS = new Set<ArtifactKind>(['FINANCE_DEEP_DOCX','FINANCE_BROAD_DOCX','WECHAT_STICKER_DOCX','AUDIT_DOCX','CHAT_TEXT']);
 export const BASE_COMPLETION_GATES = new Set(['runtime_initialized','knowledge_context','research_output','research_audit','editorial_plan','acceptance_contract','title_audit','draft_output','style_audit','editorial_audit','delivery_output','mechanical_audit','knowledge_sync','final_audit']);
-export const FORMAL_FINAL_CRITERIA = ['selected_title','independent_lead','opening_first_three_sentences','h1_structure','side_focus','company_selection_basis','headline_anchor','opening_payoff','bold_scan_skeleton','reasoning_continuity','compliance_risk'] as const;
+
+export const GLOBAL_FINAL_CRITERIA = ['evidence_boundary','source_completion','omission_scan','count_reconciliation','time_integrity','market_data_boundary','counterexample_scan','required_outputs'] as const;
+export const FORMAL_FINAL_CRITERIA = ['selected_title','independent_lead','opening_first_three_sentences','h1_structure','side_focus','company_selection_basis','headline_anchor','opening_payoff','hook_quality','stock_judgment_clarity','bold_scan_skeleton','reasoning_continuity','compliance_risk'] as const;
 export const STICKER_FINAL_CRITERIA = ['platform_constraints','title_body_payoff','useful_body','image_copy_complement','compliance_risk'] as const;
 
-export function transition(state:WritingState,next:Stage,reason=''):WritingState { if(!ALLOWED_TRANSITIONS[state.stage].has(next)) throw new WorkflowError(`Illegal transition: ${state.stage} -> ${next}`); addTrace(state,'STAGE_EXIT',reason); state.stage=next; addTrace(state,'STAGE_ENTER',reason); return state; }
-export function block(state:WritingState,reason:string):WritingState { state.blocked_reason=reason; if(state.stage!=='BLOCKED'){ const from=state.stage; state.working.blocked_from_stage=from; const history=(state.working.blocked_history ?? []) as Array<Record<string,string>>; history.push({from_stage:from,reason}); state.working.blocked_history=history; transition(state,'BLOCKED',reason); } return state; }
-export function resumeFromBlocked(state:WritingState):WritingState { if(state.stage!=='BLOCKED') throw new WorkflowError('resume_from_blocked is only legal from BLOCKED'); const target=state.working.blocked_from_stage as Stage|undefined; if(!target) throw new WorkflowError('BLOCKED state is missing blocked_from_stage recovery metadata'); if(target==='BLOCKED'||target==='COMPLETE'||!STAGE_SET.has(target)) throw new WorkflowError(`illegal blocked recovery target=${String(target)}`); state.blocked_reason=null; delete state.working.blocked_from_stage; addTrace(state,'BLOCKED_RESUME',`resume target=${target}`); return transition(state,target,`resume blocked task at original stage ${target}`); }
+export function transition(state:WritingState,next:Stage,reason=''):WritingState {
+  if(!ALLOWED_TRANSITIONS[state.stage].has(next)) throw new WorkflowError(`Illegal transition: ${state.stage} -> ${next}`);
+  addTrace(state,'STAGE_EXIT',reason);
+  state.stage=next;
+  addTrace(state,'STAGE_ENTER',reason);
+  return state;
+}
+
+export function block(state:WritingState,reason:string):WritingState {
+  state.blocked_reason=reason;
+  if(state.stage!=='BLOCKED'){
+    const from=state.stage;
+    state.working.blocked_from_stage=from;
+    const history=(state.working.blocked_history ?? []) as Array<Record<string,string>>;
+    history.push({from_stage:from,reason});
+    state.working.blocked_history=history;
+    transition(state,'BLOCKED',reason);
+  }
+  return state;
+}
+
+export function resumeFromBlocked(state:WritingState):WritingState {
+  if(state.stage!=='BLOCKED') throw new WorkflowError('resume_from_blocked is only legal from BLOCKED');
+  const target=state.working.blocked_from_stage as Stage|undefined;
+  if(!target) throw new WorkflowError('BLOCKED state is missing blocked_from_stage recovery metadata');
+  if(target==='BLOCKED'||target==='COMPLETE'||!STAGE_SET.has(target)) throw new WorkflowError(`illegal blocked recovery target=${String(target)}`);
+  state.blocked_reason=null;
+  delete state.working.blocked_from_stage;
+  addTrace(state,'BLOCKED_RESUME',`resume target=${target}`);
+  return transition(state,target,`resume blocked task at original stage ${target}`);
+}
+
 const STAGE_SET=new Set(Object.keys(ALLOWED_TRANSITIONS) as Stage[]);
-export function invalidateForRevision(state:WritingState,target:Stage,reason=''):void { const gates=REVISION_GATES[target]; if(!gates) throw new WorkflowError(`Unsupported revision target: ${target}`); const history=(state.working.revision_history ?? []) as Array<Record<string,string>>; history.push({from_stage:state.stage,target_stage:target,reason}); state.working.revision_history=history; for(const name of gates){ if(name in state.gates) setGate(state,name,'NOT_RUN',[],`Invalidated by revision to ${target}: ${reason}`); } if(target!=='DELIVERY') setGate(state,'knowledge_sync','NOT_RUN',[],`Re-evaluate knowledge writeback after revision to ${target}`); for(const kind of Object.keys(state.artifacts) as ArtifactKind[]){ if(DELIVERY_ARTIFACTS.has(kind)) delete state.artifacts[kind]; } if(['RESEARCH','EDITORIAL','TITLE','DRAFT'].includes(target)){ delete state.artifacts.VISUAL_MANIFEST_JSON; delete state.working.visual_package; delete state.working.resolved_visual_package; delete state.working.render_manifest; } addTrace(state,'REVISION_INVALIDATION',`target=${target}; reason=${reason}`); }
-export function requiredCompletionGates(state:WritingState):Set<string>{ const r=new Set(BASE_COMPLETION_GATES); if(state.contract.visuals_enabled) r.add('visual_assets'); return r; }
-export function requiredFinalEvidenceKeys(state:WritingState):Set<string>{ const keys=new Set(['GLOBAL.evidence_boundary','GLOBAL.required_outputs']); if(state.contract.content_mode==='WECHAT_STICKER_POST'){ for(const c of STICKER_FINAL_CRITERIA) keys.add(`WECHAT_STICKER_POST.${c}`); if(state.contract.visuals_enabled) keys.add('WECHAT_STICKER_POST.visual_alignment'); return keys; } const modes:string[]=[]; if(['FINANCE_DEEP','DUAL'].includes(state.contract.distribution_mode)) modes.push('FINANCE_DEEP'); if(['FINANCE_BROAD','DUAL'].includes(state.contract.distribution_mode)) modes.push('FINANCE_BROAD'); for(const mode of modes){ for(const c of FORMAL_FINAL_CRITERIA) keys.add(`${mode}.${c}`); if(state.contract.visuals_enabled) keys.add(`${mode}.visual_alignment`); } if(state.contract.distribution_mode==='DUAL') keys.add('DUAL.cross_version_consistency'); return keys; }
+
+export function invalidateForRevision(state:WritingState,target:Stage,reason=''):void {
+  const gates=REVISION_GATES[target];
+  if(!gates) throw new WorkflowError(`Unsupported revision target: ${target}`);
+  const history=(state.working.revision_history ?? []) as Array<Record<string,string>>;
+  history.push({from_stage:state.stage,target_stage:target,reason});
+  state.working.revision_history=history;
+  for(const name of gates){
+    if(name in state.gates) setGate(state,name,'NOT_RUN',[],`Invalidated by revision to ${target}: ${reason}`);
+  }
+  if(target!=='DELIVERY') setGate(state,'knowledge_sync','NOT_RUN',[],`Re-evaluate knowledge writeback after revision to ${target}`);
+  for(const kind of Object.keys(state.artifacts) as ArtifactKind[]){
+    if(DELIVERY_ARTIFACTS.has(kind)) delete state.artifacts[kind];
+  }
+  if(['RESEARCH','EDITORIAL','TITLE','DRAFT'].includes(target)){
+    delete state.artifacts.VISUAL_MANIFEST_JSON;
+    delete state.working.visual_package;
+    delete state.working.resolved_visual_package;
+    delete state.working.render_manifest;
+  }
+  if(state.contract.distribution_mode==='DUAL' && ['RESEARCH','EDITORIAL','TITLE','DRAFT'].includes(target)){
+    state.working.broad_derivation_phase='WAITING_FOR_DEEP';
+    delete state.working.dual_derivation_receipt;
+  }
+  addTrace(state,'REVISION_INVALIDATION',`target=${target}; reason=${reason}`);
+}
+
+export function requiredCompletionGates(state:WritingState):Set<string>{
+  const required=new Set(BASE_COMPLETION_GATES);
+  if(state.contract.visuals_enabled) required.add('visual_assets');
+  if(state.contract.content_mode==='FORMAL_ARTICLE' && state.contract.distribution_mode==='DUAL') required.add('broad_derivation');
+  return required;
+}
+
+function acceptanceContract(state:WritingState):WritingAcceptanceContract|null {
+  const raw=state.working.acceptance_contract;
+  if(!raw || typeof raw!=='object') return null;
+  return raw as WritingAcceptanceContract;
+}
+
+export function requiredFinalEvidenceKeys(state:WritingState):Set<string>{
+  const keys=new Set<string>();
+  for(const criterion of GLOBAL_FINAL_CRITERIA) keys.add(`GLOBAL.${criterion}`);
+
+  if(state.contract.content_mode==='WECHAT_STICKER_POST'){
+    for(const criterion of STICKER_FINAL_CRITERIA) keys.add(`WECHAT_STICKER_POST.${criterion}`);
+    if(state.contract.visuals_enabled) keys.add('WECHAT_STICKER_POST.visual_alignment');
+    return keys;
+  }
+
+  const modes:string[]=[];
+  if(['FINANCE_DEEP','DUAL'].includes(state.contract.distribution_mode)) modes.push('FINANCE_DEEP');
+  if(['FINANCE_BROAD','DUAL'].includes(state.contract.distribution_mode)) modes.push('FINANCE_BROAD');
+  const acceptance=acceptanceContract(state);
+
+  for(const mode of modes){
+    for(const criterion of FORMAL_FINAL_CRITERIA) keys.add(`${mode}.${criterion}`);
+    if(state.contract.visuals_enabled) keys.add(`${mode}.visual_alignment`);
+    const modeContract=mode==='FINANCE_DEEP' ? acceptance?.finance_deep : acceptance?.finance_broad;
+    for(let index=0; index<(modeContract?.section_expectations?.length ?? 0); index++){
+      keys.add(`${mode}.H1_${index+1}.promise_payoff`);
+    }
+  }
+
+  if(state.contract.distribution_mode==='DUAL'){
+    keys.add('DUAL.cross_version_consistency');
+    keys.add('DUAL.deep_master_quality');
+    keys.add('DUAL.broad_derivation_fidelity');
+    keys.add('DUAL.broad_hook_strength');
+  }
+  return keys;
+}
