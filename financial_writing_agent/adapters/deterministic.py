@@ -4,11 +4,11 @@ import json
 from pathlib import Path
 
 from ..checks import check_docx, load_policy, sha256_file
-from ..document import ArticleDocument, AuditLine, Block, DocumentImage, build_article_docx, build_audit_docx
-from ..models import Artifact, ArtifactKind, ContentMode, DeliveryChannel, DistributionMode, GateStatus, WritingState
+from ..document import ArticleDocument, AuditLine, Block, build_article_docx, build_audit_docx
+from ..models import Artifact, ArtifactKind, DistributionMode, GateStatus, WritingState
 from ..rendering import render_docx_pages
 from ..resources import load_packaged_policy
-from ..schemas import DraftPackage, ResolvedVisualPackage
+from ..schemas import DraftPackage
 
 
 class DeliveryExecutor:
@@ -25,102 +25,18 @@ class DeliveryExecutor:
         ])
         return ArticleDocument(title=payload.title, stock_names=payload.stock_names, blocks=blocks)
 
-    @staticmethod
-    def _sticker_article(payload) -> ArticleDocument:
-        blocks = [Block(kind="body", text=payload.body)]
-        if payload.interaction_prompt.strip():
-            blocks.append(Block(kind="body", text=payload.interaction_prompt.strip()))
-        blocks.extend([
-            Block(kind="h1", text="风险提示与免责声明"),
-            Block(kind="body", text=payload.risk_disclaimer),
-        ])
-        return ArticleDocument(title=payload.title, stock_names=payload.stock_names, blocks=blocks)
-
-    @staticmethod
-    def _images(package: ResolvedVisualPackage | None, mode: str) -> list[DocumentImage]:
-        if package is None:
-            return []
-        assets = [a for a in package.assets if a.article_mode == mode]
-        if not assets:
-            raise ValueError(f"visual package has no assets for {mode}")
-        if mode == "WECHAT_STICKER_POST":
-            if not any(a.role in {"sticker", "hero"} for a in assets):
-                raise ValueError("WeChat sticker package requires at least one sticker/hero visual")
-        elif len([a for a in assets if a.role == "hero"]) != 1:
-            raise ValueError(f"{mode} requires exactly one hero visual")
-        if package.avatar_required and any(not a.avatar_included for a in assets):
-            raise ValueError(f"visual package has asset without required avatar for {mode}")
-        return [
-            DocumentImage(
-                local_path=a.local_path,
-                role="hero" if a.role == "sticker" else a.role,
-                anchor_after_block=a.anchor_after_block,
-                hook_text=a.hook_text,
-            )
-            for a in assets
-        ]
-
     def execute(self, state: WritingState) -> WritingState:
         outdir = self.root / state.contract.task_id
         outdir.mkdir(parents=True, exist_ok=True)
         state.working["output_dir"] = str(outdir)
         draft = DraftPackage.model_validate(state.working["draft"])
 
-        if state.contract.delivery_channel == DeliveryChannel.CHAT_TEXT:
-            pieces: list[str] = []
-            for payload in [draft.finance_deep, draft.finance_broad]:
-                if payload:
-                    body = "\n".join(b.text for b in payload.blocks)
-                    pieces.append("\n".join([payload.title, body, "风险提示与免责声明", payload.risk_disclaimer]))
-            if draft.wechat_sticker_post:
-                p = draft.wechat_sticker_post
-                pieces.append("\n".join(x for x in [p.title, p.body, p.interaction_prompt, p.risk_disclaimer] if x))
-            text_path = outdir / "CHAT_TEXT.txt"
-            text_path.write_text("\n\n---\n\n".join(pieces), encoding="utf-8")
-            state.artifacts[ArtifactKind.CHAT_TEXT] = Artifact(
-                kind=ArtifactKind.CHAT_TEXT,
-                path=str(text_path),
-                exists=True,
-                sha256=sha256_file(text_path),
-            )
-            state.set_gate("delivery_output", GateStatus.PASS, [str(text_path)])
-            return state
-
-        visual_package: ResolvedVisualPackage | None = None
-        if state.contract.visuals_enabled:
-            raw_visuals = state.working.get("resolved_visual_package")
-            if not raw_visuals:
-                state.set_gate("delivery_output", GateStatus.FAIL, [], "resolved visual package missing while visuals_enabled=true")
-                return state
-            visual_package = ResolvedVisualPackage.model_validate(raw_visuals)
-            manifest_path = outdir / "VISUAL_MANIFEST.json"
-            manifest_path.write_text(json.dumps(state.working.get("visual_package"), ensure_ascii=False, indent=2), encoding="utf-8")
-            state.artifacts[ArtifactKind.VISUAL_MANIFEST_JSON] = Artifact(
-                kind=ArtifactKind.VISUAL_MANIFEST_JSON,
-                path=str(manifest_path),
-                exists=True,
-                sha256=sha256_file(manifest_path),
-            )
-
         built: list[str] = []
-        if state.contract.content_mode == ContentMode.WECHAT_STICKER_POST:
-            if draft.wechat_sticker_post is None:
-                state.set_gate("delivery_output", GateStatus.FAIL, [], "WECHAT_STICKER_POST payload missing")
-                return state
-            images = self._images(visual_package, "WECHAT_STICKER_POST") if state.contract.visuals_enabled else []
-            p = build_article_docx(self._sticker_article(draft.wechat_sticker_post), outdir / "WECHAT_STICKER_POST.docx", self.policy, images=images)
-            state.artifacts[ArtifactKind.WECHAT_STICKER_DOCX] = Artifact(kind=ArtifactKind.WECHAT_STICKER_DOCX, path=str(p), exists=True, sha256=sha256_file(p))
-            state.working["platform_constraint_snapshot"] = draft.wechat_sticker_post.constraints.model_dump(mode="json")
-            built.append(str(p))
-            state.set_gate("delivery_output", GateStatus.PASS, built)
-            return state
-
         if state.contract.distribution_mode in {DistributionMode.FINANCE_DEEP, DistributionMode.DUAL}:
             if draft.finance_deep is None:
                 state.set_gate("delivery_output", GateStatus.FAIL, [], "FINANCE_DEEP payload missing")
                 return state
-            images = self._images(visual_package, "FINANCE_DEEP") if state.contract.visuals_enabled else []
-            p = build_article_docx(self._article(draft.finance_deep), outdir / "FINANCE_DEEP.docx", self.policy, images=images)
+            p = build_article_docx(self._article(draft.finance_deep), outdir / "FINANCE_DEEP.docx", self.policy)
             state.artifacts[ArtifactKind.FINANCE_DEEP_DOCX] = Artifact(kind=ArtifactKind.FINANCE_DEEP_DOCX, path=str(p), exists=True, sha256=sha256_file(p))
             built.append(str(p))
 
@@ -128,8 +44,7 @@ class DeliveryExecutor:
             if draft.finance_broad is None:
                 state.set_gate("delivery_output", GateStatus.FAIL, [], "FINANCE_BROAD payload missing")
                 return state
-            images = self._images(visual_package, "FINANCE_BROAD") if state.contract.visuals_enabled else []
-            p = build_article_docx(self._article(draft.finance_broad), outdir / "FINANCE_BROAD.docx", self.policy, images=images)
+            p = build_article_docx(self._article(draft.finance_broad), outdir / "FINANCE_BROAD.docx", self.policy)
             state.artifacts[ArtifactKind.FINANCE_BROAD_DOCX] = Artifact(kind=ArtifactKind.FINANCE_BROAD_DOCX, path=str(p), exists=True, sha256=sha256_file(p))
             built.append(str(p))
 
@@ -143,35 +58,25 @@ class MechanicalAuditExecutor:
         self.require_render = require_render
 
     def execute(self, state: WritingState) -> WritingState:
-        if state.contract.delivery_channel == DeliveryChannel.CHAT_TEXT:
-            state.set_gate("mechanical_audit", GateStatus.N_A, ["CHAT_TEXT delivery"])
-            return state
-
         draft = DraftPackage.model_validate(state.working["draft"])
-        stock_names: set[str] = set()
-        for payload in [draft.finance_deep, draft.finance_broad]:
-            if payload:
-                stock_names.update(payload.stock_names)
-        if draft.wechat_sticker_post:
-            stock_names.update(draft.wechat_sticker_post.stock_names)
-
-        visual_package = ResolvedVisualPackage.model_validate(state.working["resolved_visual_package"]) if state.contract.visuals_enabled else None
         evidence: list[str] = []
         errors: list[str] = []
         render_manifest: dict[str, list[str]] = {}
-        kind_mode_pairs = [
-            (ArtifactKind.FINANCE_DEEP_DOCX, "FINANCE_DEEP"),
-            (ArtifactKind.FINANCE_BROAD_DOCX, "FINANCE_BROAD"),
-            (ArtifactKind.WECHAT_STICKER_DOCX, "WECHAT_STICKER_POST"),
+
+        kind_payload_pairs = [
+            (ArtifactKind.FINANCE_DEEP_DOCX, draft.finance_deep),
+            (ArtifactKind.FINANCE_BROAD_DOCX, draft.finance_broad),
         ]
-        for kind, mode in kind_mode_pairs:
+        for kind, payload in kind_payload_pairs:
             artifact = state.artifacts.get(kind)
-            if not artifact:
+            if not artifact or payload is None:
                 continue
-            expected_images = None
-            if visual_package is not None:
-                expected_images = len([a for a in visual_package.assets if a.article_mode == mode])
-            result = check_docx(artifact.path, stock_names=sorted(stock_names), policy=self.policy, expected_images=expected_images)
+            result = check_docx(
+                artifact.path,
+                stock_names=payload.stock_names,
+                policy=self.policy,
+                required_bold_anchors=payload.skim_path_anchors,
+            )
             evidence.append(f"{kind.value}: {json.dumps(result, ensure_ascii=False)}")
             errors.extend(result["errors"])
             if self.require_render:
@@ -191,17 +96,17 @@ class MechanicalAuditExecutor:
 
 
 def finalize_audit_artifact(state: WritingState) -> None:
-    if state.contract.delivery_channel == DeliveryChannel.CHAT_TEXT:
-        return
     outdir = Path(state.working["output_dir"])
     lines = [AuditLine(area=name, status=gate.status.value, evidence=" | ".join(gate.evidence), notes=gate.notes) for name, gate in state.gates.items()]
     artifact_lines = [f"{kind.value}: {artifact.path} | sha256={artifact.sha256 or ''}" for kind, artifact in state.artifacts.items() if kind != ArtifactKind.AUDIT_DOCX]
     research = state.working.get("research") or {}
     cognition = research.get("cognition") or {}
+    editorial = state.working.get("editorial_plan") or {}
     summary_lines = [
-        f"内容模式：{state.contract.content_mode.value}｜分发模式：{state.contract.distribution_mode.value}｜交付：{state.contract.delivery_channel.value}",
+        f"分发模式：{state.contract.distribution_mode.value}｜交付：WORD_FILE_ONLY",
         f"来源边界：{research.get('source_boundary', 'N/A')}",
         f"研究覆盖：{json.dumps(research.get('coverage', {}), ensure_ascii=False)}",
+        f"财经完整覆盖义务：{json.dumps((editorial.get('finance_deep') or {}).get('completeness_obligations', []), ensure_ascii=False)}",
         f"复用知识引用：{len(cognition.get('prior_knowledge_refs', []))}｜知识回写候选：{len(research.get('knowledge_writeback_candidates', []))}｜回写凭据：{len(state.working.get('knowledge_writeback_refs', []))}",
     ]
     path = build_audit_docx(
