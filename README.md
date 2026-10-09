@@ -1,68 +1,38 @@
-# Financial Writing Agent v0.3
+# Financial Writing Agent v0.4
 
-A deterministic A-share financial-writing runtime for research-heavy formal articles with mode-specific completeness, dedicated hook/human-voice audits and publication-ready Word delivery.
-
-## Identity
-- Repository: `D1traverser-debug/financial-writing-agent`
-- Canonical branch: `main`
-- Python package: `financial_writing_agent`
-- CLI: `financial-write`
-- Skill: `financial-writing-agent`
-
-## Runtime
-`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
-
-Failures or unavailable mandatory dependencies route to `BLOCKED`; there is no silent free-form fallback.
+A deterministic A-share financial-writing runtime with material-complete deep analysis, multi-hypothesis market explanation, dedicated Hook and Natural Authorial Prose audits, and Word delivery.
 
 ## Core behavior
-- Unspecified destination → `DUAL`.
-- `FINANCE_DEEP` = bounded research universe with **material-complete expression**; it may compress repetition/immaterial detail but not omit material branches for elegance or brevity.
-- `FINANCE_BROAD` = traffic-oriented selective expression around 1–3 core contradictions/information gaps while preserving full support for retained claims.
-- Default formal language = Simplified Chinese financial prose.
-- Publication content = **Word only**; do not paste article body/preview in chat.
-- QA = `WRITING_AUDIT_REPORT.docx` + visible chat checklist/list.
-- No image, cover, section-visual, avatar or sticker-post workflow exists in Financial Writing.
-- Publication articles contain **no tables**.
-- Formal hierarchy is normalized to `一、二、三 → （1）（2）（3） → ①②③` and used frequently when the reasoning contains real layers/categories/steps.
-- Key terms, key numbers and selected key judgment sentences form an explicit bold skim path; company/stock names are bold on every occurrence.
-- Public financial output requires a concise, topic-specific risk warning/disclaimer.
+- `FINANCE_DEEP`: material-complete within the bounded audited research universe.
+- `FINANCE_BROAD`: traffic-oriented selective compression with evidence boundaries preserved.
+- Publication content: Word only; no article body in chat.
+- QA: `WRITING_AUDIT_REPORT.docx` plus a visible chat checklist.
+- No tables.
+- No image, cover, section-visual, avatar or sticker workflow.
+- Numbering hierarchy: `一、二、三 → （1）（2）（3） → ①②③`.
+- Bold skim path: title + H1s + bold spans must reconstruct the main line.
 
-## Dedicated Hook Gate
-Hook quality is independently audited on the frozen draft:
-- total-title cross-finance clickability;
-- current WeChat search-intent consideration with real evidence refs;
-- first three complete sentences;
-- H1 continuation power;
-- paragraph forward pull;
-- title/opening payoff.
+## Market Explanation Completeness
+For stock/theme/price-reaction topics, separate economic benefit from market selection/price formation. Use competing explanations rather than a fixed hindsight chain. Grade material explanations as:
+`VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 
-Formal modes generate 8–12 headline candidates. Current search terms are researched per task rather than stored as a permanent keyword list; exact search volume is never invented.
+FINANCE_DEEP preserves material `why_this / why_not`, continuation and exhaustion/reversal conditions, counterevidence and unresolved boundaries.
 
-## Dedicated Human Voice Gate
-A separate Human Voice Judge audits:
-- template fingerprints;
-- transition continuity;
-- repetition;
-- rhythm naturalness;
-- reader dialogue / 交流感;
-- reasoning narrative / 娓娓道来;
-- visible author judgment/persona;
-- extreme-language control.
+## Hook Gate
+Independently audit cross-finance title clickability, current WeChat search intent, the first three sentences, H1 continuation power, paragraph forward pull and title/opening payoff.
 
-“Human” never means adding slang, typos, random fragments or decorative filler.
+## Natural Authorial Prose Gate
+Do not optimize for AI-detector evasion. Audit template fingerprint, discourse variability, semantic progression, transition continuity, repetition control, rhythm naturalness, concrete evidence density, reader modeling, narrative flow, authorial specificity, uncertainty calibration and extreme-language control.
 
-## Reader/completion design
-The current audience profile supplied by the user skews older (45 common, substantial 55+). The runtime therefore favors strong visible hierarchy, frequent meaningful numbering, readable paragraph density, clear referents and a bold skim path while preserving analytical depth.
+## Word typography
+- H1: `24px = 18pt`
+- H2: `20px = 15pt`
+- Body: `18px = 13.5pt`
+- H3: `12pt`
 
-The final substantive section must still add information or close an earlier question/causal loop; recap-only mechanical endings are discouraged.
+Typography drift and tables are Mechanical Hard Fail conditions.
 
-## Cognition and connected knowledge
-Research remains deliberately broad/deep: catalyst, concept map, industry chain, relevant A-share universe, fundamentals/business stage, why-this/why-not, counterevidence, market selection and relevant short-term roles/signals. At least two materially different sweeps are required with an auditable stop reason.
+## Runtime and legacy policy
+The only public MCP implementation is `financial_writing_agent/plugin_server.py`; `runtime_service.py` owns business operations. v0.4 is a hard cutover: there is no compatibility shim, no legacy `CHAT_TEXT` delivery contract, and no visual/sticker contract on `main`.
 
-Connected Notion/Drive/StockBase/EventBase access is orchestrated by ChatGPT with the actual connector. Retrieved references are recorded with `record_knowledge_context`; reusable writeback receipts are recorded with `record_knowledge_writeback` before final audit when available.
-
-## MCP surface
-The hosted/plugin-facing runtime exposes task recovery, research/editorial stages, a dedicated Hook Gate, a dedicated Human Voice Gate, deterministic Word delivery/mechanical audit, knowledge writeback receipt and final red-team audit. There is no visual-package tool.
-
-## Validation policy
-`main` is code/rule truth. Promotion requires SDK/MCP smoke, unit/trajectory/static checks, contract evaluation and real DOCX render smoke. A documentation change alone is not proof that the Agent executes the behavior.
+`main` is code/rule truth. Promotion requires SDK/MCP smoke, unit/trajectory/static checks, contract evaluation, isolated wheel install and DOCX render smoke.
