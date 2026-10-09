@@ -1,6 +1,6 @@
 ---
 name: financial-writing-agent
-description: Create and continue publishable A-share financial articles through a persisted workflow with broad research, mode-specific editorial contracts, dedicated hook/human-voice audits and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
+description: Create and continue publishable A-share financial articles through a persisted workflow with broad research, material-complete deep analysis, multi-hypothesis market explanation, dedicated hook/authorial-prose audits and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
 # Financial Writing Agent
@@ -20,7 +20,7 @@ Follow exactly:
 
 Never silently fall back to free-form writing when a mandatory gate fails.
 
-At `EDITORIAL_AUDIT`, **Hook Gate + Human Voice Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until both dedicated gates PASS.
+At `EDITORIAL_AUDIT`, **Hook Gate + Natural Authorial Prose / Human Voice Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until both dedicated gates PASS.
 
 ## 3. Defaults
 Unless the user explicitly overrides a soft preference:
@@ -35,9 +35,9 @@ User instructions may override soft editorial preferences for the current run, b
 
 ## 4. Progressive references
 Load only what the stage needs:
-- RESEARCH: `references/research.md` + `references/knowledge.md`.
-- RESEARCH_AUDIT / FINAL_AUDIT: `references/audit.md`.
-- EDITORIAL / TITLE / DRAFT: `references/editorial.md` + `references/hooks.md` + `references/style.md`; load `references/structure_patterns.md` only after topic-specific candidate structures exist, for collision checking.
+- RESEARCH: `references/research.md` + `references/knowledge.md`; additionally load `references/market_explanation.md` whenever the topic materially discusses companies, themes, price reactions, limit-ups, leadership or continuation.
+- RESEARCH_AUDIT / FINAL_AUDIT: `references/audit.md` and, when active, `references/market_explanation.md`.
+- EDITORIAL / TITLE / DRAFT: `references/editorial.md` + `references/hooks.md` + `references/style.md`; keep `references/market_explanation.md` active for stock/theme articles; load `references/structure_patterns.md` only after topic-specific candidate structures exist, for collision checking.
 - Platform adaptation: `references/platforms.md`.
 - Word/output: `references/delivery.md`.
 - Durable rule changes: `references/maintenance.md`.
@@ -45,11 +45,25 @@ Load only what the stage needs:
 ## 5. Research before writing
 When relevant durable knowledge is accessible, retrieve it before open-web expansion and record real references. Reverify current/material claims.
 
-Research must know materially more than either article says: catalyst/timeline, concept map, industry/transmission chain, relevant A-share universe, company fundamentals/business stages, `why_this / why_not`, counterevidence and relevant market structure. Run at least two materially different research sweeps and record an auditable stop reason.
+Research must know materially more than either article says: catalyst/timeline, concept and subtheme map, industry/transmission chain, relevant A-share universe, company fundamentals/business stages, economic-benefit sensitivity, `why_this / why_not`, counterevidence and relevant market structure. Run at least two materially different research sweeps and record an auditable stop reason.
+
+### Market-explanation completeness
+When the ResearchPackage contains a company universe, `market_explanation` is mandatory. It must separate:
+1. **economic benefit** — who is actually exposed, through what path, with what sensitivity/timing;
+2. **market selection / price formation** — why attention, information diffusion, order flow/liquidity, positioning, market role, price-limit mechanics or other mechanisms may have selected some names earlier/more strongly.
+
+Do not lock this into one predetermined causal chain. Consider competing mechanisms, record `why_not`, and investigate both continuation and reversal/exhaustion conditions.
+
+Every material market explanation uses the confidence ladder:
+`VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
+
+A limit-up, strong move or continued rise is a fact to explain, not proof of its cause.
 
 ## 6. Two editorial contracts
 ### FINANCE_DEEP — 财经完整版本
 This version is **material-complete**, not selectively expressive. Relative to the bounded audited research universe, it must cover every material branch that could change the reader's financial judgment: important event legs, transmission links, company classes, business-stage differences, financial realization, counterevidence, why-this/why-not, validation/falsification and material risks.
+
+When market-explanation mode is active, it must also cover every material branch needed to understand **who truly benefits, why sensitivity differs, why market leadership can differ from fundamental benefit, which competing price-formation explanations remain plausible, and what supports continuation versus reversal/exhaustion**.
 
 It may compress repetition, textbook background and immaterial detail. It must not omit a material analytical branch merely for brevity or elegance.
 
@@ -57,6 +71,8 @@ The shared TopicDNA therefore does **not** use “1–3 core contradictions” a
 
 ### FINANCE_BROAD — 引流版本
 This version is primarily for broader traffic acquisition. It may preserve one to three core contradictions/information gaps and selectively compress around them while keeping a complete evidence/causal chain for every claim it retains.
+
+If it retains a market-selection explanation, it must preserve the relevant evidence grade and important counterevidence; traffic optimization never licenses hindsight storytelling.
 
 ## 7. Structure, numbering and no tables
 Use topic-specific structure and continuous prose. Use the hierarchy frequently when reasoning genuinely has layers/categories/steps:
@@ -79,33 +95,58 @@ Audit these as independent requirements:
 
 Formal modes still generate 8–12 genuinely different headline candidates before selection.
 
-## 9. Dedicated Human Voice Gate
+## 9. Dedicated Natural Authorial Prose / Human Voice Gate
 Load `references/style.md`.
 
-“去AI味/活人感/娓娓道来/交流感” is a separate audit, not a prompt adjective. PASS requires evidence for template-fingerprint control, transition continuity, repetition control, natural rhythm, reader dialogue, narrative flow, visible judgment/persona and extreme-language control.
+The user's phrases “去AI味 / 活人感 / 娓娓道来 / 交流感” are treated as useful symptoms, not the objective. Do not optimize for AI-detector evasion. Optimize for high-quality authorial financial prose.
 
-Do not manufacture humanity with slang, typos, random fragments or decorative metaphors.
+PASS requires text-level evidence for all 12 dimensions:
+1. template fingerprint control;
+2. discourse variability;
+3. semantic progression;
+4. transition continuity;
+5. repetition control;
+6. natural rhythm;
+7. concrete evidence density;
+8. reader modeling;
+9. narrative flow;
+10. authorial specificity / evidence-bounded prioritization;
+11. uncertainty calibration;
+12. extreme-language control.
+
+Do not manufacture humanity with slang, typos, random fragments, fake intimacy or decorative metaphors.
 
 ## 10. Bold skim-path contract
 Bold **keywords, key data and selected key judgment sentences**. Company/stock names remain bold on every occurrence.
 
-A fast reader who reads only **title + H1s + bold spans** must still understand the article's main causal chain, comparison logic and conclusion boundary. Avoid over-bold; emphasis must remain selective enough to function as navigation.
+A fast reader who reads only **title + H1s + bold spans** must still understand the article's main causal chain, company comparison / market-selection logic and conclusion boundary. Avoid over-bold; emphasis must remain selective enough to function as navigation.
 
 ## 11. Reader/completion design
 The user's current audience skews older (45 common, substantial 55+). Maintain analytical depth but reduce avoidable mobile-reading friction: clear referents, visible numbering, readable paragraph density, limited nested syntax and a strong skim path. Do not patronize or oversimplify.
 
 Do not let the article wind down halfway through. The final substantive section must still add information or close an earlier causal/question loop. Avoid mechanical recap-only “总结”.
 
-## 12. Risk/compliance
+## 12. Word typography
+Publication Word uses deterministic point-size equivalents for the user's requested pixel sizes:
+- H1: **24px = 18pt**;
+- H2: **20px = 15pt**;
+- body: **18px = 13.5pt**;
+using standard 96-dpi CSS equivalence. H3 remains policy-controlled unless explicitly changed.
+
+## 13. Risk/compliance
 Every formal public-finance payload carries a separate topic-specific `risk_disclaimer`. Public output must not become executable buy/sell guidance; a disclaimer never cures actionable instructions.
 
-## 13. Knowledge writeback
+Market-explanation analysis may discuss attention, information diffusion, liquidity, order imbalance, market roles, continuation/reversal conditions and price-limit mechanisms as explanatory context, but may not convert them into timing, entry, exit, target price, position sizing or other execution advice.
+
+## 14. Knowledge writeback
 Before final PASS, write reusable evidence-bounded knowledge when a writable connected store exists, then call `record_knowledge_writeback(status="PASS", refs=[...])` with real receipts. If no reusable item or writable destination exists, call `record_knowledge_writeback(status="N_A", notes=[...])` with an explicit reason. Writing does not directly mutate another trading/review agent's executable state.
 
-## 14. Completion
+## 15. Completion
 At COMPLETE return **only publication Word artifact links/references**, the audit Word artifact, and the concise chat QA checklist/list. Do not paste the article body.
 
-## 15. Scope boundary
+The visible QA list must include market-explanation completeness when applicable, Hook Gate, Natural Authorial Prose / Human Voice Gate, general editorial, bold skim path, Word/no-table/render, compliance/risk and knowledge sync.
+
+## 16. Scope boundary
 This Skill produces publishable financial content. It may use stock-picking/review knowledge as research context but does not activate for standalone荐股、选股、盘后复盘 or trading decisions unless the user explicitly asks to turn that analysis into an article.
 
 Do not claim deterministic support for behavior that is not implemented and tested. Rule changes must follow `references/maintenance.md`: canonical update, runtime/schema alignment, mirror synchronization, regression tests and readback.
