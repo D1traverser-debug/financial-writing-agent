@@ -6,9 +6,8 @@ from typing import Literal
 
 from docx import Document
 from docx.enum.text import WD_ALIGN_PARAGRAPH
-from docx.image.image import Image as DocxImage
 from docx.oxml.ns import qn
-from docx.shared import Inches, Pt, RGBColor
+from docx.shared import Pt, RGBColor
 from pydantic import BaseModel, Field
 
 
@@ -21,13 +20,6 @@ class ArticleDocument(BaseModel):
     title: str
     blocks: list[Block]
     stock_names: list[str] = Field(default_factory=list)
-
-
-class DocumentImage(BaseModel):
-    local_path: str
-    role: Literal["hero", "section"]
-    anchor_after_block: int | None = None
-    hook_text: str = ""
 
 
 def _split_bold(text: str, stock_names: list[str]):
@@ -94,28 +86,7 @@ def _heading_label(kind: str, text: str, h1: int, h2: int, h3: int) -> str:
     return clean
 
 
-def _add_image(doc: Document, image: DocumentImage, width_inches: float, max_height_inches: float) -> None:
-    path = Path(image.local_path)
-    if not path.is_file():
-        raise FileNotFoundError(f"visual asset does not exist: {path}")
-    meta = DocxImage.from_file(str(path))
-    natural_ratio = float(meta.height) / float(meta.width) if meta.width else 1.0
-    target_height = width_inches * natural_ratio
-    p = doc.add_paragraph()
-    p.alignment = WD_ALIGN_PARAGRAPH.CENTER
-    run = p.add_run()
-    if target_height > max_height_inches:
-        run.add_picture(str(path), height=Inches(max_height_inches))
-    else:
-        run.add_picture(str(path), width=Inches(width_inches))
-
-
-def build_article_docx(
-    article: ArticleDocument,
-    output: str | Path,
-    policy: dict,
-    images: list[DocumentImage] | None = None,
-) -> Path:
+def build_article_docx(article: ArticleDocument, output: str | Path, policy: dict) -> Path:
     doc = Document()
     styles = doc.styles
     styles["Normal"].font.size = Pt(policy["word"]["body_pt"])
@@ -129,22 +100,8 @@ def build_article_docx(
     r.font.size = Pt(policy["word"]["title_pt"])
     _set_cn_font(r)
 
-    images = images or []
-    width_inches = float(policy.get("visuals", {}).get("word_width_inches", 6.2))
-    max_height_inches = float(policy.get("visuals", {}).get("word_max_height_inches", 8.0))
-    for image in [x for x in images if x.role == "hero"]:
-        _add_image(doc, image, width_inches, max_height_inches)
-
-    section_images: dict[int, list[DocumentImage]] = {}
-    for image in [x for x in images if x.role == "section"]:
-        if image.anchor_after_block is None:
-            raise ValueError("section visual requires anchor_after_block")
-        if image.anchor_after_block >= len(article.blocks):
-            raise ValueError(f"section visual anchor out of range: {image.anchor_after_block}")
-        section_images.setdefault(image.anchor_after_block, []).append(image)
-
     h1 = h2 = h3 = 0
-    for index, block in enumerate(article.blocks):
+    for block in article.blocks:
         render_text = block.text
         if block.kind == "h1":
             h1 += 1
@@ -183,9 +140,6 @@ def build_article_docx(
                 run.bold = bool(bold)
                 run.font.size = Pt(policy["word"]["body_pt"])
                 _set_cn_font(run)
-
-        for image in section_images.get(index, []):
-            _add_image(doc, image, width_inches, max_height_inches)
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
