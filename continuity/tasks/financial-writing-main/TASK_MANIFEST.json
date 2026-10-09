@@ -1,6 +1,6 @@
 {
   "schema_version": "3.3",
-  "manifest_version": 2,
+  "manifest_version": 3,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,11 +10,13 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-09T14:08:05Z",
+  "updated_at": "2026-10-09T15:28:00Z",
   "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
-  "next_action": "恢复到当前 Financial Writing Agent；若用户未明确点名旧文章，则按当前主题/来源启动新的文章任务，不自动续跑历史文章。",
+  "next_action": "先做 Financial Writing v0.3 capability/schema compatibility check；兼容则按当前主题/来源启动新文章 task；当前旧 Site PoC 若仍暴露 WECHAT_STICKER_POST/submit_visual_package 且无独立 Hook Gate，则不得作为 v0.3 执行真源，按 fail-closed/合法 fallback 边界处理。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_3",
+  "skill_version": "FINANCIAL_WRITING_AGENT_V0_3",
+  "runtime_version": "V0_3_REQUIRED_SITE_CURRENTLY_STALE",
   "resume_epoch": 1,
   "active_lease": {
     "lease_id": "fw-e68921c619c84b51b1407baa95be9c1f",
@@ -22,5 +24,12 @@
     "supersedes_lease_id": null
   },
   "keywords": ["金融文章", "财经文章", "写金融文章", "写作"],
-  "artifact_refs": []
+  "artifact_refs": [
+    "skills/financial-writing-agent/SKILL.md",
+    "skills/financial-writing-agent/references/hooks.md",
+    "skills/financial-writing-agent/references/editorial.md",
+    "skills/financial-writing-agent/references/style.md",
+    "skills/financial-writing-agent/references/delivery.md",
+    "deploy/chatgpt-site/SITE_SPEC.md"
+  ]
 }
