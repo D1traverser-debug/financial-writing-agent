@@ -36,8 +36,6 @@ class ContentMode(str, Enum):
 
 class DeliveryChannel(str, Enum):
     WORD_FILE_ONLY = "WORD_FILE_ONLY"
-    # Retained only so historical serialized checkpoints can be classified; new routing never creates it.
-    CHAT_TEXT = "CHAT_TEXT"
 
 
 class GateStatus(str, Enum):
@@ -52,7 +50,6 @@ class ArtifactKind(str, Enum):
     FINANCE_DEEP_DOCX = "FINANCE_DEEP_DOCX"
     FINANCE_BROAD_DOCX = "FINANCE_BROAD_DOCX"
     AUDIT_DOCX = "AUDIT_DOCX"
-    CHAT_TEXT = "CHAT_TEXT"  # legacy read compatibility only
 
 
 class GateRecord(BaseModel):
@@ -85,7 +82,6 @@ class TaskContract(BaseModel):
     def populate_required_outputs(self):
         if self.required_outputs:
             return self
-        # All new publishable writing is Word-only. CHAT_TEXT exists only for legacy checkpoint parsing.
         required = [ArtifactKind.AUDIT_DOCX]
         if self.distribution_mode in (DistributionMode.FINANCE_DEEP, DistributionMode.DUAL):
             required.append(ArtifactKind.FINANCE_DEEP_DOCX)
