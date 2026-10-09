@@ -11,7 +11,7 @@ def test_unique_rule_ownership():
             seen.add(key)
 
 
-def test_hook_authorial_prose_market_explanation_and_visual_boundaries():
+def test_v04_rule_boundaries_and_legacy_removal():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     assert "hooks" in ownership
     assert "style" in ownership
@@ -22,28 +22,34 @@ def test_hook_authorial_prose_market_explanation_and_visual_boundaries():
     assert "market_explanation_completeness" in ownership["market_explanation"]
     assert "hindsight_causality_control" in ownership["market_explanation"]
     assert "visuals" not in ownership
+
     assert Path("skills/financial-writing-agent/references/hooks.md").is_file()
     assert Path("skills/financial-writing-agent/references/market_explanation.md").is_file()
     assert not Path("skills/financial-writing-agent/references/visuals.md").exists()
     assert not Path("financial_writing_agent/resources/references/visuals.md").exists()
+    assert not Path("financial_writing_agent/mcp_server.py").exists()
+    assert not Path("continuity/tasks/ai-pharma-writing/HANDOFF.md").exists()
+    assert not Path("continuity/tasks/site-runtime-gate-a2/HANDOFF.md").exists()
     assert not Path("SKILL.md").exists()
 
     skill = Path("skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     public_server = Path("financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
     runtime = Path("financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
-    shim = Path("financial_writing_agent/mcp_server.py").read_text(encoding="utf-8")
+    models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
+    contracts = Path("financial_writing_agent/mcp_contracts.py").read_text(encoding="utf-8")
 
     assert "references/hooks.md" in skill
     assert "references/market_explanation.md" in skill
     assert "VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED" in skill
     assert "submit_hook_audit" in public_server
     assert "submit_hook_audit" in runtime
-    assert "submit_visual_package" not in skill
-    assert "submit_visual_package" not in public_server
-    assert "submit_visual_package" not in runtime
+    assert "writing-docx://{task_id}/{kind}" in public_server
+    for removed in ("submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "CHAT_TEXT"):
+        assert removed not in skill
+        assert removed not in public_server
+        assert removed not in models
+        assert removed not in contracts
     assert "@mcp.tool" not in runtime
-    assert "@mcp.tool" not in shim
-    assert "from .plugin_server import main, mcp" in shim
 
 
 def test_exact_publication_typography_policy():
