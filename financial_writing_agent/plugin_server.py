@@ -100,83 +100,91 @@ def start_writing_task(
     source_refs: Annotated[list[str] | None, Field(description="Explicit source URLs or references supplied for this task.")] = None,
     target_platforms: Annotated[list[str] | None, Field(description="Explicit destination platforms; omit to use the formal default routing.")] = None,
 ) -> WritingTaskSummary:
-    """Create a new persisted Word-only financial-writing workflow after ruling out a relevant unfinished task."""
+    """Create a persisted Word-only financial-writing workflow after continuation checks, fixing the task contract before research, outlining, drafting, or delivery can begin."""
     return _summary(impl.start_writing_task(prompt=prompt, source_refs=source_refs, target_platforms=target_platforms))
 
 
 @mcp.tool(title="Get writing task", annotations=READ_ONLY_TOOL, structured_output=True)
 def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annotated[bool, Field(description="Return gates and publication artifact resources when true.")] = True) -> WritingTaskSummary:
+    """Read one exact persisted financial-writing task, including its current legal stage and, when requested, gate evidence and publication artifact resources without mutating state."""
     return _summary(impl.get_writing_task(task_id, detail=detail))
 
 
 @mcp.tool(title="List recent writing tasks", annotations=READ_ONLY_TOOL, structured_output=True)
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50)] = 10, include_complete: bool = False) -> WritingTaskList:
+    """List recent persisted writing tasks for reliable continuation so callers can avoid duplicate workflows and recover unfinished work without asking the user to repeat saved context."""
     return WritingTaskList(tasks=[_summary(item) for item in impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)])
 
 
 @mcp.tool(title="Record retrieved knowledge context", annotations=STATE_WRITE_TOOL, structured_output=True)
 def record_knowledge_context(task_id: Annotated[str, Field(min_length=1)], refs: Annotated[list[str], Field(min_length=1)], notes: list[str] | None = None) -> WritingTaskSummary:
+    """Record real durable-knowledge references retrieved before open-web expansion so prior knowledge reuse is auditable and never silently substituted for current verification."""
     return _summary(impl.record_knowledge_context(task_id, refs, notes))
 
 
 @mcp.tool(title="Submit research package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research(task_id: Annotated[str, Field(min_length=1)], research: ResearchPackage) -> WritingTaskSummary:
+    """Validate and freeze the bounded comprehensive ResearchPackage, including evidence, universe, counterevidence, cognition, repeated-sweep coverage, and explicit research stop reason."""
     return _summary(impl.submit_research(task_id, research.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit research audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
+    """Record an independent research-audit verdict; PASS advances while REVISE returns to research, preventing unsupported or incomplete evidence bases from reaching editorial work."""
     return _summary(impl.submit_research_audit(task_id, decision.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit editorial plan", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_plan(task_id: Annotated[str, Field(min_length=1)], editorial_plan: EditorialPlan) -> WritingTaskSummary:
-    """Validate shared TopicDNA plus independent deep/broad mode contracts."""
+    """Validate shared TopicDNA plus independent mode contracts: material-complete FINANCE_DEEP obligations and selective-traffic FINANCE_BROAD contradictions/compression rules."""
     return _summary(impl.submit_editorial_plan(task_id, editorial_plan.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit headline package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_headlines(task_id: Annotated[str, Field(min_length=1)], headlines: HeadlinePackage) -> WritingTaskSummary:
-    """Validate headline candidates, cross-finance click reasons, current WeChat search terms/evidence and selected-title membership."""
+    """Validate 8–12 headline candidates per applicable mode, cross-finance click reasons, current WeChat search terms with evidence references, and selected-title membership."""
     return _summary(impl.submit_headlines(task_id, headlines.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit draft package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_draft(task_id: Annotated[str, Field(min_length=1)], draft: DraftPackage) -> WritingTaskSummary:
-    """Validate all contract-required drafts including explicit bold skim-path anchors."""
+    """Validate and freeze every required formal draft, including risk text and exact explicit bold skim-path anchors that must later survive deterministic Word construction."""
     return _summary(impl.submit_draft(task_id, draft.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit hook audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_hook_audit(task_id: Annotated[str, Field(min_length=1)], report: HookAuditDecision) -> WritingTaskSummary:
-    """Record independent title/first-three-sentences/H1/transition hook audit. Must PASS before general editorial PASS."""
+    """Record the independent Hook Gate over title clickability, current WeChat search intent, first three sentences, H1 continuation, paragraph forward pull, and title-opening payoff."""
     return _summary(impl.submit_hook_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit human voice audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_style_audit(task_id: Annotated[str, Field(min_length=1)], report: StyleAuditDecision) -> WritingTaskSummary:
-    """Record independent anti-AI/human-voice audit. Must PASS before general editorial PASS."""
+    """Record the independent Human Voice Gate over anti-template quality, transitions, repetition, rhythm, reader dialogue, narrative flow, author judgment, and extreme-language control."""
     return _summary(impl.submit_style_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit editorial audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record general semantic editorial verdict after Hook Gate and Human Voice Gate pass."""
+    """Record the general semantic editorial verdict after Hook and Human Voice gates pass, checking evidence, mode-specific completeness/compression, reasoning, skim path, and compliance."""
     return _summary(impl.submit_editorial_audit(task_id, decision.model_dump(mode="json")))
 
 
 @mcp.tool(title="Build and mechanically audit delivery", annotations=STATE_WRITE_TOOL, structured_output=True)
 def build_and_mechanically_audit_delivery(task_id: Annotated[str, Field(min_length=1)]) -> Annotated[CallToolResult, WritingTaskSummary]:
+    """Build the required Word article artifacts and run deterministic checks for numbering, zero tables, bold skim anchors, company bolding, disclaimer, red-line phrases, and renderability."""
     return _result_with_artifacts(_summary(impl.build_and_mechanically_audit_delivery(task_id)))
 
 
 @mcp.tool(title="Record knowledge writeback outcome", annotations=STATE_WRITE_TOOL, structured_output=True)
 def record_knowledge_writeback(task_id: Annotated[str, Field(min_length=1)], status: Literal["PASS", "N_A"], refs: list[str] | None = None, notes: list[str] | None = None) -> WritingTaskSummary:
+    """Record the explicit durable-knowledge writeback decision before final completion, requiring real receipt references for PASS or an explicit boundary reason for N_A."""
     return _summary(impl.record_knowledge_writeback(task_id, status, refs, notes))
 
 
 @mcp.tool(title="Submit final audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_final_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> Annotated[CallToolResult, WritingTaskSummary]:
+    """Record the final independent red-team verdict after semantic, mechanical, risk, and knowledge gates; a valid PASS builds the audit Word artifact and permits completion only if outputs exist."""
     return _result_with_artifacts(_summary(impl.submit_final_audit(task_id, decision.model_dump(mode="json"))))
 
 
