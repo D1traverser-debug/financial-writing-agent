@@ -19,7 +19,7 @@ dev = ["pytest>=8", "build>=1.2"]
 
 [project.scripts]
 financial-write = "financial_writing_agent.cli:main"
-financial-writing-mcp = "financial_writing_agent.plugin_server:main"
+financial-writing-mcp = "financial_writing_agent.continuity_plugin:main"
 
 [tool.setuptools.packages.find]
 include = ["financial_writing_agent*"]

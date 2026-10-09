@@ -10,12 +10,14 @@ from pydantic import BaseModel, ConfigDict, Field
 GateStatusText = Literal["NOT_RUN", "PASS", "REVISE", "FAIL", "N_A"]
 TaskStatusText = Literal["IN_PROGRESS", "BLOCKED", "COMPLETE"]
 StageText = Literal[
-    "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
+    "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT", "BROAD_DERIVATION",
     "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT", "COMPLETE", "BLOCKED",
 ]
 ContentModeText = Literal["FORMAL_ARTICLE", "WECHAT_STICKER_POST"]
 DistributionModeText = Literal["FINANCE_DEEP", "FINANCE_BROAD", "DUAL"]
 DeliveryChannelText = Literal["WORD_FILE_ONLY", "CHAT_TEXT", "WORD_AND_CHAT"]
+TaskClassText = Literal["USER", "TEST", "FIXTURE", "EVAL", "SYSTEM_INFRA", "MIGRATION"]
+ResumeVisibilityText = Literal["DEFAULT", "EXPLICIT_ONLY", "HIDDEN"]
 
 
 class PublicResultModel(BaseModel):
@@ -97,6 +99,14 @@ class WritingTaskSummary(PublicResultModel):
     blocked_reason: str | None = None
     updated_at: datetime
     next_action: str
+
+    task_class: TaskClassText = "MIGRATION"
+    resume_eligible: bool = False
+    resume_visibility: ResumeVisibilityText = "EXPLICIT_ONLY"
+    contract_version: str = "legacy-unclassified"
+    runtime_version: str | None = None
+    skill_version: str | None = None
+
     source_refs: list[str] | None = None
     visual_profile_ref: str | None = None
     gates: dict[str, GateSummary] | None = None

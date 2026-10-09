@@ -13,6 +13,7 @@ PACKAGE_REFS = ROOT / "financial_writing_agent" / "resources" / "references"
 SOURCE_POLICY = ROOT / "config" / "policy.json"
 PACKAGE_POLICY = ROOT / "financial_writing_agent" / "resources" / "policy.json"
 PUBLIC_MCP = ROOT / "financial_writing_agent" / "plugin_server.py"
+CONTINUITY_MCP = ROOT / "financial_writing_agent" / "continuity_plugin.py"
 MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
 RUNTIME_SERVICE = ROOT / "financial_writing_agent" / "runtime_service.py"
 LEGACY_MCP_SHIM = ROOT / "financial_writing_agent" / "mcp_server.py"
@@ -130,11 +131,12 @@ def _tool_names(path: Path) -> set[str]:
 
 
 def check_public_mcp_contract() -> int:
-    for required in (PUBLIC_MCP, MCP_CONTRACTS, RUNTIME_SERVICE, LEGACY_MCP_SHIM, HARNESS):
+    for required in (PUBLIC_MCP, CONTINUITY_MCP, MCP_CONTRACTS, RUNTIME_SERVICE, LEGACY_MCP_SHIM, HARNESS):
         if not required.is_file():
             fail(f"required MCP/runtime/harness file missing: {required.relative_to(ROOT)}")
 
     source = PUBLIC_MCP.read_text(encoding="utf-8")
+    adapter = CONTINUITY_MCP.read_text(encoding="utf-8")
     contracts = MCP_CONTRACTS.read_text(encoding="utf-8")
     runtime = RUNTIME_SERVICE.read_text(encoding="utf-8")
     harness = HARNESS.read_text(encoding="utf-8")
@@ -184,12 +186,17 @@ def check_public_mcp_contract() -> int:
         fail(f"public MCP tool inventory mismatch: missing={sorted(EXPECTED_TOOLS - names)}, extra={sorted(names - EXPECTED_TOOLS)}")
     if _tool_names(RUNTIME_SERVICE):
         fail("runtime_service.py must not register MCP tools")
+    if _tool_names(CONTINUITY_MCP):
+        fail("continuity_plugin.py must adapt the existing surface, not register MCP tools")
     if _tool_names(LEGACY_MCP_SHIM):
         fail("mcp_server.py compatibility shim must not register MCP tools")
-    if "MCPServer(" in runtime:
-        fail("runtime_service.py must not instantiate a second MCP server")
-    if "from .plugin_server import main, mcp" not in legacy:
-        fail("legacy mcp_server.py must be a thin compatibility shim")
+    if "MCPServer(" in runtime or "MCPServer(" in adapter:
+        fail("runtime/continuity adapter must not instantiate a second MCP server")
+    for marker in ("from . import plugin_server as base", "mcp = base.mcp", "impl.list_recent_writing_tasks = _safe_recent_tasks"):
+        if marker not in adapter:
+            fail(f"continuity adapter no longer wraps the unique public MCP owner safely: {marker}")
+    if "from .continuity_plugin import main, mcp" not in legacy:
+        fail("legacy mcp_server.py must route through the continuity adapter")
 
     if 'meta={"openai/fileParams": ["files"]}' not in source:
         fail("submit_visual_package must declare ChatGPT fileParams")
@@ -282,8 +289,8 @@ def check_packaging_contract() -> None:
     base = pyproject_text.split("[project.optional-dependencies]", 1)[0]
     if '"mcp>=2.0,<3"' not in base:
         fail("MCP must be a base dependency because financial-writing-mcp is a core entry point")
-    if 'financial-writing-mcp = "financial_writing_agent.plugin_server:main"' not in pyproject_text:
-        fail("financial-writing-mcp must point at typed public plugin_server")
+    if 'financial-writing-mcp = "financial_writing_agent.continuity_plugin:main"' not in pyproject_text:
+        fail("financial-writing-mcp must point at the audited continuity adapter over the unique typed plugin_server")
     if 'resources/references/*.md' not in pyproject_text or 'resources/policy.json' not in pyproject_text:
         fail("wheel package-data declarations for runtime resources are missing")
 
@@ -321,7 +328,7 @@ def main() -> None:
     check_dead_contracts_removed()
     print(
         f"PASS: {groups} unique rule ownership keys; Skill/source/package references aligned; "
-        f"one {tools}-tool typed/annotated MCP surface; strict evidence/acceptance schemas; "
+        f"one {tools}-tool typed/annotated MCP surface with audited continuity adapter; strict evidence/acceptance schemas; "
         "versioned conflict-safe checkpoints; artifact/render resources; version, activation, deployment-safety and packaging contracts present"
     )
 
