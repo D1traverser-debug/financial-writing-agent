@@ -27,6 +27,16 @@ jobs:
         run: python scripts/eval_contracts.py
       - name: Static rule ownership and bundle audit
         run: python scripts/static_audit.py
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22.13.0"
+          cache: npm
+          cache-dependency-path: deploy/chatgpt-site/site/package-lock.json
+      - name: Site Runtime TypeScript contract tests
+        working-directory: deploy/chatgpt-site/site
+        run: |
+          npm ci
+          npm test
       - name: Build wheel and isolated install smoke
         run: |
           python -m build --wheel
