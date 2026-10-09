@@ -5,6 +5,9 @@
   "research": [
     "source_quality", "evidence_ledger", "full_topic_research", "universe", "why_this_why_not", "negative_evidence", "cognition_baseline", "short_term_market_roles"
   ],
+  "market_explanation": [
+    "market_explanation_completeness", "economic_benefit_vs_market_selection", "causal_confidence_ladder", "competing_market_mechanisms", "continuation_reversal_conditions", "hindsight_causality_control"
+  ],
   "knowledge": [
     "prior_knowledge_reuse", "stable_vs_ephemeral_knowledge", "knowledge_conflict_handling", "knowledge_writeback"
   ],
@@ -15,13 +18,13 @@
     "cross_finance_title_clickability", "wechat_search_intent", "first_three_sentence_retention", "h1_continuation", "paragraph_forward_pull", "title_opening_payoff", "completion_design"
   ],
   "style": [
-    "anti_ai_style", "human_voice", "reader_dialogue", "narrative_flow", "rhythm_naturalness", "extreme_language", "bold_skim_path_semantics"
+    "anti_ai_style", "human_voice", "discourse_variability", "semantic_progression", "concrete_evidence_density", "reader_modeling", "narrative_flow", "authorial_specificity", "uncertainty_calibration", "rhythm_naturalness", "extreme_language", "bold_skim_path_semantics"
   ],
   "delivery": [
-    "docx_structure", "typography", "stock_bold", "key_data_bold", "no_tables", "risk_disclaimer", "file_identity", "publication_ready_word", "visible_completion_checklist"
+    "docx_structure", "typography", "pixel_to_point_typography", "stock_bold", "key_data_bold", "no_tables", "risk_disclaimer", "file_identity", "publication_ready_word", "visible_completion_checklist"
   ],
   "audit": [
-    "hook_judge", "human_voice_judge", "semantic_judge", "mechanical_checks", "final_red_team", "audit_report", "risk_quality_audit", "skim_path_audit"
+    "hook_judge", "human_voice_judge", "market_explanation_audit", "semantic_judge", "mechanical_checks", "final_red_team", "audit_report", "risk_quality_audit", "skim_path_audit"
   ],
   "platforms": [
     "distribution_mechanisms", "platform_specific_packaging", "account_performance_samples", "wechat_search_signals", "fresh_platform_evidence"
