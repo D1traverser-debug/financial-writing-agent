@@ -1,80 +1,111 @@
 ---
 name: financial-writing-agent
-description: Create and continue A-share financial articles or image-first WeChat finance sticker posts through a persisted MCP workflow with broad/deep research, independent audits, visuals and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing an unfinished writing task. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
+description: Create and continue publishable A-share financial articles through a persisted workflow with broad research, mode-specific editorial contracts, dedicated hook/human-voice audits and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
 # Financial Writing Agent
 
-## 1. Decide resume vs new before doing anything else
+## 1. Decide resume vs new first
 Do not automatically start a new task.
 
-- If the user says “继续昨天那篇”, “接着写”, “刚才那篇”, or otherwise refers to unfinished writing, call `list_recent_writing_tasks` first, identify the best match from prompt/topic previews, then call `get_writing_task`. Do not ask the user to repeat information already persisted.
-- If more than one unfinished task is genuinely plausible after reading the previews, ask one targeted disambiguation question rather than guessing.
-- For a genuinely new writing task, call `start_writing_task` before connected-knowledge retrieval, web research, outlining, drafting or image planning.
+- If the user refers to unfinished writing, list recent persisted tasks first, identify the best match, then load it. Do not ask for information already persisted.
+- If multiple unfinished tasks are genuinely plausible, ask one targeted disambiguation question.
+- For genuinely new publishable writing, start the persisted task before research, outlining or drafting.
 
-The MCP runtime checkpoint is the executable task authority. GitHub `main` is code/rule authority. Notion/Drive status pages are mirrors, not competing checkpoints.
+Runtime checkpoint is executable task authority. GitHub `main` is code/rule authority. Notion/Drive pages are knowledge/mirrors unless explicitly designated otherwise.
 
 ## 2. Workflow invariant
 Follow exactly:
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
 
-Never silently fall back to free-form writing when a mandatory tool/gate fails. Repair the legal stage or report `BLOCKED` clearly.
+Never silently fall back to free-form writing when a mandatory gate fails.
+
+At `EDITORIAL_AUDIT`, **Hook Gate + Human Voice Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until both dedicated gates PASS.
 
 ## 3. Defaults
-Unless the current user explicitly overrides a soft preference:
+Unless the user explicitly overrides a soft preference:
 - unspecified formal-article platform → `DUAL`;
-- `DUAL` = one broad/deep research base + independently edited `FINANCE_DEEP` and `FINANCE_BROAD`;
-- formal language → Simplified Chinese financial prose;
-- delivery → `WORD_FILE_ONLY`;
-- new Word articles enable publication visuals unless the user opts out or the task is only about an already-existing document;
-- do not paste the article body/preview in chat under `WORD_FILE_ONLY`.
+- `DUAL` = one research base + independently edited `FINANCE_DEEP` and `FINANCE_BROAD`;
+- language → Simplified Chinese financial prose;
+- publication article delivery → **Word only**; do not paste body/preview in chat;
+- QA delivery → `WRITING_AUDIT_REPORT.docx` **plus** a concise chat checklist/list;
+- Financial Writing has **no image/cover/section-visual/avatar workflow**.
 
-Explicit user instructions can override soft editorial preferences for the current run. They cannot bypass factual support, compliance, file identity, required-output or stage-order gates.
+User instructions may override soft editorial preferences for the current run, but cannot bypass factual support, compliance, file identity, required outputs or stage order.
 
-## 4. Load only the references needed for the current stage
-Supporting references are part of this Skill bundle. Load them progressively:
+## 4. Progressive references
+Load only what the stage needs:
 - RESEARCH: `references/research.md` + `references/knowledge.md`.
 - RESEARCH_AUDIT / FINAL_AUDIT: `references/audit.md`.
-- EDITORIAL / TITLE / DRAFT: `references/editorial.md` + `references/style.md`; load `references/structure_patterns.md` only after TopicDNA/candidate structures exist, for collision checking rather than template generation.
-- Platform routing / WeChat sticker: `references/platforms.md`.
-- Visual planning / insertion: `references/visuals.md`.
+- EDITORIAL / TITLE / DRAFT: `references/editorial.md` + `references/hooks.md` + `references/style.md`; load `references/structure_patterns.md` only after topic-specific candidate structures exist, for collision checking.
+- Platform adaptation: `references/platforms.md`.
 - Word/output: `references/delivery.md`.
 - Durable rule changes: `references/maintenance.md`.
 
-## 5. Research/cognition before selective writing
-When relevant connected EventBase/StockBase/knowledge assets are accessible, retrieve them after Runtime start and before open-web expansion, then call `record_knowledge_context` with real references. Reverify current/material claims.
+## 5. Research before writing
+When relevant durable knowledge is accessible, retrieve it before open-web expansion and record real references. Reverify current/material claims.
 
-Research must know materially more than the article says: catalyst/timeline, concept graph, industry/transmission chain, relevant A-share universe, fundamentals, `why_this / why_not`, market-selection logic and relevant short-term roles/signals. `ResearchPackage.coverage` must state repeated-sweep coverage and an explicit stop reason so “全面” is bounded and auditable rather than infinite or hand-wavy.
+Research must know materially more than either article says: catalyst/timeline, concept map, industry/transmission chain, relevant A-share universe, company fundamentals/business stages, `why_this / why_not`, counterevidence and relevant market structure. Run at least two materially different research sweeps and record an auditable stop reason.
 
-## 6. Editorial and style
-Use topic-specific structure, continuous report prose and real paragraph/section transitions. Formal hierarchy is `一、二、三 → （1）（2）（3） → ①②③`; `·` is not a structural level marker. Conclusion-first is a soft preference, not a fixed opening template.
+## 6. Two editorial contracts
+### FINANCE_DEEP — 财经完整版本
+This version is **material-complete**, not selectively expressive. Relative to the bounded audited research universe, it must cover every material branch that could change the reader's financial judgment: important event legs, transmission links, company classes, business-stage differences, financial realization, counterevidence, why-this/why-not, validation/falsification and material risks.
 
-At `EDITORIAL_AUDIT`, run the independent style judge first and call `submit_style_audit`. Its five-part rubric makes anti-AI output explicit. General editorial audit cannot PASS until style audit passes. Remove unsupported extreme/superlative rhetoric, including rhetorical “最…”, without mechanically banning factual words such as “最近/最后”.
+It may compress repetition, textbook background and immaterial detail. It must not omit a material analytical branch merely for brevity or elegance.
 
-## 7. Risk/compliance
-Every formal public-finance payload carries `risk_disclaimer` as a separate required field. Delivery appends the risk/disclaimer section deterministically so the writer cannot omit or misformat it. Keep it concise but materially complete. A disclaimer never cures actionable buy/sell guidance.
+The shared TopicDNA therefore does **not** use “1–3 core contradictions” as the deep article's selection rule.
 
-## 8. Visual workflow
-When visuals are enabled, ChatGPT generates real images and submits them at DELIVERY with `submit_visual_package` using ChatGPT file parameters. Never invent a server path or arbitrary image URL.
+### FINANCE_BROAD — 引流版本
+This version is primarily for broader traffic acquisition. It may preserve one to three core contradictions/information gaps and selectively compress around them while keeping a complete evidence/causal chain for every claim it retains.
 
-Formal article defaults: exactly one 16:9 hero per applicable article plus semantic section images at roughly one per 700 Chinese characters, with meaning taking priority over counting. Image hook text may differ from H1. Use the approved user avatar as a small circular integrated element when the active visual profile requires it.
+## 7. Structure, numbering and no tables
+Use topic-specific structure and continuous prose. Use the hierarchy frequently when reasoning genuinely has layers/categories/steps:
+`一、二、三 → （1）（2）（3） → ①②③`.
 
-The server copies real image bytes into task storage and Word inserts them centered and uncropped; very tall images are height-capped while preserving aspect ratio.
+More numbering means stronger navigation, not filler “首先/其次/最后”.
 
-## 9. WeChat sticker posts
-Explicit 微信贴图 requests use `WECHAT_STICKER_POST`, not a shortened DUAL article. Verify current platform limits/mechanics at execution time and record them in `PlatformConstraintSnapshot`; do not hard-code remembered limits. Numeric title/body/image limits are enforced when current evidence supplies them. The image hook, title, useful body, interaction prompt and risk text must complement rather than duplicate one another.
+**Publication articles do not use tables.** Convert comparisons into numbered prose.
 
-## 10. Knowledge writeback is an explicit decision
-Before final PASS, write reusable evidence-bounded knowledge through the connected store when available and call `record_knowledge_writeback(status="PASS", refs=[...])`. If there is no reusable item or writable destination, call it with `status="N_A"` and an explicit reason. The Runtime must not complete while this decision is still NOT_RUN.
+## 8. Dedicated Hook Gate
+Load `references/hooks.md`.
 
-Writing does not directly mutate a future stock-picking/review Agent's executable state. Do not claim cross-agent synchronization until those agents share the same implemented knowledge layer.
+Audit these as independent requirements:
+- **total title cross-finance clickability**: even finance readers focused on another sector should see a supported reason to click;
+- **WeChat current search-intent condition**: independently research/consider current search terms and record evidence; never invent search volume;
+- **first three complete sentences**: retain the reader by delivering concrete change/payoff, finance relevance and forward tension without rigid templating;
+- **H1 continuation power**: every H1 is a topic-specific mini-hook;
+- **paragraph forward pull**: real logical transitions keep the reader moving;
+- **title/opening payoff**: no bait-and-switch.
 
-## 11. Completion
-At `COMPLETE`, return artifact links/references plus the concise runtime completion checklist. Under `WORD_FILE_ONLY`, do not paste the article body.
+Formal modes still generate 8–12 genuinely different headline candidates before selection.
 
-When connected governance mirrors are available, copy final formal artifacts to the configured Drive destination and update the Notion/Drive status mirror after Runtime completion. Mirror failure must be reported separately and must not rewrite a valid Runtime checkpoint.
+## 9. Dedicated Human Voice Gate
+Load `references/style.md`.
 
-## 12. Scope boundary
-This Skill is for producing publishable financial content. It may use stock-picking/review knowledge as research context, but it must not activate merely because the user asks for a standalone荐股、选股、盘后复盘 or trading decision. Those are separate future workflows unless the user explicitly asks to turn the analysis into an article/post.
+“去AI味/活人感/娓娓道来/交流感” is a separate audit, not a prompt adjective. PASS requires evidence for template-fingerprint control, transition continuity, repetition control, natural rhythm, reader dialogue, narrative flow, visible judgment/persona and extreme-language control.
 
-Do not claim deterministic support for a use case that has not been implemented and tested. Current v0.2 production promotion still requires fresh-chat activation tests plus a user-authorized real live-model E2E with interruption/recovery.
+Do not manufacture humanity with slang, typos, random fragments or decorative metaphors.
+
+## 10. Bold skim-path contract
+Bold **keywords, key data and selected key judgment sentences**. Company/stock names remain bold on every occurrence.
+
+A fast reader who reads only **title + H1s + bold spans** must still understand the article's main causal chain, comparison logic and conclusion boundary. Avoid over-bold; emphasis must remain selective enough to function as navigation.
+
+## 11. Reader/completion design
+The user's current audience skews older (45 common, substantial 55+). Maintain analytical depth but reduce avoidable mobile-reading friction: clear referents, visible numbering, readable paragraph density, limited nested syntax and a strong skim path. Do not patronize or oversimplify.
+
+Do not let the article wind down halfway through. The final substantive section must still add information or close an earlier causal/question loop. Avoid mechanical recap-only “总结”.
+
+## 12. Risk/compliance
+Every formal public-finance payload carries a separate topic-specific `risk_disclaimer`. Public output must not become executable buy/sell guidance; a disclaimer never cures actionable instructions.
+
+## 13. Knowledge writeback
+Before final PASS, record reusable evidence-bounded knowledge when a writable connected store exists, or record explicit N/A. Writing does not directly mutate another trading/review agent's executable state.
+
+## 14. Completion
+At COMPLETE return **only publication Word artifact links/references**, the audit Word artifact, and the concise chat QA checklist/list. Do not paste the article body.
+
+## 15. Scope boundary
+This Skill produces publishable financial content. It may use stock-picking/review knowledge as research context but does not activate for standalone荐股、选股、盘后复盘 or trading decisions unless the user explicitly asks to turn that analysis into an article.
+
+Do not claim deterministic support for behavior that is not implemented and tested. Rule changes must follow `references/maintenance.md`: canonical update, runtime/schema alignment, mirror synchronization, regression tests and readback.
