@@ -1,12 +1,13 @@
 """Compatibility entry point for the public Financial Writing MCP server.
 
-The only tool/resource registration surface lives in ``plugin_server.py``.
-Runtime business logic lives in ``runtime_service.py``. Keeping this thin shim
-prevents older imports from breaking without maintaining a second MCP surface.
+The registered tool/resource surface still lives in ``plugin_server.py``.
+``continuity_plugin.py`` wraps that same 16-tool surface with Continuity v2
+summary metadata and safe ordinary task discovery. This shim routes legacy
+entrypoints through the wrapper without maintaining a second MCP surface.
 """
 from __future__ import annotations
 
-from .plugin_server import main, mcp
+from .continuity_plugin import main, mcp
 
 __all__ = ["mcp", "main"]
 
