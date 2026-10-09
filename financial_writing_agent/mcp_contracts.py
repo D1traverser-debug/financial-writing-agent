@@ -15,7 +15,7 @@ StageText = Literal[
 ]
 ContentModeText = Literal["FORMAL_ARTICLE"]
 DistributionModeText = Literal["FINANCE_DEEP", "FINANCE_BROAD", "DUAL"]
-DeliveryChannelText = Literal["WORD_FILE_ONLY", "CHAT_TEXT"]
+DeliveryChannelText = Literal["WORD_FILE_ONLY"]
 
 
 class PublicResultModel(BaseModel):
