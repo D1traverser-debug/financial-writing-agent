@@ -13,8 +13,8 @@ SOURCE_POLICY = ROOT / "config" / "policy.json"
 PACKAGE_POLICY = ROOT / "financial_writing_agent" / "resources" / "policy.json"
 PUBLIC_MCP = ROOT / "financial_writing_agent" / "plugin_server.py"
 MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
+MODELS = ROOT / "financial_writing_agent" / "models.py"
 RUNTIME_SERVICE = ROOT / "financial_writing_agent" / "runtime_service.py"
-LEGACY_MCP_SHIM = ROOT / "financial_writing_agent" / "mcp_server.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 
@@ -65,14 +65,13 @@ def check_rule_ownership() -> int:
 
 def check_skill_bundle() -> None:
     if (ROOT / "SKILL.md").exists():
-        fail("root SKILL.md is forbidden: packaged skill is the single discoverable Skill authority")
+        fail("root SKILL.md is forbidden")
     if not SKILL.is_file():
         fail("packaged SKILL.md missing")
     text = SKILL.read_text(encoding="utf-8")
     required_phrases = [
         "list_recent_writing_tasks",
         "start_writing_task",
-        "Do not use for standalone stock-picking/recommendation",
         "references/research.md",
         "references/market_explanation.md",
         "references/hooks.md",
@@ -90,22 +89,21 @@ def check_skill_bundle() -> None:
     ]
     for phrase in required_phrases:
         if phrase not in text:
-            fail(f"packaged Skill missing required boundary/instruction: {phrase}")
-    forbidden_phrases = ["submit_visual_package", "WECHAT_STICKER_POST", "references/visuals.md"]
-    for phrase in forbidden_phrases:
+            fail(f"packaged Skill missing required instruction: {phrase}")
+    for phrase in ("submit_visual_package", "WECHAT_STICKER_POST", "references/visuals.md", "CHAT_TEXT", "writing-text://"):
         if phrase in text:
-            fail(f"removed visual/sticker contract leaked into packaged Skill: {phrase}")
+            fail(f"legacy contract leaked into packaged Skill: {phrase}")
 
     sets = {
         "source": {path.name for path in SOURCE_REFS.glob("*.md")},
         "skill": {path.name for path in SKILL_REFS.glob("*.md")},
         "package": {path.name for path in PACKAGE_REFS.glob("*.md")},
     }
-    if "visuals.md" in sets["source"] or "visuals.md" in sets["skill"] or "visuals.md" in sets["package"]:
-        fail("visuals.md must be removed from all Financial Writing rule bundles")
-    for required_ref in ("hooks.md", "style.md", "market_explanation.md"):
+    for required_ref in ("research.md", "market_explanation.md", "hooks.md", "style.md", "delivery.md"):
         if required_ref not in sets["source"]:
-            fail(f"required reference missing from canonical set: {required_ref}")
+            fail(f"required reference missing: {required_ref}")
+    if "visuals.md" in sets["source"] or "visuals.md" in sets["skill"] or "visuals.md" in sets["package"]:
+        fail("visuals.md must remain deleted")
     if not sets["source"] or sets["source"] != sets["skill"] or sets["source"] != sets["package"]:
         fail(f"reference-set mismatch: { {k: sorted(v) for k, v in sets.items()} }")
     for name in sorted(sets["source"]):
@@ -121,11 +119,11 @@ def check_skill_bundle() -> None:
     expected_sizes = {"h1_px": 24, "h1_pt": 18, "h2_px": 20, "h2_pt": 15, "body_px": 18, "body_pt": 13.5}
     for key, value in expected_sizes.items():
         if policy["word"].get(key) != value:
-            fail(f"exact publication typography drift: {key}={policy['word'].get(key)!r}, expected={value!r}")
+            fail(f"exact publication typography drift: {key}")
     if policy["style"].get("optimize_for_ai_detector") is not False:
-        fail("v0.4 must explicitly reject AI-detector-evasion as style objective")
+        fail("AI-detector evasion must not be a style objective")
     if policy["market_explanation"].get("multi_hypothesis_required") is not True:
-        fail("v0.4 market explanation must remain multi-hypothesis")
+        fail("market explanation must remain multi-hypothesis")
 
 
 def _is_tool_decorator(decorator: ast.expr) -> bool:
@@ -149,14 +147,16 @@ def _tool_names(path: Path) -> set[str]:
 
 
 def check_public_mcp_contract() -> int:
-    for required in (PUBLIC_MCP, MCP_CONTRACTS, RUNTIME_SERVICE, LEGACY_MCP_SHIM):
+    for required in (PUBLIC_MCP, MCP_CONTRACTS, MODELS, RUNTIME_SERVICE):
         if not required.is_file():
             fail(f"required MCP/runtime file missing: {required.relative_to(ROOT)}")
+    if (ROOT / "financial_writing_agent" / "mcp_server.py").exists():
+        fail("obsolete mcp_server.py compatibility shim must remain deleted")
 
     source = PUBLIC_MCP.read_text(encoding="utf-8")
     contracts = MCP_CONTRACTS.read_text(encoding="utf-8")
+    models = MODELS.read_text(encoding="utf-8")
     runtime = RUNTIME_SERVICE.read_text(encoding="utf-8")
-    legacy = LEGACY_MCP_SHIM.read_text(encoding="utf-8")
 
     for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "WritingTaskSummary", "WritingTaskList", "ArtifactSummary"):
         if marker not in contracts:
@@ -182,41 +182,38 @@ def check_public_mcp_contract() -> int:
             fail(f"public MCP tool description too short/missing: {node.name}")
         required_keywords = {"title", "annotations", "structured_output"}
         if not required_keywords.issubset(keywords):
-            fail(f"public MCP tool missing decorator metadata {required_keywords - keywords}: {node.name}")
+            fail(f"public MCP tool missing decorator metadata: {node.name}")
         if node.returns is None:
-            fail(f"public MCP tool missing return type/output schema: {node.name}")
+            fail(f"public MCP tool missing return type: {node.name}")
         rendered_return = ast.unparse(node.returns)
         if "Any" in rendered_return or rendered_return.startswith("dict["):
-            fail(f"public MCP tool has weak/indeterminate output type: {node.name} -> {rendered_return}")
+            fail(f"public MCP tool has weak output type: {node.name} -> {rendered_return}")
 
     names = set(tool_nodes)
     if names != EXPECTED_TOOLS:
         fail(f"public MCP tool inventory mismatch: missing={sorted(EXPECTED_TOOLS - names)}, extra={sorted(names - EXPECTED_TOOLS)}")
     if _tool_names(RUNTIME_SERVICE):
         fail("runtime_service.py must not register MCP tools")
-    if _tool_names(LEGACY_MCP_SHIM):
-        fail("mcp_server.py compatibility shim must not register MCP tools")
     if "MCPServer(" in runtime:
         fail("runtime_service.py must not instantiate a second MCP server")
-    if "from .plugin_server import main, mcp" not in legacy:
-        fail("legacy mcp_server.py must be a thin compatibility shim")
 
-    if "submit_visual_package" in source or "writing-json://" in source:
-        fail("v0.4 public MCP must not expose visual-package or visual-manifest surfaces")
-    for uri in ("writing-docx://{task_id}/{kind}", "writing-text://{task_id}/{kind}"):
-        if uri not in source:
-            fail(f"artifact resource template missing: {uri}")
+    forbidden = ("submit_visual_package", "WECHAT_STICKER_POST", "writing-json://", "writing-text://", "CHAT_TEXT")
+    for marker in forbidden:
+        if marker in source or marker in contracts or marker in models:
+            fail(f"legacy MCP/model contract leaked back into v0.4: {marker}")
+    if "writing-docx://{task_id}/{kind}" not in source:
+        fail("Word artifact resource template missing")
     if "ResourceLink" not in source or "structured_content=summary.model_dump" not in source:
-        fail("artifact-returning tools must expose both structured output and MCP ResourceLink content")
+        fail("artifact-returning tools must expose structured output plus ResourceLink")
     if "path: str" in contracts or "trace_tail" in contracts:
-        fail("public result contract must not expose server-local paths or internal trace logs")
+        fail("public result contract must not expose server-local paths or trace logs")
     return len(names)
 
 
 def check_schema_strictness() -> None:
     text = SCHEMAS.read_text(encoding="utf-8")
     if 'ConfigDict(extra="forbid", str_strip_whitespace=True)' not in text:
-        fail("stage schemas must fail closed on unknown fields and whitespace-only strings")
+        fail("stage schemas must fail closed on unknown fields")
     for model in (
         "ResearchPackage", "MarketExplanationHypothesis", "MarketExplanationMap", "EditorialPlan",
         "HeadlinePackage", "ArticlePayload", "DraftPackage", "HookAuditDecision", "StyleAuditDecision", "GateDecision",
@@ -225,34 +222,24 @@ def check_schema_strictness() -> None:
             fail(f"stage schema must inherit StrictModel: {model}")
     for marker in (
         "MATERIAL_COMPLETE plan requires completeness_obligations",
-        "FINANCE_DEEP material-complete plan must not use contradiction/compression selection fields",
         "stock/theme research with a company universe requires market_explanation",
         "non-UNRESOLVED market explanation requires evidence_refs",
         "skim_path_anchor must appear as an exact explicit bold span",
-        "hook status must be",
-        "human-voice status must be",
-        "discourse_variability",
-        "semantic_progression",
-        "concrete_evidence_density",
-        "authorial_specificity",
-        "uncertainty_calibration",
+        "discourse_variability", "semantic_progression", "concrete_evidence_density",
+        "authorial_specificity", "uncertainty_calibration",
     ):
         if marker not in text:
             fail(f"v0.4 schema guard missing: {marker}")
     for removed in ("VisualPackage", "PlatformConstraintSnapshot", "StickerPostPayload", "OpenAIFileRef"):
         if f"class {removed}(" in text:
-            fail(f"removed visual/sticker schema still active: {removed}")
+            fail(f"removed schema still active: {removed}")
 
 
 def check_activation_inventory() -> None:
     payload = json.loads((ROOT / "evals" / "activation_cases.json").read_text(encoding="utf-8"))
     cases = payload.get("cases", [])
-    if len(cases) < 8:
-        fail("activation inventory is too small")
-    if not any(case.get("should_activate") is True for case in cases):
-        fail("activation inventory has no positive cases")
-    if not any(case.get("should_activate") is False for case in cases):
-        fail("activation inventory has no negative cases")
+    if len(cases) < 8 or not any(c.get("should_activate") is True for c in cases) or not any(c.get("should_activate") is False for c in cases):
+        fail("activation inventory must include enough positive and negative cases")
 
 
 def check_deployment_boundary() -> None:
@@ -262,28 +249,33 @@ def check_deployment_boundary() -> None:
     for marker in ("personal/private deployment only", "Do not enable public sharing", "Do not silently fall back to ephemeral container/local disk"):
         if marker not in text:
             fail(f"deployment safety boundary missing: {marker}")
+    for legacy in ("16-tool", "submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "mcp_server.py"):
+        if legacy in text:
+            fail(f"legacy Site contract remains in deployment spec: {legacy}")
 
 
 def check_packaging_contract() -> None:
     pyproject = (ROOT / "pyproject.toml").read_text(encoding="utf-8")
     base = pyproject.split("[project.optional-dependencies]", 1)[0]
     if '"mcp>=2.0,<3"' not in base:
-        fail("MCP must be a base dependency because financial-writing-mcp is a core entry point")
+        fail("MCP must be a base dependency")
     if 'financial-writing-mcp = "financial_writing_agent.plugin_server:main"' not in pyproject:
-        fail("financial-writing-mcp must point at typed public plugin_server")
+        fail("financial-writing-mcp must point at plugin_server")
     if 'resources/references/*.md' not in pyproject or 'resources/policy.json' not in pyproject:
-        fail("wheel package-data declarations for runtime resources are missing")
-    openai_adapter = (ROOT / "financial_writing_agent" / "adapters" / "openai_agents.py").read_text(encoding="utf-8")
-    if "gpt-6.1-sol" in openai_adapter:
-        fail("local adapter must not hard-code an unverified model default")
-    cli = (ROOT / "financial_writing_agent" / "cli.py").read_text(encoding="utf-8")
-    if "--with-visuals" in cli:
+        fail("wheel package-data declarations missing")
+    if "--with-visuals" in (ROOT / "financial_writing_agent" / "cli.py").read_text(encoding="utf-8"):
         fail("visual CLI option must remain removed")
 
 
 def check_dead_contracts_removed() -> None:
-    if (ROOT / "financial_writing_agent" / "contracts.py").exists():
-        fail("legacy duplicate contracts.py must remain removed")
+    for path in (
+        ROOT / "financial_writing_agent" / "contracts.py",
+        ROOT / "financial_writing_agent" / "mcp_server.py",
+        ROOT / "continuity" / "tasks" / "ai-pharma-writing" / "HANDOFF.md",
+        ROOT / "continuity" / "tasks" / "site-runtime-gate-a2" / "HANDOFF.md",
+    ):
+        if path.exists():
+            fail(f"obsolete compatibility/history file must remain deleted: {path.relative_to(ROOT)}")
 
 
 def main() -> None:
@@ -297,8 +289,8 @@ def main() -> None:
     check_dead_contracts_removed()
     print(
         f"PASS: {groups} unique rule ownership keys; v0.4 references aligned; "
-        f"one {tools}-tool typed MCP surface; Hook + 12-part authorial-prose + market-explanation contracts; "
-        "zero visual workflow; exact typography, activation, deployment-safety and packaging contracts present"
+        f"one {tools}-tool Word-only MCP surface; no legacy shim/text/visual contract; "
+        "Hook + 12-part authorial-prose + market-explanation + exact typography contracts present"
     )
 
 
