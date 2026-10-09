@@ -38,12 +38,32 @@ def scan_finance_redlines(text: str, phrases: Iterable[str]) -> list[str]:
     return sorted({p for p in phrases if p in text})
 
 
+def _is_bold_occurrence(doc: Document, needle: str) -> bool:
+    for paragraph in doc.paragraphs:
+        if needle not in paragraph.text:
+            continue
+        # Word may split adjacent formatting into multiple runs. Accept a contiguous sequence only if
+        # every run contributing characters to the exact anchor is bold.
+        runs = paragraph.runs
+        for start in range(len(runs)):
+            text = ""
+            all_bold = True
+            for run in runs[start:]:
+                text += run.text
+                all_bold = all_bold and bool(run.bold)
+                if needle in text:
+                    return all_bold
+                if len(text) > len(needle) * 3:
+                    break
+    return False
+
+
 def check_docx(
     path: str | Path,
     *,
     stock_names: list[str],
     policy: dict,
-    expected_images: int | None = None,
+    required_bold_anchors: list[str] | None = None,
 ) -> dict:
     doc = Document(path)
     errors: list[str] = []
@@ -60,10 +80,7 @@ def check_docx(
         if not re.match(r"^[一二三四五六七八九十百]+、", text):
             errors.append(f"H1 missing Chinese sequence prefix: {text[:60]}")
 
-    risk_idx = next(
-        (i for i, p in enumerate(doc.paragraphs) if "风险" in p.text and "免责声明" in p.text),
-        None,
-    )
+    risk_idx = next((i for i, p in enumerate(doc.paragraphs) if "风险" in p.text and "免责声明" in p.text), None)
     if risk_idx is None:
         errors.append("risk/disclaimer heading not found")
     else:
@@ -76,16 +93,24 @@ def check_docx(
             warnings.append(f"risk/disclaimer body may be verbose: {len(risk_body)} > {recommended_max} chars")
 
     if not policy["word"].get("allow_tables", False) and doc.tables:
-        warnings.append(f"document contains {len(doc.tables)} table(s); default policy prefers prose")
+        errors.append(f"publication article contains prohibited table(s): {len(doc.tables)}")
 
     for stock in stock_names:
+        if not _is_bold_occurrence(doc, stock):
+            errors.append(f"stock/company name lacks a bold occurrence: {stock}")
         for p in doc.paragraphs:
             if stock not in p.text:
                 continue
+            # Every direct run containing the full company name must be bold. Explicit split cases are
+            # still covered by the occurrence check above and the semantic audit.
             for run in p.runs:
                 if stock in run.text and not run.bold:
                     errors.append(f"stock name not bold: {stock} in paragraph '{p.text[:80]}'")
                     break
+
+    for anchor in required_bold_anchors or []:
+        if not _is_bold_occurrence(doc, anchor):
+            errors.append(f"required skim-path anchor not bold in Word: {anchor}")
 
     text = "\n".join(p.text for p in doc.paragraphs)
     hits = scan_finance_redlines(text, policy["finance_compliance"]["hard_fail_phrases"])
@@ -96,16 +121,14 @@ def check_docx(
     if extreme_hits:
         errors.append(f"unsupported extreme-language phrase(s): {extreme_hits}")
 
-    image_count = len(doc.inline_shapes)
-    if expected_images is not None and image_count != expected_images:
-        errors.append(f"embedded image count mismatch: actual={image_count}, expected={expected_images}")
-
     return {
         "ok": not errors,
         "errors": errors,
         "warnings": warnings,
         "paragraphs": len(doc.paragraphs),
-        "inline_images": image_count,
+        "tables": len(doc.tables),
+        "inline_images": len(doc.inline_shapes),
+        "required_bold_anchors": len(required_bold_anchors or []),
     }
 
 
