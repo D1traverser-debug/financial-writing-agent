@@ -24,28 +24,13 @@ def infer_distribution_mode(platforms: Iterable[str]) -> DistributionMode:
 
 
 def infer_content_mode(prompt: str, platforms: Iterable[str] | None = None) -> ContentMode:
-    normalized = prompt.replace(" ", "")
-    platform_text = "".join(platforms or [])
-    combined = normalized + platform_text
-    if "微信贴图" in combined or ("微信" in combined and "贴图" in combined):
-        return ContentMode.WECHAT_STICKER_POST
+    # Financial Writing owns formal articles only. Image/sticker production is outside this runtime.
     return ContentMode.FORMAL_ARTICLE
 
 
 def infer_delivery_channel(prompt: str) -> DeliveryChannel:
-    explicit_chat = ("聊天框" in prompt and any(x in prompt for x in ["正文", "纯文本", "直接看"])) or "只要纯文本" in prompt
-    return DeliveryChannel.CHAT_TEXT if explicit_chat else DeliveryChannel.WORD_FILE_ONLY
-
-
-def infer_visuals_enabled(prompt: str, delivery_channel: DeliveryChannel) -> bool:
-    if delivery_channel == DeliveryChannel.CHAT_TEXT:
-        return False
-    normalized = prompt.replace(" ", "")
-    if any(x in normalized for x in ["不要图片", "不要配图", "不做图", "不需要配图", "纯文字即可", "纯文字就行"]):
-        return False
-    if any(x in normalized.lower() for x in ["word已经写好了", "word已写好", "现成word", "已有word"]):
-        return False
-    return True
+    # Publication content is Word-only. QA is surfaced separately as audit Word + chat checklist.
+    return DeliveryChannel.WORD_FILE_ONLY
 
 
 def build_task_contract(
@@ -53,21 +38,14 @@ def build_task_contract(
     prompt: str,
     source_refs: list[str] | None = None,
     target_platforms: list[str] | None = None,
-    visuals_enabled: bool | None = None,
-    visual_profile_ref: str | None = None,
     content_mode: ContentMode | None = None,
 ) -> TaskContract:
     platforms = target_platforms or []
-    delivery = infer_delivery_channel(prompt)
-    visuals = infer_visuals_enabled(prompt, delivery) if visuals_enabled is None else visuals_enabled
-    mode = content_mode or infer_content_mode(prompt, platforms)
     return TaskContract(
         prompt=prompt,
         source_refs=source_refs or [],
         target_platforms=platforms,
         distribution_mode=infer_distribution_mode(platforms),
-        content_mode=mode,
-        delivery_channel=delivery,
-        visuals_enabled=visuals,
-        visual_profile_ref=visual_profile_ref,
+        content_mode=content_mode or ContentMode.FORMAL_ARTICLE,
+        delivery_channel=DeliveryChannel.WORD_FILE_ONLY,
     )
