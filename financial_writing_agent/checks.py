@@ -39,23 +39,51 @@ def scan_finance_redlines(text: str, phrases: Iterable[str]) -> list[str]:
 
 
 def _is_bold_occurrence(doc: Document, needle: str) -> bool:
+    """Return true when at least one exact occurrence is bold across every character it occupies.
+
+    Word may split a semantic span across multiple runs. Build a character-level bold mask so
+    ordinary text before/after the target does not incorrectly make a valid bold anchor fail.
+    """
+    if not needle:
+        return False
     for paragraph in doc.paragraphs:
-        if needle not in paragraph.text:
+        full = "".join(run.text for run in paragraph.runs)
+        if needle not in full:
             continue
-        # Word may split adjacent formatting into multiple runs. Accept a contiguous sequence only if
-        # every run contributing characters to the exact anchor is bold.
-        runs = paragraph.runs
-        for start in range(len(runs)):
-            text = ""
-            all_bold = True
-            for run in runs[start:]:
-                text += run.text
-                all_bold = all_bold and bool(run.bold)
-                if needle in text:
-                    return all_bold
-                if len(text) > len(needle) * 3:
-                    break
+        mask: list[bool] = []
+        for run in paragraph.runs:
+            mask.extend([bool(run.bold)] * len(run.text))
+        start = 0
+        while True:
+            idx = full.find(needle, start)
+            if idx < 0:
+                break
+            if all(mask[idx : idx + len(needle)]):
+                return True
+            start = idx + 1
     return False
+
+
+def _all_occurrences_bold(doc: Document, needle: str) -> bool:
+    """Require every exact occurrence of a company/stock name to be bold, including split runs."""
+    found = False
+    for paragraph in doc.paragraphs:
+        full = "".join(run.text for run in paragraph.runs)
+        if needle not in full:
+            continue
+        mask: list[bool] = []
+        for run in paragraph.runs:
+            mask.extend([bool(run.bold)] * len(run.text))
+        start = 0
+        while True:
+            idx = full.find(needle, start)
+            if idx < 0:
+                break
+            found = True
+            if not all(mask[idx : idx + len(needle)]):
+                return False
+            start = idx + len(needle)
+    return found
 
 
 def check_docx(
@@ -96,17 +124,8 @@ def check_docx(
         errors.append(f"publication article contains prohibited table(s): {len(doc.tables)}")
 
     for stock in stock_names:
-        if not _is_bold_occurrence(doc, stock):
-            errors.append(f"stock/company name lacks a bold occurrence: {stock}")
-        for p in doc.paragraphs:
-            if stock not in p.text:
-                continue
-            # Every direct run containing the full company name must be bold. Explicit split cases are
-            # still covered by the occurrence check above and the semantic audit.
-            for run in p.runs:
-                if stock in run.text and not run.bold:
-                    errors.append(f"stock name not bold: {stock} in paragraph '{p.text[:80]}'")
-                    break
+        if not _all_occurrences_bold(doc, stock):
+            errors.append(f"stock/company name not bold on every occurrence: {stock}")
 
     for anchor in required_bold_anchors or []:
         if not _is_bold_occurrence(doc, anchor):
