@@ -53,7 +53,7 @@ def eval_e03() -> list[str]:
     contract = build_task_contract(prompt="这篇同时发雪球、韭研、头条、百家", target_platforms=["雪球", "韭研公社", "今日头条", "百家号"])
     check(contract.distribution_mode == DistributionMode.DUAL, "E03 mixed destinations must route DUAL")
     c = StructureCandidate(name="A", rationale="test", sections=["一", "二"])
-    deep = ModeEditorialPlan(coverage_policy="MATERIAL_COMPLETE", candidates=[c, StructureCandidate(name="B", rationale="test2", sections=["一", "二"])], selected_structure=c, completeness_obligations=["event", "transmission", "counterevidence"])
+    deep = ModeEditorialPlan(coverage_policy="MATERIAL_COMPLETE", candidates=[c, StructureCandidate(name="B", rationale="test2", sections=["一", "二"])], selected_structure=c, completeness_obligations=["event", "transmission", "market explanation", "counterevidence"])
     check(not deep.core_contradictions and not deep.compression_candidates, "E03 deep plan must not select by contradictions/compression")
     broad = ModeEditorialPlan(coverage_policy="SELECTIVE_TRAFFIC", candidates=[c, StructureCandidate(name="B", rationale="test2", sections=["一", "二"])], selected_structure=c, core_contradictions=["profit timing"])
     check(broad.core_contradictions == ["profit timing"], "E03 broad plan may select core contradiction")
@@ -107,7 +107,10 @@ def eval_e14() -> list[str]:
     check(policy["style"]["heading_hierarchy"] == ["一、", "（1）", "①"], "E14 hierarchy mismatch")
     check(policy["style"]["numbering_encouraged"], "E14 meaningful numbering must be encouraged")
     check(policy["word"]["allow_tables"] is False and policy["word"]["tables_are_hard_fail"], "E14 tables must hard fail")
-    return ["zh-CN", "一/（1）/①", "numbering encouraged", "tables hard fail"]
+    expected = {"h1_px": 24, "h1_pt": 18, "h2_px": 20, "h2_pt": 15, "body_px": 18, "body_pt": 13.5}
+    for key, value in expected.items():
+        check(policy["word"][key] == value, f"E14 exact typography mismatch for {key}")
+    return ["zh-CN", "一/（1）/①", "tables hard fail", "H1 24px/18pt", "H2 20px/15pt", "body 18px/13.5pt"]
 
 
 def eval_e16() -> list[str]:
@@ -157,19 +160,25 @@ def eval_e18() -> list[str]:
 def eval_e19() -> list[str]:
     pass_rubric = {
         "template_fingerprint": "PASS",
+        "discourse_variability": "PASS",
+        "semantic_progression": "PASS",
         "transition_continuity": "PASS",
         "repetition_control": "PASS",
         "rhythm_naturalness": "PASS",
-        "reader_dialogue": "PASS",
+        "concrete_evidence_density": "PASS",
+        "reader_modeling": "PASS",
         "narrative_flow": "PASS",
-        "judgment_persona": "PASS",
+        "authorial_specificity": "PASS",
+        "uncertainty_calibration": "PASS",
         "extreme_language_control": "PASS",
     }
-    decision = StyleAuditDecision(status="PASS", evidence=["final text reread"], rubric=pass_rubric)
-    check(decision.status == "PASS", "E19 all human-voice dimensions should allow PASS")
+    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against 12-part authorial prose rubric"], rubric=pass_rubric)
+    check(decision.status == "PASS", "E19 all authorial-prose dimensions should allow PASS")
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    check(policy["style"]["human_voice_semantic_audit"], "E19 human voice gate enabled")
-    return ["8-part Human Voice rubric", "reader dialogue", "narrative flow", "judgment persona"]
+    check(policy["style"]["human_voice_semantic_audit"], "E19 authorial prose gate enabled")
+    check(policy["style"]["optimize_for_ai_detector"] is False, "E19 must not optimize for detector evasion")
+    check(policy["market_explanation"]["multi_hypothesis_required"], "E19 multi-hypothesis market explanation must remain enabled")
+    return ["12-part Natural Authorial Prose rubric", "semantic progression", "concrete evidence density", "authorial specificity", "uncertainty calibration", "no detector-evasion objective"]
 
 
 EXECUTABLE = {
@@ -190,7 +199,7 @@ EXECUTABLE = {
 
 SPEC_ONLY = {
     "E04": "revision invalidation is covered by runtime regression tests and requires a live persisted stage loop",
-    "E05": "universe breadth, deep completeness obligations and why-this/why-not are semantic research assertions",
+    "E05": "universe breadth, deep completeness and market-explanation coverage are semantic research assertions with schema regression coverage",
     "E08": "full all-stage execution is trajectory/E2E coverage, not a contract-only check",
     "E09": "experience-sample promotion is a maintenance-policy assertion",
     "E10": "durable hook-rule promotion is a maintenance-policy assertion",
