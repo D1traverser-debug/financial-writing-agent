@@ -11,7 +11,6 @@ from .routing import build_task_contract
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 from .store import SQLiteStateStore
 
-PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DATA_DIR = Path(os.getenv("FINANCIAL_WRITING_DATA_DIR", "/data"))
 DB_PATH = Path(os.getenv("FINANCIAL_WRITING_DB", str(DATA_DIR / "financial_writing_state.db")))
 RUNS_DIR = Path(os.getenv("FINANCIAL_WRITING_RUNS", str(DATA_DIR / "runs")))
@@ -38,6 +37,18 @@ def _require_stage(state: WritingState, expected: Stage) -> None:
 def _gate_status(state: WritingState, name: str) -> str:
     gate = state.gates.get(name)
     return gate.status.value if gate else "NOT_RUN"
+
+
+def _invalidate(state: WritingState, gate_names: tuple[str, ...], *, reason: str, clear_artifacts: bool = False) -> None:
+    for name in gate_names:
+        if name in state.gates:
+            state.set_gate(name, GateStatus.NOT_RUN, [], reason)
+    for key in ("hook_audit", "style_audit", "render_manifest"):
+        state.working.pop(key, None)
+    if clear_artifacts:
+        state.artifacts.clear()
+        state.working.pop("output_dir", None)
+    state.add_trace("QA_INVALIDATED", reason)
 
 
 def _completion_checklist(state: WritingState) -> dict[str, Any]:
@@ -218,6 +229,7 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
     _require_stage(state, Stage.EDITORIAL)
     payload = EditorialPlan.model_validate(editorial_plan)
     _validate_editorial_for_contract(state, payload)
+    _invalidate(state, ("title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="editorial plan changed; all downstream title/draft/QA evidence is stale", clear_artifacts=True)
     state.working["editorial_plan"] = payload.model_dump(mode="json")
     evidence = ["shared TopicDNA"]
     if payload.finance_deep:
@@ -234,6 +246,7 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.TITLE)
     payload = HeadlinePackage.model_validate(headlines)
     _validate_headlines_for_contract(state, payload)
+    _invalidate(state, ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="headline selection changed; draft and downstream QA are stale", clear_artifacts=True)
     state.working["headlines"] = payload.model_dump(mode="json")
     state.set_gate("title_audit", GateStatus.PASS, ["8-12 candidates per applicable mode", "selected titles have cross-finance reason + current WeChat search evidence"])
     state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS")
@@ -245,6 +258,7 @@ def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.DRAFT)
     payload = DraftPackage.model_validate(draft)
     _validate_draft_for_contract(state, payload)
+    _invalidate(state, ("hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="draft changed; semantic/mechanical/final QA must be rerun", clear_artifacts=True)
     state.working["draft"] = payload.model_dump(mode="json")
     anchors = sum(len(p.skim_path_anchors) for p in [payload.finance_deep, payload.finance_broad] if p)
     state.set_gate("draft_output", GateStatus.PASS, ["all required drafts frozen", f"explicit_bold_skim_anchors={anchors}"])
