@@ -28,9 +28,9 @@ EXPECTED_TOOLS = {
     "submit_editorial_plan",
     "submit_headlines",
     "submit_draft",
+    "submit_hook_audit",
     "submit_style_audit",
     "submit_editorial_audit",
-    "submit_visual_package",
     "build_and_mechanically_audit_delivery",
     "record_knowledge_writeback",
     "submit_final_audit",
@@ -49,6 +49,10 @@ def check_rule_ownership() -> int:
             if key in seen:
                 fail(f"duplicate rule owner: {key}: {seen[key]} and {owner}")
             seen[key] = owner
+    if "hooks" not in ownership or "style" not in ownership:
+        fail("v0.3 must have dedicated hook and human-voice rule owners")
+    if "visuals" in ownership:
+        fail("visual ownership must be removed from Financial Writing")
     return len(seen)
 
 
@@ -63,21 +67,32 @@ def check_skill_bundle() -> None:
         "start_writing_task",
         "Do not use for standalone stock-picking/recommendation",
         "references/research.md",
-        "references/visuals.md",
+        "references/hooks.md",
+        "references/style.md",
         "record_knowledge_writeback",
-        "submit_visual_package",
-        "The MCP runtime checkpoint is the executable task authority",
-        "WECHAT_STICKER_POST",
+        "FINANCE_DEEP — 财经完整版本",
+        "Hook Gate",
+        "Human Voice Gate",
+        "Publication articles do not use tables",
+        "no image/cover/section-visual/avatar workflow",
     ]
     for phrase in required_phrases:
         if phrase not in text:
             fail(f"packaged Skill missing required boundary/instruction: {phrase}")
+    forbidden_phrases = ["submit_visual_package", "WECHAT_STICKER_POST", "references/visuals.md"]
+    for phrase in forbidden_phrases:
+        if phrase in text:
+            fail(f"removed visual/sticker contract leaked into packaged Skill: {phrase}")
 
     sets = {
         "source": {path.name for path in SOURCE_REFS.glob("*.md")},
         "skill": {path.name for path in SKILL_REFS.glob("*.md")},
         "package": {path.name for path in PACKAGE_REFS.glob("*.md")},
     }
+    if "visuals.md" in sets["source"] or "visuals.md" in sets["skill"] or "visuals.md" in sets["package"]:
+        fail("visuals.md must be removed from all Financial Writing rule bundles")
+    if "hooks.md" not in sets["source"]:
+        fail("hooks.md missing from canonical reference set")
     if not sets["source"] or sets["source"] != sets["skill"] or sets["source"] != sets["package"]:
         fail(f"reference-set mismatch: { {k: sorted(v) for k, v in sets.items()} }")
     for name in sorted(sets["source"]):
@@ -92,12 +107,7 @@ def check_skill_bundle() -> None:
 
 def _is_tool_decorator(decorator: ast.expr) -> bool:
     target = decorator.func if isinstance(decorator, ast.Call) else decorator
-    return (
-        isinstance(target, ast.Attribute)
-        and isinstance(target.value, ast.Name)
-        and target.value.id == "mcp"
-        and target.attr == "tool"
-    )
+    return isinstance(target, ast.Attribute) and isinstance(target.value, ast.Name) and target.value.id == "mcp" and target.attr == "tool"
 
 
 def _decorator_keywords(decorator: ast.expr) -> set[str]:
@@ -110,9 +120,7 @@ def _tool_names(path: Path) -> set[str]:
     tree = ast.parse(path.read_text(encoding="utf-8"))
     names: set[str] = set()
     for node in tree.body:
-        if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
-            continue
-        if any(_is_tool_decorator(decorator) for decorator in node.decorator_list):
+        if isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)) and any(_is_tool_decorator(d) for d in node.decorator_list):
             names.add(node.name)
     return names
 
@@ -127,10 +135,10 @@ def check_public_mcp_contract() -> int:
     runtime = RUNTIME_SERVICE.read_text(encoding="utf-8")
     legacy = LEGACY_MCP_SHIM.read_text(encoding="utf-8")
 
-    for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList", "ArtifactSummary"):
+    for marker in ("ToolAnnotations", "READ_ONLY_TOOL", "STATE_WRITE_TOOL", "WritingTaskSummary", "WritingTaskList", "ArtifactSummary"):
         if marker not in contracts:
             fail(f"shared MCP contract metadata missing: {marker}")
-    for marker in ("READ_ONLY_TOOL", "STATE_WRITE_TOOL", "FILE_INGEST_TOOL", "WritingTaskSummary", "WritingTaskList"):
+    for marker in ("READ_ONLY_TOOL", "STATE_WRITE_TOOL", "WritingTaskSummary", "WritingTaskList"):
         if marker not in source:
             fail(f"public MCP surface does not use shared contract owner: {marker}")
 
@@ -139,13 +147,12 @@ def check_public_mcp_contract() -> int:
     for node in tree.body:
         if not isinstance(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
             continue
-        tool_decorators = [decorator for decorator in node.decorator_list if _is_tool_decorator(decorator)]
-        if not tool_decorators:
+        decorators = [d for d in node.decorator_list if _is_tool_decorator(d)]
+        if not decorators:
             continue
-        if len(tool_decorators) != 1:
+        if len(decorators) != 1:
             fail(f"public MCP function has duplicate tool decorators: {node.name}")
-        decorator = tool_decorators[0]
-        keywords = _decorator_keywords(decorator)
+        keywords = _decorator_keywords(decorators[0])
         tool_nodes[node.name] = node
         doc = ast.get_docstring(node) or ""
         if len(doc.strip()) < 60:
@@ -171,9 +178,9 @@ def check_public_mcp_contract() -> int:
     if "from .plugin_server import main, mcp" not in legacy:
         fail("legacy mcp_server.py must be a thin compatibility shim")
 
-    if 'meta={"openai/fileParams": ["files"]}' not in source:
-        fail("submit_visual_package must declare ChatGPT fileParams")
-    for uri in ("writing-docx://{task_id}/{kind}", "writing-json://{task_id}/{kind}", "writing-text://{task_id}/{kind}"):
+    if "submit_visual_package" in source or "writing-json://" in source:
+        fail("v0.3 public MCP must not expose visual-package or visual-manifest surfaces")
+    for uri in ("writing-docx://{task_id}/{kind}", "writing-text://{task_id}/{kind}"):
         if uri not in source:
             fail(f"artifact resource template missing: {uri}")
     if "ResourceLink" not in source or "structured_content=summary.model_dump" not in source:
@@ -187,12 +194,21 @@ def check_schema_strictness() -> None:
     text = SCHEMAS.read_text(encoding="utf-8")
     if 'ConfigDict(extra="forbid", str_strip_whitespace=True)' not in text:
         fail("stage schemas must fail closed on unknown fields and whitespace-only strings")
-    for model in ("ResearchPackage", "EditorialPlan", "HeadlinePackage", "ArticlePayload", "DraftPackage", "VisualPackage", "StyleAuditDecision", "GateDecision"):
+    for model in ("ResearchPackage", "EditorialPlan", "HeadlinePackage", "ArticlePayload", "DraftPackage", "HookAuditDecision", "StyleAuditDecision", "GateDecision"):
         if f"class {model}(StrictModel)" not in text:
             fail(f"stage schema must inherit StrictModel: {model}")
-    for marker in ("candidate structure names must be unique", "candidates must contain unique titles", "platform constraint snapshot is stale", "validate_public_https_url"):
+    for marker in (
+        "MATERIAL_COMPLETE plan requires completeness_obligations",
+        "FINANCE_DEEP material-complete plan must not use contradiction/compression selection fields",
+        "skim_path_anchor must appear as an exact explicit bold span",
+        "hook status must be",
+        "human-voice status must be",
+    ):
         if marker not in text:
-            fail(f"schema ambiguity/freshness/safety guard missing: {marker}")
+            fail(f"v0.3 schema guard missing: {marker}")
+    for removed in ("VisualPackage", "PlatformConstraintSnapshot", "StickerPostPayload", "OpenAIFileRef"):
+        if f"class {removed}(" in text:
+            fail(f"removed visual/sticker schema still active: {removed}")
 
 
 def check_activation_inventory() -> None:
@@ -210,12 +226,7 @@ def check_deployment_boundary() -> None:
     if not SITE_SPEC.is_file():
         fail("ChatGPT Site deployment specification missing")
     text = SITE_SPEC.read_text(encoding="utf-8")
-    for marker in (
-        "personal/private deployment only",
-        "Do not enable public sharing",
-        "Do not silently fall back to ephemeral container/local disk",
-        "public/multi-user sharing remains disabled for v0.2",
-    ):
+    for marker in ("personal/private deployment only", "Do not enable public sharing", "Do not silently fall back to ephemeral container/local disk"):
         if marker not in text:
             fail(f"deployment safety boundary missing: {marker}")
 
@@ -234,7 +245,7 @@ def check_packaging_contract() -> None:
         fail("local adapter must not hard-code an unverified model default")
     cli = (ROOT / "financial_writing_agent" / "cli.py").read_text(encoding="utf-8")
     if "--with-visuals" in cli:
-        fail("legacy CLI --with-visuals default inversion must remain removed")
+        fail("visual CLI option must remain removed")
 
 
 def check_dead_contracts_removed() -> None:
@@ -252,8 +263,8 @@ def main() -> None:
     check_packaging_contract()
     check_dead_contracts_removed()
     print(
-        f"PASS: {groups} unique rule ownership keys; Skill/source/package references aligned; "
-        f"one {tools}-tool typed/annotated MCP surface; strict schemas; artifact resources; "
+        f"PASS: {groups} unique rule ownership keys; v0.3 references aligned; "
+        f"one {tools}-tool typed MCP surface; dedicated Hook/Human Voice schemas; zero visual workflow; "
         "activation, deployment-safety and packaging contracts present"
     )
 
