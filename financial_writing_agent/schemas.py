@@ -19,6 +19,29 @@ class EvidenceItem(StrictModel):
     notes: str = ""
 
 
+CausalConfidence = Literal[
+    "VERIFIED_FACT",
+    "SUPPORTED_MECHANISM",
+    "PLAUSIBLE_INTERPRETATION",
+    "UNRESOLVED",
+]
+
+
+class MarketExplanationHypothesis(StrictModel):
+    mechanism: str = Field(min_length=1)
+    confidence: CausalConfidence
+    applies_to: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
+    counterevidence: list[str] = Field(default_factory=list)
+    time_horizon: str = ""
+
+    @model_validator(mode="after")
+    def evidence_matches_confidence(self):
+        if self.confidence != "UNRESOLVED" and not self.evidence_refs:
+            raise ValueError("non-UNRESOLVED market explanation requires evidence_refs")
+        return self
+
+
 class CompanyFinding(StrictModel):
     name: str = Field(min_length=1)
     ticker: str | None = None
@@ -32,6 +55,33 @@ class CompanyFinding(StrictModel):
     short_term_role: str = ""
     positioning_signals: list[str] = Field(default_factory=list)
     fund_flow_signals: list[str] = Field(default_factory=list)
+    exposure_type: Literal[
+        "DIRECT_EARNINGS",
+        "DIRECT_BUSINESS",
+        "ECONOMIC_LINK",
+        "SECOND_ORDER",
+        "OPTIONALITY",
+        "NARRATIVE_ONLY",
+        "UNCLEAR",
+    ] = "UNCLEAR"
+    benefit_path: list[str] = Field(default_factory=list)
+    sensitivity_basis: list[str] = Field(default_factory=list)
+    realization_horizon: str = ""
+    market_selection_signals: list[str] = Field(default_factory=list)
+    continuation_support: list[str] = Field(default_factory=list)
+    reversal_risks: list[str] = Field(default_factory=list)
+
+
+class MarketExplanationMap(StrictModel):
+    activation_reason: str = Field(min_length=1)
+    concept_subtheme_map: list[str] = Field(min_length=1)
+    economic_benefit_dimensions: list[str] = Field(min_length=1)
+    cross_sectional_selection_dimensions: list[str] = Field(min_length=1)
+    hypotheses_considered: list[MarketExplanationHypothesis] = Field(min_length=2)
+    why_not_evidence: list[str] = Field(min_length=1)
+    continuation_conditions: list[str] = Field(min_length=1)
+    reversal_conditions: list[str] = Field(min_length=1)
+    unresolved_questions: list[str] = Field(default_factory=list)
 
 
 class MarketCognition(StrictModel):
@@ -61,6 +111,7 @@ class ResearchPackage(StrictModel):
     industry_chain: list[str] = Field(min_length=1)
     transmission_chain: list[str] = Field(min_length=1)
     universe: list[CompanyFinding] = Field(default_factory=list)
+    market_explanation: MarketExplanationMap | None = None
     evidence_ledger: list[EvidenceItem] = Field(min_length=1)
     counterevidence: list[str] = Field(default_factory=list)
     unresolved_gaps: list[str] = Field(default_factory=list)
@@ -69,6 +120,12 @@ class ResearchPackage(StrictModel):
     cognition: MarketCognition
     coverage: ResearchCoverage
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
+
+    @model_validator(mode="after")
+    def stock_universe_requires_market_explanation(self):
+        if self.universe and self.market_explanation is None:
+            raise ValueError("stock/theme research with a company universe requires market_explanation")
+        return self
 
 
 class TopicDNA(StrictModel):
@@ -182,12 +239,16 @@ class DraftPackage(StrictModel):
 
 class HumanVoiceAuditRubric(StrictModel):
     template_fingerprint: Literal["PASS", "REVISE"]
+    discourse_variability: Literal["PASS", "REVISE"]
+    semantic_progression: Literal["PASS", "REVISE"]
     transition_continuity: Literal["PASS", "REVISE"]
     repetition_control: Literal["PASS", "REVISE"]
     rhythm_naturalness: Literal["PASS", "REVISE"]
-    reader_dialogue: Literal["PASS", "REVISE"]
+    concrete_evidence_density: Literal["PASS", "REVISE"]
+    reader_modeling: Literal["PASS", "REVISE"]
     narrative_flow: Literal["PASS", "REVISE"]
-    judgment_persona: Literal["PASS", "REVISE"]
+    authorial_specificity: Literal["PASS", "REVISE"]
+    uncertainty_calibration: Literal["PASS", "REVISE"]
     extreme_language_control: Literal["PASS", "REVISE"]
 
 
