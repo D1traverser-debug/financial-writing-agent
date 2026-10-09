@@ -30,24 +30,28 @@ class WorkflowController:
 
         if s == Stage.EDITORIAL:
             self._require_pass(state, "editorial_plan")
-            return self.engine.transition(state, Stage.TITLE, reason="TopicDNA and structures frozen")
+            return self.engine.transition(state, Stage.TITLE, reason="TopicDNA and mode-specific structures frozen")
 
         if s == Stage.TITLE:
             status = self._status(state, "title_audit")
             if status == GateStatus.PASS:
-                return self.engine.transition(state, Stage.DRAFT, reason="headline hook passed")
+                return self.engine.transition(state, Stage.DRAFT, reason="headline candidate/search-evidence package passed")
             if status == GateStatus.REVISE:
                 return self.engine.transition(state, Stage.TITLE, reason="headline revision loop")
             raise WorkflowError("title_audit must be PASS or REVISE")
 
         if s == Stage.DRAFT:
             self._require_pass(state, "draft_output")
-            return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audit")
+            return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audits")
 
         if s == Stage.EDITORIAL_AUDIT:
+            # Defense in depth: runtime service already prevents editorial PASS before these,
+            # but the controller also owns the transition so stale/manual state cannot bypass them.
+            self._require_pass(state, "hook_audit")
+            self._require_pass(state, "style_audit")
             status = self._status(state, "editorial_audit")
             if status == GateStatus.PASS:
-                return self.engine.transition(state, Stage.DELIVERY, reason="semantic editorial audit passed")
+                return self.engine.transition(state, Stage.DELIVERY, reason="Hook + Human Voice + general editorial audits passed")
             if status == GateStatus.REVISE:
                 target = state.working.get("revise_target", "DRAFT")
                 next_stage = Stage.TITLE if target == "TITLE" else Stage.DRAFT
@@ -56,15 +60,15 @@ class WorkflowController:
 
         if s == Stage.DELIVERY:
             self._require_pass(state, "delivery_output")
-            return self.engine.transition(state, Stage.MECHANICAL_AUDIT, reason="artifacts built")
+            return self.engine.transition(state, Stage.MECHANICAL_AUDIT, reason="Word artifacts built")
 
         if s == Stage.MECHANICAL_AUDIT:
             status = self._status(state, "mechanical_audit")
-            if status in {GateStatus.PASS, GateStatus.N_A}:
-                return self.engine.transition(state, Stage.FINAL_AUDIT, reason="mechanical audit satisfied")
+            if status == GateStatus.PASS:
+                return self.engine.transition(state, Stage.FINAL_AUDIT, reason="mechanical Word audit passed")
             if status == GateStatus.REVISE:
                 return self.engine.transition(state, Stage.DELIVERY, reason="mechanical defects require rebuild")
-            raise WorkflowError("mechanical_audit must be PASS or REVISE")
+            raise WorkflowError("mechanical_audit must PASS or REVISE")
 
         if s == Stage.FINAL_AUDIT:
             status = self._status(state, "final_audit")
