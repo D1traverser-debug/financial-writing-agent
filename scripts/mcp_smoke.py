@@ -112,6 +112,26 @@ async def verify() -> None:
             task_id = structured["task_id"]
             if structured.get("gate_status", {}).get("knowledge_context") != "NOT_RUN":
                 raise RuntimeError(f"knowledge_context must start NOT_RUN: {structured}")
+            if structured.get("task_class") != "USER":
+                raise RuntimeError(f"new public task must be USER: {structured}")
+            if structured.get("resume_eligible") is not True or structured.get("resume_visibility") != "DEFAULT":
+                raise RuntimeError(f"new public task must be ordinary-continuation eligible: {structured}")
+            if structured.get("contract_version") != "2.0" or structured.get("runtime_version") != "0.2.1":
+                raise RuntimeError(f"continuity contract/runtime version missing: {structured}")
+
+            recent = await session.call_tool(
+                "list_recent_writing_tasks",
+                arguments={"limit": 10, "include_complete": False},
+            )
+            if recent.is_error or not isinstance(recent.structured_content, dict):
+                raise RuntimeError(f"list_recent_writing_tasks failed: {recent.content}")
+            tasks = recent.structured_content.get("tasks") or []
+            by_id = {task.get("task_id"): task for task in tasks}
+            if task_id not in by_id:
+                raise RuntimeError(f"new USER task missing from safe continuation list: {tasks}")
+            for task in tasks:
+                if task.get("task_class") != "USER" or task.get("resume_eligible") is not True or task.get("resume_visibility") != "DEFAULT":
+                    raise RuntimeError(f"unsafe task leaked into ordinary continuation list: {task}")
 
             recall = await session.call_tool(
                 "record_knowledge_context",
@@ -121,8 +141,8 @@ async def verify() -> None:
                 raise RuntimeError(f"knowledge_context N_A decision failed: {recall.content}")
 
             print(
-                f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} artifact/QA resource templates exposed, structured start and knowledge-context decision validated"
+                f"PASS: {len(tools)} frozen typed/annotated MCP tools, "
+                f"{len(uris)} artifact/QA resource templates, USER continuity metadata and safe continuation discovery validated"
             )
 
 
@@ -133,7 +153,7 @@ def main() -> None:
     env["MCP_HOST"] = "127.0.0.1"
     env["MCP_PORT"] = str(PORT)
     proc = subprocess.Popen(
-        [sys.executable, "-m", "financial_writing_agent.plugin_server"],
+        [sys.executable, "-m", "financial_writing_agent.continuity_plugin"],
         env=env,
         stdout=subprocess.PIPE,
         stderr=subprocess.STDOUT,
