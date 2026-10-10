@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.6.0",
+  "contract_version": "0.7.0",
   "defaults": {
     "distribution_mode": "DUAL",
     "content_mode": "FORMAL_ARTICLE",
