@@ -1,54 +1,52 @@
-# Financial Writing Agent v0.5
+# Financial Writing Agent v0.6
 
-A deterministic A-share financial-writing runtime with material-complete deep analysis, multi-hypothesis market explanation, a unified Reader Funnel, Natural Authorial Prose / Writing DNA learning, and Word delivery.
+A deterministic A-share financial-writing runtime with material-complete deep analysis, explicit-scope market explanation, recoverable checkpoints, a unified Reader Funnel, Natural Authorial Prose / Writing DNA assurance, raw learning-evidence capture and Word-only delivery.
 
 ## Core behavior
 - `FINANCE_DEEP`: material-complete within the bounded audited research universe.
-- `FINANCE_BROAD`: traffic-oriented selective compression with evidence boundaries preserved.
-- Publication content: Word only; no article body in chat.
-- QA: `WRITING_AUDIT_REPORT.docx` plus a visible chat checklist.
-- No tables.
-- No image, cover, section-visual, avatar or sticker workflow.
+- `FINANCE_BROAD`: selective traffic-oriented compression while preserving evidence and uncertainty boundaries.
+- Publication content: Word only; article body is not pasted into chat.
+- QA: `WRITING_AUDIT_REPORT.docx` plus a concise visible chat checklist.
+- No publication tables and no image/cover/section-visual/avatar/sticker workflow.
 - Numbering hierarchy: `一、二、三 → （1）（2）（3） → ①②③`.
-- Bold skim path: title + H1s + bold spans must reconstruct the main line.
+- Bold skim path uses explicit selected anchors; company names are not blanket-bolded on every occurrence.
 
-## Market Explanation Completeness
-For stock/theme/price-reaction topics, separate economic benefit from market selection/price formation. Use competing explanations rather than a fixed hindsight chain. Grade material explanations as:
+## Market Explanation scope
+Every ResearchPackage explicitly declares `market_explanation_scope` as `REQUIRED` or `NOT_MATERIAL` with a reason. A company universe alone does not activate price-formation analysis.
+
+Use `REQUIRED` when the article materially explains market selection, leadership, price reaction, continuation/reversal or another cross-sectional price-formation question. When active, separate economic benefit from market selection, compare competing mechanisms, preserve `why_this / why_not`, continuation/reversal conditions and causal confidence:
 `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 
-FINANCE_DEEP preserves material `why_this / why_not`, continuation and exhaustion/reversal conditions, counterevidence and unresolved boundaries.
-
-## Reader Funnel / Hook Gate
-Treat CTR, title hooks, reader profile, first-screen retention, H1/paragraph continuation and completion as one funnel:
+## Reader Funnel
+CTR, title hooks, reader profile, first-screen retention, continuation and completion are one funnel:
 `qualified impression → click → first-screen retention → continued reading → completion → promised insight delivered`.
 
-Audit audience-promise fit, headline information value, curiosity/concreteness balance, current WeChat search discoverability, the first three sentences, continuation flow, completion payoff and title/opening payoff.
+Cross-industry finance appeal is optional and mode-sensitive rather than a universal hard title rule. Current WeChat search evidence remains part of formal headline selection.
 
-Cross-industry finance appeal is a strategy, especially for `FINANCE_BROAD`, not a universal hard title requirement. `FINANCE_DEEP` prioritizes qualified-reader fit and truthful payoff over maximum imagined reach.
+## Natural Authorial Prose / Writing DNA
+The independent prose gate audits nine consolidated dimensions: fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration.
 
-## Natural Authorial Prose / Writing DNA Gate
-Do not optimize for AI-detector evasion. Treat “去AI味 / 活人感 / 娓娓道来 / 交流感” as overlapping symptoms of one authorial-writing system.
+`record_writing_learning_sample` stores raw task-level evidence from user edits, feedback, acceptance/rejection and post-publication performance. A single sample is `RAW_EVIDENCE_ONLY` and never auto-promotes itself into a durable rule.
 
-Audit nine consolidated dimensions: fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration.
+## Recoverable fail-closed runtime
+Mandatory failures route to `BLOCKED` with a persisted recovery cursor. After the blocker is repaired, `resume_blocked_task` resumes the exact saved stage instead of starting a duplicate workflow or falling back to free-form writing.
 
-Writing DNA learns with provenance:
-- explicit durable user instruction → direct rule;
-- repeated accepted changes across independent work → durable candidate;
-- stable patterns from a broad user corpus → style evidence;
-- one-off edits/successes → candidate only;
-- external skills/research → principle candidates only, never authority or signature-phrase copying.
+Changes to research, editorial plans, titles or drafts invalidate the affected downstream evidence and stale artifacts. Material research changes also invalidate prior factual knowledge-writeback decisions.
 
-Account-level click/search/completion data outranks generic demographic assumptions when available.
-
-## Word typography
+## Word contract
 - H1: `24px = 18pt`
 - H2: `20px = 15pt`
 - Body: `18px = 13.5pt`
-- H3: `12pt`
+- H3: currently `12pt`
+- zero publication tables
+- deterministic numbering and explicit bold preservation
+- required artifact presence before Mechanical PASS
+- stale render pages cleared before rerender
+- no server-local filesystem paths in public artifact contracts or audit Word
 
-Typography drift and tables are Mechanical Hard Fail conditions.
+## Runtime surface
+`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.6 exposes 17 typed tools and one Word resource template, including `resume_blocked_task` and `record_writing_learning_sample`.
 
-## Runtime and legacy policy
-The only public MCP implementation is `financial_writing_agent/plugin_server.py`; `runtime_service.py` owns business operations. v0.5 remains a hard cutover: there is no compatibility shim, no legacy `CHAT_TEXT` delivery contract, and no visual/sticker contract on `main`.
+There is no compatibility shim, legacy `CHAT_TEXT`, visual/sticker contract or canned `structure_patterns.md` library on current `main`.
 
-`main` is code/rule truth. Promotion requires SDK/MCP smoke, unit/trajectory/static checks, contract evaluation, isolated wheel install and DOCX render smoke.
+`main` is code/rule truth. Promotion requires SDK/MCP smoke, unit/trajectory tests, executable contract evals, static authority/version checks, isolated wheel install and DOCX render smoke.
