@@ -56,7 +56,11 @@ def test_artifact_receipt_assesses_every_hook_without_fake_invocation():
     assert run["hook_assessments"]["delete_and_retention_rules"]["status"] == "NOT_APPLICABLE_FOR_ACTION"
     assert run["hook_assessments"]["external_artifact_vault_if_any"]["status"] == "NOT_APPLICABLE_FOR_ACTION"
     assert run["verification_status"] == "UNVERIFIED_OWNER_RECEIPT"
-    assert any("external_ref_and_semantic_assessment_required" in item["detail"] for item in state.trace if item.get("event") == "METHODOLOGY_PROFILE_RUN")
+    assert any(
+        item.event == "METHODOLOGY_PROFILE_RUN"
+        and "external_ref_and_semantic_assessment_required" in item.detail
+        for item in state.trace
+    )
 
 
 def test_artifact_receipt_fails_closed_without_mechanical_pass():
