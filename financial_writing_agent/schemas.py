@@ -27,6 +27,38 @@ CausalConfidence = Literal[
 ]
 
 MarketExplanationScope = Literal["REQUIRED", "NOT_MATERIAL"]
+CompanyMateriality = Literal["MATERIAL", "SECONDARY", "REFERENCE_ONLY"]
+UniverseCoverageStatus = Literal["COMPLETE", "BOUNDED_WITH_GAPS", "NOT_APPLICABLE"]
+AuditAssurance = Literal["INDEPENDENT_EXECUTOR", "CHAT_SELF_REVIEW"]
+HeadlineAngleFamily = Literal[
+    "hard_fact",
+    "profit_orders",
+    "supply_demand",
+    "company_divergence",
+    "policy_transmission",
+    "expectation_gap",
+    "valuation_capital",
+    "global_comparison",
+    "validation_risk",
+    "market_selection",
+    "other",
+]
+
+
+class AuditProvenance(StrictModel):
+    assurance: AuditAssurance = "CHAT_SELF_REVIEW"
+    reviewer_identity: str = "chat-self"
+    author_identity: str = "unknown"
+    execution_ref: str = ""
+
+    @model_validator(mode="after")
+    def validate_independence(self):
+        if self.assurance == "INDEPENDENT_EXECUTOR":
+            if not self.execution_ref:
+                raise ValueError("independent audit requires execution_ref")
+            if self.reviewer_identity == self.author_identity:
+                raise ValueError("independent audit reviewer_identity must differ from author_identity")
+        return self
 
 
 class MarketExplanationHypothesis(StrictModel):
@@ -47,6 +79,8 @@ class MarketExplanationHypothesis(StrictModel):
 class CompanyFinding(StrictModel):
     name: str = Field(min_length=1)
     ticker: str | None = None
+    value_chain_class: str = Field(min_length=1)
+    materiality: CompanyMateriality = "MATERIAL"
     relevance: str = Field(min_length=1)
     business_stage: str = ""
     positive_evidence: list[str] = Field(default_factory=list)
@@ -72,6 +106,53 @@ class CompanyFinding(StrictModel):
     market_selection_signals: list[str] = Field(default_factory=list)
     continuation_support: list[str] = Field(default_factory=list)
     reversal_risks: list[str] = Field(default_factory=list)
+
+
+class UniverseExclusion(StrictModel):
+    name: str = Field(min_length=1)
+    value_chain_class: str = Field(min_length=1)
+    reason: str = Field(min_length=1)
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class UniverseClassCoverage(StrictModel):
+    class_name: str = Field(min_length=1)
+    economic_role: str = Field(min_length=1)
+    included_companies: list[str] = Field(default_factory=list)
+    excluded_companies: list[str] = Field(default_factory=list)
+    unresolved_candidates: list[str] = Field(default_factory=list)
+    source_refs: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def class_has_accounting(self):
+        if not (self.included_companies or self.excluded_companies or self.unresolved_candidates):
+            raise ValueError("each material value-chain class needs included, excluded, or unresolved company accounting")
+        return self
+
+
+class UniverseCoverage(StrictModel):
+    status: UniverseCoverageStatus
+    classes: list[UniverseClassCoverage] = Field(default_factory=list)
+    recall_sources: list[str] = Field(default_factory=list)
+    exclusions: list[UniverseExclusion] = Field(default_factory=list)
+    missing_classes: list[str] = Field(default_factory=list)
+    stop_reason: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_status(self):
+        if self.status == "NOT_APPLICABLE":
+            if self.classes or self.recall_sources or self.missing_classes:
+                raise ValueError("NOT_APPLICABLE universe coverage cannot carry company-class coverage")
+            return self
+        if not self.classes:
+            raise ValueError("company/theme research requires material value-chain classes")
+        if len(self.recall_sources) < 2:
+            raise ValueError("company/theme universe recall requires at least two materially different recall sources")
+        if self.status == "COMPLETE" and self.missing_classes:
+            raise ValueError("COMPLETE universe coverage cannot declare missing_classes")
+        if self.status == "BOUNDED_WITH_GAPS" and not self.missing_classes:
+            raise ValueError("BOUNDED_WITH_GAPS must declare missing_classes")
+        return self
 
 
 class MarketExplanationMap(StrictModel):
@@ -113,6 +194,7 @@ class ResearchPackage(StrictModel):
     industry_chain: list[str] = Field(min_length=1)
     transmission_chain: list[str] = Field(min_length=1)
     universe: list[CompanyFinding] = Field(default_factory=list)
+    universe_coverage: UniverseCoverage
     market_explanation_scope: MarketExplanationScope
     market_explanation_scope_reason: str = Field(min_length=1)
     market_explanation: MarketExplanationMap | None = None
@@ -126,11 +208,29 @@ class ResearchPackage(StrictModel):
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def market_explanation_matches_scope(self):
+    def validate_research_contract(self):
         if self.market_explanation_scope == "REQUIRED" and self.market_explanation is None:
             raise ValueError("market_explanation_scope=REQUIRED requires market_explanation")
         if self.market_explanation_scope == "NOT_MATERIAL" and self.market_explanation is not None:
             raise ValueError("market_explanation_scope=NOT_MATERIAL must not include market_explanation")
+
+        names = [company.name for company in self.universe]
+        if len(names) != len(set(names)):
+            raise ValueError("research universe company names must be unique")
+        if self.universe:
+            if self.universe_coverage.status == "NOT_APPLICABLE":
+                raise ValueError("non-empty company universe requires COMPLETE or BOUNDED_WITH_GAPS universe_coverage")
+            class_names = {item.class_name for item in self.universe_coverage.classes}
+            if any(company.value_chain_class not in class_names for company in self.universe):
+                raise ValueError("every universe company must map to a declared material value-chain class")
+            ledger_names = {name for item in self.universe_coverage.classes for name in item.included_companies}
+            missing_from_ledger = set(names) - ledger_names
+            if missing_from_ledger:
+                raise ValueError(f"universe companies missing from class coverage ledger: {sorted(missing_from_ledger)}")
+        elif self.universe_coverage.status != "NOT_APPLICABLE":
+            accounted = any(item.included_companies for item in self.universe_coverage.classes)
+            if accounted:
+                raise ValueError("universe_coverage included_companies require matching universe entries")
         return self
 
 
@@ -156,6 +256,7 @@ class ModeEditorialPlan(StrictModel):
     selected_structure: StructureCandidate
     emphasis: list[str] = Field(default_factory=list)
     completeness_obligations: list[str] = Field(default_factory=list)
+    company_coverage_obligations: list[str] = Field(default_factory=list)
     core_contradictions: list[str] = Field(default_factory=list, max_length=3)
     compression_candidates: list[str] = Field(default_factory=list)
 
@@ -187,6 +288,7 @@ class EditorialPlan(StrictModel):
 class HeadlineCandidate(StrictModel):
     title: str = Field(min_length=1)
     angle: str = Field(min_length=1)
+    angle_family: HeadlineAngleFamily
     target_reader: str = Field(min_length=1)
     finance_relevance: str = Field(min_length=1)
     target_reader_click_reason: str = Field(min_length=1)
@@ -206,14 +308,23 @@ class HeadlinePackage(StrictModel):
     finance_broad_selected: str | None = None
 
     @model_validator(mode="after")
-    def candidate_sets_are_unambiguous(self):
+    def candidate_sets_are_diverse(self):
         for selected, candidates, label in [
             (self.finance_deep_selected, self.finance_deep_candidates, "finance_deep"),
             (self.finance_broad_selected, self.finance_broad_candidates, "finance_broad"),
         ]:
+            if not candidates:
+                if selected is not None:
+                    raise ValueError(f"{label}_selected cannot exist without candidates")
+                continue
+            if not 8 <= len(candidates) <= 12:
+                raise ValueError(f"{label}_candidates must contain 8-12 candidates")
             titles = [candidate.title for candidate in candidates]
             if len(titles) != len(set(titles)):
                 raise ValueError(f"{label}_candidates must contain unique titles")
+            families = {candidate.angle_family for candidate in candidates}
+            if len(families) < 5:
+                raise ValueError(f"{label}_candidates need at least 5 distinct angle families; synonym/title-mold swaps are not enough")
             if selected and selected not in set(titles):
                 raise ValueError(f"{label}_selected must be one of its candidates")
         return self
@@ -263,6 +374,7 @@ class StyleAuditDecision(StrictModel):
     status: Literal["PASS", "REVISE"]
     evidence: list[str] = Field(min_length=1)
     rubric: AuthorialProseAuditRubric
+    provenance: AuditProvenance = Field(default_factory=AuditProvenance)
     detected_patterns: list[str] = Field(default_factory=list)
     reasoning_findings: list[str] = Field(default_factory=list)
     revision_target: Literal["DRAFT"] | None = None
@@ -273,6 +385,8 @@ class StyleAuditDecision(StrictModel):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
             raise ValueError(f"authorial-prose status must be {expected} for the supplied rubric")
+        if self.status == "PASS" and self.provenance.assurance != "INDEPENDENT_EXECUTOR":
+            raise ValueError("authorial-prose PASS requires an independent executor; chat self-review cannot PASS")
         if self.status == "REVISE" and (not self.revision_notes or self.revision_target != "DRAFT"):
             raise ValueError("REVISE authorial-prose audit requires revision_target=DRAFT and revision_notes")
         if self.status == "PASS" and self.revision_target is not None:
@@ -284,6 +398,7 @@ class HookAuditRubric(StrictModel):
     audience_promise_fit: Literal["PASS", "REVISE"]
     headline_information_value: Literal["PASS", "REVISE"]
     headline_curiosity_balance: Literal["PASS", "REVISE"]
+    headline_strategy_diversity: Literal["PASS", "REVISE"]
     title_wechat_search_intent: Literal["PASS", "REVISE"]
     opening_three_sentence_retention: Literal["PASS", "REVISE"]
     continuation_flow: Literal["PASS", "REVISE"]
@@ -295,6 +410,7 @@ class HookAuditDecision(StrictModel):
     status: Literal["PASS", "REVISE"]
     evidence: list[str] = Field(min_length=1)
     rubric: HookAuditRubric
+    provenance: AuditProvenance = Field(default_factory=AuditProvenance)
     search_terms_checked: list[str] = Field(min_length=1)
     search_evidence_refs: list[str] = Field(min_length=1)
     revision_target: Literal["TITLE", "DRAFT"] | None = None
@@ -305,6 +421,8 @@ class HookAuditDecision(StrictModel):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
             raise ValueError(f"reader-funnel hook status must be {expected} for the supplied rubric")
+        if self.status == "PASS" and self.provenance.assurance != "INDEPENDENT_EXECUTOR":
+            raise ValueError("reader-funnel PASS requires an independent executor; chat self-review cannot PASS")
         if self.status == "REVISE" and (not self.revision_notes or self.revision_target is None):
             raise ValueError("REVISE reader-funnel hook audit requires revision_target and revision_notes")
         if self.status == "PASS" and self.revision_target is not None:
@@ -315,12 +433,15 @@ class HookAuditDecision(StrictModel):
 class GateDecision(StrictModel):
     status: Literal["PASS", "REVISE", "FAIL"]
     evidence: list[str] = Field(min_length=1)
+    provenance: AuditProvenance = Field(default_factory=AuditProvenance)
     defects: list[str] = Field(default_factory=list)
     revision_target: Literal["RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY"] | None = None
     remaining_boundaries: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def decision_is_actionable(self):
+        if self.status == "PASS" and self.provenance.assurance != "INDEPENDENT_EXECUTOR":
+            raise ValueError("semantic audit PASS requires an independent executor; chat self-review cannot PASS")
         if self.status in {"REVISE", "FAIL"} and self.revision_target is None:
             raise ValueError(f"{self.status} requires revision_target")
         if self.status == "FAIL" and not self.defects:
