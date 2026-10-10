@@ -41,8 +41,12 @@ class WorkflowController:
             raise WorkflowError("title_audit must be PASS or REVISE")
 
         if s == Stage.DRAFT:
-            self._require_pass(state, "draft_output")
-            return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audits")
+            status = self._status(state, "draft_output")
+            if status == GateStatus.PASS:
+                return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audits")
+            if status == GateStatus.REVISE:
+                return self.engine.transition(state, Stage.DRAFT, reason="draft coverage/navigation guard requested revision")
+            raise WorkflowError("draft_output must be PASS or REVISE")
 
         if s == Stage.EDITORIAL_AUDIT:
             status = self._status(state, "editorial_audit")
