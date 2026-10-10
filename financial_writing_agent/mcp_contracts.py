@@ -1,7 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal
 
 from mcp.types import ToolAnnotations
 from pydantic import BaseModel, ConfigDict, Field
@@ -23,6 +23,8 @@ LearningSampleType = Literal[
     "USER_REJECTION",
     "POST_PUBLICATION_PERFORMANCE",
 ]
+MethodologyHookStatusText = Literal["INVOKED", "NOT_APPLICABLE_FOR_ACTION"]
+MethodologyReceiptVerificationText = Literal["UNVERIFIED_OWNER_RECEIPT"]
 
 
 class PublicResultModel(BaseModel):
@@ -58,6 +60,24 @@ class LearningSampleSummary(PublicResultModel):
     recorded_stage: StageText
     recorded_at: datetime
     promotion_status: Literal["RAW_EVIDENCE_ONLY"] = "RAW_EVIDENCE_ONLY"
+
+
+class MethodologyHookAssessmentSummary(PublicResultModel):
+    status: MethodologyHookStatusText
+    reason: str
+    evidence_refs: list[str] = Field(default_factory=list)
+
+
+class MethodologyProfileRunSummary(PublicResultModel):
+    receipt_contract_version: Literal["1.1"]
+    profile_id: Literal["artifact_io", "operational_hygiene", "evolution"]
+    profile_version: Literal["1.0"]
+    activation_id: str
+    trigger: str
+    invoked_hooks: list[str] = Field(default_factory=list)
+    hook_assessments: dict[str, MethodologyHookAssessmentSummary] = Field(default_factory=dict)
+    evidence_refs: list[str] = Field(default_factory=list)
+    verification_status: MethodologyReceiptVerificationText
 
 
 class EditorialChecklist(PublicResultModel):
@@ -104,6 +124,7 @@ class WritingTaskSummary(PublicResultModel):
     gates: dict[str, GateSummary] | None = None
     artifacts: dict[str, ArtifactSummary] | None = None
     learning_samples: list[LearningSampleSummary] | None = None
+    methodology_profile_runs: list[MethodologyProfileRunSummary] | None = None
     completion_checklist: CompletionChecklist | None = None
 
 
