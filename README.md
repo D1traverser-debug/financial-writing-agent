@@ -1,4 +1,4 @@
-# Financial Writing Agent v0.6
+# Financial Writing Agent v0.7
 
 A deterministic A-share financial-writing runtime with material-complete deep analysis, explicit-scope market explanation, recoverable checkpoints, a unified Reader Funnel, Natural Authorial Prose / Writing DNA assurance, raw learning-evidence capture and Word-only delivery.
 
@@ -45,7 +45,7 @@ Changes to research, editorial plans, titles or drafts invalidate the affected d
 - no server-local filesystem paths in public artifact contracts or audit Word
 
 ## Runtime surface
-`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.6 exposes 17 typed tools and one Word resource template, including `resume_blocked_task` and `record_writing_learning_sample`.
+`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.7 exposes 17 typed tools and one Word resource template, including `resume_blocked_task` and `record_writing_learning_sample`.
 
 There is no compatibility shim, legacy `CHAT_TEXT`, visual/sticker contract or canned `structure_patterns.md` library on current `main`.
 
