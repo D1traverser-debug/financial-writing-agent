@@ -36,7 +36,10 @@ Unless the user overrides a soft preference:
 - publication content → **Word only**, no article body/preview in chat;
 - QA → `WRITING_AUDIT_REPORT.docx` plus a concise chat checklist/list;
 - no image/cover/section-visual/avatar/sticker workflow;
-- publication articles do not use tables.
+- publication articles do not use tables;
+- publication articles do not use underlines;
+- publication articles do not append a `资料来源 / 参考资料 / 参考来源 / 来源汇总` tail section; provenance stays in research/audit and material source identity is attributed naturally in prose;
+- the final risk disclaimer is one inline *italic* paragraph beginning `风险提示：`, not a numbered H1.
 
 User instructions cannot bypass factual support, compliance, file identity, mandatory gates or required outputs.
 
@@ -86,12 +89,18 @@ It must express every material branch that could change financial judgment and c
 
 If a Deep section says what to **watch / validate / falsify / track next**, its signals must map back to named stocks or clearly identified value-chain classes. A generic “看招标、看交付、看收入” checklist detached from the company universe fails.
 
+For multi-company topics, Deep must additionally leave the reader with an evidence-based **company comparison decision map**. Compare material names/classes on relevant dimensions such as current order visibility, realization speed, earnings sensitivity, validated overseas exposure and technology optionality. It may state research order or evidence strength; it must not become a buy list or price-performance ranking.
+
 If Market Explanation scope is REQUIRED, preserve material benefit differences, competing market-selection mechanisms, confidence boundaries and continuation/reversal/falsification conditions. If scope is NOT_MATERIAL, do not force those branches into the article.
 
 ### FINANCE_BROAD — 引流版本
 `SELECTIVE_TRAFFIC`: may organize around one to three supported information gaps/core contradictions while retaining the facts, causal chain, counterevidence and uncertainty required for every retained conclusion.
 
-Traffic optimization never licenses hindsight storytelling or unsupported confidence.
+The Broad reader should not need to care about the niche industry in advance. Title and first screen normally expose the broader financial stake—**money, orders, profits, cash flow, capital expenditure, company/asset differentiation or policy transmission**—before asking the reader to absorb sector detail.
+
+For multi-company topics, Broad may compress the full Universe ledger but must still communicate a simple truthful differentiation (for example current visibility vs operating sensitivity vs overseas evidence vs longer-term option) rather than presenting an undifferentiated basket.
+
+Traffic optimization may be more forceful than Deep in contrast and information-gap framing, but it never licenses fabricated urgency, unsupported confidence, hindsight storytelling or guaranteed-return language.
 
 ## 7. Editorial structure boundary
 Editorial owns material coverage and macro section order. It must create at least two topic-specific structures and select the shortest coherent structure that discharges the applicable obligations.
@@ -107,19 +116,21 @@ Use meaningful hierarchy when reasoning has layers/categories/steps:
 
 For `FINANCE_DEEP`, lower-level numbering is conditionally mandatory when the article has several company classes, multiple realization stages, three or more comparison dimensions, multiple causal branches, or otherwise dense branching. Do not bury those branches in long unnumbered paragraphs. Do not force exactly three children per section; the logic determines the count.
 
+Major H1 sections must also be **earned transitions**, not isolated research cards. The end of one section should create the reason for the next through cause, consequence, chronology, comparison, narrowing, correction, unresolved question or inference. Empty bridges such as “接下来我们来看” do not satisfy this requirement.
+
 ## 8. Reader Funnel / Hook Gate
 Treat click-through, reader profile, title/opening, continuation and completion as one funnel:
 `qualified impression → click → first-screen retention → continued reading → completion → promised insight delivered`.
 
 Audit audience-promise fit, headline information value, curiosity/concreteness balance, **headline strategy diversity**, current WeChat search discoverability/evidence, first three complete sentences, H1/paragraph continuation value, completion payoff and title/opening payoff.
 
-Cross-industry finance appeal is a strategy, especially for `FINANCE_BROAD`, **not a universal hard requirement**.
+Cross-industry finance appeal remains optional; do not bolt unrelated macro themes onto a sector story. But `FINANCE_BROAD` must pass a **cold-reader test**: a finance reader with no prior sector interest should still understand from the title why the event may matter to money, profits, company differentiation or capital allocation.
 
 Generate 8–12 genuinely different title candidates per applicable mode. Every candidate records an `angle_family`; the pool must contain at least five genuinely distinct supported families such as hard fact, profit/orders, supply-demand, company divergence, policy transmission, expectation gap, valuation/capital, global comparison, validation/risk, or market selection when applicable.
 
 Unique strings are not enough. Pools dominated by one reusable shell such as “真正的X不在Y”“X又动了这次看什么”“别只看X要看Y”“拐点来了？” fail even if the nouns change.
 
-The selected title should earn the click through topic-specific information, normally combining at least two of: concrete change/entity/event, financially consequential stake, real distinction/information gap. Question titles are not presumed superior.
+The selected title should earn the click through topic-specific information, normally combining at least two of: concrete change/entity/event, financially consequential stake, real distinction/information gap. `FINANCE_BROAD` may use sharper truthful contrast and money language than Deep, but question titles and sensational adjectives are not presumed superior.
 
 Reader Funnel REVISE routes to `TITLE` or `DRAFT` according to the actual defect.
 
@@ -129,7 +140,7 @@ Reader Funnel REVISE routes to `TITLE` or `DRAFT` according to the actual defect
 PASS requires text-level evidence for nine dimensions:
 1. fidelity and responsibility;
 2. semantic contribution;
-3. argument progression;
+3. argument progression, including earned major-section bridges;
 4. reader calibration;
 5. authorial selectivity;
 6. evidence specificity;
@@ -175,10 +186,11 @@ Word stores pt; px conversion uses standard 96-dpi CSS equivalence `1px = 0.75pt
 ## 13. Delivery and mechanical QA
 Delivery owns Word construction, not content judgment. It must:
 - build every applicable article Word artifact;
-- append the topic-specific risk/disclaimer deterministically;
+- append the topic-specific risk disclaimer as one final *italic* paragraph beginning `风险提示：`, with no separate risk H1;
 - preserve explicit bold spans;
 - normalize numbering hierarchy;
-- enforce exact typography and zero tables;
+- enforce exact typography, zero tables and **zero underlines**;
+- prohibit publication-tail `资料来源 / 参考资料 / 参考来源 / 来源汇总` sections while preserving source provenance in research/audit and natural attribution when material;
 - for branching/long Deep articles, mechanically require visible lower-level numbered navigation;
 - require every applicable artifact before mechanical PASS;
 - render cleanly when render QA is required;
@@ -190,6 +202,8 @@ Generic superlatives are semantic-review items unless unambiguously prohibited; 
 ## 14. Risk/compliance
 Public output must not become executable buy/sell guidance. A disclaimer never cures actionable instructions.
 
+A company comparison may explain operating evidence, current realization visibility, earnings sensitivity, validated overseas exposure, technology optionality and what future evidence would change the comparison. It may state a research order or evidence hierarchy. It must not use explicit or euphemistic language whose practical purpose is to tell the reader what to buy/sell, when to enter/exit, what target to use, how much to hold, or how to evade the same boundary through “首选/上车/重点配置” style phrasing.
+
 Market Explanation may discuss attention, diffusion, liquidity, order imbalance, market roles, continuation/reversal and price-limit mechanics as explanatory context, but may not convert them into entry/exit timing, target price, position sizing, stop levels or other execution advice.
 
 ## 15. Knowledge writeback vs Writing DNA evidence
@@ -200,7 +214,7 @@ Writing-style/user-feedback/performance evidence belongs to the Writing DNA lear
 ## 16. Completion
 At COMPLETE return only publication Word artifact links/references, `WRITING_AUDIT_REPORT.docx`, and the concise chat QA checklist/list. Do not paste the article body.
 
-The QA checklist covers applicable research/evidence, Universe Coverage Ledger, Market Explanation scope, Reader Funnel/title-strategy diversity, Authorial Prose/template guard, Deep material-company completeness, numbered navigation, general editorial, skim path, Word/no-table/render, compliance/risk, audit provenance and knowledge sync.
+The QA checklist covers applicable research/evidence, Universe Coverage Ledger, Market Explanation scope, Reader Funnel/title-strategy diversity and Broad cold-reader stake, Authorial Prose/template/major-section bridge, Deep material-company completeness, company comparison usefulness, numbered navigation, general editorial, skim path, Word/no-table/no-underline/no-source-tail/risk-italic/render, compliance/risk, audit provenance and knowledge sync.
 
 ## 17. Scope boundary
 This Skill produces publishable financial content. It may consume stock-picking/review knowledge as research context, but it does not activate for standalone荐股、选股、盘后复盘 or trading decisions unless the user asks to turn that work into an article.
