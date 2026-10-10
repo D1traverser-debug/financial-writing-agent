@@ -49,7 +49,8 @@ def _publicize(raw: dict) -> dict:
 def _summary(raw: dict) -> WritingTaskSummary:
     enriched = dict(raw)
     task_id = enriched.get("task_id")
-    if isinstance(task_id, str) and task_id:
+    detail_requested = any(key in enriched for key in ("source_refs", "gates", "artifacts", "learning_samples"))
+    if isinstance(task_id, str) and task_id and detail_requested:
         try:
             state = impl._load(task_id)
         except ValueError:
@@ -123,7 +124,7 @@ def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annot
 
 @mcp.tool(title="List recent writing tasks", annotations=READ_ONLY_TOOL, structured_output=True)
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50)] = 10, include_complete: bool = False) -> WritingTaskList:
-    """List recent persisted writing tasks for reliable continuation so callers avoid duplicate workflows and recover unfinished work without asking the user to repeat saved context."""
+    """List recent persisted writing-task metadata for reliable continuation without expanding detailed methodology receipts or asking the user to repeat saved context."""
     return WritingTaskList(tasks=[_summary(item) for item in impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)])
 
 
