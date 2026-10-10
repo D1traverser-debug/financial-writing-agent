@@ -19,6 +19,7 @@ ENGINE = ROOT / "financial_writing_agent" / "engine.py"
 RUNTIME = ROOT / "financial_writing_agent" / "runtime_service.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 CHECKS = ROOT / "financial_writing_agent" / "checks.py"
+DOCUMENT = ROOT / "financial_writing_agent" / "document.py"
 OPENAI_ADAPTER = ROOT / "financial_writing_agent" / "adapters" / "openai_agents.py"
 SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 README = ROOT / "README.md"
@@ -80,11 +81,11 @@ def check_rule_ownership() -> int:
         "runtime": {"blocked_recovery", "downstream_invalidation"},
         "research": {"universe_class_coverage", "universe_recall_sources", "material_company_classification"},
         "market_explanation": {"explicit_scope_activation", "stock_universe_not_activation"},
-        "editorial": {"topic_specific_structures", "macro_structural_coherence", "finance_deep_company_coverage", "stock_grounded_validation_sections", "deep_numbered_navigation"},
-        "hooks": {"reader_funnel", "continuation_value", "headline_angle_family_diversity"},
-        "style": {"natural_authorial_prose", "raw_learning_sample_ledger", "argument_progression", "template_cluster_guard"},
-        "delivery": {"explicit_bold_preservation", "artifact_path_privacy", "render_idempotency"},
-        "audit": {"authorial_prose_judge", "reader_funnel_judge", "semantic_audit_provenance", "chat_self_review_no_pass", "universe_article_reconciliation"},
+        "editorial": {"topic_specific_structures", "macro_structural_coherence", "finance_deep_company_coverage", "stock_grounded_validation_sections", "company_comparison_decision_map", "deep_numbered_navigation"},
+        "hooks": {"reader_funnel", "continuation_value", "headline_angle_family_diversity", "finance_broad_non_niche_stake"},
+        "style": {"natural_authorial_prose", "raw_learning_sample_ledger", "argument_progression", "major_section_bridge", "template_cluster_guard"},
+        "delivery": {"explicit_bold_preservation", "no_underlines", "no_end_source_section", "risk_italic", "artifact_path_privacy", "render_idempotency"},
+        "audit": {"authorial_prose_judge", "reader_funnel_judge", "semantic_audit_provenance", "chat_self_review_no_pass", "universe_article_reconciliation", "covert_recommendation_evasion_check"},
         "maintenance": {"version_consistency", "learning_sample_promotion"},
     }
     for owner, markers in required.items():
@@ -125,6 +126,11 @@ def check_reference_bundle() -> None:
         "Universe Coverage Ledger",
         "MATERIAL / SECONDARY / REFERENCE_ONLY",
         "company_coverage_obligations",
+        "company comparison decision map",
+        "cold-reader test",
+        "major H1 sections must also be **earned transitions**",
+        "zero underlines",
+        "风险提示：",
         "angle_family",
         "template-cluster guard",
         "CHAT_SELF_REVIEW",
@@ -162,6 +168,7 @@ def check_runtime_contract() -> int:
     runtime = RUNTIME.read_text(encoding="utf-8")
     schemas = SCHEMAS.read_text(encoding="utf-8")
     checks = CHECKS.read_text(encoding="utf-8")
+    document = DOCUMENT.read_text(encoding="utf-8")
 
     require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "LearningSampleSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
     forbid(public + contracts + models, ("submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "CHAT_TEXT", "Human Voice"), "public MCP")
@@ -182,7 +189,21 @@ def check_runtime_contract() -> int:
         "chat self-review cannot PASS",
         "class AuthorialProseAuditRubric(StrictModel)",
     ), "schemas")
-    require(checks, ("analyze_template_scaffolding", "check_deep_company_grounding", "check_payload_navigation", "monitoring/validation section is detached"), "deterministic content guards")
+    require(checks, (
+        "analyze_template_scaffolding",
+        "check_deep_company_grounding",
+        "check_payload_navigation",
+        "monitoring/validation section is detached",
+        "publication article must not contain end source section",
+        "risk disclaimer must be italic",
+        "publication article contains prohibited underline(s)",
+    ), "deterministic content guards")
+    require(document, (
+        "risk_mode",
+        'render_text = f"风险提示：{render_text.strip()}"',
+        "run.underline = False",
+        "italic=is_risk",
+    ), "Word builder")
     forbid(schemas, ("HumanVoiceAuditRubric", "transition_findings", "cross_finance_click_reason", "stock/theme research with a company universe requires market_explanation"), "schemas")
     return len(tools)
 
@@ -195,16 +216,26 @@ def check_policy_and_executor() -> None:
         fail("universe-recall hardening drift")
     if policy["editorial"].get("finance_deep_representative_stock_shortcut_forbidden") is not True or policy["editorial"].get("stock_grounded_validation_sections_required") is not True:
         fail("Deep company-completeness hardening drift")
+    if policy["editorial"].get("company_comparison_decision_map_required") is not True or len(policy["editorial"].get("company_comparison_dimensions", [])) < 4:
+        fail("company comparison decision-map hardening drift")
     if policy["hooks"].get("headline_angle_families_min", 0) < 5 or policy["hooks"].get("synonym_only_headline_pool_is_fail") is not True:
         fail("headline strategy-diversity hardening drift")
-    if policy["style"].get("template_cluster_guard_required") is not True or policy["style"].get("deep_numbered_navigation_required_when_branching") is not True:
-        fail("prose/navigation hardening drift")
+    if policy["hooks"].get("finance_broad_non_niche_stake_required") is not True or not policy["hooks"].get("finance_broad_stake_dimensions"):
+        fail("broad-finance cold-reader stake drift")
+    if policy["style"].get("template_cluster_guard_required") is not True or policy["style"].get("deep_numbered_navigation_required_when_branching") is not True or policy["style"].get("major_section_bridge_required") is not True:
+        fail("prose/navigation/bridge hardening drift")
     if policy["audit"].get("semantic_pass_requires_independent_executor") is not True or policy["audit"].get("chat_self_review_cannot_pass") is not True:
         fail("semantic audit provenance hardening drift")
+    if policy["finance_compliance"].get("no_covert_recommendation_evasion") is not True or policy["finance_compliance"].get("company_comparison_must_remain_non_actionable") is not True:
+        fail("covert-recommendation compliance boundary drift")
     if policy["word"].get("auto_bold_company_names") is not False:
         fail("blanket company bolding returned")
     if policy["word"].get("allow_tables") is not False or policy["word"].get("tables_are_hard_fail") is not True:
         fail("table prohibition drift")
+    if policy["word"].get("allow_underline") is not False or policy["word"].get("end_source_section_allowed") is not False:
+        fail("Word underline/source-tail prohibition drift")
+    if policy["risk_disclaimer"].get("italic") is not True or policy["risk_disclaimer"].get("inline_paragraph") is not True or policy["risk_disclaimer"].get("visible_heading") is not False:
+        fail("risk disclaimer presentation drift")
     if set(policy["style"].get("hard_fail_extreme_phrases", [])) != {"注定暴涨", "必然上涨", "唯一机会"}:
         fail("deterministic extreme-language boundary drift")
     dna = policy["style"].get("writing_dna_learning", {})
@@ -254,7 +285,7 @@ def main() -> None:
     tools = check_runtime_contract()
     check_policy_and_executor()
     check_site_and_dead_contracts()
-    print(f"PASS: v0.7 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; Universe Coverage + Deep reconciliation + title diversity + template guard + independent semantic audits protected")
+    print(f"PASS: v0.7 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; Universe Coverage + company decision map + broad cold-reader stake + major-section bridges + clean Word presentation + independent semantic audits protected")
 
 
 if __name__ == "__main__":
