@@ -1,87 +1,80 @@
 # Financial Writing System Evolution Audit — 2026-10-11
 
-Status: IMPLEMENTED__REGRESSION_VALIDATION_IN_PROGRESS_AT_RECORD_CREATION
+Status: IMPLEMENTED_AND_OWNER_REGRESSION_PASS__LIVE_QUALITY_EVIDENCE_PENDING
 Scope: Financial Writing quality-promotion evidence semantics and corpus-readiness calibration
 
 ## Trigger
-The user explicitly requested a Universal Continuity critique/distillation/learning/evolution inspection of the Financial Writing system. The audit was treated as a system-maintenance event, not as article drafting or a subjective self-review.
+The user explicitly requested a Universal Continuity critique/distillation/learning/evolution inspection of the Financial Writing system. The audit was treated as a system-maintenance event, not article drafting or subjective self-review.
 
-## Problem 1 — pairwise evidence could be real but semantically irrelevant
-The existing quality-promotion gate required blind A/B position swap and evidence refs, but a judge run only needed a non-empty `judge_identity`, non-empty `execution_ref`, and evidence refs accepted by a boolean evidence verifier. That proved existence/trust of refs, not that those refs actually supported the claimed judge run, candidate binding, blind setup, or preference conclusion.
+## Findings and root causes
 
-### Failure mode
-A stale, replayed, or unrelated real trace could satisfy the evidence-ref check while being semantically unrelated to the claimed candidate-vs-baseline judgment. This repeated the same reusable failure class already discovered in Universal methodology receipts: **evidence existence is not semantic proof**.
+### 1. Pairwise evidence could be real but semantically irrelevant
+The previous promotion gate required blind A/B position swap and verified evidence refs, but only checked that `judge_identity` and `execution_ref` were populated and that evidence refs resolved. It did not independently establish that those refs actually supported this exact judge run, candidate binding, blind setup or preference conclusion.
 
-### Candidates considered
-1. Add more prose fields or richer judge receipts. Rejected: more self-description does not add independent semantics.
-2. Trust a populated judge identity/execution ref once the ref resolves. Rejected: identity strings are declarations, not execution proof.
-3. Split reference verification from semantic judge-run verification and bind each run to the exact candidate/change. Selected: smallest change that closes the evidence-semantics gap without adding a new policy surface.
+This is the reusable failure class **evidence existence is not semantic proof**. A stale, replayed or unrelated real trace could otherwise look admissible.
 
-### Implemented
-`financial_writing_agent.quality_regression.evaluate_quality_promotion` now requires:
-- an independent evidence-ref verifier;
-- a separate independent `judge_run_verifier`;
+Candidates considered:
+1. richer owner-generated prose/receipts — rejected because self-description is not independent semantics;
+2. trust populated judge identity/execution refs once they resolve — rejected because identity strings are declarations, not execution proof;
+3. split reference verification from semantic judge-run verification and bind every run to the exact candidate/change — selected as the smallest testable repair.
+
+Implemented in `financial_writing_agent.quality_regression.evaluate_quality_promotion`:
+- independent evidence-ref verifier;
+- separate independent `judge_run_verifier`;
 - exact `candidate_id` and `candidate_change_ref` binding on every judge run;
 - independently verified execution refs;
 - execution refs unique across pairwise runs;
-- existing blind A/B position swap and stability checks remain mandatory.
+- blind A/B position swap and stability checks remain mandatory.
 
-A real evidence ref is no longer sufficient when semantic judge-run verification is missing or fails.
+### 2. Corpus readiness was weaker than the written maintenance contract
+The maintenance authority required diverse complete held-out evidence spanning more than one topic family. The old implementation required one held-out case plus two topic families across all complete cases. One rejection in family A plus one held-out in family B therefore incorrectly produced promotion readiness even though the held-out set itself contained only one family.
 
-## Problem 2 — corpus readiness was weaker than the written maintenance contract
-The maintenance authority required "diverse complete held-out evidence spanning more than one topic family". The implementation only required at least one held-out case and at least two topic families across all complete cases. Therefore one real rejection in topic family A plus one held-out in topic family B incorrectly produced `PROMOTION_READY` even though the held-out set itself had only one topic family.
+Candidates considered:
+1. keep one held-out and rely on pairwise judging — rejected because unseen cross-topic regression cannot be detected;
+2. require a large arbitrary fixed corpus — rejected as ritual rather than an invariant;
+3. require at least two distinct complete held-out topic families per claimed content mode — selected because it matches the existing authority and fails closed by mode.
 
-### Failure mode
-The triggering failure's own topic diversity was being counted as if it were held-out diversity. This overstates generalization evidence and creates a single-held-out overfit risk.
+Implemented:
+- `evaluate_corpus_readiness` requires at least two complete held-out topic families;
+- `evaluate_candidate_distillation` enforces the same requirement per target content mode;
+- current FINANCE_DEEP evidence is diagnostic/candidate-design only, not promotion-ready;
+- FINANCE_BROAD remains not ready;
+- Personalized Writing DNA remains not ready and additionally requires real user acceptance/edit or post-publication performance evidence after general requirements pass.
 
-### Candidates considered
-1. Keep one held-out and rely on pairwise quality judging. Rejected: a judge cannot reveal cross-topic regression on cases never represented.
-2. Require an arbitrary large fixed number of held-outs. Rejected: unnecessary corpus-size ritual; topic-family diversity is the relevant invariant.
-3. Require at least two distinct complete held-out topic families per claimed content mode. Selected: directly matches the existing written contract and fails closed by content mode.
+## Second-order challenge
+The accepted fix was re-attacked before closure. Adding title/style/AI-phrase rules would target symptoms and increase Goodhart pressure. Adding another root policy would duplicate existing maintenance authority. Richer self-receipts would preserve self-attestation. Treating CI as proof of better prose would exceed the evidence ceiling. The final repair therefore changes the existing owner-local promotion harness and its metadata only; no new article-level prose-rule module was introduced.
 
-### Implemented
-- `evaluate_corpus_readiness` now requires at least two complete held-out topic families.
-- `evaluate_candidate_distillation` applies the same requirement per target content mode.
-- Current FINANCE_DEEP corpus is downgraded from promotion-ready to diagnostic/candidate-design only: one complete real rejection plus one complete held-out topic family is insufficient.
-- FINANCE_BROAD remains not ready.
-- Personalized Writing DNA remains not ready and additionally still requires real positive user/edit/performance evidence after general requirements pass.
+## Validation history
+1. Initial hardened-gate run `38069467849` reached 71/71 unit/trajectory PASS and executable contract eval PASS, then static audit correctly failed on stale `maintenance.md` mirror drift. The mirror was repaired rather than weakening the audit.
+2. Run `38069792883` then exposed one stale regression assertion expecting execution capability profile v5 after the intentional v6 contract hardening. The test was upgraded to assert v6 **and** the new semantic-verifier / held-out-diversity / candidate-binding invariants.
+3. Final behavioral head `38ab669d91816291c5575c93d8be27ed4a336cbc`, GitHub Actions run `38069902882`, job `114265021061`: PASS across OpenAI Agents SDK surface smoke, MCP Streamable HTTP smoke, unit/trajectory suite, executable contract eval baseline, static rule ownership/bundle audit, isolated wheel install and DOCX render smoke.
 
-## Candidate-adoption / second-order challenge
-The selected fix was re-attacked before closure:
-- adding headline/style/AI-phrase rules would target symptoms and increase Goodhart pressure;
-- adding another root policy would duplicate existing maintenance authority;
-- richer owner-generated receipts without independent semantics would preserve self-attestation;
-- treating CI as proof of better prose would exceed the evidence ceiling.
+This establishes **REGRESSION_VERIFIED gate mechanics** for the covered hardening. It does not establish better prose quality.
 
-The final design changes the existing owner-local promotion harness and its metadata only. It does not add article-level prose rules and does not create another permanent policy surface.
-
-## Validation
-The first post-change CI run reached 71/71 passing unit/trajectory tests plus executable contract eval PASS, but static audit failed because the intentional `references/maintenance.md` mirror had not yet been synchronized. The test was not weakened. The mirror was repaired byte-for-byte and a new CI run was triggered.
-
-Final closure requires a green current-head CI and authoritative reread. Until that occurs, the maintenance change must not be reported as fully committed.
-
-## Evidence ceiling after this change
-This hardening can establish stronger **REGRESSION_VERIFIED gate mechanics** once CI is green. It does not establish:
-- a promotion-ready FINANCE_DEEP quality corpus;
-- any successful live candidate-vs-baseline quality promotion;
-- independent provider-attested semantic review;
+## Evidence ceiling / remaining open gates
+The audit does **not** prove:
+- a promotion-ready FINANCE_DEEP corpus;
+- a successful live candidate-vs-baseline quality promotion;
+- provider-attested isolated semantic review;
 - improved article quality or publication performance.
 
-## Exact remaining evidence needed
-1. Add a second complete FINANCE_DEEP held-out article from a distinct topic family before FINANCE_DEEP can become promotion-ready again.
-2. FINANCE_BROAD needs its own complete real rejection plus at least two distinct held-out topic families.
-3. A concrete candidate must pass candidate distillation.
-4. Live blind pairwise runs must carry independently verified execution refs and pass the independent semantic judge-run verifier with A/B position swap.
-5. Personalized Writing DNA additionally needs real user acceptance/edit or post-publication performance evidence.
+Exact remaining evidence:
+1. a second complete FINANCE_DEEP held-out article from a distinct topic family;
+2. for FINANCE_BROAD, its own complete real rejection plus at least two distinct held-out topic families;
+3. a concrete candidate-distillation PASS;
+4. live blind pairwise runs with independently verified execution refs and independent semantic judge-run verification, with A/B position swap;
+5. for Personalized Writing DNA, real user acceptance/edit or post-publication performance evidence in addition to all general requirements.
 
 ## Changed authority surfaces
 - `financial_writing_agent/quality_regression.py`
 - `tests/test_quality_regression.py`
+- `tests/test_execution_capability_entrypoint.py`
 - `skills/financial-writing-agent/references/maintenance.md`
 - `references/maintenance.md`
+- `financial_writing_agent/resources/references/maintenance.md`
 - `evals/quality_regression.json`
 - `continuity/EXECUTION_CAPABILITIES.json`
 - `continuity/UNIVERSAL_PROTOCOL_ADAPTER.json`
 - this audit record
 
-No new article-level rule module was introduced.
+No article-level writing rule was added merely to satisfy the triggering failure.
