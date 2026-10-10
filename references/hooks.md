@@ -15,21 +15,27 @@ This remains a separate semantic gate from general editorial quality and Natural
 Before optimizing click-through rate, identify **who this version is for and what useful understanding they expect from it**.
 
 - `FINANCE_DEEP`: prioritize qualified finance readers who value complete explanation.
-- `FINANCE_BROAD`: broader finance relevance matters more. Cross-sector stakes such as profit, pricing, orders, supply/demand, valuation, cash flow, policy transmission, capital allocation or market selection can widen the addressable audience when genuinely material.
+- `FINANCE_BROAD`: broader finance relevance matters more. The reader should not need pre-existing interest in the niche industry. Surface the financially consequential stake early: profit, orders, cash flow, capital expenditure, asset/company differentiation, policy transmission or another evidence-backed money consequence.
 
-“Cross-industry finance clickability” is useful, especially for broad distribution, **not a universal hard requirement for every title**.
+A broad finance article is not defined by “mentioning stocks” or by adding hype to an industry report. It translates a sector event into a question about **where money, orders, profits, cash flow or valuation-relevant differences are moving, and which companies are economically different**.
+
+“Cross-industry finance clickability” remains optional: do not bolt on unrelated macro or market themes merely to widen reach. But `FINANCE_BROAD` normally fails audience fit if the title/opening assumes the reader already cares about the sector and never exposes a non-niche financial stake.
 
 ### 2. Headline information value
 A title should reveal enough concrete information for the intended reader to understand why the article is worth attention. Prefer identifiable entities/events plus a real financial stake over generic suspense.
 
-The title should answer at least part of: **what changed, why it matters, or what important distinction the article will resolve**.
+The title should answer at least part of: **what changed, why it matters financially, who/what may be differentiated, or what important distinction the article will resolve**.
 
 Avoid titles whose only force comes from adjectives, hype, mystery or emotional pressure.
+
+For `FINANCE_BROAD`, a stronger title may use sharper contrast, a larger information gap or more salient money language than `FINANCE_DEEP`, provided every implication is supported by the body. “More clickable” means a stronger truthful stake, not fabricated urgency, guaranteed return language or vague sensationalism.
 
 ### 3. Curiosity / concreteness balance
 Do not maximize curiosity by maximizing vagueness. The useful target is an **information gap with a visible payoff**: enough specificity to establish relevance and credibility, enough incompleteness to leave a material question worth resolving.
 
 Question headlines are not automatically stronger. Use a question only when the question itself is the clearest, most information-bearing framing for this topic.
+
+A high-click/low-completion headline is not a success. If the title promise outruns the body's evidence or attracts readers for the wrong reason, revise the title rather than defending raw CTR.
 
 ### 4. Headline strategy diversity — pool-level hard gate
 A pool of 8–12 unique strings is not enough. The candidates must represent **different supported strategies**, encoded through `angle_family`.
@@ -65,6 +71,8 @@ A strong title normally contains at least two of these three elements:
 
 Do not force all three if that makes the title cumbersome.
 
+For `FINANCE_BROAD`, explicitly test the **cold-reader test**: would a finance reader with no prior interest in this industry still understand why the event could matter to money, profits, company differentiation or capital allocation from the title alone? If not, regenerate the title pool.
+
 ### 6. WeChat search discoverability
 Search intent is independent from click appeal. Before title selection, perform current keyword reconnaissance instead of relying on a permanent remembered keyword list.
 
@@ -83,6 +91,8 @@ Treat the first three complete sentences as the first payoff surface. They shoul
 - begin paying off the title;
 - create the next supported question, distinction or unresolved mechanism that the body will answer.
 
+For `FINANCE_BROAD`, the first screen should normally translate sector jargon into the same non-niche financial stake promised by the title before diving into technical detail.
+
 Do not spend the first screen on generic background, self-introduction, throat-clearing or a paraphrase of the headline.
 
 ### 8. Continuation flow: H1 + paragraph transitions
@@ -98,6 +108,8 @@ Visible numbered H2/H3 structure is welcome when it lowers cognitive cost; Reade
 The article must still create value in its final substantive section. It should add information, close an earlier loop, establish validation/falsification conditions, resolve an important comparison or state what remains unresolved.
 
 For stock/theme Deep articles, a final validation/monitoring section cannot retreat into a generic industry checklist if named-company implications are material. The reader should be able to connect the signal to the affected stock/class.
+
+For multi-company topics, the completion payoff should leave the reader with an evidence-based comparison map—such as current realization visibility, operating sensitivity and what still needs validation—without turning that map into a trading instruction or disguised recommendation list.
 
 Avoid recap-only endings. The risk/disclaimer should remain concise and topic-specific so it does not become an unnecessary dead zone before the comment area.
 
@@ -129,4 +141,4 @@ Use evidence in this order when refining funnel rules:
 Do not turn one successful article into a permanent formula.
 
 ## Audit evidence
-A PASS must cite the final selected title, target-reader rationale, **candidate-pool strategy diversity**, actual first three sentences, representative H1/transition evidence, completion payoff and current search evidence. “吸引人”“有钩子”“适合读者” without text-level or performance-level evidence is not an audit.
+A PASS must cite the final selected title, target-reader rationale, **candidate-pool strategy diversity**, actual first three sentences, representative H1/transition evidence, completion payoff and current search evidence. For `FINANCE_BROAD`, also cite the concrete non-niche financial stake exposed to a cold finance reader. “吸引人”“有钩子”“适合读者” without text-level or performance-level evidence is not an audit.
