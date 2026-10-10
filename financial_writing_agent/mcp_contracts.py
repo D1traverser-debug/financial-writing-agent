@@ -68,12 +68,21 @@ class MethodologyHookAssessmentSummary(PublicResultModel):
     evidence_refs: list[str] = Field(default_factory=list)
 
 
+class MethodologyActionBindingSummary(PublicResultModel):
+    task_id: str
+    stage: StageText
+    action_id: str
+    subject_bindings: dict[str, Any]
+    input_bindings: dict[str, Any]
+
+
 class MethodologyProfileRunSummary(PublicResultModel):
-    receipt_contract_version: Literal["1.2"]
+    receipt_contract_version: Literal["1.3"]
     profile_id: Literal["artifact_io", "operational_hygiene", "evolution"]
     profile_version: Literal["1.0"]
     activation_id: str
     trigger: str
+    action_binding: MethodologyActionBindingSummary
     invoked_hooks: list[str] = Field(default_factory=list)
     hook_assessments: dict[str, MethodologyHookAssessmentSummary] = Field(default_factory=dict)
     evidence_refs: list[str] = Field(default_factory=list)
