@@ -3,7 +3,7 @@
   "execution_readiness_contract": "1.0",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "repository": "D1traverser-debug/financial-writing-agent",
-  "profile_version": 3,
+  "profile_version": 4,
   "purpose": "Owner-level execution wiring metadata for the universal dispatcher. This file is not business task state and does not replace TASK_MANIFEST/HANDOFF.",
   "capabilities": [
     {
@@ -46,11 +46,31 @@
       "capability_id": "learning_evidence_capture",
       "scope": "USER_EDIT_USER_FEEDBACK_USER_ACCEPTANCE_USER_REJECTION_POST_PUBLICATION_PERFORMANCE",
       "assurance_ceiling": "SESSION_EXECUTABLE",
-      "invocation_path": "financial_writing_agent.plugin_server.record_writing_learning_sample -> runtime_service.record_writing_learning_sample",
+      "invocation_path": "financial_writing_agent.plugin_server.record_writing_learning_sample -> runtime_service.record_writing_learning_sample -> methodology_receipts.record_learning_evolution_receipt",
       "executor_type": "OWNER_PLUGIN_RUNTIME",
       "executor_ref": "financial_writing_agent/plugin_server.py",
-      "required_tools": ["owner_plugin_or_python_runtime"],
-      "evidence_contract": ["task_id", "learning sample id or persisted sample receipt", "sample_type", "provenance/source"],
+      "required_tools": ["owner_plugin_runtime"],
+      "evidence_contract": ["task_id", "persisted WritingState learning sample", "sample_type", "provenance/source", "evolution profile run marked UNVERIFIED_OWNER_RECEIPT"],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": []
+    },
+    {
+      "capability_id": "methodology_action_receipts",
+      "scope": "LEARNING_EVIDENCE_CAPTURE_AND_SUCCESSFUL_ARTIFACT_DELIVERY_MECHANICAL_AUDIT",
+      "assurance_ceiling": "SESSION_EXECUTABLE",
+      "invocation_path": "financial_writing_agent.plugin_server -> financial_writing_agent.methodology_receipts",
+      "executor_type": "OWNER_RECEIPT_EMITTER",
+      "executor_ref": "financial_writing_agent/methodology_receipts.py",
+      "required_tools": ["owner_plugin_runtime", "universal_independent_evidence_verifier_for_operational_pass"],
+      "evidence_contract": [
+        "receipt contract 1.1",
+        "profile id and exact profile version",
+        "activation id and trigger",
+        "every profile hook explicitly assessed as INVOKED or NOT_APPLICABLE_FOR_ACTION",
+        "action-scoped evidence refs",
+        "verification_status=UNVERIFIED_OWNER_RECEIPT",
+        "Universal independent verification required before operational methodology PASS"
+      ],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
     },
@@ -58,12 +78,16 @@
       "capability_id": "quality_regression_promotion_gate",
       "scope": "GENERAL_EDITORIAL_QUALITY_OR_PERSONALIZED_WRITING_DNA_SYSTEM_CHANGE",
       "assurance_ceiling": "HARNESS_WIRED",
-      "invocation_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness + evaluate_quality_promotion",
-      "executor_type": "DETERMINISTIC_PROMOTION_GATE_WITH_EXTERNAL_JUDGE_EVIDENCE",
+      "invocation_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness + evaluate_candidate_distillation + evaluate_quality_promotion",
+      "executor_type": "DETERMINISTIC_DISTILLATION_AND_PROMOTION_GATE_WITH_EXTERNAL_JUDGE_EVIDENCE",
       "executor_ref": "financial_writing_agent/quality_regression.py",
       "required_tools": ["python_runtime_or_ci", "independent_pairwise_judge_evidence", "evidence_verifier"],
       "evidence_contract": [
         "scope-appropriate promotion-ready owner-local corpus",
+        "candidate distillation binds a real rejection and separates root cause from mechanism",
+        "at least two candidate mechanisms with failure-mode/counterexample evidence",
+        "bounded authority surfaces and superseded-mechanism disposition",
+        "content-mode quality claim limited to modes with complete rejection plus held-out evidence",
         "zero hard-invariant regressions",
         "blind pairwise judge runs",
         "candidate-position A/B swap",
@@ -91,8 +115,9 @@
   "owner_notes": [
     "The Python state machine remains business authority; LLM executors may not skip stages.",
     "Repository wiring does not prove the current ChatGPT session has the optional SDK/runtime. The dispatcher must perform a session handshake.",
-    "Material explicit user writing feedback on a persisted task must be captured through the learning-evidence capability before durable personalized-learning claims; current-turn revision may still proceed if capture is unavailable, but durable personalized learning must then be reported unavailable.",
-    "The general editorial quality corpus is PROMOTION_READY_CORPUS_ONLY: it contains a complete real rejection plus a different-topic held-out owner baseline and does not require a user-positive label. A concrete quality-improvement claim still requires independently verified blind pairwise candidate-vs-baseline evidence. Personalized Writing DNA still requires real user acceptance/edit or post-publication performance evidence.",
+    "Material explicit user writing feedback on a persisted task must be captured through the owner plugin learning-evidence capability before durable personalized-learning claims; current-turn revision may still proceed if capture is unavailable, but durable personalized learning must then be reported unavailable.",
+    "Owner-generated methodology receipts are evidence indexes only and are deliberately marked UNVERIFIED_OWNER_RECEIPT. They cannot self-certify Universal operational methodology conformance.",
+    "The current general editorial quality corpus is promotion-ready only for FINANCE_DEEP candidate evaluation: it contains a complete FINANCE_DEEP real rejection plus a different-topic FINANCE_DEEP held-out baseline. FINANCE_BROAD has no equivalent rejection+held-out pair and is not quality-promotion-ready. A concrete quality-improvement claim still requires candidate distillation and independently verified blind pairwise candidate-vs-baseline evidence. Personalized Writing DNA still requires real user acceptance/edit or post-publication performance evidence.",
     "Normal independent audits are separate SDK runs when the SDK path is used, but the owner does not currently claim ATTESTED_ISOLATED assurance."
   ]
 }
