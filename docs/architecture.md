@@ -23,7 +23,7 @@ Financial Writing owns `FORMAL_ARTICLE` only.
 Unspecified platform defaults to `DUAL`: one audited research base with independently edited `FINANCE_DEEP` and `FINANCE_BROAD` outputs.
 
 - `FINANCE_DEEP`: `MATERIAL_COMPLETE` relative to the bounded audited research universe.
-- `FINANCE_BROAD`: `SELECTIVE_TRAFFIC`, normally organized around one to three supported information gaps/core contradictions.
+- `FINANCE_BROAD`: `SELECTIVE_TRAFFIC`, normally organized around one to three supported information gaps/core contradictions, but still required to expose a non-niche financial stake to a cold finance reader rather than assuming sector interest.
 
 Delivery is `WORD_FILE_ONLY`. There is no chat-text publication artifact or visual/sticker/image workflow.
 
@@ -40,11 +40,14 @@ When `REQUIRED`, market explanation separates economic benefit/fundamental reali
 Observed price action proves that selection occurred, not why.
 
 ## 6. Editorial ownership boundaries
-- Editorial owns material coverage and macro section prerequisites/order.
-- Natural Authorial Prose owns paragraph/sentence reasoning progression, authorial selectivity and rhetoric calibration.
+- Editorial owns material coverage, company comparison usefulness and macro section prerequisites/order.
+- Natural Authorial Prose owns paragraph/sentence reasoning progression, major-section bridge quality, authorial selectivity and rhetoric calibration.
 - Reader Funnel owns whether title/opening/H1/flow gives the intended reader sufficient truthful reason to click, continue and finish.
 
 Do not triple-count the same defect across those gates. There is no canned `structure_patterns.md` library; structures are generated from the current TopicDNA and prior outlines may only be used for collision detection.
+
+### Company comparison decision map
+For multi-company topics, Deep coverage is not satisfied by name recall alone. The editorial layer must resolve meaningful economic differences using dimensions such as current order visibility, realization speed, earnings sensitivity, validated overseas exposure and technology optionality. The result may state research order/evidence strength or “current vs later” buckets, but it may not become executable buy/sell guidance, a target-price list or euphemistic recommendation.
 
 ## 7. Reader Funnel assurance
 The funnel is:
@@ -52,19 +55,21 @@ The funnel is:
 
 The dedicated gate checks audience-promise fit, headline information value, curiosity/concreteness balance, current WeChat search discoverability, first-three-sentence retention, continuation value, completion payoff and title/opening payoff.
 
-Cross-industry finance relevance is optional and mode-sensitive, not a universal hard rule.
+Cross-industry finance relevance is optional and mode-sensitive, not a universal hard rule. `FINANCE_BROAD` instead applies a cold-reader finance test: the title/opening should expose the relevant profit/orders/cash-flow/capital-expenditure/company-differentiation/policy stake without requiring pre-existing niche-sector interest.
 
 ## 8. Natural Authorial Prose and Writing DNA
 The independent prose gate checks nine dimensions:
 1. fidelity and responsibility;
 2. semantic contribution;
-3. argument progression;
+3. argument progression, including earned major-section bridges;
 4. reader calibration;
 5. authorial selectivity;
 6. evidence specificity;
 7. structural/rhythm naturalness;
 8. template/redundancy control;
 9. uncertainty/rhetoric calibration.
+
+A major section should normally create the reason for the next one through cause, consequence, chronology, comparison, narrowing, correction or inference. Generic “接下来看看” transitions do not satisfy that invariant.
 
 Writing DNA uses provenance. `record_writing_learning_sample` stores raw task-level USER_EDIT / USER_FEEDBACK / USER_ACCEPTANCE / USER_REJECTION / POST_PUBLICATION_PERFORMANCE evidence. Samples remain `RAW_EVIDENCE_ONLY`; durable promotion requires the maintenance policy rather than automatic mutation from one sample.
 
@@ -76,7 +81,9 @@ Only Word artifacts are public deliverables:
 
 The only public artifact resource template is `writing-docx://{task_id}/{kind}`.
 
-Deterministic Word rules include H1 `18pt`, H2 `15pt`, body `13.5pt`, H3 currently `12pt`, zero publication tables, Chinese numbering normalization and preservation/verification of explicit skim-path bold spans. Company names are not blanket-bolded.
+Deterministic Word rules include H1 `18pt`, H2 `15pt`, body `13.5pt`, H3 currently `12pt`, zero publication tables, **zero underlines**, Chinese numbering normalization and preservation/verification of explicit skim-path bold spans. Company names are not blanket-bolded.
+
+Publication articles do not append a tail `资料来源 / 参考资料 / 参考来源 / 来源汇总` section. Source provenance remains in research/audit state and source identity is attributed naturally in prose when it materially matters. The risk disclaimer is rendered as one final fully italic inline paragraph beginning `风险提示：`, with no separate numbered risk H1.
 
 Mechanical PASS requires every applicable Word artifact to exist. Rerender clears stale render pages first. Public summaries and audit Word must not expose server-local filesystem paths.
 
@@ -94,7 +101,7 @@ Dedicated Reader Funnel and Authorial Prose REVISE decisions route immediately t
 ## 12. Public MCP surface
 `financial_writing_agent/plugin_server.py` is the only public MCP registration surface. `runtime_service.py` owns operations and registers no server.
 
-v0.7 exposes 17 typed tools plus one Word resource template. New v0.7 capabilities include class-accounted Universe Coverage, material-company reconciliation, title strategy diversity, template-cluster guards, explicit semantic-audit provenance, `resume_blocked_task` recovery and `record_writing_learning_sample` raw evidence capture.
+v0.7 exposes 17 typed tools plus one Word resource template. Current v0.7 capabilities include class-accounted Universe Coverage, material-company reconciliation, company decision maps, broad cold-reader finance framing, title strategy diversity, major-section progression guards, clean Word presentation, template-cluster guards, explicit semantic-audit provenance, `resume_blocked_task` recovery and `record_writing_learning_sample` raw evidence capture.
 
 The old `mcp_server.py`, `CHAT_TEXT`, visual/sticker contracts and canned structure-pattern library are deleted and must not return.
 
@@ -102,8 +109,8 @@ The old `mcp_server.py`, `CHAT_TEXT`, visual/sticker contracts and canned struct
 The optional OpenAI Agents SDK executor uses the same deterministic state machine. SDK runs carry a workflow name, task `group_id` and stage metadata while excluding sensitive trace payloads. Repository wiring proves capability design, not that a particular ChatGPT session has the required executor/runtime; session capability handshake remains required.
 
 ## 14. Assurance classes
-1. deterministic assertions: schemas, transitions, recovery, invalidation, artifacts, typography, zero tables, file identity, path privacy and render checks;
-2. independent semantic judges: research completeness, optional market explanation, Reader Funnel, Natural Authorial Prose/Writing DNA, compliance;
+1. deterministic assertions: schemas, transitions, recovery, invalidation, artifacts, typography, zero tables, zero underlines, no publication-tail source appendix, inline italic risk, file identity, path privacy and render checks;
+2. independent semantic judges: research completeness, optional market explanation, Reader Funnel, Natural Authorial Prose/Writing DNA, company comparison usefulness and compliance;
 3. trajectory/eval tests: legal stage order, revision loops, fail-closed recovery and stale-evidence invalidation.
 
 Passing one class never substitutes for another.
