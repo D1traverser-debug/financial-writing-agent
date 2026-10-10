@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "supported_from": ["3.3", "3.5", "3.6", "3.7"],
@@ -22,10 +22,37 @@
     "business_rule_authority": "skills/financial-writing-agent/SKILL.md plus stage-specific references",
     "known_stale_content": []
   },
+  "methodology": {
+    "profile_refs": {
+      "operational_hygiene": "1.0",
+      "evolution": "1.0"
+    },
+    "hook_bindings": {
+      "observability_or_incident_evidence_location": "evals/quality_regression.json plus persisted WritingState learning evidence",
+      "self_maintenance_trigger_path": "references/maintenance.md#learning-evidence repeated-material-failure path",
+      "garbage_collection_owner_and_dependency_rule": "references/maintenance.md#change-protocol contradictory/legacy mechanism cleanup",
+      "reliability_or_change_freeze_guard": "financial_writing_agent.quality_regression.evaluate_quality_promotion plus references/maintenance.md repeated-failure reliability boundary",
+      "learning_evidence_location": "financial_writing_agent.runtime_service.record_writing_learning_sample",
+      "eval_or_regression_promotion_path": "financial_writing_agent.quality_regression.evaluate_quality_promotion",
+      "superseded_mechanism_cleanup_rule": "references/maintenance.md#change-protocol remove or repair conflicting/superseded mechanisms"
+    },
+    "overrides": {
+      "evaluator_selection": "owner-local blind pairwise writing-quality evaluation with candidate-position swap; deterministic correctness gates remain independent"
+    }
+  },
+  "methodology_assurance": {
+    "declaration_status": "BOUND_EXACT_VERSION",
+    "operational_status": "PENDING_VERIFIED_OWNER_LOCAL_EVIDENCE",
+    "quality_corpus_status": "NOT_READY",
+    "boundary": "Profile declaration is not operational proof. Quality promotion remains blocked until the owner corpus contains complete real rejection evidence, a positive anchor/performance case, held-out coverage and independently verified blind pairwise judge traces."
+  },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
     "D1traverser-debug/universal-continuity-agent@main/LIVE_CHAT_RECONCILIATION_POLICY.json",
     "D1traverser-debug/universal-continuity-agent@main/PROGRESS_OBSERVABILITY_POLICY.json",
-    "D1traverser-debug/universal-continuity-agent@main/CONTEXT_RECOVERY_POLICY.json"
+    "D1traverser-debug/universal-continuity-agent@main/CONTEXT_RECOVERY_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/OWNER_ADAPTER_CONTRACT.json",
+    "D1traverser-debug/universal-continuity-agent@main/SYSTEM_MAINTENANCE_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/CONTINUOUS_LEARNING_POLICY.md"
   ]
 }
