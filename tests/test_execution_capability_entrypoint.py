@@ -29,4 +29,4 @@ def test_material_user_feedback_has_real_durable_learning_evidence_path():
     learning = capabilities["learning_evidence_capture"]
     assert learning["assurance_ceiling"] == "SESSION_EXECUTABLE"
     assert "record_writing_learning_sample" in learning["invocation_path"]
-    assert "persisted sample receipt" in learning["evidence_contract"]
+    assert any("persisted sample receipt" in item for item in learning["evidence_contract"])
