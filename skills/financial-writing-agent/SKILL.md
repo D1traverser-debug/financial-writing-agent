@@ -14,6 +14,10 @@ Do not automatically start a new task.
 
 Runtime checkpoint is executable task authority. GitHub `main` is code/rule authority. Notion/Drive pages are knowledge/mirrors unless explicitly designated otherwise.
 
+Before any material stage execution, read `continuity/EXECUTION_CAPABILITIES.json` from current GitHub `main`. It defines the owner capability ceiling; it does **not** prove that the current chat/session actually has the SDK, model runtime, web access, plugin/runtime binding or other tools required by the current stage. Handshake only the capability or capabilities required by the exact current stage / `next_action`.
+
+Prefer the owner-native state machine and stage executor when available. `CHAT_BRIDGED` execution is allowed only where the capability manifest explicitly lists it as a safe degraded mode, and the result must still be submitted through the owner workflow/gate contract. A missing hard capability blocks that exact stage rather than licensing free-form completion. Do not claim independent/provider-isolated review unless the required execution/context/trace evidence exists. A Skill paragraph, configured Agent name or code stub is not execution proof.
+
 ## 2. Workflow invariant
 Follow exactly:
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`.
