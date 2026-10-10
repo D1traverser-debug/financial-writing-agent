@@ -16,6 +16,13 @@ StageText = Literal[
 ContentModeText = Literal["FORMAL_ARTICLE"]
 DistributionModeText = Literal["FINANCE_DEEP", "FINANCE_BROAD", "DUAL"]
 DeliveryChannelText = Literal["WORD_FILE_ONLY"]
+LearningSampleType = Literal[
+    "USER_EDIT",
+    "USER_FEEDBACK",
+    "USER_ACCEPTANCE",
+    "USER_REJECTION",
+    "POST_PUBLICATION_PERFORMANCE",
+]
 
 
 class PublicResultModel(BaseModel):
@@ -40,6 +47,19 @@ class ArtifactSummary(PublicResultModel):
     mime_type: str
 
 
+class LearningSampleSummary(PublicResultModel):
+    sample_type: LearningSampleType
+    summary: str
+    source_refs: list[str] = Field(default_factory=list)
+    original_excerpt: str = ""
+    revised_excerpt: str = ""
+    metrics: dict[str, str | int | float] = Field(default_factory=dict)
+    notes: list[str] = Field(default_factory=list)
+    recorded_stage: StageText
+    recorded_at: datetime
+    promotion_status: Literal["RAW_EVIDENCE_ONLY"] = "RAW_EVIDENCE_ONLY"
+
+
 class EditorialChecklist(PublicResultModel):
     general_editorial: GateStatusText
     reader_funnel: GateStatusText
@@ -60,6 +80,7 @@ class CompletionChecklist(PublicResultModel):
     bold_skim_path: GateStatusText
     word_render: GateStatusText
     compliance_risk: GateStatusText
+    writing_dna_evidence_samples: int = Field(ge=0)
     knowledge: KnowledgeChecklist
 
 
@@ -76,11 +97,13 @@ class WritingTaskSummary(PublicResultModel):
     gate_status: dict[str, GateStatusText] = Field(default_factory=dict)
     blocked_reason: str | None = None
     blocked_resume_stage: StageText | None = None
+    learning_sample_count: int = Field(ge=0)
     updated_at: datetime
     next_action: str
     source_refs: list[str] | None = None
     gates: dict[str, GateSummary] | None = None
     artifacts: dict[str, ArtifactSummary] | None = None
+    learning_samples: list[LearningSampleSummary] | None = None
     completion_checklist: CompletionChecklist | None = None
 
 
