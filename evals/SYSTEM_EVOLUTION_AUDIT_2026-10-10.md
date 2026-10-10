@@ -88,10 +88,14 @@ The valid tests were not weakened merely to obtain green CI. Where current autho
 
 ## Validation history
 
-Validated pre-1.2 Financial behavioral/evolution head: `2a8a0e6ab81e3f2d24d6f38f28b867ca0893b486`.
-GitHub Actions run `38065739293`: full PASS across SDK smoke, 17-tool MCP smoke, 74 unit/trajectory tests, executable contract eval, static ownership/bundle audit, isolated wheel install and DOCX render smoke.
+Pre-1.2 full-green checkpoint: head `2a8a0e6ab81e3f2d24d6f38f28b867ca0893b486`, run `38065739293`.
 
-Receipt-contract-1.2 and semantic-verifier hardening occurred after that run and therefore requires a fresh final CI run. Historical green evidence must not be substituted for post-1.2 validation.
+Final receipt-contract-1.2 Financial behavioral/evolution head: `8570aa4678fabb81ff8ed711a63b226d4a14a21f`.
+GitHub Actions run `38066620015`, job `114255450783`: PASS across OpenAI Agents SDK surface smoke, MCP Streamable HTTP smoke, unit/trajectory suite, executable contract eval baseline, static ownership/bundle audit, isolated wheel install and DOCX render smoke.
+
+Universal control-plane receipt-contract-1.2 validation also passed at head `85cd56891b74efcd373b9fab4b5851d685a58014`, run `38066665137`, job `114255583495`, including `runtime.system_audit` and full pytest.
+
+These CI results validate wiring, contracts and regressions. They do not establish independent operational methodology PASS for a real action and do not establish better prose quality.
 
 ## Behavioral effect
 - A writing failure cannot directly become a new production method merely because the user or assistant proposes one.
