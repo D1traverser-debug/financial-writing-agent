@@ -181,9 +181,13 @@ class EditorialPlan(StrictModel):
 class HeadlineCandidate(StrictModel):
     title: str = Field(min_length=1)
     angle: str = Field(min_length=1)
+    target_reader: str = Field(min_length=1)
     finance_relevance: str = Field(min_length=1)
-    cross_finance_click_reason: str = Field(min_length=1)
+    target_reader_click_reason: str = Field(min_length=1)
+    broader_finance_relevance: str = ""
     primary_gap: str = Field(min_length=1)
+    promised_payoff: str = Field(min_length=1)
+    headline_form: Literal["statement", "question", "other"] = "statement"
     cognitive_load: Literal["low", "medium", "high"]
     wechat_search_terms: list[str] = Field(min_length=1)
     search_evidence_refs: list[str] = Field(min_length=1)
@@ -238,18 +242,15 @@ class DraftPackage(StrictModel):
 
 
 class HumanVoiceAuditRubric(StrictModel):
-    template_fingerprint: Literal["PASS", "REVISE"]
-    discourse_variability: Literal["PASS", "REVISE"]
-    semantic_progression: Literal["PASS", "REVISE"]
-    transition_continuity: Literal["PASS", "REVISE"]
-    repetition_control: Literal["PASS", "REVISE"]
-    rhythm_naturalness: Literal["PASS", "REVISE"]
-    concrete_evidence_density: Literal["PASS", "REVISE"]
-    reader_modeling: Literal["PASS", "REVISE"]
-    narrative_flow: Literal["PASS", "REVISE"]
-    authorial_specificity: Literal["PASS", "REVISE"]
-    uncertainty_calibration: Literal["PASS", "REVISE"]
-    extreme_language_control: Literal["PASS", "REVISE"]
+    fidelity_and_responsibility: Literal["PASS", "REVISE"]
+    semantic_contribution: Literal["PASS", "REVISE"]
+    argument_progression: Literal["PASS", "REVISE"]
+    reader_calibration: Literal["PASS", "REVISE"]
+    authorial_selectivity: Literal["PASS", "REVISE"]
+    evidence_specificity: Literal["PASS", "REVISE"]
+    structural_rhythm_naturalness: Literal["PASS", "REVISE"]
+    template_redundancy_control: Literal["PASS", "REVISE"]
+    uncertainty_rhetoric_calibration: Literal["PASS", "REVISE"]
 
 
 class StyleAuditDecision(StrictModel):
@@ -264,18 +265,20 @@ class StyleAuditDecision(StrictModel):
     def status_matches_rubric(self):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
-            raise ValueError(f"human-voice status must be {expected} for the supplied rubric")
+            raise ValueError(f"authorial-prose status must be {expected} for the supplied rubric")
         if self.status == "REVISE" and not self.revision_notes:
-            raise ValueError("REVISE human-voice audit requires revision_notes")
+            raise ValueError("REVISE authorial-prose audit requires revision_notes")
         return self
 
 
 class HookAuditRubric(StrictModel):
-    title_cross_finance_clickability: Literal["PASS", "REVISE"]
+    audience_promise_fit: Literal["PASS", "REVISE"]
+    headline_information_value: Literal["PASS", "REVISE"]
+    headline_curiosity_balance: Literal["PASS", "REVISE"]
     title_wechat_search_intent: Literal["PASS", "REVISE"]
     opening_three_sentence_retention: Literal["PASS", "REVISE"]
-    h1_continuation_power: Literal["PASS", "REVISE"]
-    paragraph_forward_pull: Literal["PASS", "REVISE"]
+    continuation_flow: Literal["PASS", "REVISE"]
+    completion_payoff: Literal["PASS", "REVISE"]
     title_opening_payoff: Literal["PASS", "REVISE"]
 
 
@@ -291,9 +294,9 @@ class HookAuditDecision(StrictModel):
     def status_matches_rubric(self):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
-            raise ValueError(f"hook status must be {expected} for the supplied rubric")
+            raise ValueError(f"reader-funnel hook status must be {expected} for the supplied rubric")
         if self.status == "REVISE" and not self.revision_notes:
-            raise ValueError("REVISE hook audit requires revision_notes")
+            raise ValueError("REVISE reader-funnel hook audit requires revision_notes")
         return self
 
 
