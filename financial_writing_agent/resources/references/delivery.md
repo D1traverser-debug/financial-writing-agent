@@ -48,8 +48,8 @@ On COMPLETE, chat returns a concise list covering at least:
 - runtime/stage gates;
 - research/evidence and FINANCE_DEEP material-completeness where applicable;
 - market-explanation completeness where applicable;
-- Hook Gate;
-- Natural Authorial Prose / Human Voice Gate;
+- Reader Funnel / Hook Gate;
+- Natural Authorial Prose / Writing DNA Gate;
 - general editorial audit;
 - bold skim path;
 - Word/no-table/render;
