@@ -80,7 +80,7 @@ mcp = MCPServer(
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones, start runtime state before research, and never skip a gate. "
-        "Financial Writing v0.4 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
+        "Financial Writing v0.5 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
         "The model owns research, writing and semantic audits; the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
     ),
 )
@@ -140,7 +140,7 @@ def submit_editorial_plan(task_id: Annotated[str, Field(min_length=1)], editoria
 
 @mcp.tool(title="Submit headline package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_headlines(task_id: Annotated[str, Field(min_length=1)], headlines: HeadlinePackage) -> WritingTaskSummary:
-    """Validate 8–12 headline candidates per applicable mode, cross-finance click reasons, current WeChat search terms with evidence references, and selected-title membership."""
+    """Validate 8–12 headline candidates per mode with target-reader fit, click reason, promised payoff, information gap, cognitive load, current WeChat search evidence and optional broader-finance relevance."""
     return _summary(impl.submit_headlines(task_id, headlines.model_dump(mode="json")))
 
 
@@ -150,21 +150,21 @@ def submit_draft(task_id: Annotated[str, Field(min_length=1)], draft: DraftPacka
     return _summary(impl.submit_draft(task_id, draft.model_dump(mode="json")))
 
 
-@mcp.tool(title="Submit hook audit", annotations=STATE_WRITE_TOOL, structured_output=True)
+@mcp.tool(title="Submit reader funnel audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_hook_audit(task_id: Annotated[str, Field(min_length=1)], report: HookAuditDecision) -> WritingTaskSummary:
-    """Record the independent Hook Gate over title clickability, current WeChat search intent, first three sentences, H1 continuation, paragraph forward pull and title-opening payoff."""
+    """Record the independent Reader Funnel Gate over audience-promise fit, headline information and curiosity balance, search discoverability, first-three-sentence retention, continuation flow, completion payoff and title-opening payoff."""
     return _summary(impl.submit_hook_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit authorial prose audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_style_audit(task_id: Annotated[str, Field(min_length=1)], report: StyleAuditDecision) -> WritingTaskSummary:
-    """Record the independent Natural Authorial Prose Gate across the full 12-part rubric, including semantic progression, evidence density, reader modeling, authorial specificity and uncertainty calibration."""
+    """Record the independent nine-part Natural Authorial Prose / Writing DNA Gate covering fidelity, semantic contribution, argument progression, reader calibration, selectivity, evidence specificity, natural structure/rhythm, template control and calibrated rhetoric."""
     return _summary(impl.submit_style_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit editorial audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record the general semantic editorial verdict after Hook and authorial-prose gates pass, checking evidence, mode-specific completeness, market explanation, reasoning, skim path and compliance."""
+    """Record the general semantic editorial verdict after Reader Funnel and authorial-prose gates pass, checking evidence, mode-specific completeness, market explanation, reasoning, skim path and compliance."""
     return _summary(impl.submit_editorial_audit(task_id, decision.model_dump(mode="json")))
 
 
