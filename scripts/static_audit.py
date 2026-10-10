@@ -27,8 +27,8 @@ PLUGIN_JSON = ROOT / "plugin.json"
 PYPROJECT = ROOT / "pyproject.toml"
 CAPABILITIES = ROOT / "continuity" / "EXECUTION_CAPABILITIES.json"
 
-CURRENT_VERSION = "0.6.0"
-CURRENT_LABEL = "v0.6"
+CURRENT_VERSION = "0.7.0"
+CURRENT_LABEL = "v0.7"
 EXPECTED_TOOLS = {
     "start_writing_task", "get_writing_task", "list_recent_writing_tasks",
     "resume_blocked_task", "record_writing_learning_sample", "record_knowledge_context",
@@ -254,7 +254,7 @@ def main() -> None:
     tools = check_runtime_contract()
     check_policy_and_executor()
     check_site_and_dead_contracts()
-    print(f"PASS: v0.6 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; Universe Coverage + Deep reconciliation + title diversity + template guard + independent semantic audits protected")
+    print(f"PASS: v0.7 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; Universe Coverage + Deep reconciliation + title diversity + template guard + independent semantic audits protected")
 
 
 if __name__ == "__main__":
