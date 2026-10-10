@@ -18,6 +18,8 @@ REQUIRED = {
     "start_writing_task",
     "get_writing_task",
     "list_recent_writing_tasks",
+    "resume_blocked_task",
+    "record_writing_learning_sample",
     "record_knowledge_context",
     "submit_research",
     "submit_research_audit",
@@ -83,13 +85,8 @@ async def verify() -> None:
 
             templates = await session.list_resource_templates()
             uris = {str(item.uri_template) for item in templates.resource_templates}
-            missing_resources = sorted(REQUIRED_RESOURCE_TEMPLATES - uris)
-            unexpected_resources = sorted(uris - REQUIRED_RESOURCE_TEMPLATES)
-            if missing_resources or unexpected_resources:
-                raise RuntimeError(
-                    f"artifact resource template mismatch; missing={missing_resources}; "
-                    f"unexpected={unexpected_resources}; got={sorted(uris)}"
-                )
+            if uris != REQUIRED_RESOURCE_TEMPLATES:
+                raise RuntimeError(f"artifact resource template mismatch; got={sorted(uris)}")
 
             result = await session.call_tool(
                 "start_writing_task",
@@ -103,12 +100,26 @@ async def verify() -> None:
             if structured.get("current_stage") != "RESEARCH" or not structured.get("task_id"):
                 raise RuntimeError(f"unexpected start result: {structured}")
             if structured.get("delivery_channel") != "WORD_FILE_ONLY":
-                raise RuntimeError(f"v0.5 task must be Word-only: {structured}")
+                raise RuntimeError(f"v0.6 task must be Word-only: {structured}")
+            if structured.get("learning_sample_count") != 0:
+                raise RuntimeError(f"new v0.6 task should start with zero learning samples: {structured}")
             if any("VISUAL" in item or "CHAT_TEXT" in item for item in structured.get("required_outputs", [])):
-                raise RuntimeError(f"removed artifact contract leaked into v0.5 task: {structured}")
+                raise RuntimeError(f"removed artifact contract leaked into v0.6 task: {structured}")
+
+            learning = await session.call_tool(
+                "record_writing_learning_sample",
+                arguments={
+                    "task_id": structured["task_id"],
+                    "sample_type": "USER_FEEDBACK",
+                    "summary": "smoke-test raw learning receipt; must not promote a durable rule",
+                },
+            )
+            if learning.is_error or learning.structured_content.get("learning_sample_count") != 1:
+                raise RuntimeError(f"learning-sample ledger failed: {learning.content}")
+
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} Word-only resource template exposed, and v0.5 start result validated"
+                f"{len(uris)} Word-only resource template exposed, v0.6 start result and raw learning ledger validated"
             )
 
 
