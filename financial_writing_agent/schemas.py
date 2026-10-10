@@ -26,6 +26,8 @@ CausalConfidence = Literal[
     "UNRESOLVED",
 ]
 
+MarketExplanationScope = Literal["REQUIRED", "NOT_MATERIAL"]
+
 
 class MarketExplanationHypothesis(StrictModel):
     mechanism: str = Field(min_length=1)
@@ -111,6 +113,8 @@ class ResearchPackage(StrictModel):
     industry_chain: list[str] = Field(min_length=1)
     transmission_chain: list[str] = Field(min_length=1)
     universe: list[CompanyFinding] = Field(default_factory=list)
+    market_explanation_scope: MarketExplanationScope
+    market_explanation_scope_reason: str = Field(min_length=1)
     market_explanation: MarketExplanationMap | None = None
     evidence_ledger: list[EvidenceItem] = Field(min_length=1)
     counterevidence: list[str] = Field(default_factory=list)
@@ -122,9 +126,11 @@ class ResearchPackage(StrictModel):
     knowledge_writeback_candidates: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
-    def stock_universe_requires_market_explanation(self):
-        if self.universe and self.market_explanation is None:
-            raise ValueError("stock/theme research with a company universe requires market_explanation")
+    def market_explanation_matches_scope(self):
+        if self.market_explanation_scope == "REQUIRED" and self.market_explanation is None:
+            raise ValueError("market_explanation_scope=REQUIRED requires market_explanation")
+        if self.market_explanation_scope == "NOT_MATERIAL" and self.market_explanation is not None:
+            raise ValueError("market_explanation_scope=NOT_MATERIAL must not include market_explanation")
         return self
 
 
@@ -241,7 +247,7 @@ class DraftPackage(StrictModel):
     finance_broad: ArticlePayload | None = None
 
 
-class HumanVoiceAuditRubric(StrictModel):
+class AuthorialProseAuditRubric(StrictModel):
     fidelity_and_responsibility: Literal["PASS", "REVISE"]
     semantic_contribution: Literal["PASS", "REVISE"]
     argument_progression: Literal["PASS", "REVISE"]
@@ -256,9 +262,10 @@ class HumanVoiceAuditRubric(StrictModel):
 class StyleAuditDecision(StrictModel):
     status: Literal["PASS", "REVISE"]
     evidence: list[str] = Field(min_length=1)
-    rubric: HumanVoiceAuditRubric
+    rubric: AuthorialProseAuditRubric
     detected_patterns: list[str] = Field(default_factory=list)
-    transition_findings: list[str] = Field(default_factory=list)
+    reasoning_findings: list[str] = Field(default_factory=list)
+    revision_target: Literal["DRAFT"] | None = None
     revision_notes: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -266,8 +273,10 @@ class StyleAuditDecision(StrictModel):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
             raise ValueError(f"authorial-prose status must be {expected} for the supplied rubric")
-        if self.status == "REVISE" and not self.revision_notes:
-            raise ValueError("REVISE authorial-prose audit requires revision_notes")
+        if self.status == "REVISE" and (not self.revision_notes or self.revision_target != "DRAFT"):
+            raise ValueError("REVISE authorial-prose audit requires revision_target=DRAFT and revision_notes")
+        if self.status == "PASS" and self.revision_target is not None:
+            raise ValueError("PASS authorial-prose audit must not set revision_target")
         return self
 
 
@@ -288,6 +297,7 @@ class HookAuditDecision(StrictModel):
     rubric: HookAuditRubric
     search_terms_checked: list[str] = Field(min_length=1)
     search_evidence_refs: list[str] = Field(min_length=1)
+    revision_target: Literal["TITLE", "DRAFT"] | None = None
     revision_notes: list[str] = Field(default_factory=list)
 
     @model_validator(mode="after")
@@ -295,8 +305,10 @@ class HookAuditDecision(StrictModel):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
             raise ValueError(f"reader-funnel hook status must be {expected} for the supplied rubric")
-        if self.status == "REVISE" and not self.revision_notes:
-            raise ValueError("REVISE reader-funnel hook audit requires revision_notes")
+        if self.status == "REVISE" and (not self.revision_notes or self.revision_target is None):
+            raise ValueError("REVISE reader-funnel hook audit requires revision_target and revision_notes")
+        if self.status == "PASS" and self.revision_target is not None:
+            raise ValueError("PASS reader-funnel hook audit must not set revision_target")
         return self
 
 
@@ -309,8 +321,10 @@ class GateDecision(StrictModel):
 
     @model_validator(mode="after")
     def decision_is_actionable(self):
-        if self.status == "REVISE" and self.revision_target is None:
-            raise ValueError("REVISE requires revision_target")
+        if self.status in {"REVISE", "FAIL"} and self.revision_target is None:
+            raise ValueError(f"{self.status} requires revision_target")
         if self.status == "FAIL" and not self.defects:
             raise ValueError("FAIL requires at least one defect")
+        if self.status == "PASS" and self.revision_target is not None:
+            raise ValueError("PASS must not set revision_target")
         return self
