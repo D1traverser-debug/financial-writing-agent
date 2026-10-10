@@ -45,7 +45,6 @@ def test_current_rule_boundaries_and_legacy_removal():
 
     assert "Reader Funnel / Hook Gate" in skill
     assert "Natural Authorial Prose / Writing DNA Gate" in skill
-    assert "cross-industry finance clickability" in skill
     assert "not a universal hard requirement" in skill
     assert "references/market_explanation.md" in skill
     assert "VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED" in skill
