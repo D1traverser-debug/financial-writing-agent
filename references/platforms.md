@@ -1,44 +1,56 @@
 # Platform adaptation
 
-This file owns distribution mechanics, not generic writing method. Financial Writing no longer owns image/sticker production.
+## Ownership
+This module owns **distribution-surface adaptation** only. It does not redefine evidence standards, material completeness, authorial prose or the Reader Funnel rubric.
+
+Financial Writing has no image/sticker production surface.
 
 ## Default routing
-If no destination/platform is specified for a normal formal article, use `DUAL` by default unless the user gives a different current-run instruction.
+If no destination is specified for a formal article, use `DUAL` unless the user gives a different current-run instruction.
 
-## FINANCE_DEEP — financial communities / full financial version
-Typical targets include Xueqiu, Jiuyangongshe and Eastmoney-style finance communities. Preserve the full bounded reasoning path and every material completeness obligation defined by the editorial plan. Do not apply traffic-version selective compression to this mode.
+## FINANCE_DEEP
+Typical destinations include finance communities and readers seeking a complete explanation. Preserve the bounded material-complete reasoning path. Platform packaging must not force broad-reach framing that weakens precision or attracts the wrong reader.
 
-## FINANCE_BROAD — traffic-acquisition / broad-distribution version
-Typical targets include Toutiao, Baijiahao, NetEase-style distribution and similar feeds. The purpose is broader entry and completion while remaining a financial article. It may select around one to three core contradictions/information gaps, but must retain the evidence and causal chain needed for every conclusion it makes.
+## FINANCE_BROAD
+Typical destinations include broad-distribution feeds. Reduce first-read friction and emphasize one to three supported information gaps while preserving the evidence chain of retained conclusions.
 
 ## WeChat public-account long-form
-WeChat has several distinct discovery/consumption surfaces: subscription, recommendation/social circulation and Search. Treat recommendation/click optimization and search intent as related but **independent** conditions.
+WeChat discovery can come from subscription, recommendation/social circulation and Search. Treat click/recommendation value and search intent as related but **independent** signals.
 
-### Title
-A WeChat-oriented title must:
-1. give finance readers outside the immediate sector a supported financial reason to click;
-2. independently consider current search-intent terms from evidence gathered for the task.
+### Title adaptation
+A WeChat title must first match the **target reader and promised payoff of the current mode**.
 
-Do not hard-code remembered “high-frequency keywords”. Prefer the user's own current account search-source data, WeChat Search/Index/suggestions or current Tencent/WeChat evidence. If only proxies are available, label that boundary. Never invent exact search volume.
+- For `FINANCE_BROAD`, broader-finance stakes such as profit, pricing, orders, supply/demand, valuation, cash flow, policy transmission, capital allocation or market selection can widen reach when they are genuinely material.
+- For `FINANCE_DEEP`, cross-industry appeal is optional. A narrower sector-specific title is valid when it better matches the qualified finance reader and the article's actual payoff.
+
+Do not hide the topic identity merely to chase reach. Do not require every article to manufacture a cross-industry reason to click.
+
+Independently, consider current WeChat search intent using evidence gathered for the task. Prefer:
+1. the user's own current account search/source terms and performance;
+2. current WeChat Search / WeChat Index / search suggestions;
+3. current Tencent/WeChat ecosystem evidence;
+4. clearly labeled proxies when direct evidence is unavailable.
+
+Never invent exact search volume or call a term “高频” without evidence.
 
 ### Search placement
-Core entity/event/company/category terms may appear naturally across title, first three sentences and body. Search coverage must not become keyword stuffing and must not make a title less readable or less truthful.
+Core entity/event/company/category terms may appear naturally in title, opening and body. Search coverage must not become keyword stuffing or make the title less truthful/readable.
 
-### Retention/completion
-The first three sentences are a dedicated retention surface. H1s and paragraph transitions then carry forward-pull through the article. For the user's current audience profile (45 common, substantial 55+ share), prioritize clear hierarchy, visible numbering, readable paragraph density and a strong bold skim path without reducing analytical depth.
+### Mobile/readability adaptation
+For the currently known audience, use clear hierarchy, visible numbering, readable paragraph density and a useful bold skim path without reducing analytical depth. Age/device clues are priors, not sophistication labels.
 
 ## Platform data discipline
-Treat algorithms as changing external systems. Prefer current official/UI evidence and the account's own recent performance data when available. One viral or failed article is an experience sample, not a permanent rule.
-
-Separate:
+Algorithms are changing external systems. Prefer current official/UI evidence and the account's own recent behavior. Separate:
 - distribution/recommendation signals;
 - search/long-tail signals;
 - article-quality/retention signals;
 - account-specific observed performance.
 
-Never let a platform tactic redefine evidence standards or FINANCE_DEEP material completeness.
+One viral or failed article is a sample, not a permanent rule.
 
 ## Post-publication learning
-When data is available, capture at least: platform, version_type, topic, title, publish_time, article_length, impressions/recommendations, reads, CTR/read-recommend rate, average read time, completion/effective rate, likes, comments, shares, favorites, follows, traffic-source mix, search share, recommendation share and distribution notes.
+When data is available, record it with `record_writing_learning_sample(sample_type="POST_PUBLICATION_PERFORMANCE", ...)` or an equivalent durable evidence record.
 
-Use comparable repeated samples to update hypotheses. Do not promote one result into a rigid title or structure formula.
+Useful metrics can include platform, version type, topic, title, publish time, article length, impressions/recommendations, reads, CTR/read-recommend rate, average read time, completion/effective rate, likes, comments, shares, favorites, follows, traffic-source mix, search share and recommendation share.
+
+Use repeated comparable samples to update hypotheses. Do not promote one result into a rigid title or structure formula.
