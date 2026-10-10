@@ -13,12 +13,19 @@
     "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
     "semantic_review_terms": ["买入", "卖出"]
   },
+  "research": {
+    "universe_class_coverage_required": true,
+    "universe_recall_sources_min": 2,
+    "silent_company_omission_forbidden": true,
+    "saturation_requires_class_level_recall": true
+  },
   "style": {
     "continuous_report_prose": true,
     "conclusion_first_preferred": false,
     "authorial_prose_semantic_audit": true,
     "heading_hierarchy": ["一、", "（1）", "①"],
     "numbering_encouraged": true,
+    "deep_numbered_navigation_required_when_branching": true,
     "forbidden_heading_prefixes": ["·", "•"],
     "bold_skim_path_required": true,
     "fidelity_and_responsibility_required": true,
@@ -29,6 +36,7 @@
     "evidence_specificity_required": true,
     "structural_rhythm_naturalness_required": true,
     "template_redundancy_control_required": true,
+    "template_cluster_guard_required": true,
     "uncertainty_rhetoric_calibration_required": true,
     "optimize_for_ai_detector": false,
     "writing_dna_learning": {
@@ -45,6 +53,9 @@
   },
   "editorial": {
     "finance_deep_material_complete": true,
+    "finance_deep_material_company_mentions_required": true,
+    "finance_deep_representative_stock_shortcut_forbidden": true,
+    "stock_grounded_validation_sections_required": true,
     "finance_broad_selective_compression": true,
     "finance_broad_core_contradictions_max": 3,
     "macro_structural_coherence_required": true
@@ -62,6 +73,8 @@
   "hooks": {
     "formal_headline_candidates_min": 8,
     "formal_headline_candidates_max": 12,
+    "headline_angle_families_min": 5,
+    "synonym_only_headline_pool_is_fail": true,
     "qualified_click_required": true,
     "mode_specific_reader_fit_required": true,
     "cross_finance_clickability_required": false,
@@ -74,6 +87,12 @@
     "completion_payoff_required": true,
     "title_opening_payoff_required": true,
     "account_performance_over_generic_demographics": true
+  },
+  "audit": {
+    "semantic_pass_requires_independent_executor": true,
+    "chat_self_review_cannot_pass": true,
+    "universe_to_deep_article_reconciliation_required": true,
+    "template_cluster_guard_can_force_revise": true
   },
   "risk_disclaimer": {
     "required": true,
