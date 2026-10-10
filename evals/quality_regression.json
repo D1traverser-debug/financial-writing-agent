@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "role": "OWNER_LOCAL_QUALITY_EVIDENCE_NOT_BUSINESS_AUTHORITY",
   "purpose": "Quality-regression evidence for Financial Writing system changes. This dataset complements deterministic correctness checks; it never replaces factual, compliance, state-machine or artifact invariants.",
   "promotion_rule": {
@@ -10,12 +10,17 @@
     "alternative_mechanism_comparison_required": true,
     "counterexample_or_failure_mode_evidence_required": true,
     "content_mode_scope_requires_real_rejection_and_two_heldout_topic_families": true,
+    "complete_case_immutable_artifact_binding_required": true,
+    "case_binding_verification_required_before_promotion": true,
+    "candidate_change_and_counterexample_semantic_verification_required": true,
+    "hard_invariant_regression_execution_proof_required": true,
     "blind_pairwise_required": true,
     "candidate_position_swap_required": true,
-    "independent_evidence_ref_verification_required": true,
-    "independent_judge_run_semantic_verification_required": true,
+    "evidence_ref_verification_required": true,
+    "judge_run_semantic_verification_required": true,
     "judge_run_candidate_binding_required": true,
     "judge_execution_ref_unique_and_verified_required": true,
+    "verifier_callback_presence_is_not_independent_execution_attestation": true,
     "hard_invariant_regressions_allowed": 0,
     "partial_evidence_may_promote": false,
     "personalized_writing_dna_requires_real_user_positive_evidence": true,
@@ -32,6 +37,13 @@
       "artifact_refs": [
         "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
         "chatgpt-library:file_0000000003788206b4f794cd08a200b2@1"
+      ],
+      "artifact_bindings": [
+        {
+          "ref": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "7ebe14739cfc9cc65d8e830b7c991cd3c42ec537"
+        }
       ],
       "topic": "国内海上风电省管项目启动与产业链修复",
       "failure_signals": [
@@ -58,7 +70,7 @@
         "subhead_information_value",
         "reader_value_density"
       ],
-      "evidence_note": "The rejected DOCX was rediscovered in ChatGPT Library and the complete extracted publication text is snapshotted under evals/artifacts so regression evidence does not depend on Library retention."
+      "evidence_note": "The rejected DOCX was rediscovered in ChatGPT Library and the complete extracted publication text is snapshotted under evals/artifacts. Promotion must verify the pinned repository blob rather than trusting the path string alone."
     },
     {
       "case_id": "rutile-2026-10-06-cross-topic-heldout-01",
@@ -70,6 +82,13 @@
       "artifact_refs": [
         "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
         "chatgpt-library:file_00000000980c8206b14a66c3a6ff4ce2@1"
+      ],
+      "artifact_bindings": [
+        {
+          "ref": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "1c5af81c35a7feb6c33140df58e4fde3fd423289"
+        }
       ],
       "topic": "力量发展塞拉利昂金红石项目投产与产能口径下修",
       "benchmark_role": "historical owner baseline on a different topic family; not a user-acceptance label and not an exemplar of personalized taste",
@@ -91,9 +110,10 @@
       "diagnostic_only_content_modes": ["FINANCE_DEEP"],
       "unauthorized_content_modes": ["FINANCE_BROAD"],
       "known_missing": [
-        "a second complete FINANCE_DEEP held-out case from a distinct topic family",
-        "a concrete candidate-distillation package comparing at least two mechanisms with counterexample/failure-mode evidence after corpus readiness is restored",
-        "independently verified blind pairwise candidate-vs-baseline judge evidence with semantic judge-run verification for any concrete FINANCE_DEEP system change",
+        "a second complete FINANCE_DEEP held-out case from a distinct topic family with immutable artifact binding",
+        "a concrete candidate-distillation package comparing at least two mechanisms with semantically verified change/counterexample evidence after corpus readiness is restored",
+        "a verified hard-invariant regression execution bound to the exact candidate change",
+        "verified blind pairwise candidate-vs-baseline judge evidence with case-binding and judge-run semantic verification for any concrete FINANCE_DEEP system change",
         "FINANCE_BROAD complete real-rejection evidence plus at least two held-out topic families before any FINANCE_BROAD quality claim"
       ]
     },
