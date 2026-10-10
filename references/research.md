@@ -1,91 +1,89 @@
 # Research module
 
-## Goal
-Research broadly/deeply enough that neither article mode is constrained by research omission. The agent should know substantially more than the traffic-oriented version contains, while FINANCE_DEEP must later express every material branch that could change the financial judgment.
+## Ownership
+Research owns **evidence breadth, source boundaries, company/concept coverage, counterevidence and the decision whether market-price explanation is materially required**. It does not decide article prose, headline packaging or Word formatting.
 
-For stock/theme-related topics, “全面” now includes **market-explanation completeness**: not only which companies are related, but why economic benefit differs, why market selection differs from economic benefit, what mechanisms could explain price leadership, and what evidence could support continuation versus temporary price pressure/reversal.
-
-Load `references/market_explanation.md` whenever the task materially discusses A-share companies, themes, price reactions, limit-ups, leadership or continuation.
+The research base must be materially broader than either published version so editorial choices are not forced by missing evidence.
 
 ## Cognition before expression
-Before deciding article structure, recover and/or build a market cognition map for the topic. When available, search durable StockBase/EventBase/knowledge assets and accepted prior research first, then verify time-sensitive claims against current sources.
+Before structuring an article, recover and/or build the topic cognition map. When durable knowledge is accessible, retrieve relevant EventBase/StockBase/topic knowledge first, then reverify current or material claims.
 
-The cognition map should cover what is material to the topic:
+Cover what is material to the topic:
 - catalyst/event chronology and what actually changed;
-- concept map and adjacent/competing concepts;
+- concept, subtheme and adjacent/competing concept map;
 - industry chain and economic transmission path;
-- relevant A-share universe rather than a few familiar names;
-- company fundamentals and business-stage differences;
-- market-selection logic and `why_this / why_not`;
-- when relevant, short-term market structure such as leader, liquidity carrier, follow-up/position roles, crowding, seal/order-book strength and related signals;
-- when companies/price action are central, the separate **economic-benefit** and **market-selection** explanations required by `market_explanation.md`.
+- relevant A-share company universe rather than a few familiar names;
+- company fundamentals, business stage and economic exposure;
+- sensitivity dimensions such as orders, price, volume, capacity, cost, revenue, margin, cash flow, valuation/expectation gap and realization timing;
+- negative evidence, stale/conflicting facts and unresolved gaps;
+- current market structure only when it is material to the question being written.
 
-This is the bounded evidence base from which mode-specific writing proceeds.
+A company list is part of normal financial research. It does **not** automatically mean the article needs short-term price-formation analysis.
 
 ## Coverage and stop condition
-“全面” must be auditable rather than infinite. Run at least two independent research sweeps using materially different query/source angles. Record `ResearchPackage.coverage` with concept/company/source coverage, exclusions, whether search saturated or remains bounded with gaps, material new items found on the last sweep and the reason research stopped.
+Run at least two materially different research sweeps using different source/query angles. Record `ResearchPackage.coverage` with concept/company/source coverage, exclusions, whether search saturated or remains bounded with gaps, material new items from the last sweep and the stop reason.
 
-A late sweep that still finds material concepts/companies or a materially different explanation of market selection is evidence to continue or explicitly mark the remaining gap. Never declare “all” by intuition.
+A late sweep that still finds a material concept, company class, contradictory fact or materially different explanation is evidence to continue or explicitly preserve the gap. “全面” must be auditable rather than asserted by intuition.
 
-## Required reasoning coverage
-- Establish event, chronology, policy/industry/company facts and what changed.
-- Map the relevant industry chain and economically important transmission path.
-- Build the relevant A-share universe for the topic.
-- For each material company/class, verify business relevance, business stage, customers/orders/revenue/profit/price/capacity when relevant.
-- Distinguish direct earnings/business exposure, economic linkage, second-order exposure, optionality and narrative-only association.
-- Compare sensitivity, not merely concept membership: exposure purity, revenue/profit share, earnings elasticity, capacity/order visibility, timing, valuation/expectation gap and other topic-specific dimensions.
-- Record negative evidence, counterexamples, stale facts and unresolved gaps.
-- When discussing market selection, answer both `why_this` and `why_not`.
-- Separate industrial beneficiary, earnings beneficiary, sentiment leader, liquidity carrier and other market roles instead of assuming they coincide.
-- Where price leadership/limit-up/continuation is material, consider multiple price-formation mechanisms and grade them using the causal-confidence ladder in `market_explanation.md`.
-- Explicitly investigate both persistence and exhaustion/reversal evidence; a strong move is not itself evidence that the underlying explanation is correct.
+## Required research reasoning
+- Establish the event, chronology and what changed relative to prior expectations.
+- Map the economically relevant transmission chain.
+- Build the relevant company universe and classify direct earnings/business exposure, economic linkage, second-order exposure, optionality, narrative-only association or uncertainty.
+- Compare **sensitivity**, not merely concept membership.
+- Record important counterexamples and `why_this / why_not` where comparison is material.
+- Separate industrial beneficiary, earnings beneficiary and market role instead of assuming they coincide.
+- Keep title/opening/core-conclusion facts on a stronger evidence standard than background material.
 
-## Market-explanation activation rule
-If `ResearchPackage.universe` is non-empty, the research package must include `market_explanation`.
+## Explicit Market Explanation scope
+Every `ResearchPackage` declares:
+- `market_explanation_scope = REQUIRED` or `NOT_MATERIAL`;
+- `market_explanation_scope_reason` explaining the decision.
 
-That map must contain:
-- concept/subtheme/economic-link coverage;
-- economic-benefit comparison dimensions;
+Set `REQUIRED` when the task materially asks or implies a cross-sectional **price-formation / market-selection** question, for example:
+- why one stock/subtheme moved first or more strongly than economically related peers;
+- limit-up/leadership/身位/continuation or reversal;
+- whether observed price action reflects information diffusion, attention, order flow, liquidity, positioning, price-limit mechanics or another competing mechanism;
+- an article conclusion that depends on explaining market selection rather than only economic benefit.
+
+Set `NOT_MATERIAL` when companies are being compared only for industry exposure, fundamentals, earnings realization, policy transmission or similar economic questions and the article does not make a material claim about why prices selected one name over another.
+
+**A non-empty company universe alone is not an activation trigger.** Do not force short-term market language into a pure industry, earnings or company-comparison article.
+
+When scope is `REQUIRED`, load `market_explanation.md` and provide the full multi-hypothesis map. When scope is `NOT_MATERIAL`, do not submit a market-explanation map.
+
+## Market Explanation research when REQUIRED
+The map must cover, as material:
+- economic-benefit dimensions;
 - cross-sectional market-selection dimensions;
-- at least two competing or alternative explanation hypotheses;
-- `why_not` evidence;
-- continuation conditions;
-- reversal/exhaustion conditions;
-- unresolved questions when identification is weak.
+- at least two competing/alternative mechanisms;
+- `why_this / why_not` evidence;
+- continuation conditions and exhaustion/reversal conditions;
+- unresolved questions where identification is weak.
 
-Non-`UNRESOLVED` hypotheses require task-specific evidence references. The map is not permission to fabricate causality; it is a structure for making uncertainty explicit.
+Every non-`UNRESOLVED` hypothesis requires task-specific evidence references. A limit-up, strong return, turnover spike, concept label or fund-flow proxy is an observed fact, not proof of its own cause.
 
 ## Mode handoff
 Research does not pre-delete material branches for editorial convenience.
 
-For `FINANCE_DEEP`, the editorial handoff must identify **completeness obligations** covering every material branch in the bounded research universe. When market-explanation mode is active, those obligations must also cover material economic-benefit differences, market-selection mechanisms, competing explanations, continuation/reversal conditions and falsification boundaries.
+For `FINANCE_DEEP`, hand off every material branch that could change financial judgment as a candidate completeness obligation. If Market Explanation is `REQUIRED`, include material economic-benefit differences, competing market-selection mechanisms, continuation/reversal conditions and falsification boundaries.
 
-Low-materiality detail and repetition can be compressed, but material facts/branches cannot be silently dropped.
-
-For `FINANCE_BROAD`, editorial may choose one to three central contradictions/information gaps and compress non-essential branches, provided retained claims remain fully supported and any retained market explanation keeps its evidence grade/counterevidence.
+For `FINANCE_BROAD`, editorial may later select one to three central information gaps, but research still starts from the broader evidence base.
 
 ## Durable knowledge discipline
-Persistent knowledge is a prior, not a verdict. For every reused knowledge item record its reference and recency; identify conflicts with new evidence. Never allow an old stock/concept label to override current business facts or current market structure.
+Persistent knowledge is a prior, not a verdict. Record references and recency, preserve conflicts, and never let an old concept/stock label override current business facts.
 
-Research output should identify reusable knowledge candidates: stable company/business mappings, industry-chain relationships, recurring concept definitions, source-quality notes and unresolved questions. Fast-changing price action, positioning, order flow and attention signals should be timestamped/treated as ephemeral rather than promoted as timeless knowledge.
+Stable company/business relationships may become reusable knowledge candidates. Fast-changing price action, positioning, attention, crowding, 封单/订单簿 and market role observations are timestamped ephemeral evidence rather than timeless company identity.
 
-## Evidence discipline
-Maintain an evidence ledger with claim, source, date, evidence type, confidence and whether the claim is safe for title/H1/core-conclusion use.
+## Evidence ledger
+Maintain claim, source, date when available, evidence type, confidence, whether the claim is safe for title/H1/core-conclusion use, and useful notes/boundaries.
 
-Facts used in headline, opening, H1 or central conclusion require stronger verification than background facts. If evidence remains unresolved, downgrade/remove the claim; do not bridge the gap with confident prose.
-
-For market explanations, distinguish:
-- directly verified facts;
-- supported mechanisms;
-- plausible interpretations;
-- unresolved competing explanations.
-
-Do not infer a unique cause of a stock move merely from co-movement, concept membership, fund-flow proxies, a limit-up, a leaderboard position or subsequent continuation.
-
-## Scope
-Research is global **within the current topic**. It may use market-wide knowledge, but does not rerun unrelated ranking unless that competition is needed to explain the article.
+If evidence remains unresolved, downgrade or remove the claim. Do not bridge missing evidence with confident prose.
 
 ## Exit gate
-RESEARCH passes only when the main thesis has an evidence chain, relevant company universe and concept/industry context have been considered, important counterevidence is represented, prior-knowledge conflicts are bounded, unresolved gaps are explicit, and `ResearchCoverage` explains why breadth is sufficient.
-
-For stock/theme articles, exit additionally requires a market-explanation map strong enough for FINANCE_DEEP to explain both economic exposure and cross-sectional market selection without hindsight storytelling.
+RESEARCH is ready for independent audit only when:
+- the main thesis has an evidence chain;
+- relevant concepts/company classes and material counterevidence are represented;
+- unresolved gaps are explicit;
+- the stop condition is auditable;
+- Market Explanation scope has been explicitly justified;
+- and, when scope is `REQUIRED`, the market-explanation map is strong enough to discuss economic benefit and market selection without hindsight storytelling.
