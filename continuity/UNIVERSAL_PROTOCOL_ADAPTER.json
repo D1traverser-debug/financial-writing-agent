@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.4",
+  "schema_version": "1.5",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "supported_from": ["3.3", "3.5", "3.6", "3.7"],
@@ -96,11 +96,12 @@
       "result": "PASS_SDK_MCP_74_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"
     },
     "action_receipt_wiring": {
-      "receipt_contract_version": "1.1",
+      "receipt_contract_version": "1.2",
       "emitter": "financial_writing_agent/methodology_receipts.py",
       "public_surface": "financial_writing_agent/plugin_server.py -> WritingTaskSummary.methodology_profile_runs",
       "wired_profiles": ["artifact_io", "evolution"],
       "receipt_status": "UNVERIFIED_OWNER_RECEIPT",
+      "independent_verification_required": "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT",
       "unwired_or_unproven_profile": "operational_hygiene remains engineering/control-plane evidence for this owner and has no live article-action receipt path in this validation"
     },
     "quality_corpus_status": {
@@ -110,7 +111,7 @@
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
     "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
-    "boundary": "Profile declaration, applicability evidence, receipt emission and owner CI are still not independent action-level operational proof. Owner-generated receipts are deliberately marked UNVERIFIED_OWNER_RECEIPT and Universal must verify their evidence refs before operational methodology PASS. No owner regression or receipt proves prose quality improved; a concrete FINANCE_DEEP quality change still requires a passing candidate-distillation package plus independently verified blind pairwise live evidence. FINANCE_BROAD lacks sufficient corpus coverage for any such claim."
+    "boundary": "Profile declaration, applicability evidence, receipt emission and owner CI are still not independent action-level operational proof. Owner-generated receipt contract 1.2 is deliberately marked UNVERIFIED_OWNER_RECEIPT. Universal must independently verify each evidence ref and separately verify that the trusted evidence semantically supports every INVOKED or NOT_APPLICABLE_FOR_ACTION claim; a real but irrelevant ref is insufficient. No owner regression or receipt proves prose quality improved; a concrete FINANCE_DEEP quality change still requires a passing candidate-distillation package plus independently verified blind pairwise live evidence. FINANCE_BROAD lacks sufficient corpus coverage for any such claim."
   },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
