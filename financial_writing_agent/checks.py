@@ -5,11 +5,25 @@ import json
 import math
 import re
 from pathlib import Path
-from typing import Iterable
+from typing import Any, Iterable
 
 from docx import Document
 
 from .models import ArtifactKind, TaskContract
+
+
+_TEMPLATE_SIGNAL_PATTERNS: dict[str, re.Pattern[str]] = {
+    "not_x_but_y": re.compile(r"(?:真正(?:的)?[^。！？\n]{0,24})?(?:不是|不在)[^。！？\n]{0,32}(?:而是|而在)"),
+    "if_only_look": re.compile(r"如果只看"),
+    "this_is_exactly": re.compile(r"这正是"),
+    "most_worth_staging": re.compile(r"最值得(?:关注|写清楚|看的|讨论|留意)"),
+    "core_is": re.compile(r"核心(?:在于|是)"),
+    "worth_noting": re.compile(r"值得注意的是"),
+    "in_other_words": re.compile(r"换句话说"),
+    "problem_is": re.compile(r"问题在于"),
+}
+
+_MONITOR_HEADING = re.compile(r"验证|兑现|观察|跟踪|后续|下一步|看什么|信号|阶段|判断|检查")
 
 
 def sha256_file(path: str | Path) -> str:
@@ -39,12 +53,91 @@ def scan_finance_redlines(text: str, phrases: Iterable[str]) -> list[str]:
     return sorted({p for p in phrases if p in text})
 
 
-def _is_bold_occurrence(doc: Document, needle: str) -> bool:
-    """Return true when at least one exact occurrence is bold across every character it occupies.
+def analyze_template_scaffolding(text: str) -> dict[str, Any]:
+    """Detect clustered rhetorical scaffolding without treating normal words as banned tokens.
 
-    Word may split a semantic span across multiple runs. Build a character-level bold mask so
-    ordinary text before/after the target does not incorrectly make a valid bold anchor fail.
+    One occurrence is not a defect. The guard trips only when the same stage-like construction
+    recurs or several families cluster densely enough to make the prose mechanically patterned.
     """
+    counts = {name: len(pattern.findall(text)) for name, pattern in _TEMPLATE_SIGNAL_PATTERNS.items()}
+    active = {name: count for name, count in counts.items() if count}
+    total = sum(active.values())
+    chars = max(len(text), 1)
+    density_per_1000 = round(total * 1000 / chars, 2)
+    repeated_family = any(count >= 3 for count in active.values())
+    clustered = total >= 5 and len(active) >= 3 and density_per_1000 >= 1.5
+    return {
+        "counts": active,
+        "total": total,
+        "families": len(active),
+        "density_per_1000_chars": density_per_1000,
+        "requires_revise": repeated_family or clustered,
+    }
+
+
+def payload_text(payload: Any) -> str:
+    return "\n".join(getattr(block, "text", "") for block in getattr(payload, "blocks", []))
+
+
+def check_payload_navigation(payload: Any, *, deep: bool) -> list[str]:
+    """Require visible lower-level numbering when a deep article has real analytical branching."""
+    if not deep:
+        return []
+    blocks = list(getattr(payload, "blocks", []))
+    full_text = payload_text(payload)
+    stock_names = list(getattr(payload, "stock_names", []))
+    h1_count = sum(1 for block in blocks if getattr(block, "kind", None) == "h1")
+    lower_count = sum(1 for block in blocks if getattr(block, "kind", None) in {"h2", "h3"})
+    branching = len(full_text) >= 1800 or len(stock_names) >= 4 or h1_count >= 4
+    if branching and lower_count < 3:
+        return [
+            f"FINANCE_DEEP needs visible numbered substructure for multi-branch reasoning: h1={h1_count}, h2/h3={lower_count}, stocks={len(stock_names)}"
+        ]
+    return []
+
+
+def check_deep_company_grounding(payload: Any, research: Any) -> list[str]:
+    """Cross-check the material research universe against the FINANCE_DEEP draft.
+
+    The deep version may group secondary names, but every MATERIAL company must appear. Sections
+    that explicitly promise validation/monitoring/realization must also connect that checklist to
+    at least one material company rather than falling back to an industry-only generic list.
+    """
+    if payload is None or research is None:
+        return []
+    text = payload_text(payload)
+    companies = list(getattr(research, "universe", []))
+    material = [company for company in companies if getattr(company, "materiality", None) == "MATERIAL"]
+    missing = [company.name for company in material if company.name not in text]
+    errors = [f"FINANCE_DEEP silently omitted MATERIAL company: {name}" for name in missing]
+
+    sections: list[tuple[str, str]] = []
+    current_heading = ""
+    current_parts: list[str] = []
+    for block in getattr(payload, "blocks", []):
+        kind = getattr(block, "kind", None)
+        block_text = getattr(block, "text", "")
+        if kind == "h1":
+            if current_heading:
+                sections.append((current_heading, "\n".join(current_parts)))
+            current_heading = block_text
+            current_parts = []
+        elif current_heading:
+            current_parts.append(block_text)
+    if current_heading:
+        sections.append((current_heading, "\n".join(current_parts)))
+
+    material_names = [company.name for company in material]
+    for heading, body in sections:
+        if _MONITOR_HEADING.search(heading) and material_names:
+            section_text = f"{heading}\n{body}"
+            if not any(name in section_text for name in material_names):
+                errors.append(f"monitoring/validation section is detached from the stock universe: {heading}")
+    return errors
+
+
+def _is_bold_occurrence(doc: Document, needle: str) -> bool:
+    """Return true when at least one exact occurrence is bold across every character it occupies."""
     if not needle:
         return False
     for paragraph in doc.paragraphs:
@@ -108,13 +201,9 @@ def check_docx(
     stock_names: list[str],
     policy: dict,
     required_bold_anchors: list[str] | None = None,
+    require_deep_navigation: bool = False,
 ) -> dict:
-    """Run deterministic Word checks.
-
-    `stock_names` remains in the call contract for research/QA metadata compatibility, but
-    company names are no longer blanket-bold requirements. Only explicit skim anchors are
-    mechanically required to be bold; entity emphasis is a semantic editorial choice.
-    """
+    """Run deterministic Word checks."""
     _ = stock_names
     doc = Document(path)
     errors: list[str] = []
@@ -130,6 +219,15 @@ def check_docx(
             errors.append(f"forbidden heading hierarchy prefix: {text[:40]}")
         if not re.match(r"^[一二三四五六七八九十百]+、", text):
             errors.append(f"H1 missing Chinese sequence prefix: {text[:60]}")
+
+    lower_numbered = [
+        p.text.strip()
+        for p in doc.paragraphs
+        if re.match(r"^(?:（\d+）|[①-⑳])", p.text.strip())
+    ]
+    body_chars = sum(len(p.text.strip()) for p in doc.paragraphs)
+    if require_deep_navigation and body_chars >= 1800 and len(lower_numbered) < 3:
+        errors.append(f"FINANCE_DEEP visible numbered navigation too thin: {len(lower_numbered)} lower-level numbered headings")
 
     _check_typography(doc, policy, errors)
 
@@ -169,6 +267,7 @@ def check_docx(
         "tables": len(doc.tables),
         "inline_images": len(doc.inline_shapes),
         "required_bold_anchors": len(required_bold_anchors or []),
+        "lower_numbered_headings": len(lower_numbered),
     }
 
 
