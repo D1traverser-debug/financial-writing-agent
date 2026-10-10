@@ -24,6 +24,7 @@ _TEMPLATE_SIGNAL_PATTERNS: dict[str, re.Pattern[str]] = {
 }
 
 _MONITOR_HEADING = re.compile(r"验证|兑现|观察|跟踪|后续|下一步|看什么|信号|阶段|判断|检查")
+_SOURCE_SECTION_HEADING = re.compile(r"^(?:资料来源|参考资料|参考来源|来源汇总)(?:[：:]|$)")
 
 
 def sha256_file(path: str | Path) -> str:
@@ -219,6 +220,8 @@ def check_docx(
             errors.append(f"forbidden heading hierarchy prefix: {text[:40]}")
         if not re.match(r"^[一二三四五六七八九十百]+、", text):
             errors.append(f"H1 missing Chinese sequence prefix: {text[:60]}")
+        if "风险" in text and ("免责声明" in text or "提示" in text):
+            errors.append("risk disclaimer must be an inline italic paragraph, not a numbered H1")
 
     lower_numbered = [
         p.text.strip()
@@ -231,17 +234,38 @@ def check_docx(
 
     _check_typography(doc, policy, errors)
 
-    risk_idx = next((i for i, p in enumerate(doc.paragraphs) if "风险" in p.text and "免责声明" in p.text), None)
-    if risk_idx is None:
-        errors.append("risk/disclaimer heading not found")
+    if not policy.get("word", {}).get("allow_underline", False):
+        underlined = [
+            p.text[:60]
+            for p in doc.paragraphs
+            if any(run.text and bool(run.underline) for run in p.runs)
+        ]
+        if underlined:
+            errors.append(f"publication article contains prohibited underline(s): {underlined[:5]}")
+
+    if not policy.get("word", {}).get("end_source_section_allowed", False):
+        source_sections = [p.text.strip() for p in doc.paragraphs if _SOURCE_SECTION_HEADING.match(p.text.strip())]
+        if source_sections:
+            errors.append(f"publication article must not contain end source section: {source_sections[:3]}")
+
+    risk_paragraphs = [p for p in doc.paragraphs if p.text.strip().startswith("风险提示：")]
+    if not risk_paragraphs:
+        errors.append("inline risk disclaimer paragraph not found")
+    elif len(risk_paragraphs) > 1:
+        errors.append(f"multiple risk disclaimer paragraphs found: {len(risk_paragraphs)}")
     else:
-        risk_body = "".join(p.text.strip() for p in doc.paragraphs[risk_idx + 1 :] if p.text.strip())
+        risk_p = risk_paragraphs[0]
+        risk_text = risk_p.text.strip()[len("风险提示：") :].strip()
         min_chars = int(policy.get("risk_disclaimer", {}).get("min_body_chars", 0))
-        if len(risk_body) < min_chars:
-            errors.append(f"risk/disclaimer body too thin: {len(risk_body)} < {min_chars} chars")
+        if len(risk_text) < min_chars:
+            errors.append(f"risk/disclaimer body too thin: {len(risk_text)} < {min_chars} chars")
         recommended_max = int(policy.get("risk_disclaimer", {}).get("recommended_max_chars", 0) or 0)
-        if recommended_max and len(risk_body) > recommended_max:
-            warnings.append(f"risk/disclaimer body may be verbose: {len(risk_body)} > {recommended_max} chars")
+        if recommended_max and len(risk_text) > recommended_max:
+            warnings.append(f"risk/disclaimer body may be verbose: {len(risk_text)} > {recommended_max} chars")
+        if policy.get("risk_disclaimer", {}).get("italic", False):
+            visible_runs = [run for run in risk_p.runs if run.text]
+            if not visible_runs or not all(run.italic is True for run in visible_runs):
+                errors.append("risk disclaimer must be italic")
 
     if not policy["word"].get("allow_tables", False) and doc.tables:
         errors.append(f"publication article contains prohibited table(s): {len(doc.tables)}")
