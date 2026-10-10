@@ -3,7 +3,7 @@
   "execution_readiness_contract": "1.0",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "repository": "D1traverser-debug/financial-writing-agent",
-  "profile_version": 5,
+  "profile_version": 6,
   "purpose": "Owner-level execution wiring metadata for the universal dispatcher. This file is not business task state and does not replace TASK_MANIFEST/HANDOFF.",
   "capabilities": [
     {
@@ -61,22 +61,8 @@
       "invocation_path": "financial_writing_agent.plugin_server -> financial_writing_agent.methodology_receipts",
       "executor_type": "OWNER_RECEIPT_EMITTER",
       "executor_ref": "financial_writing_agent/methodology_receipts.py",
-      "required_tools": [
-        "owner_plugin_runtime",
-        "universal_independent_evidence_ref_verifier_for_operational_pass",
-        "universal_independent_hook_assessment_verifier_for_operational_pass"
-      ],
-      "evidence_contract": [
-        "receipt contract 1.2",
-        "profile id and exact profile version",
-        "activation id and trigger",
-        "every profile hook explicitly assessed as INVOKED or NOT_APPLICABLE_FOR_ACTION",
-        "action-scoped evidence refs",
-        "verification_status=UNVERIFIED_OWNER_RECEIPT",
-        "Universal must independently verify that each evidence ref resolves to trusted evidence",
-        "Universal must separately verify that the trusted evidence semantically supports the hook assessment and reason",
-        "a real but irrelevant evidence ref cannot establish INVOKED or NOT_APPLICABLE_FOR_ACTION"
-      ],
+      "required_tools": ["owner_plugin_runtime", "universal_independent_evidence_ref_verifier_for_operational_pass", "universal_independent_hook_assessment_verifier_for_operational_pass"],
+      "evidence_contract": ["receipt contract 1.2", "profile id and exact profile version", "activation id and trigger", "every profile hook explicitly assessed as INVOKED or NOT_APPLICABLE_FOR_ACTION", "action-scoped evidence refs", "verification_status=UNVERIFIED_OWNER_RECEIPT", "Universal must independently verify that each evidence ref resolves to trusted evidence", "Universal must separately verify that the trusted evidence semantically supports the hook assessment and reason", "a real but irrelevant evidence ref cannot establish INVOKED or NOT_APPLICABLE_FOR_ACTION"],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
     },
@@ -87,21 +73,8 @@
       "invocation_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness + evaluate_candidate_distillation + evaluate_quality_promotion",
       "executor_type": "DETERMINISTIC_DISTILLATION_AND_PROMOTION_GATE_WITH_EXTERNAL_JUDGE_EVIDENCE",
       "executor_ref": "financial_writing_agent/quality_regression.py",
-      "required_tools": ["python_runtime_or_ci", "independent_pairwise_judge_evidence", "evidence_verifier"],
-      "evidence_contract": [
-        "scope-appropriate promotion-ready owner-local corpus",
-        "candidate distillation binds a real rejection and separates root cause from mechanism",
-        "at least two candidate mechanisms with failure-mode/counterexample evidence",
-        "bounded authority surfaces and superseded-mechanism disposition",
-        "content-mode quality claim limited to modes with complete rejection plus held-out evidence",
-        "zero hard-invariant regressions",
-        "blind pairwise judge runs",
-        "candidate-position A/B swap",
-        "independently verifiable judge trace refs",
-        "known real rejection improvement",
-        "held-out non-regression with at least one candidate win",
-        "real user acceptance/edit or performance evidence only when claiming PERSONALIZED_WRITING_DNA"
-      ],
+      "required_tools": ["python_runtime_or_ci", "independent_pairwise_judge_evidence", "evidence_ref_verifier", "independent_judge_run_semantic_verifier"],
+      "evidence_contract": ["scope-appropriate promotion-ready owner-local corpus", "each claimed content mode has complete real-rejection evidence and at least two distinct held-out topic families", "candidate distillation binds a real rejection and separates root cause from mechanism", "at least two candidate mechanisms with failure-mode/counterexample evidence", "bounded authority surfaces and superseded-mechanism disposition", "zero hard-invariant regressions", "blind pairwise judge runs", "candidate-position A/B swap", "each judge run binds exact candidate id and candidate-change ref", "execution refs are independently verified and unique per pairwise run", "evidence refs are independently verified", "an independent semantic verifier confirms the judge run evidence actually supports the run identity, candidate binding, blind setup and preference conclusion", "known real rejection improvement", "held-out non-regression with at least one candidate win", "real user acceptance/edit or performance evidence only when claiming PERSONALIZED_WRITING_DNA"],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
     },
@@ -122,8 +95,8 @@
     "The Python state machine remains business authority; LLM executors may not skip stages.",
     "Repository wiring does not prove the current ChatGPT session has the optional SDK/runtime. The dispatcher must perform a session handshake.",
     "Material explicit user writing feedback on a persisted task must be captured through the owner plugin learning-evidence capability before durable personalized-learning claims; current-turn revision may still proceed if capture is unavailable, but durable personalized learning must then be reported unavailable.",
-    "Owner-generated methodology receipts are evidence indexes only and are deliberately marked UNVERIFIED_OWNER_RECEIPT. They cannot self-certify Universal operational methodology conformance. Receipt contract 1.2 requires both independent evidence-ref verification and independent semantic verification that those refs actually support each hook's INVOKED or NOT_APPLICABLE_FOR_ACTION assessment.",
-    "The current general editorial quality corpus is promotion-ready only for FINANCE_DEEP candidate evaluation: it contains a complete FINANCE_DEEP real rejection plus a different-topic FINANCE_DEEP held-out baseline. FINANCE_BROAD has no equivalent rejection+held-out pair and is not quality-promotion-ready. A concrete quality-improvement claim still requires candidate distillation and independently verified blind pairwise candidate-vs-baseline evidence. Personalized Writing DNA still requires real user acceptance/edit or post-publication performance evidence.",
+    "Owner-generated methodology receipts remain UNVERIFIED_OWNER_RECEIPT and cannot self-certify Universal operational methodology conformance.",
+    "The current general editorial quality corpus is NOT promotion-ready even for FINANCE_DEEP because only one complete held-out FINANCE_DEEP topic family exists. FINANCE_DEEP remains diagnostic/candidate-design evidence only until a second distinct held-out topic family is complete. FINANCE_BROAD is also not ready. Any future promotion additionally requires independent evidence-ref verification plus independent semantic verification of each judge run.",
     "Normal independent audits are separate SDK runs when the SDK path is used, but the owner does not currently claim ATTESTED_ISOLATED assurance."
   ]
 }
