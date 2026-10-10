@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "role": "OWNER_LOCAL_QUALITY_EVIDENCE_NOT_BUSINESS_AUTHORITY",
-  "purpose": "Seed quality-regression evidence for Financial Writing system changes. This dataset complements deterministic correctness checks; it never replaces factual, compliance, state-machine or artifact invariants.",
+  "purpose": "Quality-regression evidence for Financial Writing system changes. This dataset complements deterministic correctness checks; it never replaces factual, compliance, state-machine or artifact invariants.",
   "promotion_rule": {
     "promotion_gate": "financial_writing_agent.quality_regression.evaluate_quality_promotion",
     "blind_pairwise_required": true,
@@ -17,8 +17,11 @@
       "split": "REGRESSION",
       "topic_family": "multi_company_sector_event",
       "content_mode": "FINANCE_DEEP",
-      "evidence_status": "PARTIAL",
-      "artifact_refs": [],
+      "evidence_status": "COMPLETE",
+      "artifact_refs": [
+        "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
+        "chatgpt-library:file_0000000003788206b4f794cd08a200b2@1"
+      ],
       "topic": "国内海上风电省管项目启动与产业链修复",
       "failure_signals": [
         "headline lacked click value and specificity",
@@ -44,13 +47,12 @@
         "subhead_information_value",
         "reader_value_density"
       ],
-      "known_boundary": "The original complete rejected Word artifacts are not currently reachable from GitHub, so this case is real rejection evidence but is not yet a promotion-ready full-artifact case."
+      "evidence_note": "The rejected DOCX was rediscovered in ChatGPT Library and the complete extracted publication text is now snapshotted under evals/artifacts so this regression case no longer depends on Library retention."
     }
   ],
   "current_readiness": {
     "status": "NOT_READY",
     "known_missing": [
-      "complete rejected artifact/context pair",
       "at least one real accepted article or post-publication positive performance anchor",
       "at least one complete held-out case",
       "at least two complete topic families"
