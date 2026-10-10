@@ -45,6 +45,29 @@ def ready_corpus():
     }
 
 
+def general_ready_without_user_positive():
+    return {
+        "cases": [
+            {
+                "case_id": "rejected-1",
+                "source_kind": "REAL_USER_REJECTION",
+                "split": "REGRESSION",
+                "topic_family": "sector-event",
+                "evidence_status": "COMPLETE",
+                "artifact_refs": ["artifact://rejected-1/baseline"],
+            },
+            {
+                "case_id": "heldout-1",
+                "source_kind": "EXTERNAL_BENCHMARK",
+                "split": "HELD_OUT",
+                "topic_family": "macro-policy",
+                "evidence_status": "COMPLETE",
+                "artifact_refs": ["artifact://heldout-1/input"],
+            },
+        ]
+    }
+
+
 def pairwise_run(case_id, candidate_position, preference):
     return {
         "case_id": case_id,
@@ -65,18 +88,47 @@ def passing_bundle():
     return {"hard_invariant_regressions": [], "judge_runs": runs}
 
 
-def test_real_offshore_wind_rejection_is_complete_but_corpus_is_still_not_promotion_ready():
+def general_passing_bundle():
+    return {
+        "hard_invariant_regressions": [],
+        "judge_runs": [
+            pairwise_run("rejected-1", "A", "A"),
+            pairwise_run("rejected-1", "B", "B"),
+            pairwise_run("heldout-1", "A", "A"),
+            pairwise_run("heldout-1", "B", "B"),
+        ],
+    }
+
+
+def test_real_offshore_wind_rejection_is_complete_but_general_corpus_still_needs_heldout_diversity():
     corpus = load_seed_corpus()
     result = evaluate_corpus_readiness(corpus)
 
     case_id = "offshore-wind-2026-10-10-real-user-rejection-01"
     assert result.status == "NOT_READY"
-    assert case_id in result.case_ids
+    assert result.promotion_scope == "GENERAL_EDITORIAL_QUALITY"
     assert result.complete_case_ids == (case_id,)
     assert "complete_real_user_rejection_case" not in result.missing_requirements
-    assert "complete_positive_anchor_or_performance_case" in result.missing_requirements
+    assert "complete_positive_anchor_or_performance_case" not in result.missing_requirements
     assert "complete_held_out_case" in result.missing_requirements
     assert "at_least_two_complete_topic_families" in result.missing_requirements
+
+
+def test_personalized_writing_dna_still_requires_real_positive_user_evidence():
+    result = evaluate_corpus_readiness(
+        general_ready_without_user_positive(),
+        promotion_scope="PERSONALIZED_WRITING_DNA",
+    )
+
+    assert result.status == "NOT_READY"
+    assert "complete_positive_anchor_or_performance_case" in result.missing_requirements
+
+
+def test_general_quality_can_be_promotion_ready_without_user_positive_anchor():
+    result = evaluate_corpus_readiness(general_ready_without_user_positive())
+
+    assert result.status == "PROMOTION_READY"
+    assert "complete_positive_anchor_or_performance_case" not in result.missing_requirements
 
 
 def test_offshore_wind_snapshot_is_durable_and_contains_rejected_text():
@@ -89,7 +141,7 @@ def test_offshore_wind_snapshot_is_durable_and_contains_rejected_text():
     assert "（2）轴承：新强联" in text
 
 
-def test_quality_promotion_is_blocked_while_real_corpus_is_incomplete():
+def test_quality_promotion_is_blocked_while_real_general_corpus_is_incomplete():
     result = evaluate_quality_promotion(
         load_seed_corpus(),
         {"hard_invariant_regressions": [], "judge_runs": []},
@@ -98,6 +150,17 @@ def test_quality_promotion_is_blocked_while_real_corpus_is_incomplete():
 
     assert result.status == "BLOCKED_NOT_READY"
     assert any(error.startswith("missing_corpus_requirement:") for error in result.errors)
+
+
+def test_general_quality_promotion_does_not_wait_for_user_positive_label():
+    result = evaluate_quality_promotion(
+        general_ready_without_user_positive(),
+        general_passing_bundle(),
+        evidence_verifier=lambda ref: ref.startswith("trace://"),
+    )
+
+    assert result.status == "PASS"
+    assert result.promotion_scope == "GENERAL_EDITORIAL_QUALITY"
 
 
 def test_self_reported_pairwise_receipt_without_verifier_cannot_promote():
@@ -148,6 +211,7 @@ def test_candidate_must_improve_known_rejection_preserve_positive_anchor_and_win
         ready_corpus(),
         passing_bundle(),
         evidence_verifier=lambda ref: ref.startswith("trace://"),
+        promotion_scope="PERSONALIZED_WRITING_DNA",
     )
 
     assert result.status == "PASS"
