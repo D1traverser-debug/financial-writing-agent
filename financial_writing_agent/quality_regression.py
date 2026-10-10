@@ -10,6 +10,7 @@ EvidenceVerifier = Callable[[str], bool]
 @dataclass(frozen=True)
 class CorpusReadinessResult:
     status: str
+    promotion_scope: str
     case_ids: tuple[str, ...]
     complete_case_ids: tuple[str, ...]
     missing_requirements: tuple[str, ...]
@@ -19,6 +20,7 @@ class CorpusReadinessResult:
 @dataclass(frozen=True)
 class QualityPromotionResult:
     status: str
+    promotion_scope: str
     evaluated_case_ids: tuple[str, ...]
     candidate_wins: tuple[str, ...]
     ties: tuple[str, ...]
@@ -34,18 +36,29 @@ _ALLOWED_SOURCE_KINDS = {
 }
 _ALLOWED_SPLITS = {"CALIBRATION", "REGRESSION", "HELD_OUT"}
 _ALLOWED_EVIDENCE_STATUS = {"PARTIAL", "COMPLETE"}
+_ALLOWED_PROMOTION_SCOPES = {"GENERAL_EDITORIAL_QUALITY", "PERSONALIZED_WRITING_DNA"}
 
 
-def evaluate_corpus_readiness(corpus: Mapping[str, Any]) -> CorpusReadinessResult:
-    """Validate owner-local quality evidence without pretending partial feedback is a full eval corpus.
+def evaluate_corpus_readiness(
+    corpus: Mapping[str, Any],
+    *,
+    promotion_scope: str = "GENERAL_EDITORIAL_QUALITY",
+) -> CorpusReadinessResult:
+    """Validate owner-local quality evidence without making the user the maintenance operator.
 
-    Structural validity and promotion readiness are intentionally separate. A corpus can be valid
-    evidence while still being insufficient to promote a writing-system change.
+    GENERAL_EDITORIAL_QUALITY may improve from real failures plus diverse held-out evidence without
+    waiting for a personalized positive label. PERSONALIZED_WRITING_DNA is stricter: claiming a
+    user-specific preference additionally requires real acceptance or post-publication performance.
     """
+
+    if promotion_scope not in _ALLOWED_PROMOTION_SCOPES:
+        return CorpusReadinessResult(
+            "FAIL", promotion_scope, (), (), (), (f"invalid_promotion_scope:{promotion_scope}",)
+        )
 
     raw_cases = corpus.get("cases")
     if not isinstance(raw_cases, list):
-        return CorpusReadinessResult("FAIL", (), (), (), ("missing_or_invalid_cases",))
+        return CorpusReadinessResult("FAIL", promotion_scope, (), (), (), ("missing_or_invalid_cases",))
 
     errors: list[str] = []
     case_ids: list[str] = []
@@ -96,6 +109,7 @@ def evaluate_corpus_readiness(corpus: Mapping[str, Any]) -> CorpusReadinessResul
     if errors:
         return CorpusReadinessResult(
             "FAIL",
+            promotion_scope,
             tuple(case_ids),
             tuple(complete_case_ids),
             (),
@@ -114,15 +128,16 @@ def evaluate_corpus_readiness(corpus: Mapping[str, Any]) -> CorpusReadinessResul
 
     if not complete_rejections:
         missing.append("complete_real_user_rejection_case")
-    if not complete_positive:
-        missing.append("complete_positive_anchor_or_performance_case")
     if not complete_heldout:
         missing.append("complete_held_out_case")
     if len(topic_families) < 2:
         missing.append("at_least_two_complete_topic_families")
+    if promotion_scope == "PERSONALIZED_WRITING_DNA" and not complete_positive:
+        missing.append("complete_positive_anchor_or_performance_case")
 
     return CorpusReadinessResult(
         "PROMOTION_READY" if not missing else "NOT_READY",
+        promotion_scope,
         tuple(case_ids),
         tuple(complete_case_ids),
         tuple(missing),
@@ -147,20 +162,22 @@ def evaluate_quality_promotion(
     evidence_bundle: Mapping[str, Any] | None,
     *,
     evidence_verifier: EvidenceVerifier | None,
+    promotion_scope: str = "GENERAL_EDITORIAL_QUALITY",
 ) -> QualityPromotionResult:
     """Fail-closed promotion gate for writing-quality changes.
 
-    This function does not judge prose itself. It validates externally produced blind pairwise
-    evidence and protects the system from declaring improvement from self-report, a single rubric
-    score, or deterministic compliance alone.
+    This function validates externally produced blind pairwise evidence; it does not judge prose
+    itself. Personalized claims require user-specific positive evidence, while general editorial
+    improvements do not wait for the user to act as the optimizer or maintenance operator.
     """
 
-    readiness = evaluate_corpus_readiness(corpus)
+    readiness = evaluate_corpus_readiness(corpus, promotion_scope=promotion_scope)
     if readiness.status == "FAIL":
-        return QualityPromotionResult("FAIL", (), (), (), (), readiness.errors)
+        return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), readiness.errors)
     if readiness.status != "PROMOTION_READY":
         return QualityPromotionResult(
             "BLOCKED_NOT_READY",
+            promotion_scope,
             (),
             (),
             (),
@@ -168,16 +185,17 @@ def evaluate_quality_promotion(
             tuple(f"missing_corpus_requirement:{item}" for item in readiness.missing_requirements),
         )
     if evidence_bundle is None:
-        return QualityPromotionResult("FAIL", (), (), (), (), ("missing_quality_evidence_bundle",))
+        return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("missing_quality_evidence_bundle",))
     if evidence_verifier is None:
-        return QualityPromotionResult("FAIL", (), (), (), (), ("independent_evidence_verifier_required",))
+        return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("independent_evidence_verifier_required",))
 
     hard_regressions = evidence_bundle.get("hard_invariant_regressions")
     if not isinstance(hard_regressions, list):
-        return QualityPromotionResult("FAIL", (), (), (), (), ("invalid_hard_invariant_regressions",))
+        return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("invalid_hard_invariant_regressions",))
     if hard_regressions:
         return QualityPromotionResult(
             "FAIL",
+            promotion_scope,
             (),
             (),
             (),
@@ -187,7 +205,7 @@ def evaluate_quality_promotion(
 
     judge_runs = evidence_bundle.get("judge_runs")
     if not isinstance(judge_runs, list):
-        return QualityPromotionResult("FAIL", (), (), (), (), ("missing_or_invalid_judge_runs",))
+        return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("missing_or_invalid_judge_runs",))
 
     complete_cases = {
         str(case["case_id"]): case
@@ -234,7 +252,7 @@ def evaluate_quality_promotion(
             grouped[case_id][candidate_position] = normalized
 
     if errors:
-        return QualityPromotionResult("FAIL", (), (), (), (), tuple(errors))
+        return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), tuple(errors))
 
     candidate_wins: list[str] = []
     ties: list[str] = []
@@ -274,6 +292,7 @@ def evaluate_quality_promotion(
 
     return QualityPromotionResult(
         "PASS" if not errors else "FAIL",
+        promotion_scope,
         tuple(evaluated),
         tuple(candidate_wins),
         tuple(ties),
