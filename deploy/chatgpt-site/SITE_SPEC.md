@@ -1,73 +1,52 @@
-# ChatGPT Site deployment specification — Financial Writing Agent v0.7
+# ChatGPT Site deployment specification — Financial Writing Agent v0.8
 
 ## Goal
-Deploy the current Financial Writing Agent v0.7 as a fresh private Site-backed MCP runtime. Implement the repository contract directly; do not revive removed compatibility surfaces or older reader/style/research schemas.
+Deploy Financial Writing Agent v0.8 as a fresh **personal/private deployment only** Site-backed MCP runtime. Implement current `main` directly; do not revive removed compatibility surfaces or older schemas.
 
 ## Security boundary
-This is **personal/private deployment only**.
-
-**Do not enable public sharing** or workspace-wide/multi-user use until explicit tenant isolation, authorization, task namespaces, artifact namespaces and cross-user access tests exist.
+Do not enable public/workspace/multi-user sharing until tenant isolation, authorization, task/artifact namespaces and cross-user access tests exist.
 
 ## Runtime invariant
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
 
-Invalid transitions and mandatory dependency failures fail closed to `BLOCKED`. BLOCKED must persist a recovery cursor; after the actual blocker is repaired, `resume_blocked_task` resumes that cursor. Never silently fall back to free-form writing or start a duplicate task.
+Mandatory dependency failures fail closed to recoverable `BLOCKED` with an exact cursor. Do not silently fall back to ephemeral container/local disk, free-form writing or duplicate tasks.
 
-At `EDITORIAL_AUDIT`, enforce three independent semantic decisions:
+## Semantic PASS authority
+Semantic `PASS` is not accepted from a CHAT_BRIDGED caller merely because a typed audit payload contains `PASS` or `INDEPENDENT_EXECUTOR`.
+
+For `RESEARCH_AUDIT`, `EDITORIAL_AUDIT` and `FINAL_AUDIT`, PASS certification must go through `run_semantic_audit_stage`. The Site runtime must have the OpenAI Agents SDK/model runtime required by `financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor` for this tool. The server executes the owner-native audit stage, records current-stage `EXECUTOR_START/EXECUTOR_END` trajectory and persisted audit provenance, then the deterministic controller decides whether the stage advances.
+
+At `EDITORIAL_AUDIT`, the owner-native stage performs three distinct judgments:
 1. Reader Funnel / Hook Gate;
 2. Natural Authorial Prose / Writing DNA Gate;
 3. general editorial audit.
 
+If the owner-native semantic runtime is unavailable, preserve the task as recoverably BLOCKED at the audit cursor. Do not downgrade to caller self-certification.
+
+The historical payload value `INDEPENDENT_EXECUTOR` means stage-separated owner-runtime execution in v0.8; it is **not provider-attested isolation**. A true independent/provider-attested claim requires a distinct provider execution identity/trace and remains a separate capability.
+
 ## Responsibility split
-- ChatGPT/model: current research, synthesis, TopicDNA, optional market-explanation hypotheses, mode-specific structures, current WeChat search reconnaissance, titles, drafting and semantic audits.
-- Hosted MCP runtime: TaskContract, legal transitions, BLOCKED recovery, schema validation, durable checkpoints, gate state, stale-evidence invalidation, required outputs and completion authority.
-- Deterministic delivery: Word construction, numbering, exact typography, explicit bold preservation, zero-table/zero-underline/source-tail checks, inline italic risk insertion, required-file verification, rerender hygiene and mechanical QA.
+- ChatGPT/model generation path: research, synthesis, TopicDNA, optional market-explanation hypotheses, mode-specific structures, current WeChat search reconnaissance, titles and drafting.
+- Owner-native semantic runtime: proof-bearing Research/Editorial/Final audit execution.
+- Hosted MCP runtime: TaskContract, legal transitions, BLOCKED recovery, schemas, durable checkpoints, stale-evidence invalidation, required outputs and completion authority.
+- Deterministic delivery: Word construction, numbering, typography, explicit bold preservation, zero-table/zero-underline/source-tail checks, inline italic risk insertion, required-file verification, rerender hygiene and mechanical QA.
 
 Financial Writing has no image-generation, cover, section-image, avatar, sticker or image-insertion workflow.
 
-## Editorial modes
-### FINANCE_DEEP
-`MATERIAL_COMPLETE` relative to the bounded audited research universe. It may compress repetition, textbook background and immaterial detail, but it must not omit a material event leg, transmission link, company class, counterexample, applicable market-explanation branch, validation/falsification condition or material risk merely for brevity.
+## Durable state and artifacts
+Persist complete WritingState per `task_id`, including stage, gates, structured outputs, artifacts, trace, attempts, blocker/recovery cursor, timestamps, learning samples and methodology receipts.
 
-For multi-company work, name every MATERIAL company and build an evidence-based comparison map across relevant dimensions such as order visibility, realization speed, earnings sensitivity, validated overseas exposure and technology optionality. This may produce research/evidence buckets, never executable buy/sell advice.
-
-### FINANCE_BROAD
-`SELECTIVE_TRAFFIC`. It may organize around one to three supported information gaps/core contradictions, provided retained conclusions preserve evidence strength, counterevidence and causal boundaries.
-
-Broad packaging must pass a cold-reader finance test: a finance reader with no prior interest in the niche sector should still understand from the title/opening why the event matters to money, orders, profits, cash flow, capital expenditure, company/asset differentiation or policy transmission. Sharper truthful contrast is allowed; fabricated urgency or guaranteed-return framing is not.
-
-## Market Explanation scope
-Every ResearchPackage declares `market_explanation_scope = REQUIRED | NOT_MATERIAL` and a reason.
-
-A company universe alone is not activation. Use `REQUIRED` only when the article materially explains market selection/price formation, leadership/limit-up/relative price reaction, continuation/reversal or another cross-sectional market-selection question.
-
-When active, separate economic benefit/fundamental realization from market selection/price formation. Require competing mechanisms, `why_this / why_not`, continuation and reversal/exhaustion conditions, unresolved questions where material, and the confidence ladder:
-`VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
-
-Observed price action never proves its own cause.
-
-## Durable state
-Persist complete WritingState per `task_id`, including contract, stage, gates, structured outputs, artifacts, trace, attempts, BLOCKED reason/origin/recovery cursor, timestamps and raw Writing DNA learning samples.
-
-The repository `SQLiteStateStore` is local/CI reference only. A Site deployment must bind to a verified durable structured store. **Do not silently fall back to ephemeral container/local disk** for production checkpoints.
-
-## Raw Writing DNA evidence
-`record_writing_learning_sample` stores user edit/feedback/acceptance/rejection and post-publication performance evidence on the task. A sample is `RAW_EVIDENCE_ONLY` and must not mutate durable global writing policy automatically. Promotion remains governed by the maintenance/evidence hierarchy.
-
-## Artifact storage and return
-Production artifacts must live in persistent storage that survives fresh chats and runtime restarts. Never make a server-local filesystem path part of the public artifact contract or audit Word.
-
-Formal tasks require applicable article Word files plus `WRITING_AUDIT_REPORT.docx`.
+SQLite is local/CI reference only. Production state and Word artifacts must survive runtime restart and fresh chats. Public outputs must not expose server-local paths.
 
 The only public artifact resource template is:
 `writing-docx://{task_id}/{kind}`
 
-Publication article text is delivered only through Word artifacts. Final chat output supplies a concise QA checklist and does not paste article body.
+Required Word outputs remain applicable article files plus `WRITING_AUDIT_REPORT.docx`. Article body is not pasted into chat.
 
 ## MCP surface
-There is exactly one public MCP registration surface: `financial_writing_agent/plugin_server.py`.
+There is exactly one registration surface: `financial_writing_agent/plugin_server.py`.
 
-Expose exactly **17 tools**:
+Expose exactly **18 tools**:
 - `start_writing_task`
 - `get_writing_task`
 - `list_recent_writing_tasks`
@@ -82,87 +61,54 @@ Expose exactly **17 tools**:
 - `submit_hook_audit`
 - `submit_style_audit`
 - `submit_editorial_audit`
+- `run_semantic_audit_stage`
 - `build_and_mechanically_audit_delivery`
 - `record_knowledge_writeback`
 - `submit_final_audit`
 
-Every public tool must have a concrete typed input/output contract, explicit annotations, a human-readable title and an operational description. Unknown fields/stages fail closed.
+The five `submit_*audit` tools may persist conservative REVISE/FAIL evidence where their schemas permit it, but they cannot certify semantic PASS from CHAT_BRIDGED input. `run_semantic_audit_stage` is the public proof-bearing PASS gateway.
 
-## Reader Funnel / Hook Gate
-Require independent evidence for audience-promise fit, headline information value, curiosity/concreteness balance, current WeChat search discoverability, first-three-sentence retention, continuation value, completion payoff and title/opening payoff.
+Every tool needs typed input/output, explicit annotations, human-readable title and operational description. Unknown fields/stages fail closed.
 
-Cross-industry finance relevance is optional and mode-sensitive, not a universal hard rule. `FINANCE_DEEP` prioritizes qualified-reader fit and truthful payoff. `FINANCE_BROAD` instead must surface a non-niche finance stake for a cold reader. Formal title candidates record target reader, click reason, promised payoff, angle family and current search evidence; title pools must span at least five genuinely distinct supported strategy families rather than synonym-swapping one shell. Question titles are not presumed superior.
+## Research/editorial invariants
+- FINANCE_DEEP is `MATERIAL_COMPLETE` relative to the bounded audited research universe.
+- FINANCE_BROAD is `SELECTIVE_TRAFFIC` but must expose a truthful non-niche financial stake to a cold finance reader.
+- Universe Coverage is class-accounted; representative-stock shortcuts do not satisfy Deep completeness.
+- Multi-company Deep work carries MATERIAL companies forward and leaves a decision-useful but non-actionable comparison map.
+- Market Explanation is explicitly scoped `REQUIRED | NOT_MATERIAL`; a company universe alone does not activate it.
+- When active, separate economic benefit from market selection, compare mechanisms, preserve `why_this/why_not`, continuation/reversal conditions and causal-confidence boundaries.
 
-## Natural Authorial Prose / Writing DNA Gate
-Require the nine-part rubric: fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration.
+## Reader Funnel / Authorial Prose
+Reader Funnel covers audience-promise fit, information value, curiosity/concreteness balance, current WeChat search evidence, first-screen retention, continuation, completion payoff and title/opening payoff. Title pools need genuine strategy diversity, not synonym variants.
 
-Argument progression includes a major-section bridge invariant: one H1 should normally create the reason for the next through cause, consequence, chronology, comparison, narrowing, correction or inference. Generic transition phrases do not satisfy that requirement.
+Natural Authorial Prose uses the nine-part rubric for fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration. Template-cluster guards may force REVISE.
 
-Before semantic judgment, run the deterministic template-cluster guard. Repeated AI-like staging families can force REVISE and cannot be self-waived by the authoring executor.
+Do not optimize for detector evasion or recreate overlapping “活人感” silos.
 
-Do not optimize for detector evasion. Do not recreate separate “活人感 / 娓娓道来 / 交流感” rule silos.
+## Writing DNA and quality evolution
+`record_writing_learning_sample` stores raw task-level user edit/feedback/acceptance/rejection/performance evidence. A sample never auto-promotes policy.
 
-## Editorial ownership boundary
-Editorial owns material coverage, company comparison usefulness and macro section order. Natural Authorial Prose owns reasoning progression. Reader Funnel owns continuation value. The runtime should not score one transition defect three times under three different names.
+Quality-promotion evidence is separate from article execution. Promotion requires immutable regression/held-out case identities, semantic candidate evidence verification, real hard-regression execution bound to the exact candidate/change, blind A/B position-swapped pairwise judging, and separate reference/semantic verification. A callback named “verifier” is not proof of independent execution identity.
 
-Do not ship a canned structure-pattern library. Generate topic-specific candidate structures from current TopicDNA.
-
-For company/theme Deep articles, research must first reconcile the economically material value-chain universe, classify companies by materiality, and carry MATERIAL-company obligations into the draft. Representative-stock shortcuts are not valid completeness. Monitoring/validation/falsification sections must map signals back to named stocks or explicit value-chain classes.
-
-A comparison map may state research order/evidence strength or “current vs later / visibility vs sensitivity” buckets. It must not use direct or euphemistic language whose practical function is to tell the reader what to buy, when to trade, what target to use, or how much to hold.
-
-## Reader evidence policy
-Audience demographics are readability priors, not sophistication labels. Device-price or generic age heuristics must not become hard writing assumptions without behavioral evidence. Account-level click/search/completion and repeated user feedback outrank generic heuristics when available.
+Current FINANCE_DEEP evidence remains diagnostic only until a second held-out topic family exists. FINANCE_BROAD and Personalized Writing DNA remain not ready under their documented evidence requirements.
 
 ## Word contract
-The deterministic Word layer enforces:
-- H1 `24px = 18pt`;
-- H2 `20px = 15pt`;
-- body `18px = 13.5pt`;
-- H3 currently `12pt`;
-- Chinese hierarchy `一、二、三 → （1）（2）（3） → ①②③`;
-- zero publication tables;
-- **zero underlined runs**;
-- no publication-tail `资料来源 / 参考资料 / 参考来源 / 来源汇总` section; provenance remains in research/audit and material source identity is attributed naturally in prose;
-- explicit selected bold skim anchors, without blanket automatic bolding of every company occurrence;
-- one final fully italic inline `风险提示：...` paragraph, with no separate numbered risk H1;
-- every applicable required Word artifact before Mechanical PASS;
-- stale render-page cleanup before rerender;
-- renderability.
-
-For branching/long `FINANCE_DEEP` articles, visible lower-level numbered navigation is a deterministic requirement rather than a stylistic preference.
-
-Typography, underline/source-tail/risk-format drift are Mechanical Hard Fails.
-
-## QA invalidation
-Research changes invalidate all affected downstream editorial/draft/QA/artifact state and factual knowledge-writeback decisions. Editorial-plan, title and draft changes clear their stale downstream payloads/gates/artifacts. Pure rhetoric/title/layout revisions do not by themselves invalidate already-valid factual knowledge writeback.
-
-Dedicated Reader Funnel or Authorial Prose REVISE routes immediately to the declared upstream stage rather than waiting for a contradictory general-editorial PASS.
-
-Semantic PASS requires independent audit provenance. A chat self-review may find defects but cannot certify semantic gates as PASS.
+Deterministic Word enforces H1 `18pt`, H2 `15pt`, body `13.5pt`, H3 currently `12pt`, Chinese hierarchy, zero publication tables, zero underlines, no tail source appendix, explicit skim-anchor bolding without blanket company bold, one final italic inline `风险提示：...`, required-file presence, stale-render cleanup and renderability.
 
 ## Promotion validation
 Do not call a Site production-ready until all are true:
-1. intended writing requests activate and unrelated stock-picking/review requests do not;
-2. all 17 typed v0.7 tools are discoverable from a fresh conversation;
-3. only the Word resource template is exposed;
-4. durable task state survives process/runtime restart;
-5. Word artifacts survive fresh conversation and restart;
-6. a deliberately BLOCKED task preserves a recovery cursor and successfully resumes through `resume_blocked_task` after repair;
-7. illegal stages and unknown fields fail closed;
-8. FINANCE_DEEP material completeness includes value-chain class accounting, MATERIAL-company reconciliation, stock-grounded validation sections and a decision-useful non-actionable company comparison map; FINANCE_BROAD selective compression remains mode-specific and passes the cold-reader finance-stake test;
-9. `REQUIRED` and `NOT_MATERIAL` Market Explanation scope both validate correctly, including a non-empty company universe with legitimate `NOT_MATERIAL`;
-10. Reader Funnel and nine-part Authorial Prose gates independently gate editorial completion;
-11. raw Writing DNA samples persist without auto-promoting policy;
-12. headline schema accepts qualified sector-specific titles, requires at least five angle families across the pool, and rejects synonym-only title pools;
-13. deterministic template-cluster guard can force prose REVISE and major-section bridge defects cannot be waved through by generic transition text;
-14. semantic audit PASS requires independent executor provenance; chat self-review cannot PASS;
-15. revisions invalidate stale downstream state correctly;
-16. Word QA verifies exact typography, zero tables, zero underlines, no end source appendix, inline italic risk, numbered Deep navigation when branching, explicit skim anchors, required-file presence and renderability;
-17. public/artifact/audit outputs contain no server-local paths;
-18. final semantic audit gates COMPLETE and returns audit Word plus visible checklist;
-19. one user-authorized real-article E2E includes deliberate interruption/recovery and fresh-chat recovery;
-20. public/multi-user sharing remains disabled.
+1. activation routing is correct;
+2. all **18 typed v0.8 tools** and only the Word resource template are discoverable;
+3. owner-native `run_semantic_audit_stage` can really execute with the deployed SDK/model runtime;
+4. direct CHAT_BRIDGED semantic PASS is rejected;
+5. semantic-runtime unavailability produces recoverable BLOCKED rather than self-review fallback;
+6. durable state/artifacts survive restart and fresh chat;
+7. legal stage/revision/invalidation/recovery paths pass;
+8. Deep/Broad research/editorial invariants pass;
+9. semantic audit gates require current owner-runtime proof and COMPLETE rechecks it;
+10. deterministic Word QA and path privacy pass;
+11. one user-authorized real article E2E includes deliberate interruption/recovery and fresh-chat recovery;
+12. public/multi-user sharing remains disabled.
 
 ## Canonical source
 Repository: `D1traverser-debug/financial-writing-agent`
