@@ -88,7 +88,7 @@ class WritingEngine:
         if target is None or target not in RECOVERABLE_STAGES:
             raise WorkflowError("BLOCKED task has no valid recovery cursor")
         prior_reason = state.blocked_reason or "unspecified blocker"
-        state.add_trace("BLOCK_RECOVERY", f"resume={target.value}; prior_reason={prior_reason}")
+        state.add_trace("RUNTIME_UNBLOCKED", f"resume={target.value}; prior_reason={prior_reason}")
         state.blocked_reason = None
         state.blocked_from_stage = None
         state.blocked_resume_stage = None
