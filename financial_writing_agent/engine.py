@@ -8,6 +8,19 @@ class WorkflowError(RuntimeError):
     pass
 
 
+RECOVERABLE_STAGES = {
+    Stage.INTAKE,
+    Stage.RESEARCH,
+    Stage.RESEARCH_AUDIT,
+    Stage.EDITORIAL,
+    Stage.TITLE,
+    Stage.DRAFT,
+    Stage.EDITORIAL_AUDIT,
+    Stage.DELIVERY,
+    Stage.MECHANICAL_AUDIT,
+    Stage.FINAL_AUDIT,
+}
+
 ALLOWED_TRANSITIONS: dict[Stage, set[Stage]] = {
     Stage.INTAKE: {Stage.RESEARCH, Stage.BLOCKED},
     Stage.RESEARCH: {Stage.RESEARCH_AUDIT, Stage.BLOCKED},
@@ -15,12 +28,12 @@ ALLOWED_TRANSITIONS: dict[Stage, set[Stage]] = {
     Stage.EDITORIAL: {Stage.TITLE, Stage.BLOCKED},
     Stage.TITLE: {Stage.TITLE, Stage.DRAFT, Stage.BLOCKED},
     Stage.DRAFT: {Stage.EDITORIAL_AUDIT, Stage.BLOCKED},
-    Stage.EDITORIAL_AUDIT: {Stage.TITLE, Stage.DRAFT, Stage.DELIVERY, Stage.BLOCKED},
+    Stage.EDITORIAL_AUDIT: {Stage.RESEARCH, Stage.EDITORIAL, Stage.TITLE, Stage.DRAFT, Stage.DELIVERY, Stage.BLOCKED},
     Stage.DELIVERY: {Stage.MECHANICAL_AUDIT, Stage.BLOCKED},
     Stage.MECHANICAL_AUDIT: {Stage.DELIVERY, Stage.FINAL_AUDIT, Stage.BLOCKED},
-    Stage.FINAL_AUDIT: {Stage.EDITORIAL, Stage.DELIVERY, Stage.COMPLETE, Stage.BLOCKED},
+    Stage.FINAL_AUDIT: {Stage.RESEARCH, Stage.EDITORIAL, Stage.TITLE, Stage.DRAFT, Stage.DELIVERY, Stage.COMPLETE, Stage.BLOCKED},
     Stage.COMPLETE: set(),
-    Stage.BLOCKED: {Stage.INTAKE, Stage.RESEARCH, Stage.EDITORIAL, Stage.DELIVERY, Stage.FINAL_AUDIT},
+    Stage.BLOCKED: set(RECOVERABLE_STAGES),
 }
 
 
@@ -45,12 +58,41 @@ class WritingEngine:
         self.store.save(state)
         return state
 
-    def block(self, state: WritingState, reason: str) -> WritingState:
+    def block(self, state: WritingState, reason: str, *, resume_stage: Stage | None = None) -> WritingState:
+        if state.stage == Stage.COMPLETE:
+            raise WorkflowError("completed tasks cannot be blocked")
+        if state.stage == Stage.BLOCKED:
+            state.blocked_reason = reason
+            if resume_stage is not None:
+                if resume_stage not in RECOVERABLE_STAGES:
+                    raise WorkflowError(f"invalid blocked resume stage: {resume_stage}")
+                state.blocked_resume_stage = resume_stage
+            self.store.save(state)
+            return state
+
+        origin = state.stage
+        cursor = resume_stage or origin
+        if cursor not in RECOVERABLE_STAGES:
+            raise WorkflowError(f"invalid blocked resume stage: {cursor}")
         state.blocked_reason = reason
-        if state.stage != Stage.BLOCKED:
-            self.transition(state, Stage.BLOCKED, reason=reason)
+        state.blocked_from_stage = origin
+        state.blocked_resume_stage = cursor
+        self.transition(state, Stage.BLOCKED, reason=reason)
         self.store.save(state)
         return state
+
+    def resume_blocked(self, state: WritingState, *, target_stage: Stage | None = None) -> WritingState:
+        if state.stage != Stage.BLOCKED:
+            raise WorkflowError("resume_blocked is only legal for BLOCKED tasks")
+        target = target_stage or state.blocked_resume_stage
+        if target is None or target not in RECOVERABLE_STAGES:
+            raise WorkflowError("BLOCKED task has no valid recovery cursor")
+        prior_reason = state.blocked_reason or "unspecified blocker"
+        state.add_trace("BLOCK_RECOVERY", f"resume={target.value}; prior_reason={prior_reason}")
+        state.blocked_reason = None
+        state.blocked_from_stage = None
+        state.blocked_resume_stage = None
+        return self.transition(state, target, reason=f"blocker repaired; resume {target.value}")
 
     def record_gate(self, state: WritingState, name: str, status: GateStatus, evidence: list[str], notes: str = "") -> None:
         state.set_gate(name, status, evidence, notes)
