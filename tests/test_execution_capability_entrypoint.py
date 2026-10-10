@@ -30,3 +30,31 @@ def test_material_user_feedback_has_real_durable_learning_evidence_path():
     assert learning["assurance_ceiling"] == "SESSION_EXECUTABLE"
     assert "record_writing_learning_sample" in learning["invocation_path"]
     assert any("persisted sample receipt" in item for item in learning["evidence_contract"])
+
+
+def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
+    adapter = json.loads((ROOT / "continuity/UNIVERSAL_PROTOCOL_ADAPTER.json").read_text(encoding="utf-8"))
+    methodology = adapter["methodology"]
+
+    assert methodology["profile_refs"] == {
+        "artifact_io": "1.0",
+        "operational_hygiene": "1.0",
+        "evolution": "1.0",
+    }
+
+    required_artifact_hooks = {
+        "durable_task_state_location",
+        "authoritative_business_evidence_classes",
+        "canonical_artifact_or_file_stores",
+        "cache_or_reference_only_stores",
+        "stable_identity_strategy",
+        "read_freshness_requirements",
+        "mutation_conflict_strategy",
+        "post_write_verification_method",
+        "upstream_to_downstream_invalidation_rule",
+        "delete_and_retention_rules",
+        "superseded_artifact_cleanup_rule",
+        "external_artifact_vault_if_any",
+    }
+    assert required_artifact_hooks.issubset(methodology["hook_bindings"])
+    assert adapter["methodology_assurance"]["operational_status"] == "ACTION_LEVEL_PROFILE_ACTIVATION_AND_INDEPENDENT_EVIDENCE_RECEIPT_NOT_YET_PROVEN"
