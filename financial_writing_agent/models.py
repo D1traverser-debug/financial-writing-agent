@@ -108,6 +108,8 @@ class WritingState(BaseModel):
     trace: list[TraceEvent] = Field(default_factory=list)
     attempts: dict[str, int] = Field(default_factory=dict)
     blocked_reason: str | None = None
+    blocked_from_stage: Stage | None = None
+    blocked_resume_stage: Stage | None = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def add_trace(self, event: str, detail: str = "") -> None:
