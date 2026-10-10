@@ -42,8 +42,8 @@ class ArtifactSummary(PublicResultModel):
 
 class EditorialChecklist(PublicResultModel):
     general_editorial: GateStatusText
-    hook: GateStatusText
-    human_voice: GateStatusText
+    reader_funnel: GateStatusText
+    authorial_prose: GateStatusText
 
 
 class KnowledgeChecklist(PublicResultModel):
