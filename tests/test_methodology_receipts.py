@@ -25,7 +25,7 @@ def test_learning_receipt_is_action_scoped_and_cannot_self_certify():
 
     assert run["profile_id"] == "evolution"
     assert run["profile_version"] == "1.0"
-    assert run["receipt_contract_version"] == "1.1"
+    assert run["receipt_contract_version"] == "1.2"
     assert run["verification_status"] == "UNVERIFIED_OWNER_RECEIPT"
     assert set(run["hook_assessments"]) == set(EVOLUTION_HOOKS)
     assert run["invoked_hooks"] == ["learning_evidence_location"]
@@ -49,12 +49,14 @@ def test_artifact_receipt_assesses_every_hook_without_fake_invocation():
 
     run = record_artifact_io_receipt(state)
 
+    assert run["receipt_contract_version"] == "1.2"
     assert run["profile_id"] == "artifact_io"
     assert set(run["hook_assessments"]) == set(ARTIFACT_IO_HOOKS)
     assert "post_write_verification_method" in run["invoked_hooks"]
     assert run["hook_assessments"]["delete_and_retention_rules"]["status"] == "NOT_APPLICABLE_FOR_ACTION"
     assert run["hook_assessments"]["external_artifact_vault_if_any"]["status"] == "NOT_APPLICABLE_FOR_ACTION"
     assert run["verification_status"] == "UNVERIFIED_OWNER_RECEIPT"
+    assert any("external_ref_and_semantic_assessment_required" in item["detail"] for item in state.trace if item.get("event") == "METHODOLOGY_PROFILE_RUN")
 
 
 def test_artifact_receipt_fails_closed_without_mechanical_pass():
