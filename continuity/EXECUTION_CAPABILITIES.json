@@ -50,7 +50,7 @@
       "executor_type": "OWNER_PLUGIN_RUNTIME",
       "executor_ref": "financial_writing_agent/plugin_server.py",
       "required_tools": ["owner_plugin_runtime"],
-      "evidence_contract": ["task_id", "persisted WritingState learning sample", "sample_type", "provenance/source", "evolution profile run marked UNVERIFIED_OWNER_RECEIPT"],
+      "evidence_contract": ["task_id", "persisted sample receipt in authoritative WritingState", "sample_type", "provenance/source", "evolution profile run marked UNVERIFIED_OWNER_RECEIPT"],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
     },
