@@ -12,9 +12,9 @@
 - writing_rule_authority: `D1traverser-debug/financial-writing-agent@main`
 
 ## Current validated system state
-Behavioral/evolution harness head `cd2124df1c38ff18377c40aadf8c8b1d1d850100` passed GitHub Actions run `38065224392`, job `114251394009`: OpenAI Agents SDK smoke, 17-tool MCP smoke, **74 unit/trajectory tests**, executable contract eval baseline, static ownership/bundle audit, isolated wheel install and DOCX render smoke all PASS.
+The owner remains on Financial Writing v0.7 and is bound to Universal Continuity v3.7 methodology profiles `artifact_io@1.0`, `operational_hygiene@1.0` and `evolution@1.0` through thin owner-local bindings; shared Universal prose is not copied into the writing owner.
 
-The owner is bound to Universal Continuity v3.7 methodology profiles `artifact_io@1.0`, `operational_hygiene@1.0` and `evolution@1.0` through thin owner-local bindings; shared Universal prose is not copied into the writing owner.
+The latest receipt-contract-1.2 and semantic-verification hardening requires a fresh final CI result before this handoff may claim a new validated behavioral head. Historical full-green evidence remains GitHub Actions run `38065739293` at head `2a8a0e6ab81e3f2d24d6f38f28b867ca0893b486`; do not substitute that historical run for validation of later 1.2 commits.
 
 ## Reliability / evolution state
 The 2026-10-10 offshore-wind rejection is a complete FINANCE_DEEP regression case. A different-topic historical rutile article is retained as FINANCE_DEEP held-out evidence, not as user acceptance or personalized taste.
@@ -29,13 +29,13 @@ Current corpus authorization is narrow:
 No current CI result, candidate-distillation PASS or owner receipt proves prose quality has improved.
 
 ## Methodology action receipts
-The public owner-plugin path now emits action-scoped receipt contract `1.1` for:
+The public owner-plugin path emits action-scoped receipt contract `1.2` for:
 - persisted writing-learning evidence → `evolution@1.0`;
 - successful Word build + mechanical/render verification → `artifact_io@1.0`.
 
 Every profile hook is explicitly assessed as `INVOKED` or `NOT_APPLICABLE_FOR_ACTION`; unrelated hooks are not faked as executed. Receipts are deliberately marked `UNVERIFIED_OWNER_RECEIPT` and are exposed through detailed `WritingTaskSummary.methodology_profile_runs`.
 
-This wiring is **not** Universal operational PASS. Universal still needs an independent evidence verifier over the receipt refs. `operational_hygiene` also remains without a live article-action receipt path in this validation.
+This wiring is **not** Universal operational PASS. Receipt contract 1.2 requires two independent checks: first, every evidence ref must resolve to trusted evidence; second, an independent hook-assessment verifier must determine whether those verified refs and the stated reason actually support the hook's `INVOKED` or `NOT_APPLICABLE_FOR_ACTION` claim. A real but irrelevant evidence ref is not sufficient. `operational_hygiene` also remains without a live article-action receipt path in this validation.
 
 ## Exact next action
 For a normal article request, complete the session capability handshake and run the existing v0.7 state machine. Do not add article-level rules merely because a single output is rejected. Repeated/systemic quality failures enter the reliability/evolution path above before any production-method promotion.
