@@ -103,12 +103,14 @@ Editorial checks section-level architecture:
 Detailed paragraph-to-paragraph **argument progression** belongs to `style.md`. Whether H1s/transitions provide enough motivation to continue reading belongs to `hooks.md`. Do not triple-count the same defect.
 
 ## Numbering and no tables
-Use continuous report-style prose with meaningful hierarchy whenever reasoning has real layers/categories/steps:
+Use continuous report-style prose with meaningful hierarchy when reasoning has **real** layers, categories, steps or parallel branches:
 `一、二、三 → （1）（2）（3） → ①②③`.
 
-For FINANCE_DEEP, visible lower-level numbering is **conditionally mandatory**, not cosmetic. If the article/section contains multiple company classes, three or more comparison dimensions, several realization stages, or multiple causal branches, expose those branches with H2/H3 numbering instead of burying them in long paragraphs.
+For FINANCE_DEEP, lower-level numbering is **semantic and conditional**, never a formatting quota. Use H2/H3 numbering when it exposes distinct analytical branches that would otherwise be hard to follow. Do not create H2/H3 merely because the article is long, contains many stock names, has several H1s, or because a fixed minimum count is expected.
 
-More numbering means better navigation, not filler “首先/其次/最后”. Publication articles do not use tables; convert comparison material into numbered prose with explicit dimensions and conclusions.
+A section may legitimately remain continuous prose when its reasoning is sequential rather than branched. Conversely, a genuinely multi-branch section should expose those branches instead of hiding them inside one dense paragraph. The decision is made from the section's analytical structure, not from character count or company count.
+
+Navigation quality is not monotonic in the amount of numbering. Excessive or visually symmetric numbering can itself become a structural defect when it turns the article into a report template or duplicates adjacent sections. Publication articles do not use tables; convert necessary comparison material into prose whose hierarchy follows the actual argument.
 
 ## Information density
 There is no default word-count target. Length follows material information density.
@@ -138,7 +140,7 @@ General editorial audit is independent from Reader Funnel and Natural Authorial 
 - stock-grounded validation/monitoring sections;
 - company-comparison decision usefulness without covert recommendation language;
 - Market Explanation discipline when scope is REQUIRED;
-- macro structural coherence, earned major-section bridges and visible numbered navigation when branching;
+- macro structural coherence, earned major-section bridges and semantically justified navigation when branching;
 - information density;
 - skim-path substance;
 - compliance and risk boundaries.
