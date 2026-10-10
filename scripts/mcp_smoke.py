@@ -100,11 +100,11 @@ async def verify() -> None:
             if structured.get("current_stage") != "RESEARCH" or not structured.get("task_id"):
                 raise RuntimeError(f"unexpected start result: {structured}")
             if structured.get("delivery_channel") != "WORD_FILE_ONLY":
-                raise RuntimeError(f"v0.6 task must be Word-only: {structured}")
+                raise RuntimeError(f"v0.7 task must be Word-only: {structured}")
             if structured.get("learning_sample_count") != 0:
-                raise RuntimeError(f"new v0.6 task should start with zero learning samples: {structured}")
+                raise RuntimeError(f"new v0.7 task should start with zero learning samples: {structured}")
             if any("VISUAL" in item or "CHAT_TEXT" in item for item in structured.get("required_outputs", [])):
-                raise RuntimeError(f"removed artifact contract leaked into v0.6 task: {structured}")
+                raise RuntimeError(f"removed artifact contract leaked into v0.7 task: {structured}")
 
             learning = await session.call_tool(
                 "record_writing_learning_sample",
@@ -119,7 +119,7 @@ async def verify() -> None:
 
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} Word-only resource template exposed, v0.6 start result and raw learning ledger validated"
+                f"{len(uris)} Word-only resource template exposed, v0.7 start result and raw learning ledger validated"
             )
 
 
