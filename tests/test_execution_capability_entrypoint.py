@@ -14,6 +14,7 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
+    assert profile["profile_version"] == 5
 
 
 def test_material_user_feedback_has_real_durable_learning_evidence_path():
@@ -60,22 +61,32 @@ def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
     assurance = adapter["methodology_assurance"]
     assert "ACTION_RECEIPT_EMISSION_WIRED" in assurance["operational_status"]
     assert "INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING" in assurance["operational_status"]
-    assert assurance["action_receipt_wiring"]["receipt_status"] == "UNVERIFIED_OWNER_RECEIPT"
-    assert assurance["action_receipt_wiring"]["wired_profiles"] == ["artifact_io", "evolution"]
-    assert "operational_hygiene" in assurance["action_receipt_wiring"]["unwired_or_unproven_profile"]
+    wiring = assurance["action_receipt_wiring"]
+    assert wiring["receipt_contract_version"] == "1.2"
+    assert wiring["receipt_status"] == "UNVERIFIED_OWNER_RECEIPT"
+    assert wiring["independent_verification_required"] == "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT"
+    assert wiring["wired_profiles"] == ["artifact_io", "evolution"]
+    assert "operational_hygiene" in wiring["unwired_or_unproven_profile"]
 
 
 def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_attest():
     server = (ROOT / "financial_writing_agent" / "plugin_server.py").read_text(encoding="utf-8")
     receipt_runtime = (ROOT / "financial_writing_agent" / "methodology_receipts.py").read_text(encoding="utf-8")
     contracts = (ROOT / "financial_writing_agent" / "mcp_contracts.py").read_text(encoding="utf-8")
+    profile = json.loads((ROOT / "continuity/EXECUTION_CAPABILITIES.json").read_text(encoding="utf-8"))
+    capabilities = {item["capability_id"]: item for item in profile["capabilities"]}
+    receipt_capability = capabilities["methodology_action_receipts"]
 
     assert "record_learning_evolution_receipt" in server
     assert "record_artifact_io_receipt" in server
     assert "methodology_profile_runs" in server
+    assert 'RECEIPT_CONTRACT_VERSION = "1.2"' in receipt_runtime
     assert "UNVERIFIED_OWNER_RECEIPT" in receipt_runtime
-    assert "external_required" in receipt_runtime
-    assert "MethodologyProfileRunSummary" in contracts
+    assert "external_ref_and_semantic_assessment_required" in receipt_runtime
+    assert 'receipt_contract_version: Literal["1.2"]' in contracts
     assert "Financial Writing v0.7 is Word-only" in server
     assert "Financial Writing v0.6 is Word-only" not in server
     assert "operational conformance" in server
+    assert "universal_independent_evidence_ref_verifier_for_operational_pass" in receipt_capability["required_tools"]
+    assert "universal_independent_hook_assessment_verifier_for_operational_pass" in receipt_capability["required_tools"]
+    assert any("real but irrelevant evidence ref" in item for item in receipt_capability["evidence_contract"])
