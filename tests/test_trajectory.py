@@ -1,6 +1,6 @@
 from financial_writing_agent.controller import WorkflowController
 from financial_writing_agent.engine import WritingEngine
-from financial_writing_agent.models import GateStatus, Stage, TaskContract
+from financial_writing_agent.models import ArtifactKind, GateStatus, Stage, TaskContract
 from financial_writing_agent.store import SQLiteStateStore
 
 
@@ -22,8 +22,8 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     state = ctl.advance(state)
     state.set_gate("draft_output", GateStatus.PASS, ["draft frozen"])
     state = ctl.advance(state)
-    state.set_gate("hook_audit", GateStatus.PASS, ["title/first3/H1/transitions"])
-    state.set_gate("style_audit", GateStatus.PASS, ["human voice"])
+    state.set_gate("hook_audit", GateStatus.PASS, ["reader funnel inspected"])
+    state.set_gate("style_audit", GateStatus.PASS, ["authorial prose inspected"])
     state.set_gate("editorial_audit", GateStatus.PASS, ["editor judge"])
     state = ctl.advance(state)
     state.set_gate("delivery_output", GateStatus.PASS, ["docx built"])
@@ -32,7 +32,7 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     state = ctl.advance(state)
 
     for kind in state.contract.required_outputs:
-        p = tmp_path / f"{kind}.docx"
+        p = tmp_path / f"{kind.value}.docx"
         p.write_bytes(b"stub")
         state.add_artifact(kind, str(p))
     state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target in trajectory unit test"])
@@ -60,3 +60,26 @@ def test_state_resume(tmp_path):
     assert loaded is not None
     assert loaded.stage == Stage.RESEARCH
     assert loaded.gates["research_output"].status == GateStatus.PASS
+
+
+def test_blocked_state_persists_exact_recovery_cursor_and_can_resume(tmp_path):
+    store = SQLiteStateStore(tmp_path / "state.db")
+    engine = WritingEngine(store)
+    ctl = WorkflowController(engine)
+    state = ctl.advance(engine.start(TaskContract(prompt="恢复测试")))
+    assert state.stage == Stage.RESEARCH
+
+    state = engine.block(state, "temporary research dependency unavailable", resume_stage=Stage.RESEARCH)
+    assert state.stage == Stage.BLOCKED
+    assert state.blocked_from_stage == Stage.RESEARCH
+    assert state.blocked_resume_stage == Stage.RESEARCH
+
+    loaded = store.load(state.contract.task_id)
+    assert loaded is not None and loaded.blocked_resume_stage == Stage.RESEARCH
+
+    resumed = engine.resume_blocked(loaded)
+    assert resumed.stage == Stage.RESEARCH
+    assert resumed.blocked_reason is None
+    assert resumed.blocked_resume_stage is None
+    assert resumed.blocked_from_stage is None
+    assert any(e.event == "RUNTIME_UNBLOCKED" for e in resumed.trace)
