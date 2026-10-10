@@ -69,7 +69,7 @@ class MethodologyHookAssessmentSummary(PublicResultModel):
 
 
 class MethodologyProfileRunSummary(PublicResultModel):
-    receipt_contract_version: Literal["1.1"]
+    receipt_contract_version: Literal["1.2"]
     profile_id: Literal["artifact_io", "operational_hygiene", "evolution"]
     profile_version: Literal["1.0"]
     activation_id: str
