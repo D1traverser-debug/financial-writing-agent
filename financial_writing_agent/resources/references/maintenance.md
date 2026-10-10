@@ -22,6 +22,22 @@ The ledger is evidence, **not automatic self-modification**. A one-off user reac
 
 A repeated material failure of the same writing responsibility is not another reminder-writing opportunity. Treat it as a runtime/trajectory reliability defect: persist failure evidence, identify the enforcement gap, add/update a regression or eval, and remove/repair the conflicting mechanism before adding unrelated writing features.
 
+## Candidate distillation before promotion
+A real failure is evidence that something is wrong, not evidence that the first proposed fix is right. Before a quality-changing candidate can enter the blind promotion comparison, `financial_writing_agent.quality_regression.evaluate_candidate_distillation` must PASS.
+
+The distillation package is process evidence, not another article-writing checklist. It must:
+- bind the candidate to complete owner-local failure evidence, including at least one real user rejection;
+- state the problem and root-cause hypothesis separately from the proposed mechanism;
+- compare at least two credible mechanisms and record a failure mode for each;
+- record the selected candidate, selection rationale and the smallest intended authority surface;
+- include counterexample/failure-mode evidence and a verifiable candidate-change reference;
+- state the disposition of any superseded mechanism instead of silently accumulating another parallel rule layer;
+- scope the quality claim to explicit content modes.
+
+Content-mode scope fails closed. A candidate may claim `FINANCE_DEEP` or `FINANCE_BROAD` quality improvement only when that target mode has both complete real-rejection evidence and complete held-out evidence. Evidence from FINANCE_DEEP must not silently authorize a FINANCE_BROAD claim, and vice versa.
+
+This distillation requirement prevents two opposite failure modes: blindly adopting the user's or assistant's first idea, and endlessly adding deterministic prose rules because they are easy to test. It does **not** make the distillation package itself proof of better writing; blind pairwise evidence remains required afterward.
+
 ## Quality-changing system promotion
 A system/prompt/method change that claims to improve writing quality must not be promoted merely because deterministic CI passes or because the changing agent writes a positive receipt.
 
@@ -32,6 +48,8 @@ The system may improve general writing quality without waiting for the user to b
 - deterministic factual/compliance/state/artifact invariants remain an independent hard floor;
 - complete real failure evidence;
 - diverse complete held-out evidence spanning more than one topic family;
+- a passing candidate-distillation package before the candidate is treated as admissible;
+- the candidate quality claim is limited to content modes with both real-failure and held-out coverage;
 - blind pairwise comparison against the current baseline with the candidate evaluated in both A and B positions;
 - independently verifiable judge execution evidence;
 - known real failures improve, held-out cases do not regress, and at least one held-out case prefers the candidate;
@@ -46,7 +64,7 @@ Partial snippets/feedback may enter the corpus immediately but cannot by themsel
 
 `evals/quality_regression.json` is owner-local eval evidence, not business task authority and not a new root policy. The real 2026-10-10 offshore-wind rejection has been recovered as a complete regression artifact under `evals/artifacts/`. A different-topic historical Financial Writing output, the 2026-10-06 rutile article, is also preserved there as a held-out owner baseline; it is **not** labeled user acceptance or a style exemplar.
 
-The general-quality corpus is now `PROMOTION_READY_CORPUS_ONLY`: corpus composition no longer depends on new user feedback, but a concrete candidate still cannot claim quality improvement until independently verified blind pairwise judge evidence passes the promotion gate. Personalized Writing DNA remains `NOT_READY` until real user acceptance/edit or post-publication performance evidence exists.
+The current corpus is `PROMOTION_READY_CORPUS_ONLY` for a **FINANCE_DEEP-scoped** general-quality candidate: it contains a complete FINANCE_DEEP real rejection and FINANCE_DEEP held-out evidence across two topic families. It does **not** authorize a FINANCE_BROAD quality claim. A concrete candidate still cannot claim improvement until candidate distillation and independently verified blind pairwise judge evidence both pass. Personalized Writing DNA remains `NOT_READY` until real user acceptance/edit or post-publication performance evidence exists.
 
 ## Change protocol
 1. Identify the canonical rule owner and affected runtime stages.
