@@ -15,14 +15,27 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
-    assert profile["profile_version"] == 7
+    assert profile["profile_version"] == 8
+
+    generation = capabilities["high_judgment_generation_stages"]
+    assert generation["safe_degraded_modes"] == ["CHAT_BRIDGED"]
+    assert "RESEARCH_AUDIT" not in generation["scope"]
+
+    semantic = capabilities["semantic_audit_stages"]
+    assert semantic["safe_degraded_modes"] == []
+    assert semantic["scope"] == "RESEARCH_AUDIT,EDITORIAL_AUDIT,FINAL_AUDIT"
+    assert any("EXECUTOR_START" in item and "EXECUTOR_END" in item for item in semantic["evidence_contract"])
+    assert any("not provider-attested isolation" in item for item in semantic["evidence_contract"])
 
     quality_gate = capabilities["quality_regression_promotion_gate"]
     assert quality_gate["assurance_ceiling"] == "HARNESS_WIRED"
-    assert "independent_judge_run_semantic_verifier" in quality_gate["required_tools"]
+    assert "case_artifact_binding_verifier" in quality_gate["required_tools"]
+    assert "candidate_evidence_semantic_verifier" in quality_gate["required_tools"]
+    assert "hard_regression_execution_and_semantic_verifier" in quality_gate["required_tools"]
+    assert "judge_run_semantic_verifier" in quality_gate["required_tools"]
     assert any("at least two distinct held-out topic families" in item for item in quality_gate["evidence_contract"])
     assert any("exact candidate id and candidate-change ref" in item for item in quality_gate["evidence_contract"])
-    assert any("semantic verifier" in item for item in quality_gate["evidence_contract"])
+    assert any("callback presence alone" in item for item in quality_gate["evidence_contract"])
 
 
 def test_material_user_feedback_has_real_durable_learning_evidence_path():
@@ -39,6 +52,21 @@ def test_material_user_feedback_has_real_durable_learning_evidence_path():
     assert learning["assurance_ceiling"] == "SESSION_EXECUTABLE"
     assert "record_writing_learning_sample" in learning["invocation_path"]
     assert any("persisted sample receipt" in item for item in learning["evidence_contract"])
+
+
+def test_financial_systemic_maintenance_inherits_universal_meta_governance_without_copying_root_policy():
+    maintenance = (ROOT / "references/maintenance.md").read_text(encoding="utf-8")
+    skill_mirror = (ROOT / "skills/financial-writing-agent/references/maintenance.md").read_text(encoding="utf-8")
+    packaged = (ROOT / "financial_writing_agent/resources/references/maintenance.md").read_text(encoding="utf-8")
+    adapter = json.loads((ROOT / "continuity/UNIVERSAL_PROTOCOL_ADAPTER.json").read_text(encoding="utf-8"))
+
+    assert maintenance == skill_mirror == packaged
+    assert "Universal meta-maintenance entry" in maintenance
+    assert "systemic/non-trivial maintenance" in maintenance
+    assert "learning/benchmark scout" in maintenance
+    assert "instruction" in maintenance and "complexity/efficiency" in maintenance
+    assert adapter["methodology"]["profile_refs"]["operational_hygiene"] == "1.0"
+    assert adapter["methodology"]["profile_refs"]["evolution"] == "1.0"
 
 
 def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
