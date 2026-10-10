@@ -8,13 +8,21 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     index = (ROOT / "continuity/TASK_INDEX.md").read_text(encoding="utf-8")
     profile = json.loads((ROOT / "continuity/EXECUTION_CAPABILITIES.json").read_text(encoding="utf-8"))
+    capabilities = {item["capability_id"]: item for item in profile["capabilities"]}
 
     assert "continuity/EXECUTION_CAPABILITIES.json" in skill
     assert "continuity/EXECUTION_CAPABILITIES.json" in index
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
-    assert profile["profile_version"] == 5
+    assert profile["profile_version"] == 6
+
+    quality_gate = capabilities["quality_regression_promotion_gate"]
+    assert quality_gate["assurance_ceiling"] == "HARNESS_WIRED"
+    assert "independent_judge_run_semantic_verifier" in quality_gate["required_tools"]
+    assert any("at least two distinct held-out topic families" in item for item in quality_gate["evidence_contract"])
+    assert any("exact candidate id and candidate-change ref" in item for item in quality_gate["evidence_contract"])
+    assert any("semantic verifier" in item for item in quality_gate["evidence_contract"])
 
 
 def test_material_user_feedback_has_real_durable_learning_evidence_path():
