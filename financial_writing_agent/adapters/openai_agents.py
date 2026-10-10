@@ -9,7 +9,7 @@ import json
 import os
 from typing import Any
 
-from ..checks import analyze_template_scaffolding, check_deep_company_grounding, check_payload_navigation, payload_text
+from ..checks import analyze_template_scaffolding, check_deep_company_grounding, payload_text
 from ..models import GateStatus, Stage, WritingState
 from ..resources import read_reference
 from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
@@ -177,7 +177,7 @@ class OpenAIStageExecutor:
         instructions = load_reference("editorial.md") + "\n\n" + load_reference("hooks.md") + "\n\n" + load_reference("style.md") + "\n\n" + load_reference("delivery.md")
         instructions += (
             "\n\nDraft every applicable formal article in Simplified Chinese. Never use tables. "
-            "Use visible numbered hierarchy aggressively when a section contains multiple companies, dimensions, stages or causal branches: H1 一、二、三; H2 （1）（2）（3）; H3 ①②③. Do not hide a list of distinct analytical jobs inside one dense paragraph. "
+            "Use H1s as clear macro navigation. Add H2/H3 numbering only when the current section contains genuine parallel analytical branches, categories or steps that materially improve comprehension. Never create lower-level numbering merely because the article is long, covers many companies, has several H1s, or to satisfy a visual quota. Sequential reasoning may remain continuous prose. "
             "FINANCE_DEEP must discharge every completeness_obligation and every company_coverage_obligation. It must name every MATERIAL company from research and may group SECONDARY companies only when the class-level treatment still explains why they matter. "
             "If a section tells the reader what to validate/watch next, map each material signal to the affected named stocks or value-chain class; do not end with an industry-only checklist after discussing stocks elsewhere. "
             "Do not repeatedly stage the argument with formulae such as '真正的X不是Y而是Z', '如果只看…', '这正是…', '最值得写清楚…'. Use them only when the exact sentence earns its place. "
@@ -189,14 +189,13 @@ class OpenAIStageExecutor:
         research = ResearchPackage.model_validate(state.working["research"])
         errors: list[str] = []
         if out.finance_deep is not None:
-            errors.extend(check_payload_navigation(out.finance_deep, deep=True))
             errors.extend(check_deep_company_grounding(out.finance_deep, research))
         if errors:
             state.working["draft_guard_errors"] = errors
-            state.set_gate("draft_output", GateStatus.REVISE, ["deterministic deep-coverage/navigation guard"], "; ".join(errors))
+            state.set_gate("draft_output", GateStatus.REVISE, ["deterministic deep-company grounding guard"], "; ".join(errors))
         else:
             state.working.pop("draft_guard_errors", None)
-            state.set_gate("draft_output", GateStatus.PASS, ["structured draft package frozen", "deep universe and numbered-navigation guards passed"])
+            state.set_gate("draft_output", GateStatus.PASS, ["structured draft package frozen", "deep universe grounding guard passed"])
         return state
 
     def _execute_editorial_audit(self, state: WritingState) -> WritingState:
@@ -253,7 +252,7 @@ class OpenAIStageExecutor:
             return state
 
         instructions = load_reference("audit.md") + (
-            "\n\nAudit the frozen draft for evidence, FINANCE_DEEP completeness / FINANCE_BROAD legal compression, universe-to-article company coverage, stock-grounded validation/monitoring sections, numbered navigation, market-explanation discipline when activated, skim-path coherence and compliance. "
+            "\n\nAudit the frozen draft for evidence, FINANCE_DEEP completeness / FINANCE_BROAD legal compression, universe-to-article company coverage, stock-grounded validation/monitoring sections, semantically justified navigation, market-explanation discipline when activated, skim-path coherence and compliance. "
             "FINANCE_DEEP is not allowed to call itself complete while silently omitting MATERIAL companies/classes or replacing company coverage with a few representative names. "
             "Dedicated Reader Funnel and Authorial Prose gates already passed. If an upstream defect is discovered, use the earliest correct revision_target among RESEARCH, EDITORIAL, TITLE or DRAFT."
         )
@@ -274,7 +273,7 @@ class OpenAIStageExecutor:
     def _execute_final_audit(self, state: WritingState) -> WritingState:
         instructions = load_reference("audit.md") + "\n\n" + load_reference("hooks.md") + "\n\n" + load_reference("style.md")
         instructions += (
-            "\n\nPerform final red-team review of frozen Word content plus recorded mechanical audit. Reconfirm universe completeness, MATERIAL-company appearance, stock-grounded monitoring/validation sections, title-pool strategy diversity, numbered navigation and template-cluster status. "
+            "\n\nPerform final red-team review of frozen Word content plus recorded mechanical audit. Reconfirm universe completeness, MATERIAL-company appearance, stock-grounded monitoring/validation sections, title-pool strategy diversity, semantically justified navigation and template-cluster status. "
             "Do not audit or request images; Financial Writing has no visual workflow. If a defect is upstream, use the earliest correct revision_target among RESEARCH, EDITORIAL, TITLE, DRAFT or DELIVERY."
         )
         out: GateDecision = self._run(
