@@ -1,0 +1,58 @@
+{
+  "schema_version": "1.0",
+  "architecture_contract_version": "1.0",
+  "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
+  "owner_kind": "BUSINESS",
+  "skill": {
+    "role": "ROUTER",
+    "entrypoint": "skills/financial-writing-agent/SKILL.md",
+    "current_note": "Skill is currently above the Universal thin-router target and is an explicit architecture-drift candidate for progressive reduction."
+  },
+  "runtime": {
+    "runtime_type": "HYBRID",
+    "entrypoints": [
+      "financial_writing_agent/plugin_server.py",
+      "financial_writing_agent/runner.py",
+      "financial_writing_agent/runtime_service.py",
+      "financial_writing_agent/adapters/openai_agents.py"
+    ],
+    "tool_surface_refs": [
+      "financial_writing_agent/plugin_server.py",
+      "financial_writing_agent/mcp_contracts.py"
+    ],
+    "judgment_execution": "EXECUTABLE",
+    "note": "High-judgment stages can execute through the owner-native OpenAI Agents SDK path; provider-attested isolation remains a separate unavailable assurance."
+  },
+  "workflow": {
+    "state_authority_refs": [
+      "financial_writing_agent/store.py",
+      "financial_writing_agent/models.py"
+    ],
+    "transition_guard_refs": [
+      "financial_writing_agent/controller.py",
+      "financial_writing_agent/engine.py",
+      "financial_writing_agent/semantic_runtime.py"
+    ]
+  },
+  "harness": {
+    "ci_workflow_ref": ".github/workflows/ci.yml",
+    "commands": [
+      "python scripts/sdk_smoke.py",
+      "python scripts/mcp_smoke.py",
+      "pytest -q",
+      "python scripts/eval_contracts.py",
+      "python scripts/static_audit.py"
+    ],
+    "suites": ["architecture", "contract", "trajectory", "quality", "artifact"]
+  },
+  "references": {
+    "canonical_roots": ["references"],
+    "mirror_policy": "GENERATED_PACKAGE_MIRROR",
+    "package_mirror": "financial_writing_agent/resources/references"
+  },
+  "continuity": {
+    "task_index_ref": "continuity/TASK_INDEX.md",
+    "protocol_adapter_ref": "continuity/UNIVERSAL_PROTOCOL_ADAPTER.json",
+    "execution_capability_ref": "continuity/EXECUTION_CAPABILITIES.json"
+  }
+}
