@@ -11,55 +11,54 @@
 - writing_contract: `Financial Writing Agent v0.7`
 - writing_rule_authority: `D1traverser-debug/financial-writing-agent@main`
 
-## Validated system state
-The current v0.7 business-code hardening is validated at HEAD `60c3407bed07a0fd03ca8ea9e7bdbd6fa638f29d`. GitHub Actions run `38039201926` completed successfully with SDK smoke, 17-tool MCP smoke, **51 unit/trajectory tests**, executable contract evals, static authority/version audit, isolated wheel install and DOCX render smoke all PASS.
+## Current validated system state
+Behavioral/evolution harness head `cd2124df1c38ff18377c40aadf8c8b1d1d850100` passed GitHub Actions run `38065224392`, job `114251394009`: OpenAI Agents SDK smoke, 17-tool MCP smoke, **74 unit/trajectory tests**, executable contract eval baseline, static ownership/bundle audit, isolated wheel install and DOCX render smoke all PASS.
 
-This validation includes the earlier v0.7 safeguards exposed by the offshore-wind failure: class-accounted Universe Coverage, at-least-two materially different recall sources, `MATERIAL / SECONDARY / REFERENCE_ONLY` company classification, Deep MATERIAL-company reconciliation, stock-grounded monitoring/validation sections, conditional numbered Deep navigation, title pools spanning at least five real angle families, deterministic template-cluster guards, and independent semantic-audit provenance. A chat self-review cannot certify semantic PASS.
+The owner is bound to Universal Continuity v3.7 methodology profiles `artifact_io@1.0`, `operational_hygiene@1.0` and `evolution@1.0` through thin owner-local bindings; shared Universal prose is not copied into the writing owner.
 
-The latest hardening adds the following durable invariants:
-- `FINANCE_BROAD` must pass a **cold-reader finance stake** test. A reader who does not already care about the niche sector should understand from the title/opening why the event matters to profit, orders, cash flow, capital expenditure, company/asset differentiation or policy transmission. This does not restore the removed universal cross-industry-title rule.
-- Multi-company work must produce a non-actionable **company comparison decision map** using operating evidence such as order visibility, realization speed, earnings sensitivity, validated overseas exposure and technology optionality. It may express research/evidence order but must not become a direct or euphemistic buy/sell list.
-- Major H1 sections must be joined by **earned logical bridges** through cause, consequence, chronology, comparison, narrowing, correction or inference. Empty “接下来看看” transitions do not satisfy the contract.
-- Publication Word has **zero underlines**, no tail `资料来源 / 参考资料 / 参考来源 / 来源汇总` section, and exactly one final inline fully italic `风险提示：...` paragraph. Evidence provenance remains in Research/Audit and is attributed naturally in prose when material.
-- Deterministic Word QA and regression tests protect the presentation rules above; source-tail, underline and risk-format drift fail mechanically.
+## Reliability / evolution state
+The 2026-10-10 offshore-wind rejection is a complete FINANCE_DEEP regression case. A different-topic historical rutile article is retained as FINANCE_DEEP held-out evidence, not as user acceptance or personalized taste.
+
+Quality-system changes may no longer jump directly from failure to a new rule or method. `financial_writing_agent.quality_regression.evaluate_candidate_distillation` must first verify a real rejection, separate root cause from proposed mechanism, compare at least two mechanisms, record failure modes/counterexample evidence, select the smallest authority surface and state how superseded mechanisms are handled. Only then may the candidate enter independently verifiable blind pairwise promotion with A/B position swap.
+
+Current corpus authorization is narrow:
+- `FINANCE_DEEP`: `PROMOTION_READY_CORPUS_ONLY`; a concrete candidate still needs distillation plus independent blind pairwise evidence.
+- `FINANCE_BROAD`: **NOT quality-promotion-ready**; no complete rejection + held-out pair exists.
+- Personalized Writing DNA: **NOT_READY** until real user acceptance/edit or post-publication performance evidence exists.
+
+No current CI result, candidate-distillation PASS or owner receipt proves prose quality has improved.
+
+## Methodology action receipts
+The public owner-plugin path now emits action-scoped receipt contract `1.1` for:
+- persisted writing-learning evidence → `evolution@1.0`;
+- successful Word build + mechanical/render verification → `artifact_io@1.0`.
+
+Every profile hook is explicitly assessed as `INVOKED` or `NOT_APPLICABLE_FOR_ACTION`; unrelated hooks are not faked as executed. Receipts are deliberately marked `UNVERIFIED_OWNER_RECEIPT` and are exposed through detailed `WritingTaskSummary.methodology_profile_runs`.
+
+This wiring is **not** Universal operational PASS. Universal still needs an independent evidence verifier over the receipt refs. `operational_hygiene` also remains without a live article-action receipt path in this validation.
 
 ## Exact next action
-Accept the user's next financial-article topic/source or explicit rewrite request and start the current v0.7 workflow. For company/theme work, build the Universe Coverage Ledger before narrowing; FINANCE_DEEP must discharge every MATERIAL company obligation and may not substitute a few representative stocks for completeness. Monitoring/validation/falsification sections must map signals back to named stocks or explicit value-chain classes, and the completed article must make the economically relevant differences among companies decision-useful without crossing into trading guidance.
+For a normal article request, complete the session capability handshake and run the existing v0.7 state machine. Do not add article-level rules merely because a single output is rejected. Repeated/systemic quality failures enter the reliability/evolution path above before any production-method promotion.
 
-For FINANCE_BROAD, optimize a truthful broader-finance hook rather than assuming prior sector interest. The title/opening should foreground the financially consequential stake, while stronger click framing must remain fully payable by the body. Section progression, company comparison, clean Word presentation and compliance are all mandatory gates.
+If claiming a system quality improvement, scope the claim to the content mode actually covered by evidence. At present that means FINANCE_DEEP only, and even there no quality-improvement claim is permitted until blind pairwise live evidence passes.
 
-## Runtime compatibility boundary
-- Current repository runtime is the validated v0.7 standalone/reference runtime.
-- No Financial Writing Site Runtime plugin is currently installed.
-- Any future Site must implement the current v0.7 contract directly and pass the v0.7 promotion checks before use.
-- Repository capability declarations are not proof that a particular chat/session has the required executor; use `continuity/EXECUTION_CAPABILITIES.json` for per-stage capability handshake.
-
-## External knowledge boundary
+## Runtime / authority boundaries
 - GitHub `main` is the only Financial Writing code/rule authority.
-- Google Drive and Notion may provide read-only research knowledge, StockBase/ArticleBase evidence or historical traces, but may not restore an older writing controller, QA gate, CURRENT_RUN or task pointer over the GitHub contract.
-- Old Drive writing-controller/QA surfaces have been explicitly decommissioned or downgraded to LEGACY/MIRROR; Notion's old `CURRENT_CHAT_HANDOFF` is marked deprecated.
-- Valuable StockBase/ArticleBase/history evidence is retained as knowledge rather than destroyed; retention does not grant execution authority.
-
-## Legacy boundary
-Do not restore old Site PoC contracts, `mcp_server.py`, `CHAT_TEXT`, visual/sticker resources, canned `structure_patterns.md`, v0.4/v0.5/v0.6 headline/style payloads, blanket company-name bolding, the old company-universe-implies-market-explanation rule, obsolete Human Voice naming/contracts, representative-stock Deep shortcuts, synonym-only headline pools, author self-certified semantic PASS, publication underlines, publication-tail source appendices, separate numbered risk H1s, or covert recommendation language disguised as company comparison.
-
-## Continuity status
-This handoff is reconciled to Universal Continuity v3.7. `resume_epoch` and the active lease remain unchanged in `TASK_MANIFEST.json` because this was a same-writer system hardening cycle, not a takeover.
+- Authoritative per-article runtime state is persisted `WritingState`; this handoff is workspace recovery metadata, not article state.
+- Notion, Google Drive, StockBase, ArticleBase and chat history are reference/evidence surfaces unless explicitly promoted with stable verified receipts; presence alone never makes them authority.
+- No Financial Writing Site Runtime plugin is currently installed.
+- Strict provider-attested isolated review remains unavailable; do not call a same-session/self-review semantic PASS independent.
 
 ## Authority refs
 - `skills/financial-writing-agent/SKILL.md`
+- `references/maintenance.md`
+- `evals/quality_regression.json`
+- `financial_writing_agent/quality_regression.py`
+- `financial_writing_agent/methodology_receipts.py`
+- `continuity/UNIVERSAL_PROTOCOL_ADAPTER.json`
+- `continuity/EXECUTION_CAPABILITIES.json`
 - `config/policy.json`
 - `config/rule_ownership.json`
-- `references/research.md`
-- `references/market_explanation.md`
-- `references/hooks.md`
-- `references/editorial.md`
-- `references/style.md`
-- `references/delivery.md`
-- `references/audit.md`
-- `references/maintenance.md`
 - `docs/architecture.md`
-- `deploy/chatgpt-site/SITE_SPEC.md`
-- `continuity/EXECUTION_CAPABILITIES.json`
 
-The handoff intentionally does not duplicate the full writing rubric; canonical rules live in the authority refs above.
+The handoff intentionally does not duplicate the full writing rubric; canonical business rules remain in the Skill and stage-specific references. `resume_epoch` and active lease remain unchanged because this was same-writer maintenance, not takeover.
