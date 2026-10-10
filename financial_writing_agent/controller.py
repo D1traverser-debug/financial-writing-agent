@@ -45,17 +45,22 @@ class WorkflowController:
             return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audits")
 
         if s == Stage.EDITORIAL_AUDIT:
-            # Defense in depth: runtime service already prevents editorial PASS before these,
-            # but the controller also owns the transition so stale/manual state cannot bypass them.
-            self._require_pass(state, "hook_audit")
-            self._require_pass(state, "style_audit")
             status = self._status(state, "editorial_audit")
             if status == GateStatus.PASS:
-                return self.engine.transition(state, Stage.DELIVERY, reason="Hook + Human Voice + general editorial audits passed")
+                self._require_pass(state, "hook_audit")
+                self._require_pass(state, "style_audit")
+                return self.engine.transition(state, Stage.DELIVERY, reason="Reader Funnel + Authorial Prose + general editorial audits passed")
             if status == GateStatus.REVISE:
                 target = state.working.get("revise_target", "DRAFT")
-                next_stage = Stage.TITLE if target == "TITLE" else Stage.DRAFT
-                return self.engine.transition(state, next_stage, reason=f"editorial revision target={target}")
+                mapping = {
+                    "RESEARCH": Stage.RESEARCH,
+                    "EDITORIAL": Stage.EDITORIAL,
+                    "TITLE": Stage.TITLE,
+                    "DRAFT": Stage.DRAFT,
+                }
+                if target not in mapping:
+                    raise WorkflowError(f"unsupported editorial revision target: {target}")
+                return self.engine.transition(state, mapping[target], reason=f"editorial revision target={target}")
             raise WorkflowError("editorial_audit must be PASS or REVISE")
 
         if s == Stage.DELIVERY:
@@ -76,8 +81,16 @@ class WorkflowController:
                 return self.engine.complete(state)
             if status == GateStatus.REVISE:
                 target = state.working.get("final_revise_target", "EDITORIAL")
-                next_stage = Stage.DELIVERY if target == "DELIVERY" else Stage.EDITORIAL
-                return self.engine.transition(state, next_stage, reason=f"final audit revision target={target}")
+                mapping = {
+                    "RESEARCH": Stage.RESEARCH,
+                    "EDITORIAL": Stage.EDITORIAL,
+                    "TITLE": Stage.TITLE,
+                    "DRAFT": Stage.DRAFT,
+                    "DELIVERY": Stage.DELIVERY,
+                }
+                if target not in mapping:
+                    raise WorkflowError(f"unsupported final revision target: {target}")
+                return self.engine.transition(state, mapping[target], reason=f"final audit revision target={target}")
             raise WorkflowError("final_audit must be PASS or REVISE")
 
         raise WorkflowError(f"No automatic advance from {s}")
