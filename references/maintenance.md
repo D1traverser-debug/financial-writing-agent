@@ -44,7 +44,9 @@ A change that claims to encode the user's personal style or durable preference m
 
 Partial snippets/feedback may enter the corpus immediately but cannot by themselves authorize promotion.
 
-`evals/quality_regression.json` is owner-local eval evidence, not business task authority and not a new root policy. The real 2026-10-10 offshore-wind rejection has been recovered as a complete regression artifact under `evals/artifacts/`; general promotion is still `NOT_READY` until diverse held-out evidence exists. Personalized promotion additionally remains blocked until real positive user/performance evidence exists.
+`evals/quality_regression.json` is owner-local eval evidence, not business task authority and not a new root policy. The real 2026-10-10 offshore-wind rejection has been recovered as a complete regression artifact under `evals/artifacts/`. A different-topic historical Financial Writing output, the 2026-10-06 rutile article, is also preserved there as a held-out owner baseline; it is **not** labeled user acceptance or a style exemplar.
+
+The general-quality corpus is now `PROMOTION_READY_CORPUS_ONLY`: corpus composition no longer depends on new user feedback, but a concrete candidate still cannot claim quality improvement until independently verified blind pairwise judge evidence passes the promotion gate. Personalized Writing DNA remains `NOT_READY` until real user acceptance/edit or post-publication performance evidence exists.
 
 ## Change protocol
 1. Identify the canonical rule owner and affected runtime stages.
