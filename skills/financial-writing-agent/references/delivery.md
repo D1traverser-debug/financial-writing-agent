@@ -1,59 +1,65 @@
 # Delivery module
 
+## Ownership
+Delivery owns **Word construction, deterministic typography, hierarchy normalization, explicit emphasis preservation, file identity, mechanical checks and renderability**. It does not decide what evidence is true, what argument should be made or whether a headline is persuasive.
+
 ## Default channel
-Formal writing delivers **publication content only as Word**. Do not paste the article body or preview into chat.
+Formal publication content is delivered **only as Word**. Do not paste the article body or preview into chat.
 
 Completion has two QA surfaces:
 1. `WRITING_AUDIT_REPORT.docx` — durable detailed QA evidence;
-2. a concise **chat checklist/list** — visible status for every required gate.
-
-Therefore “Word only” describes article-content delivery, not silent QA. The chat checklist must never substitute for the audit Word file, and the audit Word file must never suppress the chat checklist.
+2. a concise chat checklist/list — visible status for required gates.
 
 ## Word construction
 Mechanical formatting belongs to code, not the drafting model.
-- Article title: dedicated centered title formatting; current policy owns its exact size.
-- Only first-level article headings use a Word heading style.
+- Article title: centered, current policy controls exact size.
 - H1: red + bold, **24px equivalent = 18pt**.
 - H2: Normal + bold, **20px equivalent = 15pt**.
-- H3: Normal + bold, current policy 12pt unless the user explicitly changes it.
+- H3: Normal + bold, current policy 12pt unless changed.
 - Body: **18px equivalent = 13.5pt**.
-- The px→pt mapping uses the standard CSS/96-dpi equivalence `1px = 0.75pt`; Word stores point sizes, so the deterministic builder uses the pt values above.
-- Formal hierarchy is normalized deterministically to `一、二、三` → `（1）（2）（3）` → `①②③`.
-- Use numbered H2/H3 levels frequently when the reasoning genuinely has layers/steps/categories; do not add empty levels merely to increase numbering.
-- Company/stock names supplied by research state are automatically bolded on every occurrence.
-- Explicit `**...**` spans are preserved as Word bold for key terms, key numbers and key judgment sentences.
-- **Tables are prohibited in publication articles.** Convert comparisons into numbered prose.
+- px→pt uses standard CSS/96-dpi equivalence `1px = 0.75pt` because Word stores point sizes.
+- Hierarchy is normalized to `一、二、三 → （1）（2）（3） → ①②③`.
+- Publication tables are prohibited.
 
-## Bold skim-path contract
-The final article must contain a deliberate emphasis skeleton. A fast reader who sees only:
-**title + H1s + bold spans**
-should still recover the topic, main economic transmission, major comparison/selection logic and conclusion boundary.
+## Explicit bold skim path
+Bold is semantic navigation, not entity decoration.
 
-Mechanical QA verifies required explicit bold anchors and company-name bolding. Semantic audit verifies that the resulting skim path actually makes sense. Do not bold whole paragraphs or large percentages of the article.
+The drafting layer explicitly marks `**...**` spans for the minimum useful set of:
+- important keywords/entities when they matter to the argument;
+- key numbers;
+- selected key judgment sentences.
 
-## Risk warning and disclaimer
-Formal public financial article payloads must provide a topic-specific `risk_disclaimer` field. Delivery, not the writer, appends the final risk/disclaimer H1 and body. Risk information is mandatory, concise and materially complete. Generic boilerplate alone is insufficient. A disclaimer never cures actionable buy/sell guidance.
+The deterministic builder preserves those spans. It **does not automatically bold every occurrence of every company/stock name**.
+
+A fast reader who sees only **title + H1s + explicit bold spans** should still recover the topic, main transmission chain, important comparison/selection logic and conclusion boundary. Mechanical QA verifies the declared `skim_path_anchors` survived as bold; semantic audit judges whether the skim path is actually informative.
+
+## Risk warning / disclaimer
+Each formal public-finance payload provides a topic-specific `risk_disclaimer`. Delivery appends the final risk/disclaimer section deterministically so it cannot be omitted or duplicated by drafting drift.
+
+A disclaimer never cures actionable buy/sell instructions.
 
 ## No visual workflow
-Financial Writing has no image-generation, cover, section-image, avatar or visual-asset step. Image work belongs outside this writing runtime and must not block or alter article completion.
+Financial Writing has no image-generation, cover, section-image, avatar, sticker, visual-manifest or image-insertion step. Image work is outside this runtime.
 
-## Financial publishing compliance
-Public-platform output must not become executable buy/sell guidance. Deterministic scanners catch unambiguous action phrases. Context-sensitive equivalents belong to semantic compliance audit. A disclaimer does not cure actionable instructions.
+## Mechanical verification
+For every applicable article Word file, check:
+- required artifact exists before mechanical PASS;
+- H1/H2/H3/body typography matches policy;
+- hierarchy is legal;
+- zero tables;
+- every required explicit skim anchor is bold;
+- risk/disclaimer presence and minimum substance;
+- deterministic actionable-finance red lines;
+- render succeeds when render QA is required.
 
-## Verification
-After Word creation, run deterministic checks for heading structure/numbering, exact policy typography, **absence of tables**, company-name and explicit-key-point bolding, disclaimer presence/density, unambiguous forbidden phrases and successful render. Then inspect rendered pages when page evidence is actually available; render success alone is not visual proof of good pagination.
+Repeated rendering must be idempotent: stale page images from an earlier document version must not be mixed into current render evidence.
+
+Generic superlatives and context-sensitive promotional language belong to semantic review unless the phrase is unambiguously prohibited by policy; deterministic scanning should avoid unnecessary false positives.
+
+## Artifact privacy / identity
+Server-local filesystem paths are implementation details. Public MCP results and `WRITING_AUDIT_REPORT.docx` identify artifacts by kind/file name/hash/resource reference, not `/data/...` or other local runtime paths.
+
+A successful render process alone is not proof of perfect pagination. Claim visual page inspection only when rendered page evidence was actually inspected.
 
 ## Visible completion checklist
-On COMPLETE, chat returns a concise list covering at least:
-- runtime/stage gates;
-- research/evidence and FINANCE_DEEP material-completeness where applicable;
-- market-explanation completeness where applicable;
-- Reader Funnel / Hook Gate;
-- Natural Authorial Prose / Writing DNA Gate;
-- general editorial audit;
-- bold skim path;
-- Word/no-table/render;
-- compliance/risk;
-- knowledge reuse/writeback.
-
-Detailed evidence remains in `WRITING_AUDIT_REPORT.docx`. No article body is pasted into chat.
+On COMPLETE, chat returns a concise list covering applicable research/evidence, Market Explanation scope, Reader Funnel, Natural Authorial Prose/Writing DNA, general editorial audit, bold skim path, Word/no-table/render, compliance/risk and knowledge sync. The article body remains in Word only.
