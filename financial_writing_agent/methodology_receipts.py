@@ -6,7 +6,7 @@ from .models import GateStatus, WritingState
 
 
 PROFILE_VERSION = "1.0"
-RECEIPT_CONTRACT_VERSION = "1.1"
+RECEIPT_CONTRACT_VERSION = "1.2"
 
 ARTIFACT_IO_HOOKS = (
     "durable_task_state_location",
@@ -86,7 +86,7 @@ def _append_profile_run(
     runs.append(run)
     state.add_trace(
         "METHODOLOGY_PROFILE_RUN",
-        f"profile={profile_id}@{PROFILE_VERSION}; activation={activation_id}; invoked={','.join(invoked_hooks)}; verification=external_required",
+        f"receipt={RECEIPT_CONTRACT_VERSION}; profile={profile_id}@{PROFILE_VERSION}; activation={activation_id}; invoked={','.join(invoked_hooks)}; verification=external_ref_and_semantic_assessment_required",
     )
     return run
 
