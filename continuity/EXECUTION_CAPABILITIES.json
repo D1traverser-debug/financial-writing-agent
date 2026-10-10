@@ -56,21 +56,21 @@
     },
     {
       "capability_id": "quality_regression_promotion_gate",
-      "scope": "SYSTEM_OR_METHODOLOGY_CHANGE_CLAIMING_WRITING_QUALITY_IMPROVEMENT",
+      "scope": "GENERAL_EDITORIAL_QUALITY_OR_PERSONALIZED_WRITING_DNA_SYSTEM_CHANGE",
       "assurance_ceiling": "HARNESS_WIRED",
       "invocation_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness + evaluate_quality_promotion",
       "executor_type": "DETERMINISTIC_PROMOTION_GATE_WITH_EXTERNAL_JUDGE_EVIDENCE",
       "executor_ref": "financial_writing_agent/quality_regression.py",
       "required_tools": ["python_runtime_or_ci", "independent_pairwise_judge_evidence", "evidence_verifier"],
       "evidence_contract": [
-        "promotion-ready owner-local corpus",
+        "scope-appropriate promotion-ready owner-local corpus",
         "zero hard-invariant regressions",
         "blind pairwise judge runs",
         "candidate-position A/B swap",
         "independently verifiable judge trace refs",
         "known real rejection improvement",
-        "positive-anchor non-regression",
-        "held-out non-regression with at least one candidate win"
+        "held-out non-regression with at least one candidate win",
+        "real user acceptance/edit or performance evidence only when claiming PERSONALIZED_WRITING_DNA"
       ],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
@@ -91,8 +91,8 @@
   "owner_notes": [
     "The Python state machine remains business authority; LLM executors may not skip stages.",
     "Repository wiring does not prove the current ChatGPT session has the optional SDK/runtime. The dispatcher must perform a session handshake.",
-    "Material explicit user writing feedback on a persisted task must be captured through the learning-evidence capability before durable-learning claims; current-turn revision may still proceed if capture is unavailable, but durable learning must then be reported unavailable.",
-    "The quality-regression promotion gate is HARNESS_WIRED, not proof that a current session can produce independent judge traces. Current corpus readiness is separately evaluated and may block promotion.",
+    "Material explicit user writing feedback on a persisted task must be captured through the learning-evidence capability before durable personalized-learning claims; current-turn revision may still proceed if capture is unavailable, but durable personalized learning must then be reported unavailable.",
+    "The quality-regression promotion gate is HARNESS_WIRED, not proof that a current session can produce independent judge traces. General editorial quality does not require a user-positive label; personalized Writing DNA does. Current corpus readiness is separately evaluated and may block either scope.",
     "Normal independent audits are separate SDK runs when the SDK path is used, but the owner does not currently claim ATTESTED_ISOLATED assurance."
   ]
 }
