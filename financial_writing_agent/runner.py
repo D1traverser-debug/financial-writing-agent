@@ -41,6 +41,8 @@ class AgentRuntime:
         state = self.engine.store.load(task_id)
         if state is None:
             raise RuntimeUnavailable(f"checkpoint not found: {task_id}")
+        if state.stage == Stage.BLOCKED:
+            state = self.engine.resume_blocked(state)
         state.add_trace("RUNTIME_RESUMED", "checkpoint loaded")
         self.engine.store.save(state)
         return state
@@ -50,11 +52,11 @@ class AgentRuntime:
         while state.stage not in {Stage.COMPLETE, Stage.BLOCKED}:
             steps += 1
             if steps > self.max_steps:
-                return self.engine.block(state, f"max_steps exceeded ({self.max_steps})")
+                return self.engine.block(state, f"max_steps exceeded ({self.max_steps})", resume_stage=state.stage)
 
             executor = self.executors.get(state.stage)
             if executor is None:
-                return self.engine.block(state, f"no executor registered for stage {state.stage.value}")
+                return self.engine.block(state, f"no executor registered for stage {state.stage.value}", resume_stage=state.stage)
 
             try:
                 state.add_trace("EXECUTOR_START", state.stage.value)
@@ -66,7 +68,7 @@ class AgentRuntime:
                     break
                 state = self.controller.advance(state)
             except (WorkflowError, RuntimeUnavailable) as exc:
-                return self.engine.block(state, str(exc))
+                return self.engine.block(state, str(exc), resume_stage=state.stage)
             except Exception as exc:
-                return self.engine.block(state, f"executor error at {state.stage.value}: {type(exc).__name__}: {exc}")
+                return self.engine.block(state, f"executor error at {state.stage.value}: {type(exc).__name__}: {exc}", resume_stage=state.stage)
         return state
