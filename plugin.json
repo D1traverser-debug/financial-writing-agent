@@ -1,7 +1,7 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "financial-writing-agent",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "description": "Deterministic A-share financial-writing runtime with material-complete analysis, explicit-scope market explanation, recoverable checkpoints, Reader Funnel and Natural Authorial Prose/Writing DNA audits, raw learning evidence, and auditable Word-only delivery.",
   "repository": "https://github.com/D1traverser-debug/financial-writing-agent",
   "keywords": [
