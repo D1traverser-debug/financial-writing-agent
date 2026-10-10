@@ -10,7 +10,8 @@ from pydantic import Field
 
 from . import runtime_service as impl
 from .mcp_contracts import LearningSampleType, READ_ONLY_TOOL, STATE_WRITE_TOOL, WritingTaskList, WritingTaskSummary
-from .models import ArtifactKind
+from .methodology_receipts import record_artifact_io_receipt, record_learning_evolution_receipt
+from .models import ArtifactKind, GateStatus
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
@@ -46,7 +47,16 @@ def _publicize(raw: dict) -> dict:
 
 
 def _summary(raw: dict) -> WritingTaskSummary:
-    return WritingTaskSummary.model_validate(_publicize(raw))
+    enriched = dict(raw)
+    task_id = enriched.get("task_id")
+    if isinstance(task_id, str) and task_id:
+        try:
+            state = impl._load(task_id)
+        except ValueError:
+            state = None
+        if state is not None:
+            enriched["methodology_profile_runs"] = list(state.working.get("methodology_profile_runs", []))
+    return WritingTaskSummary.model_validate(_publicize(enriched))
 
 
 def _resource_bytes(task_id: str, kind: str) -> bytes:
@@ -80,9 +90,10 @@ mcp = MCPServer(
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones, start runtime state before research, and never skip a gate. "
-        "Financial Writing v0.6 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
+        "Financial Writing v0.7 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
         "BLOCKED tasks preserve an explicit recovery cursor and must be resumed with resume_blocked_task after the blocker is repaired. "
         "Raw user edits, feedback and post-publication performance may be recorded as Writing DNA evidence, but a single sample never auto-promotes itself into a durable rule. "
+        "Methodology profile receipts are unverified owner receipts only; they never self-certify operational conformance and require Universal independent evidence verification. "
         "The model owns research, writing and semantic audits; the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
     ),
 )
@@ -105,8 +116,8 @@ def start_writing_task(
 
 
 @mcp.tool(title="Get writing task", annotations=READ_ONLY_TOOL, structured_output=True)
-def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annotated[bool, Field(description="Return gates, learning evidence and publication artifact resources when true.")] = True) -> WritingTaskSummary:
-    """Read one exact persisted financial-writing task, including its legal stage, blocked recovery cursor, optional gate evidence, raw Writing DNA evidence and Word artifact resources, without mutating runtime state."""
+def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annotated[bool, Field(description="Return gates, learning evidence, methodology receipts and publication artifact resources when true.")] = True) -> WritingTaskSummary:
+    """Read one exact persisted financial-writing task, including its legal stage, blocked recovery cursor, optional gate evidence, raw Writing DNA evidence, unverified methodology action receipts and Word artifact resources, without mutating runtime state."""
     return _summary(impl.get_writing_task(task_id, detail=detail))
 
 
@@ -133,19 +144,21 @@ def record_writing_learning_sample(
     metrics: Annotated[dict[str, str | int | float] | None, Field(description="Optional observed publication metrics such as impressions, reads, CTR, completion, shares or follows.")] = None,
     notes: list[str] | None = None,
 ) -> WritingTaskSummary:
-    """Append raw Writing DNA evidence to the persisted task without changing article gates or silently promoting one edit, reaction or performance result into a global writing rule."""
-    return _summary(
-        impl.record_writing_learning_sample(
-            task_id,
-            sample_type,
-            summary,
-            source_refs=source_refs,
-            original_excerpt=original_excerpt,
-            revised_excerpt=revised_excerpt,
-            metrics=metrics,
-            notes=notes,
-        )
+    """Append raw Writing DNA evidence to the persisted task and emit an unverified action-scoped evolution receipt without changing article gates or silently promoting one sample into a global writing rule."""
+    impl.record_writing_learning_sample(
+        task_id,
+        sample_type,
+        summary,
+        source_refs=source_refs,
+        original_excerpt=original_excerpt,
+        revised_excerpt=revised_excerpt,
+        metrics=metrics,
+        notes=notes,
     )
+    state = impl._load(task_id)
+    record_learning_evolution_receipt(state)
+    impl.store.save(state)
+    return _summary(impl.get_writing_task(task_id, detail=True))
 
 
 @mcp.tool(title="Record retrieved knowledge context", annotations=STATE_WRITE_TOOL, structured_output=True)
@@ -204,8 +217,15 @@ def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decisio
 
 @mcp.tool(title="Build and mechanically audit delivery", annotations=STATE_WRITE_TOOL, structured_output=True)
 def build_and_mechanically_audit_delivery(task_id: Annotated[str, Field(min_length=1)]) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Build required Word artifacts and run deterministic checks for required files, numbering, exact typography, zero tables, explicit bold skim anchors, disclaimer, red-line phrases and renderability."""
-    return _result_with_artifacts(_summary(impl.build_and_mechanically_audit_delivery(task_id)))
+    """Build required Word artifacts, run deterministic mechanical/render checks, and persist an unverified action-scoped artifact_io receipt for later independent Universal verification."""
+    raw = impl.build_and_mechanically_audit_delivery(task_id)
+    state = impl._load(task_id)
+    mechanical_gate = state.gates.get("mechanical_audit")
+    if mechanical_gate is not None and mechanical_gate.status == GateStatus.PASS:
+        record_artifact_io_receipt(state)
+        impl.store.save(state)
+        raw = impl.get_writing_task(task_id, detail=True)
+    return _result_with_artifacts(_summary(raw))
 
 
 @mcp.tool(title="Record knowledge writeback outcome", annotations=STATE_WRITE_TOOL, structured_output=True)
