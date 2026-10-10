@@ -5,6 +5,7 @@ from pathlib import Path
 from typing import Any
 
 from .adapters.deterministic import DeliveryExecutor, MechanicalAuditExecutor, finalize_audit_artifact
+from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
 from .models import GateStatus, Stage, WritingState
 from .routing import build_task_contract
@@ -18,7 +19,6 @@ REQUIRE_RENDER = os.getenv("FINANCIAL_WRITING_REQUIRE_RENDER", "1").lower() not 
 
 store = SQLiteStateStore(DB_PATH)
 engine = WritingEngine(store)
-from .controller import WorkflowController
 controller = WorkflowController(engine)
 
 
@@ -39,16 +39,81 @@ def _gate_status(state: WritingState, name: str) -> str:
     return gate.status.value if gate else "NOT_RUN"
 
 
-def _invalidate(state: WritingState, gate_names: tuple[str, ...], *, reason: str, clear_artifacts: bool = False) -> None:
+def _invalidate(
+    state: WritingState,
+    gate_names: tuple[str, ...],
+    *,
+    reason: str,
+    clear_artifacts: bool = False,
+    clear_working_keys: tuple[str, ...] = (),
+) -> None:
     for name in gate_names:
         if name in state.gates:
             state.set_gate(name, GateStatus.NOT_RUN, [], reason)
-    for key in ("hook_audit", "style_audit", "render_manifest"):
+    for key in clear_working_keys:
         state.working.pop(key, None)
     if clear_artifacts:
         state.artifacts.clear()
         state.working.pop("output_dir", None)
+        state.working.pop("render_manifest", None)
     state.add_trace("QA_INVALIDATED", reason)
+
+
+def _invalidate_knowledge_writeback(state: WritingState, reason: str) -> None:
+    if "knowledge_sync" in state.gates:
+        state.set_gate("knowledge_sync", GateStatus.NOT_RUN, [], reason)
+    state.working.pop("knowledge_writeback_refs", None)
+    state.working.pop("knowledge_writeback_notes", None)
+
+
+def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) -> None:
+    if target == "RESEARCH":
+        _invalidate(
+            state,
+            ("research_output", "research_audit", "editorial_plan", "title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+            reason=reason,
+            clear_artifacts=True,
+            clear_working_keys=("editorial_plan", "headlines", "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
+        )
+        _invalidate_knowledge_writeback(state, reason)
+    elif target == "EDITORIAL":
+        _invalidate(
+            state,
+            ("editorial_plan", "title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+            reason=reason,
+            clear_artifacts=True,
+            clear_working_keys=("headlines", "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
+        )
+        _invalidate_knowledge_writeback(state, reason)
+    elif target == "TITLE":
+        _invalidate(
+            state,
+            ("title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+            reason=reason,
+            clear_artifacts=True,
+            clear_working_keys=("draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
+        )
+        _invalidate_knowledge_writeback(state, reason)
+    elif target == "DRAFT":
+        _invalidate(
+            state,
+            ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+            reason=reason,
+            clear_artifacts=True,
+            clear_working_keys=("hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
+        )
+        _invalidate_knowledge_writeback(state, reason)
+    elif target == "DELIVERY":
+        _invalidate(
+            state,
+            ("delivery_output", "mechanical_audit", "final_audit"),
+            reason=reason,
+            clear_artifacts=True,
+            clear_working_keys=("render_manifest", "final_revise_target"),
+        )
+    else:
+        raise ValueError(f"unsupported revision target: {target}")
+    store.save(state)
 
 
 def _completion_checklist(state: WritingState) -> dict[str, Any]:
@@ -76,13 +141,20 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
 
 def _next_action(state: WritingState) -> str:
     if state.stage == Stage.EDITORIAL_AUDIT:
+        hook = _gate_status(state, "hook_audit")
+        style = _gate_status(state, "style_audit")
+        if hook == "REVISE" or style == "REVISE":
+            return "follow the recorded revision target; dedicated audit REVISE must route back before general editorial PASS"
         missing = []
-        if _gate_status(state, "hook_audit") != "PASS":
+        if hook != "PASS":
             missing.append("submit_hook_audit")
-        if _gate_status(state, "style_audit") != "PASS":
+        if style != "PASS":
             missing.append("submit_style_audit")
         if missing:
             return "run independent " + " and ".join(missing) + " before submit_editorial_audit"
+    if state.stage == Stage.BLOCKED:
+        cursor = state.blocked_resume_stage.value if state.blocked_resume_stage else "UNKNOWN"
+        return f"repair the recorded blocker, then call resume_blocked_task; recovery cursor={cursor}"
     return {
         Stage.INTAKE: "advance runtime initialization",
         Stage.RESEARCH: "reuse durable prior knowledge when available, research broadly/currently, then submit_research",
@@ -95,7 +167,7 @@ def _next_action(state: WritingState) -> str:
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
         Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
         Stage.COMPLETE: "deliver publication Word artifact(s), audit Word, and the visible chat QA checklist; do not paste article body",
-        Stage.BLOCKED: "inspect blocked_reason and repair the dependency or contract defect before resuming",
+        Stage.BLOCKED: "unreachable",
     }[state.stage]
 
 
@@ -113,6 +185,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         "required_outputs": [kind.value for kind in state.contract.required_outputs],
         "gate_status": {name: gate.status.value for name, gate in state.gates.items()},
         "blocked_reason": state.blocked_reason,
+        "blocked_resume_stage": state.blocked_resume_stage.value if state.blocked_resume_stage else None,
         "updated_at": state.updated_at.isoformat(),
         "next_action": _next_action(state),
     }
@@ -131,8 +204,8 @@ def _save_and_advance(state: WritingState) -> WritingState:
 
 
 def _validate_revision_target(decision: GateDecision, allowed: set[str], label: str) -> None:
-    if decision.status == "REVISE" and decision.revision_target not in allowed:
-        raise ValueError(f"{label} REVISE revision_target must be one of {sorted(allowed)}")
+    if decision.status in {"REVISE", "FAIL"} and decision.revision_target not in allowed:
+        raise ValueError(f"{label} {decision.status} revision_target must be one of {sorted(allowed)}")
 
 
 def _apply_gate_decision(state: WritingState, gate_name: str, decision: GateDecision, *, revision_key: str | None = None) -> WritingState:
@@ -142,8 +215,12 @@ def _apply_gate_decision(state: WritingState, gate_name: str, decision: GateDeci
         state.working[revision_key] = decision.revision_target
     state.add_trace("MCP_STAGE_OUTPUT", f"{gate_name}={status.value}")
     if status == GateStatus.FAIL:
-        return engine.block(state, f"{gate_name} failed: {'; '.join(decision.defects)}")
-    return _save_and_advance(state)
+        resume_stage = Stage(decision.revision_target) if decision.revision_target else state.stage
+        return engine.block(state, f"{gate_name} failed: {'; '.join(decision.defects)}", resume_stage=resume_stage)
+    advanced = _save_and_advance(state)
+    if status == GateStatus.REVISE and decision.revision_target:
+        _cleanup_after_revision(advanced, decision.revision_target, reason=f"{gate_name} requested {decision.revision_target} revision")
+    return advanced
 
 
 def _validate_editorial_for_contract(state: WritingState, payload: EditorialPlan) -> None:
@@ -196,6 +273,12 @@ def list_recent_writing_tasks(limit: int = 10, include_complete: bool = False) -
     return [_summary(state) for state in states]
 
 
+def resume_blocked_task(task_id: str) -> dict[str, Any]:
+    state = _load(task_id)
+    _require_stage(state, Stage.BLOCKED)
+    return _summary(engine.resume_blocked(state), detail=True)
+
+
 def record_knowledge_context(task_id: str, refs: list[str], notes: list[str] | None = None) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
@@ -210,8 +293,26 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
     payload = ResearchPackage.model_validate(research)
+    _invalidate(
+        state,
+        ("research_audit", "editorial_plan", "title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        reason="research package changed; all downstream editorial/draft/QA evidence is stale",
+        clear_artifacts=True,
+        clear_working_keys=("editorial_plan", "headlines", "draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
+    )
+    _invalidate_knowledge_writeback(state, "research package changed; previous knowledge writeback decision is stale")
     state.working["research"] = payload.model_dump(mode="json")
-    state.set_gate("research_output", GateStatus.PASS, [f"evidence_items={len(payload.evidence_ledger)}", f"universe={len(payload.universe)}", f"coverage={payload.coverage.coverage_status}", f"sweeps={payload.coverage.sweeps_completed}"])
+    state.set_gate(
+        "research_output",
+        GateStatus.PASS,
+        [
+            f"evidence_items={len(payload.evidence_ledger)}",
+            f"universe={len(payload.universe)}",
+            f"coverage={payload.coverage.coverage_status}",
+            f"sweeps={payload.coverage.sweeps_completed}",
+            f"market_explanation_scope={payload.market_explanation_scope}",
+        ],
+    )
     state.add_trace("MCP_STAGE_OUTPUT", "research package accepted")
     return _summary(_save_and_advance(state))
 
@@ -221,7 +322,7 @@ def submit_research_audit(task_id: str, decision: dict[str, Any]) -> dict[str, A
     _require_stage(state, Stage.RESEARCH_AUDIT)
     payload = GateDecision.model_validate(decision)
     _validate_revision_target(payload, {"RESEARCH"}, "research_audit")
-    return _summary(_apply_gate_decision(state, "research_audit", payload))
+    return _summary(_apply_gate_decision(state, "research_audit", payload, revision_key="research_revise_target"))
 
 
 def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[str, Any]:
@@ -229,7 +330,14 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
     _require_stage(state, Stage.EDITORIAL)
     payload = EditorialPlan.model_validate(editorial_plan)
     _validate_editorial_for_contract(state, payload)
-    _invalidate(state, ("title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="editorial plan changed; all downstream title/draft/QA evidence is stale", clear_artifacts=True)
+    _invalidate(
+        state,
+        ("title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        reason="editorial plan changed; all downstream title/draft/QA evidence is stale",
+        clear_artifacts=True,
+        clear_working_keys=("headlines", "draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
+    )
+    _invalidate_knowledge_writeback(state, "editorial plan changed; previous knowledge writeback decision is stale")
     state.working["editorial_plan"] = payload.model_dump(mode="json")
     evidence = ["shared TopicDNA"]
     if payload.finance_deep:
@@ -246,7 +354,14 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.TITLE)
     payload = HeadlinePackage.model_validate(headlines)
     _validate_headlines_for_contract(state, payload)
-    _invalidate(state, ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="headline selection changed; draft and downstream QA are stale", clear_artifacts=True)
+    _invalidate(
+        state,
+        ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        reason="headline selection changed; draft and downstream QA are stale",
+        clear_artifacts=True,
+        clear_working_keys=("draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
+    )
+    _invalidate_knowledge_writeback(state, "headline selection changed; previous knowledge writeback decision is stale")
     state.working["headlines"] = payload.model_dump(mode="json")
     state.set_gate("title_audit", GateStatus.PASS, ["8-12 candidates per applicable mode", "selected titles have target-reader fit, promised payoff, and current WeChat search evidence"])
     state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS")
@@ -258,7 +373,14 @@ def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.DRAFT)
     payload = DraftPackage.model_validate(draft)
     _validate_draft_for_contract(state, payload)
-    _invalidate(state, ("hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="draft changed; semantic/mechanical/final QA must be rerun", clear_artifacts=True)
+    _invalidate(
+        state,
+        ("hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        reason="draft changed; semantic/mechanical/final QA must be rerun",
+        clear_artifacts=True,
+        clear_working_keys=("hook_audit", "style_audit", "revise_target", "final_revise_target"),
+    )
+    _invalidate_knowledge_writeback(state, "draft changed; previous knowledge writeback decision is stale")
     state.working["draft"] = payload.model_dump(mode="json")
     anchors = sum(len(p.skim_path_anchors) for p in [payload.finance_deep, payload.finance_broad] if p)
     state.set_gate("draft_output", GateStatus.PASS, ["all required drafts frozen", f"explicit_bold_skim_anchors={anchors}"])
@@ -274,6 +396,13 @@ def submit_hook_audit(task_id: str, report: dict[str, Any]) -> dict[str, Any]:
     state.set_gate("hook_audit", status, payload.evidence, "; ".join(payload.revision_notes))
     state.working["hook_audit"] = payload.model_dump(mode="json")
     state.add_trace("MCP_STAGE_OUTPUT", f"hook_audit={status.value}")
+    if status == GateStatus.REVISE:
+        target = payload.revision_target or "DRAFT"
+        state.set_gate("editorial_audit", GateStatus.REVISE, payload.evidence, "Reader Funnel gate requires revision before general editorial audit")
+        state.working["revise_target"] = target
+        advanced = _save_and_advance(state)
+        _cleanup_after_revision(advanced, target, reason=f"Reader Funnel audit requested {target} revision")
+        return _summary(advanced)
     store.save(state)
     return _summary(state)
 
@@ -283,10 +412,16 @@ def submit_style_audit(task_id: str, report: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.EDITORIAL_AUDIT)
     payload = StyleAuditDecision.model_validate(report)
     status = GateStatus(payload.status)
-    notes = "; ".join(payload.detected_patterns + payload.transition_findings + payload.revision_notes)
+    notes = "; ".join(payload.detected_patterns + payload.reasoning_findings + payload.revision_notes)
     state.set_gate("style_audit", status, payload.evidence, notes)
     state.working["style_audit"] = payload.model_dump(mode="json")
     state.add_trace("MCP_STAGE_OUTPUT", f"style_audit={status.value}")
+    if status == GateStatus.REVISE:
+        state.set_gate("editorial_audit", GateStatus.REVISE, payload.evidence, "Authorial Prose gate requires draft revision before general editorial audit")
+        state.working["revise_target"] = "DRAFT"
+        advanced = _save_and_advance(state)
+        _cleanup_after_revision(advanced, "DRAFT", reason="Authorial Prose audit requested DRAFT revision")
+        return _summary(advanced)
     store.save(state)
     return _summary(state)
 
@@ -295,7 +430,7 @@ def submit_editorial_audit(task_id: str, decision: dict[str, Any]) -> dict[str, 
     state = _load(task_id)
     _require_stage(state, Stage.EDITORIAL_AUDIT)
     payload = GateDecision.model_validate(decision)
-    _validate_revision_target(payload, {"TITLE", "DRAFT"}, "editorial_audit")
+    _validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT"}, "editorial_audit")
     if payload.status == "PASS":
         if _gate_status(state, "hook_audit") != "PASS":
             raise ValueError("hook_audit must PASS before editorial_audit can PASS")
@@ -307,17 +442,26 @@ def submit_editorial_audit(task_id: str, decision: dict[str, Any]) -> dict[str, 
 def build_and_mechanically_audit_delivery(task_id: str) -> dict[str, Any]:
     state = _load(task_id)
     if state.stage == Stage.DELIVERY:
-        state = DeliveryExecutor(root=RUNS_DIR).execute(state)
+        try:
+            state = DeliveryExecutor(root=RUNS_DIR).execute(state)
+        except Exception as exc:
+            return _summary(engine.block(state, f"delivery executor error: {type(exc).__name__}: {exc}", resume_stage=Stage.DELIVERY))
         state.add_trace("MCP_DETERMINISTIC", "Word-only delivery executor completed")
         store.save(state)
         if state.gates.get("delivery_output") is None or state.gates["delivery_output"].status != GateStatus.PASS:
-            return _summary(engine.block(state, "delivery_output did not pass"))
+            return _summary(engine.block(state, "delivery_output did not pass", resume_stage=Stage.DELIVERY))
         state = controller.advance(state)
     _require_stage(state, Stage.MECHANICAL_AUDIT)
-    state = MechanicalAuditExecutor(require_render=REQUIRE_RENDER).execute(state)
+    try:
+        state = MechanicalAuditExecutor(require_render=REQUIRE_RENDER).execute(state)
+    except Exception as exc:
+        return _summary(engine.block(state, f"mechanical audit executor error: {type(exc).__name__}: {exc}", resume_stage=Stage.MECHANICAL_AUDIT))
     state.add_trace("MCP_DETERMINISTIC", "mechanical audit executor completed")
     store.save(state)
-    return _summary(controller.advance(state), detail=True)
+    advanced = controller.advance(state)
+    if advanced.stage == Stage.DELIVERY:
+        _cleanup_after_revision(advanced, "DELIVERY", reason="mechanical audit requires Word rebuild")
+    return _summary(advanced, detail=True)
 
 
 def record_knowledge_writeback(task_id: str, status: str, refs: list[str] | None = None, notes: list[str] | None = None) -> dict[str, Any]:
@@ -343,7 +487,7 @@ def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]
     state = _load(task_id)
     _require_stage(state, Stage.FINAL_AUDIT)
     payload = GateDecision.model_validate(decision)
-    _validate_revision_target(payload, {"EDITORIAL", "DELIVERY"}, "final_audit")
+    _validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY"}, "final_audit")
     if payload.status == "PASS":
         for required_gate in ("hook_audit", "style_audit", "editorial_audit", "mechanical_audit"):
             if _gate_status(state, required_gate) != "PASS":
@@ -356,12 +500,15 @@ def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]
         state.working["final_revise_target"] = payload.revision_target
     state.add_trace("MCP_STAGE_OUTPUT", f"final_audit={status.value}")
     if status == GateStatus.FAIL:
-        return _summary(engine.block(state, f"final_audit failed: {'; '.join(payload.defects)}"))
+        resume_stage = Stage(payload.revision_target) if payload.revision_target else Stage.EDITORIAL
+        return _summary(engine.block(state, f"final_audit failed: {'; '.join(payload.defects)}", resume_stage=resume_stage))
     if status == GateStatus.PASS:
         finalize_audit_artifact(state)
         store.save(state)
     try:
-        state = controller.advance(state)
+        advanced = controller.advance(state)
     except WorkflowError as exc:
-        state = engine.block(state, str(exc))
-    return _summary(state, detail=True)
+        return _summary(engine.block(state, str(exc), resume_stage=state.stage))
+    if status == GateStatus.REVISE and payload.revision_target:
+        _cleanup_after_revision(advanced, payload.revision_target, reason=f"final audit requested {payload.revision_target} revision")
+    return _summary(advanced, detail=True)
