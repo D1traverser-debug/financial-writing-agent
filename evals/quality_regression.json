@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "role": "OWNER_LOCAL_QUALITY_EVIDENCE_NOT_BUSINESS_AUTHORITY",
   "purpose": "Quality-regression evidence for Financial Writing system changes. This dataset complements deterministic correctness checks; it never replaces factual, compliance, state-machine or artifact invariants.",
   "promotion_rule": {
@@ -9,10 +9,13 @@
     "candidate_distillation_required": true,
     "alternative_mechanism_comparison_required": true,
     "counterexample_or_failure_mode_evidence_required": true,
-    "content_mode_scope_requires_real_rejection_and_heldout": true,
+    "content_mode_scope_requires_real_rejection_and_two_heldout_topic_families": true,
     "blind_pairwise_required": true,
     "candidate_position_swap_required": true,
-    "independent_evidence_verification_required": true,
+    "independent_evidence_ref_verification_required": true,
+    "independent_judge_run_semantic_verification_required": true,
+    "judge_run_candidate_binding_required": true,
+    "judge_execution_ref_unique_and_verified_required": true,
     "hard_invariant_regressions_allowed": 0,
     "partial_evidence_may_promote": false,
     "personalized_writing_dna_requires_real_user_positive_evidence": true,
@@ -83,18 +86,21 @@
   ],
   "current_readiness": {
     "GENERAL_EDITORIAL_QUALITY": {
-      "status": "PROMOTION_READY_CORPUS_ONLY__FINANCE_DEEP_SCOPE",
-      "authorized_content_modes": ["FINANCE_DEEP"],
+      "status": "NOT_READY__HELDOUT_DIVERSITY_INSUFFICIENT",
+      "authorized_content_modes": [],
+      "diagnostic_only_content_modes": ["FINANCE_DEEP"],
       "unauthorized_content_modes": ["FINANCE_BROAD"],
       "known_missing": [
-        "a concrete candidate-distillation package comparing at least two mechanisms with counterexample/failure-mode evidence",
-        "independently verified blind pairwise candidate-vs-baseline judge evidence for a concrete FINANCE_DEEP system change",
-        "FINANCE_BROAD real-rejection plus held-out evidence before any FINANCE_BROAD quality claim"
+        "a second complete FINANCE_DEEP held-out case from a distinct topic family",
+        "a concrete candidate-distillation package comparing at least two mechanisms with counterexample/failure-mode evidence after corpus readiness is restored",
+        "independently verified blind pairwise candidate-vs-baseline judge evidence with semantic judge-run verification for any concrete FINANCE_DEEP system change",
+        "FINANCE_BROAD complete real-rejection evidence plus at least two held-out topic families before any FINANCE_BROAD quality claim"
       ]
     },
     "PERSONALIZED_WRITING_DNA": {
       "status": "NOT_READY",
       "known_missing": [
+        "all general editorial quality readiness requirements",
         "at least one real accepted article or post-publication positive performance anchor"
       ]
     }
