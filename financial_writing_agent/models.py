@@ -132,10 +132,15 @@ class WritingState(BaseModel):
                 last_enter = i
         if last_enter < 0:
             return False
-        segment = self.trace[last_enter + 1 :]
-        started = any(event.event == "EXECUTOR_START" and event.stage == stage for event in segment)
-        ended = any(event.event == "EXECUTOR_END" and event.stage == stage for event in segment)
-        return started and ended
+        started = False
+        for event in self.trace[last_enter + 1 :]:
+            if event.stage != stage:
+                continue
+            if event.event == "EXECUTOR_START":
+                started = True
+            elif event.event == "EXECUTOR_END" and started:
+                return True
+        return False
 
     def semantic_gate_proof_valid(self, name: str) -> bool:
         expected_stage = SEMANTIC_GATE_STAGES.get(name)
@@ -161,6 +166,8 @@ class WritingState(BaseModel):
 
     def set_gate(self, name: str, status: GateStatus, evidence: list[str] | None = None, notes: str = "") -> None:
         self.gates[name] = GateRecord(name=name, status=status, evidence=evidence or [], notes=notes)
+        if status == GateStatus.NOT_RUN:
+            self.working.pop(name, None)
         self.updated_at = datetime.now(timezone.utc)
 
     def add_artifact(self, kind: ArtifactKind, path: str) -> None:

@@ -147,33 +147,40 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
 
 
 def _next_action(state: WritingState) -> str:
-    if state.stage == Stage.EDITORIAL_AUDIT:
-        hook = _gate_status(state, "hook_audit")
-        style = _gate_status(state, "style_audit")
-        if hook == "REVISE" or style == "REVISE":
-            return "follow the recorded revision target; dedicated audit REVISE must route back before general editorial PASS"
-        missing = []
-        if hook != "PASS":
-            missing.append("submit_hook_audit")
-        if style != "PASS":
-            missing.append("submit_style_audit")
-        if missing:
-            return "run independent " + " and ".join(missing) + " before submit_editorial_audit"
     if state.stage == Stage.BLOCKED:
         cursor = state.blocked_resume_stage.value if state.blocked_resume_stage else "UNKNOWN"
         return f"repair the recorded blocker, then call resume_blocked_task; recovery cursor={cursor}"
+    if state.stage == Stage.RESEARCH_AUDIT:
+        return (
+            "call run_semantic_audit_stage with stage=RESEARCH_AUDIT for owner-runtime PASS certification; "
+            "submit_research_audit is REVISE/FAIL-only"
+        )
+    if state.stage == Stage.EDITORIAL_AUDIT:
+        if _gate_status(state, "hook_audit") == "REVISE" or _gate_status(state, "style_audit") == "REVISE":
+            return "follow the recorded revision target; dedicated audit REVISE must route back before general editorial PASS"
+        return (
+            "call run_semantic_audit_stage with stage=EDITORIAL_AUDIT for owner-runtime Reader Funnel, "
+            "Authorial Prose and general editorial PASS certification; submit_*audit is REVISE/FAIL-only"
+        )
+    if state.stage == Stage.FINAL_AUDIT:
+        if _gate_status(state, "knowledge_sync") not in {"PASS", "N_A"}:
+            return (
+                "record knowledge writeback PASS/N_A, then call run_semantic_audit_stage with stage=FINAL_AUDIT "
+                "for owner-runtime PASS certification"
+            )
+        return "call run_semantic_audit_stage with stage=FINAL_AUDIT for owner-runtime PASS certification"
     return {
         Stage.INTAKE: "advance runtime initialization",
         Stage.RESEARCH: "reuse durable prior knowledge when available, research broadly/currently, then submit_research",
-        Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
         Stage.EDITORIAL: "build shared TopicDNA plus mode-specific deep/broad plans, then call submit_editorial_plan",
         Stage.TITLE: "research current WeChat search intent, generate reader-fit headline candidates, then call submit_headlines",
         Stage.DRAFT: "draft every applicable Word article with explicit bold skim anchors, then call submit_draft",
-        Stage.EDITORIAL_AUDIT: "run Reader Funnel and Natural Authorial Prose audits, then call submit_editorial_audit",
         Stage.DELIVERY: "call build_and_mechanically_audit_delivery",
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
-        Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
         Stage.COMPLETE: "deliver publication Word artifact(s), audit Word, and the visible chat QA checklist; optional later feedback/performance may be recorded as Writing DNA evidence",
+        Stage.RESEARCH_AUDIT: "unreachable",
+        Stage.EDITORIAL_AUDIT: "unreachable",
+        Stage.FINAL_AUDIT: "unreachable",
         Stage.BLOCKED: "unreachable",
     }[state.stage]
 

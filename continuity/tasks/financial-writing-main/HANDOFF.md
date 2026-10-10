@@ -8,65 +8,52 @@
 - owner: FINANCIAL_WRITING_AGENT_RUNTIME
 - current_stage: `READY_FOR_NEW_OR_EXPLICIT_ARTICLE`
 - continuity_contract: `CONTINUITY_V3_7`
-- writing_contract: `Financial Writing Agent v0.7`
+- writing_contract: `Financial Writing Agent v0.8`
 - writing_rule_authority: `D1traverser-debug/financial-writing-agent@main`
 
-## Current validated system state
-The 2026-10-11 Universal critique/distillation audit hardened the owner-local quality-promotion evidence semantics without adding article-level prose rules. Final behavioral head `38ab669d91816291c5575c93d8be27ed4a336cbc`, GitHub Actions run `38069902882`, job `114265021061` passed OpenAI Agents SDK smoke, MCP Streamable HTTP smoke, unit/trajectory tests, executable contract evals, static rule-ownership/bundle audit, isolated wheel install and DOCX render smoke.
+## Current system state
+The owner runtime is v0.8 with 18 typed MCP tools, Word-only delivery and proof-bearing owner-runtime semantic audit certification. `RESEARCH_AUDIT`, `EDITORIAL_AUDIT` and `FINAL_AUDIT` semantic PASS must use `run_semantic_audit_stage`; the `submit_*audit` family is conservative CHAT_BRIDGED REVISE/FAIL-only and cannot self-certify PASS.
 
-Two prior overclaims were corrected:
-1. Verified judge evidence refs did not prove semantic support for the claimed pairwise run. Promotion now requires a separate independent judge-run semantic verifier, exact candidate/change binding, independently verified execution refs and unique execution refs per run.
-2. Corpus readiness counted overall topic diversity instead of held-out diversity. Promotion now requires at least two distinct complete held-out topic families inside every claimed content mode.
+The prior v0.7 recovery wording in this handoff/manifest was stale relative to the current Skill, Universal adapter and execution-capability profile. The 2026-10-11 system-hygiene audit reconciles that recovery surface to v0.8 and adds regression coverage so version/capability drift is no longer invisible to CI.
 
-## Reliability / evolution state
-The 2026-10-10 offshore-wind rejection remains one complete FINANCE_DEEP regression case. The 2026-10-06 rutile article remains one complete FINANCE_DEEP held-out topic family and is not user acceptance or personalized taste.
+## Harness / pollution hardening in this maintenance turn
+Implemented, pending current-head CI closure:
+- semantic gate invalidation clears same-name working payloads, so an invalidated old audit payload cannot survive as stale proof material;
+- semantic runtime proof requires an ordered `EXECUTOR_START → EXECUTOR_END` pair after the latest stage entry;
+- runtime `next_action` now routes semantic PASS through `run_semantic_audit_stage` instead of stale `submit_*audit` instructions;
+- test-only `financial_writing_agent/adapters/mock.py` is removed from the production package; runner-test doubles live only in tests;
+- wheel smoke now fails if the test-only mock adapter reappears;
+- continuity recovery metadata is regression-checked against current owner contract v0.8 and capability profile v8.
 
-Current corpus authorization:
-- `FINANCE_DEEP`: **NOT quality-promotion-ready**; diagnostic/candidate-design only until a second complete held-out case from a distinct topic family exists.
-- `FINANCE_BROAD`: **NOT quality-promotion-ready**; lacks a complete real rejection plus two distinct held-out topic families.
-- Personalized Writing DNA: **NOT_READY** until all general requirements pass and real user acceptance/edit or post-publication performance evidence exists.
+## Deliberately retained surfaces
+These were inspected and are not treated as garbage:
+- `references/*`, `skills/financial-writing-agent/references/*`, and packaged `financial_writing_agent/resources/references/*` are intentional byte-identical mirrors serving source authority, Skill bundling and installed-wheel resources;
+- historical `evals/` audits and rejected/held-out artifacts remain provenance/regression evidence;
+- `runner.py` / `runtime_factory.py` remain the developer/standalone outer-loop path, while `runtime_service.py` + `plugin_server.py` remain the MCP service path over the same engine/controller authority;
+- `deploy/chatgpt-site/SITE_SPEC.md` remains the deployment contract even though no Site Runtime plugin is currently installed.
 
-No current CI result, candidate-distillation result, owner receipt or harness wiring proves prose quality has improved.
+`network_safety.py` and Skill-size/duplication were inspected as possible debt but are not deleted without stronger dependency/evaluation evidence.
 
-## Quality-promotion gate
-Future quality promotion requires:
-- scope-appropriate corpus readiness;
-- candidate distillation with real failure provenance, alternative mechanisms, failure modes/counterexamples and bounded authority surface;
-- zero hard-invariant regressions;
-- blind pairwise A/B position swap;
-- exact candidate id and candidate-change ref on every judge run;
-- independently verified, unique execution refs;
-- independently verified evidence refs;
-- an independent semantic verifier confirming the evidence actually supports the claimed judge run and preference conclusion.
+## Quality / methodology boundaries
+Methodology owner receipts use receipt contract `1.3` with exact action binding and remain `UNVERIFIED_OWNER_RECEIPT`; they do not self-certify operational conformance.
 
-## Methodology action receipts
-Receipt contract `1.2` remains unchanged for owner methodology actions. Owner receipts are `UNVERIFIED_OWNER_RECEIPT`; Universal must independently verify both evidence refs and semantic hook assessments before operational methodology PASS. `operational_hygiene` still has no live article-action receipt path proven here.
+Quality-promotion status is unchanged:
+- FINANCE_DEEP is diagnostic/candidate-design only until a second complete held-out case from a distinct topic family exists;
+- FINANCE_BROAD is not quality-promotion-ready;
+- Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence after the general requirements pass.
+
+No harness cleanup or CI result by itself proves prose quality improved.
 
 ## Exact next action
-For a normal article request, complete the current-session capability handshake and run the existing v0.7 state machine.
+For a normal article request, load the current v0.8 Skill, Universal adapter and capability profile, complete the current-session capability handshake, then run the existing v0.8 state machine. Semantic audit PASS uses `run_semantic_audit_stage` only.
 
-For any future system quality-improvement claim, first satisfy the hardened corpus-readiness gate. The next missing FINANCE_DEEP promotion prerequisite is a second complete held-out article from a distinct topic family. Do not manufacture or relabel a case as user-accepted without real provenance.
+For this system-hygiene maintenance turn, finish current-head full CI, then write the verified behavioral head/run/job back into this handoff, the task manifest and `evals/SYSTEM_HYGIENE_AUDIT_2026-10-11.md` before reporting COMMITTED.
 
 ## Runtime / authority boundaries
-- GitHub `main` is the only Financial Writing code/rule authority.
-- Authoritative per-article runtime state is persisted `WritingState`; this handoff is workspace recovery metadata, not article state.
-- Notion, Google Drive, StockBase, ArticleBase and chat history are reference/evidence surfaces unless explicitly promoted with stable verified receipts; presence alone never makes them authority.
+- GitHub `main` is the Financial Writing code/rule authority.
+- Authoritative per-article state is persisted `WritingState`; this handoff is workspace recovery metadata, not article state.
+- Connected apps and chat history are reference/evidence surfaces unless explicitly promoted with stable verified receipts.
 - No Financial Writing Site Runtime plugin is currently installed.
-- Strict provider-attested isolated review remains unavailable; same-session/self-review cannot be called independent semantic PASS.
+- Provider-attested isolated semantic review remains unavailable; stage-separated owner-runtime review must not be mislabeled as provider independence.
 
-## Authority refs
-- `skills/financial-writing-agent/SKILL.md`
-- `skills/financial-writing-agent/references/maintenance.md`
-- `references/maintenance.md`
-- `evals/quality_regression.json`
-- `evals/SYSTEM_EVOLUTION_AUDIT_2026-10-10.md`
-- `evals/SYSTEM_EVOLUTION_AUDIT_2026-10-11.md`
-- `financial_writing_agent/quality_regression.py`
-- `financial_writing_agent/methodology_receipts.py`
-- `continuity/UNIVERSAL_PROTOCOL_ADAPTER.json`
-- `continuity/EXECUTION_CAPABILITIES.json`
-- `config/policy.json`
-- `config/rule_ownership.json`
-- `docs/architecture.md`
-
-`resume_epoch` and active lease remain unchanged because this was same-chat maintenance, not takeover.
+`resume_epoch=2` and the active lease are unchanged because this is same-chat maintenance, not takeover.

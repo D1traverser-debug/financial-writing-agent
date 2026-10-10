@@ -1,6 +1,21 @@
-from financial_writing_agent.adapters.mock import ExplodingExecutor, PassExecutor
-from financial_writing_agent.models import Stage, TaskContract
+from dataclasses import dataclass
+
+from financial_writing_agent.models import GateStatus, Stage, TaskContract, WritingState
 from financial_writing_agent.runner import AgentRuntime
+
+
+@dataclass
+class PassExecutor:
+    gate: str
+
+    def execute(self, state: WritingState) -> WritingState:
+        state.set_gate(self.gate, GateStatus.PASS, ["test evidence"])
+        return state
+
+
+class ExplodingExecutor:
+    def execute(self, state: WritingState) -> WritingState:
+        raise RuntimeError("simulated adapter failure")
 
 
 def test_missing_executor_blocks_instead_of_freeform(tmp_path):

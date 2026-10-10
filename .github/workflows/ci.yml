@@ -36,6 +36,8 @@ jobs:
           mkdir -p /tmp/fwa-wheel-data
           cd /tmp
           FINANCIAL_WRITING_DATA_DIR=/tmp/fwa-wheel-data /tmp/fwa-wheel/bin/python - <<'PY'
+          import importlib.util
+
           from financial_writing_agent.resources import load_packaged_policy, read_reference
           from financial_writing_agent.adapters.deterministic import DeliveryExecutor
           import financial_writing_agent.plugin_server as server
@@ -45,7 +47,8 @@ jobs:
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
           DeliveryExecutor(root="/tmp/fwa-wheel-runs")
           assert server.mcp is not None
-          print("PASS: clean wheel install contains policy/references and imports typed public MCP outside repo")
+          assert importlib.util.find_spec("financial_writing_agent.adapters.mock") is None
+          print("PASS: clean wheel install contains policy/references and public MCP, with no test-only mock adapter")
           PY
       - name: Install render dependencies
         run: |
