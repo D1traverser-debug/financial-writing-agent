@@ -40,8 +40,8 @@ def test_word_builder_normalizes_hierarchy_preserves_explicit_bold_and_exact_typ
 
     doc = Document(path)
     h1s = [p for p in doc.paragraphs if p.style and p.style.name == "Heading 1"]
+    assert len(h1s) == 1
     assert h1s[0].text.startswith("一、")
-    assert h1s[1].text.startswith("二、")
     assert all(run.font.size is not None and run.font.size.pt == 18 for p in h1s for run in p.runs)
 
     h2 = next(p for p in doc.paragraphs if p.text.startswith("（1）"))
@@ -52,6 +52,11 @@ def test_word_builder_normalizes_hierarchy_preserves_explicit_bold_and_exact_typ
 
     body = next(p for p in doc.paragraphs if p.text.startswith("国电南瑞在这里再次出现"))
     assert all(run.font.size is not None and run.font.size.pt == 13.5 for run in body.runs)
+
+    risk = next(p for p in doc.paragraphs if p.text.startswith("风险提示："))
+    assert all(run.italic is True for run in risk.runs if run.text)
+    assert all(run.underline is False for p in doc.paragraphs for run in p.runs if run.text)
+    assert not any("资料来源" in p.text for p in doc.paragraphs)
 
 
 def test_company_names_are_not_automatically_bolded(tmp_path):
@@ -94,3 +99,29 @@ def test_tables_are_hard_fail(tmp_path):
     result = check_docx(path, stock_names=[], policy=policy, required_bold_anchors=["关键事实", "关键判断"])
     assert not result["ok"]
     assert any("prohibited table" in error for error in result["errors"])
+
+
+def test_source_appendix_and_underlines_are_hard_fail(tmp_path):
+    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    article = ArticleDocument(
+        title="来源与下划线测试",
+        blocks=[
+            Block(kind="lead", text="**关键事实**。"),
+            Block(kind="h1", text="正文"),
+            Block(kind="body", text="正文**关键判断**。"),
+            Block(kind="h1", text="风险提示与免责声明"),
+            Block(kind="body", text=_risk_text()),
+        ],
+    )
+    path = build_article_docx(article, tmp_path / "source_underline.docx", policy)
+    doc = Document(path)
+    p = doc.add_paragraph()
+    run = p.add_run("资料来源")
+    run.underline = True
+    run.font.size = doc.styles["Normal"].font.size
+    doc.save(path)
+
+    result = check_docx(path, stock_names=[], policy=policy, required_bold_anchors=["关键事实", "关键判断"])
+    assert not result["ok"]
+    assert any("end source section" in error for error in result["errors"])
+    assert any("underline" in error for error in result["errors"])
