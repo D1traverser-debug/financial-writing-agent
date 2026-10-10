@@ -18,6 +18,14 @@ class CorpusReadinessResult:
 
 
 @dataclass(frozen=True)
+class CandidateDistillationResult:
+    status: str
+    candidate_id: str | None
+    target_content_modes: tuple[str, ...]
+    errors: tuple[str, ...]
+
+
+@dataclass(frozen=True)
 class QualityPromotionResult:
     status: str
     promotion_scope: str
@@ -37,6 +45,7 @@ _ALLOWED_SOURCE_KINDS = {
 _ALLOWED_SPLITS = {"CALIBRATION", "REGRESSION", "HELD_OUT"}
 _ALLOWED_EVIDENCE_STATUS = {"PARTIAL", "COMPLETE"}
 _ALLOWED_PROMOTION_SCOPES = {"GENERAL_EDITORIAL_QUALITY", "PERSONALIZED_WRITING_DNA"}
+_ALLOWED_CONTENT_MODES = {"FINANCE_DEEP", "FINANCE_BROAD"}
 
 
 def evaluate_corpus_readiness(
@@ -145,6 +154,163 @@ def evaluate_corpus_readiness(
     )
 
 
+def _verify_ref(ref: str, evidence_verifier: EvidenceVerifier, errors: list[str], label: str) -> None:
+    try:
+        verified = bool(evidence_verifier(ref))
+    except Exception:
+        verified = False
+    if not verified:
+        errors.append(f"unverified_{label}:{ref}")
+
+
+def evaluate_candidate_distillation(
+    corpus: Mapping[str, Any],
+    package: Mapping[str, Any] | None,
+    *,
+    evidence_verifier: EvidenceVerifier | None,
+    promotion_scope: str = "GENERAL_EDITORIAL_QUALITY",
+) -> CandidateDistillationResult:
+    """Validate that a quality candidate was distilled rather than directly canonicalized.
+
+    The package is process evidence, not prose guidance. It must connect a real failure to a
+    root-cause hypothesis, compare at least two mechanisms, search failure modes/counterexamples,
+    choose a bounded authority surface, and provide independently verifiable refs. Promotion is
+    additionally scoped to content modes that have both real-rejection and held-out coverage so a
+    FINANCE_DEEP fix cannot silently claim FINANCE_BROAD improvement.
+    """
+
+    if package is None:
+        return CandidateDistillationResult("FAIL", None, (), ("missing_candidate_distillation",))
+    if not isinstance(package, Mapping):
+        return CandidateDistillationResult("FAIL", None, (), ("invalid_candidate_distillation",))
+    if evidence_verifier is None:
+        return CandidateDistillationResult("FAIL", None, (), ("independent_evidence_verifier_required",))
+
+    errors: list[str] = []
+    candidate_id = str(package.get("candidate_id", "")).strip()
+    if not candidate_id:
+        errors.append("missing_candidate_id")
+
+    observed_scope = str(package.get("promotion_scope", "")).strip()
+    if observed_scope != promotion_scope:
+        errors.append(f"candidate_promotion_scope_mismatch:observed={observed_scope or 'MISSING'}:expected={promotion_scope}")
+
+    for field in ("problem_statement", "root_cause_hypothesis", "selection_rationale", "superseded_mechanism_disposition"):
+        if not str(package.get(field, "")).strip():
+            errors.append(f"missing_{field}")
+
+    raw_modes = package.get("target_content_modes")
+    target_modes = (
+        tuple(dict.fromkeys(str(mode).strip() for mode in raw_modes if isinstance(mode, str) and str(mode).strip()))
+        if isinstance(raw_modes, list)
+        else ()
+    )
+    if not target_modes:
+        errors.append("missing_target_content_modes")
+    for mode in target_modes:
+        if mode not in _ALLOWED_CONTENT_MODES:
+            errors.append(f"invalid_target_content_mode:{mode}")
+
+    raw_source_case_ids = package.get("source_case_ids")
+    source_case_ids = (
+        tuple(dict.fromkeys(str(case_id).strip() for case_id in raw_source_case_ids if isinstance(case_id, str) and str(case_id).strip()))
+        if isinstance(raw_source_case_ids, list)
+        else ()
+    )
+    if not source_case_ids:
+        errors.append("missing_source_case_ids")
+
+    raw_cases = corpus.get("cases")
+    complete_cases: dict[str, Mapping[str, Any]] = {}
+    if isinstance(raw_cases, list):
+        for raw in raw_cases:
+            if isinstance(raw, Mapping) and raw.get("evidence_status") == "COMPLETE":
+                case_id = str(raw.get("case_id", "")).strip()
+                if case_id:
+                    complete_cases[case_id] = raw
+    else:
+        errors.append("missing_or_invalid_cases")
+
+    for case_id in source_case_ids:
+        if case_id not in complete_cases:
+            errors.append(f"source_case_not_complete_or_unknown:{case_id}")
+    if source_case_ids and not any(
+        complete_cases.get(case_id, {}).get("source_kind") == "REAL_USER_REJECTION"
+        for case_id in source_case_ids
+    ):
+        errors.append("source_cases_require_real_user_rejection")
+
+    alternatives_raw = package.get("alternatives")
+    alternatives = alternatives_raw if isinstance(alternatives_raw, list) else []
+    if len(alternatives) < 2:
+        errors.append("at_least_two_candidate_mechanisms_required")
+    alternative_ids: list[str] = []
+    for index, alternative in enumerate(alternatives):
+        if not isinstance(alternative, Mapping):
+            errors.append(f"candidate_mechanism_not_object:{index}")
+            continue
+        alternative_id = str(alternative.get("candidate_id", "")).strip()
+        mechanism = str(alternative.get("mechanism", "")).strip()
+        failure_modes = alternative.get("failure_modes")
+        if not alternative_id:
+            errors.append(f"candidate_mechanism_missing_id:{index}")
+        elif alternative_id in alternative_ids:
+            errors.append(f"duplicate_candidate_mechanism_id:{alternative_id}")
+        else:
+            alternative_ids.append(alternative_id)
+        if not mechanism:
+            errors.append(f"candidate_mechanism_missing_description:{alternative_id or index}")
+        if not isinstance(failure_modes, list) or not any(isinstance(item, str) and item.strip() for item in failure_modes):
+            errors.append(f"candidate_mechanism_missing_failure_mode:{alternative_id or index}")
+
+    selected_candidate_id = str(package.get("selected_candidate_id", "")).strip()
+    if not selected_candidate_id:
+        errors.append("missing_selected_candidate_id")
+    elif selected_candidate_id not in alternative_ids:
+        errors.append(f"selected_candidate_not_in_alternatives:{selected_candidate_id}")
+    if candidate_id and selected_candidate_id and candidate_id != selected_candidate_id:
+        errors.append(f"candidate_id_selected_candidate_mismatch:{candidate_id}:{selected_candidate_id}")
+
+    authority_surfaces = package.get("authority_surfaces")
+    if not isinstance(authority_surfaces, list) or not any(
+        isinstance(surface, str) and surface.strip() for surface in authority_surfaces
+    ):
+        errors.append("missing_authority_surfaces")
+
+    candidate_change_ref = str(package.get("candidate_change_ref", "")).strip()
+    if not candidate_change_ref:
+        errors.append("missing_candidate_change_ref")
+    else:
+        _verify_ref(candidate_change_ref, evidence_verifier, errors, "candidate_change_ref")
+
+    counterexample_refs = package.get("counterexample_evidence_refs")
+    if not isinstance(counterexample_refs, list) or not any(
+        isinstance(ref, str) and ref.strip() for ref in counterexample_refs
+    ):
+        errors.append("missing_counterexample_evidence_refs")
+    else:
+        for raw_ref in counterexample_refs:
+            if isinstance(raw_ref, str) and raw_ref.strip():
+                _verify_ref(raw_ref.strip(), evidence_verifier, errors, "counterexample_ref")
+
+    # Mode-scoped negative-space: a candidate can only claim modes that have both a real failure
+    # and held-out evidence. This prevents a FINANCE_DEEP regression corpus from silently
+    # authorizing a FINANCE_BROAD quality claim.
+    for mode in target_modes:
+        mode_cases = [case for case in complete_cases.values() if str(case.get("content_mode", "")).strip() == mode]
+        if not any(case.get("source_kind") == "REAL_USER_REJECTION" for case in mode_cases):
+            errors.append(f"target_mode_missing_real_rejection:{mode}")
+        if not any(case.get("split") == "HELD_OUT" for case in mode_cases):
+            errors.append(f"target_mode_missing_heldout:{mode}")
+
+    return CandidateDistillationResult(
+        "PASS" if not errors else "FAIL",
+        candidate_id or None,
+        target_modes,
+        tuple(errors),
+    )
+
+
 def _normalize_preference(candidate_position: str, preference: str) -> str:
     candidate_position = candidate_position.upper()
     preference = preference.upper()
@@ -166,9 +332,9 @@ def evaluate_quality_promotion(
 ) -> QualityPromotionResult:
     """Fail-closed promotion gate for writing-quality changes.
 
-    This function validates externally produced blind pairwise evidence; it does not judge prose
-    itself. Personalized claims require user-specific positive evidence, while general editorial
-    improvements do not wait for the user to act as the optimizer or maintenance operator.
+    This function validates a distilled candidate plus externally produced blind pairwise evidence;
+    it does not judge prose itself. Personalized claims require user-specific positive evidence,
+    while general editorial improvements do not wait for the user to act as optimizer or maintainer.
     """
 
     readiness = evaluate_corpus_readiness(corpus, promotion_scope=promotion_scope)
@@ -189,6 +355,23 @@ def evaluate_quality_promotion(
     if evidence_verifier is None:
         return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("independent_evidence_verifier_required",))
 
+    distillation = evaluate_candidate_distillation(
+        corpus,
+        evidence_bundle.get("candidate_distillation"),
+        evidence_verifier=evidence_verifier,
+        promotion_scope=promotion_scope,
+    )
+    if distillation.status != "PASS":
+        return QualityPromotionResult(
+            "FAIL",
+            promotion_scope,
+            (),
+            (),
+            (),
+            (),
+            tuple(f"candidate_distillation:{error}" for error in distillation.errors),
+        )
+
     hard_regressions = evidence_bundle.get("hard_invariant_regressions")
     if not isinstance(hard_regressions, list):
         return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("invalid_hard_invariant_regressions",))
@@ -207,11 +390,13 @@ def evaluate_quality_promotion(
     if not isinstance(judge_runs, list):
         return QualityPromotionResult("FAIL", promotion_scope, (), (), (), (), ("missing_or_invalid_judge_runs",))
 
+    target_modes = set(distillation.target_content_modes)
     complete_cases = {
         str(case["case_id"]): case
         for case in corpus["cases"]
         if case.get("evidence_status") == "COMPLETE"
         and case.get("split") in {"REGRESSION", "HELD_OUT"}
+        and str(case.get("content_mode", "")).strip() in target_modes
     }
     grouped: dict[str, dict[str, str]] = {case_id: {} for case_id in complete_cases}
     errors: list[str] = []
