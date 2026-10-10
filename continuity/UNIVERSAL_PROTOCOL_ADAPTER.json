@@ -42,14 +42,20 @@
   },
   "methodology_assurance": {
     "declaration_status": "BOUND_EXACT_VERSION",
-    "operational_status": "HARNESS_WIRED_OWNER_REGRESSION_PENDING_FINAL_CI__LIVE_QUALITY_PROMOTION_EVIDENCE_PENDING",
+    "operational_status": "OWNER_HARNESS_REGRESSION_PASS__LIVE_QUALITY_PROMOTION_EVIDENCE_PENDING",
+    "owner_regression_evidence": {
+      "validated_behavioral_head": "a52249967db7745ebf322e3c9696ef5a03c85f37",
+      "github_actions_run_id": 38045054149,
+      "job_id": 114192795282,
+      "result": "PASS_SDK_MCP_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"
+    },
     "quality_corpus_status": {
       "GENERAL_EDITORIAL_QUALITY": "PROMOTION_READY_CORPUS_ONLY",
       "PERSONALIZED_WRITING_DNA": "NOT_READY_POSITIVE_USER_OR_PERFORMANCE_EVIDENCE_MISSING"
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
     "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
-    "boundary": "General editorial quality no longer depends on new user-positive labels for corpus readiness, but no concrete system change may claim quality improvement until independently verified blind pairwise candidate-vs-baseline evidence passes. Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence."
+    "boundary": "Owner regression proves the harness and runtime change are internally consistent; it does not prove prose quality improved. General editorial quality no longer depends on new user-positive labels for corpus readiness, but a concrete quality-improvement claim still requires independently verified blind pairwise candidate-vs-baseline evidence. Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence."
   },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
