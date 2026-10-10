@@ -36,6 +36,7 @@
           "financial_writing_agent/store.py",
           "financial_writing_agent/runtime_service.py",
           "financial_writing_agent/adapters/deterministic.py",
+          "financial_writing_agent/methodology_receipts.py",
           "skills/financial-writing-agent/SKILL.md#13-delivery-and-mechanical-qa"
         ]
       },
@@ -50,9 +51,10 @@
       },
       "evolution": {
         "status": "APPLIES",
-        "reason": "The owner records Writing DNA learning evidence and promotes general editorial or personalized writing changes only through evidence-gated evaluation/regression.",
+        "reason": "The owner records Writing DNA learning evidence and admits general editorial or personalized writing changes only after candidate distillation and evidence-gated evaluation/regression.",
         "evidence_refs": [
-          "financial_writing_agent/runtime_service.py#record_writing_learning_sample",
+          "financial_writing_agent/plugin_server.py#record_writing_learning_sample",
+          "financial_writing_agent/methodology_receipts.py#record_learning_evolution_receipt",
           "financial_writing_agent/quality_regression.py",
           "skills/financial-writing-agent/references/maintenance.md"
         ]
@@ -60,7 +62,7 @@
     },
     "hook_bindings": {
       "durable_task_state_location": "financial_writing_agent.store.SQLiteStateStore at FINANCIAL_WRITING_DB for authoritative WritingState; continuity/tasks/financial-writing-main is workspace recovery metadata, not per-article runtime state",
-      "authoritative_business_evidence_classes": "persisted WritingState research/gates/trace/learning evidence plus hash-bound publication Word artifacts, audit Word, render/mechanical evidence and explicit knowledge-writeback receipts",
+      "authoritative_business_evidence_classes": "persisted WritingState research/gates/trace/learning/methodology-receipt evidence plus hash-bound publication Word artifacts, audit Word, render/mechanical evidence and explicit knowledge-writeback receipts",
       "canonical_artifact_or_file_stores": "owner runtime FINANCIAL_WRITING_RUNS for generated Word/render outputs during the active runtime; durable external delivery/evidence stores only when explicitly referenced with stable provider identity",
       "cache_or_reference_only_stores": "Notion, Google Drive, StockBase, ArticleBase, chat history and render/search caches are reference/cache surfaces by default and never override current GitHub rules or authoritative WritingState merely by presence",
       "stable_identity_strategy": "task_id + ArtifactKind + sha256 for generated Word artifacts; provider stable id/canonical ref for explicitly promoted external evidence; Git repository path + blob/commit SHA for engineering mutations",
@@ -74,9 +76,9 @@
       "observability_or_incident_evidence_location": "evals/quality_regression.json plus persisted WritingState learning evidence",
       "self_maintenance_trigger_path": "references/maintenance.md repeated-material-failure reliability path",
       "garbage_collection_owner_and_dependency_rule": "references/maintenance.md change-protocol contradictory/legacy mechanism cleanup",
-      "reliability_or_change_freeze_guard": "financial_writing_agent.quality_regression.evaluate_quality_promotion plus references/maintenance.md repeated-failure reliability boundary",
-      "learning_evidence_location": "financial_writing_agent.runtime_service.record_writing_learning_sample",
-      "eval_or_regression_promotion_path": "financial_writing_agent.quality_regression.evaluate_quality_promotion",
+      "reliability_or_change_freeze_guard": "financial_writing_agent.quality_regression.evaluate_candidate_distillation plus evaluate_quality_promotion plus references/maintenance.md repeated-failure reliability boundary",
+      "learning_evidence_location": "financial_writing_agent.plugin_server.record_writing_learning_sample -> financial_writing_agent.methodology_receipts.record_learning_evolution_receipt",
+      "eval_or_regression_promotion_path": "financial_writing_agent.quality_regression.evaluate_candidate_distillation -> evaluate_quality_promotion",
       "superseded_mechanism_cleanup_rule": "references/maintenance.md change-protocol remove or repair conflicting/superseded mechanisms"
     },
     "overrides": {
@@ -86,20 +88,29 @@
   },
   "methodology_assurance": {
     "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__OWNER_REGRESSION_PASS__APPLICABILITY_EVIDENCE_RECORDED",
-    "operational_status": "ACTION_LEVEL_PROFILE_ACTIVATION_AND_INDEPENDENT_EVIDENCE_RECEIPT_NOT_YET_PROVEN",
+    "operational_status": "ACTION_RECEIPT_EMISSION_WIRED__INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING",
     "owner_regression_evidence": {
-      "validated_behavioral_head": "07a05bf2dc93db25b9514f3c66807bc967a3d3bf",
-      "github_actions_run_id": 38062102017,
-      "job_id": 114242271276,
-      "result": "PASS_SDK_MCP_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"
+      "validated_behavioral_head": "cd2124df1c38ff18377c40aadf8c8b1d1d850100",
+      "github_actions_run_id": 38065224392,
+      "job_id": 114251394009,
+      "result": "PASS_SDK_MCP_74_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"
+    },
+    "action_receipt_wiring": {
+      "receipt_contract_version": "1.1",
+      "emitter": "financial_writing_agent/methodology_receipts.py",
+      "public_surface": "financial_writing_agent/plugin_server.py -> WritingTaskSummary.methodology_profile_runs",
+      "wired_profiles": ["artifact_io", "evolution"],
+      "receipt_status": "UNVERIFIED_OWNER_RECEIPT",
+      "unwired_or_unproven_profile": "operational_hygiene remains engineering/control-plane evidence for this owner and has no live article-action receipt path in this validation"
     },
     "quality_corpus_status": {
-      "GENERAL_EDITORIAL_QUALITY": "PROMOTION_READY_CORPUS_ONLY",
+      "GENERAL_EDITORIAL_QUALITY": "PROMOTION_READY_CORPUS_ONLY__FINANCE_DEEP_SCOPE",
+      "FINANCE_BROAD_GENERAL_EDITORIAL_QUALITY": "NOT_READY_NO_COMPLETE_REJECTION_PLUS_HELDOUT_PAIR",
       "PERSONALIZED_WRITING_DNA": "NOT_READY_POSITIVE_USER_OR_PERFORMANCE_EVIDENCE_MISSING"
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
     "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
-    "boundary": "Profile declaration, applicability evidence and owner CI are not action-level operational proof. A concrete article run must still expose event-activated profile runs and independently verifiable evidence before Universal may claim operational methodology conformance. Owner regression also does not prove prose quality improved; blind pairwise live evidence remains required."
+    "boundary": "Profile declaration, applicability evidence, receipt emission and owner CI are still not independent action-level operational proof. Owner-generated receipts are deliberately marked UNVERIFIED_OWNER_RECEIPT and Universal must verify their evidence refs before operational methodology PASS. No owner regression or receipt proves prose quality improved; a concrete FINANCE_DEEP quality change still requires a passing candidate-distillation package plus independently verified blind pairwise live evidence. FINANCE_BROAD lacks sufficient corpus coverage for any such claim."
   },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
