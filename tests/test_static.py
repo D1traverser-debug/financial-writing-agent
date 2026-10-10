@@ -11,16 +11,21 @@ def test_unique_rule_ownership():
             seen.add(key)
 
 
-def test_v04_rule_boundaries_and_legacy_removal():
+def test_current_rule_boundaries_and_legacy_removal():
     ownership = json.loads(Path("config/rule_ownership.json").read_text(encoding="utf-8"))
     assert "hooks" in ownership
     assert "style" in ownership
     assert "market_explanation" in ownership
-    assert "cross_finance_title_clickability" in ownership["hooks"]
-    assert "authorial_specificity" in ownership["style"]
-    assert "uncertainty_calibration" in ownership["style"]
+    assert "reader_funnel" in ownership["hooks"]
+    assert "qualified_click" in ownership["hooks"]
+    assert "headline_curiosity_balance" in ownership["hooks"]
+    assert "authorial_selectivity" in ownership["style"]
+    assert "argument_progression" in ownership["style"]
+    assert "writing_dna_learning" in ownership["style"]
+    assert "uncertainty_rhetoric_calibration" in ownership["style"]
     assert "market_explanation_completeness" in ownership["market_explanation"]
     assert "hindsight_causality_control" in ownership["market_explanation"]
+    assert "cross_finance_title_clickability" not in ownership["hooks"]
     assert "visuals" not in ownership
 
     assert Path("skills/financial-writing-agent/references/hooks.md").is_file()
@@ -38,7 +43,10 @@ def test_v04_rule_boundaries_and_legacy_removal():
     models = Path("financial_writing_agent/models.py").read_text(encoding="utf-8")
     contracts = Path("financial_writing_agent/mcp_contracts.py").read_text(encoding="utf-8")
 
-    assert "references/hooks.md" in skill
+    assert "Reader Funnel / Hook Gate" in skill
+    assert "Natural Authorial Prose / Writing DNA Gate" in skill
+    assert "cross-industry finance clickability" in skill
+    assert "not a universal hard requirement" in skill
     assert "references/market_explanation.md" in skill
     assert "VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED" in skill
     assert "submit_hook_audit" in public_server
@@ -52,6 +60,22 @@ def test_v04_rule_boundaries_and_legacy_removal():
     assert "@mcp.tool" not in runtime
 
 
+def test_reader_funnel_and_writing_dna_policy():
+    policy = json.loads(Path("config/policy.json").read_text(encoding="utf-8"))
+    assert policy["hooks"]["qualified_click_required"] is True
+    assert policy["hooks"]["mode_specific_reader_fit_required"] is True
+    assert policy["hooks"]["cross_finance_clickability_required"] is False
+    assert policy["hooks"]["headline_information_value_required"] is True
+    assert policy["hooks"]["headline_curiosity_balance_required"] is True
+    assert policy["hooks"]["completion_payoff_required"] is True
+    assert policy["hooks"]["account_performance_over_generic_demographics"] is True
+    dna = policy["style"]["writing_dna_learning"]
+    assert dna["one_off_edit_is_candidate_only"] is True
+    assert dna["repeated_independent_patterns_can_promote"] is True
+    assert dna["external_skill_rules_are_candidates_only"] is True
+    assert policy["style"]["optimize_for_ai_detector"] is False
+
+
 def test_exact_publication_typography_policy():
     policy = json.loads(Path("config/policy.json").read_text(encoding="utf-8"))
     assert policy["word"]["h1_px"] == 24
@@ -61,4 +85,3 @@ def test_exact_publication_typography_policy():
     assert policy["word"]["body_px"] == 18
     assert policy["word"]["body_pt"] == 13.5
     assert policy["market_explanation"]["multi_hypothesis_required"] is True
-    assert policy["style"]["optimize_for_ai_detector"] is False
