@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "supported_from": ["3.3", "3.5", "3.6"],
@@ -13,12 +13,26 @@
     "reconcile task protocol metadata before next material checkpoint/final durable response",
     "apply PROGRESS_OBSERVABILITY_POLICY v3.7 semantics",
     "end every final active-durable-task response with verified progress commit receipt",
-    "use COMMITTED only after owner authority re-read verification"
+    "use COMMITTED only after owner authority re-read verification",
+    "apply continuity/HANDOFF_COMPACTION_PLAN.json before treating the current handoff as fully conformant"
   ],
   "task_manifest_update_authority": "CURRENT_VALID_TASK_WRITER_OR_NEW_CHAT_TAKEOVER_ONLY",
+  "handoff_update_authority": "CURRENT_VALID_TASK_WRITER_OR_NEW_CHAT_TAKEOVER_ONLY",
+  "handoff_conformance": {
+    "status": "COMPACTION_REQUIRED_ON_NEXT_VALID_WRITER_TURN",
+    "plan": "continuity/HANDOFF_COMPACTION_PLAN.json",
+    "business_rule_authority": "skills/financial-writing-agent/SKILL.md plus stage-specific references",
+    "known_stale_content": [
+      "Continuity v3.3 marker",
+      "obsolete 12-item authorial-prose rubric wording",
+      "duplicated business-rule blocks"
+    ],
+    "maintenance_task_may_rewrite_active_task_handoff": false
+  },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
     "D1traverser-debug/universal-continuity-agent@main/LIVE_CHAT_RECONCILIATION_POLICY.json",
-    "D1traverser-debug/universal-continuity-agent@main/PROGRESS_OBSERVABILITY_POLICY.json"
+    "D1traverser-debug/universal-continuity-agent@main/PROGRESS_OBSERVABILITY_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/CONTEXT_RECOVERY_POLICY.json"
   ]
 }
