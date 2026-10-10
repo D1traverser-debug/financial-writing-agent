@@ -16,7 +16,11 @@ Maintenance owns **how feedback, external methods, code changes and performance 
 ## Learning evidence
 Use `record_writing_learning_sample` (or an equivalent durable receipt) for raw user edits, feedback, acceptance/rejection and post-publication performance when a writing task exists.
 
+For a persisted writing task, a **material explicit user edit, feedback, rejection or acceptance that changes how the system should write, review or deliver** must be captured as owner-controlled learning evidence before the turn claims durable learning or closes the affected revision loop, unless equivalent evidence is already persisted. If evidence capture is unavailable, obey the user's current revision but mark durable-learning persistence as unavailable; do not imply future chats have inherited the lesson.
+
 The ledger is evidence, **not automatic self-modification**. Durable Writing DNA promotion still requires DIRECT instruction, repeated independent evidence or sufficiently broad user-corpus support.
+
+A repeated material failure of the same writing responsibility is not another reminder-writing opportunity. Treat it as a runtime/trajectory reliability defect: persist failure evidence, identify the enforcement gap, add/update a regression or eval, and remove/repair the conflicting mechanism before adding unrelated writing features.
 
 ## Change protocol
 1. Identify the canonical rule owner and affected runtime stages.
