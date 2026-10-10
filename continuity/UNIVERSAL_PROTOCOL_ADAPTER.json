@@ -42,13 +42,14 @@
   },
   "methodology_assurance": {
     "declaration_status": "BOUND_EXACT_VERSION",
-    "operational_status": "PENDING_VERIFIED_OWNER_LOCAL_EVIDENCE",
+    "operational_status": "HARNESS_WIRED_OWNER_REGRESSION_PENDING_FINAL_CI__LIVE_QUALITY_PROMOTION_EVIDENCE_PENDING",
     "quality_corpus_status": {
-      "GENERAL_EDITORIAL_QUALITY": "NOT_READY_HELDOUT_DIVERSITY_MISSING",
-      "PERSONALIZED_WRITING_DNA": "NOT_READY_POSITIVE_USER_OR_PERFORMANCE_AND_HELDOUT_DIVERSITY_MISSING"
+      "GENERAL_EDITORIAL_QUALITY": "PROMOTION_READY_CORPUS_ONLY",
+      "PERSONALIZED_WRITING_DNA": "NOT_READY_POSITIVE_USER_OR_PERFORMANCE_EVIDENCE_MISSING"
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
-    "boundary": "Profile declaration is not operational proof. The general-quality path does not require the user to provide a positive label, but promotion still requires diverse held-out evidence and independently verified blind pairwise judge traces. Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence."
+    "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
+    "boundary": "General editorial quality no longer depends on new user-positive labels for corpus readiness, but no concrete system change may claim quality improvement until independently verified blind pairwise candidate-vs-baseline evidence passes. Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence."
   },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
