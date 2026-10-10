@@ -1,10 +1,15 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "role": "OWNER_LOCAL_QUALITY_EVIDENCE_NOT_BUSINESS_AUTHORITY",
   "purpose": "Quality-regression evidence for Financial Writing system changes. This dataset complements deterministic correctness checks; it never replaces factual, compliance, state-machine or artifact invariants.",
   "promotion_rule": {
     "promotion_gate": "financial_writing_agent.quality_regression.evaluate_quality_promotion",
+    "candidate_distillation_gate": "financial_writing_agent.quality_regression.evaluate_candidate_distillation",
     "default_scope": "GENERAL_EDITORIAL_QUALITY",
+    "candidate_distillation_required": true,
+    "alternative_mechanism_comparison_required": true,
+    "counterexample_or_failure_mode_evidence_required": true,
+    "content_mode_scope_requires_real_rejection_and_heldout": true,
     "blind_pairwise_required": true,
     "candidate_position_swap_required": true,
     "independent_evidence_verification_required": true,
@@ -78,9 +83,13 @@
   ],
   "current_readiness": {
     "GENERAL_EDITORIAL_QUALITY": {
-      "status": "PROMOTION_READY_CORPUS_ONLY",
+      "status": "PROMOTION_READY_CORPUS_ONLY__FINANCE_DEEP_SCOPE",
+      "authorized_content_modes": ["FINANCE_DEEP"],
+      "unauthorized_content_modes": ["FINANCE_BROAD"],
       "known_missing": [
-        "independently verified blind pairwise candidate-vs-baseline judge evidence for a concrete system change"
+        "a concrete candidate-distillation package comparing at least two mechanisms with counterexample/failure-mode evidence",
+        "independently verified blind pairwise candidate-vs-baseline judge evidence for a concrete FINANCE_DEEP system change",
+        "FINANCE_BROAD real-rejection plus held-out evidence before any FINANCE_BROAD quality claim"
       ]
     },
     "PERSONALIZED_WRITING_DNA": {
