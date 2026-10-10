@@ -100,28 +100,21 @@ def general_passing_bundle():
     }
 
 
-def test_real_offshore_wind_rejection_is_complete_but_general_corpus_still_needs_heldout_diversity():
+def test_real_seed_corpus_is_ready_for_general_quality_but_not_personalized_dna():
     corpus = load_seed_corpus()
-    result = evaluate_corpus_readiness(corpus)
+    general = evaluate_corpus_readiness(corpus)
+    personalized = evaluate_corpus_readiness(corpus, promotion_scope="PERSONALIZED_WRITING_DNA")
 
-    case_id = "offshore-wind-2026-10-10-real-user-rejection-01"
-    assert result.status == "NOT_READY"
-    assert result.promotion_scope == "GENERAL_EDITORIAL_QUALITY"
-    assert result.complete_case_ids == (case_id,)
-    assert "complete_real_user_rejection_case" not in result.missing_requirements
-    assert "complete_positive_anchor_or_performance_case" not in result.missing_requirements
-    assert "complete_held_out_case" in result.missing_requirements
-    assert "at_least_two_complete_topic_families" in result.missing_requirements
+    assert general.status == "PROMOTION_READY"
+    assert general.promotion_scope == "GENERAL_EDITORIAL_QUALITY"
+    assert set(general.complete_case_ids) == {
+        "offshore-wind-2026-10-10-real-user-rejection-01",
+        "rutile-2026-10-06-cross-topic-heldout-01",
+    }
+    assert general.missing_requirements == ()
 
-
-def test_personalized_writing_dna_still_requires_real_positive_user_evidence():
-    result = evaluate_corpus_readiness(
-        general_ready_without_user_positive(),
-        promotion_scope="PERSONALIZED_WRITING_DNA",
-    )
-
-    assert result.status == "NOT_READY"
-    assert "complete_positive_anchor_or_performance_case" in result.missing_requirements
+    assert personalized.status == "NOT_READY"
+    assert "complete_positive_anchor_or_performance_case" in personalized.missing_requirements
 
 
 def test_general_quality_can_be_promotion_ready_without_user_positive_anchor():
@@ -141,15 +134,24 @@ def test_offshore_wind_snapshot_is_durable_and_contains_rejected_text():
     assert "（2）轴承：新强联" in text
 
 
-def test_quality_promotion_is_blocked_while_real_general_corpus_is_incomplete():
+def test_cross_topic_heldout_snapshot_is_durable_and_not_labeled_user_acceptance():
+    artifact = ROOT / "evals" / "artifacts" / "rutile-2026-10-06-heldout-baseline.md"
+    text = artifact.read_text(encoding="utf-8")
+
+    assert "力量发展金红石项目" in text
+    assert "not a positive user-preference label" in text
+    assert "33—36 万吨" in text
+
+
+def test_ready_corpus_still_cannot_promote_without_concrete_judge_evidence():
     result = evaluate_quality_promotion(
         load_seed_corpus(),
-        {"hard_invariant_regressions": [], "judge_runs": []},
+        None,
         evidence_verifier=lambda ref: True,
     )
 
-    assert result.status == "BLOCKED_NOT_READY"
-    assert any(error.startswith("missing_corpus_requirement:") for error in result.errors)
+    assert result.status == "FAIL"
+    assert result.errors == ("missing_quality_evidence_bundle",)
 
 
 def test_general_quality_promotion_does_not_wait_for_user_positive_label():
