@@ -59,25 +59,34 @@ def pairwise_run(case_id, candidate_position, preference):
 
 def passing_bundle():
     runs = []
-    # Candidate wins the known rejection in both position orders.
     runs += [pairwise_run("rejected-1", "A", "A"), pairwise_run("rejected-1", "B", "B")]
-    # Candidate preserves the accepted anchor (tie) in both orders.
     runs += [pairwise_run("accepted-1", "A", "TIE"), pairwise_run("accepted-1", "B", "TIE")]
-    # Candidate wins the held-out case in both orders.
     runs += [pairwise_run("heldout-1", "A", "A"), pairwise_run("heldout-1", "B", "B")]
     return {"hard_invariant_regressions": [], "judge_runs": runs}
 
 
-def test_real_offshore_wind_rejection_is_preserved_but_not_misrepresented_as_promotion_ready():
+def test_real_offshore_wind_rejection_is_complete_but_corpus_is_still_not_promotion_ready():
     corpus = load_seed_corpus()
     result = evaluate_corpus_readiness(corpus)
 
+    case_id = "offshore-wind-2026-10-10-real-user-rejection-01"
     assert result.status == "NOT_READY"
-    assert "offshore-wind-2026-10-10-real-user-rejection-01" in result.case_ids
-    assert result.complete_case_ids == ()
-    assert "complete_real_user_rejection_case" in result.missing_requirements
+    assert case_id in result.case_ids
+    assert result.complete_case_ids == (case_id,)
+    assert "complete_real_user_rejection_case" not in result.missing_requirements
     assert "complete_positive_anchor_or_performance_case" in result.missing_requirements
     assert "complete_held_out_case" in result.missing_requirements
+    assert "at_least_two_complete_topic_families" in result.missing_requirements
+
+
+def test_offshore_wind_snapshot_is_durable_and_contains_rejected_text():
+    artifact = ROOT / "evals" / "artifacts" / "offshore-wind-2026-10-10-rejected-deep-v071.md"
+    text = artifact.read_text(encoding="utf-8")
+
+    assert "海风订单开始密集落地" in text
+    assert "16 家公司放在一起看，研究顺序应该怎么排" in text
+    assert "把 16 家公司都列出来只是完成了覆盖" in text
+    assert "（2）轴承：新强联" in text
 
 
 def test_quality_promotion_is_blocked_while_real_corpus_is_incomplete():
@@ -116,7 +125,7 @@ def test_position_instability_fails_closed():
     bundle = passing_bundle()
     for run in bundle["judge_runs"]:
         if run["case_id"] == "rejected-1" and run["candidate_position"] == "B":
-            run["preference"] = "A"  # Candidate is B here, so this means baseline wins.
+            run["preference"] = "A"
 
     result = evaluate_quality_promotion(ready_corpus(), bundle, evidence_verifier=lambda ref: ref.startswith("trace://"))
 
