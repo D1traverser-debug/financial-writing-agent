@@ -179,7 +179,8 @@ def _deep_payload(*, include_second=True, numbered=True, monitoring_has_stock=Tr
             ]
         )
     else:
-        blocks.append({"kind": "body", "text": ("测试股份与另一股份需要比较。" if include_second else "测试股份需要比较。") * 180})
+        long_text = ("测试股份与另一股份需要比较。" if include_second else "测试股份需要比较。") * 180
+        blocks.append({"kind": "body", "text": f"**利润弹性**需要拆解。{long_text}"})
     blocks.extend(
         [
             {"kind": "h1", "text": "二、后续验证信号要落到公司"},
@@ -258,7 +259,7 @@ def test_universe_recall_requires_two_materially_different_sources():
 
 def test_deep_company_guard_rejects_silent_material_company_omission():
     research = ResearchPackage(**_base_research_kwargs(names=["测试股份", "另一股份"]))
-    payload = _deep_payload(include_second=False)
+    payload = _deep_payload(include_second=False, monitoring_has_stock=False)
     errors = check_deep_company_grounding(payload, research)
     assert any("另一股份" in error for error in errors)
 
