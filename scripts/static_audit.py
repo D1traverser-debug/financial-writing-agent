@@ -18,6 +18,7 @@ MODELS = ROOT / "financial_writing_agent" / "models.py"
 ENGINE = ROOT / "financial_writing_agent" / "engine.py"
 RUNTIME = ROOT / "financial_writing_agent" / "runtime_service.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
+CHECKS = ROOT / "financial_writing_agent" / "checks.py"
 OPENAI_ADAPTER = ROOT / "financial_writing_agent" / "adapters" / "openai_agents.py"
 SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 README = ROOT / "README.md"
@@ -77,12 +78,13 @@ def check_rule_ownership() -> int:
             seen[key] = owner
     required = {
         "runtime": {"blocked_recovery", "downstream_invalidation"},
+        "research": {"universe_class_coverage", "universe_recall_sources", "material_company_classification"},
         "market_explanation": {"explicit_scope_activation", "stock_universe_not_activation"},
-        "editorial": {"topic_specific_structures", "macro_structural_coherence"},
-        "hooks": {"reader_funnel", "continuation_value"},
-        "style": {"natural_authorial_prose", "raw_learning_sample_ledger", "argument_progression"},
+        "editorial": {"topic_specific_structures", "macro_structural_coherence", "finance_deep_company_coverage", "stock_grounded_validation_sections", "deep_numbered_navigation"},
+        "hooks": {"reader_funnel", "continuation_value", "headline_angle_family_diversity"},
+        "style": {"natural_authorial_prose", "raw_learning_sample_ledger", "argument_progression", "template_cluster_guard"},
         "delivery": {"explicit_bold_preservation", "artifact_path_privacy", "render_idempotency"},
-        "audit": {"authorial_prose_judge", "reader_funnel_judge"},
+        "audit": {"authorial_prose_judge", "reader_funnel_judge", "semantic_audit_provenance", "chat_self_review_no_pass", "universe_article_reconciliation"},
         "maintenance": {"version_consistency", "learning_sample_promotion"},
     }
     for owner, markers in required.items():
@@ -117,7 +119,17 @@ def check_reference_bundle() -> None:
 
     skill = SKILL.read_text(encoding="utf-8")
     lower = skill.lower()
-    require(skill, ("resume_blocked_task", "record_writing_learning_sample", "market_explanation_scope = REQUIRED", "Do not automatically bold every company/stock-name occurrence"), "Skill")
+    require(skill, (
+        "resume_blocked_task",
+        "record_writing_learning_sample",
+        "Universe Coverage Ledger",
+        "MATERIAL / SECONDARY / REFERENCE_ONLY",
+        "company_coverage_obligations",
+        "angle_family",
+        "template-cluster guard",
+        "CHAT_SELF_REVIEW",
+        "Do not automatically bold every company/stock-name occurrence",
+    ), "Skill")
     if "publication articles do not use tables" not in lower:
         fail("Skill must prohibit publication tables")
     forbid(skill, ("references/structure_patterns.md", "Company/stock names remain bold on every occurrence", "Human Voice Gate", "CHAT_TEXT", "writing-text://"), "Skill")
@@ -149,6 +161,7 @@ def check_runtime_contract() -> int:
     engine = ENGINE.read_text(encoding="utf-8")
     runtime = RUNTIME.read_text(encoding="utf-8")
     schemas = SCHEMAS.read_text(encoding="utf-8")
+    checks = CHECKS.read_text(encoding="utf-8")
 
     require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "LearningSampleSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
     forbid(public + contracts + models, ("submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "CHAT_TEXT", "Human Voice"), "public MCP")
@@ -157,7 +170,19 @@ def check_runtime_contract() -> int:
 
     require(engine + models, ("blocked_resume_stage", "resume_blocked", "RUNTIME_UNBLOCKED"), "recovery runtime")
     require(runtime, ("record_writing_learning_sample", "RAW_EVIDENCE_ONLY", "_cleanup_after_revision"), "runtime service")
-    require(schemas, ('MarketExplanationScope = Literal["REQUIRED", "NOT_MATERIAL"]', "market_explanation_scope=REQUIRED requires market_explanation", "market_explanation_scope=NOT_MATERIAL must not include market_explanation", "class AuthorialProseAuditRubric(StrictModel)"), "schemas")
+    require(schemas, (
+        'MarketExplanationScope = Literal["REQUIRED", "NOT_MATERIAL"]',
+        "class UniverseCoverage(StrictModel)",
+        "value_chain_class",
+        "materiality: CompanyMateriality",
+        "company_coverage_obligations",
+        "angle_family: HeadlineAngleFamily",
+        "headline_strategy_diversity",
+        "CHAT_SELF_REVIEW",
+        "chat self-review cannot PASS",
+        "class AuthorialProseAuditRubric(StrictModel)",
+    ), "schemas")
+    require(checks, ("analyze_template_scaffolding", "check_deep_company_grounding", "check_payload_navigation", "monitoring/validation section is detached"), "deterministic content guards")
     forbid(schemas, ("HumanVoiceAuditRubric", "transition_findings", "cross_finance_click_reason", "stock/theme research with a company universe requires market_explanation"), "schemas")
     return len(tools)
 
@@ -166,6 +191,16 @@ def check_policy_and_executor() -> None:
     policy = json.loads(SOURCE_POLICY.read_text(encoding="utf-8"))
     if policy["market_explanation"].get("activation_policy") != "EXPLICIT_SCOPE" or policy["market_explanation"].get("stock_universe_alone_is_not_activation") is not True:
         fail("Market Explanation activation drift")
+    if policy["research"].get("universe_class_coverage_required") is not True or policy["research"].get("universe_recall_sources_min", 0) < 2:
+        fail("universe-recall hardening drift")
+    if policy["editorial"].get("finance_deep_representative_stock_shortcut_forbidden") is not True or policy["editorial"].get("stock_grounded_validation_sections_required") is not True:
+        fail("Deep company-completeness hardening drift")
+    if policy["hooks"].get("headline_angle_families_min", 0) < 5 or policy["hooks"].get("synonym_only_headline_pool_is_fail") is not True:
+        fail("headline strategy-diversity hardening drift")
+    if policy["style"].get("template_cluster_guard_required") is not True or policy["style"].get("deep_numbered_navigation_required_when_branching") is not True:
+        fail("prose/navigation hardening drift")
+    if policy["audit"].get("semantic_pass_requires_independent_executor") is not True or policy["audit"].get("chat_self_review_cannot_pass") is not True:
+        fail("semantic audit provenance hardening drift")
     if policy["word"].get("auto_bold_company_names") is not False:
         fail("blanket company bolding returned")
     if policy["word"].get("allow_tables") is not False or policy["word"].get("tables_are_hard_fail") is not True:
@@ -177,7 +212,18 @@ def check_policy_and_executor() -> None:
         fail("Writing DNA evidence discipline drift")
 
     adapter = OPENAI_ADAPTER.read_text(encoding="utf-8")
-    require(adapter, ("RunConfig", 'workflow_name="Financial Writing Agent"', "group_id=state.contract.task_id", "trace_include_sensitive_data=False", "market_explanation_scope=REQUIRED only when", "Broader cross-industry finance relevance is optional", "Financial Writing Authorial Prose Judge"), "OpenAI executor")
+    require(adapter, (
+        "RunConfig",
+        'workflow_name="Financial Writing Agent"',
+        "group_id=state.contract.task_id",
+        "trace_include_sensitive_data=False",
+        "Universe Coverage Ledger",
+        "check_deep_company_grounding",
+        "analyze_template_scaffolding",
+        "angle_family",
+        "INDEPENDENT_EXECUTOR",
+        "Financial Writing Authorial Prose Judge",
+    ), "OpenAI executor")
     forbid(adapter, ("Human Voice Judge", "Each candidate must state a cross-finance click reason", "structure_patterns.md"), "OpenAI executor")
 
 
@@ -207,7 +253,7 @@ def main() -> None:
     tools = check_runtime_contract()
     check_policy_and_executor()
     check_site_and_dead_contracts()
-    print(f"PASS: v0.6 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; recoverable BLOCKED + explicit Market Scope + raw Writing DNA ledger + selective bold; legacy contracts absent")
+    print(f"PASS: v0.6 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; Universe Coverage + Deep reconciliation + title diversity + template guard + independent semantic audits protected")
 
 
 if __name__ == "__main__":
