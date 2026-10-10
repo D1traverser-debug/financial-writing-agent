@@ -57,7 +57,12 @@ def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
         "external_artifact_vault_if_any",
     }
     assert required_artifact_hooks.issubset(methodology["hook_bindings"])
-    assert adapter["methodology_assurance"]["operational_status"] == "ACTION_LEVEL_PROFILE_ACTIVATION_AND_INDEPENDENT_EVIDENCE_RECEIPT_NOT_YET_PROVEN"
+    assurance = adapter["methodology_assurance"]
+    assert "ACTION_RECEIPT_EMISSION_WIRED" in assurance["operational_status"]
+    assert "INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING" in assurance["operational_status"]
+    assert assurance["action_receipt_wiring"]["receipt_status"] == "UNVERIFIED_OWNER_RECEIPT"
+    assert assurance["action_receipt_wiring"]["wired_profiles"] == ["artifact_io", "evolution"]
+    assert "operational_hygiene" in assurance["action_receipt_wiring"]["unwired_or_unproven_profile"]
 
 
 def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_attest():
