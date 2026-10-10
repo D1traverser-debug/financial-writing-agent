@@ -23,6 +23,7 @@ class WorkflowController:
         if s == Stage.RESEARCH_AUDIT:
             status = self._status(state, "research_audit")
             if status == GateStatus.PASS:
+                self._require_semantic_pass(state, "research_audit")
                 return self.engine.transition(state, Stage.EDITORIAL, reason="research audit passed")
             if status == GateStatus.REVISE:
                 return self.engine.transition(state, Stage.RESEARCH, reason="research audit requested revision")
@@ -43,7 +44,7 @@ class WorkflowController:
         if s == Stage.DRAFT:
             status = self._status(state, "draft_output")
             if status == GateStatus.PASS:
-                return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for independent audits")
+                return self.engine.transition(state, Stage.EDITORIAL_AUDIT, reason="draft frozen for stage-separated audits")
             if status == GateStatus.REVISE:
                 return self.engine.transition(state, Stage.DRAFT, reason="draft coverage/navigation guard requested revision")
             raise WorkflowError("draft_output must be PASS or REVISE")
@@ -51,9 +52,10 @@ class WorkflowController:
         if s == Stage.EDITORIAL_AUDIT:
             status = self._status(state, "editorial_audit")
             if status == GateStatus.PASS:
-                self._require_pass(state, "hook_audit")
-                self._require_pass(state, "style_audit")
-                return self.engine.transition(state, Stage.DELIVERY, reason="Reader Funnel + Authorial Prose + general editorial audits passed")
+                self._require_semantic_pass(state, "hook_audit")
+                self._require_semantic_pass(state, "style_audit")
+                self._require_semantic_pass(state, "editorial_audit")
+                return self.engine.transition(state, Stage.DELIVERY, reason="Reader Funnel + Authorial Prose + general editorial audits passed with owner-runtime execution proof")
             if status == GateStatus.REVISE:
                 target = state.working.get("revise_target", "DRAFT")
                 mapping = {
@@ -82,6 +84,7 @@ class WorkflowController:
         if s == Stage.FINAL_AUDIT:
             status = self._status(state, "final_audit")
             if status == GateStatus.PASS:
+                self._require_semantic_pass(state, "final_audit")
                 return self.engine.complete(state)
             if status == GateStatus.REVISE:
                 target = state.working.get("final_revise_target", "EDITORIAL")
@@ -108,3 +111,12 @@ class WorkflowController:
     def _require_pass(cls, state: WritingState, name: str) -> None:
         if cls._status(state, name) != GateStatus.PASS:
             raise WorkflowError(f"gate {name} must PASS before leaving {state.stage}")
+
+    @classmethod
+    def _require_semantic_pass(cls, state: WritingState, name: str) -> None:
+        cls._require_pass(state, name)
+        if not state.semantic_gate_proof_valid(name):
+            raise WorkflowError(
+                f"semantic gate {name} PASS lacks current owner-runtime stage execution proof; "
+                "CHAT_BRIDGED/self-authored provenance cannot advance the workflow"
+            )
