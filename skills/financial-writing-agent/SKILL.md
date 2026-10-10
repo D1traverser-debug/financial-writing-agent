@@ -151,6 +151,8 @@ Durable identity learns from provenance:
 
 Use `record_writing_learning_sample` for raw task-level evidence. Recording never auto-promotes a sample.
 
+For a persisted writing task, any **material explicit user edit, feedback, rejection or acceptance that changes how the system should write, review or deliver** must be captured through `record_writing_learning_sample` (or an equivalent durable owner receipt) before the turn claims durable learning or closes the affected revision loop, unless an equivalent sample for the same evidence already exists. If the learning-evidence executor is unavailable, still obey the user's current revision request, but report that durable learning was not persisted; do not pretend the next chat has learned it.
+
 ## 10. Bold skim path
 Bold **selected** keywords/entities, key data and key judgment sentences through explicit `**...**` spans. Do not automatically bold every company/stock-name occurrence.
 
