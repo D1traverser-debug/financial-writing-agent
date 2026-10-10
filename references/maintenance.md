@@ -34,7 +34,7 @@ The distillation package is process evidence, not another article-writing checkl
 - state the disposition of any superseded mechanism instead of silently accumulating another parallel rule layer;
 - scope the quality claim to explicit content modes.
 
-Content-mode scope fails closed. A candidate may claim `FINANCE_DEEP` or `FINANCE_BROAD` quality improvement only when that target mode has both complete real-rejection evidence and complete held-out evidence. Evidence from FINANCE_DEEP must not silently authorize a FINANCE_BROAD claim, and vice versa.
+Content-mode scope fails closed. A candidate may claim `FINANCE_DEEP` or `FINANCE_BROAD` quality improvement only when that target mode has complete real-rejection evidence **and held-out coverage spanning at least two distinct topic families**. Evidence from FINANCE_DEEP must not silently authorize a FINANCE_BROAD claim, and vice versa.
 
 This distillation requirement prevents two opposite failure modes: blindly adopting the user's or assistant's first idea, and endlessly adding deterministic prose rules because they are easy to test. It does **not** make the distillation package itself proof of better writing; blind pairwise evidence remains required afterward.
 
@@ -47,11 +47,14 @@ Use `financial_writing_agent.quality_regression` for owner-local promotion evide
 The system may improve general writing quality without waiting for the user to become its optimizer. Promotion requires:
 - deterministic factual/compliance/state/artifact invariants remain an independent hard floor;
 - complete real failure evidence;
-- diverse complete held-out evidence spanning more than one topic family;
+- diverse complete held-out evidence spanning **at least two topic families inside every claimed content mode**;
 - a passing candidate-distillation package before the candidate is treated as admissible;
-- the candidate quality claim is limited to content modes with both real-failure and held-out coverage;
+- the candidate quality claim is limited to content modes with complete real-failure and held-out diversity coverage;
 - blind pairwise comparison against the current baseline with the candidate evaluated in both A and B positions;
 - independently verifiable judge execution evidence;
+- every judge run is bound to the exact candidate id and exact candidate-change ref being promoted;
+- the judge execution ref itself is independently verified and cannot be reused across distinct pairwise runs;
+- evidence-ref verification and semantic judge-run verification are separate checks: real refs alone do not prove that the run, candidate binding, blind setup or preference conclusion is valid;
 - known real failures improve, held-out cases do not regress, and at least one held-out case prefers the candidate;
 - position-swapped judgments must agree or the comparison fails closed.
 
@@ -64,7 +67,7 @@ Partial snippets/feedback may enter the corpus immediately but cannot by themsel
 
 `evals/quality_regression.json` is owner-local eval evidence, not business task authority and not a new root policy. The real 2026-10-10 offshore-wind rejection has been recovered as a complete regression artifact under `evals/artifacts/`. A different-topic historical Financial Writing output, the 2026-10-06 rutile article, is also preserved there as a held-out owner baseline; it is **not** labeled user acceptance or a style exemplar.
 
-The current corpus is `PROMOTION_READY_CORPUS_ONLY` for a **FINANCE_DEEP-scoped** general-quality candidate: it contains a complete FINANCE_DEEP real rejection and FINANCE_DEEP held-out evidence across two topic families. It does **not** authorize a FINANCE_BROAD quality claim. A concrete candidate still cannot claim improvement until candidate distillation and independently verified blind pairwise judge evidence both pass. Personalized Writing DNA remains `NOT_READY` until real user acceptance/edit or post-publication performance evidence exists.
+The current corpus is **not quality-promotion-ready** even for FINANCE_DEEP after the held-out-diversity audit: it has one complete FINANCE_DEEP real rejection and only one complete FINANCE_DEEP held-out topic family. That is enough for diagnosis and candidate design, but not for production quality promotion. A second complete FINANCE_DEEP held-out case from a distinct topic family is required before a FINANCE_DEEP candidate may enter the promotion gate. FINANCE_BROAD is also not ready. Personalized Writing DNA remains `NOT_READY` until all general requirements pass and real user acceptance/edit or post-publication performance evidence exists.
 
 ## Change protocol
 1. Identify the canonical rule owner and affected runtime stages.
