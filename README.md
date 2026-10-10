@@ -1,6 +1,6 @@
-# Financial Writing Agent v0.4
+# Financial Writing Agent v0.5
 
-A deterministic A-share financial-writing runtime with material-complete deep analysis, multi-hypothesis market explanation, dedicated Hook and Natural Authorial Prose audits, and Word delivery.
+A deterministic A-share financial-writing runtime with material-complete deep analysis, multi-hypothesis market explanation, a unified Reader Funnel, Natural Authorial Prose / Writing DNA learning, and Word delivery.
 
 ## Core behavior
 - `FINANCE_DEEP`: material-complete within the bounded audited research universe.
@@ -18,11 +18,27 @@ For stock/theme/price-reaction topics, separate economic benefit from market sel
 
 FINANCE_DEEP preserves material `why_this / why_not`, continuation and exhaustion/reversal conditions, counterevidence and unresolved boundaries.
 
-## Hook Gate
-Independently audit cross-finance title clickability, current WeChat search intent, the first three sentences, H1 continuation power, paragraph forward pull and title/opening payoff.
+## Reader Funnel / Hook Gate
+Treat CTR, title hooks, reader profile, first-screen retention, H1/paragraph continuation and completion as one funnel:
+`qualified impression → click → first-screen retention → continued reading → completion → promised insight delivered`.
 
-## Natural Authorial Prose Gate
-Do not optimize for AI-detector evasion. Audit template fingerprint, discourse variability, semantic progression, transition continuity, repetition control, rhythm naturalness, concrete evidence density, reader modeling, narrative flow, authorial specificity, uncertainty calibration and extreme-language control.
+Audit audience-promise fit, headline information value, curiosity/concreteness balance, current WeChat search discoverability, the first three sentences, continuation flow, completion payoff and title/opening payoff.
+
+Cross-industry finance appeal is a strategy, especially for `FINANCE_BROAD`, not a universal hard title requirement. `FINANCE_DEEP` prioritizes qualified-reader fit and truthful payoff over maximum imagined reach.
+
+## Natural Authorial Prose / Writing DNA Gate
+Do not optimize for AI-detector evasion. Treat “去AI味 / 活人感 / 娓娓道来 / 交流感” as overlapping symptoms of one authorial-writing system.
+
+Audit nine consolidated dimensions: fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration.
+
+Writing DNA learns with provenance:
+- explicit durable user instruction → direct rule;
+- repeated accepted changes across independent work → durable candidate;
+- stable patterns from a broad user corpus → style evidence;
+- one-off edits/successes → candidate only;
+- external skills/research → principle candidates only, never authority or signature-phrase copying.
+
+Account-level click/search/completion data outranks generic demographic assumptions when available.
 
 ## Word typography
 - H1: `24px = 18pt`
@@ -33,6 +49,6 @@ Do not optimize for AI-detector evasion. Audit template fingerprint, discourse v
 Typography drift and tables are Mechanical Hard Fail conditions.
 
 ## Runtime and legacy policy
-The only public MCP implementation is `financial_writing_agent/plugin_server.py`; `runtime_service.py` owns business operations. v0.4 is a hard cutover: there is no compatibility shim, no legacy `CHAT_TEXT` delivery contract, and no visual/sticker contract on `main`.
+The only public MCP implementation is `financial_writing_agent/plugin_server.py`; `runtime_service.py` owns business operations. v0.5 remains a hard cutover: there is no compatibility shim, no legacy `CHAT_TEXT` delivery contract, and no visual/sticker contract on `main`.
 
 `main` is code/rule truth. Promotion requires SDK/MCP smoke, unit/trajectory/static checks, contract evaluation, isolated wheel install and DOCX render smoke.
