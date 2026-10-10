@@ -1,6 +1,6 @@
 ---
 name: financial-writing-agent
-description: Create and continue publishable A-share financial articles through a persisted, recoverable workflow with broad research, material-complete deep analysis, explicit-scope market explanation, Reader Funnel auditing, Natural Authorial Prose / Writing DNA learning and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
+description: Create and continue publishable A-share financial articles through a persisted, recoverable workflow with class-accounted research, material-complete deep analysis, explicit-scope market explanation, Reader Funnel auditing, Natural Authorial Prose / Writing DNA learning and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
 # Financial Writing Agent v0.6
@@ -12,11 +12,11 @@ Do not automatically start a new task.
 - If a persisted task is `BLOCKED`, inspect the recorded blocker/recovery cursor. After the dependency/contract defect is repaired, call `resume_blocked_task`; do not start a duplicate task or guess a stage.
 - For genuinely new publishable writing, call `start_writing_task` before research, outlining or drafting.
 
-Runtime checkpoint is executable task authority. GitHub `main` is code/rule authority. Notion/Drive are knowledge/mirrors unless explicitly designated otherwise.
+Runtime checkpoint is executable task authority. GitHub `main` is code/rule authority. Notion/Drive/StockBase/ArticleBase are research/knowledge inputs or mirrors unless explicitly designated otherwise; they must not restore an older writing controller, QA contract or task pointer over the current GitHub runtime.
 
 Before material stage execution, read `continuity/EXECUTION_CAPABILITIES.json`. It defines owner capability ceilings, not proof that the current session actually has the SDK/model/web/runtime required for the next stage. Handshake only the capabilities needed for the exact `next_action`.
 
-Prefer the owner-native state machine/executor. `CHAT_BRIDGED` execution is allowed only when the capability manifest explicitly permits it and the result is still submitted through the owner workflow/gate contract. A missing hard capability blocks the exact stage; it never licenses free-form completion. Do not claim provider-isolated review without provider/context/trace evidence.
+Prefer the owner-native state machine/executor. `CHAT_BRIDGED` execution is allowed only when the capability manifest explicitly permits it and the result is still submitted through the owner workflow/gate contract. A missing hard capability blocks the exact stage; it never licenses free-form completion.
 
 ## 2. Workflow invariant
 Follow exactly:
@@ -25,6 +25,8 @@ Follow exactly:
 Mandatory failures fail closed. Fail-closed must remain recoverable through the persisted BLOCKED cursor.
 
 At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate + Natural Authorial Prose / Writing DNA Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until the two dedicated gates PASS.
+
+Semantic PASS requires an evidenced **independent stage-bound judge run**. `CHAT_SELF_REVIEW` may identify defects, but it may not certify Research Audit, Reader Funnel, Authorial Prose, General Editorial or Final Audit as PASS. If the current session cannot run the required judge, report QA as incomplete instead of claiming COMPLETE.
 
 ## 3. Defaults
 Unless the user overrides a soft preference:
@@ -52,32 +54,39 @@ Do not use a canned structure-pattern library. Generate at least two topic-speci
 ## 5. Research contract
 Research must know materially more than either article publishes. Cover catalyst/timeline, concepts/subthemes, industry/economic transmission, relevant A-share universe, company fundamentals/business stages, sensitivity, counterevidence, source boundaries and unresolved gaps. Run at least two materially different research sweeps and record an auditable stop reason.
 
+For every company/theme topic, build a **Universe Coverage Ledger before narrowing to familiar names**:
+- enumerate every economically material value-chain class;
+- recall A-share candidates class by class using at least two materially different recall sources;
+- classify each researched company as `MATERIAL / SECONDARY / REFERENCE_ONLY` and bind it to `value_chain_class`;
+- record included, excluded and unresolved candidates plus evidence refs and stop reason;
+- use `COMPLETE` only after class-level reconciliation; otherwise preserve `BOUNDED_WITH_GAPS`.
+
+A second search about the same two or three stocks is not universe saturation. Do not let easier disclosures or a cleaner narrative silently remove a material company/class.
+
 Every `ResearchPackage` explicitly declares:
 - `market_explanation_scope = REQUIRED` or `NOT_MATERIAL`;
 - `market_explanation_scope_reason`.
 
 A company universe alone is **not** enough to require market-price explanation.
 
-Use `REQUIRED` when the article materially needs to explain cross-sectional price formation/market selection: why one name/subtheme moved first or more strongly, leadership/limit-up/身位/continuation/reversal, or another conclusion that depends on explaining market selection.
-
-Use `NOT_MATERIAL` for pure industry/fundamental/economic-benefit comparison where the article does not materially claim why prices selected one name over another. Do not inject short-term trading language into such articles.
-
-When Market Explanation is REQUIRED, separate:
-1. **economic benefit** — exposure, business path, sensitivity and realization timing;
-2. **market selection / price formation** — competing mechanisms that may explain why attention/price discovery/order flow selected some names earlier or more strongly.
-
-Use multiple hypotheses, `why_this / why_not`, continuation and exhaustion/reversal evidence, and the confidence ladder:
+When Market Explanation is REQUIRED, separate economic benefit from market selection/price formation, use multiple hypotheses, `why_this / why_not`, continuation and reversal evidence, and the confidence ladder:
 `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 
 Price action is a fact to explain, not proof of its cause.
 
 ## 6. Two editorial contracts
 ### FINANCE_DEEP — 财经完整版本
-`MATERIAL_COMPLETE` relative to the bounded audited research universe. It must express every material branch that could change financial judgment: event legs, transmission, company classes/business-stage differences, realization/sensitivity, counterevidence, why-this/why-not, validation/falsification and risk.
+`MATERIAL_COMPLETE` relative to the bounded audited research universe. It is **not** a “挑几个代表股讲深” product.
+
+It must express every material branch that could change financial judgment and carry explicit `company_coverage_obligations` from the Universe Coverage Ledger:
+- every `MATERIAL` company must appear by name with an intelligible role/sensitivity/boundary;
+- `SECONDARY` companies may be grouped by value-chain class only when grouping preserves the material distinction;
+- `REFERENCE_ONLY` names need not be published;
+- `BOUNDED_WITH_GAPS` research must remain visibly bounded rather than pretending exhaustive coverage.
+
+If a Deep section says what to **watch / validate / falsify / track next**, its signals must map back to named stocks or clearly identified value-chain classes. A generic “看招标、看交付、看收入” checklist detached from the company universe fails.
 
 If Market Explanation scope is REQUIRED, preserve material benefit differences, competing market-selection mechanisms, confidence boundaries and continuation/reversal/falsification conditions. If scope is NOT_MATERIAL, do not force those branches into the article.
-
-Deep may compress repetition, textbook background and immaterial detail. It does **not** use “1–3 core contradictions” as its selection rule.
 
 ### FINANCE_BROAD — 引流版本
 `SELECTIVE_TRAFFIC`: may organize around one to three supported information gaps/core contradictions while retaining the facts, causal chain, counterevidence and uncertainty required for every retained conclusion.
@@ -93,30 +102,26 @@ Editorial owns material coverage and macro section order. It must create at leas
 
 Do not triple-count the same defect across these gates.
 
-Use meaningful hierarchy frequently when reasoning has layers/categories/steps:
+Use meaningful hierarchy when reasoning has layers/categories/steps:
 `一、二、三 → （1）（2）（3） → ①②③`.
 
-More numbering means navigation, not filler “首先/其次/最后”.
+For `FINANCE_DEEP`, lower-level numbering is conditionally mandatory when the article has several company classes, multiple realization stages, three or more comparison dimensions, multiple causal branches, or otherwise dense branching. Do not bury those branches in long unnumbered paragraphs. Do not force exactly three children per section; the logic determines the count.
 
 ## 8. Reader Funnel / Hook Gate
 Treat click-through, reader profile, title/opening, continuation and completion as one funnel:
 `qualified impression → click → first-screen retention → continued reading → completion → promised insight delivered`.
 
-Audit:
-- audience-promise fit;
-- headline information value;
-- curiosity/concreteness balance;
-- current WeChat search discoverability/evidence;
-- first three complete sentences;
-- H1/paragraph continuation value;
-- completion payoff;
-- title/opening payoff.
+Audit audience-promise fit, headline information value, curiosity/concreteness balance, **headline strategy diversity**, current WeChat search discoverability/evidence, first three complete sentences, H1/paragraph continuation value, completion payoff and title/opening payoff.
 
-Cross-industry finance appeal is a strategy, especially for `FINANCE_BROAD`, **not a universal hard requirement**. `FINANCE_DEEP` prioritizes qualified-reader fit and truthful payoff.
+Cross-industry finance appeal is a strategy, especially for `FINANCE_BROAD`, **not a universal hard requirement**.
 
-Generate 8–12 genuinely different title candidates per applicable mode. Record intended reader, click reason, financial relevance, information gap, promised payoff, cognitive load and current search evidence. Question titles are not presumed superior.
+Generate 8–12 genuinely different title candidates per applicable mode. Every candidate records an `angle_family`; the pool must contain at least five genuinely distinct supported families such as hard fact, profit/orders, supply-demand, company divergence, policy transmission, expectation gap, valuation/capital, global comparison, validation/risk, or market selection when applicable.
 
-Reader Funnel REVISE must route to `TITLE` or `DRAFT` according to the actual defect.
+Unique strings are not enough. Pools dominated by one reusable shell such as “真正的X不在Y”“X又动了这次看什么”“别只看X要看Y”“拐点来了？” fail even if the nouns change.
+
+The selected title should earn the click through topic-specific information, normally combining at least two of: concrete change/entity/event, financially consequential stake, real distinction/information gap. Question titles are not presumed superior.
+
+Reader Funnel REVISE routes to `TITLE` or `DRAFT` according to the actual defect.
 
 ## 9. Natural Authorial Prose / Writing DNA Gate
 “去AI味 / 活人感 / 娓娓道来 / 交流感” are overlapping intuitions, not four independent objectives. Do not optimize for AI-detector evasion.
@@ -132,6 +137,8 @@ PASS requires text-level evidence for nine dimensions:
 8. template/redundancy control;
 9. uncertainty/rhetoric calibration.
 
+Before semantic judgment, compute the deterministic **template-cluster guard**. Repeated staging families such as “真正的X不是Y而是Z / 如果只看 / 这正是 / 最值得写清楚 / 核心在于 / 值得注意的是 / 换句话说” are not banned individually, but a repeated/clustered pattern forces REVISE and cannot be waved through with “整体自然”.
+
 Do not manufacture humanity with slang, typos, random fragments, fake intimacy or decorative metaphors. Authorial Prose REVISE returns to `DRAFT`.
 
 ### Writing DNA learning
@@ -142,7 +149,7 @@ Durable identity learns from provenance:
 - one-off edit/success → candidate only;
 - external skills/agents/research → abstract principle candidates only, never authority or copied signature language.
 
-Use `record_writing_learning_sample` to retain raw task-level evidence from `USER_EDIT`, `USER_FEEDBACK`, `USER_ACCEPTANCE`, `USER_REJECTION` and `POST_PUBLICATION_PERFORMANCE`. Every sample remains `RAW_EVIDENCE_ONLY`; recording does not auto-promote it into a permanent rule.
+Use `record_writing_learning_sample` for raw task-level evidence. Recording never auto-promotes a sample.
 
 ## 10. Bold skim path
 Bold **selected** keywords/entities, key data and key judgment sentences through explicit `**...**` spans. Do not automatically bold every company/stock-name occurrence.
@@ -170,6 +177,7 @@ Delivery owns Word construction, not content judgment. It must:
 - preserve explicit bold spans;
 - normalize numbering hierarchy;
 - enforce exact typography and zero tables;
+- for branching/long Deep articles, mechanically require visible lower-level numbered navigation;
 - require every applicable artifact before mechanical PASS;
 - render cleanly when render QA is required;
 - clear stale render pages before rerender;
@@ -185,12 +193,12 @@ Market Explanation may discuss attention, diffusion, liquidity, order imbalance,
 ## 15. Knowledge writeback vs Writing DNA evidence
 Before final PASS, reusable factual/market knowledge is written back through a connected writable store when available and recorded with `record_knowledge_writeback(PASS/N_A)`.
 
-Writing-style/user-feedback/performance evidence belongs to the Writing DNA learning ledger, not the factual knowledge base. A wording/title/layout revision does not by itself invalidate a valid knowledge writeback; a material research/factual change does.
+Writing-style/user-feedback/performance evidence belongs to the Writing DNA learning ledger, not the factual knowledge base. A wording/title/layout revision does not by itself invalidate a valid knowledge writeback; a material research/factual/universe change does.
 
 ## 16. Completion
 At COMPLETE return only publication Word artifact links/references, `WRITING_AUDIT_REPORT.docx`, and the concise chat QA checklist/list. Do not paste the article body.
 
-The QA checklist covers applicable research/evidence, Market Explanation scope, Reader Funnel, Authorial Prose/Writing DNA, general editorial, skim path, Word/no-table/render, compliance/risk and knowledge sync.
+The QA checklist covers applicable research/evidence, Universe Coverage Ledger, Market Explanation scope, Reader Funnel/title-strategy diversity, Authorial Prose/template guard, Deep material-company completeness, numbered navigation, general editorial, skim path, Word/no-table/render, compliance/risk, audit provenance and knowledge sync.
 
 ## 17. Scope boundary
 This Skill produces publishable financial content. It may consume stock-picking/review knowledge as research context, but it does not activate for standalone荐股、选股、盘后复盘 or trading decisions unless the user asks to turn that work into an article.
