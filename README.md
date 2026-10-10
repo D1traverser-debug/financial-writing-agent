@@ -1,6 +1,6 @@
-# Financial Writing Agent v0.7
+# Financial Writing Agent v0.8
 
-A deterministic A-share financial-writing runtime with material-complete deep analysis, explicit-scope market explanation, recoverable checkpoints, a unified Reader Funnel, Natural Authorial Prose / Writing DNA assurance, raw learning-evidence capture and Word-only delivery.
+A deterministic A-share financial-writing runtime with material-complete deep analysis, explicit-scope market explanation, recoverable checkpoints, proof-bearing semantic audits, a unified Reader Funnel, Natural Authorial Prose / Writing DNA assurance, raw learning-evidence capture and Word-only delivery.
 
 ## Core behavior
 - `FINANCE_DEEP`: material-complete within the bounded audited research universe.
@@ -13,27 +13,38 @@ A deterministic A-share financial-writing runtime with material-complete deep an
 - Numbering hierarchy: `一、二、三 → （1）（2）（3） → ①②③`.
 - Bold skim path uses explicit selected anchors; company names are not blanket-bolded on every occurrence.
 
+## Semantic audit authority
+A semantic `PASS` is no longer a status bit that a chat caller can self-submit.
+
+`RESEARCH_AUDIT`, `EDITORIAL_AUDIT` and `FINAL_AUDIT` PASS require a current owner-runtime stage execution trajectory plus persisted audit provenance bound to the exact task/stage. `WorkflowController` verifies that proof before advancing, and `WritingEngine.complete()` verifies it again before COMPLETE.
+
+The public MCP tool `run_semantic_audit_stage` is the proof-bearing certification gateway. It runs the owner-native OpenAI Agents SDK audit stage on the server. If the required SDK/model runtime is unavailable, the task becomes recoverably `BLOCKED` at the exact audit cursor; it never falls back to chat self-certification.
+
+The historical schema token `INDEPENDENT_EXECUTOR` means **stage-separated owner-runtime judge execution** in this contract. It is not provider-attested isolation. True provider-attested isolation remains a separate unimplemented assurance class and requires an external execution identity/trace.
+
 ## Market Explanation scope
 Every ResearchPackage explicitly declares `market_explanation_scope` as `REQUIRED` or `NOT_MATERIAL` with a reason. A company universe alone does not activate price-formation analysis.
 
 Use `REQUIRED` when the article materially explains market selection, leadership, price reaction, continuation/reversal or another cross-sectional price-formation question. When active, separate economic benefit from market selection, compare competing mechanisms, preserve `why_this / why_not`, continuation/reversal conditions and causal confidence:
 `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 
-## Reader Funnel
+## Reader Funnel and Writing DNA
 CTR, title hooks, reader profile, first-screen retention, continuation and completion are one funnel:
 `qualified impression → click → first-screen retention → continued reading → completion → promised insight delivered`.
 
-Cross-industry finance appeal is optional and mode-sensitive rather than a universal hard title rule. `FINANCE_BROAD` instead has a cold-reader requirement: the title/opening must make the relevant money/profit/orders/cash-flow/capital-allocation/company-differentiation stake legible without assuming prior interest in the niche sector. Current WeChat search evidence remains part of formal headline selection.
-
-## Company comparison without covert recommendations
-For multi-company topics, the editorial contract compares relevant names/classes on evidence-bounded dimensions such as current order visibility, realization speed, earnings sensitivity, validated overseas exposure and technology optionality. It may express research order or evidence strength, but cannot become a buy/sell list, price-performance ranking, entry/exit plan or euphemistic attempt to evade the same boundary.
-
-## Natural Authorial Prose / Writing DNA
-The independent prose gate audits nine consolidated dimensions: fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration.
-
-Argument progression now explicitly includes **major-section bridges**: one H1 should create the reason for the next through cause, consequence, chronology, comparison, narrowing, correction or inference rather than a generic transition phrase.
+The prose gate audits fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration.
 
 `record_writing_learning_sample` stores raw task-level evidence from user edits, feedback, acceptance/rejection and post-publication performance. A single sample is `RAW_EVIDENCE_ONLY` and never auto-promotes itself into a durable rule.
+
+## Quality-promotion evidence
+Quality promotion is intentionally stricter than runtime correctness:
+- complete regression/held-out cases carry immutable artifact identities and are re-verified at promotion time;
+- candidate change/counterexample evidence must semantically support the candidate, not merely resolve to a real ref;
+- zero hard regressions requires a real regression execution receipt bound to the exact candidate/change, not an empty list supplied by the caller;
+- pairwise judge refs and judge-run semantics are verified separately;
+- callback presence does not prove independent execution identity.
+
+The current FINANCE_DEEP corpus remains diagnostic only because it still lacks a second held-out topic family. No current evidence proves prose quality improved.
 
 ## Recoverable fail-closed runtime
 Mandatory failures route to `BLOCKED` with a persisted recovery cursor. After the blocker is repaired, `resume_blocked_task` resumes the exact saved stage instead of starting a duplicate workflow or falling back to free-form writing.
@@ -47,7 +58,7 @@ Changes to research, editorial plans, titles or drafts invalidate the affected d
 - H3: currently `12pt`
 - zero publication tables
 - zero underlines
-- no end-of-article `资料来源 / 参考资料 / 参考来源 / 来源汇总` appendix; evidence remains in Research/Audit and material source identity is attributed naturally in prose
+- no end-of-article `资料来源 / 参考资料 / 参考来源 / 来源汇总` appendix
 - one final italic `风险提示：...` paragraph, with no numbered risk H1
 - deterministic numbering and explicit bold preservation
 - required artifact presence before Mechanical PASS
@@ -55,7 +66,7 @@ Changes to research, editorial plans, titles or drafts invalidate the affected d
 - no server-local filesystem paths in public artifact contracts or audit Word
 
 ## Runtime surface
-`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.7 exposes 17 typed tools and one Word resource template, including `resume_blocked_task` and `record_writing_learning_sample`.
+`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.8 exposes **18 typed tools** and one Word resource template. The new `run_semantic_audit_stage` tool is the only public route that can request owner-runtime semantic PASS certification; ordinary audit-submit tools cannot self-certify PASS.
 
 There is no compatibility shim, legacy `CHAT_TEXT`, visual/sticker contract or canned `structure_patterns.md` library on current `main`.
 
