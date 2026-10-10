@@ -59,8 +59,8 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
         "research_evidence": _gate_status(state, "research_audit"),
         "editorial": {
             "general_editorial": _gate_status(state, "editorial_audit"),
-            "hook": _gate_status(state, "hook_audit"),
-            "human_voice": _gate_status(state, "style_audit"),
+            "reader_funnel": _gate_status(state, "hook_audit"),
+            "authorial_prose": _gate_status(state, "style_audit"),
         },
         "bold_skim_path": _gate_status(state, "mechanical_audit"),
         "word_render": _gate_status(state, "mechanical_audit"),
@@ -88,9 +88,9 @@ def _next_action(state: WritingState) -> str:
         Stage.RESEARCH: "reuse durable prior knowledge when available, research broadly/currently, then submit_research",
         Stage.RESEARCH_AUDIT: "independently audit research and call submit_research_audit",
         Stage.EDITORIAL: "build shared TopicDNA plus mode-specific deep/broad plans, then call submit_editorial_plan",
-        Stage.TITLE: "research current WeChat search intent, generate/judge headline candidates, then call submit_headlines",
+        Stage.TITLE: "research current WeChat search intent, generate reader-fit headline candidates, then call submit_headlines",
         Stage.DRAFT: "draft every applicable Word article with explicit bold skim anchors, then call submit_draft",
-        Stage.EDITORIAL_AUDIT: "call submit_editorial_audit after hook_audit and style_audit pass",
+        Stage.EDITORIAL_AUDIT: "run Reader Funnel and Natural Authorial Prose audits, then call submit_editorial_audit",
         Stage.DELIVERY: "call build_and_mechanically_audit_delivery",
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
         Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
@@ -248,7 +248,7 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
     _validate_headlines_for_contract(state, payload)
     _invalidate(state, ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"), reason="headline selection changed; draft and downstream QA are stale", clear_artifacts=True)
     state.working["headlines"] = payload.model_dump(mode="json")
-    state.set_gate("title_audit", GateStatus.PASS, ["8-12 candidates per applicable mode", "selected titles have cross-finance reason + current WeChat search evidence"])
+    state.set_gate("title_audit", GateStatus.PASS, ["8-12 candidates per applicable mode", "selected titles have target-reader fit, promised payoff, and current WeChat search evidence"])
     state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS")
     return _summary(_save_and_advance(state))
 
