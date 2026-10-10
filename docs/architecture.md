@@ -1,4 +1,4 @@
-# Financial Writing Agent — Architecture v0.6
+# Financial Writing Agent — Architecture v0.7
 
 ## 1. Goal
 Build a reliable A-share financial-writing system that separates deterministic workflow authority from high-judgment research/writing, keeps deep analysis materially complete, activates price-formation analysis only when it is actually material, learns Writing DNA from traceable evidence, and produces auditable Word artifacts.
@@ -94,7 +94,7 @@ Dedicated Reader Funnel and Authorial Prose REVISE decisions route immediately t
 ## 12. Public MCP surface
 `financial_writing_agent/plugin_server.py` is the only public MCP registration surface. `runtime_service.py` owns operations and registers no server.
 
-v0.6 exposes 17 typed tools plus one Word resource template. New v0.6 capabilities include explicit `resume_blocked_task` recovery and `record_writing_learning_sample` raw evidence capture.
+v0.7 exposes 17 typed tools plus one Word resource template. New v0.7 capabilities include class-accounted Universe Coverage, material-company reconciliation, title strategy diversity, template-cluster guards, explicit semantic-audit provenance, `resume_blocked_task` recovery and `record_writing_learning_sample` raw evidence capture.
 
 The old `mcp_server.py`, `CHAT_TEXT`, visual/sticker contracts and canned structure-pattern library are deleted and must not return.
 
@@ -109,4 +109,4 @@ The optional OpenAI Agents SDK executor uses the same deterministic state machin
 Passing one class never substitutes for another.
 
 ## 15. Promotion rule
-A future private Site must implement v0.6 directly. It must not revive v0.4/v0.5 payloads or removed compatibility surfaces. Production-ready status additionally requires durable non-ephemeral state/artifact storage, a real user-authorized article E2E, deliberate interruption/recovery, fresh-chat recovery and private-only access until tenant isolation is implemented.
+A future private Site must implement v0.7 directly. It must not revive v0.4/v0.5/v0.6 payloads or removed compatibility surfaces. Production-ready status additionally requires durable non-ephemeral state/artifact storage, a real user-authorized article E2E, deliberate interruption/recovery, fresh-chat recovery and private-only access until tenant isolation is implemented.
