@@ -55,14 +55,13 @@
     }
   },
   "methodology_assurance": {
-    "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__ARTIFACT_IO_OWNER_REGRESSION_PENDING",
+    "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__OWNER_REGRESSION_PASS",
     "operational_status": "ACTION_LEVEL_PROFILE_ACTIVATION_AND_INDEPENDENT_EVIDENCE_RECEIPT_NOT_YET_PROVEN",
     "owner_regression_evidence": {
-      "validated_behavioral_head": "a52249967db7745ebf322e3c9696ef5a03c85f37",
-      "github_actions_run_id": 38045054149,
-      "job_id": 114192795282,
-      "result": "PASS_SDK_MCP_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER",
-      "scope_boundary": "predates artifact_io binding; a new owner regression is required before declaration-level rollout is considered regression-verified"
+      "validated_behavioral_head": "07a05bf2dc93db25b9514f3c66807bc967a3d3bf",
+      "github_actions_run_id": 38062102017,
+      "job_id": 114242271276,
+      "result": "PASS_SDK_MCP_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"
     },
     "quality_corpus_status": {
       "GENERAL_EDITORIAL_QUALITY": "PROMOTION_READY_CORPUS_ONLY",
