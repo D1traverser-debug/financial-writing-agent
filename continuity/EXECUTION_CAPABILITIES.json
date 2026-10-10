@@ -3,7 +3,7 @@
   "execution_readiness_contract": "1.0",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "repository": "D1traverser-debug/financial-writing-agent",
-  "profile_version": 2,
+  "profile_version": 3,
   "purpose": "Owner-level execution wiring metadata for the universal dispatcher. This file is not business task state and does not replace TASK_MANIFEST/HANDOFF.",
   "capabilities": [
     {
@@ -55,6 +55,27 @@
       "safe_degraded_modes": []
     },
     {
+      "capability_id": "quality_regression_promotion_gate",
+      "scope": "SYSTEM_OR_METHODOLOGY_CHANGE_CLAIMING_WRITING_QUALITY_IMPROVEMENT",
+      "assurance_ceiling": "HARNESS_WIRED",
+      "invocation_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness + evaluate_quality_promotion",
+      "executor_type": "DETERMINISTIC_PROMOTION_GATE_WITH_EXTERNAL_JUDGE_EVIDENCE",
+      "executor_ref": "financial_writing_agent/quality_regression.py",
+      "required_tools": ["python_runtime_or_ci", "independent_pairwise_judge_evidence", "evidence_verifier"],
+      "evidence_contract": [
+        "promotion-ready owner-local corpus",
+        "zero hard-invariant regressions",
+        "blind pairwise judge runs",
+        "candidate-position A/B swap",
+        "independently verifiable judge trace refs",
+        "known real rejection improvement",
+        "positive-anchor non-regression",
+        "held-out non-regression with at least one candidate win"
+      ],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": []
+    },
+    {
       "capability_id": "independent_provider_attested_review",
       "scope": "OPTIONAL_STRICT_ISOLATION",
       "assurance_ceiling": "DECLARED_ONLY",
@@ -71,6 +92,7 @@
     "The Python state machine remains business authority; LLM executors may not skip stages.",
     "Repository wiring does not prove the current ChatGPT session has the optional SDK/runtime. The dispatcher must perform a session handshake.",
     "Material explicit user writing feedback on a persisted task must be captured through the learning-evidence capability before durable-learning claims; current-turn revision may still proceed if capture is unavailable, but durable learning must then be reported unavailable.",
+    "The quality-regression promotion gate is HARNESS_WIRED, not proof that a current session can produce independent judge traces. Current corpus readiness is separately evaluated and may block promotion.",
     "Normal independent audits are separate SDK runs when the SDK path is used, but the owner does not currently claim ATTESTED_ISOLATED assurance."
   ]
 }
