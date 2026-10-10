@@ -22,6 +22,21 @@ The ledger is evidence, **not automatic self-modification**. Durable Writing DNA
 
 A repeated material failure of the same writing responsibility is not another reminder-writing opportunity. Treat it as a runtime/trajectory reliability defect: persist failure evidence, identify the enforcement gap, add/update a regression or eval, and remove/repair the conflicting mechanism before adding unrelated writing features.
 
+## Quality-changing system promotion
+A system/prompt/method change that claims to improve writing quality must not be promoted merely because deterministic CI passes or because the changing agent writes a positive receipt.
+
+Use `financial_writing_agent.quality_regression` for owner-local promotion evidence:
+- keep deterministic factual/compliance/state/artifact invariants as an independent hard floor;
+- require a promotion-ready corpus with complete real rejection evidence, at least one real accepted/performance anchor, held-out evidence and more than one topic family;
+- use blind pairwise comparison against the current baseline and evaluate the candidate in both A and B positions;
+- fail closed when position-swapped judgments disagree, judge evidence is unverifiable, or a hard invariant regresses;
+- a known real rejection must improve; a positive anchor must not regress; held-out evidence must not regress and must contain at least one candidate win;
+- partial snippets/feedback may enter the corpus immediately but cannot by themselves authorize promotion.
+
+`evals/quality_regression.json` is owner-local eval evidence, not business task authority and not a new root policy. Its current seed includes the real 2026-10-10 offshore-wind rejection but remains `NOT_READY` because the complete rejected artifact, a real positive anchor and held-out cases are not yet all available.
+
+Do not respond to this incompleteness by inventing synthetic user preferences. Real acceptance/performance evidence may accumulate naturally from future articles; external benchmarks may supplement held-out coverage but cannot replace user-specific positive evidence when the change claims personalized Writing DNA improvement.
+
 ## Change protocol
 1. Identify the canonical rule owner and affected runtime stages.
 2. Decide whether the defect belongs in rules, schema, runtime/state machine, deterministic delivery, tests/evals or deployment—not every problem is a prompt problem.
