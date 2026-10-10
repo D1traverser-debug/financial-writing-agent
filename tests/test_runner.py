@@ -9,6 +9,7 @@ def test_missing_executor_blocks_instead_of_freeform(tmp_path):
     assert state.stage == Stage.RESEARCH
     state = runtime.run(state)
     assert state.stage == Stage.BLOCKED
+    assert state.blocked_resume_stage == Stage.RESEARCH
     assert "no executor" in (state.blocked_reason or "")
 
 
@@ -20,7 +21,25 @@ def test_executor_exception_blocks_instead_of_freeform(tmp_path):
     state = runtime.start(TaskContract(prompt="写文章"))
     state = runtime.run(state)
     assert state.stage == Stage.BLOCKED
+    assert state.blocked_resume_stage == Stage.RESEARCH
     assert "executor error" in (state.blocked_reason or "")
+
+
+def test_blocked_checkpoint_resumes_exact_recovery_cursor(tmp_path):
+    runtime = AgentRuntime.with_sqlite(tmp_path / "state.db", executors={})
+    state = runtime.start(TaskContract(prompt="写文章"))
+    state = runtime.run(state)
+    task_id = state.contract.task_id
+    assert state.stage == Stage.BLOCKED
+    assert state.blocked_resume_stage == Stage.RESEARCH
+
+    runtime.executors[Stage.RESEARCH] = PassExecutor("research_output")
+    state = runtime.resume(task_id)
+    assert state.stage == Stage.RESEARCH
+    assert state.blocked_reason is None
+    assert state.blocked_from_stage is None
+    assert state.blocked_resume_stage is None
+    assert "RUNTIME_UNBLOCKED" in [event.event for event in state.trace]
 
 
 def test_runtime_starts_before_research_executor(tmp_path):
