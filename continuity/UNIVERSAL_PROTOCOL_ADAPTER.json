@@ -1,7 +1,9 @@
 {
-  "schema_version": "1.6",
+  "schema_version": "1.7",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
+  "owner_contract_version": "0.8.0",
+  "execution_capability_profile_version": 8,
   "supported_from": ["3.3", "3.5", "3.6", "3.7"],
   "migration_strategy": "ADDITIVE_PROTOCOL_OVERLAY_ON_NEXT_VALID_WRITER_TURN",
   "user_migration_required": false,
@@ -26,39 +28,51 @@
     "profile_refs": {"artifact_io": "1.0", "operational_hygiene": "1.0", "evolution": "1.0"},
     "profile_applicability": {
       "artifact_io": {"status": "APPLIES", "reason": "Financial Writing persists WritingState, creates and hashes publication Word artifacts, renders files, invalidates stale downstream outputs, records knowledge writeback receipts, and may use explicitly referenced external artifact/evidence stores.", "evidence_refs": ["financial_writing_agent/store.py", "financial_writing_agent/runtime_service.py", "financial_writing_agent/adapters/deterministic.py", "financial_writing_agent/methodology_receipts.py", "skills/financial-writing-agent/SKILL.md#13-delivery-and-mechanical-qa"]},
-      "operational_hygiene": {"status": "APPLIES", "reason": "The owner has durable maintenance, repeated-failure reliability handling, incident/quality-regression evidence, cleanup rules and scoped change-freeze behavior.", "evidence_refs": ["skills/financial-writing-agent/references/maintenance.md", "evals/quality_regression.json", "financial_writing_agent/quality_regression.py"]},
-      "evolution": {"status": "APPLIES", "reason": "The owner records Writing DNA learning evidence and admits general editorial or personalized writing changes only after candidate distillation and evidence-gated evaluation/regression.", "evidence_refs": ["financial_writing_agent/plugin_server.py#record_writing_learning_sample", "financial_writing_agent/methodology_receipts.py#record_learning_evolution_receipt", "financial_writing_agent/quality_regression.py", "skills/financial-writing-agent/references/maintenance.md"]}
+      "operational_hygiene": {"status": "APPLIES", "reason": "The owner has durable maintenance, repeated-failure reliability handling, Universal meta-maintenance entry routing, incident/quality-regression evidence, cleanup rules and scoped change-freeze behavior.", "evidence_refs": ["references/maintenance.md", "skills/financial-writing-agent/references/maintenance.md", "evals/SYSTEM_META_AUDIT_2026-10-11.md", "evals/quality_regression.json"]},
+      "evolution": {"status": "APPLIES", "reason": "The owner records Writing DNA learning evidence and admits general editorial or personalized writing changes only after candidate distillation and evidence-gated evaluation/regression.", "evidence_refs": ["financial_writing_agent/plugin_server.py#record_writing_learning_sample", "financial_writing_agent/methodology_receipts.py#record_learning_evolution_receipt", "financial_writing_agent/quality_regression.py", "references/maintenance.md"]}
     },
     "hook_bindings": {
       "durable_task_state_location": "financial_writing_agent.store.SQLiteStateStore at FINANCIAL_WRITING_DB for authoritative WritingState; continuity/tasks/financial-writing-main is workspace recovery metadata, not per-article runtime state",
       "authoritative_business_evidence_classes": "persisted WritingState research/gates/trace/learning/methodology-receipt evidence plus hash-bound publication Word artifacts, audit Word, render/mechanical evidence and explicit knowledge-writeback receipts",
       "canonical_artifact_or_file_stores": "owner runtime FINANCIAL_WRITING_RUNS for generated Word/render outputs during the active runtime; durable external delivery/evidence stores only when explicitly referenced with stable provider identity",
       "cache_or_reference_only_stores": "Notion, Google Drive, StockBase, ArticleBase, chat history and render/search caches are reference/cache surfaces by default and never override current GitHub rules or authoritative WritingState merely by presence",
-      "stable_identity_strategy": "task_id + ArtifactKind + sha256 for generated Word artifacts; provider stable id/canonical ref for explicitly promoted external evidence; Git repository path + blob/commit SHA for engineering mutations",
+      "stable_identity_strategy": "task_id + ArtifactKind + sha256 for generated Word artifacts; immutable corpus artifact identity for promotion cases; provider stable id/canonical ref for explicitly promoted external evidence; Git repository path + blob/commit SHA for engineering mutations",
       "read_freshness_requirements": "load the exact current WritingState before each material stage; re-read/hash the current artifact for mechanical/final file decisions; prior-chat summaries, cached paths or remembered external content do not satisfy a freshness-sensitive read",
       "mutation_conflict_strategy": "owner state-machine/stage guards plus current-session single-writer routing for WritingState; GitHub engineering mutations use blob-SHA compare-and-swap. Concurrent or stale writer ambiguity must fail closed rather than be resolved by last-writer chat memory",
-      "post_write_verification_method": "generated Word artifacts are checked for existence and sha256 and then mechanically/render audited; material GitHub changes require main re-read; external writeback/upload requires a stable receipt ref before PASS",
-      "upstream_to_downstream_invalidation_rule": "financial_writing_agent.runtime_service invalidates downstream editorial/draft/QA/artifact mappings when research/editorial/title/draft/delivery inputs materially change; stale render and dependent QA must be rebuilt",
+      "post_write_verification_method": "generated Word artifacts are checked for existence and sha256 and then mechanically/render audited; semantic PASS transitions also require current owner-runtime stage trajectory plus persisted provenance; material GitHub changes require main re-read; external writeback/upload requires a stable receipt ref before PASS",
+      "upstream_to_downstream_invalidation_rule": "financial_writing_agent.runtime_service invalidates downstream editorial/draft/QA/artifact mappings when research/editorial/title/draft/delivery inputs materially change; re-entering a semantic audit stage invalidates stale prior execution proof by trajectory position; stale render and dependent QA must be rebuilt",
       "delete_and_retention_rules": "retain accepted/publication/audit evidence needed for the active task; cleanup may remove or rebuild stale render/cache outputs and superseded active artifacts only after dependency checks; do not delete business evidence for cleanliness",
       "superseded_artifact_cleanup_rule": "references/maintenance.md change protocol plus runtime downstream invalidation: superseded active outputs/caches are cleared or rebuilt while Git history/audit evidence remains the engineering record",
       "external_artifact_vault_if_any": "No external store is implicitly authoritative. Google Drive/Notion or another provider may be used only as an explicit source/deliverable/evidence vault with stable provider refs and verified write/readback receipts.",
-      "observability_or_incident_evidence_location": "evals/quality_regression.json plus persisted WritingState learning evidence",
-      "self_maintenance_trigger_path": "references/maintenance.md repeated-material-failure reliability path",
+      "observability_or_incident_evidence_location": "evals/SYSTEM_META_AUDIT_2026-10-11.md plus evals/quality_regression.json and persisted WritingState learning evidence",
+      "self_maintenance_trigger_path": "references/maintenance.md Universal meta-maintenance entry plus repeated-material-failure reliability path",
       "garbage_collection_owner_and_dependency_rule": "references/maintenance.md change-protocol contradictory/legacy mechanism cleanup",
-      "reliability_or_change_freeze_guard": "financial_writing_agent.quality_regression.evaluate_corpus_readiness plus evaluate_candidate_distillation plus evaluate_quality_promotion plus references/maintenance.md repeated-failure reliability boundary",
+      "reliability_or_change_freeze_guard": "financial_writing_agent.quality_regression evidence chain plus proof-bearing semantic audit state-machine boundaries plus references/maintenance.md repeated-failure reliability boundary",
       "learning_evidence_location": "financial_writing_agent.plugin_server.record_writing_learning_sample -> financial_writing_agent.methodology_receipts.record_learning_evolution_receipt",
       "eval_or_regression_promotion_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness -> evaluate_candidate_distillation -> evaluate_quality_promotion",
       "superseded_mechanism_cleanup_rule": "references/maintenance.md change-protocol remove or repair conflicting/superseded mechanisms"
     },
     "overrides": {
-      "evaluator_selection": "owner-local blind pairwise quality evaluation with candidate-position swap; promotion requires an independently verified judge execution ref plus a separate semantic verifier for the judge-run claim; GENERAL_EDITORIAL_QUALITY may improve without user-positive labels, while PERSONALIZED_WRITING_DNA requires real user acceptance/edit or performance evidence",
+      "evaluator_selection": "owner-local blind pairwise quality evaluation with candidate-position swap; promotion requires immutable case binding verification, candidate-evidence semantic verification, hard-regression execution verification, judge execution ref verification and a separate semantic verifier for the judge-run claim; verifier callback presence is not independent execution identity; GENERAL_EDITORIAL_QUALITY may improve without user-positive labels, while PERSONALIZED_WRITING_DNA requires real user acceptance/edit or performance evidence",
       "artifact_locations": "WritingState is owner-runtime durable state; generated Word/render artifacts live in the configured owner runtime store until an explicitly verified external delivery/evidence ref is recorded"
     }
   },
   "methodology_assurance": {
     "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__OWNER_REGRESSION_PASS__APPLICABILITY_EVIDENCE_RECORDED",
-    "operational_status": "ACTION_RECEIPT_V1_3_EXACT_ACTION_BINDING_WIRED__INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING",
-    "owner_regression_evidence": {"validated_behavioral_head": "8570aa4678fabb81ff8ed711a63b226d4a14a21f", "github_actions_run_id": 38066620015, "job_id": 114255450783, "result": "PASS_SDK_MCP_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"},
+    "operational_status": "ACTION_RECEIPT_V1_3_EXACT_ACTION_BINDING_WIRED__FINANCIAL_V0_8_OWNER_RUNTIME_SEMANTIC_GATEWAY_REGRESSION_VERIFIED__INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING",
+    "owner_regression_evidence": {"validated_behavioral_head": "ec4d3f02a4b813f6439adf0553495670f26c8772", "github_actions_run_id": 38084735222, "job_id": 114308781574, "result": "PASS_SDK_MCP18_UNIT_TRAJECTORY_CONTRACT_STATIC_WHEEL_DOCX_RENDER"},
+    "owner_execution_hardening": {
+      "financial_contract_version": "0.8.0",
+      "execution_capability_profile_version": 8,
+      "semantic_pass_side_channel": "CLOSED_AT_PUBLIC_MCP_CONTROLLER_AND_COMPLETE_BOUNDARIES",
+      "semantic_pass_gateway": "financial_writing_agent.plugin_server.run_semantic_audit_stage -> financial_writing_agent.semantic_runtime.run_owner_semantic_audit_stage",
+      "semantic_pass_required_binding": "EXACT_TASK_STAGE_PLUS_PERSISTED_PROVENANCE_PLUS_CURRENT_OWNER_RUNTIME_EXECUTOR_START_END",
+      "chat_bridged_semantic_pass_allowed": false,
+      "provider_attested_independent_review": "DECLARED_ONLY_UNAVAILABLE",
+      "legacy_independent_executor_label": "STAGE_SEPARATED_OWNER_RUNTIME_ONLY__NOT_PROVIDER_ATTESTED_ISOLATION",
+      "public_mcp_tool_count": 18,
+      "system_meta_audit_ref": "evals/SYSTEM_META_AUDIT_2026-10-11.md"
+    },
     "action_receipt_wiring": {"receipt_contract_version": "1.3", "emitter": "financial_writing_agent/methodology_receipts.py", "public_surface": "financial_writing_agent/plugin_server.py -> WritingTaskSummary.methodology_profile_runs", "wired_profiles": ["artifact_io", "evolution"], "receipt_status": "UNVERIFIED_OWNER_RECEIPT", "exact_action_binding_required": ["task_id", "stage", "action_id", "subject_bindings", "input_bindings"], "independent_verification_required": "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT_PLUS_EXACT_ACTION_BINDING", "unwired_or_unproven_profile": "operational_hygiene remains engineering/control-plane evidence for this owner and has no live article-action receipt path in this validation"},
     "quality_corpus_status": {
       "GENERAL_EDITORIAL_QUALITY": "NOT_READY_HELDOUT_DIVERSITY_INSUFFICIENT__FINANCE_DEEP_DIAGNOSTIC_ONLY",
@@ -66,15 +80,19 @@
       "PERSONALIZED_WRITING_DNA": "NOT_READY_GENERAL_REQUIREMENTS_PLUS_POSITIVE_USER_OR_PERFORMANCE_EVIDENCE_MISSING"
     },
     "quality_promotion_verification": {
+      "case_artifact_binding_verification": "REQUIRED_IMMUTABLE_IDENTITY_AND_PROMOTION_TIME_VERIFIER",
+      "candidate_evidence_semantic_verification": "REQUIRED_SEPARATE_FROM_REF_EXISTENCE",
+      "hard_regression_execution_verification": "REQUIRED_EXACT_CANDIDATE_CHANGE_BINDING_PLUS_EXECUTION_SUITE_EVIDENCE",
       "evidence_ref_verification": "REQUIRED",
       "judge_execution_ref_verification": "REQUIRED_UNIQUE_PER_PAIRWISE_RUN",
-      "judge_run_semantic_verification": "REQUIRED_INDEPENDENTLY",
+      "judge_run_semantic_verification": "REQUIRED_SEPARATELY_FROM_REF_EXISTENCE",
       "candidate_binding": "EXACT_CANDIDATE_ID_AND_CANDIDATE_CHANGE_REF_REQUIRED",
-      "heldout_diversity": "AT_LEAST_TWO_DISTINCT_TOPIC_FAMILIES_PER_CLAIMED_CONTENT_MODE"
+      "heldout_diversity": "AT_LEAST_TWO_DISTINCT_TOPIC_FAMILIES_PER_CLAIMED_CONTENT_MODE",
+      "callback_presence_proves_independence": false
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
     "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
-    "boundary": "Profile declaration, applicability evidence, receipt emission and owner CI are still not independent action-level operational proof. Owner-generated receipt contract 1.3 remains UNVERIFIED_OWNER_RECEIPT and is exact-action-bound; it still requires independent evidence-reference and semantic hook-assessment verification before operational PASS. Quality promotion is separately fail-closed: current FINANCE_DEEP evidence has only one held-out topic family and is diagnostic/candidate-design evidence, not promotion-ready. Any future blind pairwise package must independently verify refs and the semantic truth of the judge-run binding/conclusion; real but irrelevant or replayed judge evidence is insufficient. No current evidence proves prose quality improved."
+    "boundary": "Financial v0.8 closes the previous semantic-PASS side channel and provides an explicit owner-native proof-bearing audit gateway, but stage-separated owner execution is not provider-attested isolation. Profile declaration, applicability evidence, receipt emission and owner CI are still not independent action-level operational proof. Owner-generated receipt contract 1.3 remains UNVERIFIED_OWNER_RECEIPT and requires independent evidence-reference and semantic hook-assessment verification before Universal operational PASS. Quality promotion is separately fail-closed: current FINANCE_DEEP evidence has only one held-out topic family and remains diagnostic/candidate-design evidence, not promotion-ready. No current evidence proves live prose quality improved or Personalized Writing DNA learned."
   },
   "universal_policy_refs": ["D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json", "D1traverser-debug/universal-continuity-agent@main/LIVE_CHAT_RECONCILIATION_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/PROGRESS_OBSERVABILITY_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/CONTEXT_RECOVERY_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/OWNER_ADAPTER_CONTRACT.json", "D1traverser-debug/universal-continuity-agent@main/ARTIFACT_CONTEXT_GOVERNANCE_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/SYSTEM_MAINTENANCE_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/CONTINUOUS_LEARNING_POLICY.md"]
 }
