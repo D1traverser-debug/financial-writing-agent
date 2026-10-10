@@ -51,15 +51,24 @@ def check_rule_ownership() -> int:
             seen[key] = owner
     for required_owner in ("hooks", "style", "market_explanation"):
         if required_owner not in ownership:
-            fail(f"v0.4 must have dedicated rule owner: {required_owner}")
+            fail(f"current writing contract must have dedicated rule owner: {required_owner}")
     if "visuals" in ownership:
         fail("visual ownership must be removed from Financial Writing")
+    for marker in ("reader_funnel", "qualified_click", "headline_information_value", "headline_curiosity_balance", "completion_payoff"):
+        if marker not in ownership["hooks"]:
+            fail(f"reader-funnel ownership missing: {marker}")
+    if "cross_finance_title_clickability" in ownership["hooks"]:
+        fail("cross-industry clickability must not return as a universal hook owner")
+    for marker in (
+        "fidelity_and_responsibility", "semantic_contribution", "argument_progression", "reader_calibration",
+        "authorial_selectivity", "evidence_specificity", "structural_rhythm_naturalness",
+        "template_redundancy_control", "uncertainty_rhetoric_calibration", "writing_dna_learning",
+    ):
+        if marker not in ownership["style"]:
+            fail(f"authorial-prose/Writing-DNA ownership missing: {marker}")
     for marker in ("market_explanation_completeness", "causal_confidence_ladder", "hindsight_causality_control"):
         if marker not in ownership["market_explanation"]:
             fail(f"market-explanation ownership missing: {marker}")
-    for marker in ("semantic_progression", "authorial_specificity", "uncertainty_calibration"):
-        if marker not in ownership["style"]:
-            fail(f"authorial-prose ownership missing: {marker}")
     return len(seen)
 
 
@@ -78,8 +87,9 @@ def check_skill_bundle() -> None:
         "references/style.md",
         "record_knowledge_writeback",
         "FINANCE_DEEP — 财经完整版本",
-        "Hook Gate",
-        "Natural Authorial Prose",
+        "Reader Funnel / Hook Gate",
+        "Natural Authorial Prose / Writing DNA Gate",
+        "not a universal hard requirement",
         "VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED",
         "Publication articles do not use tables",
         "no image/cover/section-visual/avatar workflow",
@@ -122,6 +132,12 @@ def check_skill_bundle() -> None:
             fail(f"exact publication typography drift: {key}")
     if policy["style"].get("optimize_for_ai_detector") is not False:
         fail("AI-detector evasion must not be a style objective")
+    dna = policy["style"].get("writing_dna_learning") or {}
+    if dna.get("one_off_edit_is_candidate_only") is not True or dna.get("external_skill_rules_are_candidates_only") is not True:
+        fail("Writing DNA promotion discipline is missing")
+    hooks = policy.get("hooks") or {}
+    if hooks.get("qualified_click_required") is not True or hooks.get("cross_finance_clickability_required") is not False:
+        fail("Reader Funnel must optimize qualified reader fit, not universal cross-industry reach")
     if policy["market_explanation"].get("multi_hypothesis_required") is not True:
         fail("market explanation must remain multi-hypothesis")
 
@@ -200,7 +216,7 @@ def check_public_mcp_contract() -> int:
     forbidden = ("submit_visual_package", "WECHAT_STICKER_POST", "writing-json://", "writing-text://", "CHAT_TEXT")
     for marker in forbidden:
         if marker in source or marker in contracts or marker in models:
-            fail(f"legacy MCP/model contract leaked back into v0.4: {marker}")
+            fail(f"legacy MCP/model contract leaked back into current runtime: {marker}")
     if "writing-docx://{task_id}/{kind}" not in source:
         fail("Word artifact resource template missing")
     if "ResourceLink" not in source or "structured_content=summary.model_dump" not in source:
@@ -225,11 +241,17 @@ def check_schema_strictness() -> None:
         "stock/theme research with a company universe requires market_explanation",
         "non-UNRESOLVED market explanation requires evidence_refs",
         "skim_path_anchor must appear as an exact explicit bold span",
-        "discourse_variability", "semantic_progression", "concrete_evidence_density",
-        "authorial_specificity", "uncertainty_calibration",
+        "target_reader_click_reason", "promised_payoff", "broader_finance_relevance",
+        "audience_promise_fit", "headline_information_value", "headline_curiosity_balance", "completion_payoff",
+        "fidelity_and_responsibility", "semantic_contribution", "argument_progression", "reader_calibration",
+        "authorial_selectivity", "evidence_specificity", "structural_rhythm_naturalness",
+        "template_redundancy_control", "uncertainty_rhetoric_calibration",
     ):
         if marker not in text:
-            fail(f"v0.4 schema guard missing: {marker}")
+            fail(f"current schema guard missing: {marker}")
+    for removed_field in ("cross_finance_click_reason", "template_fingerprint", "discourse_variability", "semantic_progression", "reader_modeling", "narrative_flow"):
+        if removed_field in text:
+            fail(f"superseded reader/style schema field remains active: {removed_field}")
     for removed in ("VisualPackage", "PlatformConstraintSnapshot", "StickerPostPayload", "OpenAIFileRef"):
         if f"class {removed}(" in text:
             fail(f"removed schema still active: {removed}")
@@ -288,9 +310,9 @@ def main() -> None:
     check_packaging_contract()
     check_dead_contracts_removed()
     print(
-        f"PASS: {groups} unique rule ownership keys; v0.4 references aligned; "
+        f"PASS: {groups} unique rule ownership keys; reference mirrors aligned; "
         f"one {tools}-tool Word-only MCP surface; no legacy shim/text/visual contract; "
-        "Hook + 12-part authorial-prose + market-explanation + exact typography contracts present"
+        "Reader Funnel + 9-part Natural Authorial Prose/Writing DNA + market-explanation + exact typography contracts present"
     )
 
 
