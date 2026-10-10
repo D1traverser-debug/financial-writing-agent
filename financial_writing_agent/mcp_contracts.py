@@ -75,6 +75,7 @@ class WritingTaskSummary(PublicResultModel):
     required_outputs: list[str]
     gate_status: dict[str, GateStatusText] = Field(default_factory=dict)
     blocked_reason: str | None = None
+    blocked_resume_stage: StageText | None = None
     updated_at: datetime
     next_action: str
     source_refs: list[str] | None = None
