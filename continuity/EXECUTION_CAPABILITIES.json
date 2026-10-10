@@ -1,0 +1,63 @@
+{
+  "schema_version": "1.0",
+  "execution_readiness_contract": "1.0",
+  "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
+  "repository": "D1traverser-debug/financial-writing-agent",
+  "profile_version": 1,
+  "purpose": "Owner-level execution wiring metadata for the universal dispatcher. This file is not business task state and does not replace TASK_MANIFEST/HANDOFF.",
+  "capabilities": [
+    {
+      "capability_id": "workflow_state_machine",
+      "scope": "ALL_STAGES",
+      "assurance_ceiling": "SESSION_EXECUTABLE",
+      "invocation_path": "financial_writing_agent.controller.WorkflowController + financial_writing_agent.engine",
+      "executor_type": "PYTHON_STATE_MACHINE",
+      "executor_ref": "financial_writing_agent/controller.py",
+      "required_tools": ["python_runtime_or_owner_plugin"],
+      "evidence_contract": ["authoritative WritingState", "gate state", "stage transition/checkpoint"],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": []
+    },
+    {
+      "capability_id": "high_judgment_agent_stages",
+      "scope": "RESEARCH,RESEARCH_AUDIT,EDITORIAL,TITLE,DRAFT,EDITORIAL_AUDIT,FINAL_AUDIT",
+      "assurance_ceiling": "SESSION_EXECUTABLE",
+      "invocation_path": "financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor.execute",
+      "executor_type": "OPENAI_AGENTS_SDK",
+      "executor_ref": "financial_writing_agent/adapters/openai_agents.py",
+      "required_tools": ["openai_agents_sdk", "model_runtime", "web_search_for_web_enabled_stages"],
+      "evidence_contract": ["typed stage output", "WritingState mutation", "gate evidence", "stage-bound executor identity"],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": ["CHAT_BRIDGED"]
+    },
+    {
+      "capability_id": "deterministic_checks_and_artifact_audit",
+      "scope": "MECHANICAL_GATES_AND_FINALIZATION",
+      "assurance_ceiling": "SESSION_EXECUTABLE",
+      "invocation_path": "financial_writing_agent.adapters.deterministic",
+      "executor_type": "DETERMINISTIC_PYTHON",
+      "executor_ref": "financial_writing_agent/adapters/deterministic.py",
+      "required_tools": ["python_runtime_or_owner_plugin"],
+      "evidence_contract": ["deterministic audit artifact", "gate evidence", "artifact refs"],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": []
+    },
+    {
+      "capability_id": "independent_provider_attested_review",
+      "scope": "OPTIONAL_STRICT_ISOLATION",
+      "assurance_ceiling": "DECLARED_ONLY",
+      "invocation_path": "NOT_IMPLEMENTED_AS_ATTESTED_ISOLATED_EXECUTOR",
+      "executor_type": "UNAVAILABLE",
+      "executor_ref": null,
+      "required_tools": ["provider_run_trace_if_future_gate_requires_true_isolation"],
+      "evidence_contract": ["distinct provider execution identity", "context/trace proof", "artifact binding"],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": []
+    }
+  ],
+  "owner_notes": [
+    "The Python state machine remains business authority; LLM executors may not skip stages.",
+    "Repository wiring does not prove the current ChatGPT session has the optional SDK/runtime. The dispatcher must perform a session handshake.",
+    "Normal independent audits are separate SDK runs when the SDK path is used, but the owner does not currently claim ATTESTED_ISOLATED assurance."
+  ]
+}
