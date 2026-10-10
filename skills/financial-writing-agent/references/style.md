@@ -28,6 +28,13 @@ A fact should alter the question; that creates a consequence/comparison; the com
 
 If large paragraph blocks can be reordered without affecting the argument, the article may be a stitched information pile rather than an explanation.
 
+### Major-section bridge hard gate
+A correct section order is not enough if the prose still feels like separate research cards pasted together. Before every new H1, the preceding substantive paragraph should normally create an **earned bridge** into the next analytical job through at least one real relation: cause, consequence, chronology, comparison, narrowing, correction, unresolved question or inference.
+
+Do not add empty bridge phrases such as “接下来我们来看”“说完A再看B”. The bridge must tell the reader *why B follows from A*. If the next H1 could be moved elsewhere with no loss of reasoning, revisit the transition or the macro structure.
+
+The final paragraph of a section need not announce the next heading mechanically. A good bridge can be a conclusion whose consequence naturally makes the next section necessary.
+
 ## “交流感” = reader calibration
 Model the intended reader's likely prior belief, confusion, objection or missing premise and answer it where it naturally arises. Use clarification, contrast, a genuine question, `why_this / why_not`, or a short corrective sentence when useful.
 
@@ -52,7 +59,7 @@ Naturalness never justifies deleting a limiting condition, converting an attribu
 At `EDITORIAL_AUDIT`, an independent judge reviews the frozen draft. PASS requires text-level evidence for all nine dimensions:
 1. `fidelity_and_responsibility` — facts, certainty, stance, attribution and agency remain correct.
 2. `semantic_contribution` — substantive units add fact, inference, distinction, boundary, reader orientation or necessary connective work rather than restating importance.
-3. `argument_progression` — paragraphs form an earned reasoning sequence and open loops close coherently.
+3. `argument_progression` — paragraphs form an earned reasoning sequence, major sections are causally/comparatively bridged and open loops close coherently.
 4. `reader_calibration` — explanation depth, terminology and objections fit the intended reader without patronizing or fake conversation.
 5. `authorial_selectivity` — prioritization is visible, topic-specific and evidence-bounded.
 6. `evidence_specificity` — important claims stay anchored to concrete entities, data, mechanisms, comparisons and source boundaries.
@@ -82,6 +89,7 @@ Treat patterns as evidence, not forbidden tokens. Watch for clusters such as:
 - automatic “首先/其次/最后” without real enumeration;
 - repeated “不是X，而是Y / 真正值得关注的是 / 核心在于 / 值得注意的是” staging;
 - generic bridges or one-line closers that add no information;
+- abrupt H1 changes where the previous section never creates a reason for the next one;
 - H1 restated immediately in the first sentence;
 - colon-heavy headings built from one grammatical mold;
 - fake balance between weak and strong evidence;
@@ -143,4 +151,4 @@ Bold is semantic navigation, not an automatic company-name format. Explicitly em
 Unambiguous promises such as “注定暴涨”“必然上涨”“唯一机会” can be deterministic hard fails. Generic superlatives such as “最强”“顶级” require semantic context: unsupported hype fails, while a genuinely sourced ranked claim can be legal if the wording and relevance are precise.
 
 ## Revision method
-Fix reasoning/reader defects before polishing surfaces. Revise the smallest region that solves the defect while preserving facts and useful authorial choices. Then reread once for fidelity and once for residual template/redundancy problems.
+Fix reasoning/reader defects before polishing surfaces. Revise the smallest region that solves the defect while preserving facts and useful authorial choices. Then reread once for fidelity, once for **major-section progression**, and once for residual template/redundancy problems.
