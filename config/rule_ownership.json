@@ -1,35 +1,120 @@
 {
   "runtime": [
-    "stage_order", "checkpointing", "required_outputs", "delivery_channel", "retry_limits", "no_silent_degradation", "runtime_recovery_authority"
+    "stage_order",
+    "checkpointing",
+    "blocked_recovery",
+    "required_outputs",
+    "delivery_channel",
+    "downstream_invalidation",
+    "retry_limits",
+    "no_silent_degradation",
+    "execution_capability_handshake",
+    "runtime_recovery_authority"
   ],
   "research": [
-    "source_quality", "evidence_ledger", "full_topic_research", "universe", "why_this_why_not", "negative_evidence", "cognition_baseline", "short_term_market_roles"
+    "source_quality",
+    "evidence_ledger",
+    "research_coverage",
+    "full_topic_research",
+    "universe",
+    "economic_sensitivity",
+    "why_this_why_not",
+    "negative_evidence",
+    "cognition_baseline",
+    "ephemeral_market_state"
   ],
   "market_explanation": [
-    "market_explanation_completeness", "economic_benefit_vs_market_selection", "causal_confidence_ladder", "competing_market_mechanisms", "continuation_reversal_conditions", "hindsight_causality_control"
+    "explicit_scope_activation",
+    "stock_universe_not_activation",
+    "market_explanation_completeness",
+    "economic_benefit_vs_market_selection",
+    "causal_confidence_ladder",
+    "competing_market_mechanisms",
+    "continuation_reversal_conditions",
+    "hindsight_causality_control"
   ],
   "knowledge": [
-    "prior_knowledge_reuse", "stable_vs_ephemeral_knowledge", "knowledge_conflict_handling", "knowledge_writeback"
+    "prior_knowledge_reuse",
+    "stable_vs_ephemeral_knowledge",
+    "knowledge_conflict_handling",
+    "knowledge_writeback"
   ],
   "editorial": [
-    "topic_dna", "finance_deep_material_completeness", "finance_broad_selective_compression", "structure", "information_density", "dual_version_editing", "continuous_report_prose", "logical_transitions", "default_language", "chinese_hierarchy"
+    "topic_dna",
+    "finance_deep_material_completeness",
+    "finance_broad_selective_compression",
+    "topic_specific_structures",
+    "macro_structural_coherence",
+    "information_density",
+    "dual_version_editing",
+    "continuous_report_prose",
+    "default_language",
+    "chinese_hierarchy"
   ],
   "hooks": [
-    "reader_funnel", "audience_promise_fit", "qualified_click", "headline_information_value", "headline_curiosity_balance", "wechat_search_intent", "first_three_sentence_retention", "continuation_flow", "completion_payoff", "title_opening_payoff"
+    "reader_funnel",
+    "audience_promise_fit",
+    "qualified_click",
+    "headline_information_value",
+    "headline_curiosity_balance",
+    "wechat_search_intent",
+    "first_three_sentence_retention",
+    "continuation_value",
+    "completion_payoff",
+    "title_opening_payoff"
   ],
   "style": [
-    "natural_authorial_prose", "fidelity_and_responsibility", "semantic_contribution", "argument_progression", "reader_calibration", "authorial_selectivity", "evidence_specificity", "structural_rhythm_naturalness", "template_redundancy_control", "uncertainty_rhetoric_calibration", "writing_dna_learning", "bold_skim_path_semantics"
+    "natural_authorial_prose",
+    "fidelity_and_responsibility",
+    "semantic_contribution",
+    "argument_progression",
+    "reader_calibration",
+    "authorial_selectivity",
+    "evidence_specificity",
+    "structural_rhythm_naturalness",
+    "template_redundancy_control",
+    "uncertainty_rhetoric_calibration",
+    "writing_dna_learning",
+    "raw_learning_sample_ledger",
+    "bold_skim_path_semantics"
   ],
   "delivery": [
-    "docx_structure", "typography", "pixel_to_point_typography", "stock_bold", "key_data_bold", "no_tables", "risk_disclaimer", "file_identity", "publication_ready_word", "visible_completion_checklist"
+    "docx_structure",
+    "typography",
+    "pixel_to_point_typography",
+    "explicit_bold_preservation",
+    "no_tables",
+    "risk_disclaimer",
+    "file_identity",
+    "artifact_path_privacy",
+    "render_idempotency",
+    "publication_ready_word",
+    "visible_completion_checklist"
   ],
   "audit": [
-    "hook_judge", "human_voice_judge", "market_explanation_audit", "semantic_judge", "mechanical_checks", "final_red_team", "audit_report", "risk_quality_audit", "skim_path_audit"
+    "reader_funnel_judge",
+    "authorial_prose_judge",
+    "market_explanation_audit",
+    "macro_editorial_judge",
+    "mechanical_checks",
+    "final_red_team",
+    "audit_report",
+    "risk_quality_audit",
+    "skim_path_audit"
   ],
   "platforms": [
-    "distribution_mechanisms", "platform_specific_packaging", "account_performance_samples", "wechat_search_signals", "fresh_platform_evidence"
+    "distribution_mechanisms",
+    "platform_specific_packaging",
+    "account_performance_samples",
+    "wechat_search_signals",
+    "fresh_platform_evidence"
   ],
   "maintenance": [
-    "change_classification", "single_owner_update", "regression_testing", "cutover_policy", "style_sample_promotion"
+    "change_classification",
+    "single_owner_update",
+    "regression_testing",
+    "version_consistency",
+    "cutover_policy",
+    "learning_sample_promotion"
   ]
 }
