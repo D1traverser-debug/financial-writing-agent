@@ -4,31 +4,32 @@
 The final auditor re-evaluates the frozen final artifact/state. Writer self-assessment is not evidence of passing.
 
 ## Dedicated semantic gates before general editorial PASS
-Two independent gates are mandatory on the frozen draft:
+Two independent gates are mandatory on the frozen draft.
 
-### Hook Gate
-Load `references/hooks.md`. Audit, with text-level evidence:
-- total-title cross-finance clickability;
-- current WeChat search-intent consideration and evidence refs;
+### Reader Funnel / Hook Gate
+Load `references/hooks.md`. Audit, with text-level and current-search evidence where applicable:
+- audience-promise fit;
+- headline information value;
+- curiosity/concreteness balance;
+- current WeChat search discoverability and evidence refs;
 - first-three-sentence retention;
-- H1 continuation power;
-- paragraph forward pull;
+- continuation flow across H1s and paragraph transitions;
+- completion payoff;
 - title/opening payoff.
 
-### Natural Authorial Prose / Human Voice Gate
-Load `references/style.md`. Do not judge “humanity” by slang, typos or AI-detector scores. Audit, with text-level evidence, all 12 dimensions:
-- template fingerprint;
-- discourse variability;
-- semantic progression;
-- transition continuity;
-- repetition control;
-- rhythm naturalness;
-- concrete evidence density;
-- reader modeling;
-- narrative flow;
-- authorial specificity / evidence-bounded prioritization;
-- uncertainty calibration;
-- extreme-language control.
+Do not require cross-industry finance appeal for every title. Judge `FINANCE_DEEP` on qualified-reader fit and `FINANCE_BROAD` on broader traffic value without allowing bait-and-switch.
+
+### Natural Authorial Prose / Writing DNA Gate
+Load `references/style.md`. Do not judge “humanity” by slang, typos or AI-detector scores. Audit the consolidated nine dimensions with text-level evidence:
+- fidelity and responsibility;
+- semantic contribution;
+- argument progression;
+- reader calibration;
+- authorial selectivity;
+- evidence specificity;
+- structural/rhythm naturalness;
+- template/redundancy control;
+- uncertainty/rhetoric calibration.
 
 General editorial audit cannot PASS unless both dedicated gates PASS.
 
@@ -45,7 +46,7 @@ The final auditor must independently check:
 2. relevant concept/subtheme/company coverage is represented or explicitly bounded;
 3. material companies/classes are compared on topic-specific sensitivity dimensions rather than mere concept membership;
 4. `why_this / why_not` is actually answered where market selection is discussed;
-5. at least the material competing mechanisms from research are represented rather than collapsed into a hindsight single-cause story;
+5. material competing mechanisms from research are represented rather than collapsed into a hindsight single-cause story;
 6. causal wording respects the research confidence ladder (`VERIFIED_FACT`, `SUPPORTED_MECHANISM`, `PLAUSIBLE_INTERPRETATION`, `UNRESOLVED`);
 7. a limit-up, strong return, turnover spike, fund-flow proxy, concept label or continued advance is not used as self-proving causal evidence;
 8. continuation conditions and exhaustion/reversal conditions are both considered when persistence is material;
@@ -71,10 +72,8 @@ Use independent judgment for:
 - evidence support/source boundary;
 - FINANCE_DEEP completeness or FINANCE_BROAD legal compression;
 - market-explanation completeness and causal-confidence discipline when applicable;
-- reasoning continuity/transitions;
-- negative evidence and why-this/why-not;
-- Hook Gate;
-- Natural Authorial Prose / Human Voice Gate;
+- Reader Funnel / Hook Gate;
+- Natural Authorial Prose / Writing DNA Gate;
 - **skim-path coherence: title + H1s + bold spans must recover the article's main line**;
 - platform fit;
 - context-sensitive compliance;
@@ -84,12 +83,15 @@ Use independent judgment for:
 A successful render process is not itself proof of no clipping or bad pagination. Claim page inspection only when rendered pages were actually made available to and viewed by the auditor.
 
 ## Audit report
-Generate `WRITING_AUDIT_REPORT.docx` from final state. Include task contract/distribution, source/evidence boundary, research coverage, mode-specific coverage obligations, market-explanation audit when applicable, Hook Gate, Natural Authorial Prose / Human Voice Gate, general editorial, bold skim path, mechanical results, defects/fixes, remaining boundaries, knowledge reuse/writeback references and final artifact identities.
+Generate `WRITING_AUDIT_REPORT.docx` from final state. Include task contract/distribution, source/evidence boundary, research coverage, mode-specific coverage obligations, market-explanation audit when applicable, Reader Funnel / Hook Gate, Natural Authorial Prose / Writing DNA Gate, general editorial, bold skim path, mechanical results, defects/fixes, remaining boundaries, knowledge reuse/writeback references and final artifact identities.
 
 A missing audit report is a completion failure under Word delivery.
 
 ## Visible chat checklist
 The final chat response must include a concise list of all required QA areas and statuses, including market-explanation completeness when applicable. It accompanies the audit Word document. It must not paste the article body.
 
+## Writing-DNA learning boundary
+Audit may identify candidate style lessons, but a single article or one external skill cannot silently become durable author identity. Durable promotion follows `references/style.md` and `references/maintenance.md`: explicit user rule or repeated evidence, with provenance and regression protection.
+
 ## Fail closed
-No artifact may be COMPLETE while an applicable Must-Pass item lacks evidence. Changes to facts, market-explanation confidence/mechanisms, title, opening three sentences, H1 structure, body logic, bold skim anchors or formatting invalidate affected checks and require re-audit.
+No artifact may be COMPLETE while an applicable Must-Pass item lacks evidence. Changes to facts, market-explanation confidence/mechanisms, title, opening three sentences, H1/transition structure, body logic, bold skim anchors or formatting invalidate affected checks and require re-audit.
