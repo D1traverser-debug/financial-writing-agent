@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "role": "OWNER_LOCAL_QUALITY_EVIDENCE_NOT_BUSINESS_AUTHORITY",
+  "purpose": "Seed quality-regression evidence for Financial Writing system changes. This dataset complements deterministic correctness checks; it never replaces factual, compliance, state-machine or artifact invariants.",
+  "promotion_rule": {
+    "promotion_gate": "financial_writing_agent.quality_regression.evaluate_quality_promotion",
+    "blind_pairwise_required": true,
+    "candidate_position_swap_required": true,
+    "independent_evidence_verification_required": true,
+    "hard_invariant_regressions_allowed": 0,
+    "partial_evidence_may_promote": false
+  },
+  "cases": [
+    {
+      "case_id": "offshore-wind-2026-10-10-real-user-rejection-01",
+      "source_kind": "REAL_USER_REJECTION",
+      "split": "REGRESSION",
+      "topic_family": "multi_company_sector_event",
+      "content_mode": "FINANCE_DEEP",
+      "evidence_status": "PARTIAL",
+      "artifact_refs": [],
+      "topic": "国内海上风电省管项目启动与产业链修复",
+      "failure_signals": [
+        "headline lacked click value and specificity",
+        "machine-organized prose / strong AI-like staging",
+        "company coverage was mechanically enumerated rather than economically differentiated",
+        "generic meta-explanations about how a finance reader should read the article",
+        "section seven and section eight substantially overlapped",
+        "subheads degraded into label-like fragments rather than editorial propositions",
+        "coverage compliance passed while actual reading quality remained poor"
+      ],
+      "negative_excerpts": [
+        "16家公司放在一起看，研究顺序应该怎么排",
+        "对财经读者来说",
+        "把16家公司都列出来只是完成覆盖",
+        "轴承：新强联"
+      ],
+      "quality_dimensions": [
+        "headline_desire_to_click",
+        "argument_coherence",
+        "economic_differentiation",
+        "authorial_naturalness",
+        "section_nonredundancy",
+        "subhead_information_value",
+        "reader_value_density"
+      ],
+      "known_boundary": "The original complete rejected Word artifacts are not currently reachable from GitHub, so this case is real rejection evidence but is not yet a promotion-ready full-artifact case."
+    }
+  ],
+  "current_readiness": {
+    "status": "NOT_READY",
+    "known_missing": [
+      "complete rejected artifact/context pair",
+      "at least one real accepted article or post-publication positive performance anchor",
+      "at least one complete held-out case",
+      "at least two complete topic families"
+    ]
+  }
+}
