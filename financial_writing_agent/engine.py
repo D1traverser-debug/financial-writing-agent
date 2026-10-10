@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from .models import ArtifactKind, GateStatus, Stage, TaskContract, WritingState
+from .models import ArtifactKind, GateStatus, SEMANTIC_GATE_STAGES, Stage, TaskContract, WritingState
 from .store import SQLiteStateStore
 
 
@@ -108,6 +108,15 @@ class WritingEngine:
         failed = [name for name, gate in state.gates.items() if gate.status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}]
         if failed:
             raise WorkflowError(f"Unresolved gates: {failed}")
+        missing_semantic_proof = [
+            name
+            for name in SEMANTIC_GATE_STAGES
+            if state.gates.get(name) is not None
+            and state.gates[name].status == GateStatus.PASS
+            and not state.semantic_gate_proof_valid(name)
+        ]
+        if missing_semantic_proof:
+            raise WorkflowError(f"Semantic PASS lacks current owner-runtime proof: {missing_semantic_proof}")
         missing: list[ArtifactKind] = []
         for kind in state.contract.required_outputs:
             artifact = state.artifacts.get(kind)
