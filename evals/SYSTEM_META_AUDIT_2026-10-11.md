@@ -1,6 +1,6 @@
 # Financial Writing Agent — System Meta Audit 2026-10-11
 
-Status: `BEHAVIORAL_REPAIR_IMPLEMENTED__FINAL_CI_PENDING_AT_FIRST_WRITE`
+Status: `REGRESSION_VERIFIED__LIVE_QUALITY_AND_PROVIDER_ATTESTATION_OPEN`
 Scope: SYSTEM/ENGINEERING only. Business task `financial-writing:main`, article state, stage, lease and resume epoch are not modified by this audit.
 
 ## Trigger
@@ -62,15 +62,13 @@ Financial Skill routed system changes to local `references/maintenance.md`. Alth
 Repair: the three maintenance mirrors now contain one explicit Universal meta-maintenance entry for systemic/non-trivial work, while retaining a reasoned lightweight path for local deterministic bugs. No new root policy or permanent meta Agent is added.
 
 ## Instruction / propagation decision
-
-Financial repo Skill/maintenance/capability/Site instructions must change because the old owner entry and public runtime semantics were part of the defect.
+Financial repo Skill/maintenance/capability/Site instructions changed because the old owner entry and public runtime semantics were part of the defect.
 
 No external ChatGPT account-level instruction change is justified by this owner-local repair. Account routing is not the demonstrated failure surface, and copying owner implementation doctrine into account prompt would add drift/bloat.
 
-Universal central derived metadata should be refreshed only after final owner regression evidence exists. Financial business manifest/Handoff/lease/article state must remain untouched.
+Universal central derived metadata may be refreshed only from final owner evidence. Financial business manifest/Handoff/lease/article state remains untouched.
 
 ## Complexity / efficiency
-
 Accepted cost:
 - +1 narrow runtime module: `semantic_runtime.py`;
 - +1 public MCP tool: `run_semantic_audit_stage`;
@@ -82,7 +80,6 @@ Accepted cost:
 This is preferred over hidden tool semantic changes or permanent double-review of every generation stage.
 
 ## Second-order challenge
-
 - Could runtime proof be self-authored? The public chat cannot create the required current owner-runtime stage trajectory through audit-submit PASS. The owner server gateway creates the trajectory around actual executor invocation.
 - Does this prove provider independence? No. Stage-separated owner execution is explicitly below provider-attested isolation.
 - Could old PASS survive revision? Re-entering an audit stage moves the latest STAGE_ENTER after old runtime proof, making the old proof invalid.
@@ -91,17 +88,36 @@ This is preferred over hidden tool semantic changes or permanent double-review o
 - Does this prove prose quality improved? No. Current FINANCE_DEEP corpus remains NOT_READY due held-out diversity; FINANCE_BROAD and Personalized Writing DNA remain unready.
 - Did the repair alter the live business task? No; SYSTEM_INFRA changes engineering/control metadata only.
 
-## Evidence ceiling
+## Final regression evidence
+Behavioral head: `ec4d3f02a4b813f6439adf0553495670f26c8772`
 
-At successful owner CI, this repair may claim at most:
+GitHub Actions:
+- run `38084735222`
+- job `114308781574`
+- conclusion: `SUCCESS`
+
+Validated surfaces:
+- OpenAI Agents SDK surface smoke — PASS
+- MCP Streamable HTTP smoke — PASS, exact v0.8 18-tool surface including `run_semantic_audit_stage`
+- unit + trajectory tests — PASS, including manual semantic-PASS rejection, stale-proof replay rejection, owner-runtime audit success and recoverable failure
+- executable contract eval baseline — PASS
+- static rule ownership / bundle / v0.8 surface audit — PASS
+- isolated wheel build/install smoke — PASS
+- DOCX render smoke — PASS
+
+Counterevidence retained:
+- initial state-machine hardening broke old tests that manually set semantic PASS; the tests were migrated to proof-bearing owner-runtime execution rather than weakening the invariant;
+- after public v0.8 cutover, run `38084560635` passed SDK + 18-tool MCP but failed unit/trajectory because one regression still asserted the old v0.7 server wording; the stale expectation was corrected rather than rolling back v0.8.
+
+## Evidence ceiling
+This repair establishes:
 - `REGRESSION_VERIFIED` runtime/control-plane hardening;
 - v0.8 public contract/surface alignment;
-- quality-promotion evidence-chain hardening.
+- quality-promotion evidence-chain hardening;
+- a legal owner-native hosted semantic-audit path that does not require caller self-certification.
 
-It may not claim:
+It does **not** establish:
 - provider-attested independent review;
 - live Financial article quality improvement;
 - Personalized Writing DNA learned;
 - Site production-ready status without a real deployed owner-native semantic audit E2E.
-
-Final validated head/run/job will be appended only after the complete current-main CI succeeds.
