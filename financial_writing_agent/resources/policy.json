@@ -1,4 +1,5 @@
 {
+  "contract_version": "0.6.0",
   "defaults": {
     "distribution_mode": "DUAL",
     "content_mode": "FORMAL_ARTICLE",
@@ -14,10 +15,8 @@
   },
   "style": {
     "continuous_report_prose": true,
-    "logical_transitions_required": true,
     "conclusion_first_preferred": false,
     "authorial_prose_semantic_audit": true,
-    "reader_funnel_semantic_audit": true,
     "heading_hierarchy": ["一、", "（1）", "①"],
     "numbering_encouraged": true,
     "forbidden_heading_prefixes": ["·", "•"],
@@ -37,18 +36,23 @@
       "one_off_edit_is_candidate_only": true,
       "repeated_independent_patterns_can_promote": true,
       "external_skill_rules_are_candidates_only": true,
+      "raw_learning_sample_ledger_enabled": true,
       "distill_dimensions": ["language", "structure", "topic_framing", "evidence_strategy", "cognitive_moves", "reader_relationship", "anti_patterns"]
     },
-    "hard_fail_extreme_phrases": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆", "注定暴涨", "必然上涨", "唯一机会"],
+    "hard_fail_extreme_phrases": ["注定暴涨", "必然上涨", "唯一机会"],
+    "semantic_review_extreme_terms": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆"],
     "review_generic_superlatives_semantically": true
   },
   "editorial": {
     "finance_deep_material_complete": true,
     "finance_broad_selective_compression": true,
-    "finance_broad_core_contradictions_max": 3
+    "finance_broad_core_contradictions_max": 3,
+    "macro_structural_coherence_required": true
   },
   "market_explanation": {
-    "required_when_stock_universe_present": true,
+    "activation_policy": "EXPLICIT_SCOPE",
+    "required_when_price_formation_material": true,
+    "stock_universe_alone_is_not_activation": true,
     "multi_hypothesis_required": true,
     "separate_economic_benefit_from_market_selection": true,
     "why_this_why_not_required": true,
@@ -88,6 +92,7 @@
     "body_pt": 13.5,
     "h1_rgb": "FF0000",
     "allow_tables": false,
-    "tables_are_hard_fail": true
+    "tables_are_hard_fail": true,
+    "auto_bold_company_names": false
   }
 }
