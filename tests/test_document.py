@@ -14,7 +14,7 @@ def _risk_text() -> str:
     )
 
 
-def test_word_builder_normalizes_hierarchy_preserves_bold_and_exact_typography(tmp_path):
+def test_word_builder_normalizes_hierarchy_preserves_explicit_bold_and_exact_typography(tmp_path):
     policy = json.loads(open("config/policy.json", encoding="utf-8").read())
     article = ArticleDocument(
         title="测试标题",
@@ -52,6 +52,27 @@ def test_word_builder_normalizes_hierarchy_preserves_bold_and_exact_typography(t
 
     body = next(p for p in doc.paragraphs if p.text.startswith("国电南瑞在这里再次出现"))
     assert all(run.font.size is not None and run.font.size.pt == 13.5 for run in body.runs)
+
+
+def test_company_names_are_not_automatically_bolded(tmp_path):
+    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    article = ArticleDocument(
+        title="选择性加粗测试",
+        stock_names=["国电南瑞"],
+        blocks=[
+            Block(kind="lead", text="国电南瑞只是普通实体文本，**利润弹性**才是本段强调。"),
+            Block(kind="h1", text="比较维度"),
+            Block(kind="body", text="国电南瑞再次出现，但只有**订单兑现**和**现金流改善**进入扫读路径。"),
+            Block(kind="h1", text="风险提示与免责声明"),
+            Block(kind="body", text=_risk_text()),
+        ],
+    )
+    path = build_article_docx(article, tmp_path / "selective.docx", policy)
+    doc = Document(path)
+    ordinary = next(p for p in doc.paragraphs if p.text.startswith("国电南瑞只是普通实体文本"))
+    company_runs = [run for run in ordinary.runs if "国电南瑞" in run.text]
+    assert company_runs and all(not run.bold for run in company_runs)
+    assert any(run.bold and "利润弹性" in run.text for run in ordinary.runs)
 
 
 def test_tables_are_hard_fail(tmp_path):
