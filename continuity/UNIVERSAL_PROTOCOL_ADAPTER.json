@@ -29,22 +29,26 @@
     },
     "hook_bindings": {
       "observability_or_incident_evidence_location": "evals/quality_regression.json plus persisted WritingState learning evidence",
-      "self_maintenance_trigger_path": "references/maintenance.md#learning-evidence repeated-material-failure path",
-      "garbage_collection_owner_and_dependency_rule": "references/maintenance.md#change-protocol contradictory/legacy mechanism cleanup",
+      "self_maintenance_trigger_path": "references/maintenance.md repeated-material-failure reliability path",
+      "garbage_collection_owner_and_dependency_rule": "references/maintenance.md change-protocol contradictory/legacy mechanism cleanup",
       "reliability_or_change_freeze_guard": "financial_writing_agent.quality_regression.evaluate_quality_promotion plus references/maintenance.md repeated-failure reliability boundary",
       "learning_evidence_location": "financial_writing_agent.runtime_service.record_writing_learning_sample",
       "eval_or_regression_promotion_path": "financial_writing_agent.quality_regression.evaluate_quality_promotion",
-      "superseded_mechanism_cleanup_rule": "references/maintenance.md#change-protocol remove or repair conflicting/superseded mechanisms"
+      "superseded_mechanism_cleanup_rule": "references/maintenance.md change-protocol remove or repair conflicting/superseded mechanisms"
     },
     "overrides": {
-      "evaluator_selection": "owner-local blind pairwise writing-quality evaluation with candidate-position swap; deterministic correctness gates remain independent"
+      "evaluator_selection": "owner-local blind pairwise quality evaluation with candidate-position swap; GENERAL_EDITORIAL_QUALITY may improve without user-positive labels, while PERSONALIZED_WRITING_DNA requires real user acceptance/edit or performance evidence"
     }
   },
   "methodology_assurance": {
     "declaration_status": "BOUND_EXACT_VERSION",
     "operational_status": "PENDING_VERIFIED_OWNER_LOCAL_EVIDENCE",
-    "quality_corpus_status": "NOT_READY",
-    "boundary": "Profile declaration is not operational proof. Quality promotion remains blocked until the owner corpus contains complete real rejection evidence, a positive anchor/performance case, held-out coverage and independently verified blind pairwise judge traces."
+    "quality_corpus_status": {
+      "GENERAL_EDITORIAL_QUALITY": "NOT_READY_HELDOUT_DIVERSITY_MISSING",
+      "PERSONALIZED_WRITING_DNA": "NOT_READY_POSITIVE_USER_OR_PERFORMANCE_AND_HELDOUT_DIVERSITY_MISSING"
+    },
+    "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
+    "boundary": "Profile declaration is not operational proof. The general-quality path does not require the user to provide a positive label, but promotion still requires diverse held-out evidence and independently verified blind pairwise judge traces. Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence."
   },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
