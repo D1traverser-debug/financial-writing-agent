@@ -6,11 +6,12 @@ from pathlib import Path
 
 from pydantic import ValidationError
 
+from financial_writing_agent.checks import analyze_template_scaffolding
 from financial_writing_agent.engine import WritingEngine
 from financial_writing_agent.models import ArtifactKind, DeliveryChannel, DistributionMode, GateStatus, Stage, TaskContract
 from financial_writing_agent.routing import build_task_contract
 from financial_writing_agent.runner import AgentRuntime
-from financial_writing_agent.schemas import HeadlineCandidate, HeadlinePackage, HookAuditDecision, ModeEditorialPlan, StructureCandidate, StyleAuditDecision
+from financial_writing_agent.schemas import AuditProvenance, CompanyFinding, GateDecision, HeadlineCandidate, HeadlinePackage, ModeEditorialPlan, ResearchPackage, StructureCandidate, StyleAuditDecision
 from financial_writing_agent.store import SQLiteStateStore
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -53,11 +54,12 @@ def eval_e03() -> list[str]:
     check(contract.distribution_mode == DistributionMode.DUAL, "E03 mixed destinations must route DUAL")
     c1 = StructureCandidate(name="A", rationale="test", sections=["一", "二"])
     c2 = StructureCandidate(name="B", rationale="test2", sections=["一", "二"])
-    deep = ModeEditorialPlan(coverage_policy="MATERIAL_COMPLETE", candidates=[c1, c2], selected_structure=c1, completeness_obligations=["event", "transmission", "market explanation", "counterevidence"])
+    deep = ModeEditorialPlan(coverage_policy="MATERIAL_COMPLETE", candidates=[c1, c2], selected_structure=c1, completeness_obligations=["event", "transmission", "counterevidence"], company_coverage_obligations=["all MATERIAL companies"])
     broad = ModeEditorialPlan(coverage_policy="SELECTIVE_TRAFFIC", candidates=[c1, c2], selected_structure=c1, core_contradictions=["profit timing"])
     check(not deep.core_contradictions and not deep.compression_candidates, "E03 deep plan must not select by contradictions/compression")
+    check(deep.company_coverage_obligations, "E03 deep plan must carry company coverage obligations")
     check(broad.core_contradictions == ["profit timing"], "E03 broad plan may select core contradiction")
-    return ["DUAL", "deep=MATERIAL_COMPLETE", "broad=SELECTIVE_TRAFFIC"]
+    return ["DUAL", "deep=MATERIAL_COMPLETE + company obligations", "broad=SELECTIVE_TRAFFIC"]
 
 
 def eval_e06() -> list[str]:
@@ -65,7 +67,8 @@ def eval_e06() -> list[str]:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
     check("word_count" not in contract.run_constraints, "E06 must not invent fixed word count")
     check(policy["editorial"]["finance_deep_material_complete"], "E06 deep material completeness must remain enabled")
-    return ["no fixed word-count anchor", "deep material completeness retained"]
+    check(policy["editorial"]["finance_deep_representative_stock_shortcut_forbidden"], "E06 representative-stock shortcut must remain forbidden")
+    return ["no fixed word-count anchor", "deep material completeness retained", "representative-stock shortcut forbidden"]
 
 
 def eval_e07() -> list[str]:
@@ -106,11 +109,12 @@ def eval_e14() -> list[str]:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
     check(policy["defaults"]["language"] == "zh-CN", "E14 language mismatch")
     check(policy["style"]["heading_hierarchy"] == ["一、", "（1）", "①"], "E14 hierarchy mismatch")
+    check(policy["style"]["deep_numbered_navigation_required_when_branching"], "E14 deep numbered navigation hardening missing")
     check(policy["word"]["allow_tables"] is False and policy["word"]["tables_are_hard_fail"], "E14 tables must hard fail")
     expected = {"h1_px": 24, "h1_pt": 18, "h2_px": 20, "h2_pt": 15, "body_px": 18, "body_pt": 13.5}
     for key, value in expected.items():
         check(policy["word"][key] == value, f"E14 exact typography mismatch for {key}")
-    return ["zh-CN", "一/（1）/①", "tables hard fail", "H1 24px/18pt", "H2 20px/15pt", "body 18px/13.5pt"]
+    return ["zh-CN", "一/（1）/①", "deep lower numbering when branching", "tables hard fail"]
 
 
 def eval_e16() -> list[str]:
@@ -127,16 +131,17 @@ def eval_e17() -> list[str]:
     return ["risk mandatory", f"min_chars={policy['risk_disclaimer']['min_body_chars']}"]
 
 
-def _headline(title: str, broader: str = "") -> HeadlineCandidate:
+def _headline(title: str, broader: str = "", family: str = "profit_orders") -> HeadlineCandidate:
     return HeadlineCandidate(
         title=title,
         angle="利润传导",
+        angle_family=family,
         target_reader="关注盈利与定价的财经读者",
         finance_relevance="影响盈利预期和估值",
         target_reader_click_reason="同一变化下利润兑现路径仍有重要差异",
         broader_finance_relevance=broader,
         primary_gap="市场尚未区分兑现环节",
-        promised_payoff="解释订单、利润兑现与市场选择的差异",
+        promised_payoff="解释订单与利润兑现差异",
         cognitive_load="low",
         wechat_search_terms=["行业关键词"],
         search_evidence_refs=["current-wechat-search-evidence"],
@@ -149,7 +154,7 @@ def eval_e18() -> list[str]:
     check(candidate.broader_finance_relevance == "", "E18 cross-industry relevance must be optional")
     check(candidate.wechat_search_terms and candidate.search_evidence_refs, "E18 current search evidence is required")
     with_missing = dict(
-        title="无搜索证据", angle="x", target_reader="财经读者", finance_relevance="x",
+        title="无搜索证据", angle="x", angle_family="hard_fact", target_reader="财经读者", finance_relevance="x",
         target_reader_click_reason="x", primary_gap="x", promised_payoff="x", cognitive_load="low",
         wechat_search_terms=[], search_evidence_refs=[]
     )
@@ -160,9 +165,9 @@ def eval_e18() -> list[str]:
     else:
         raise AssertionError("E18 search evidence cannot be omitted")
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    check(policy["hooks"]["qualified_click_required"], "E18 qualified click must be enabled")
+    check(policy["hooks"]["headline_angle_families_min"] >= 5, "E18 title pool strategy diversity missing")
     check(policy["hooks"]["cross_finance_clickability_required"] is False, "E18 cross-industry clickability must not be universal")
-    return ["qualified target-reader fit", "optional broader-finance relevance", "WeChat search evidence required"]
+    return ["qualified target-reader fit", "5+ headline angle families", "optional broader-finance relevance", "WeChat search evidence required"]
 
 
 def eval_e19() -> list[str]:
@@ -177,14 +182,59 @@ def eval_e19() -> list[str]:
         "template_redundancy_control": "PASS",
         "uncertainty_rhetoric_calibration": "PASS",
     }
-    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against consolidated nine-part authorial prose rubric"], rubric=rubric)
+    provenance = AuditProvenance(assurance="INDEPENDENT_EXECUTOR", reviewer_identity="prose-judge", author_identity="writer", execution_ref="eval:e19")
+    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against consolidated nine-part authorial prose rubric"], rubric=rubric, provenance=provenance)
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    check(decision.status == "PASS", "E19 all authorial-prose dimensions should allow PASS")
-    check(policy["style"]["optimize_for_ai_detector"] is False, "E19 must not optimize detector evasion")
-    check(policy["style"]["writing_dna_learning"]["one_off_edit_is_candidate_only"], "E19 one-off edits must remain candidates")
-    check(policy["style"]["writing_dna_learning"]["external_skill_rules_are_candidates_only"], "E19 external skill rules must not become authority")
-    check(policy["market_explanation"]["multi_hypothesis_required"], "E19 market explanation must remain multi-hypothesis")
-    return ["9-part Natural Authorial Prose rubric", "Writing DNA evidence hierarchy", "no detector-evasion objective"]
+    check(decision.status == "PASS", "E19 independent all-dimension review should allow PASS")
+    check(policy["style"]["template_cluster_guard_required"], "E19 deterministic template-cluster guard missing")
+    report = analyze_template_scaffolding("真正的变化不是装机而是订单。如果只看装机就会错过。这正是最值得写清楚的地方。真正的信号不是规划而是交付。如果只看并网也会滞后。这正是核心在于订单的原因。真正的兑现不是概念而是利润。")
+    check(report["requires_revise"], "E19 clustered AI staging must trigger revision")
+    try:
+        StyleAuditDecision(status="PASS", evidence=["self review"], rubric=rubric)
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("E19 chat self-review must not PASS")
+    return ["9-part Natural Authorial Prose rubric", "template-cluster guard", "self-review cannot PASS"]
+
+
+def eval_e21() -> list[str]:
+    company = CompanyFinding(name="甲公司", value_chain_class="海缆", materiality="MATERIAL", relevance="海缆订单", exposure_type="DIRECT_BUSINESS")
+    kwargs = {
+        "topic": "海上风电",
+        "chronology": ["项目启动"],
+        "what_changed": ["招标施工推进"],
+        "industry_chain": ["海缆→整机→基础→安装"],
+        "transmission_chain": ["项目→订单→排产→收入"],
+        "universe": [company],
+        "universe_coverage": {
+            "status": "COMPLETE",
+            "classes": [{"class_name": "海缆", "economic_role": "送出与阵列电缆", "included_companies": ["甲公司"], "source_refs": ["industry-map"]}],
+            "recall_sources": ["StockBase", "official-search"],
+            "stop_reason": "class-level reconciliation complete",
+        },
+        "market_explanation_scope": "NOT_MATERIAL",
+        "market_explanation_scope_reason": "只讨论经济兑现",
+        "evidence_ledger": [{"claim": "项目推进", "source": "official"}],
+        "provisional_theses": ["订单先于并网兑现"],
+        "source_boundary": "公开信息",
+        "cognition": {"concept_map": ["海风"], "industry_logic": ["项目到订单"]},
+        "coverage": {"sweeps_completed": 2, "coverage_status": "SATURATED", "material_new_items_last_sweep": 0, "concept_coverage": "covered", "company_coverage": "class-accounted", "source_diversity": "two sources", "stop_reason": "no material new class after reconciliation"},
+    }
+    package = ResearchPackage(**kwargs)
+    check(package.universe_coverage.status == "COMPLETE", "E21 class-level universe ledger missing")
+    bad = dict(kwargs)
+    bad["universe_coverage"] = {**kwargs["universe_coverage"], "recall_sources": ["one-source"]}
+    try:
+        ResearchPackage(**bad)
+    except ValidationError:
+        pass
+    else:
+        raise AssertionError("E21 one-source universe recall must fail")
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    check(policy["editorial"]["finance_deep_material_company_mentions_required"], "E21 material companies must be Deep mention obligations")
+    check(policy["audit"]["universe_to_deep_article_reconciliation_required"], "E21 final reconciliation missing")
+    return ["class-level universe ledger", ">=2 recall sources", "MATERIAL-company Deep obligations", "universe-to-article reconciliation"]
 
 
 EXECUTABLE = {
@@ -201,6 +251,7 @@ EXECUTABLE = {
     "E17": eval_e17,
     "E18": eval_e18,
     "E19": eval_e19,
+    "E21": eval_e21,
 }
 
 SPEC_ONLY = {
