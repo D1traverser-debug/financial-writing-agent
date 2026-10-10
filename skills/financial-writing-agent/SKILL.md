@@ -1,6 +1,6 @@
 ---
 name: financial-writing-agent
-description: Create and continue publishable A-share financial articles through a persisted workflow with broad research, material-complete deep analysis, multi-hypothesis market explanation, dedicated hook/authorial-prose audits and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
+description: Create and continue publishable A-share financial articles through a persisted workflow with broad research, material-complete deep analysis, multi-hypothesis market explanation, reader-funnel auditing, Natural Authorial Prose / Writing DNA discipline and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
 # Financial Writing Agent
@@ -20,7 +20,7 @@ Follow exactly:
 
 Never silently fall back to free-form writing when a mandatory gate fails.
 
-At `EDITORIAL_AUDIT`, **Hook Gate + Natural Authorial Prose / Human Voice Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until both dedicated gates PASS.
+At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate + Natural Authorial Prose / Writing DNA Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until both dedicated gates PASS.
 
 ## 3. Defaults
 Unless the user explicitly overrides a soft preference:
@@ -82,49 +82,62 @@ More numbering means stronger navigation, not filler “首先/其次/最后”.
 
 **Publication articles do not use tables.** Convert comparisons into numbered prose.
 
-## 8. Dedicated Hook Gate
+## 8. Dedicated Reader Funnel / Hook Gate
 Load `references/hooks.md`.
 
-Audit these as independent requirements:
-- **total title cross-finance clickability**: even finance readers focused on another sector should see a supported reason to click;
-- **WeChat current search-intent condition**: independently research/consider current search terms and record evidence; never invent search volume;
-- **first three complete sentences**: retain the reader by delivering concrete change/payoff, finance relevance and forward tension without rigid templating;
-- **H1 continuation power**: every H1 is a topic-specific mini-hook;
-- **paragraph forward pull**: real logical transitions keep the reader moving;
-- **title/opening payoff**: no bait-and-switch.
+Treat click-through, hooks, reader profile, first-screen retention, continuation and completion as one funnel rather than separate writing tricks.
 
-Formal modes still generate 8–12 genuinely different headline candidates before selection.
+Audit these requirements:
+- **audience-promise fit** — identify the intended reader and the useful understanding promised to that reader;
+- **headline information value** — reveal enough concrete value/relevance to justify attention;
+- **curiosity/concreteness balance** — preserve a material information gap without becoming vague clickbait;
+- **WeChat search discoverability** — independently research current search terms and record evidence; never invent search volume;
+- **first three complete sentences** — begin paying off the title immediately and create the next supported question;
+- **continuation flow** — H1s and paragraph transitions together keep the reader moving through real logical progression;
+- **completion payoff** — the final substantive section still creates value or closes a real loop;
+- **title/opening payoff** — no bait-and-switch.
 
-## 9. Dedicated Natural Authorial Prose / Human Voice Gate
+“Cross-industry finance clickability” is a useful strategy, especially for `FINANCE_BROAD`, but it is **not a universal hard requirement**. `FINANCE_DEEP` prioritizes qualified finance-reader fit over maximum imagined reach.
+
+Formal modes still generate 8–12 genuinely different headline candidates before selection. Each candidate records target reader, click reason, financial relevance, information gap, promised payoff, cognitive load and current search evidence. Question headlines are not presumed superior; use them only when they are genuinely the most informative framing.
+
+## 9. Dedicated Natural Authorial Prose / Writing DNA Gate
 Load `references/style.md`.
 
-The user's phrases “去AI味 / 活人感 / 娓娓道来 / 交流感” are treated as useful symptoms, not the objective. Do not optimize for AI-detector evasion. Optimize for high-quality authorial financial prose.
+The user's phrases “去AI味 / 活人感 / 娓娓道来 / 交流感” are overlapping intuitions, not separate optimization targets. Do not optimize for AI-detector evasion. Optimize for high-quality, evidence-bounded authorial financial prose.
 
-PASS requires text-level evidence for all 12 dimensions:
-1. template fingerprint control;
-2. discourse variability;
-3. semantic progression;
-4. transition continuity;
-5. repetition control;
-6. natural rhythm;
-7. concrete evidence density;
-8. reader modeling;
-9. narrative flow;
-10. authorial specificity / evidence-bounded prioritization;
-11. uncertainty calibration;
-12. extreme-language control.
+PASS requires text-level evidence for the consolidated dimensions:
+1. fidelity and responsibility;
+2. semantic contribution;
+3. argument progression;
+4. reader calibration;
+5. authorial selectivity;
+6. evidence specificity;
+7. structural/rhythm naturalness;
+8. template/redundancy control;
+9. uncertainty/rhetoric calibration.
 
 Do not manufacture humanity with slang, typos, random fragments, fake intimacy or decorative metaphors.
 
+### Writing DNA learning
+Learn durable writing identity from evidence, not vague adjectives.
+- explicit durable user instruction → direct rule;
+- repeated accepted changes across independent articles → durable candidate;
+- stable patterns from a broad user corpus → style evidence;
+- one-off edits/successes → candidate only;
+- external skills/articles/research → principle candidates only, never authority or signature-phrase copying.
+
+When comparing original→final edits, learn changes in information order, emphasis, confidence, sentence/paragraph shape, terminology, evidence handling and reader relationship — not just a list of deleted words.
+
 ## 10. Bold skim-path contract
-Bold **keywords, key data and selected key judgment sentences**. Company/stock names remain bold on every occurrence.
+Bold **keywords, key data and selected key judgment sentences**. Company/stock names remain bold on every occurrence under the current delivery rule.
 
 A fast reader who reads only **title + H1s + bold spans** must still understand the article's main causal chain, company comparison / market-selection logic and conclusion boundary. Avoid over-bold; emphasis must remain selective enough to function as navigation.
 
 ## 11. Reader/completion design
-The user's current audience skews older (45 common, substantial 55+). Maintain analytical depth but reduce avoidable mobile-reading friction: clear referents, visible numbering, readable paragraph density, limited nested syntax and a strong skim path. Do not patronize or oversimplify.
+The user's current audience skews older (45 common, substantial 55+). Treat this as a readability prior, not a stereotype. Maintain analytical depth while reducing avoidable mobile-reading friction: clear referents, visible numbering, readable paragraph density, limited nested syntax and a strong skim path.
 
-Do not let the article wind down halfway through. The final substantive section must still add information or close an earlier causal/question loop. Avoid mechanical recap-only “总结”.
+Age does not imply low financial sophistication. Device-price/demographic clues alone must not be converted into hard style assumptions. When account-level click/search/completion behavior is available, it outranks generic demographic heuristics.
 
 ## 12. Word typography
 Publication Word uses deterministic point-size equivalents for the user's requested pixel sizes:
@@ -144,7 +157,7 @@ Before final PASS, write reusable evidence-bounded knowledge when a writable con
 ## 15. Completion
 At COMPLETE return **only publication Word artifact links/references**, the audit Word artifact, and the concise chat QA checklist/list. Do not paste the article body.
 
-The visible QA list must include market-explanation completeness when applicable, Hook Gate, Natural Authorial Prose / Human Voice Gate, general editorial, bold skim path, Word/no-table/render, compliance/risk and knowledge sync.
+The visible QA list must include market-explanation completeness when applicable, Reader Funnel / Hook Gate, Natural Authorial Prose / Writing DNA Gate, general editorial, bold skim path, Word/no-table/render, compliance/risk and knowledge sync.
 
 ## 16. Scope boundary
 This Skill produces publishable financial content. It may use stock-picking/review knowledge as research context but does not activate for standalone荐股、选股、盘后复盘 or trading decisions unless the user explicitly asks to turn that analysis into an article.
