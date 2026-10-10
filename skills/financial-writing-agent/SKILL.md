@@ -3,7 +3,7 @@ name: financial-writing-agent
 description: Create and continue publishable A-share financial articles through a persisted, recoverable workflow with class-accounted research, material-complete deep analysis, explicit-scope market explanation, Reader Funnel auditing, Natural Authorial Prose / Writing DNA learning and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
-# Financial Writing Agent v0.7
+# Financial Writing Agent v0.8
 
 ## 1. Resume/new and execution authority
 Do not automatically start a new task.
@@ -26,7 +26,9 @@ Mandatory failures fail closed. Fail-closed must remain recoverable through the 
 
 At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate + Natural Authorial Prose / Writing DNA Gate + general editorial audit** are separate required judgments. General editorial PASS is illegal until the two dedicated gates PASS.
 
-Semantic PASS requires an evidenced **independent stage-bound judge run**. `CHAT_SELF_REVIEW` may identify defects, but it may not certify Research Audit, Reader Funnel, Authorial Prose, General Editorial or Final Audit as PASS. If the current session cannot run the required judge, report QA as incomplete instead of claiming COMPLETE.
+Semantic PASS requires current **owner-runtime stage execution proof** bound to the exact task/stage plus persisted audit provenance. The legacy `AuditProvenance.assurance=INDEPENDENT_EXECUTOR` label means a stage-separated owner-runtime judge run in this contract; it is **not** provider-attested isolation. `CHAT_SELF_REVIEW` / CHAT_BRIDGED audit submission may identify defects or request revision but cannot certify Research Audit, Reader Funnel, Authorial Prose, General Editorial or Final Audit as PASS.
+
+For hosted/MCP execution, semantic PASS certification must go through `run_semantic_audit_stage`. That server-side gateway runs the actual owner-native audit stage, records runtime trajectory evidence and lets the deterministic controller decide whether the stage may advance. If the SDK/model runtime is unavailable, the exact audit stage remains recoverably BLOCKED rather than falling back to chat self-certification.
 
 ## 3. Defaults
 Unless the user overrides a soft preference:
@@ -219,4 +221,4 @@ The QA checklist covers applicable research/evidence, Universe Coverage Ledger, 
 ## 17. Scope boundary
 This Skill produces publishable financial content. It may consume stock-picking/review knowledge as research context, but it does not activate for standalone荐股、选股、盘后复盘 or trading decisions unless the user asks to turn that work into an article.
 
-Do not claim behavior that is not implemented/tested. Durable changes follow `references/maintenance.md`: identify the true owner, decide rules vs schema/runtime/delivery/tests, update canonical authority, remove contradictions/legacy surfaces, synchronize mirrors, regress failure/success paths and re-read final authority/CI before claiming completion.
+Do not claim behavior that is not implemented/tested. Durable changes follow `references/maintenance.md`; systemic/non-trivial maintenance must enter the current Universal meta-maintenance path before the first owner-local patch is treated as accepted architecture. The owner then applies its local rule/schema/runtime/delivery/eval/deployment discipline and re-reads final authority/CI before claiming completion.
