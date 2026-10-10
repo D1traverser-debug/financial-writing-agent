@@ -17,6 +17,8 @@ MCP_CONTRACTS = ROOT / "financial_writing_agent" / "mcp_contracts.py"
 MODELS = ROOT / "financial_writing_agent" / "models.py"
 ENGINE = ROOT / "financial_writing_agent" / "engine.py"
 RUNTIME = ROOT / "financial_writing_agent" / "runtime_service.py"
+SEMANTIC_RUNTIME = ROOT / "financial_writing_agent" / "semantic_runtime.py"
+CONTROLLER = ROOT / "financial_writing_agent" / "controller.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 CHECKS = ROOT / "financial_writing_agent" / "checks.py"
 DOCUMENT = ROOT / "financial_writing_agent" / "document.py"
@@ -28,14 +30,15 @@ PLUGIN_JSON = ROOT / "plugin.json"
 PYPROJECT = ROOT / "pyproject.toml"
 CAPABILITIES = ROOT / "continuity" / "EXECUTION_CAPABILITIES.json"
 
-CURRENT_VERSION = "0.7.0"
-CURRENT_LABEL = "v0.7"
+CURRENT_VERSION = "0.8.0"
+CURRENT_LABEL = "v0.8"
 EXPECTED_TOOLS = {
     "start_writing_task", "get_writing_task", "list_recent_writing_tasks",
     "resume_blocked_task", "record_writing_learning_sample", "record_knowledge_context",
     "submit_research", "submit_research_audit", "submit_editorial_plan", "submit_headlines",
     "submit_draft", "submit_hook_audit", "submit_style_audit", "submit_editorial_audit",
-    "build_and_mechanically_audit_delivery", "record_knowledge_writeback", "submit_final_audit",
+    "run_semantic_audit_stage", "build_and_mechanically_audit_delivery",
+    "record_knowledge_writeback", "submit_final_audit",
 }
 
 
@@ -123,6 +126,7 @@ def check_reference_bundle() -> None:
     require(skill, (
         "resume_blocked_task",
         "record_writing_learning_sample",
+        "run_semantic_audit_stage",
         "Universe Coverage Ledger",
         "MATERIAL / SECONDARY / REFERENCE_ONLY",
         "company_coverage_obligations",
@@ -166,11 +170,15 @@ def check_runtime_contract() -> int:
     models = MODELS.read_text(encoding="utf-8")
     engine = ENGINE.read_text(encoding="utf-8")
     runtime = RUNTIME.read_text(encoding="utf-8")
+    semantic_runtime = SEMANTIC_RUNTIME.read_text(encoding="utf-8")
+    controller = CONTROLLER.read_text(encoding="utf-8")
     schemas = SCHEMAS.read_text(encoding="utf-8")
     checks = CHECKS.read_text(encoding="utf-8")
     document = DOCUMENT.read_text(encoding="utf-8")
 
-    require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "LearningSampleSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
+    require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "run_semantic_audit_stage", "LearningSampleSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
+    require(public, ("_reject_unverified_semantic_pass", "PASS cannot be certified by a CHAT_BRIDGED submission"), "semantic public boundary")
+    require(semantic_runtime + controller + engine + models, ("EXECUTOR_START", "EXECUTOR_END", "semantic_gate_proof_valid", "owner semantic audit", "STAGE_SEPARATED_OWNER_RUNTIME" if "STAGE_SEPARATED_OWNER_RUNTIME" in semantic_runtime + controller + engine + models else "INDEPENDENT_EXECUTOR"), "semantic proof runtime")
     forbid(public + contracts + models, ("submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "CHAT_TEXT", "Human Voice"), "public MCP")
     if "path: str" in contracts or "trace_tail" in contracts:
         fail("public contract exposes local path/trace")
@@ -224,8 +232,9 @@ def check_policy_and_executor() -> None:
         fail("broad-finance cold-reader stake drift")
     if policy["style"].get("template_cluster_guard_required") is not True or policy["style"].get("deep_numbered_navigation_required_when_branching") is not True or policy["style"].get("major_section_bridge_required") is not True:
         fail("prose/navigation/bridge hardening drift")
-    if policy["audit"].get("semantic_pass_requires_independent_executor") is not True or policy["audit"].get("chat_self_review_cannot_pass") is not True:
-        fail("semantic audit provenance hardening drift")
+    audit = policy["audit"]
+    if audit.get("semantic_pass_requires_owner_runtime_execution_proof") is not True or audit.get("chat_self_review_cannot_pass") is not True or audit.get("provider_attested_isolation_required_for_true_independent_claim") is not True:
+        fail("semantic audit proof/independence boundary drift")
     if policy["finance_compliance"].get("no_covert_recommendation_evasion") is not True or policy["finance_compliance"].get("company_comparison_must_remain_non_actionable") is not True:
         fail("covert-recommendation compliance boundary drift")
     if policy["word"].get("auto_bold_company_names") is not False:
@@ -261,8 +270,8 @@ def check_policy_and_executor() -> None:
 
 def check_site_and_dead_contracts() -> None:
     site = SITE_SPEC.read_text(encoding="utf-8")
-    require(site, ("personal/private deployment only", "17 tools", "resume_blocked_task", "record_writing_learning_sample", "Do not silently fall back to ephemeral container/local disk"), "Site spec")
-    forbid(site, ("15 tools", "16-tool", "submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "company-name bolding"), "Site spec")
+    require(site, ("personal/private deployment only", "18 tools", "run_semantic_audit_stage", "resume_blocked_task", "record_writing_learning_sample", "Do not silently fall back to ephemeral container/local disk"), "Site spec")
+    forbid(site, ("15 tools", "16-tool", "17 tools", "submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "company-name bolding"), "Site spec")
     for path in (
         ROOT / "financial_writing_agent" / "contracts.py",
         ROOT / "financial_writing_agent" / "mcp_server.py",
@@ -285,7 +294,7 @@ def main() -> None:
     tools = check_runtime_contract()
     check_policy_and_executor()
     check_site_and_dead_contracts()
-    print(f"PASS: v0.7 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; Universe Coverage + company decision map + broad cold-reader stake + major-section bridges + clean Word presentation + independent semantic audits protected")
+    print(f"PASS: v0.8 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; proof-bearing owner-runtime semantic audits + Universe Coverage + company decision map + broad cold-reader stake + major-section bridges + clean Word presentation protected")
 
 
 if __name__ == "__main__":
