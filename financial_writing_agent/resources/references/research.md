@@ -1,12 +1,12 @@
 # Research module
 
 ## Ownership
-Research owns **evidence breadth, source boundaries, company/concept coverage, counterevidence and the decision whether market-price explanation is materially required**. It does not decide article prose, headline packaging or Word formatting.
+Research owns **evidence breadth, source boundaries, company/concept coverage, counterevidence, A-share universe recall and the decision whether market-price explanation is materially required**. It does not decide article prose, headline packaging or Word formatting.
 
 The research base must be materially broader than either published version so editorial choices are not forced by missing evidence.
 
 ## Cognition before expression
-Before structuring an article, recover and/or build the topic cognition map. When durable knowledge is accessible, retrieve relevant EventBase/StockBase/topic knowledge first, then reverify current or material claims.
+Before structuring an article, recover and/or build the topic cognition map. When durable knowledge is accessible, retrieve relevant EventBase/IndustryBase/StockBase/topic knowledge as recall inputs, then reverify current or material claims.
 
 Cover what is material to the topic:
 - catalyst/event chronology and what actually changed;
@@ -20,19 +20,45 @@ Cover what is material to the topic:
 
 A company list is part of normal financial research. It does **not** automatically mean the article needs short-term price-formation analysis.
 
+## A-share Universe Coverage Ledger — mandatory for company/theme topics
+Do not start from two or three familiar listed companies and call the second search “coverage”. First enumerate the economically material value-chain classes for this topic, then recall companies class by class.
+
+For every company/theme `ResearchPackage`, `universe_coverage` records:
+- `status = COMPLETE / BOUNDED_WITH_GAPS / NOT_APPLICABLE`;
+- every material `class_name` and its `economic_role`;
+- `included_companies` that entered the research universe;
+- `excluded_companies` with evidence-bounded reasons;
+- unresolved candidates that still need verification;
+- source refs for the class mapping;
+- at least two materially different `recall_sources`;
+- any `missing_classes` and an auditable stop reason.
+
+Useful recall sources may include current StockBase/industry knowledge, company/industry search, project tender/award mapping, official announcements, exchange filings, industry-association data and independent sell-side/industry maps. Two searches about the same familiar companies are not two materially different recall sources.
+
+Every `CompanyFinding` declares:
+- `value_chain_class`;
+- `materiality = MATERIAL / SECONDARY / REFERENCE_ONLY`.
+
+`MATERIAL` means omitting this company from FINANCE_DEEP could change a financially literate reader's view of who benefits, where sensitivity sits, or how the theme realizes economically. `SECONDARY` may be grouped by class when the grouping preserves the relevant comparison. `REFERENCE_ONLY` supplies context but is not a Deep mention obligation.
+
+**FINANCE_DEEP is not a “pick representative stocks” product.** Research must supply a bounded, class-accounted universe so later editorial can distinguish complete coverage from selective emphasis.
+
 ## Coverage and stop condition
 Run at least two materially different research sweeps using different source/query angles. Record `ResearchPackage.coverage` with concept/company/source coverage, exclusions, whether search saturated or remains bounded with gaps, material new items from the last sweep and the stop reason.
+
+For company/theme research, `coverage_status = SATURATED` is illegal in spirit unless the Universe Coverage Ledger has already tested every material value-chain class. “Second sweep found no new fact about the same two companies” is not saturation.
 
 A late sweep that still finds a material concept, company class, contradictory fact or materially different explanation is evidence to continue or explicitly preserve the gap. “全面” must be auditable rather than asserted by intuition.
 
 ## Required research reasoning
 - Establish the event, chronology and what changed relative to prior expectations.
 - Map the economically relevant transmission chain.
-- Build the relevant company universe and classify direct earnings/business exposure, economic linkage, second-order exposure, optionality, narrative-only association or uncertainty.
+- Build the relevant company universe class by class and classify direct earnings/business exposure, economic linkage, second-order exposure, optionality, narrative-only association or uncertainty.
 - Compare **sensitivity**, not merely concept membership.
 - Record important counterexamples and `why_this / why_not` where comparison is material.
 - Separate industrial beneficiary, earnings beneficiary and market role instead of assuming they coincide.
 - Keep title/opening/core-conclusion facts on a stronger evidence standard than background material.
+- Do not silently omit a material company because another company is easier to explain or has better-known disclosures.
 
 ## Explicit Market Explanation scope
 Every `ResearchPackage` declares:
@@ -65,12 +91,12 @@ Every non-`UNRESOLVED` hypothesis requires task-specific evidence references. A 
 ## Mode handoff
 Research does not pre-delete material branches for editorial convenience.
 
-For `FINANCE_DEEP`, hand off every material branch that could change financial judgment as a candidate completeness obligation. If Market Explanation is `REQUIRED`, include material economic-benefit differences, competing market-selection mechanisms, continuation/reversal conditions and falsification boundaries.
+For `FINANCE_DEEP`, hand off every material branch that could change financial judgment **and every MATERIAL company** as a candidate completeness obligation. SECONDARY companies may later be grouped by class, but they cannot disappear through silent selection. If Market Explanation is `REQUIRED`, include material economic-benefit differences, competing market-selection mechanisms, continuation/reversal conditions and falsification boundaries.
 
 For `FINANCE_BROAD`, editorial may later select one to three central information gaps, but research still starts from the broader evidence base.
 
 ## Durable knowledge discipline
-Persistent knowledge is a prior, not a verdict. Record references and recency, preserve conflicts, and never let an old concept/stock label override current business facts.
+Persistent knowledge is a prior, not a verdict. StockBase/ArticleBase/Notion/Drive are recall evidence, not writing-rule authority. Record references and recency, preserve conflicts, and never let an old concept/stock label override current business facts.
 
 Stable company/business relationships may become reusable knowledge candidates. Fast-changing price action, positioning, attention, crowding, 封单/订单簿 and market role observations are timestamped ephemeral evidence rather than timeless company identity.
 
@@ -82,7 +108,10 @@ If evidence remains unresolved, downgrade or remove the claim. Do not bridge mis
 ## Exit gate
 RESEARCH is ready for independent audit only when:
 - the main thesis has an evidence chain;
-- relevant concepts/company classes and material counterevidence are represented;
+- material concepts/value-chain classes and company classes are represented;
+- every universe company is reconciled to the class ledger;
+- exclusions and unresolved candidates are explicit;
+- at least two materially different recall sources were used for company/theme research;
 - unresolved gaps are explicit;
 - the stop condition is auditable;
 - Market Explanation scope has been explicitly justified;
