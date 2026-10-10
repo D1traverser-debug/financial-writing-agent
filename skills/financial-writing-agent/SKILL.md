@@ -3,7 +3,7 @@ name: financial-writing-agent
 description: Create and continue publishable A-share financial articles through a persisted, recoverable workflow with class-accounted research, material-complete deep analysis, explicit-scope market explanation, Reader Funnel auditing, Natural Authorial Prose / Writing DNA learning and publication-ready Word delivery. Use for new financial-writing tasks from links/PDFs/news/research and for continuing unfinished writing. Do not use for standalone stock-picking/recommendation or post-close review unless the user explicitly asks to turn that work into publishable content.
 ---
 
-# Financial Writing Agent v0.6
+# Financial Writing Agent v0.7
 
 ## 1. Resume/new and execution authority
 Do not automatically start a new task.
