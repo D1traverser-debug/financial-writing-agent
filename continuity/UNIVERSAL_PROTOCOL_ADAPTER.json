@@ -19,7 +19,6 @@
   "handoff_update_authority": "CURRENT_VALID_TASK_WRITER_OR_NEW_CHAT_TAKEOVER_ONLY",
   "handoff_conformance": {
     "status": "CONFORMANT_V3_7_COMPACT",
-    "plan": "continuity/HANDOFF_COMPACTION_PLAN.json",
     "business_rule_authority": "skills/financial-writing-agent/SKILL.md plus stage-specific references",
     "known_stale_content": []
   },
