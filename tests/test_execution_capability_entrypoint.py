@@ -58,3 +58,19 @@ def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
     }
     assert required_artifact_hooks.issubset(methodology["hook_bindings"])
     assert adapter["methodology_assurance"]["operational_status"] == "ACTION_LEVEL_PROFILE_ACTIVATION_AND_INDEPENDENT_EVIDENCE_RECEIPT_NOT_YET_PROVEN"
+
+
+def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_attest():
+    server = (ROOT / "financial_writing_agent" / "plugin_server.py").read_text(encoding="utf-8")
+    receipt_runtime = (ROOT / "financial_writing_agent" / "methodology_receipts.py").read_text(encoding="utf-8")
+    contracts = (ROOT / "financial_writing_agent" / "mcp_contracts.py").read_text(encoding="utf-8")
+
+    assert "record_learning_evolution_receipt" in server
+    assert "record_artifact_io_receipt" in server
+    assert "methodology_profile_runs" in server
+    assert "UNVERIFIED_OWNER_RECEIPT" in receipt_runtime
+    assert "external_required" in receipt_runtime
+    assert "MethodologyProfileRunSummary" in contracts
+    assert "Financial Writing v0.7 is Word-only" in server
+    assert "Financial Writing v0.6 is Word-only" not in server
+    assert "operational conformance" in server
