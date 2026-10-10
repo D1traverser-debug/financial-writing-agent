@@ -11,8 +11,9 @@ from pydantic import Field
 from . import runtime_service as impl
 from .mcp_contracts import LearningSampleType, READ_ONLY_TOOL, STATE_WRITE_TOOL, WritingTaskList, WritingTaskSummary
 from .methodology_receipts import record_artifact_io_receipt, record_learning_evolution_receipt
-from .models import ArtifactKind, GateStatus
+from .models import ArtifactKind, GateStatus, Stage
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
+from .semantic_runtime import run_owner_semantic_audit_stage
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 DOCX_KINDS = {ArtifactKind.FINANCE_DEEP_DOCX, ArtifactKind.FINANCE_BROAD_DOCX, ArtifactKind.AUDIT_DOCX}
@@ -86,16 +87,25 @@ def _result_with_artifacts(summary: WritingTaskSummary) -> CallToolResult:
     return CallToolResult(content=content, structured_content=summary.model_dump(mode="json"))
 
 
+def _reject_unverified_semantic_pass(status: str, gate_name: str) -> None:
+    if status == "PASS":
+        raise ValueError(
+            f"{gate_name} PASS cannot be certified by a CHAT_BRIDGED submission. "
+            "Call run_semantic_audit_stage so the owner runtime executes and proves the audit stage."
+        )
+
+
 mcp = MCPServer(
     "Financial Writing Agent",
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones, start runtime state before research, and never skip a gate. "
-        "Financial Writing v0.7 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
+        "Financial Writing v0.8 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
         "BLOCKED tasks preserve an explicit recovery cursor and must be resumed with resume_blocked_task after the blocker is repaired. "
         "Raw user edits, feedback and post-publication performance may be recorded as Writing DNA evidence, but a single sample never auto-promotes itself into a durable rule. "
+        "CHAT_BRIDGED audit payloads may request revision or report failure, but they cannot certify semantic PASS. Use run_semantic_audit_stage for owner-runtime Research, Editorial or Final audit certification. "
         "Methodology profile receipts are unverified owner receipts only; they never self-certify operational conformance and require Universal independent evidence verification. "
-        "The model owns research, writing and semantic audits; the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
+        "The model owns research and drafting; semantic PASS authority requires the owner-runtime stage execution path; the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
     ),
 )
 
@@ -176,7 +186,8 @@ def submit_research(task_id: Annotated[str, Field(min_length=1)], research: Rese
 
 @mcp.tool(title="Submit research audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record an independent research-audit verdict; PASS advances while REVISE or recoverable FAIL points back to research, preventing unsupported evidence bases from reaching editorial work."""
+    """Submit conservative CHAT_BRIDGED research-audit REVISE/FAIL evidence. PASS certification must use run_semantic_audit_stage."""
+    _reject_unverified_semantic_pass(decision.status, "research_audit")
     return _summary(impl.submit_research_audit(task_id, decision.model_dump(mode="json")))
 
 
@@ -200,20 +211,34 @@ def submit_draft(task_id: Annotated[str, Field(min_length=1)], draft: DraftPacka
 
 @mcp.tool(title="Submit reader funnel audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_hook_audit(task_id: Annotated[str, Field(min_length=1)], report: HookAuditDecision) -> WritingTaskSummary:
-    """Record the independent Reader Funnel Gate over audience-promise fit, headline information and curiosity balance, search discoverability, first-screen retention, continuation, completion payoff and title-opening payoff; REVISE routes immediately to its declared target."""
+    """Submit conservative CHAT_BRIDGED Reader Funnel REVISE evidence. PASS certification is performed by the owner runtime through run_semantic_audit_stage at EDITORIAL_AUDIT."""
+    _reject_unverified_semantic_pass(report.status, "hook_audit")
     return _summary(impl.submit_hook_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit authorial prose audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_style_audit(task_id: Annotated[str, Field(min_length=1)], report: StyleAuditDecision) -> WritingTaskSummary:
-    """Record the independent nine-part Natural Authorial Prose / Writing DNA Gate covering fidelity, semantic contribution, argument progression, reader calibration, selectivity, evidence specificity, natural structure/rhythm, template control and calibrated rhetoric; REVISE returns to draft."""
+    """Submit conservative CHAT_BRIDGED Authorial Prose REVISE evidence. PASS certification is performed by the owner runtime through run_semantic_audit_stage at EDITORIAL_AUDIT."""
+    _reject_unverified_semantic_pass(report.status, "style_audit")
     return _summary(impl.submit_style_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit editorial audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record the general semantic editorial verdict after Reader Funnel and authorial-prose gates pass; revisions may route back to research, editorial planning, title or draft according to the evidenced defect."""
+    """Submit conservative CHAT_BRIDGED general-editorial REVISE/FAIL evidence. PASS certification must use run_semantic_audit_stage."""
+    _reject_unverified_semantic_pass(decision.status, "editorial_audit")
     return _summary(impl.submit_editorial_audit(task_id, decision.model_dump(mode="json")))
+
+
+@mcp.tool(title="Run owner semantic audit stage", annotations=STATE_WRITE_TOOL, structured_output=True)
+def run_semantic_audit_stage(
+    task_id: Annotated[str, Field(min_length=1)],
+    stage: Literal["RESEARCH_AUDIT", "EDITORIAL_AUDIT", "FINAL_AUDIT"],
+) -> Annotated[CallToolResult, WritingTaskSummary]:
+    """Request proof-bearing semantic PASS certification from the owner-native server runtime. The server executes the actual stage-separated judge run(s); caller-supplied PASS is not accepted as proof. If the SDK/model runtime is unavailable or the judge cannot establish PASS, the authoritative workflow remains non-complete/recoverable."""
+    state = impl._load(task_id)
+    audited = run_owner_semantic_audit_stage(state, expected_stage=Stage(stage), impl=impl)
+    return _result_with_artifacts(_summary(impl._summary(audited, detail=True)))
 
 
 @mcp.tool(title="Build and mechanically audit delivery", annotations=STATE_WRITE_TOOL, structured_output=True)
@@ -237,7 +262,8 @@ def record_knowledge_writeback(task_id: Annotated[str, Field(min_length=1)], sta
 
 @mcp.tool(title="Submit final audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_final_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Record the final independent red-team verdict after semantic, mechanical, risk and knowledge gates; revisions may route back to any affected upstream writing stage and a valid PASS completes only when required outputs exist."""
+    """Submit conservative CHAT_BRIDGED final-audit REVISE/FAIL evidence. Final PASS/COMPLETE certification must use run_semantic_audit_stage."""
+    _reject_unverified_semantic_pass(decision.status, "final_audit")
     return _result_with_artifacts(_summary(impl.submit_final_audit(task_id, decision.model_dump(mode="json"))))
 
 
