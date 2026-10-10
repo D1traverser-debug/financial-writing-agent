@@ -23,32 +23,29 @@ def _headline(title: str) -> HeadlineCandidate:
         target_reader="关注盈利与资产定价的财经读者",
         finance_relevance="影响盈利预期",
         target_reader_click_reason="价格和利润传导存在尚未厘清的兑现差异",
-        broader_finance_relevance="供需和利润变化具有跨行业资产定价含义",
+        broader_finance_relevance="",
         primary_gap="市场仍未充分区分",
-        promised_payoff="解释利润兑现与市场选择的差异",
+        promised_payoff="解释利润兑现差异",
         cognitive_load="low",
         wechat_search_terms=["行业关键词"],
         search_evidence_refs=["wechat-search-current-signal"],
     )
 
 
-def _base_research_kwargs():
+def _base_research_kwargs(scope: str = "NOT_MATERIAL"):
     return {
         "topic": "测试题材",
         "chronology": ["事件发生"],
         "what_changed": ["预期发生变化"],
         "industry_chain": ["上游→下游"],
         "transmission_chain": ["事件→订单→利润"],
-        "evidence_ledger": [
-            EvidenceItem(claim="公司存在业务相关性", source="公司公告", confidence="high", core_safe=True)
-        ],
+        "market_explanation_scope": scope,
+        "market_explanation_scope_reason": "只比较产业与盈利兑现" if scope == "NOT_MATERIAL" else "文章需要解释个股价格选择",
+        "evidence_ledger": [EvidenceItem(claim="公司存在业务相关性", source="公司公告", confidence="high", core_safe=True)],
         "counterevidence": ["市场交易强度不能证明基本面因果"],
-        "provisional_theses": ["需要区分经济受益与市场选择"],
+        "provisional_theses": ["需要区分经济受益强弱"],
         "source_boundary": "公开信息",
-        "cognition": {
-            "concept_map": ["测试概念"],
-            "industry_logic": ["订单向利润传导"],
-        },
+        "cognition": {"concept_map": ["测试概念"], "industry_logic": ["订单向利润传导"]},
         "coverage": {
             "sweeps_completed": 2,
             "coverage_status": "SATURATED",
@@ -58,6 +55,45 @@ def _base_research_kwargs():
             "source_diversity": "公告与市场数据",
             "stop_reason": "第二轮未发现重要新增",
         },
+    }
+
+
+def _company():
+    return CompanyFinding(
+        name="测试股份",
+        relevance="存在业务相关性",
+        exposure_type="DIRECT_BUSINESS",
+        benefit_path=["事件→订单"],
+        sensitivity_basis=["业务暴露更直接"],
+    )
+
+
+def _market_map():
+    return {
+        "activation_reason": "文章讨论个股价格反应",
+        "concept_subtheme_map": ["主概念→细分→公司"],
+        "economic_benefit_dimensions": ["业务暴露", "利润敏感度", "兑现时间"],
+        "cross_sectional_selection_dimensions": ["注意力", "流动性", "预期差"],
+        "hypotheses_considered": [
+            {
+                "mechanism": "基本面信息扩散",
+                "confidence": "SUPPORTED_MECHANISM",
+                "applies_to": ["测试股份"],
+                "evidence_refs": ["公告-1", "市场数据-1"],
+                "counterevidence": ["同行未同步上涨"],
+            },
+            {
+                "mechanism": "注意力与流动性价格压力",
+                "confidence": "PLAUSIBLE_INTERPRETATION",
+                "applies_to": ["测试股份"],
+                "evidence_refs": ["成交数据-1"],
+                "counterevidence": ["无法识别投资者类型"],
+            },
+        ],
+        "why_not_evidence": ["另一家公司基本面相关但缺乏同等注意力/流动性证据"],
+        "continuation_conditions": ["后续基本面确认"],
+        "reversal_conditions": ["仅注意力驱动且基本面不跟进"],
+        "unresolved_questions": ["无法证明单一主导原因"],
     }
 
 
@@ -90,41 +126,40 @@ def test_headline_candidate_requires_reader_fit_payoff_and_current_search_eviden
         )
 
 
-def test_cross_industry_relevance_is_optional_not_universal_title_requirement():
-    candidate = HeadlineCandidate(
-        title="行业订单变化，利润兑现为什么分化",
-        angle="订单与利润",
-        target_reader="该行业及相关产业链财经读者",
-        finance_relevance="影响订单与利润兑现",
-        target_reader_click_reason="同一催化下公司兑现速度不同",
-        broader_finance_relevance="",
-        primary_gap="谁能更快兑现",
-        promised_payoff="区分订单、利润与验证条件",
-        cognitive_load="low",
-        wechat_search_terms=["行业订单"],
-        search_evidence_refs=["wechat-current"],
-    )
-    assert candidate.broader_finance_relevance == ""
+def test_cross_industry_relevance_is_optional():
+    assert _headline("行业订单变化，利润兑现为什么分化").broader_finance_relevance == ""
 
 
-def test_reader_funnel_audit_pass_requires_every_rubric_item_pass():
+def test_reader_funnel_revise_requires_repair_target():
+    rubric = {
+        "audience_promise_fit": "PASS",
+        "headline_information_value": "PASS",
+        "headline_curiosity_balance": "PASS",
+        "title_wechat_search_intent": "PASS",
+        "opening_three_sentence_retention": "REVISE",
+        "continuation_flow": "PASS",
+        "completion_payoff": "PASS",
+        "title_opening_payoff": "PASS",
+    }
     with pytest.raises(ValidationError):
         HookAuditDecision(
-            status="PASS",
-            evidence=["final title and first three sentences inspected"],
+            status="REVISE",
+            evidence=["opening inspected"],
             search_terms_checked=["关键词"],
             search_evidence_refs=["current-search-ref"],
-            rubric={
-                "audience_promise_fit": "PASS",
-                "headline_information_value": "PASS",
-                "headline_curiosity_balance": "PASS",
-                "title_wechat_search_intent": "PASS",
-                "opening_three_sentence_retention": "REVISE",
-                "continuation_flow": "PASS",
-                "completion_payoff": "PASS",
-                "title_opening_payoff": "PASS",
-            },
+            rubric=rubric,
+            revision_notes=["重写前三句"],
         )
+    decision = HookAuditDecision(
+        status="REVISE",
+        evidence=["opening inspected"],
+        search_terms_checked=["关键词"],
+        search_evidence_refs=["current-search-ref"],
+        rubric=rubric,
+        revision_target="DRAFT",
+        revision_notes=["重写前三句"],
+    )
+    assert decision.revision_target == "DRAFT"
 
 
 def test_supported_market_explanation_requires_evidence_refs():
@@ -137,66 +172,39 @@ def test_supported_market_explanation_requires_evidence_refs():
         )
 
 
-def test_company_universe_requires_market_explanation_map():
-    kwargs = _base_research_kwargs()
-    kwargs["universe"] = [
-        CompanyFinding(
-            name="测试股份",
-            relevance="存在业务相关性",
-            exposure_type="DIRECT_BUSINESS",
-            benefit_path=["事件→订单"],
-        )
-    ]
+def test_company_universe_does_not_by_itself_activate_market_explanation():
+    kwargs = _base_research_kwargs("NOT_MATERIAL")
+    kwargs["universe"] = [_company()]
+    package = ResearchPackage(**kwargs)
+    assert package.market_explanation_scope == "NOT_MATERIAL"
+    assert package.market_explanation is None
+
+
+def test_required_market_explanation_scope_requires_map():
+    kwargs = _base_research_kwargs("REQUIRED")
+    kwargs["universe"] = [_company()]
+    with pytest.raises(ValidationError):
+        ResearchPackage(**kwargs)
+
+
+def test_not_material_scope_forbids_market_explanation_map():
+    kwargs = _base_research_kwargs("NOT_MATERIAL")
+    kwargs["universe"] = [_company()]
+    kwargs["market_explanation"] = _market_map()
     with pytest.raises(ValidationError):
         ResearchPackage(**kwargs)
 
 
 def test_market_explanation_requires_competing_hypotheses_and_epistemic_discipline():
-    kwargs = _base_research_kwargs()
-    kwargs["universe"] = [
-        CompanyFinding(
-            name="测试股份",
-            relevance="存在业务相关性",
-            exposure_type="DIRECT_BUSINESS",
-            benefit_path=["事件→订单"],
-            sensitivity_basis=["业务暴露更直接"],
-            market_selection_signals=["成交活跃"],
-            continuation_support=["订单继续确认"],
-            reversal_risks=["注意力退潮"],
-        )
-    ]
-    kwargs["market_explanation"] = {
-        "activation_reason": "文章讨论个股价格反应",
-        "concept_subtheme_map": ["主概念→细分→公司"],
-        "economic_benefit_dimensions": ["业务暴露", "利润敏感度", "兑现时间"],
-        "cross_sectional_selection_dimensions": ["注意力", "流动性", "预期差"],
-        "hypotheses_considered": [
-            {
-                "mechanism": "基本面信息扩散",
-                "confidence": "SUPPORTED_MECHANISM",
-                "applies_to": ["测试股份"],
-                "evidence_refs": ["公告-1", "市场数据-1"],
-                "counterevidence": ["同行未同步上涨"],
-            },
-            {
-                "mechanism": "注意力与流动性价格压力",
-                "confidence": "PLAUSIBLE_INTERPRETATION",
-                "applies_to": ["测试股份"],
-                "evidence_refs": ["成交数据-1"],
-                "counterevidence": ["无法识别投资者类型"],
-            },
-        ],
-        "why_not_evidence": ["另一家公司基本面相关但缺乏同等注意力/流动性证据"],
-        "continuation_conditions": ["后续基本面确认"],
-        "reversal_conditions": ["仅注意力驱动且基本面不跟进"],
-        "unresolved_questions": ["无法证明单一主导原因"],
-    }
+    kwargs = _base_research_kwargs("REQUIRED")
+    kwargs["universe"] = [_company()]
+    kwargs["market_explanation"] = _market_map()
     package = ResearchPackage(**kwargs)
     assert len(package.market_explanation.hypotheses_considered) == 2
     assert package.market_explanation.hypotheses_considered[1].confidence == "PLAUSIBLE_INTERPRETATION"
 
 
-def test_authorial_prose_pass_requires_all_9_dimensions():
+def test_authorial_prose_pass_requires_all_9_dimensions_and_revise_targets_draft():
     rubric = {
         "fidelity_and_responsibility": "PASS",
         "semantic_contribution": "PASS",
@@ -208,14 +216,22 @@ def test_authorial_prose_pass_requires_all_9_dimensions():
         "template_redundancy_control": "PASS",
         "uncertainty_rhetoric_calibration": "PASS",
     }
-    decision = StyleAuditDecision(status="PASS", evidence=["逐段复核最终正文九项作者性标准"], rubric=rubric)
-    assert decision.status == "PASS"
+    assert StyleAuditDecision(status="PASS", evidence=["逐段复核九项作者性标准"], rubric=rubric).status == "PASS"
     with pytest.raises(ValidationError):
         StyleAuditDecision(
-            status="PASS",
-            evidence=["证据不足"],
-            rubric={**rubric, "uncertainty_rhetoric_calibration": "REVISE"},
+            status="REVISE",
+            evidence=["发现模板重复"],
+            rubric={**rubric, "template_redundancy_control": "REVISE"},
+            revision_notes=["重写相关段落"],
         )
+    revised = StyleAuditDecision(
+        status="REVISE",
+        evidence=["发现模板重复"],
+        rubric={**rubric, "template_redundancy_control": "REVISE"},
+        revision_target="DRAFT",
+        revision_notes=["重写相关段落"],
+    )
+    assert revised.revision_target == "DRAFT"
 
 
 def test_public_artifacts_never_expose_server_local_paths():
@@ -231,6 +247,8 @@ def test_public_artifacts_never_expose_server_local_paths():
         "required_outputs": ["FINANCE_DEEP_DOCX"],
         "gate_status": {},
         "blocked_reason": None,
+        "blocked_resume_stage": None,
+        "learning_sample_count": 0,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "next_action": "deliver",
         "trace_tail": [{"secret": "internal"}],
