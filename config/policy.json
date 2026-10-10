@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.7.0",
+  "contract_version": "0.8.0",
   "defaults": {
     "distribution_mode": "DUAL",
     "content_mode": "FORMAL_ARTICLE",
@@ -96,8 +96,9 @@
     "account_performance_over_generic_demographics": true
   },
   "audit": {
-    "semantic_pass_requires_independent_executor": true,
+    "semantic_pass_requires_owner_runtime_execution_proof": true,
     "chat_self_review_cannot_pass": true,
+    "provider_attested_isolation_required_for_true_independent_claim": true,
     "universe_to_deep_article_reconciliation_required": true,
     "template_cluster_guard_can_force_revise": true
   },
