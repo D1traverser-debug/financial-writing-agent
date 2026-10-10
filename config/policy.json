@@ -11,7 +11,9 @@
   },
   "finance_compliance": {
     "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
-    "semantic_review_terms": ["买入", "卖出"]
+    "semantic_review_terms": ["买入", "卖出"],
+    "no_covert_recommendation_evasion": true,
+    "company_comparison_must_remain_non_actionable": true
   },
   "research": {
     "universe_class_coverage_required": true,
@@ -26,6 +28,7 @@
     "heading_hierarchy": ["一、", "（1）", "①"],
     "numbering_encouraged": true,
     "deep_numbered_navigation_required_when_branching": true,
+    "major_section_bridge_required": true,
     "forbidden_heading_prefixes": ["·", "•"],
     "bold_skim_path_required": true,
     "fidelity_and_responsibility_required": true,
@@ -56,6 +59,8 @@
     "finance_deep_material_company_mentions_required": true,
     "finance_deep_representative_stock_shortcut_forbidden": true,
     "stock_grounded_validation_sections_required": true,
+    "company_comparison_decision_map_required": true,
+    "company_comparison_dimensions": ["order_visibility", "realization_speed", "earnings_sensitivity", "overseas_exposure", "technology_optionality"],
     "finance_broad_selective_compression": true,
     "finance_broad_core_contradictions_max": 3,
     "macro_structural_coherence_required": true
@@ -78,6 +83,8 @@
     "qualified_click_required": true,
     "mode_specific_reader_fit_required": true,
     "cross_finance_clickability_required": false,
+    "finance_broad_non_niche_stake_required": true,
+    "finance_broad_stake_dimensions": ["profit", "orders", "cash_flow", "capital_expenditure", "asset_differentiation", "policy_transmission"],
     "headline_information_value_required": true,
     "headline_curiosity_balance_required": true,
     "question_title_default": "avoid_unless_information_bearing",
@@ -98,7 +105,10 @@
     "required": true,
     "min_body_chars": 60,
     "recommended_max_chars": 320,
-    "topic_specific_required": true
+    "topic_specific_required": true,
+    "italic": true,
+    "inline_paragraph": true,
+    "visible_heading": false
   },
   "word": {
     "title_pt": 20,
@@ -112,6 +122,8 @@
     "h1_rgb": "FF0000",
     "allow_tables": false,
     "tables_are_hard_fail": true,
-    "auto_bold_company_names": false
+    "auto_bold_company_names": false,
+    "allow_underline": false,
+    "end_source_section_allowed": false
   }
 }
