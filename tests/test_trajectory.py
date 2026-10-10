@@ -1,10 +1,35 @@
+import pytest
+
 from financial_writing_agent.controller import WorkflowController
-from financial_writing_agent.engine import WritingEngine
+from financial_writing_agent.engine import WorkflowError, WritingEngine
 from financial_writing_agent.models import ArtifactKind, GateStatus, Stage, TaskContract
 from financial_writing_agent.store import SQLiteStateStore
 
 
-def test_happy_path_trace_is_deterministic(tmp_path):
+def _semantic_payload(task_id: str, stage: Stage, reviewer: str, author: str):
+    return {
+        "status": "PASS",
+        "evidence": ["stage-separated owner runtime audit"],
+        "provenance": {
+            "assurance": "INDEPENDENT_EXECUTOR",
+            "reviewer_identity": reviewer,
+            "author_identity": author,
+            "execution_ref": f"{task_id}:{stage.value}:{reviewer}",
+        },
+    }
+
+
+def _record_semantic_stage_pass(state, gates):
+    """Unit-test the runtime proof shape without pretending it is provider-attested isolation."""
+    state.add_trace("EXECUTOR_START", state.stage.value)
+    for gate_name, reviewer, author in gates:
+        payload = _semantic_payload(state.contract.task_id, state.stage, reviewer, author)
+        state.working[gate_name] = payload
+        state.set_gate(gate_name, GateStatus.PASS, payload["evidence"])
+    state.add_trace("EXECUTOR_END", state.stage.value)
+
+
+def test_happy_path_trace_is_deterministic_with_semantic_execution_proof(tmp_path):
     engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
     ctl = WorkflowController(engine)
     state = engine.start(TaskContract(prompt="根据两个链接写文章"))
@@ -14,17 +39,25 @@ def test_happy_path_trace_is_deterministic(tmp_path):
     state.set_gate("research_output", GateStatus.PASS, ["ledger"])
     state = ctl.advance(state)
     assert state.stage == Stage.RESEARCH_AUDIT
-    state.set_gate("research_audit", GateStatus.PASS, ["judge"])
+    _record_semantic_stage_pass(
+        state,
+        [("research_audit", "Financial Writing Research Auditor", "Financial Writing Researcher")],
+    )
     state = ctl.advance(state)
     state.set_gate("editorial_plan", GateStatus.PASS, ["topicdna"])
     state = ctl.advance(state)
-    state.set_gate("title_audit", GateStatus.PASS, ["title judge"])
+    state.set_gate("title_audit", GateStatus.PASS, ["title package"])
     state = ctl.advance(state)
     state.set_gate("draft_output", GateStatus.PASS, ["draft frozen"])
     state = ctl.advance(state)
-    state.set_gate("hook_audit", GateStatus.PASS, ["reader funnel inspected"])
-    state.set_gate("style_audit", GateStatus.PASS, ["authorial prose inspected"])
-    state.set_gate("editorial_audit", GateStatus.PASS, ["editor judge"])
+    _record_semantic_stage_pass(
+        state,
+        [
+            ("hook_audit", "Financial Writing Reader Funnel Judge", "Financial Writing Headline Engine / Financial Writing Writer"),
+            ("style_audit", "Financial Writing Authorial Prose Judge", "Financial Writing Writer"),
+            ("editorial_audit", "Financial Writing Editorial Auditor", "Financial Writing Writer"),
+        ],
+    )
     state = ctl.advance(state)
     state.set_gate("delivery_output", GateStatus.PASS, ["docx built"])
     state = ctl.advance(state)
@@ -36,7 +69,10 @@ def test_happy_path_trace_is_deterministic(tmp_path):
         p.write_bytes(b"stub")
         state.add_artifact(kind, str(p))
     state.set_gate("knowledge_sync", GateStatus.N_A, ["no connected write target in trajectory unit test"])
-    state.set_gate("final_audit", GateStatus.PASS, ["red team"])
+    _record_semantic_stage_pass(
+        state,
+        [("final_audit", "Financial Writing Final Auditor", "Financial Writing Writer / Delivery Executor")],
+    )
     state = ctl.advance(state)
     assert state.stage == Stage.COMPLETE
 
@@ -45,6 +81,40 @@ def test_happy_path_trace_is_deterministic(tmp_path):
         "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
         "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT", "COMPLETE"
     ]
+
+
+def test_manual_semantic_pass_without_owner_runtime_execution_cannot_advance(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    ctl = WorkflowController(engine)
+    state = ctl.advance(engine.start(TaskContract(prompt="旁路测试")))
+    state.set_gate("research_output", GateStatus.PASS, ["ledger"])
+    state = ctl.advance(state)
+    assert state.stage == Stage.RESEARCH_AUDIT
+
+    state.set_gate("research_audit", GateStatus.PASS, ["手填judge"])
+    state.working["research_audit"] = _semantic_payload(
+        state.contract.task_id,
+        Stage.RESEARCH_AUDIT,
+        "fake-reviewer",
+        "fake-author",
+    )
+    with pytest.raises(WorkflowError, match="owner-runtime stage execution proof"):
+        ctl.advance(state)
+    assert state.stage == Stage.RESEARCH_AUDIT
+
+
+def test_old_semantic_pass_cannot_be_reused_after_reentering_stage(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    ctl = WorkflowController(engine)
+    state = ctl.advance(engine.start(TaskContract(prompt="重放测试")))
+    state.set_gate("research_output", GateStatus.PASS, ["ledger"])
+    state = ctl.advance(state)
+    _record_semantic_stage_pass(state, [("research_audit", "judge", "writer")])
+    assert state.semantic_gate_proof_valid("research_audit") is True
+
+    # A new STAGE_ENTER invalidates the old execution segment even if stale payload/gate survived.
+    state.add_trace("STAGE_ENTER", Stage.RESEARCH_AUDIT.value)
+    assert state.semantic_gate_proof_valid("research_audit") is False
 
 
 def test_state_resume(tmp_path):
