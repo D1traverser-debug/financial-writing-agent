@@ -15,7 +15,7 @@ from .models import ArtifactKind, TaskContract
 def sha256_file(path: str | Path) -> str:
     h = hashlib.sha256()
     with open(path, "rb") as f:
-        for chunk in iter(lambda: f.read(1024 * 1024, ), b""):
+        for chunk in iter(lambda: f.read(1024 * 1024), b""):
             h.update(chunk)
     return h.hexdigest()
 
@@ -65,28 +65,6 @@ def _is_bold_occurrence(doc: Document, needle: str) -> bool:
     return False
 
 
-def _all_occurrences_bold(doc: Document, needle: str) -> bool:
-    """Require every exact occurrence of a company/stock name to be bold, including split runs."""
-    found = False
-    for paragraph in doc.paragraphs:
-        full = "".join(run.text for run in paragraph.runs)
-        if needle not in full:
-            continue
-        mask: list[bool] = []
-        for run in paragraph.runs:
-            mask.extend([bool(run.bold)] * len(run.text))
-        start = 0
-        while True:
-            idx = full.find(needle, start)
-            if idx < 0:
-                break
-            found = True
-            if not all(mask[idx : idx + len(needle)]):
-                return False
-            start = idx + len(needle)
-    return found
-
-
 def _check_run_sizes(paragraph, expected_pt: float, label: str, errors: list[str]) -> None:
     visible_runs = [run for run in paragraph.runs if run.text]
     if not visible_runs:
@@ -131,6 +109,13 @@ def check_docx(
     policy: dict,
     required_bold_anchors: list[str] | None = None,
 ) -> dict:
+    """Run deterministic Word checks.
+
+    `stock_names` remains in the call contract for research/QA metadata compatibility, but
+    company names are no longer blanket-bold requirements. Only explicit skim anchors are
+    mechanically required to be bold; entity emphasis is a semantic editorial choice.
+    """
+    _ = stock_names
     doc = Document(path)
     errors: list[str] = []
     warnings: list[str] = []
@@ -163,10 +148,6 @@ def check_docx(
     if not policy["word"].get("allow_tables", False) and doc.tables:
         errors.append(f"publication article contains prohibited table(s): {len(doc.tables)}")
 
-    for stock in stock_names:
-        if not _all_occurrences_bold(doc, stock):
-            errors.append(f"stock/company name not bold on every occurrence: {stock}")
-
     for anchor in required_bold_anchors or []:
         if not _is_bold_occurrence(doc, anchor):
             errors.append(f"required skim-path anchor not bold in Word: {anchor}")
@@ -178,7 +159,7 @@ def check_docx(
 
     extreme_hits = scan_finance_redlines(text, policy.get("style", {}).get("hard_fail_extreme_phrases", []))
     if extreme_hits:
-        errors.append(f"unsupported extreme-language phrase(s): {extreme_hits}")
+        errors.append(f"unsupported deterministic promotional phrase(s): {extreme_hits}")
 
     return {
         "ok": not errors,
