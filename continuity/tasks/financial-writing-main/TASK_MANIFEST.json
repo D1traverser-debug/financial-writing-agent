@@ -1,6 +1,6 @@
 {
-  "schema_version": "3.3",
-  "manifest_version": 5,
+  "schema_version": "3.7",
+  "manifest_version": 6,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,13 +10,13 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-10T01:54:00Z",
-  "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
-  "next_action": "按 Financial Writing Agent v0.5 接收当前主题/来源并启动新文章。执行 Reader Funnel / Hook Gate、Natural Authorial Prose / Writing DNA Gate 与 Market Explanation Completeness；禁止恢复 v0.4 旧 headline/audit schema、legacy CHAT_TEXT/visual/sticker/Site PoC 合同。当前无已安装 Site Runtime 插件；新 Site 必须按 v0.5 纯合同重新部署并通过 compatibility handshake。",
+  "updated_at": "2026-10-10T02:39:00Z",
+  "current_stage": "SYSTEM_HARDENING_REGRESSION",
+  "next_action": "完成 Financial Writing Agent v0.6 系统级回归：以最终 main HEAD 的 CI 全绿为准；若失败，按失败层修代码/契约/测试而不是叠加提示词。完成后恢复 READY_FOR_NEW_OR_EXPLICIT_ARTICLE。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
-  "contract_version": "CONTINUITY_V3_3",
-  "skill_version": "FINANCIAL_WRITING_AGENT_V0_5",
-  "runtime_version": "V0_5_STANDALONE_VALIDATED__NO_SITE_PLUGIN_INSTALLED",
+  "contract_version": "CONTINUITY_V3_7",
+  "skill_version": "FINANCIAL_WRITING_AGENT_V0_6",
+  "runtime_version": "V0_6_REGRESSION_IN_PROGRESS__NO_SITE_PLUGIN_INSTALLED",
   "resume_epoch": 1,
   "active_lease": {
     "lease_id": "fw-e68921c619c84b51b1407baa95be9c1f",
@@ -26,12 +26,10 @@
   "keywords": ["金融文章", "财经文章", "写金融文章", "写作"],
   "artifact_refs": [
     "skills/financial-writing-agent/SKILL.md",
-    "skills/financial-writing-agent/references/research.md",
-    "skills/financial-writing-agent/references/market_explanation.md",
-    "skills/financial-writing-agent/references/hooks.md",
-    "skills/financial-writing-agent/references/editorial.md",
-    "skills/financial-writing-agent/references/style.md",
-    "skills/financial-writing-agent/references/delivery.md",
-    "deploy/chatgpt-site/SITE_SPEC.md"
+    "config/policy.json",
+    "config/rule_ownership.json",
+    "continuity/EXECUTION_CAPABILITIES.json",
+    "deploy/chatgpt-site/SITE_SPEC.md",
+    "docs/architecture.md"
   ]
 }
