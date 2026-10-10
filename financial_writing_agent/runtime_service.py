@@ -1,5 +1,6 @@
 from __future__ import annotations
 
+from datetime import datetime, timezone
 import os
 from pathlib import Path
 from typing import Any
@@ -16,6 +17,14 @@ DATA_DIR = Path(os.getenv("FINANCIAL_WRITING_DATA_DIR", "/data"))
 DB_PATH = Path(os.getenv("FINANCIAL_WRITING_DB", str(DATA_DIR / "financial_writing_state.db")))
 RUNS_DIR = Path(os.getenv("FINANCIAL_WRITING_RUNS", str(DATA_DIR / "runs")))
 REQUIRE_RENDER = os.getenv("FINANCIAL_WRITING_REQUIRE_RENDER", "1").lower() not in {"0", "false", "no"}
+
+LEARNING_SAMPLE_TYPES = {
+    "USER_EDIT",
+    "USER_FEEDBACK",
+    "USER_ACCEPTANCE",
+    "USER_REJECTION",
+    "POST_PUBLICATION_PERFORMANCE",
+}
 
 store = SQLiteStateStore(DB_PATH)
 engine = WritingEngine(store)
@@ -84,7 +93,6 @@ def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) ->
             clear_artifacts=True,
             clear_working_keys=("headlines", "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
         )
-        _invalidate_knowledge_writeback(state, reason)
     elif target == "TITLE":
         _invalidate(
             state,
@@ -93,7 +101,6 @@ def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) ->
             clear_artifacts=True,
             clear_working_keys=("draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
         )
-        _invalidate_knowledge_writeback(state, reason)
     elif target == "DRAFT":
         _invalidate(
             state,
@@ -102,7 +109,6 @@ def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) ->
             clear_artifacts=True,
             clear_working_keys=("hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
         )
-        _invalidate_knowledge_writeback(state, reason)
     elif target == "DELIVERY":
         _invalidate(
             state,
@@ -130,6 +136,7 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
         "bold_skim_path": _gate_status(state, "mechanical_audit"),
         "word_render": _gate_status(state, "mechanical_audit"),
         "compliance_risk": _gate_status(state, "final_audit"),
+        "writing_dna_evidence_samples": len(state.working.get("learning_samples", [])),
         "knowledge": {
             "sync_gate": _gate_status(state, "knowledge_sync"),
             "reused_refs": len(cognition.get("prior_knowledge_refs", [])),
@@ -166,13 +173,14 @@ def _next_action(state: WritingState) -> str:
         Stage.DELIVERY: "call build_and_mechanically_audit_delivery",
         Stage.MECHANICAL_AUDIT: "call build_and_mechanically_audit_delivery",
         Stage.FINAL_AUDIT: "record knowledge writeback PASS/N_A, then call submit_final_audit",
-        Stage.COMPLETE: "deliver publication Word artifact(s), audit Word, and the visible chat QA checklist; do not paste article body",
+        Stage.COMPLETE: "deliver publication Word artifact(s), audit Word, and the visible chat QA checklist; optional later feedback/performance may be recorded as Writing DNA evidence",
         Stage.BLOCKED: "unreachable",
     }[state.stage]
 
 
 def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
     research = state.working.get("research") or {}
+    samples = state.working.get("learning_samples") or []
     summary: dict[str, Any] = {
         "task_id": state.contract.task_id,
         "status": "BLOCKED" if state.stage == Stage.BLOCKED else ("COMPLETE" if state.stage == Stage.COMPLETE else "IN_PROGRESS"),
@@ -186,6 +194,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         "gate_status": {name: gate.status.value for name, gate in state.gates.items()},
         "blocked_reason": state.blocked_reason,
         "blocked_resume_stage": state.blocked_resume_stage.value if state.blocked_resume_stage else None,
+        "learning_sample_count": len(samples),
         "updated_at": state.updated_at.isoformat(),
         "next_action": _next_action(state),
     }
@@ -193,6 +202,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         summary["source_refs"] = state.contract.source_refs
         summary["gates"] = {name: {"status": gate.status.value, "evidence": gate.evidence, "notes": gate.notes} for name, gate in state.gates.items()}
         summary["artifacts"] = {kind.value: {"path": artifact.path, "exists": artifact.exists, "sha256": artifact.sha256} for kind, artifact in state.artifacts.items()}
+        summary["learning_samples"] = samples
     if state.stage == Stage.COMPLETE:
         summary["completion_checklist"] = _completion_checklist(state)
     return summary
@@ -279,6 +289,47 @@ def resume_blocked_task(task_id: str) -> dict[str, Any]:
     return _summary(engine.resume_blocked(state), detail=True)
 
 
+def record_writing_learning_sample(
+    task_id: str,
+    sample_type: str,
+    summary: str,
+    source_refs: list[str] | None = None,
+    original_excerpt: str = "",
+    revised_excerpt: str = "",
+    metrics: dict[str, str | int | float] | None = None,
+    notes: list[str] | None = None,
+) -> dict[str, Any]:
+    """Append raw Writing-DNA evidence without promoting it into a durable rule."""
+    state = _load(task_id)
+    if sample_type not in LEARNING_SAMPLE_TYPES:
+        raise ValueError(f"unsupported learning sample type: {sample_type}")
+    clean_summary = summary.strip()
+    if not clean_summary:
+        raise ValueError("learning sample summary must not be empty")
+    refs = list(dict.fromkeys(source_refs or []))
+    if sample_type == "USER_EDIT" and not ((original_excerpt.strip() and revised_excerpt.strip()) or refs):
+        raise ValueError("USER_EDIT requires original+revised excerpts or at least one source ref")
+    metric_map = metrics or {}
+    if sample_type == "POST_PUBLICATION_PERFORMANCE" and not (metric_map or refs):
+        raise ValueError("POST_PUBLICATION_PERFORMANCE requires metrics or a source ref")
+    record = {
+        "sample_type": sample_type,
+        "summary": clean_summary,
+        "source_refs": refs,
+        "original_excerpt": original_excerpt,
+        "revised_excerpt": revised_excerpt,
+        "metrics": metric_map,
+        "notes": notes or [],
+        "recorded_stage": state.stage.value,
+        "recorded_at": datetime.now(timezone.utc).isoformat(),
+        "promotion_status": "RAW_EVIDENCE_ONLY",
+    }
+    state.working.setdefault("learning_samples", []).append(record)
+    state.add_trace("WRITING_LEARNING_SAMPLE", f"type={sample_type}; refs={len(refs)}; metrics={len(metric_map)}")
+    store.save(state)
+    return _summary(state, detail=True)
+
+
 def record_knowledge_context(task_id: str, refs: list[str], notes: list[str] | None = None) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
@@ -337,7 +388,6 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
         clear_artifacts=True,
         clear_working_keys=("headlines", "draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
     )
-    _invalidate_knowledge_writeback(state, "editorial plan changed; previous knowledge writeback decision is stale")
     state.working["editorial_plan"] = payload.model_dump(mode="json")
     evidence = ["shared TopicDNA"]
     if payload.finance_deep:
@@ -361,7 +411,6 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
         clear_artifacts=True,
         clear_working_keys=("draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
     )
-    _invalidate_knowledge_writeback(state, "headline selection changed; previous knowledge writeback decision is stale")
     state.working["headlines"] = payload.model_dump(mode="json")
     state.set_gate("title_audit", GateStatus.PASS, ["8-12 candidates per applicable mode", "selected titles have target-reader fit, promised payoff, and current WeChat search evidence"])
     state.add_trace("MCP_STAGE_OUTPUT", "title_audit=PASS")
@@ -380,7 +429,6 @@ def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
         clear_artifacts=True,
         clear_working_keys=("hook_audit", "style_audit", "revise_target", "final_revise_target"),
     )
-    _invalidate_knowledge_writeback(state, "draft changed; previous knowledge writeback decision is stale")
     state.working["draft"] = payload.model_dump(mode="json")
     anchors = sum(len(p.skim_path_anchors) for p in [payload.finance_deep, payload.finance_broad] if p)
     state.set_gate("draft_output", GateStatus.PASS, ["all required drafts frozen", f"explicit_bold_skim_anchors={anchors}"])
