@@ -93,6 +93,7 @@ class MechanicalAuditExecutor:
                 stock_names=payload.stock_names,
                 policy=self.policy,
                 required_bold_anchors=payload.skim_path_anchors,
+                require_deep_navigation=kind == ArtifactKind.FINANCE_DEEP_DOCX,
             )
             evidence.append(f"{kind.value}: {json.dumps(result, ensure_ascii=False)}")
             errors.extend(f"{kind.value}: {error}" for error in result["errors"])
@@ -151,8 +152,10 @@ def finalize_audit_artifact(state: WritingState) -> None:
         f"分发模式：{state.contract.distribution_mode.value}｜交付：WORD_FILE_ONLY",
         f"来源边界：{research.get('source_boundary', 'N/A')}",
         f"研究覆盖：{json.dumps(research.get('coverage', {}), ensure_ascii=False)}",
+        f"股票Universe覆盖：{json.dumps(research.get('universe_coverage', {}), ensure_ascii=False)}",
         f"市场解释范围：{research.get('market_explanation_scope', 'N/A')}｜{research.get('market_explanation_scope_reason', '')}",
         f"财经完整覆盖义务：{json.dumps((editorial.get('finance_deep') or {}).get('completeness_obligations', []), ensure_ascii=False)}",
+        f"Deep公司覆盖义务：{json.dumps((editorial.get('finance_deep') or {}).get('company_coverage_obligations', []), ensure_ascii=False)}",
         f"复用知识引用：{len(cognition.get('prior_knowledge_refs', []))}｜知识回写候选：{len(research.get('knowledge_writeback_candidates', []))}｜回写凭据：{len(state.working.get('knowledge_writeback_refs', []))}",
     ]
     path = build_audit_docx(
