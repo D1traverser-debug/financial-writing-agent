@@ -12,12 +12,21 @@
 - writing_rule_authority: `D1traverser-debug/financial-writing-agent@main`
 
 ## Validated system state
-The v0.7 system-level regression is complete. Validated business-code HEAD: `44b78e7895c0e912699033a0be56da67efea25cf`. GitHub Actions run `38029561987` completed successfully with SDK smoke, 17-tool MCP smoke, **49 unit/trajectory tests**, executable contract evals, static authority/version audit, isolated wheel install and DOCX render smoke all PASS.
+The current v0.7 business-code hardening is validated at HEAD `60c3407bed07a0fd03ca8ea9e7bdbd6fa638f29d`. GitHub Actions run `38039201926` completed successfully with SDK smoke, 17-tool MCP smoke, **51 unit/trajectory tests**, executable contract evals, static authority/version audit, isolated wheel install and DOCX render smoke all PASS.
 
-v0.7 hardens the failures exposed by the offshore-wind draft: class-accounted Universe Coverage, at-least-two materially different recall sources, `MATERIAL / SECONDARY / REFERENCE_ONLY` company classification, Deep MATERIAL-company reconciliation, stock-grounded monitoring/validation sections, conditional numbered Deep navigation, title pools spanning at least five real angle families, deterministic template-cluster guards, and independent semantic-audit provenance. A chat self-review cannot certify semantic PASS.
+This validation includes the earlier v0.7 safeguards exposed by the offshore-wind failure: class-accounted Universe Coverage, at-least-two materially different recall sources, `MATERIAL / SECONDARY / REFERENCE_ONLY` company classification, Deep MATERIAL-company reconciliation, stock-grounded monitoring/validation sections, conditional numbered Deep navigation, title pools spanning at least five real angle families, deterministic template-cluster guards, and independent semantic-audit provenance. A chat self-review cannot certify semantic PASS.
+
+The latest hardening adds the following durable invariants:
+- `FINANCE_BROAD` must pass a **cold-reader finance stake** test. A reader who does not already care about the niche sector should understand from the title/opening why the event matters to profit, orders, cash flow, capital expenditure, company/asset differentiation or policy transmission. This does not restore the removed universal cross-industry-title rule.
+- Multi-company work must produce a non-actionable **company comparison decision map** using operating evidence such as order visibility, realization speed, earnings sensitivity, validated overseas exposure and technology optionality. It may express research/evidence order but must not become a direct or euphemistic buy/sell list.
+- Major H1 sections must be joined by **earned logical bridges** through cause, consequence, chronology, comparison, narrowing, correction or inference. Empty “接下来看看” transitions do not satisfy the contract.
+- Publication Word has **zero underlines**, no tail `资料来源 / 参考资料 / 参考来源 / 来源汇总` section, and exactly one final inline fully italic `风险提示：...` paragraph. Evidence provenance remains in Research/Audit and is attributed naturally in prose when material.
+- Deterministic Word QA and regression tests protect the presentation rules above; source-tail, underline and risk-format drift fail mechanically.
 
 ## Exact next action
-Accept the user's next financial-article topic/source or explicit rewrite request and start the current v0.7 workflow. For company/theme work, build the Universe Coverage Ledger before narrowing; FINANCE_DEEP must discharge every MATERIAL company obligation and may not substitute a few representative stocks for completeness. Monitoring/validation/falsification sections must map signals back to named stocks or explicit value-chain classes. Titles must be strategy-diverse rather than synonym variants. Do not revive any removed compatibility path.
+Accept the user's next financial-article topic/source or explicit rewrite request and start the current v0.7 workflow. For company/theme work, build the Universe Coverage Ledger before narrowing; FINANCE_DEEP must discharge every MATERIAL company obligation and may not substitute a few representative stocks for completeness. Monitoring/validation/falsification sections must map signals back to named stocks or explicit value-chain classes, and the completed article must make the economically relevant differences among companies decision-useful without crossing into trading guidance.
+
+For FINANCE_BROAD, optimize a truthful broader-finance hook rather than assuming prior sector interest. The title/opening should foreground the financially consequential stake, while stronger click framing must remain fully payable by the body. Section progression, company comparison, clean Word presentation and compliance are all mandatory gates.
 
 ## Runtime compatibility boundary
 - Current repository runtime is the validated v0.7 standalone/reference runtime.
@@ -32,7 +41,7 @@ Accept the user's next financial-article topic/source or explicit rewrite reques
 - Valuable StockBase/ArticleBase/history evidence is retained as knowledge rather than destroyed; retention does not grant execution authority.
 
 ## Legacy boundary
-Do not restore old Site PoC contracts, `mcp_server.py`, `CHAT_TEXT`, visual/sticker resources, canned `structure_patterns.md`, v0.4/v0.5/v0.6 headline/style payloads, blanket company-name bolding, the old company-universe-implies-market-explanation rule, obsolete Human Voice naming/contracts, representative-stock Deep shortcuts, synonym-only headline pools or author self-certified semantic PASS.
+Do not restore old Site PoC contracts, `mcp_server.py`, `CHAT_TEXT`, visual/sticker resources, canned `structure_patterns.md`, v0.4/v0.5/v0.6 headline/style payloads, blanket company-name bolding, the old company-universe-implies-market-explanation rule, obsolete Human Voice naming/contracts, representative-stock Deep shortcuts, synonym-only headline pools, author self-certified semantic PASS, publication underlines, publication-tail source appendices, separate numbered risk H1s, or covert recommendation language disguised as company comparison.
 
 ## Continuity status
 This handoff is reconciled to Universal Continuity v3.7. `resume_epoch` and the active lease remain unchanged in `TASK_MANIFEST.json` because this was a same-writer system hardening cycle, not a takeover.
