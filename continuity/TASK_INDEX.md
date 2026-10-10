@@ -13,6 +13,7 @@ Adapter: `continuity/UNIVERSAL_PROTOCOL_ADAPTER.json`
 - 裸“继承”只恢复 `financial-writing:main`。
 - “写金融文章 / 金融文章写作”恢复当前 v0.4 写作入口，不自动恢复已删除历史文章或旧 Site PoC。
 - GitHub `main` 是代码/规则权威；当前没有已安装的 Site Runtime 插件。
+- 在任何 material stage/next_action 执行前，读取当前 `skills/financial-writing-agent/SKILL.md` 与 `continuity/EXECUTION_CAPABILITIES.json`，只对当前步骤所需能力做 session handshake；仓库声明本身不是当前聊天的执行证明。
 - 新文章在新 v0.4 Site Runtime 发布并验证前，使用当前已验证的 standalone/runtime code path，不回退任何 legacy contract。
 - 旧聊天/旧 task manifest 若仍记录 Universal Continuity v3.3，不要求用户迁移；由当前有效 task writer 在下一次 durable write 前按 `UNIVERSAL_PROTOCOL_ADAPTER.json` 原地 reconcile 到 v3.7，保持业务状态、resume_epoch 与 active lease 不变。
 - 新聊天 takeover 仍按当前 Universal Continuity 规则增加 `resume_epoch` 并淘汰旧 writer。
