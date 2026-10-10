@@ -15,7 +15,7 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
-    assert profile["profile_version"] == 6
+    assert profile["profile_version"] == 7
 
     quality_gate = capabilities["quality_regression_promotion_gate"]
     assert quality_gate["assurance_ceiling"] == "HARNESS_WIRED"
@@ -67,12 +67,15 @@ def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
     }
     assert required_artifact_hooks.issubset(methodology["hook_bindings"])
     assurance = adapter["methodology_assurance"]
-    assert "ACTION_RECEIPT_EMISSION_WIRED" in assurance["operational_status"]
+    assert "ACTION_RECEIPT_V1_3_EXACT_ACTION_BINDING_WIRED" in assurance["operational_status"]
     assert "INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING" in assurance["operational_status"]
     wiring = assurance["action_receipt_wiring"]
-    assert wiring["receipt_contract_version"] == "1.2"
+    assert wiring["receipt_contract_version"] == "1.3"
     assert wiring["receipt_status"] == "UNVERIFIED_OWNER_RECEIPT"
-    assert wiring["independent_verification_required"] == "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT"
+    assert wiring["exact_action_binding_required"] == [
+        "task_id", "stage", "action_id", "subject_bindings", "input_bindings"
+    ]
+    assert wiring["independent_verification_required"] == "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT_PLUS_EXACT_ACTION_BINDING"
     assert wiring["wired_profiles"] == ["artifact_io", "evolution"]
     assert "operational_hygiene" in wiring["unwired_or_unproven_profile"]
 
@@ -88,13 +91,22 @@ def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_at
     assert "record_learning_evolution_receipt" in server
     assert "record_artifact_io_receipt" in server
     assert "methodology_profile_runs" in server
-    assert 'RECEIPT_CONTRACT_VERSION = "1.2"' in receipt_runtime
+    assert 'RECEIPT_CONTRACT_VERSION = "1.3"' in receipt_runtime
+    assert '"action_binding": {' in receipt_runtime
+    assert '"task_id": state.contract.task_id' in receipt_runtime
+    assert '"stage": state.stage.value' in receipt_runtime
+    assert '"action_id": activation_id' in receipt_runtime
+    assert '"subject_bindings": dict(subject_bindings)' in receipt_runtime
+    assert '"input_bindings": dict(input_bindings)' in receipt_runtime
     assert "UNVERIFIED_OWNER_RECEIPT" in receipt_runtime
     assert "external_ref_and_semantic_assessment_required" in receipt_runtime
-    assert 'receipt_contract_version: Literal["1.2"]' in contracts
+    assert 'receipt_contract_version: Literal["1.3"]' in contracts
+    assert "class MethodologyActionBindingSummary" in contracts
+    assert "action_binding: MethodologyActionBindingSummary" in contracts
     assert "Financial Writing v0.7 is Word-only" in server
     assert "Financial Writing v0.6 is Word-only" not in server
     assert "operational conformance" in server
     assert "universal_independent_evidence_ref_verifier_for_operational_pass" in receipt_capability["required_tools"]
     assert "universal_independent_hook_assessment_verifier_for_operational_pass" in receipt_capability["required_tools"]
+    assert any("exact action binding" in item.lower() for item in receipt_capability["evidence_contract"])
     assert any("real but irrelevant evidence ref" in item for item in receipt_capability["evidence_contract"])
