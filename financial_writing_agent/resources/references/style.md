@@ -8,11 +8,11 @@ The user's phrases “去AI味 / 活人感 / 娓娓道来 / 交流感” are ove
 Do not optimize for AI-detector evasion. Do not manufacture humanity with slang, typos, random fragments, fake intimacy or decorative noise.
 
 ## Boundary with Editorial and Reader Funnel
-- **Editorial** owns macro section order and material coverage.
+- **Editorial** owns macro section order, material coverage, company-universe coverage and whether multi-branch reasoning needs visible numbered structure.
 - **Authorial Prose** owns whether sentences/paragraphs genuinely advance the reasoning and whether the author's priorities are visible.
 - **Reader Funnel** owns whether the resulting title/opening/H1/paragraph flow gives the target reader enough value and forward pull to continue.
 
-The same paragraph may be evidence for more than one gate, but each gate asks a different question. Do not duplicate one defect under three different names.
+Do not duplicate one defect under three different names.
 
 ## Governing principle
 A generic model tends toward choices acceptable across many topics. Strong authorial prose makes uneven, topic-specific choices:
@@ -60,6 +60,21 @@ At `EDITORIAL_AUDIT`, an independent judge reviews the frozen draft. PASS requir
 8. `template_redundancy_control` — no recurring LLM staging, forced triads, generic bridges, synonym restatement, mechanical recap or formatting-by-rule.
 9. `uncertainty_rhetoric_calibration` — wording strength matches evidence and unresolved/competing explanations remain visible.
 
+## Deterministic template-cluster guard
+The semantic judge is not allowed to wave away a visible template cluster with “整体自然”. Before Authorial Prose judgment, the runtime computes a structural signal report over the frozen article.
+
+Signals include recurring families such as:
+- “真正的X不是/不在Y，而是/而在Z”；
+- “如果只看……”；
+- “这正是……”；
+- “最值得关注/写清楚的是……”；
+- repeated “核心在于/问题在于/值得注意的是/换句话说” staging.
+
+These are **not banned phrases**. One well-earned occurrence is normal Chinese prose. The deterministic guard requires REVISE only when a family repeats heavily or several families cluster at meaningful density. When `requires_revise=true`, `template_redundancy_control` cannot PASS until those sections are rewritten.
+
+This protects against the specific failure mode where every section uses the same move:
+`先否定旧指标 → 提出新指标 → 再说“这正是/真正值得看” → 小结`.
+
 ## Pattern watchlist
 Treat patterns as evidence, not forbidden tokens. Watch for clusters such as:
 - identical paragraph lengths or repeated section geometry;
@@ -75,6 +90,11 @@ Treat patterns as evidence, not forbidden tokens. Watch for clusters such as:
 - over-formatting or mechanical visual symmetry.
 
 A normal dash, parallel structure, question or short sentence is not an error by itself.
+
+## Numbering and prose naturalness
+Visible numbering is not “AI format” when it reflects real analytical branches. For a Deep article with several stock classes, stages, dimensions or causal branches, `（1）（2）（3）/①②③` can make reasoning more human-readable and less like an unbroken model-generated essay.
+
+The error is mechanical symmetry: do not force every H1 to contain exactly three subpoints. Use as many numbered subpoints as the actual logic needs.
 
 ## Writing DNA: what to learn
 Writing DNA can include:
