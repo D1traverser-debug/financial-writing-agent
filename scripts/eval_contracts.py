@@ -127,13 +127,16 @@ def eval_e17() -> list[str]:
     return ["risk mandatory", f"min_chars={policy['risk_disclaimer']['min_body_chars']}"]
 
 
-def _headline(title: str) -> HeadlineCandidate:
+def _headline(title: str, broader: str = "") -> HeadlineCandidate:
     return HeadlineCandidate(
         title=title,
         angle="利润传导",
+        target_reader="关注盈利与定价的财经读者",
         finance_relevance="影响盈利预期和估值",
-        cross_finance_click_reason="供需和利润变化对跨行业财经读者都有资产定价含义",
+        target_reader_click_reason="同一变化下利润兑现路径仍有重要差异",
+        broader_finance_relevance=broader,
         primary_gap="市场尚未区分兑现环节",
+        promised_payoff="解释订单、利润兑现与市场选择的差异",
         cognitive_load="low",
         wechat_search_terms=["行业关键词"],
         search_evidence_refs=["current-wechat-search-evidence"],
@@ -142,10 +145,13 @@ def _headline(title: str) -> HeadlineCandidate:
 
 def eval_e18() -> list[str]:
     candidate = _headline("价格变化之后，利润会落到哪里")
-    check(candidate.cross_finance_click_reason and candidate.wechat_search_terms and candidate.search_evidence_refs, "E18 title conditions must both exist")
+    check(candidate.target_reader and candidate.target_reader_click_reason and candidate.promised_payoff, "E18 qualified reader-value fields must exist")
+    check(candidate.broader_finance_relevance == "", "E18 cross-industry relevance must be optional")
+    check(candidate.wechat_search_terms and candidate.search_evidence_refs, "E18 current search evidence is required")
     with_missing = dict(
-        title="无搜索证据", angle="x", finance_relevance="x", cross_finance_click_reason="x",
-        primary_gap="x", cognitive_load="low", wechat_search_terms=[], search_evidence_refs=[]
+        title="无搜索证据", angle="x", target_reader="财经读者", finance_relevance="x",
+        target_reader_click_reason="x", primary_gap="x", promised_payoff="x", cognitive_load="low",
+        wechat_search_terms=[], search_evidence_refs=[]
     )
     try:
         HeadlineCandidate(**with_missing)
@@ -153,30 +159,32 @@ def eval_e18() -> list[str]:
         pass
     else:
         raise AssertionError("E18 search evidence cannot be omitted")
-    return ["cross-finance click condition", "WeChat search terms", "real search evidence refs required"]
+    policy = json.loads(POLICY.read_text(encoding="utf-8"))
+    check(policy["hooks"]["qualified_click_required"], "E18 qualified click must be enabled")
+    check(policy["hooks"]["cross_finance_clickability_required"] is False, "E18 cross-industry clickability must not be universal")
+    return ["qualified target-reader fit", "optional broader-finance relevance", "WeChat search evidence required"]
 
 
 def eval_e19() -> list[str]:
     rubric = {
-        "template_fingerprint": "PASS",
-        "discourse_variability": "PASS",
-        "semantic_progression": "PASS",
-        "transition_continuity": "PASS",
-        "repetition_control": "PASS",
-        "rhythm_naturalness": "PASS",
-        "concrete_evidence_density": "PASS",
-        "reader_modeling": "PASS",
-        "narrative_flow": "PASS",
-        "authorial_specificity": "PASS",
-        "uncertainty_calibration": "PASS",
-        "extreme_language_control": "PASS",
+        "fidelity_and_responsibility": "PASS",
+        "semantic_contribution": "PASS",
+        "argument_progression": "PASS",
+        "reader_calibration": "PASS",
+        "authorial_selectivity": "PASS",
+        "evidence_specificity": "PASS",
+        "structural_rhythm_naturalness": "PASS",
+        "template_redundancy_control": "PASS",
+        "uncertainty_rhetoric_calibration": "PASS",
     }
-    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against 12-part authorial prose rubric"], rubric=rubric)
+    decision = StyleAuditDecision(status="PASS", evidence=["final text reread against consolidated nine-part authorial prose rubric"], rubric=rubric)
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
     check(decision.status == "PASS", "E19 all authorial-prose dimensions should allow PASS")
     check(policy["style"]["optimize_for_ai_detector"] is False, "E19 must not optimize detector evasion")
+    check(policy["style"]["writing_dna_learning"]["one_off_edit_is_candidate_only"], "E19 one-off edits must remain candidates")
+    check(policy["style"]["writing_dna_learning"]["external_skill_rules_are_candidates_only"], "E19 external skill rules must not become authority")
     check(policy["market_explanation"]["multi_hypothesis_required"], "E19 market explanation must remain multi-hypothesis")
-    return ["12-part Natural Authorial Prose rubric", "semantic progression", "evidence density", "authorial specificity", "uncertainty calibration"]
+    return ["9-part Natural Authorial Prose rubric", "Writing DNA evidence hierarchy", "no detector-evasion objective"]
 
 
 EXECUTABLE = {
@@ -199,8 +207,8 @@ SPEC_ONLY = {
     "E04": "revision invalidation is covered by runtime regression tests",
     "E05": "universe breadth, deep completeness and market-explanation coverage are semantic research assertions",
     "E08": "full all-stage execution is trajectory/E2E coverage",
-    "E09": "experience-sample promotion is a maintenance-policy assertion",
-    "E10": "durable hook-rule promotion is a maintenance-policy assertion",
+    "E09": "Writing DNA promotion requires provenance across explicit/repeated/corpus evidence",
+    "E10": "durable Reader Funnel rule promotion is a maintenance-policy assertion",
     "E15": "connected knowledge reuse plus material-completeness mapping requires semantic/connector regression",
     "E20": "visible chat checklist plus audit Word is a final-delivery semantic/trajectory assertion",
 }
