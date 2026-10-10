@@ -128,7 +128,7 @@ def check_reference_bundle() -> None:
         "company_coverage_obligations",
         "company comparison decision map",
         "cold-reader test",
-        "major H1 sections must also be **earned transitions**",
+        "Major H1 sections must also be **earned transitions**",
         "zero underlines",
         "风险提示：",
         "angle_family",
