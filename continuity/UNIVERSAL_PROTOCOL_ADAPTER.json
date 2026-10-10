@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "supported_from": ["3.3", "3.5", "3.6", "3.7"],
@@ -28,6 +28,36 @@
       "operational_hygiene": "1.0",
       "evolution": "1.0"
     },
+    "profile_applicability": {
+      "artifact_io": {
+        "status": "APPLIES",
+        "reason": "Financial Writing persists WritingState, creates and hashes publication Word artifacts, renders files, invalidates stale downstream outputs, records knowledge writeback receipts, and may use explicitly referenced external artifact/evidence stores.",
+        "evidence_refs": [
+          "financial_writing_agent/store.py",
+          "financial_writing_agent/runtime_service.py",
+          "financial_writing_agent/adapters/deterministic.py",
+          "skills/financial-writing-agent/SKILL.md#13-delivery-and-mechanical-qa"
+        ]
+      },
+      "operational_hygiene": {
+        "status": "APPLIES",
+        "reason": "The owner has durable maintenance, repeated-failure reliability handling, incident/quality-regression evidence, cleanup rules and scoped change-freeze behavior.",
+        "evidence_refs": [
+          "skills/financial-writing-agent/references/maintenance.md",
+          "evals/quality_regression.json",
+          "financial_writing_agent/quality_regression.py"
+        ]
+      },
+      "evolution": {
+        "status": "APPLIES",
+        "reason": "The owner records Writing DNA learning evidence and promotes general editorial or personalized writing changes only through evidence-gated evaluation/regression.",
+        "evidence_refs": [
+          "financial_writing_agent/runtime_service.py#record_writing_learning_sample",
+          "financial_writing_agent/quality_regression.py",
+          "skills/financial-writing-agent/references/maintenance.md"
+        ]
+      }
+    },
     "hook_bindings": {
       "durable_task_state_location": "financial_writing_agent.store.SQLiteStateStore at FINANCIAL_WRITING_DB for authoritative WritingState; continuity/tasks/financial-writing-main is workspace recovery metadata, not per-article runtime state",
       "authoritative_business_evidence_classes": "persisted WritingState research/gates/trace/learning evidence plus hash-bound publication Word artifacts, audit Word, render/mechanical evidence and explicit knowledge-writeback receipts",
@@ -55,7 +85,7 @@
     }
   },
   "methodology_assurance": {
-    "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__OWNER_REGRESSION_PASS",
+    "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__OWNER_REGRESSION_PASS__APPLICABILITY_EVIDENCE_RECORDED",
     "operational_status": "ACTION_LEVEL_PROFILE_ACTIVATION_AND_INDEPENDENT_EVIDENCE_RECEIPT_NOT_YET_PROVEN",
     "owner_regression_evidence": {
       "validated_behavioral_head": "07a05bf2dc93db25b9514f3c66807bc967a3d3bf",
@@ -69,7 +99,7 @@
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
     "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
-    "boundary": "Profile declaration and owner CI are not action-level operational proof. A concrete article run must still expose event-activated profile runs and independently verifiable evidence before Universal may claim operational methodology conformance. Owner regression also does not prove prose quality improved; blind pairwise live evidence remains required."
+    "boundary": "Profile declaration, applicability evidence and owner CI are not action-level operational proof. A concrete article run must still expose event-activated profile runs and independently verifiable evidence before Universal may claim operational methodology conformance. Owner regression also does not prove prose quality improved; blind pairwise live evidence remains required."
   },
   "universal_policy_refs": [
     "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
