@@ -44,6 +44,20 @@ If scope is `NOT_MATERIAL`, do not force market-selection language into the arti
 
 FINANCE_DEEP may compress repetition, textbook background, synonym restatement and immaterial detail. It must not omit a material analytical branch or MATERIAL company merely for brevity or elegance.
 
+## Company comparison decision map — useful without becoming a buy list
+A multi-company finance article is incomplete if it names every company but never resolves **how the companies differ economically**. When company choice is a material reader question, build a comparison map before the conclusion.
+
+Use evidence-bounded dimensions such as:
+- **order visibility** — how much current demand is already visible in orders/contracts;
+- **realization speed** — how quickly orders can plausibly move into delivery, revenue or cash flow;
+- **earnings sensitivity** — how strongly project acceleration/slowdown changes utilization, margin or profit;
+- **overseas exposure** — whether export/customer/project routes are already validated rather than merely possible;
+- **technology optionality** — whether a newer technical route is already commercial, still demonstration-stage, or only a future option.
+
+The map may state a **research order, evidence hierarchy, “current vs later”, “visibility vs sensitivity”, or what would change the ranking**. It must not translate those dimensions into “买谁/卖谁”, entry timing, target price, position sizing, “首选/上车/重点配置” language, or euphemisms whose practical purpose is to evade the same boundary.
+
+The intended reader takeaway is: *which operating thesis is more or less evidenced right now, and what evidence would move a company between buckets*. It is not a covert stock recommendation.
+
 ## Stock-grounded validation / monitoring sections
 When a Deep section tells the reader **what to watch, validate, falsify, track, or wait for next**, do not detach the checklist from the stock universe.
 
@@ -59,6 +73,8 @@ A generic final checklist such as “看招标、看交付、看收入” after 
 FINANCE_BROAD may select one to three `core_contradictions` / information gaps and declare compression candidates to reduce first-read cost.
 
 Selective expression does not relax evidence standards. Every retained conclusion needs the facts, causal chain, important counterevidence and uncertainty boundary required to support it.
+
+For multi-company topics, Broad may compress the detailed ledger, but it should still leave a simple, truthful differentiation such as “current order visibility / operating elasticity / overseas evidence / longer-term option” so the reader does not leave with an undifferentiated stock basket.
 
 If it retains a market-selection explanation, preserve the applicable evidence grade and key counterevidence.
 
@@ -81,6 +97,7 @@ Editorial checks section-level architecture:
 - important counterevidence is placed where it can genuinely affect interpretation;
 - scope changes are explicit rather than abrupt;
 - each major section has a distinct analytical job;
+- **each major section leaves an earned reason for the next one**—cause, consequence, comparison, chronology, narrowing, correction or inference rather than an abrupt topic reset;
 - Deep company coverage can be traced from the research ledger into the section plan.
 
 Detailed paragraph-to-paragraph **argument progression** belongs to `style.md`. Whether H1s/transitions provide enough motivation to continue reading belongs to `hooks.md`. Do not triple-count the same defect.
@@ -101,7 +118,7 @@ FINANCE_DEEP compression cannot remove a branch/company that could change judgme
 ## Reader Funnel / Hook handoff
 Load `hooks.md` for title/opening/H1/continuation/completion design. Editorial supplies the material and macro architecture; Reader Funnel judges qualified reader value and forward pull.
 
-Formal modes generate 8–12 genuinely different title candidates from supported reader-value propositions. A valid pool must represent multiple strategy families, not one rhetorical mold with synonyms. Broader-finance relevance is optional when genuinely useful.
+Formal modes generate 8–12 genuinely different title candidates from supported reader-value propositions. A valid pool must represent multiple strategy families, not one rhetorical mold with synonyms. For `FINANCE_BROAD`, the article should normally expose a non-niche financial stake so a cold finance reader does not need prior sector interest. Broader unrelated macro relevance remains optional.
 
 ## Natural Authorial Prose handoff
 Load `style.md` for fidelity, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, natural structural rhythm, template control and calibrated rhetoric.
@@ -112,15 +129,16 @@ Do not use “去AI味” as a separate editorial objective. Repeated staging ph
 Editorial helps identify which facts/numbers/judgments deserve explicit emphasis, but Word mechanics belong to Delivery. The final **title + H1s + explicit bold anchors** should recover the main line without blanket entity bolding.
 
 ## Risk section
-The writer returns `risk_disclaimer`; deterministic delivery appends it. Do not place a duplicate risk/disclaimer H1 inside article blocks.
+The writer returns `risk_disclaimer`; deterministic delivery appends it as the final inline italic `风险提示：...` paragraph. Do not place a duplicate risk/disclaimer H1 inside article blocks.
 
 ## General editorial judge
 General editorial audit is independent from Reader Funnel and Natural Authorial Prose. It checks:
 - evidence/mode contract;
 - FINANCE_DEEP material and company-universe completeness or FINANCE_BROAD legal compression;
 - stock-grounded validation/monitoring sections;
+- company-comparison decision usefulness without covert recommendation language;
 - Market Explanation discipline when scope is REQUIRED;
-- macro structural coherence and visible numbered navigation when branching;
+- macro structural coherence, earned major-section bridges and visible numbered navigation when branching;
 - information density;
 - skim-path substance;
 - compliance and risk boundaries.
