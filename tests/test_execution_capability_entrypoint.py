@@ -119,6 +119,8 @@ def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_at
     assert "record_learning_evolution_receipt" in server
     assert "record_artifact_io_receipt" in server
     assert "methodology_profile_runs" in server
+    assert "run_semantic_audit_stage" in server
+    assert "_reject_unverified_semantic_pass" in server
     assert 'RECEIPT_CONTRACT_VERSION = "1.3"' in receipt_runtime
     assert '"action_binding": {' in receipt_runtime
     assert '"task_id": state.contract.task_id' in receipt_runtime
@@ -131,8 +133,8 @@ def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_at
     assert 'receipt_contract_version: Literal["1.3"]' in contracts
     assert "class MethodologyActionBindingSummary" in contracts
     assert "action_binding: MethodologyActionBindingSummary" in contracts
-    assert "Financial Writing v0.7 is Word-only" in server
-    assert "Financial Writing v0.6 is Word-only" not in server
+    assert "Financial Writing v0.8 is Word-only" in server
+    assert "Financial Writing v0.7 is Word-only" not in server
     assert "operational conformance" in server
     assert "universal_independent_evidence_ref_verifier_for_operational_pass" in receipt_capability["required_tools"]
     assert "universal_independent_hook_assessment_verifier_for_operational_pass" in receipt_capability["required_tools"]
