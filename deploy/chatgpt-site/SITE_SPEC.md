@@ -1,7 +1,7 @@
-# ChatGPT Site deployment specification — Financial Writing Agent v0.4
+# ChatGPT Site deployment specification — Financial Writing Agent v0.5
 
 ## Goal
-Deploy the current Financial Writing Agent v0.4 as a fresh private Site-backed MCP runtime. The deployment must implement the current repository contract directly; it must not revive removed compatibility surfaces.
+Deploy the current Financial Writing Agent v0.5 as a fresh private Site-backed MCP runtime. The deployment must implement the current repository contract directly; it must not revive removed compatibility surfaces or obsolete v0.4 reader/style schemas.
 
 ## Security boundary
 This is **personal/private deployment only**.
@@ -14,8 +14,8 @@ This is **personal/private deployment only**.
 Invalid transitions or failed mandatory dependencies route to `BLOCKED`; never silently fall back to free-form writing.
 
 At `EDITORIAL_AUDIT`, the runtime must enforce three independent semantic decisions:
-1. Hook Gate;
-2. Natural Authorial Prose Gate;
+1. Reader Funnel / Hook Gate;
+2. Natural Authorial Prose / Writing DNA Gate;
 3. general editorial audit.
 
 ## Responsibility split
@@ -79,31 +79,39 @@ Expose exactly these 15 tools:
 
 Every public tool must have a concrete input contract, concrete structured output schema, accurate annotations, a human-readable title and an operational description. Unknown stage-payload fields fail closed.
 
-## Hook Gate
+## Reader Funnel / Hook Gate
 Require independent evidence for:
-- cross-finance title clickability;
-- current WeChat search-intent consideration with real evidence references;
+- audience-promise fit;
+- headline information value;
+- curiosity/concreteness balance;
+- current WeChat search discoverability with real evidence references;
 - first-three-complete-sentence retention;
-- H1 continuation power;
-- paragraph forward pull;
+- continuation flow across H1s and paragraph transitions;
+- completion payoff;
 - title/opening payoff.
 
-## Natural Authorial Prose Gate
-Require the 12-part rubric:
-- template fingerprint;
-- discourse variability;
-- semantic progression;
-- transition continuity;
-- repetition control;
-- rhythm naturalness;
-- concrete evidence density;
-- reader modeling;
-- narrative flow;
-- authorial specificity;
-- uncertainty calibration;
-- extreme-language control.
+Cross-industry finance relevance is optional and mode-sensitive. It can widen `FINANCE_BROAD` when genuinely material, but it is not a universal title requirement. `FINANCE_DEEP` prioritizes qualified-reader fit and truthful payoff.
+
+Headline candidates must record target reader, target-reader click reason, promised payoff and current search evidence. Question headlines are not presumed superior.
+
+## Natural Authorial Prose / Writing DNA Gate
+Require the consolidated nine-part rubric:
+- fidelity and responsibility;
+- semantic contribution;
+- argument progression;
+- reader calibration;
+- authorial selectivity;
+- evidence specificity;
+- structural/rhythm naturalness;
+- template/redundancy control;
+- uncertainty/rhetoric calibration.
 
 Do not optimize for detector evasion.
+
+Writing DNA rules use provenance: explicit durable user instructions outrank repeated patterns; repeated accepted changes/corpus evidence can support promotion; one-off edits and external skill rules remain candidates until independently supported.
+
+## Reader evidence policy
+Audience demographics are readability priors, not sophistication labels. Device-price signals or generic age heuristics must not become hard writing assumptions without observed account behavior. When available, the user's account-level click/search/completion and repeated feedback data outrank generic demographic advice.
 
 ## Word contract
 The deterministic Word layer must enforce:
@@ -121,25 +129,26 @@ The deterministic Word layer must enforce:
 Typography drift is a Mechanical Hard Fail.
 
 ## QA invalidation
-Any change after PASS invalidates affected downstream gates. Title changes invalidate draft and downstream QA; draft changes invalidate Hook, prose, editorial, delivery, mechanical and final audit; material fact/market-explanation changes invalidate affected evidence and downstream judgments.
+Any change after PASS invalidates affected downstream gates. Title changes invalidate draft and downstream QA; draft changes invalidate Reader Funnel, authorial prose, editorial, delivery, mechanical and final audit; material fact/market-explanation changes invalidate affected evidence and downstream judgments.
 
 ## Promotion validation
 Do not call a new Site production-ready until all are true:
 1. intended writing requests activate and unrelated standalone stock-picking/review requests do not;
-2. all 15 typed v0.4 tools are discoverable from a fresh conversation;
+2. all 15 typed v0.5 tools are discoverable from a fresh conversation;
 3. only the Word resource template is exposed;
 4. start persists durable state outside ephemeral process storage;
 5. fresh conversation and runtime restart recover the same unfinished task;
 6. illegal stages and unknown fields fail closed;
 7. FINANCE_DEEP material completeness and FINANCE_BROAD selective compression are enforced;
 8. market-explanation schema and causal-confidence ladder are enforced;
-9. Hook Gate and 12-part Natural Authorial Prose Gate independently gate editorial PASS;
-10. revisions invalidate stale downstream QA;
-11. Word QA verifies exact typography, zero tables, numbering, bold skim anchors, disclaimer and renderability;
-12. Word artifact resources remain readable from a fresh conversation after restart;
-13. final semantic audit gates COMPLETE and returns audit Word plus visible chat checklist;
-14. one user-authorized real-article E2E includes deliberate interruption/recovery;
-15. public/multi-user sharing remains disabled.
+9. Reader Funnel Gate and nine-part Natural Authorial Prose / Writing DNA Gate independently gate editorial PASS;
+10. headline schema accepts qualified sector-specific titles without forcing cross-industry relevance;
+11. revisions invalidate stale downstream QA;
+12. Word QA verifies exact typography, zero tables, numbering, bold skim anchors, disclaimer and renderability;
+13. Word artifact resources remain readable from a fresh conversation after restart;
+14. final semantic audit gates COMPLETE and returns audit Word plus visible chat checklist;
+15. one user-authorized real-article E2E includes deliberate interruption/recovery;
+16. public/multi-user sharing remains disabled.
 
 ## Canonical source
 Repository: `D1traverser-debug/financial-writing-agent`
