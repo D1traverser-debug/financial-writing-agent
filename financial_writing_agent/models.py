@@ -52,11 +52,22 @@ class ArtifactKind(str, Enum):
     AUDIT_DOCX = "AUDIT_DOCX"
 
 
+SEMANTIC_PASS_GATES = frozenset({
+    "research_audit",
+    "hook_audit",
+    "style_audit",
+    "editorial_audit",
+    "final_audit",
+})
+SEMANTIC_EXECUTION_RECEIPTS_KEY = "_semantic_execution_receipts"
+
+
 class GateRecord(BaseModel):
     name: str
     status: GateStatus = GateStatus.NOT_RUN
     evidence: list[str] = Field(default_factory=list)
     notes: str = ""
+    execution_proof_ref: str | None = None
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
 
@@ -116,8 +127,68 @@ class WritingState(BaseModel):
         self.trace.append(TraceEvent(seq=len(self.trace) + 1, stage=self.stage, event=event, detail=detail))
         self.updated_at = datetime.now(timezone.utc)
 
-    def set_gate(self, name: str, status: GateStatus, evidence: list[str] | None = None, notes: str = "") -> None:
-        self.gates[name] = GateRecord(name=name, status=status, evidence=evidence or [], notes=notes)
+    def semantic_execution_proof_valid(self, execution_proof_ref: str | None) -> bool:
+        if not execution_proof_ref:
+            return False
+        receipts = self.working.get(SEMANTIC_EXECUTION_RECEIPTS_KEY)
+        if not isinstance(receipts, dict):
+            return False
+        receipt = receipts.get(execution_proof_ref)
+        if not isinstance(receipt, dict):
+            return False
+        return (
+            receipt.get("execution_ref") == execution_proof_ref
+            and receipt.get("task_id") == self.contract.task_id
+            and receipt.get("stage") == self.stage.value
+            and receipt.get("status") == "OWNER_RUNTIME_EXECUTED"
+            and receipt.get("assurance") == "STAGE_SEPARATED_OWNER_RUNTIME"
+        )
+
+    def semantic_gate_proof_valid(self, name: str) -> bool:
+        gate = self.gates.get(name)
+        if gate is None or gate.status != GateStatus.PASS:
+            return False
+        proof_ref = gate.execution_proof_ref
+        if not proof_ref:
+            return False
+        receipts = self.working.get(SEMANTIC_EXECUTION_RECEIPTS_KEY)
+        if not isinstance(receipts, dict):
+            return False
+        receipt = receipts.get(proof_ref)
+        if not isinstance(receipt, dict):
+            return False
+        return (
+            receipt.get("execution_ref") == proof_ref
+            and receipt.get("task_id") == self.contract.task_id
+            and receipt.get("status") == "OWNER_RUNTIME_EXECUTED"
+            and receipt.get("assurance") == "STAGE_SEPARATED_OWNER_RUNTIME"
+            and receipt.get("gate_name") == name
+        )
+
+    def set_gate(
+        self,
+        name: str,
+        status: GateStatus,
+        evidence: list[str] | None = None,
+        notes: str = "",
+        *,
+        execution_proof_ref: str | None = None,
+    ) -> None:
+        if name in SEMANTIC_PASS_GATES and status == GateStatus.PASS:
+            if not self.semantic_execution_proof_valid(execution_proof_ref):
+                raise ValueError(f"semantic gate {name} PASS requires a current owner-runtime execution proof")
+            receipt = self.working[SEMANTIC_EXECUTION_RECEIPTS_KEY][execution_proof_ref]
+            if receipt.get("gate_name") != name:
+                raise ValueError(
+                    f"semantic gate proof mismatch: proof={receipt.get('gate_name')} gate={name}"
+                )
+        self.gates[name] = GateRecord(
+            name=name,
+            status=status,
+            evidence=evidence or [],
+            notes=notes,
+            execution_proof_ref=execution_proof_ref,
+        )
         self.updated_at = datetime.now(timezone.utc)
 
     def add_artifact(self, kind: ArtifactKind, path: str) -> None:
