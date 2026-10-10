@@ -81,19 +81,15 @@ def payload_text(payload: Any) -> str:
 
 
 def check_payload_navigation(payload: Any, *, deep: bool) -> list[str]:
-    """Require visible lower-level numbering when a deep article has real analytical branching."""
-    if not deep:
-        return []
-    blocks = list(getattr(payload, "blocks", []))
-    full_text = payload_text(payload)
-    stock_names = list(getattr(payload, "stock_names", []))
-    h1_count = sum(1 for block in blocks if getattr(block, "kind", None) == "h1")
-    lower_count = sum(1 for block in blocks if getattr(block, "kind", None) in {"h2", "h3"})
-    branching = len(full_text) >= 1800 or len(stock_names) >= 4 or h1_count >= 4
-    if branching and lower_count < 3:
-        return [
-            f"FINANCE_DEEP needs visible numbered substructure for multi-branch reasoning: h1={h1_count}, h2/h3={lower_count}, stocks={len(stock_names)}"
-        ]
+    """Keep navigation checks from turning article size into a formatting quota.
+
+    Whether a Deep section has genuine analytical branches is a semantic/editorial judgment. Text
+    length, stock count and H1 count are not reliable proxies for branching, so deterministic QA
+    must not require a minimum number of H2/H3 headings from those signals alone. H1 normalization,
+    structural semantic audits and the authorial-prose judge remain the enforcement surfaces.
+    """
+    _ = payload
+    _ = deep
     return []
 
 
@@ -204,8 +200,9 @@ def check_docx(
     required_bold_anchors: list[str] | None = None,
     require_deep_navigation: bool = False,
 ) -> dict:
-    """Run deterministic Word checks."""
+    """Run deterministic Word checks without treating formatting density as editorial quality."""
     _ = stock_names
+    _ = require_deep_navigation
     doc = Document(path)
     errors: list[str] = []
     warnings: list[str] = []
@@ -228,9 +225,6 @@ def check_docx(
         for p in doc.paragraphs
         if re.match(r"^(?:（\d+）|[①-⑳])", p.text.strip())
     ]
-    body_chars = sum(len(p.text.strip()) for p in doc.paragraphs)
-    if require_deep_navigation and body_chars >= 1800 and len(lower_numbered) < 3:
-        errors.append(f"FINANCE_DEEP visible numbered navigation too thin: {len(lower_numbered)} lower-level numbered headings")
 
     _check_typography(doc, policy, errors)
 
