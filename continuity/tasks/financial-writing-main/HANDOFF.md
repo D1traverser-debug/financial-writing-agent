@@ -12,9 +12,9 @@
 - writing_rule_authority: `D1traverser-debug/financial-writing-agent@main`
 
 ## Current validated system state
-The owner remains on Financial Writing v0.7 and is bound to Universal Continuity v3.7 methodology profiles `artifact_io@1.0`, `operational_hygiene@1.0` and `evolution@1.0` through thin owner-local bindings; shared Universal prose is not copied into the writing owner.
+Receipt-contract-1.2 and semantic-verification hardening is validated at behavioral head `8570aa4678fabb81ff8ed711a63b226d4a14a21f`. GitHub Actions run `38066620015`, job `114255450783`, passed the OpenAI Agents SDK surface smoke, MCP Streamable HTTP smoke, unit/trajectory suite, executable contract eval baseline, static ownership/bundle audit, isolated wheel install and DOCX render smoke.
 
-The latest receipt-contract-1.2 and semantic-verification hardening requires a fresh final CI result before this handoff may claim a new validated behavioral head. Historical full-green evidence remains GitHub Actions run `38065739293` at head `2a8a0e6ab81e3f2d24d6f38f28b867ca0893b486`; do not substitute that historical run for validation of later 1.2 commits.
+The owner remains on Financial Writing v0.7 and is bound to Universal Continuity v3.7 methodology profiles `artifact_io@1.0`, `operational_hygiene@1.0` and `evolution@1.0` through thin owner-local bindings; shared Universal prose is not copied into the writing owner.
 
 ## Reliability / evolution state
 The 2026-10-10 offshore-wind rejection is a complete FINANCE_DEEP regression case. A different-topic historical rutile article is retained as FINANCE_DEEP held-out evidence, not as user acceptance or personalized taste.
@@ -53,6 +53,7 @@ If claiming a system quality improvement, scope the claim to the content mode ac
 - `skills/financial-writing-agent/SKILL.md`
 - `references/maintenance.md`
 - `evals/quality_regression.json`
+- `evals/SYSTEM_EVOLUTION_AUDIT_2026-10-10.md`
 - `financial_writing_agent/quality_regression.py`
 - `financial_writing_agent/methodology_receipts.py`
 - `continuity/UNIVERSAL_PROTOCOL_ADAPTER.json`
