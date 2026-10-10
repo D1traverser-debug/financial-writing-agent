@@ -124,7 +124,7 @@ Treat click-through, reader profile, title/opening, continuation and completion 
 
 Audit audience-promise fit, headline information value, curiosity/concreteness balance, **headline strategy diversity**, current WeChat search discoverability/evidence, first three complete sentences, H1/paragraph continuation value, completion payoff and title/opening payoff.
 
-Cross-industry finance appeal remains optional; do not bolt unrelated macro themes onto a sector story. But `FINANCE_BROAD` must pass a **cold-reader test**: a finance reader with no prior sector interest should still understand from the title why the event may matter to money, profits, company differentiation or capital allocation.
+Cross-industry finance appeal is **not a universal hard requirement**; do not bolt unrelated macro themes onto a sector story. But `FINANCE_BROAD` must pass a **cold-reader test**: a finance reader with no prior sector interest should still understand from the title why the event may matter to money, profits, company differentiation or capital allocation. This cold-reader financial stake is narrower and more relevant than forcing unrelated cross-industry appeal.
 
 Generate 8–12 genuinely different title candidates per applicable mode. Every candidate records an `angle_family`; the pool must contain at least five genuinely distinct supported families such as hard fact, profit/orders, supply-demand, company divergence, policy transmission, expectation gap, valuation/capital, global comparison, validation/risk, or market selection when applicable.
 
