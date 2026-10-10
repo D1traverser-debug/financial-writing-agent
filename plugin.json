@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "financial-writing-agent",
-  "version": "0.3.0",
-  "description": "Deterministic A-share financial writing runtime with material-complete finance analysis, traffic-mode adaptation, dedicated hook and human-voice audits, bold skim-path QA, Word-only delivery, durable checkpoints and auditable completion.",
+  "version": "0.6.0",
+  "description": "Deterministic A-share financial-writing runtime with material-complete analysis, explicit-scope market explanation, recoverable checkpoints, Reader Funnel and Natural Authorial Prose/Writing DNA audits, raw learning evidence, and auditable Word-only delivery.",
   "repository": "https://github.com/D1traverser-debug/financial-writing-agent",
   "keywords": [
     "financial-writing",
@@ -12,6 +12,7 @@
     "mcp",
     "docx",
     "wechat-search",
-    "hook-audit"
+    "reader-funnel",
+    "writing-dna"
   ]
 }
