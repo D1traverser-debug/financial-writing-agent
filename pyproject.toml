@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "financial-writing-agent"
-version = "0.6.0"
+version = "0.7.0"
 description = "Deterministic A-share financial-writing runtime with material-complete finance analysis, explicit-scope market explanation, recoverable workflow state, Reader Funnel and Writing DNA audits, and auditable Word delivery."
 requires-python = ">=3.11"
 dependencies = [
