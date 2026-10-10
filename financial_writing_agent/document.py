@@ -22,7 +22,12 @@ class ArticleDocument(BaseModel):
     stock_names: list[str] = Field(default_factory=list)
 
 
-def _split_bold(text: str, stock_names: list[str]):
+def _split_bold(text: str):
+    """Parse only explicit **...** emphasis.
+
+    Company names are not automatically bolded. Emphasis is a semantic skim-path
+    decision owned by the draft rather than a blanket entity-formatting rule.
+    """
     parts = re.split(r"(\*\*.*?\*\*)", text)
     out: list[tuple[str, bool]] = []
     for part in parts:
@@ -30,16 +35,7 @@ def _split_bold(text: str, stock_names: list[str]):
             continue
         explicit = part.startswith("**") and part.endswith("**")
         raw = part[2:-2] if explicit else part
-        if explicit:
-            out.append((raw, True))
-            continue
-        if not stock_names:
-            out.append((raw, False))
-            continue
-        pattern = "(" + "|".join(re.escape(x) for x in sorted(stock_names, key=len, reverse=True)) + ")"
-        for token in re.split(pattern, raw):
-            if token:
-                out.append((token, token in stock_names))
+        out.append((raw, explicit))
     return out
 
 
@@ -108,7 +104,7 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
             h2 = h3 = 0
             render_text = _heading_label("h1", block.text, h1, h2, h3)
             p = doc.add_paragraph(style="Heading 1")
-            for text, _ in _split_bold(render_text, article.stock_names):
+            for text, _ in _split_bold(render_text):
                 run = p.add_run(text)
                 run.bold = True
                 run.font.size = Pt(policy["word"]["h1_pt"])
@@ -119,7 +115,7 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
             h3 = 0
             render_text = _heading_label("h2", block.text, h1, h2, h3)
             p = doc.add_paragraph(style="Normal")
-            for text, _ in _split_bold(render_text, article.stock_names):
+            for text, _ in _split_bold(render_text):
                 run = p.add_run(text)
                 run.bold = True
                 run.font.size = Pt(policy["word"]["h2_pt"])
@@ -128,14 +124,14 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
             h3 += 1
             render_text = _heading_label("h3", block.text, h1, h2, h3)
             p = doc.add_paragraph(style="Normal")
-            for text, _ in _split_bold(render_text, article.stock_names):
+            for text, _ in _split_bold(render_text):
                 run = p.add_run(text)
                 run.bold = True
                 run.font.size = Pt(policy["word"]["h3_pt"])
                 _set_cn_font(run)
         else:
             p = doc.add_paragraph(style="Normal")
-            for text, bold in _split_bold(render_text, article.stock_names):
+            for text, bold in _split_bold(render_text):
                 run = p.add_run(text)
                 run.bold = bool(bold)
                 run.font.size = Pt(policy["word"]["body_pt"])
