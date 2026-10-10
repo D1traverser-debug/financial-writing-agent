@@ -80,7 +80,8 @@ mcp = MCPServer(
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones, start runtime state before research, and never skip a gate. "
-        "Financial Writing v0.5 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
+        "Financial Writing v0.6 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
+        "BLOCKED tasks preserve an explicit recovery cursor and must be resumed with resume_blocked_task after the blocker is repaired. "
         "The model owns research, writing and semantic audits; the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
     ),
 )
@@ -104,7 +105,7 @@ def start_writing_task(
 
 @mcp.tool(title="Get writing task", annotations=READ_ONLY_TOOL, structured_output=True)
 def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annotated[bool, Field(description="Return gates and publication artifact resources when true.")] = True) -> WritingTaskSummary:
-    """Read one exact persisted financial-writing task, including its current legal stage and optional gate evidence and Word artifact resources, without mutating runtime state."""
+    """Read one exact persisted financial-writing task, including its legal stage, blocked recovery cursor, optional gate evidence and Word artifact resources, without mutating runtime state."""
     return _summary(impl.get_writing_task(task_id, detail=detail))
 
 
@@ -112,6 +113,12 @@ def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annot
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50)] = 10, include_complete: bool = False) -> WritingTaskList:
     """List recent persisted writing tasks for reliable continuation so callers avoid duplicate workflows and recover unfinished work without asking the user to repeat saved context."""
     return WritingTaskList(tasks=[_summary(item) for item in impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)])
+
+
+@mcp.tool(title="Resume blocked writing task", annotations=STATE_WRITE_TOOL, structured_output=True)
+def resume_blocked_task(task_id: Annotated[str, Field(min_length=1)]) -> WritingTaskSummary:
+    """Resume a BLOCKED writing task from its persisted recovery cursor after the external dependency or contract defect that caused the block has been repaired; never guesses a new stage."""
+    return _summary(impl.resume_blocked_task(task_id))
 
 
 @mcp.tool(title="Record retrieved knowledge context", annotations=STATE_WRITE_TOOL, structured_output=True)
@@ -122,13 +129,13 @@ def record_knowledge_context(task_id: Annotated[str, Field(min_length=1)], refs:
 
 @mcp.tool(title="Submit research package", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research(task_id: Annotated[str, Field(min_length=1)], research: ResearchPackage) -> WritingTaskSummary:
-    """Validate and freeze the bounded ResearchPackage, including evidence, company universe, counterevidence, repeated-sweep coverage and multi-hypothesis market explanation when applicable."""
+    """Validate and freeze the bounded ResearchPackage, including evidence, company universe, explicit market-explanation activation scope, counterevidence and repeated-sweep coverage."""
     return _summary(impl.submit_research(task_id, research.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit research audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_research_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record an independent research-audit verdict; PASS advances while REVISE returns to research, preventing unsupported or incomplete evidence bases from reaching editorial work."""
+    """Record an independent research-audit verdict; PASS advances while REVISE or recoverable FAIL points back to research, preventing unsupported evidence bases from reaching editorial work."""
     return _summary(impl.submit_research_audit(task_id, decision.model_dump(mode="json")))
 
 
@@ -152,25 +159,25 @@ def submit_draft(task_id: Annotated[str, Field(min_length=1)], draft: DraftPacka
 
 @mcp.tool(title="Submit reader funnel audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_hook_audit(task_id: Annotated[str, Field(min_length=1)], report: HookAuditDecision) -> WritingTaskSummary:
-    """Record the independent Reader Funnel Gate over audience-promise fit, headline information and curiosity balance, search discoverability, first-three-sentence retention, continuation flow, completion payoff and title-opening payoff."""
+    """Record the independent Reader Funnel Gate over audience-promise fit, headline information and curiosity balance, search discoverability, first-screen retention, continuation, completion payoff and title-opening payoff; REVISE routes immediately to its declared target."""
     return _summary(impl.submit_hook_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit authorial prose audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_style_audit(task_id: Annotated[str, Field(min_length=1)], report: StyleAuditDecision) -> WritingTaskSummary:
-    """Record the independent nine-part Natural Authorial Prose / Writing DNA Gate covering fidelity, semantic contribution, argument progression, reader calibration, selectivity, evidence specificity, natural structure/rhythm, template control and calibrated rhetoric."""
+    """Record the independent nine-part Natural Authorial Prose / Writing DNA Gate covering fidelity, semantic contribution, argument progression, reader calibration, selectivity, evidence specificity, natural structure/rhythm, template control and calibrated rhetoric; REVISE returns to draft."""
     return _summary(impl.submit_style_audit(task_id, report.model_dump(mode="json")))
 
 
 @mcp.tool(title="Submit editorial audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_editorial_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> WritingTaskSummary:
-    """Record the general semantic editorial verdict after Reader Funnel and authorial-prose gates pass, checking evidence, mode-specific completeness, market explanation, reasoning, skim path and compliance."""
+    """Record the general semantic editorial verdict after Reader Funnel and authorial-prose gates pass; revisions may route back to research, editorial planning, title or draft according to the evidenced defect."""
     return _summary(impl.submit_editorial_audit(task_id, decision.model_dump(mode="json")))
 
 
 @mcp.tool(title="Build and mechanically audit delivery", annotations=STATE_WRITE_TOOL, structured_output=True)
 def build_and_mechanically_audit_delivery(task_id: Annotated[str, Field(min_length=1)]) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Build required Word artifacts and run deterministic checks for numbering, exact typography, zero tables, bold skim anchors, company bolding, disclaimer, red-line phrases and renderability."""
+    """Build required Word artifacts and run deterministic checks for required files, numbering, exact typography, zero tables, bold skim anchors, company bolding, disclaimer, red-line phrases and renderability."""
     return _result_with_artifacts(_summary(impl.build_and_mechanically_audit_delivery(task_id)))
 
 
@@ -182,7 +189,7 @@ def record_knowledge_writeback(task_id: Annotated[str, Field(min_length=1)], sta
 
 @mcp.tool(title="Submit final audit", annotations=STATE_WRITE_TOOL, structured_output=True)
 def submit_final_audit(task_id: Annotated[str, Field(min_length=1)], decision: GateDecision) -> Annotated[CallToolResult, WritingTaskSummary]:
-    """Record the final independent red-team verdict after semantic, mechanical, risk and knowledge gates; a valid PASS builds the audit Word artifact and permits completion only when required outputs exist."""
+    """Record the final independent red-team verdict after semantic, mechanical, risk and knowledge gates; revisions may route back to any affected upstream writing stage and a valid PASS completes only when required outputs exist."""
     return _result_with_artifacts(_summary(impl.submit_final_audit(task_id, decision.model_dump(mode="json"))))
 
 
