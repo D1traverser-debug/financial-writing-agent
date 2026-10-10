@@ -81,16 +81,22 @@ def payload_text(payload: Any) -> str:
 
 
 def check_payload_navigation(payload: Any, *, deep: bool) -> list[str]:
-    """Keep navigation checks from turning article size into a formatting quota.
+    """Protect readability without turning article size into a numbering quota.
 
-    Whether a Deep section has genuine analytical branches is a semantic/editorial judgment. Text
-    length, stock count and H1 count are not reliable proxies for branching, so deterministic QA
-    must not require a minimum number of H2/H3 headings from those signals alone. H1 normalization,
-    structural semantic audits and the authorial-prose judge remain the enforcement surfaces.
+    Genuine branching is a semantic/editorial judgment. Deterministic QA therefore does not infer
+    H2/H3 requirements from character count, stock count or H1 count. It only rejects an extreme
+    monolithic body block that would be unreadable regardless of whether numbering is used.
     """
-    _ = payload
-    _ = deep
-    return []
+    if not deep:
+        return []
+    errors: list[str] = []
+    for index, block in enumerate(getattr(payload, "blocks", [])):
+        if getattr(block, "kind", None) != "body":
+            continue
+        text = str(getattr(block, "text", ""))
+        if len(text) >= 1400:
+            errors.append(f"FINANCE_DEEP monolithic body block requires structural rewrite: block={index}, chars={len(text)}")
+    return errors
 
 
 def check_deep_company_grounding(payload: Any, research: Any) -> list[str]:
