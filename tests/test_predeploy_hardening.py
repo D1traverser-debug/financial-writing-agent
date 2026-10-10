@@ -20,9 +20,12 @@ def _headline(title: str) -> HeadlineCandidate:
     return HeadlineCandidate(
         title=title,
         angle="事件变化",
+        target_reader="关注盈利与资产定价的财经读者",
         finance_relevance="影响盈利预期",
-        cross_finance_click_reason="价格和利润变化对跨行业资金都有估值含义",
+        target_reader_click_reason="价格和利润传导存在尚未厘清的兑现差异",
+        broader_finance_relevance="供需和利润变化具有跨行业资产定价含义",
         primary_gap="市场仍未充分区分",
+        promised_payoff="解释利润兑现与市场选择的差异",
         cognitive_load="low",
         wechat_search_terms=["行业关键词"],
         search_evidence_refs=["wechat-search-current-signal"],
@@ -71,21 +74,40 @@ def test_headline_candidates_cannot_hide_duplicates():
         )
 
 
-def test_headline_candidate_requires_current_search_evidence():
+def test_headline_candidate_requires_reader_fit_payoff_and_current_search_evidence():
     with pytest.raises(ValidationError):
         HeadlineCandidate(
             title="标题",
             angle="事件",
+            target_reader="财经读者",
             finance_relevance="利润",
-            cross_finance_click_reason="跨行业财经相关",
+            target_reader_click_reason="有未解释的利润差异",
             primary_gap="信息差",
+            promised_payoff="解释差异",
             cognitive_load="low",
             wechat_search_terms=[],
             search_evidence_refs=[],
         )
 
 
-def test_hook_audit_pass_requires_every_rubric_item_pass():
+def test_cross_industry_relevance_is_optional_not_universal_title_requirement():
+    candidate = HeadlineCandidate(
+        title="行业订单变化，利润兑现为什么分化",
+        angle="订单与利润",
+        target_reader="该行业及相关产业链财经读者",
+        finance_relevance="影响订单与利润兑现",
+        target_reader_click_reason="同一催化下公司兑现速度不同",
+        broader_finance_relevance="",
+        primary_gap="谁能更快兑现",
+        promised_payoff="区分订单、利润与验证条件",
+        cognitive_load="low",
+        wechat_search_terms=["行业订单"],
+        search_evidence_refs=["wechat-current"],
+    )
+    assert candidate.broader_finance_relevance == ""
+
+
+def test_reader_funnel_audit_pass_requires_every_rubric_item_pass():
     with pytest.raises(ValidationError):
         HookAuditDecision(
             status="PASS",
@@ -93,11 +115,13 @@ def test_hook_audit_pass_requires_every_rubric_item_pass():
             search_terms_checked=["关键词"],
             search_evidence_refs=["current-search-ref"],
             rubric={
-                "title_cross_finance_clickability": "PASS",
+                "audience_promise_fit": "PASS",
+                "headline_information_value": "PASS",
+                "headline_curiosity_balance": "PASS",
                 "title_wechat_search_intent": "PASS",
                 "opening_three_sentence_retention": "REVISE",
-                "h1_continuation_power": "PASS",
-                "paragraph_forward_pull": "PASS",
+                "continuation_flow": "PASS",
+                "completion_payoff": "PASS",
                 "title_opening_payoff": "PASS",
             },
         )
@@ -172,28 +196,25 @@ def test_market_explanation_requires_competing_hypotheses_and_epistemic_discipli
     assert package.market_explanation.hypotheses_considered[1].confidence == "PLAUSIBLE_INTERPRETATION"
 
 
-def test_authorial_prose_pass_requires_all_12_dimensions():
+def test_authorial_prose_pass_requires_all_9_dimensions():
     rubric = {
-        "template_fingerprint": "PASS",
-        "discourse_variability": "PASS",
-        "semantic_progression": "PASS",
-        "transition_continuity": "PASS",
-        "repetition_control": "PASS",
-        "rhythm_naturalness": "PASS",
-        "concrete_evidence_density": "PASS",
-        "reader_modeling": "PASS",
-        "narrative_flow": "PASS",
-        "authorial_specificity": "PASS",
-        "uncertainty_calibration": "PASS",
-        "extreme_language_control": "PASS",
+        "fidelity_and_responsibility": "PASS",
+        "semantic_contribution": "PASS",
+        "argument_progression": "PASS",
+        "reader_calibration": "PASS",
+        "authorial_selectivity": "PASS",
+        "evidence_specificity": "PASS",
+        "structural_rhythm_naturalness": "PASS",
+        "template_redundancy_control": "PASS",
+        "uncertainty_rhetoric_calibration": "PASS",
     }
-    decision = StyleAuditDecision(status="PASS", evidence=["逐段复核最终正文"], rubric=rubric)
+    decision = StyleAuditDecision(status="PASS", evidence=["逐段复核最终正文九项作者性标准"], rubric=rubric)
     assert decision.status == "PASS"
     with pytest.raises(ValidationError):
         StyleAuditDecision(
             status="PASS",
             evidence=["证据不足"],
-            rubric={**rubric, "uncertainty_calibration": "REVISE"},
+            rubric={**rubric, "uncertainty_rhetoric_calibration": "REVISE"},
         )
 
 
