@@ -1,10 +1,13 @@
 from financial_writing_agent.methodology_receipts import (
     ARTIFACT_IO_HOOKS,
     EVOLUTION_HOOKS,
+    OPERATIONAL_HYGIENE_HOOKS,
     record_artifact_io_receipt,
     record_learning_evolution_receipt,
+    record_system_impact_hygiene_receipt,
 )
 from financial_writing_agent.models import Artifact, ArtifactKind, GateRecord, GateStatus, TaskContract, WritingState
+from financial_writing_agent.system_impact import apply_system_impact_review, ensure_system_impact_signal_for_latest_sample
 
 
 def _state() -> WritingState:
@@ -23,6 +26,7 @@ def _assert_action_binding(run, state):
 def test_learning_receipt_is_action_scoped_and_cannot_self_certify():
     state = _state()
     state.working["learning_samples"] = [{"sample_type":"USER_REJECTION","summary":"用户明确拒绝当前文章质量","promotion_status":"RAW_EVIDENCE_ONLY"}]
+    signal = ensure_system_impact_signal_for_latest_sample(state)
     run = record_learning_evolution_receipt(state)
     assert run["profile_id"] == "evolution"
     assert run["profile_version"] == "1.0"
@@ -34,6 +38,54 @@ def test_learning_receipt_is_action_scoped_and_cannot_self_certify():
     assert "PASS" not in run.values()
     _assert_action_binding(run, state)
     assert run["action_binding"]["subject_bindings"]["learning_sample_ref"].endswith("/0")
+    assert run["action_binding"]["subject_bindings"]["system_impact_signal_ref"].endswith(signal["signal_id"])
+
+
+def test_system_impact_review_emits_operational_hygiene_receipt_without_self_certifying():
+    state = _state()
+    state.working["learning_samples"] = [{"sample_type":"USER_REJECTION","summary":"文章只做了局部修补","promotion_status":"RAW_EVIDENCE_ONLY"}]
+    signal = ensure_system_impact_signal_for_latest_sample(state)
+    apply_system_impact_review(
+        state,
+        signal_id=signal["signal_id"],
+        problem_statement="material feedback can be locally patched without system-level review",
+        root_cause_layer="RUNTIME_OR_SCHEMA",
+        generalization_scope="material financial-writing feedback",
+        alternatives=[
+            {"mechanism":"add another prompt reminder","failure_mode":"still declaration-only"},
+            {"mechanism":"persist owner review obligation","failure_mode":"adds one feedback cold-path action"},
+        ],
+        selected_mechanism="persist owner review obligation",
+        selection_rationale="smallest executable bridge into Universal maintenance",
+        authority_surface="WritingState + owner MCP",
+        regression_or_eval_plan=["feedback creates obligation", "systemic review creates control signal"],
+        evidence_refs=["artifact://rejected-article"],
+        decision="SYSTEM_MAINTENANCE_REQUIRED",
+        decision_reason="the defect is a repeatable execution-policy gap",
+    )
+    run = record_system_impact_hygiene_receipt(state, signal["signal_id"])
+    assert run["profile_id"] == "operational_hygiene"
+    assert run["verification_status"] == "UNVERIFIED_OWNER_RECEIPT"
+    assert set(run["hook_assessments"]) == set(OPERATIONAL_HYGIENE_HOOKS)
+    assert "observability_or_incident_evidence_location" in run["invoked_hooks"]
+    assert "self_maintenance_trigger_path" in run["invoked_hooks"]
+    assert "reliability_or_change_freeze_guard" in run["invoked_hooks"]
+    assert run["hook_assessments"]["garbage_collection_owner_and_dependency_rule"]["status"] == "NOT_APPLICABLE_FOR_ACTION"
+    _assert_action_binding(run, state)
+    assert run["action_binding"]["subject_bindings"]["control_signal_id"].startswith("fwa-")
+    assert "PASS" not in run.values()
+
+
+def test_operational_hygiene_receipt_requires_completed_review():
+    state = _state()
+    state.working["learning_samples"] = [{"sample_type":"USER_FEEDBACK","summary":"需要系统判断","promotion_status":"RAW_EVIDENCE_ONLY"}]
+    signal = ensure_system_impact_signal_for_latest_sample(state)
+    try:
+        record_system_impact_hygiene_receipt(state, signal["signal_id"])
+    except ValueError as exc:
+        assert "completed system-impact review" in str(exc)
+    else:
+        raise AssertionError("operational_hygiene receipt must not exist before review")
 
 
 def test_artifact_receipt_assesses_every_hook_and_binds_exact_inputs():
