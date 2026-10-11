@@ -6,7 +6,7 @@
   "skill": {
     "role": "ROUTER",
     "entrypoint": "skills/financial-writing-agent/SKILL.md",
-    "current_note": "Skill is currently above the Universal thin-router target and is an explicit architecture-drift candidate for progressive reduction."
+    "current_note": "Skill is a thin router; detailed research/editorial/style/delivery/maintenance semantics remain in canonical references, policy and executable runtime guards."
   },
   "runtime": {
     "runtime_type": "HYBRID",
