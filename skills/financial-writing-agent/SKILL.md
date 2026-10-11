@@ -43,16 +43,20 @@ Load only what the current stage needs:
 
 `references/*` are canonical domain semantics. Do not copy their full rules back into this Skill.
 
-## 4. Hard boundaries worth keeping hot
+## 4. Hard-boundary contract anchors
 
-Research must preserve evidence boundaries and the current audited universe; do not narrow to familiar names merely for narrative convenience. When market explanation is material, use the confidence ladder:
-`VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
+These anchors stay hot because crossing them would change product behavior; their detailed logic still belongs in references/policy/runtime:
 
-Reader Funnel rules and Natural Authorial Prose rules are owned by their references and machine checks. Cross-industry finance appeal is **not a universal hard requirement**; use only supported audience/financial relevance.
-
-Public output must never become executable buy/sell guidance. A disclaimer does not cure actionable instructions.
-
-Publication deliverables remain Word-first under the current policy; formatting, source-tail, typography, render and artifact rules are owned by `references/delivery.md` + deterministic checks, not by this router.
+- Research breadth is governed by the **Universe Coverage Ledger** with `MATERIAL / SECONDARY / REFERENCE_ONLY`; Deep preserves `company_coverage_obligations` and a company comparison decision map.
+- When market explanation is material, preserve `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
+- `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry finance appeal is **not a universal hard requirement**.
+- Headline diversity is tracked by `angle_family` rather than synonym-only shells.
+- Major H1 sections must also be **earned transitions**; detailed structure semantics live in `references/editorial.md`.
+- Natural prose uses the deterministic **template-cluster guard** before semantic judgment.
+- Do not automatically bold every company/stock-name occurrence.
+- Publication articles do not use tables; deterministic delivery enforces **zero underlines**.
+- Final disclaimer remains one inline italic paragraph beginning `风险提示：`.
+- Public output must never become executable buy/sell guidance. A disclaimer does not cure actionable instructions.
 
 ## 5. Learning and maintenance
 
