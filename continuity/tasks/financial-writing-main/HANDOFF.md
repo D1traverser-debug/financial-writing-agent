@@ -8,51 +8,62 @@
 - owner: FINANCIAL_WRITING_AGENT_RUNTIME
 - current_stage: `READY_FOR_NEW_OR_EXPLICIT_ARTICLE`
 - continuity_contract: `CONTINUITY_V3_7`
-- writing_contract: `Financial Writing Agent v0.8`
+- writing_contract: `Financial Writing Agent v0.8.1`
 - writing_rule_authority: `D1traverser-debug/financial-writing-agent@main`
 
-## Current validated system state
-The owner runtime is v0.8 with 18 typed MCP tools, Word-only delivery and proof-bearing owner-runtime semantic audit certification. `RESEARCH_AUDIT`, `EDITORIAL_AUDIT` and `FINAL_AUDIT` semantic PASS must use `run_semantic_audit_stage`; the `submit_*audit` family is conservative CHAT_BRIDGED REVISE/FAIL-only and cannot self-certify PASS.
+## Current validated / pending system state
+The owner runtime remains Word-only with proof-bearing owner-runtime semantic audit certification. `RESEARCH_AUDIT`, `EDITORIAL_AUDIT` and `FINAL_AUDIT` semantic PASS still require `run_semantic_audit_stage`; the `submit_*audit` family remains conservative CHAT_BRIDGED REVISE/FAIL-only.
 
-The 2026-10-11 system-hygiene audit is regression-verified on behavioral head `dd7114beadc6741f8b998d4978c7208d45e7c16d`, GitHub Actions run `38087767904`, job `114317766154`. SDK smoke, MCP smoke, unit/trajectory tests, executable contract evals, static rule/reference audit, isolated wheel install and DOCX render smoke all passed.
+The prior system-hygiene baseline was regression-verified, but the new v0.8.1 material-feedback system-impact escalation path is **currently wired and awaiting fresh owner CI validation**. Do not call the new path regression-verified until the current head completes the full owner workflow.
 
-## Harness / pollution repairs now validated
-- Continuity recovery metadata is aligned to v0.8, capability profile v8 and methodology receipt contract `1.3` instead of stale v0.7/1.2 wording.
-- Semantic gate invalidation clears same-name working payloads, preventing invalidated audit payloads from surviving as stale proof material.
-- Semantic runtime proof requires an ordered `EXECUTOR_START → EXECUTOR_END` pair after the latest stage entry.
-- Runtime `next_action` routes semantic PASS through `run_semantic_audit_stage` instead of obsolete `submit_*audit` PASS instructions.
-- Test-only `financial_writing_agent/adapters/mock.py` has been removed from the production package; wheel smoke fails if it reappears.
-- `continuity/AGENT_MANIFEST.json` is now part of hygiene regression: it declares the same business owner, Skill entrypoint and engine/controller transition authority rather than a second control plane.
+## Confirmed defect that triggered v0.8.1
+Universal and owner maintenance authority already required a first-occurrence material correction to receive a system-impact review and required existing-rule execution gaps to be treated as runtime/trajectory defects. However, the live owner action contract for `record_writing_learning_sample` previously persisted only a raw learning sample plus an evolution receipt. It did not create a durable review obligation, did not require mechanism comparison/failure-mode analysis, and `operational_hygiene` had no article-action receipt path.
 
-## Deliberately retained surfaces
-These were inspected and are not treated as garbage:
-- `references/*`, `skills/financial-writing-agent/references/*`, and packaged `financial_writing_agent/resources/references/*` are intentional controlled mirrors for source authority, Skill bundling and installed-wheel resources;
-- historical `evals/` audits and rejected/held-out artifacts remain provenance/regression evidence;
-- `runner.py` / `runtime_factory.py` remain the standalone/developer outer-loop path while `runtime_service.py` + `plugin_server.py` remain the MCP service path over the same engine/controller authority;
-- `deploy/chatgpt-site/SITE_SPEC.md` remains a deployment contract even though no Site Runtime plugin is installed.
+Therefore the repository could be contractually correct while a real article rejection was recorded and locally revised without owner-level proof that the system-impact question had ever been reviewed. This was confirmed as a declaration-to-operation defect, not inferred from prose quality alone.
 
-`network_safety.py` remains an unproven unused-code candidate and was not deleted without dependency evidence. The current Skill is explicitly above the Agent manifest's thin-router target; that is architecture/context debt requiring a separate behavior-preserving compaction evaluation, not safe-delete garbage.
+## v0.8.1 selected mechanism
+Rejected mechanisms:
+- another Skill/prompt reminder: still declaration-only and would re-bloat the thin router;
+- automatic full maintenance for every feedback item: over-couples the article hot path to engineering control-plane mutation.
+
+Selected mechanism: **durable owner system-impact obligation + explicit Universal handoff**.
+
+For `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` recorded through the owner plugin:
+1. the raw Writing-DNA evidence remains `RAW_EVIDENCE_ONLY`;
+2. owner runtime creates a durable `PENDING_REVIEW` system-impact signal bound to that exact sample;
+3. `review_writing_system_impact` requires a system-level problem statement, root-cause layer, generalization scope, at least two distinct mechanisms with explicit failure modes, selected mechanism/rationale, authority surface, regression/eval plan and evidence refs;
+4. review may end as `REVIEWED_NO_MAINTENANCE` or `MAINTENANCE_REQUIRED`;
+5. `SYSTEM_MAINTENANCE_REQUIRED` emits a non-authoritative `USER_REPORTED_SYSTEMIC_FAILURE` control signal for current Universal `operational_hygiene@1.0 + evolution@1.0` maintenance;
+6. a later closure call must replay the accepted review exactly and attach durable maintenance/validation refs with assurance >= `REGRESSION_VERIFIED`;
+7. `PENDING_REVIEW` cannot be silently bypassed at COMPLETE;
+8. completed tasks with unresolved `MAINTENANCE_REQUIRED` remain discoverable instead of disappearing from default continuation.
+
+The review action emits an owner action-scoped `operational_hygiene@1.0` receipt under receipt contract `1.3`. It remains `UNVERIFIED_OWNER_RECEIPT`; Universal independent exact-action, evidence-ref and semantic hook verification is still required for operational PASS.
+
+## Evidence classes — do not collapse them
+- **Repo/contract proof:** Universal + Financial maintenance authority require first-occurrence system-impact review; v0.8.1 code/capability/adapter now declare an executable owner path.
+- **Reference simulation / harness proof:** unit/MCP/static/CI tests can show that negative feedback creates a signal, review requires alternatives/failure modes, COMPLETE cannot ignore pending review, and maintenance-required tasks remain discoverable. This is not a real user action.
+- **Current owner action-level proof:** requires a real installed Financial Writing owner runtime invocation that persists an actual sample/signal/review/receipt. This chat currently has no installed Financial Writing Site Runtime plugin, so this evidence class remains open until such an invocation exists.
+- **Live writing outcome proof:** requires a post-fix real article/user outcome. The historical offshore-wind rejection is pre-fix failure evidence, not post-fix success evidence. No claim of improved prose is permitted.
 
 ## Quality / methodology boundaries
-Methodology owner receipts use receipt contract `1.3` with exact action binding and remain `UNVERIFIED_OWNER_RECEIPT`; they do not self-certify operational conformance.
-
-Quality-promotion status is unchanged:
-- FINANCE_DEEP is diagnostic/candidate-design only until a second complete held-out case from a distinct topic family exists;
+The v0.8.1 repair changes maintenance escalation reliability, not article-quality promotion status.
+- FINANCE_DEEP still lacks the second distinct complete held-out topic family required for promotion;
 - FINANCE_BROAD is not quality-promotion-ready;
-- Personalized Writing DNA additionally requires real user acceptance/edit or post-publication performance evidence after the general requirements pass.
+- Personalized Writing DNA still requires the general evidence requirements plus real acceptance/edit or performance evidence.
 
-The hygiene CI proves the covered harness/runtime/package invariants, not improved prose quality.
+No blind pairwise promotion result is created by this maintenance repair, and no writing-quality improvement claim follows from CI.
 
 ## Exact next action
-For a normal article request, load current v0.8 Skill, `continuity/AGENT_MANIFEST.json`, Universal adapter and capability profile, complete the current-session capability handshake, then run the existing v0.8 state machine. Semantic audit PASS uses `run_semantic_audit_stage` only.
+First, complete fresh owner CI for the v0.8.1 system-impact escalation head. If CI passes, persist the exact behavioral head/run/job into the adapter, task manifest, this handoff and the system-impact maintenance audit, then run closure-head CI and re-read authority before `COMMITTED`.
 
-For future system cleanup, the next structural target is a separately evaluated Skill thin-router compaction. Do not delete reference mirrors or historical eval evidence merely to reduce file count.
+For a later normal article request, load current thin v0.8 Skill, `continuity/AGENT_MANIFEST.json`, Universal adapter and capability profile 9, complete the session handshake, then use v0.8.1. Material corrective/negative feedback recorded through the owner must not be treated as closed until the system-impact review obligation has been classified.
 
 ## Runtime / authority boundaries
 - GitHub `main` is the Financial Writing code/rule authority.
 - Authoritative per-article state is persisted `WritingState`; this handoff is workspace recovery metadata, not article state.
 - Connected apps and chat history are reference/evidence surfaces unless explicitly promoted with stable verified receipts.
-- No Financial Writing Site Runtime plugin is currently installed.
+- No Financial Writing Site Runtime plugin is currently installed in this chat.
 - Provider-attested isolated semantic review remains unavailable; stage-separated owner-runtime review must not be mislabeled as provider independence.
 
-`resume_epoch=2` and the active lease remain unchanged because this was same-chat maintenance, not takeover.
+`resume_epoch=2` and active lease `fw-5636d680328b40c5ab4b5029441e3489` remain unchanged because this is same-chat maintenance, not takeover.
