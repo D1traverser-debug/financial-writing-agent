@@ -9,6 +9,8 @@
     "retry_limits",
     "no_silent_degradation",
     "execution_capability_handshake",
+    "execution_mode_selection",
+    "github_chat_checkpointing",
     "runtime_recovery_authority"
   ],
   "research": [

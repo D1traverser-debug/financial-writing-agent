@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.8",
+  "schema_version": "1.9",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "owner_contract_version": "0.8.1",
-  "execution_capability_profile_version": 9,
+  "execution_capability_profile_version": 10,
   "supported_from": ["3.3", "3.5", "3.6", "3.7"],
   "migration_strategy": "ADDITIVE_PROTOCOL_OVERLAY_ON_NEXT_VALID_WRITER_TURN",
   "user_migration_required": false,
@@ -24,58 +24,95 @@
     "business_rule_authority": "skills/financial-writing-agent/SKILL.md plus stage-specific references",
     "known_stale_content": []
   },
+  "execution_mode_binding": {
+    "current_user_operating_mode": "GITHUB_MOUNTED_PLUS_GPT_CHAT",
+    "owner_native_mode": "PYTHON_OR_PLUGIN_RUNTIME_WHEN_SESSION_AVAILABLE",
+    "chat_mode": "continuity/GITHUB_CHAT_EXECUTION.json",
+    "site_deployment_required_for_current_mode": false,
+    "free_form_chat_fallback_allowed": false,
+    "chat_mode_terminal_assurance": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
+  },
   "methodology": {
     "profile_refs": {"artifact_io": "1.0", "operational_hygiene": "1.0", "evolution": "1.0"},
     "profile_applicability": {
-      "artifact_io": {"status": "APPLIES", "reason": "Financial Writing persists WritingState, creates and hashes publication Word artifacts, renders files, invalidates stale downstream outputs, records knowledge writeback receipts, and may use explicitly referenced external artifact/evidence stores.", "evidence_refs": ["financial_writing_agent/store.py", "financial_writing_agent/runtime_service.py", "financial_writing_agent/adapters/deterministic.py", "financial_writing_agent/methodology_receipts.py", "skills/financial-writing-agent/SKILL.md#13-delivery-and-mechanical-qa"]},
-      "operational_hygiene": {"status": "APPLIES", "reason": "The owner now has an executable article-action path that turns material writing feedback into a durable system-impact review obligation, explicit local-versus-systemic diagnosis, optional Universal control signal and action-scoped operational_hygiene receipt, in addition to repository maintenance and incident evidence.", "evidence_refs": ["financial_writing_agent/system_impact.py", "financial_writing_agent/plugin_server.py#review_writing_system_impact", "financial_writing_agent/methodology_receipts.py#record_system_impact_hygiene_receipt", "references/maintenance.md", "evals/quality_regression.json"]},
-      "evolution": {"status": "APPLIES", "reason": "The owner records Writing DNA learning evidence and admits general editorial or personalized writing changes only after candidate distillation and evidence-gated evaluation/regression.", "evidence_refs": ["financial_writing_agent/plugin_server.py#record_writing_learning_sample", "financial_writing_agent/methodology_receipts.py#record_learning_evolution_receipt", "financial_writing_agent/quality_regression.py", "references/maintenance.md"]}
+      "artifact_io": {
+        "status": "APPLIES",
+        "reason": "Financial Writing persists either owner-native WritingState or explicit GitHub article checkpoints, creates publication sources and optional Word artifacts, and requires post-write verification at the actual execution surface.",
+        "evidence_refs": ["continuity/GITHUB_CHAT_EXECUTION.json", "financial_writing_agent/store.py", "financial_writing_agent/runtime_service.py", "financial_writing_agent/adapters/deterministic.py", "financial_writing_agent/methodology_receipts.py", "references/delivery.md"]
+      },
+      "operational_hygiene": {
+        "status": "APPLIES",
+        "reason": "Material writing feedback must become a durable system-impact obligation in either owner-native or GitHub-chat mode, with explicit local-versus-systemic classification and current Universal escalation for systemic defects.",
+        "evidence_refs": ["continuity/GITHUB_CHAT_EXECUTION.json", "financial_writing_agent/system_impact.py", "financial_writing_agent/plugin_server.py#review_writing_system_impact", "financial_writing_agent/methodology_receipts.py#record_system_impact_hygiene_receipt", "references/maintenance.md"]
+      },
+      "evolution": {
+        "status": "APPLIES",
+        "reason": "The owner records Writing DNA evidence and admits general editorial or personalized writing changes only after candidate distillation and evidence-gated evaluation/regression.",
+        "evidence_refs": ["continuity/GITHUB_CHAT_EXECUTION.json", "financial_writing_agent/plugin_server.py#record_writing_learning_sample", "financial_writing_agent/quality_regression.py", "references/maintenance.md"]
+      }
     },
     "hook_bindings": {
-      "durable_task_state_location": "financial_writing_agent.store.SQLiteStateStore at FINANCIAL_WRITING_DB for authoritative WritingState; continuity/tasks/financial-writing-main is workspace recovery metadata, not per-article runtime state",
-      "authoritative_business_evidence_classes": "persisted WritingState research/gates/trace/learning/system-impact/methodology-receipt evidence plus hash-bound publication Word artifacts, audit Word, render/mechanical evidence and explicit knowledge-writeback receipts",
-      "canonical_artifact_or_file_stores": "owner runtime FINANCIAL_WRITING_RUNS for generated Word/render outputs during the active runtime; durable external delivery/evidence stores only when explicitly referenced with stable provider identity",
-      "cache_or_reference_only_stores": "Notion, Google Drive, StockBase, ArticleBase, chat history and render/search caches are reference/cache surfaces by default and never override current GitHub rules or authoritative WritingState merely by presence",
-      "stable_identity_strategy": "task_id + ArtifactKind + sha256 for generated Word artifacts; task_id + system-impact signal id + bound learning sample ref for feedback escalation; immutable corpus artifact identity for promotion cases; provider stable id/canonical ref for explicitly promoted external evidence; Git repository path + blob/commit SHA for engineering mutations",
-      "read_freshness_requirements": "load the exact current WritingState before each material stage or system-impact action; re-read/hash the current artifact for mechanical/final file decisions; prior-chat summaries, cached paths or remembered external content do not satisfy a freshness-sensitive read",
-      "mutation_conflict_strategy": "owner state-machine/stage guards plus current-session single-writer routing for WritingState; system-impact review diagnosis becomes immutable after first accepted review; GitHub engineering mutations use blob-SHA compare-and-swap. Concurrent or stale writer ambiguity must fail closed rather than be resolved by last-writer chat memory",
-      "post_write_verification_method": "generated Word artifacts are checked for existence and sha256 and then mechanically/render audited; semantic PASS transitions require current owner-runtime stage trajectory plus persisted provenance; material feedback escalation requires persisted signal/review state and action-scoped owner receipts; material GitHub changes require main re-read; external writeback/upload requires a stable receipt ref before PASS",
-      "upstream_to_downstream_invalidation_rule": "financial_writing_agent.runtime_service invalidates downstream editorial/draft/QA/artifact mappings when research/editorial/title/draft/delivery inputs materially change; re-entering a semantic audit stage invalidates stale prior execution proof by trajectory position; stale render and dependent QA must be rebuilt; system-impact review state is evidence about feedback handling and is not silently invalidated by prose rewrites",
-      "delete_and_retention_rules": "retain accepted/publication/audit/learning/system-impact evidence needed for the active task and unresolved maintenance obligations; cleanup may remove or rebuild stale render/cache outputs and superseded active artifacts only after dependency checks; do not delete business evidence for cleanliness",
-      "superseded_artifact_cleanup_rule": "references/maintenance.md change protocol plus runtime downstream invalidation: superseded active outputs/caches are cleared or rebuilt while Git history/audit evidence remains the engineering record",
-      "external_artifact_vault_if_any": "No external store is implicitly authoritative. Google Drive/Notion or another provider may be used only as an explicit source/deliverable/evidence vault with stable provider refs and verified write/readback receipts.",
-      "observability_or_incident_evidence_location": "persisted WritingState learning_samples + system_impact_signals + methodology_profile_runs, plus evals/system audits and evals/quality_regression.json",
-      "self_maintenance_trigger_path": "financial_writing_agent.plugin_server.record_writing_learning_sample creates a durable PENDING_REVIEW signal for USER_EDIT/USER_FEEDBACK/USER_REJECTION; review_writing_system_impact compares alternatives/failure modes and either closes locally with reason or emits a USER_REPORTED_SYSTEMIC_FAILURE control signal for the current Universal maintenance writer",
-      "garbage_collection_owner_and_dependency_rule": "references/maintenance.md change-protocol contradictory/legacy mechanism cleanup; owner system-impact review does not itself delete mechanisms and delegates any repository supersession cleanup to verified maintenance",
-      "reliability_or_change_freeze_guard": "pending system-impact review blocks COMPLETE; SYSTEM_MAINTENANCE_REQUIRED remains visible without blocking article delivery, preserving affected maintenance pressure while avoiding a global business freeze",
-      "learning_evidence_location": "financial_writing_agent.plugin_server.record_writing_learning_sample -> authoritative WritingState learning sample + optional system-impact signal -> financial_writing_agent.methodology_receipts.record_learning_evolution_receipt",
+      "durable_task_state_location": "OWNER_NATIVE: authoritative WritingState in the configured owner store. GITHUB_CHAT: workspaces/articles/{task_id}/STATE.json plus exact stage/review/publication Git refs. continuity/tasks/financial-writing-main is workspace recovery metadata, not per-article state.",
+      "authoritative_business_evidence_classes": "OWNER_NATIVE WritingState research/gates/trace/learning/system-impact/methodology evidence and hash-bound artifacts; OR GITHUB_CHAT STATE.json plus Git-identity-bound research/editorial/title/draft/review/publication checkpoints and exact current-session artifact evidence.",
+      "canonical_artifact_or_file_stores": "GITHUB_CHAT durable publication source and checkpoints live under workspaces/articles/{task_id}; owner-native generated Word/render outputs live in the configured runtime store. A transient chat attachment is delivery evidence, not durable business-state authority.",
+      "cache_or_reference_only_stores": "Notion, Google Drive, StockBase, ArticleBase, chat history and render/search caches are reference/cache surfaces by default and never override current GitHub rules or the selected execution-mode task authority merely by presence.",
+      "stable_identity_strategy": "GITHUB_CHAT: task_id + repository path + blob SHA for stage/publication artifacts. OWNER_NATIVE: task_id + ArtifactKind + sha256. Feedback uses task_id + system-impact id + bound learning evidence ref. Promotion uses immutable corpus identities.",
+      "read_freshness_requirements": "Before every material action reread the selected mode's exact task state: GitHub STATE.json + required stage refs for GITHUB_CHAT, or current WritingState for owner-native. Prior-chat summaries and remembered external content never satisfy freshness-sensitive reads.",
+      "mutation_conflict_strategy": "GITHUB_CHAT mutations fetch current state blob SHA and fail closed on stale-writer ambiguity; owner-native uses state-machine/stage guards and current-session single-writer routing. System-impact diagnosis becomes immutable after acceptance. Engineering mutations use Git blob-SHA compare-and-swap.",
+      "post_write_verification_method": "GITHUB_CHAT rereads STATE.json and every new stage artifact after material writes. OWNER_NATIVE verifies state/artifact hashes and required mechanical/render checks. Semantic assurance is reported at the actual executor level; chat self-review never upgrades itself to owner-native PASS.",
+      "upstream_to_downstream_invalidation_rule": "Any material research/editorial/title/draft change invalidates dependent downstream evidence. Owner-native runtime performs executable invalidation; GITHUB_CHAT marks affected downstream stage/review refs stale in STATE.json and regenerates them before delivery. System-impact evidence is not silently erased by prose rewrites.",
+      "delete_and_retention_rules": "Retain accepted publication/audit/learning/system-impact evidence and unresolved maintenance obligations. Remove/rebuild only stale derived outputs after dependency checks; never delete durable business evidence merely for cleanliness.",
+      "superseded_artifact_cleanup_rule": "references/maintenance.md plus selected execution adapter invalidation: superseded active outputs are demoted/rebuilt while Git history and audit evidence remain the engineering record.",
+      "external_artifact_vault_if_any": "No external store is implicitly authoritative. Another provider becomes a deliverable/evidence vault only with stable provider refs and verified write/readback receipts.",
+      "observability_or_incident_evidence_location": "OWNER_NATIVE WritingState learning_samples/system_impact_signals/methodology_profile_runs; GITHUB_CHAT article workspace state/reviews/learning evidence; plus evals/system audits and quality_regression.json.",
+      "self_maintenance_trigger_path": "OWNER_NATIVE: record_writing_learning_sample -> PENDING_REVIEW -> review_writing_system_impact -> optional Universal signal. GITHUB_CHAT: persist material feedback and OPEN system-impact item in the same GitHub checkpoint, classify with current Universal maintenance/evolution method, and do not fabricate owner-plugin receipts.",
+      "garbage_collection_owner_and_dependency_rule": "references/maintenance.md contradictory/legacy mechanism cleanup; article-level system-impact review does not itself delete repository mechanisms and delegates supersession cleanup to verified maintenance.",
+      "reliability_or_change_freeze_guard": "No execution mode may treat unreviewed material feedback as locally closed. Owner-native PENDING_REVIEW blocks COMPLETE; GITHUB_CHAT keeps the corresponding OPEN system-impact item visible before/after delivery. Unrelated healthy owner capabilities are not frozen.",
+      "learning_evidence_location": "OWNER_NATIVE plugin capture -> WritingState. GITHUB_CHAT -> exact article workspace learning evidence + STATE.json system-impact item. Both remain evidence, not automatic policy promotion.",
       "eval_or_regression_promotion_path": "financial_writing_agent.quality_regression.evaluate_corpus_readiness -> evaluate_candidate_distillation -> evaluate_quality_promotion",
       "superseded_mechanism_cleanup_rule": "references/maintenance.md change-protocol remove or repair conflicting/superseded mechanisms"
     },
     "overrides": {
-      "evaluator_selection": "owner-local blind pairwise quality evaluation with candidate-position swap; promotion requires immutable case binding verification, candidate-evidence semantic verification, hard-regression execution verification, judge execution ref verification and a separate semantic verifier for the judge-run claim; verifier callback presence is not independent execution identity; GENERAL_EDITORIAL_QUALITY may improve without user-positive labels, while PERSONALIZED_WRITING_DNA requires real user acceptance/edit or performance evidence",
-      "artifact_locations": "WritingState is owner-runtime durable state; generated Word/render artifacts live in the configured owner runtime store until an explicitly verified external delivery/evidence ref is recorded"
+      "evaluator_selection": "owner-local blind pairwise quality evaluation with candidate-position swap; promotion requires immutable case binding, candidate-evidence semantics, hard-regression execution, judge execution refs and separate semantic verification. Callback presence is not independent execution identity.",
+      "artifact_locations": "GITHUB_CHAT uses repository article workspaces as durable execution state/publication-source authority; owner-native uses configured WritingState/artifact stores. External delivery refs are authoritative only when explicitly verified."
     }
   },
   "methodology_assurance": {
     "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__OWNER_APPLICABILITY_EVIDENCE_RECORDED",
-    "operational_status": "ACTION_RECEIPT_V1_3_EXACT_ACTION_BINDING_WIRED__ALL_THREE_OWNER_PROFILE_EMISSION_PATHS_WIRED__FINANCIAL_V0_8_1_SYSTEM_IMPACT_REGRESSION_PENDING__INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING",
-    "owner_regression_evidence": {"validated_behavioral_head": "ec4d3f02a4b813f6439adf0553495670f26c8772", "github_actions_run_id": 38084735222, "job_id": 114308781574, "result": "PREVIOUS_V0_8_BASELINE_ONLY__CURRENT_V0_8_1_VALIDATION_PENDING"},
+    "operational_status": "PROFILE_10_GITHUB_CHAT_EXECUTION_DECLARED__OWNER_NATIVE_ACTION_RECEIPT_V1_3_WIRED__GITHUB_CHAT_LIVE_ARTICLE_TRAJECTORY_PENDING__FULL_V0_8_1_CI_RUNNER_BLOCKED__INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING",
+    "owner_regression_evidence": {
+      "validated_behavioral_head": "ec4d3f02a4b813f6439adf0553495670f26c8772",
+      "github_actions_run_id": 38084735222,
+      "job_id": 114308781574,
+      "result": "PREVIOUS_V0_8_BASELINE_ONLY__CURRENT_V0_8_1_AND_PROFILE_10_FULL_CI_PENDING"
+    },
     "owner_execution_hardening": {
       "financial_contract_version": "0.8.1",
-      "execution_capability_profile_version": 9,
-      "semantic_pass_side_channel": "CLOSED_AT_PUBLIC_MCP_CONTROLLER_AND_COMPLETE_BOUNDARIES",
+      "execution_capability_profile_version": 10,
+      "github_chat_execution_contract": "continuity/GITHUB_CHAT_EXECUTION.json",
+      "github_chat_semantic_assurance": "CHAT_SELF_REVIEW__OWNER_NATIVE_CERTIFICATION_OPEN",
+      "github_chat_free_form_fallback_allowed": false,
+      "semantic_pass_side_channel": "CLOSED_AT_OWNER_NATIVE_PUBLIC_MCP_CONTROLLER_AND_COMPLETE_BOUNDARIES",
       "semantic_pass_gateway": "financial_writing_agent.plugin_server.run_semantic_audit_stage -> financial_writing_agent.semantic_runtime.run_owner_semantic_audit_stage",
       "semantic_pass_required_binding": "EXACT_TASK_STAGE_PLUS_PERSISTED_PROVENANCE_PLUS_CURRENT_OWNER_RUNTIME_EXECUTOR_START_END",
       "chat_bridged_semantic_pass_allowed": false,
-      "system_impact_escalation_gateway": "financial_writing_agent.plugin_server.record_writing_learning_sample -> financial_writing_agent.system_impact -> review_writing_system_impact -> optional Universal control signal",
+      "system_impact_escalation_gateway": "owner-native plugin system_impact path OR GITHUB_CHAT durable article system-impact item -> current Universal maintenance writer",
       "system_impact_pending_review_complete_bypass_allowed": false,
       "provider_attested_independent_review": "DECLARED_ONLY_UNAVAILABLE",
       "legacy_independent_executor_label": "STAGE_SEPARATED_OWNER_RUNTIME_ONLY__NOT_PROVIDER_ATTESTED_ISOLATION",
       "public_mcp_tool_count": 19,
       "system_meta_audit_ref": "evals/SYSTEM_META_AUDIT_2026-10-11.md"
     },
-    "action_receipt_wiring": {"receipt_contract_version": "1.3", "emitter": "financial_writing_agent/methodology_receipts.py", "public_surface": "financial_writing_agent/plugin_server.py -> WritingTaskSummary.methodology_profile_runs", "wired_profiles": ["artifact_io", "operational_hygiene", "evolution"], "receipt_status": "UNVERIFIED_OWNER_RECEIPT", "exact_action_binding_required": ["task_id", "stage", "action_id", "subject_bindings", "input_bindings"], "independent_verification_required": "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT_PLUS_EXACT_ACTION_BINDING", "remaining_unproven_boundary": "All three owner receipt emission paths are wired, but Universal independent evidence-ref, hook-assessment and exact-action verification remains pending; owner receipts do not self-certify operational conformance."},
+    "action_receipt_wiring": {
+      "receipt_contract_version": "1.3",
+      "emitter": "financial_writing_agent/methodology_receipts.py",
+      "public_surface": "financial_writing_agent/plugin_server.py -> WritingTaskSummary.methodology_profile_runs",
+      "wired_profiles": ["artifact_io", "operational_hygiene", "evolution"],
+      "receipt_status": "UNVERIFIED_OWNER_RECEIPT",
+      "exact_action_binding_required": ["task_id", "stage", "action_id", "subject_bindings", "input_bindings"],
+      "independent_verification_required": "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT_PLUS_EXACT_ACTION_BINDING",
+      "remaining_unproven_boundary": "Owner-native receipt emitters remain independently unverified. GITHUB_CHAT does not fabricate these receipts; its GitHub checkpoints are a separate self-attested action-evidence class pending live trajectory evidence."
+    },
     "quality_corpus_status": {
       "GENERAL_EDITORIAL_QUALITY": "NOT_READY_HELDOUT_DIVERSITY_INSUFFICIENT__FINANCE_DEEP_DIAGNOSTIC_ONLY",
       "FINANCE_BROAD_GENERAL_EDITORIAL_QUALITY": "NOT_READY_NO_COMPLETE_REJECTION_PLUS_TWO_HELDOUT_TOPIC_FAMILIES",
@@ -94,7 +131,16 @@
     },
     "recovered_real_failure_artifact": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
     "cross_topic_heldout_artifact": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
-    "boundary": "Financial v0.8.1 makes first-occurrence material writing feedback operationally visible inside the owner: negative/corrective learning evidence creates a durable system-impact review obligation, the review must compare alternatives/failure modes, and SYSTEM_MAINTENANCE_REQUIRED emits a non-authoritative control signal rather than being treated as a local prose fix. This is owner action-path wiring, not independent operational proof. Owner-generated receipt contract 1.3 remains UNVERIFIED_OWNER_RECEIPT and requires Universal independent evidence-reference, semantic hook-assessment and exact-action verification before operational PASS. Quality promotion is separately fail-closed: current FINANCE_DEEP evidence has only one held-out topic family and remains diagnostic/candidate-design evidence, not promotion-ready. No current evidence proves live prose quality improved, a real post-fix owner action ran, or Personalized Writing DNA learned."
+    "boundary": "Financial v0.8.1 now declares the user's actual GitHub-mounted + GPT-chat execution mode as an explicit owner adapter instead of treating missing Site/plugin runtime as permission for free-form writing. GITHUB_CHAT requires durable stage checkpoints and keeps semantic certification OPEN at CHAT_SELF_REVIEW assurance. Owner-native negative feedback is protected at the persistence boundary from being stored without its immediate system-impact obligation. Full current CI, one real post-change GITHUB_CHAT article trajectory, independent action verification and post-fix live writing-quality evidence remain open."
   },
-  "universal_policy_refs": ["D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json", "D1traverser-debug/universal-continuity-agent@main/LIVE_CHAT_RECONCILIATION_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/PROGRESS_OBSERVABILITY_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/CONTEXT_RECOVERY_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/OWNER_ADAPTER_CONTRACT.json", "D1traverser-debug/universal-continuity-agent@main/ARTIFACT_CONTEXT_GOVERNANCE_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/SYSTEM_MAINTENANCE_POLICY.json", "D1traverser-debug/universal-continuity-agent@main/CONTINUOUS_LEARNING_POLICY.md"]
+  "universal_policy_refs": [
+    "D1traverser-debug/universal-continuity-agent@main/CURRENT_PROTOCOL.json",
+    "D1traverser-debug/universal-continuity-agent@main/LIVE_CHAT_RECONCILIATION_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/PROGRESS_OBSERVABILITY_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/CONTEXT_RECOVERY_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/OWNER_ADAPTER_CONTRACT.json",
+    "D1traverser-debug/universal-continuity-agent@main/ARTIFACT_CONTEXT_GOVERNANCE_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/SYSTEM_MAINTENANCE_POLICY.json",
+    "D1traverser-debug/universal-continuity-agent@main/CONTINUOUS_LEARNING_POLICY.md"
+  ]
 }

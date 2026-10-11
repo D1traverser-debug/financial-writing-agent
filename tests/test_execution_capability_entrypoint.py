@@ -8,14 +8,24 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     index = (ROOT / "continuity/TASK_INDEX.md").read_text(encoding="utf-8")
     profile = json.loads((ROOT / "continuity/EXECUTION_CAPABILITIES.json").read_text(encoding="utf-8"))
+    chat = json.loads((ROOT / "continuity/GITHUB_CHAT_EXECUTION.json").read_text(encoding="utf-8"))
     capabilities = {item["capability_id"]: item for item in profile["capabilities"]}
 
     assert "continuity/EXECUTION_CAPABILITIES.json" in skill
-    assert "continuity/EXECUTION_CAPABILITIES.json" in index
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
-    assert profile["profile_version"] == 9
+    assert profile["profile_version"] == 10
+
+    chat_flow = capabilities["github_chat_workflow"]
+    assert chat_flow["executor_type"] == "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE"
+    assert "GitHub_owner_read_write" in chat_flow["required_tools"]
+    assert any("DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN" in item for item in chat_flow["evidence_contract"])
+    assert chat["activation"]["free_form_article_fallback_allowed"] is False
+    assert chat["authority"]["state_file"] == "workspaces/articles/{task_id}/STATE.json"
+    assert chat["workflow"]["terminal_status"] == "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
+    assert chat["assurance"]["chat_review_can_issue_owner_native_semantic_pass"] is False
+    assert "GITHUB_CHAT_EXECUTION.json" in skill
 
     generation = capabilities["high_judgment_generation_stages"]
     assert generation["safe_degraded_modes"] == ["CHAT_BRIDGED"]
@@ -26,6 +36,10 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert semantic["scope"] == "RESEARCH_AUDIT,EDITORIAL_AUDIT,FINAL_AUDIT"
     assert any("EXECUTOR_START" in item and "EXECUTOR_END" in item for item in semantic["evidence_contract"])
     assert any("not provider-attested isolation" in item for item in semantic["evidence_contract"])
+
+    chat_review = capabilities["github_chat_review_stages"]
+    assert chat_review["executor_type"] == "CHAT_BRIDGED_SELF_REVIEW"
+    assert any("no translation" in item.lower() for item in chat_review["evidence_contract"])
 
     quality_gate = capabilities["quality_regression_promotion_gate"]
     assert quality_gate["assurance_ceiling"] == "HARNESS_WIRED"
@@ -38,19 +52,40 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert any("callback presence alone" in item for item in quality_gate["evidence_contract"])
 
 
-def test_material_user_feedback_has_real_durable_learning_and_system_impact_path():
+def test_github_chat_stage_order_matches_owner_business_sequence_and_cannot_claim_native_complete():
+    chat = json.loads((ROOT / "continuity/GITHUB_CHAT_EXECUTION.json").read_text(encoding="utf-8"))
+    assert chat["workflow"]["stage_order"] == [
+        "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
+        "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT",
+    ]
+    assert chat["workflow"]["owner_native_terminal_status"] == "COMPLETE"
+    assert chat["workflow"]["terminal_status"] != "COMPLETE"
+    assert chat["authority"]["chat_memory_is_business_state_authority"] is False
+    assert chat["checkpoint_contract"]["post_write_verification"].startswith("Reread STATE.json")
+    assert any("No publishable final article" in item for item in chat["anti_bypass"])
+    assert any("No chat self-review" in item for item in chat["anti_bypass"])
+
+
+def test_material_user_feedback_has_real_durable_learning_and_system_impact_paths():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     maintenance = (ROOT / "skills/financial-writing-agent/references/maintenance.md").read_text(encoding="utf-8")
     profile = json.loads((ROOT / "continuity/EXECUTION_CAPABILITIES.json").read_text(encoding="utf-8"))
+    chat = json.loads((ROOT / "continuity/GITHUB_CHAT_EXECUTION.json").read_text(encoding="utf-8"))
     capabilities = {item["capability_id"]: item for item in profile["capabilities"]}
 
     assert "material explicit user edit, feedback, rejection or acceptance" in skill
-    assert "durable learning was not persisted" in skill
+    assert "OPEN system-impact item" in skill
     assert "material explicit user edit, feedback, rejection or acceptance" in maintenance
     learning = capabilities["learning_evidence_capture"]
     assert learning["assurance_ceiling"] == "SESSION_EXECUTABLE"
     assert "record_writing_learning_sample" in learning["invocation_path"]
     assert any("PENDING_REVIEW" in item for item in learning["evidence_contract"])
+
+    chat_learning = capabilities["github_chat_learning_evidence_capture"]
+    assert "GitHub_owner_read_write" in chat_learning["required_tools"]
+    assert any("OPEN system-impact" in item for item in chat_learning["evidence_contract"])
+    assert "same GitHub mutation set" in chat["learning_and_maintenance"]["material_user_edit_feedback_rejection"]
+    assert chat["learning_and_maintenance"]["owner_plugin_receipt_claim_when_plugin_unavailable"] == "FORBIDDEN"
 
     impact = capabilities["system_impact_escalation"]
     assert impact["assurance_ceiling"] == "SESSION_EXECUTABLE"

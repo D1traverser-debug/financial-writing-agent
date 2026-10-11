@@ -1,101 +1,91 @@
 # Financial Writing Agent — Architecture v0.8
 
 ## 1. Goal
-Build a reliable A-share financial-writing system that separates deterministic workflow authority from model-driven research/writing, keeps Deep analysis materially complete, scopes market explanation explicitly, learns Writing DNA from traceable evidence, turns material quality feedback into executable system-impact obligations, and produces auditable Word artifacts without letting a caller self-certify semantic PASS.
+Build a reliable A-share financial-writing system that keeps the business workflow durable across the user's current **GitHub-mounted + GPT-chat** operating mode, preserves the Python owner runtime as a higher-assurance executable reference/optional runtime, keeps Deep analysis materially complete, scopes market explanation explicitly, learns Writing DNA from traceable evidence, turns material quality feedback into system-impact obligations, and produces auditable Word artifacts without letting a chat caller self-certify stronger assurance than it actually has.
 
-## 2. Core split
-The system uses a **deterministic outer runtime with model-driven inner stages and proof-bearing semantic-audit gateways**.
+## 2. One owner, two execution adapters
+Financial Writing has one business owner and one canonical business sequence. It currently supports two execution adapters:
 
-Deterministic Python owns TaskContract routing, legal transitions, persisted checkpoints, BLOCKED recovery, downstream invalidation, required outputs, Word construction, mechanical/render checks and completion authority.
+1. **OWNER_NATIVE / Python** — `WorkflowController + WritingEngine + OpenAI Agents SDK/deterministic executors`. This path can produce proof-bearing owner-runtime semantic PASS when its exact runtime is session-available.
+2. **CHAT_BRIDGED / GitHub** — current GPT chat performs the stage work while GitHub stores per-article checkpoints and stage artifacts under `workspaces/articles/{task_id}` according to `continuity/GITHUB_CHAT_EXECUTION.json`. This is the user's current production mode and does not require a Site/MCP deployment.
 
-Generation stages own research synthesis, TopicDNA, editorial choices, headline generation and drafting. Semantic audit stages own Research, Reader Funnel, Authorial Prose, general Editorial and Final review, but a PASS is usable only when the owner runtime has current stage-execution evidence.
+The second path is not a free-form fallback. It uses the same business stage order and domain references, requires a session capability handshake and durable GitHub checkpoint after every material stage, and keeps its weaker review assurance explicit.
 
 ## 3. Runtime graph
-`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
+Canonical business sequence:
 
-Mandatory dependency failure routes to recoverable `BLOCKED`. No free-form fallback is permitted.
+`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`
+
+OWNER_NATIVE may then reach `COMPLETE` through the controller. GITHUB_CHAT terminates normally as `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`; it may deliver a usable article/Word file but may not relabel chat self-review as owner-native COMPLETE.
+
+Mandatory dependency failure blocks the exact affected action. No free-form publishable fallback is permitted.
 
 ## 4. Semantic audit proof model
-`WritingState.semantic_gate_proof_valid()` binds semantic PASS to:
-- the exact task and expected audit stage;
-- a persisted audit payload/provenance;
-- reviewer identity distinct from author identity;
-- an execution ref bound to `{task_id}:{stage}:...`;
-- current-stage owner-runtime `EXECUTOR_START` + `EXECUTOR_END` after the latest `STAGE_ENTER`.
+For OWNER_NATIVE, `WritingState.semantic_gate_proof_valid()` binds semantic PASS to the exact task/stage, persisted audit provenance, distinct reviewer/author identities, an execution ref and current-stage `EXECUTOR_START/EXECUTOR_END` evidence. `WorkflowController` and `WritingEngine.complete()` revalidate it.
 
-`WorkflowController` checks this before leaving semantic-audit stages. `WritingEngine.complete()` checks it again before COMPLETE, preventing stale legacy PASS records from bypassing the runtime.
+For GITHUB_CHAT, Research/Editorial/Final review artifacts are persisted separately but carry `CHAT_SELF_REVIEW`. They may find defects and force REVISE; they never become Python `GateStatus.PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Missing stronger audit capability therefore leaves certification OPEN rather than encouraging a fake PASS.
 
-The public MCP surface does not accept CHAT_BRIDGED PASS as certification. `run_semantic_audit_stage` invokes the owner-native OpenAI Agents SDK audit stage on the server. Missing SDK/model capability fails closed to a persisted audit-stage BLOCKED cursor.
+The historical payload label `INDEPENDENT_EXECUTOR` means stage-separated owner-runtime judge execution only, not provider-attested isolation.
 
-The legacy payload label `INDEPENDENT_EXECUTOR` means **stage-separated owner-runtime judge execution**, not provider-attested isolation. True provider-attested isolation remains a separate unavailable capability until a distinct execution identity/trace exists.
+## 5. Persistence and recovery
+- GitHub `main`: engineering/rule authority.
+- OWNER_NATIVE run: authoritative `WritingState` in its configured owner store; SQLite is local/CI reference.
+- GITHUB_CHAT run: `workspaces/articles/{task_id}/STATE.json` + exact stage/review/publication refs in GitHub are business execution truth.
+- Chat memory: never checkpoint authority.
+- A transient chat DOCX attachment: delivery artifact only; the persisted GitHub publication source is the regeneration authority.
 
-## 5. Content modes
+Every material GITHUB_CHAT mutation fetches the current state blob identity, writes the intended checkpoint, and rereads it before claiming durability. Context loss resumes from GitHub, not remembered prose.
+
+## 6. Content modes
 - `FINANCE_DEEP`: `MATERIAL_COMPLETE` relative to the bounded audited research universe.
 - `FINANCE_BROAD`: `SELECTIVE_TRAFFIC`, preserving evidence/uncertainty while exposing a non-niche financial stake.
-- Delivery: `WORD_FILE_ONLY`.
+- Delivery: `WORD_FILE_ONLY` when document tooling is available; otherwise publication source remains durable and DOCX delivery stays OPEN.
 
-There is no chat-text publication artifact or image/sticker workflow.
+There is no image/sticker workflow.
 
-## 6. Research / Market Explanation
-Research builds class-accounted Universe Coverage before narrowing to familiar names. Every ResearchPackage declares `market_explanation_scope = REQUIRED | NOT_MATERIAL` with a reason. A company universe alone is not activation.
+## 7. Research / Market Explanation
+Research builds class-accounted Universe Coverage before narrowing to familiar names. Every ResearchPackage or equivalent GITHUB_CHAT research artifact declares `market_explanation_scope = REQUIRED | NOT_MATERIAL` with a reason. A company universe alone is not activation.
 
-When active, Market Explanation separates economic benefit from market selection, compares hypotheses, preserves `why_this / why_not`, continuation/reversal evidence and the confidence ladder:
+When active, Market Explanation separates economic benefit from market selection, compares hypotheses, preserves `why_this / why_not`, continuation/reversal evidence and:
 `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 
-## 7. Editorial ownership
+## 8. Editorial, Reader Funnel and prose ownership
 Editorial owns material coverage, company-comparison usefulness and macro section order. Reader Funnel owns qualified click/retention/continuation/completion. Natural Authorial Prose owns reasoning progression, selectivity, specificity, natural structure/rhythm, template control and calibrated rhetoric.
 
-For multi-company Deep work, MATERIAL companies/classes remain visible and a decision-useful but non-actionable comparison map is required. A generic monitoring checklist detached from named companies/classes fails.
+Multi-company Deep work keeps MATERIAL companies/classes visible and requires a decision-useful but non-actionable comparison map. A generic monitoring checklist detached from named companies/classes fails.
 
-## 8. Writing DNA, system impact and quality evolution
-`record_writing_learning_sample` stores raw user edit/feedback/acceptance/rejection/performance evidence. One sample never auto-promotes policy.
+## 9. Writing DNA, system impact and quality evolution
+OWNER_NATIVE `record_writing_learning_sample` stores raw edit/feedback/acceptance/rejection/performance evidence. Material corrective/negative samples create the system-impact lifecycle `PENDING_REVIEW → REVIEWED_NO_MAINTENANCE | MAINTENANCE_REQUIRED → MAINTENANCE_CLOSED`.
 
-Material negative/corrective samples (`USER_EDIT`, `USER_FEEDBACK`, `USER_REJECTION`) also create a durable `system_impact_signals` entry in authoritative WritingState. The lifecycle is:
-`PENDING_REVIEW → REVIEWED_NO_MAINTENANCE | MAINTENANCE_REQUIRED → MAINTENANCE_CLOSED`.
+GITHUB_CHAT must persist material user evidence inside the exact article workspace. Edit/feedback/rejection that may affect system behavior creates an OPEN system-impact item in the same durable checkpoint operation; it may then enter the current Universal maintenance/evolution loop. It must not fabricate owner-plugin methodology receipts when that plugin did not execute.
 
-`review_writing_system_impact` requires a system-level problem statement, root-cause layer, generalization scope, at least two alternative mechanisms with explicit failure modes, one selected mechanism, authority surface, regression/eval plan and evidence refs. A `SYSTEM_MAINTENANCE_REQUIRED` decision emits a non-authoritative Universal control signal and leaves the obligation open. A later closure call must replay the accepted review exactly and attach durable maintenance/validation refs with an assurance ceiling of at least `REGRESSION_VERIFIED`. Pending reviews block COMPLETE; a reviewed maintenance requirement does not block article delivery but remains discoverable even on completed tasks.
+Quality promotion is separate. Complete cases require immutable artifact identity, real rejection evidence, held-out diversity, candidate distillation, semantic evidence verification, hard-regression execution bound to the candidate/change, blind position-swapped pairwise judging and appropriate positive/live evidence for personalized claims. Current FINANCE_DEEP evidence remains diagnostic only; no current evidence proves prose quality improved.
 
-The system-impact bridge emits owner-self-attested `operational_hygiene@1.0` receipts with exact action binding. Those receipts still require Universal independent evidence/ref and semantic hook verification; they are not self-certifying.
+## 10. Delivery architecture
+Canonical publication source is frozen before delivery. OWNER_NATIVE deterministic Word rules include H1 18pt, H2 15pt, body 13.5pt, H3 12pt, zero tables, zero underlines, no tail bibliography, explicit skim-path bold preservation, final inline italic `风险提示：...`, required-file presence and rerender hygiene.
 
-Quality promotion is a separate evidence path. Complete regression/held-out cases require immutable artifact identity. Candidate-change/counterexample evidence must semantically support the candidate. Zero hard regressions requires a real regression run bound to the exact candidate/change. Blind pairwise runs bind the exact candidate/change and require unique verified execution refs plus separate semantic verification.
+GITHUB_CHAT uses current document/Python tooling when session-available and records exactly which deterministic/render checks actually ran. Missing render or mechanical checks remain OPEN; they are never silently PASS.
 
-A verifier callback is only a verification contract; callback presence is not independent execution attestation.
+## 11. Public MCP / future deployment
+`financial_writing_agent/plugin_server.py` remains the single MCP registration surface and exposes the v0.8.1 owner-native tool contract. It is an optional/future execution substrate for this user's present setup, not a prerequisite for GITHUB_CHAT.
 
-Current FINANCE_DEEP quality evidence remains diagnostic only because held-out diversity is insufficient. No current evidence proves prose quality improved.
-
-## 9. Delivery architecture
-Public deliverables are applicable article DOCX files plus `WRITING_AUDIT_REPORT.docx`; only `writing-docx://{task_id}/{kind}` is exposed as an artifact template.
-
-Deterministic Word rules include H1 18pt, H2 15pt, body 13.5pt, H3 12pt, zero tables, zero underlines, no publication-tail source appendix, explicit skim-path bold preservation, final inline italic `风险提示：...`, required-file presence and rerender hygiene.
-
-## 10. Persistence and authority
-- GitHub `main`: executable code/rule truth.
-- Hosted durable store: production task/checkpoint truth when deployed.
-- SQLite: local/CI reference implementation.
-- Connected apps: optional knowledge/evidence inputs unless explicitly promoted; never implicit checkpoint authority.
-
-## 11. Public MCP surface
-`financial_writing_agent/plugin_server.py` is the only registration surface. v0.8.1 exposes **19 typed tools** plus one Word resource template.
-
-Generation may use an explicitly permitted CHAT_BRIDGED degraded path. Semantic PASS may not. The dedicated `run_semantic_audit_stage` is the public proof-bearing owner-native audit gateway. `review_writing_system_impact` is the feedback-to-maintenance bridge; it classifies owner-local system impact but does not itself mutate GitHub policy/code or claim Universal verification.
+If a private Site is later deployed, it must implement the same owner business contract directly; do not revive the old v0.2.1 compatibility PoC as a second authority.
 
 ## 12. Maintenance architecture
-Owner-local `references/maintenance.md` handles Financial-specific implementation/eval/deployment details. Systemic/non-trivial maintenance first activates current Universal `operational_hygiene@1.0 + evolution@1.0` meta-maintenance semantics. This avoids a shadow owner governance path without copying a second root policy into the repo.
-
-The owner action path now makes that declaration executable: material feedback creates a durable review obligation, the review either closes with reason or emits a control signal, and the Universal loop remains responsible for cross-authority maintenance, external scouting when required, regression validation, cleanup and calibrated closure.
+Financial-specific implementation/eval details live in `references/maintenance.md`. Systemic/non-trivial maintenance uses current Universal `operational_hygiene@1.0 + evolution@1.0` semantics. The user goal/correction is evidence, not an automatic implementation instruction; existing rules skipped in execution are runtime/trajectory defects, not invitations to duplicate prose.
 
 ## 13. Observability and assurance
-OpenAI Agents SDK runs carry workflow/task/stage metadata while excluding sensitive trace payloads. Repository wiring is only a capability ceiling; live session/tool availability still needs handshake.
+Repository wiring is a capability ceiling. Current-session execution is established only by capability handshake plus action-bound evidence.
 
-Assurance classes remain distinct:
-1. deterministic assertions and state-machine proof;
-2. stage-separated owner-runtime semantic review;
-3. owner action-level self-attested methodology receipts;
-4. independently verified owner action evidence;
-5. true provider-attested/independent execution, currently not claimed by the owner;
-6. quality/live-outcome evidence, separately gated.
+Assurance classes stay distinct:
+1. deterministic/static/reference assertions;
+2. GITHUB_CHAT structured self-attested stage/review evidence;
+3. stage-separated owner-runtime semantic review;
+4. owner action-level methodology receipts;
+5. independently verified action evidence / provider-attested execution when actually available;
+6. quality/live-outcome evidence.
 
 Passing one class never substitutes for another.
 
-## 14. Promotion rule
-A future private Site must implement v0.8.1 directly. Production-ready status requires durable non-ephemeral state/artifact storage, all 19 tools including a functioning owner-native semantic-audit gateway and system-impact review action, rejection of direct chat PASS, interruption/recovery, a real user-authorized article E2E, fresh-chat recovery and private-only access until tenant isolation exists.
+## 14. Anti-bypass invariant
+A publishable Financial article may not jump from user prompt to final prose. The selected execution adapter must first create/resume durable owner state, then leave evidence at each material stage. If the current session cannot execute the required adapter, it blocks the exact action instead of producing a pseudo-final article.
