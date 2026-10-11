@@ -1,8 +1,8 @@
 {
   "$schema": "https://agent-plugins.org/schemas/1.0.0/plugin.schema.json",
   "name": "financial-writing-agent",
-  "version": "0.8.0",
-  "description": "Deterministic A-share financial-writing runtime with material-complete analysis, recoverable checkpoints, owner-runtime proof-bearing semantic audits, Reader Funnel and Writing DNA evidence, and auditable Word-only delivery.",
+  "version": "0.8.1",
+  "description": "Deterministic A-share financial-writing runtime with material-complete analysis, recoverable checkpoints, owner-runtime proof-bearing semantic audits, executable system-impact escalation, Reader Funnel and Writing DNA evidence, and auditable Word-only delivery.",
   "repository": "https://github.com/D1traverser-debug/financial-writing-agent",
   "keywords": [
     "financial-writing",
