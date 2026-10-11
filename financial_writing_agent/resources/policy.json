@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.8.0",
+  "contract_version": "0.8.1",
   "defaults": {
     "distribution_mode": "DUAL",
     "content_mode": "FORMAL_ARTICLE",
@@ -48,6 +48,9 @@
       "repeated_independent_patterns_can_promote": true,
       "external_skill_rules_are_candidates_only": true,
       "raw_learning_sample_ledger_enabled": true,
+      "material_negative_feedback_requires_system_impact_signal": true,
+      "system_impact_review_required_before_completion": true,
+      "system_impact_review_requires_alternative_comparison": true,
       "distill_dimensions": ["language", "structure", "topic_framing", "evidence_strategy", "cognitive_moves", "reader_relationship", "anti_patterns"]
     },
     "hard_fail_extreme_phrases": ["注定暴涨", "必然上涨", "唯一机会"],
