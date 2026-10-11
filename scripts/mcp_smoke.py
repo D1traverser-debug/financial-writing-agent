@@ -20,6 +20,7 @@ REQUIRED = {
     "list_recent_writing_tasks",
     "resume_blocked_task",
     "record_writing_learning_sample",
+    "review_writing_system_impact",
     "record_knowledge_context",
     "submit_research",
     "submit_research_audit",
@@ -108,8 +109,8 @@ async def verify() -> None:
                 raise RuntimeError(f"unexpected start result: {structured}")
             if structured.get("delivery_channel") != "WORD_FILE_ONLY":
                 raise RuntimeError(f"v0.8 task must be Word-only: {structured}")
-            if structured.get("learning_sample_count") != 0:
-                raise RuntimeError(f"new v0.8 task should start with zero learning samples: {structured}")
+            if structured.get("learning_sample_count") != 0 or structured.get("open_system_impact_count") != 0:
+                raise RuntimeError(f"new task should start with zero learning/system-impact evidence: {structured}")
             if any("VISUAL" in item or "CHAT_TEXT" in item for item in structured.get("required_outputs", [])):
                 raise RuntimeError(f"removed artifact contract leaked into v0.8 task: {structured}")
 
@@ -118,15 +119,54 @@ async def verify() -> None:
                 arguments={
                     "task_id": structured["task_id"],
                     "sample_type": "USER_FEEDBACK",
-                    "summary": "smoke-test raw learning receipt; must not promote a durable rule",
+                    "summary": "smoke-test material feedback must create a system-impact review obligation",
                 },
             )
-            if learning.is_error or learning.structured_content.get("learning_sample_count") != 1:
+            learned = learning.structured_content
+            if learning.is_error or learned.get("learning_sample_count") != 1:
                 raise RuntimeError(f"learning-sample ledger failed: {learning.content}")
+            if learned.get("open_system_impact_count") != 1:
+                raise RuntimeError(f"material feedback did not create an open system-impact obligation: {learned}")
+            signals = learned.get("system_impact_signals") or []
+            if len(signals) != 1 or signals[0].get("status") != "PENDING_REVIEW":
+                raise RuntimeError(f"system-impact signal missing or wrong state: {signals}")
+            if "review_writing_system_impact" not in learned.get("next_action", ""):
+                raise RuntimeError(f"pending system-impact review is not surfaced as next action: {learned.get('next_action')}")
+
+            impact = await session.call_tool(
+                "review_writing_system_impact",
+                arguments={
+                    "task_id": structured["task_id"],
+                    "signal_id": signals[0]["signal_id"],
+                    "problem_statement": "smoke-test feedback needs an explicit system-level classification",
+                    "root_cause_layer": "RUNTIME_OR_SCHEMA",
+                    "generalization_scope": "material writing feedback path",
+                    "alternatives": [
+                        {"mechanism": "prompt reminder", "failure_mode": "can be ignored at runtime"},
+                        {"mechanism": "durable owner obligation", "failure_mode": "adds one cold-path review action"},
+                    ],
+                    "selected_mechanism": "durable owner obligation",
+                    "selection_rationale": "it creates executable state without forcing full maintenance on every article turn",
+                    "authority_surface": "WritingState + owner MCP",
+                    "regression_or_eval_plan": ["feedback creates obligation", "review closes or escalates obligation"],
+                    "evidence_refs": ["smoke://learning-sample"],
+                    "decision": "NO_CHANGE_WITH_REASON",
+                    "decision_reason": "smoke validation exercises the classification path without claiming a production defect",
+                },
+            )
+            impacted = impact.structured_content
+            if impact.is_error or impacted.get("open_system_impact_count") != 0:
+                raise RuntimeError(f"system-impact review did not close the smoke obligation: {impact.content}")
+            reviewed = impacted.get("system_impact_signals") or []
+            if reviewed[0].get("status") != "REVIEWED_NO_MAINTENANCE":
+                raise RuntimeError(f"unexpected system-impact review result: {reviewed}")
+            profiles = {item.get("profile_id") for item in impacted.get("methodology_profile_runs") or []}
+            if not {"evolution", "operational_hygiene"}.issubset(profiles):
+                raise RuntimeError(f"feedback path did not emit both evolution and operational_hygiene receipts: {profiles}")
 
             print(
                 f"PASS: {len(tools)} typed/annotated MCP tools exposed, "
-                f"{len(uris)} Word-only resource template exposed, v0.8 start result, semantic gateway schema and raw learning ledger validated"
+                f"{len(uris)} Word-only resource template exposed, semantic gateway schema, raw learning ledger and system-impact review path validated"
             )
 
 
