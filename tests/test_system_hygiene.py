@@ -17,7 +17,7 @@ def test_agent_architecture_and_continuity_recovery_match_current_owner_contract
     handoff = (ROOT / "continuity/tasks/financial-writing-main/HANDOFF.md").read_text(encoding="utf-8")
     index = (ROOT / "continuity/TASK_INDEX.md").read_text(encoding="utf-8")
 
-    assert project["project"]["version"] == "0.8.0"
+    assert project["project"]["version"] == "0.8.1"
     assert agent_manifest["owner"] == adapter["owner"] == capabilities["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
     assert agent_manifest["skill"]["role"] == "ROUTER"
     assert agent_manifest["skill"]["entrypoint"] == "skills/financial-writing-agent/SKILL.md"
@@ -25,11 +25,13 @@ def test_agent_architecture_and_continuity_recovery_match_current_owner_contract
     assert "financial_writing_agent/controller.py" in agent_manifest["workflow"]["transition_guard_refs"]
     assert "financial_writing_agent/engine.py" in agent_manifest["workflow"]["transition_guard_refs"]
     assert adapter["owner_contract_version"] == project["project"]["version"]
-    assert adapter["execution_capability_profile_version"] == capabilities["profile_version"] == 8
+    assert adapter["execution_capability_profile_version"] == capabilities["profile_version"] == 9
+    assert adapter["methodology_assurance"]["owner_execution_hardening"]["public_mcp_tool_count"] == 19
     assert manifest["skill_version"] == "FINANCIAL_WRITING_AGENT_V0_8"
-    assert "V0_8" in manifest["runtime_version"]
-    assert "Financial Writing Agent v0.8" in handoff
+    assert "V0_8_1" in manifest["runtime_version"]
+    assert "Financial Writing Agent v0.8.1" in handoff
     assert "receipt contract `1.3`" in handoff
+    assert "review_writing_system_impact" in handoff
     assert "run_semantic_audit_stage" in handoff
     assert "v0.8" in index
 
