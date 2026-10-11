@@ -1,7 +1,7 @@
 # ChatGPT Site deployment specification — Financial Writing Agent v0.8
 
 ## Goal
-Deploy Financial Writing Agent v0.8 as a fresh **personal/private deployment only** Site-backed MCP runtime. Implement current `main` directly; do not revive removed compatibility surfaces or older schemas.
+Deploy Financial Writing Agent v0.8.1 as a fresh **personal/private deployment only** Site-backed MCP runtime. Implement current `main` directly; do not revive removed compatibility surfaces or older schemas.
 
 ## Security boundary
 Do not enable public/workspace/multi-user sharing until tenant isolation, authorization, task/artifact namespaces and cross-user access tests exist.
@@ -28,13 +28,14 @@ The historical payload value `INDEPENDENT_EXECUTOR` means stage-separated owner-
 ## Responsibility split
 - ChatGPT/model generation path: research, synthesis, TopicDNA, optional market-explanation hypotheses, mode-specific structures, current WeChat search reconnaissance, titles and drafting.
 - Owner-native semantic runtime: proof-bearing Research/Editorial/Final audit execution.
-- Hosted MCP runtime: TaskContract, legal transitions, BLOCKED recovery, schemas, durable checkpoints, stale-evidence invalidation, required outputs and completion authority.
+- Hosted MCP runtime: TaskContract, legal transitions, BLOCKED recovery, schemas, durable checkpoints, stale-evidence invalidation, required outputs, system-impact obligations and completion authority.
 - Deterministic delivery: Word construction, numbering, typography, explicit bold preservation, zero-table/zero-underline/source-tail checks, inline italic risk insertion, required-file verification, rerender hygiene and mechanical QA.
+- Universal maintenance/evolution control plane: consumes escalated non-authoritative owner control signals and performs any cross-authority/systemic maintenance; the Site runtime must not silently mutate GitHub policy/code on its own.
 
 Financial Writing has no image-generation, cover, section-image, avatar, sticker or image-insertion workflow.
 
 ## Durable state and artifacts
-Persist complete WritingState per `task_id`, including stage, gates, structured outputs, artifacts, trace, attempts, blocker/recovery cursor, timestamps, learning samples and methodology receipts.
+Persist complete WritingState per `task_id`, including stage, gates, structured outputs, artifacts, trace, attempts, blocker/recovery cursor, timestamps, learning samples, system-impact signals and methodology receipts.
 
 SQLite is local/CI reference only. Production state and Word artifacts must survive runtime restart and fresh chats. Public outputs must not expose server-local paths.
 
@@ -46,12 +47,13 @@ Required Word outputs remain applicable article files plus `WRITING_AUDIT_REPORT
 ## MCP surface
 There is exactly one registration surface: `financial_writing_agent/plugin_server.py`.
 
-Expose exactly **18 tools**:
+Expose exactly **19 tools**:
 - `start_writing_task`
 - `get_writing_task`
 - `list_recent_writing_tasks`
 - `resume_blocked_task`
 - `record_writing_learning_sample`
+- `review_writing_system_impact`
 - `record_knowledge_context`
 - `submit_research`
 - `submit_research_audit`
@@ -67,6 +69,8 @@ Expose exactly **18 tools**:
 - `submit_final_audit`
 
 The five `submit_*audit` tools may persist conservative REVISE/FAIL evidence where their schemas permit it, but they cannot certify semantic PASS from CHAT_BRIDGED input. `run_semantic_audit_stage` is the public proof-bearing PASS gateway.
+
+Material `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` learning samples must create a persisted system-impact review obligation. `review_writing_system_impact` requires at least two alternative mechanisms and explicit failure modes. `PENDING_REVIEW` cannot be silently bypassed at COMPLETE. `MAINTENANCE_REQUIRED` must remain discoverable even on a completed article until a later closure call binds the exact accepted review to durable maintenance/validation refs with at least `REGRESSION_VERIFIED` assurance. Owner receipts remain self-attested and require Universal independent verification before operational PASS claims.
 
 Every tool needs typed input/output, explicit annotations, human-readable title and operational description. Unknown fields/stages fail closed.
 
@@ -86,7 +90,7 @@ Natural Authorial Prose uses the nine-part rubric for fidelity/responsibility, s
 Do not optimize for detector evasion or recreate overlapping “活人感” silos.
 
 ## Writing DNA and quality evolution
-`record_writing_learning_sample` stores raw task-level user edit/feedback/acceptance/rejection/performance evidence. A sample never auto-promotes policy.
+`record_writing_learning_sample` stores raw task-level user edit/feedback/acceptance/rejection/performance evidence. A sample never auto-promotes policy. Corrective/negative material samples additionally enter the system-impact lifecycle described above so local prose revision cannot be mistaken for durable learning.
 
 Quality-promotion evidence is separate from article execution. Promotion requires immutable regression/held-out case identities, semantic candidate evidence verification, real hard-regression execution bound to the exact candidate/change, blind A/B position-swapped pairwise judging, and separate reference/semantic verification. A callback named “verifier” is not proof of independent execution identity.
 
@@ -98,7 +102,7 @@ Deterministic Word enforces H1 `18pt`, H2 `15pt`, body `13.5pt`, H3 currently `1
 ## Promotion validation
 Do not call a Site production-ready until all are true:
 1. activation routing is correct;
-2. all **18 typed v0.8 tools** and only the Word resource template are discoverable;
+2. all **19 typed v0.8.1 tools** and only the Word resource template are discoverable;
 3. owner-native `run_semantic_audit_stage` can really execute with the deployed SDK/model runtime;
 4. direct CHAT_BRIDGED semantic PASS is rejected;
 5. semantic-runtime unavailability produces recoverable BLOCKED rather than self-review fallback;
@@ -106,9 +110,11 @@ Do not call a Site production-ready until all are true:
 7. legal stage/revision/invalidation/recovery paths pass;
 8. Deep/Broad research/editorial invariants pass;
 9. semantic audit gates require current owner-runtime proof and COMPLETE rechecks it;
-10. deterministic Word QA and path privacy pass;
-11. one user-authorized real article E2E includes deliberate interruption/recovery and fresh-chat recovery;
-12. public/multi-user sharing remains disabled.
+10. material negative/corrective feedback creates and exposes a durable system-impact review obligation;
+11. pending system-impact review cannot be bypassed and maintenance-required signals survive completed-task discovery until closed;
+12. deterministic Word QA and path privacy pass;
+13. one user-authorized real article E2E includes deliberate interruption/recovery and fresh-chat recovery;
+14. public/multi-user sharing remains disabled.
 
 ## Canonical source
 Repository: `D1traverser-debug/financial-writing-agent`
