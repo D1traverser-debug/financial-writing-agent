@@ -1,6 +1,6 @@
 # Financial Writing Agent v0.8
 
-A deterministic A-share financial-writing runtime with material-complete deep analysis, explicit-scope market explanation, recoverable checkpoints, proof-bearing semantic audits, a unified Reader Funnel, Natural Authorial Prose / Writing DNA assurance, raw learning-evidence capture and Word-only delivery.
+A deterministic A-share financial-writing runtime with material-complete deep analysis, explicit-scope market explanation, recoverable checkpoints, proof-bearing semantic audits, executable system-impact escalation, a unified Reader Funnel, Natural Authorial Prose / Writing DNA assurance, raw learning-evidence capture and Word-only delivery.
 
 ## Core behavior
 - `FINANCE_DEEP`: material-complete within the bounded audited research universe.
@@ -36,6 +36,8 @@ The prose gate audits fidelity/responsibility, semantic contribution, argument p
 
 `record_writing_learning_sample` stores raw task-level evidence from user edits, feedback, acceptance/rejection and post-publication performance. A single sample is `RAW_EVIDENCE_ONLY` and never auto-promotes itself into a durable rule.
 
+For `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION`, evidence capture also creates a durable system-impact review obligation. `review_writing_system_impact` must compare at least two mechanisms with explicit failure modes and record whether the incident is local-only, requires no change with reason, or requires the Universal maintenance/evolution loop. An unresolved review cannot be silently bypassed at COMPLETE. If system maintenance is required, a non-authoritative control signal remains visible until a later exact review replay attaches durable maintenance and validation refs at at least `REGRESSION_VERIFIED` assurance.
+
 ## Quality-promotion evidence
 Quality promotion is intentionally stricter than runtime correctness:
 - complete regression/held-out cases carry immutable artifact identities and are re-verified at promotion time;
@@ -66,7 +68,7 @@ Changes to research, editorial plans, titles or drafts invalidate the affected d
 - no server-local filesystem paths in public artifact contracts or audit Word
 
 ## Runtime surface
-`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.8 exposes **18 typed tools** and one Word resource template. The new `run_semantic_audit_stage` tool is the only public route that can request owner-runtime semantic PASS certification; ordinary audit-submit tools cannot self-certify PASS.
+`financial_writing_agent/plugin_server.py` is the single public MCP registration surface. v0.8.1 exposes **19 typed tools** and one Word resource template. `run_semantic_audit_stage` is the only public route that can request owner-runtime semantic PASS certification; ordinary audit-submit tools cannot self-certify PASS. `review_writing_system_impact` is the owner action-level bridge from material writing feedback into the Universal maintenance/evolution control loop.
 
 There is no compatibility shim, legacy `CHAT_TEXT`, visual/sticker contract or canned `structure_patterns.md` library on current `main`.
 
