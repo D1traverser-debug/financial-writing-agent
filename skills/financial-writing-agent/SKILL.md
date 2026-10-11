@@ -15,7 +15,7 @@ Before material execution read `continuity/EXECUTION_CAPABILITIES.json` and hand
 - If owner-native runtime is unavailable but this session has GPT/model execution plus GitHub owner read/write, select the explicit `CHAT_BRIDGED` path in `continuity/GITHUB_CHAT_EXECUTION.json`. Create/resume `workspaces/articles/{task_id}/STATE.json`, persist every material stage artifact to GitHub, and reread each checkpoint before advancing.
 - Never substitute free-form chat writing for a missing runtime. If neither owner-native nor GitHub-chat requirements are available, block the exact action and state the missing capability.
 - In GitHub-chat mode, semantic audits are `CHAT_SELF_REVIEW`: they may detect defects and force revision but never become owner-native `PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Normal terminal state is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
-- `BLOCKED` owner-runtime work resumes only from its persisted recovery cursor. Never reconstruct execution stage from chat memory.
+- `BLOCKED` owner-runtime work resumes only from its persisted recovery cursor through `resume_blocked_task`; never reconstruct execution stage from chat memory.
 
 GitHub `main` is engineering/rule authority. Owner-native `WritingState` is execution truth for Python/plugin runs; GitHub article checkpoints are execution truth for explicit GITHUB_CHAT runs. Chat memory is never task authority.
 
