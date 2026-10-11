@@ -50,6 +50,7 @@ def test_current_rule_boundaries_and_legacy_removal():
     assert "VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED" in skill
     assert "submit_hook_audit" in public_server
     assert "submit_hook_audit" in runtime
+    assert "review_writing_system_impact" in public_server
     assert "writing-docx://{task_id}/{kind}" in public_server
     for removed in ("submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "CHAT_TEXT"):
         assert removed not in skill
@@ -72,6 +73,9 @@ def test_reader_funnel_and_writing_dna_policy():
     assert dna["one_off_edit_is_candidate_only"] is True
     assert dna["repeated_independent_patterns_can_promote"] is True
     assert dna["external_skill_rules_are_candidates_only"] is True
+    assert dna["material_negative_feedback_requires_system_impact_signal"] is True
+    assert dna["system_impact_review_required_before_completion"] is True
+    assert dna["system_impact_review_requires_alternative_comparison"] is True
     assert policy["style"]["optimize_for_ai_detector"] is False
 
 
