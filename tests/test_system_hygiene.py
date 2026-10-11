@@ -25,7 +25,9 @@ def test_agent_architecture_and_continuity_recovery_match_current_owner_contract
     assert "financial_writing_agent/controller.py" in agent_manifest["workflow"]["transition_guard_refs"]
     assert "financial_writing_agent/engine.py" in agent_manifest["workflow"]["transition_guard_refs"]
     assert adapter["owner_contract_version"] == project["project"]["version"]
-    assert adapter["execution_capability_profile_version"] == capabilities["profile_version"] == 9
+    assert adapter["execution_capability_profile_version"] == capabilities["profile_version"] == 10
+    assert adapter["execution_mode_binding"]["current_user_operating_mode"] == "GITHUB_MOUNTED_PLUS_GPT_CHAT"
+    assert adapter["execution_mode_binding"]["site_deployment_required_for_current_mode"] is False
     assert adapter["methodology_assurance"]["owner_execution_hardening"]["public_mcp_tool_count"] == 19
     assert manifest["skill_version"] == "FINANCIAL_WRITING_AGENT_V0_8"
     assert "V0_8_1" in manifest["runtime_version"]
@@ -33,7 +35,7 @@ def test_agent_architecture_and_continuity_recovery_match_current_owner_contract
     assert "receipt contract `1.3`" in handoff
     assert "review_writing_system_impact" in handoff
     assert "run_semantic_audit_stage" in handoff
-    assert "v0.8" in index
+    assert "GITHUB_CHAT_EXECUTION.json" in index
 
 
 def test_audit_next_actions_route_pass_through_owner_gateway():
