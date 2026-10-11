@@ -4,7 +4,7 @@
   "execution_mode": "GITHUB_CHAT",
   "status": "IN_PROGRESS",
   "current_stage": "RESEARCH_AUDIT",
-  "next_action": "persist CHAT_SELF_REVIEW research red-team artifact",
+  "next_action": "system-impact review remains open; synthetic tracer stops before publication",
   "distribution_mode": "FINANCE_DEEP",
   "prompt": "synthetic tracer only; no publication output",
   "source_refs": [],
@@ -15,6 +15,22 @@
     }
   },
   "review_assurance": "CHAT_SELF_REVIEW",
-  "open_system_impact": [],
-  "updated_at": "2026-10-12T01:32:00+08:00"
+  "learning_evidence": [
+    {
+      "sample_type": "USER_REJECTION",
+      "summary": "synthetic negative-feedback persistence tracer",
+      "source_ref": "tracer://negative-feedback",
+      "promotion_status": "RAW_EVIDENCE_ONLY"
+    }
+  ],
+  "open_system_impact": [
+    {
+      "signal_id": "impact-tracer-0001",
+      "status": "OPEN",
+      "trigger_sample_type": "USER_REJECTION",
+      "problem_statement": "synthetic check that negative feedback and maintenance obligation share one durable GitHub state mutation",
+      "assurance": "CHAT_SELF_REVIEW"
+    }
+  ],
+  "updated_at": "2026-10-12T01:33:00+08:00"
 }
