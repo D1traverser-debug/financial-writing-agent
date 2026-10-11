@@ -15,7 +15,7 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
-    assert profile["profile_version"] == 8
+    assert profile["profile_version"] == 9
 
     generation = capabilities["high_judgment_generation_stages"]
     assert generation["safe_degraded_modes"] == ["CHAT_BRIDGED"]
@@ -38,7 +38,7 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert any("callback presence alone" in item for item in quality_gate["evidence_contract"])
 
 
-def test_material_user_feedback_has_real_durable_learning_evidence_path():
+def test_material_user_feedback_has_real_durable_learning_and_system_impact_path():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     maintenance = (ROOT / "skills/financial-writing-agent/references/maintenance.md").read_text(encoding="utf-8")
     profile = json.loads((ROOT / "continuity/EXECUTION_CAPABILITIES.json").read_text(encoding="utf-8"))
@@ -47,11 +47,18 @@ def test_material_user_feedback_has_real_durable_learning_evidence_path():
     assert "material explicit user edit, feedback, rejection or acceptance" in skill
     assert "durable learning was not persisted" in skill
     assert "material explicit user edit, feedback, rejection or acceptance" in maintenance
-    assert "learning_evidence_capture" in capabilities
     learning = capabilities["learning_evidence_capture"]
     assert learning["assurance_ceiling"] == "SESSION_EXECUTABLE"
     assert "record_writing_learning_sample" in learning["invocation_path"]
-    assert any("persisted sample receipt" in item for item in learning["evidence_contract"])
+    assert any("PENDING_REVIEW" in item for item in learning["evidence_contract"])
+
+    impact = capabilities["system_impact_escalation"]
+    assert impact["assurance_ceiling"] == "SESSION_EXECUTABLE"
+    assert "review_writing_system_impact" in impact["required_tools"]
+    assert any("at least two distinct mechanisms" in item for item in impact["evidence_contract"])
+    assert any("cannot be bypassed at COMPLETE" in item for item in impact["evidence_contract"])
+    assert any("completed tasks with MAINTENANCE_REQUIRED remain discoverable" in item for item in impact["evidence_contract"])
+    assert any("does not prove independent verification or improved prose" in item for item in impact["evidence_contract"])
 
 
 def test_financial_systemic_maintenance_inherits_universal_meta_governance_without_copying_root_policy():
@@ -67,9 +74,10 @@ def test_financial_systemic_maintenance_inherits_universal_meta_governance_witho
     assert "instruction" in maintenance and "complexity/efficiency" in maintenance
     assert adapter["methodology"]["profile_refs"]["operational_hygiene"] == "1.0"
     assert adapter["methodology"]["profile_refs"]["evolution"] == "1.0"
+    assert "review_writing_system_impact" in adapter["methodology"]["hook_bindings"]["self_maintenance_trigger_path"]
 
 
-def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
+def test_financial_owner_binds_artifact_io_and_all_three_action_receipt_profiles():
     adapter = json.loads((ROOT / "continuity/UNIVERSAL_PROTOCOL_ADAPTER.json").read_text(encoding="utf-8"))
     methodology = adapter["methodology"]
 
@@ -96,6 +104,7 @@ def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
     assert required_artifact_hooks.issubset(methodology["hook_bindings"])
     assurance = adapter["methodology_assurance"]
     assert "ACTION_RECEIPT_V1_3_EXACT_ACTION_BINDING_WIRED" in assurance["operational_status"]
+    assert "ALL_THREE_OWNER_PROFILE_EMISSION_PATHS_WIRED" in assurance["operational_status"]
     assert "INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING" in assurance["operational_status"]
     wiring = assurance["action_receipt_wiring"]
     assert wiring["receipt_contract_version"] == "1.3"
@@ -104,8 +113,8 @@ def test_financial_owner_binds_artifact_io_for_real_file_and_artifact_work():
         "task_id", "stage", "action_id", "subject_bindings", "input_bindings"
     ]
     assert wiring["independent_verification_required"] == "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT_PLUS_EXACT_ACTION_BINDING"
-    assert wiring["wired_profiles"] == ["artifact_io", "evolution"]
-    assert "operational_hygiene" in wiring["unwired_or_unproven_profile"]
+    assert wiring["wired_profiles"] == ["artifact_io", "operational_hygiene", "evolution"]
+    assert "independent" in wiring["remaining_unproven_boundary"].lower()
 
 
 def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_attest():
@@ -117,9 +126,11 @@ def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_at
     receipt_capability = capabilities["methodology_action_receipts"]
 
     assert "record_learning_evolution_receipt" in server
+    assert "record_system_impact_hygiene_receipt" in server
     assert "record_artifact_io_receipt" in server
     assert "methodology_profile_runs" in server
     assert "run_semantic_audit_stage" in server
+    assert "review_writing_system_impact" in server
     assert "_reject_unverified_semantic_pass" in server
     assert 'RECEIPT_CONTRACT_VERSION = "1.3"' in receipt_runtime
     assert '"action_binding": {' in receipt_runtime
@@ -133,8 +144,7 @@ def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_at
     assert 'receipt_contract_version: Literal["1.3"]' in contracts
     assert "class MethodologyActionBindingSummary" in contracts
     assert "action_binding: MethodologyActionBindingSummary" in contracts
-    assert "Financial Writing v0.8 is Word-only" in server
-    assert "Financial Writing v0.7 is Word-only" not in server
+    assert "Financial Writing v0.8.1 is Word-only" in server
     assert "operational conformance" in server
     assert "universal_independent_evidence_ref_verifier_for_operational_pass" in receipt_capability["required_tools"]
     assert "universal_independent_hook_assessment_verifier_for_operational_pass" in receipt_capability["required_tools"]
