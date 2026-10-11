@@ -9,11 +9,31 @@ from mcp.types import CallToolResult, ResourceLink, TextContent
 from pydantic import Field
 
 from . import runtime_service as impl
-from .mcp_contracts import LearningSampleType, READ_ONLY_TOOL, STATE_WRITE_TOOL, WritingTaskList, WritingTaskSummary
-from .methodology_receipts import record_artifact_io_receipt, record_learning_evolution_receipt
+from .mcp_contracts import (
+    AssuranceCeilingText,
+    LearningSampleType,
+    READ_ONLY_TOOL,
+    RootCauseLayerText,
+    STATE_WRITE_TOOL,
+    SystemImpactAlternativeInput,
+    SystemImpactDecisionText,
+    WritingTaskList,
+    WritingTaskSummary,
+)
+from .methodology_receipts import (
+    record_artifact_io_receipt,
+    record_learning_evolution_receipt,
+    record_system_impact_hygiene_receipt,
+)
 from .models import ArtifactKind, GateStatus, Stage
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 from .semantic_runtime import run_owner_semantic_audit_stage
+from .system_impact import (
+    apply_system_impact_review,
+    ensure_system_impact_signal_for_latest_sample,
+    open_system_impact_signals,
+    system_impact_next_action,
+)
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 DOCX_KINDS = {ArtifactKind.FINANCE_DEEP_DOCX, ArtifactKind.FINANCE_BROAD_DOCX, ArtifactKind.AUDIT_DOCX}
@@ -51,13 +71,20 @@ def _summary(raw: dict) -> WritingTaskSummary:
     enriched = dict(raw)
     task_id = enriched.get("task_id")
     detail_requested = any(key in enriched for key in ("source_refs", "gates", "artifacts", "learning_samples"))
-    if isinstance(task_id, str) and task_id and detail_requested:
+    if isinstance(task_id, str) and task_id:
         try:
             state = impl._load(task_id)
         except ValueError:
             state = None
         if state is not None:
-            enriched["methodology_profile_runs"] = list(state.working.get("methodology_profile_runs", []))
+            signals = list(state.working.get("system_impact_signals", []))
+            enriched["open_system_impact_count"] = len(open_system_impact_signals(state))
+            enriched["system_impact_signals"] = signals if detail_requested or signals else None
+            impact_action = system_impact_next_action(state)
+            if impact_action:
+                enriched["next_action"] = impact_action
+            if detail_requested:
+                enriched["methodology_profile_runs"] = list(state.working.get("methodology_profile_runs", []))
     return WritingTaskSummary.model_validate(_publicize(enriched))
 
 
@@ -100,9 +127,10 @@ mcp = MCPServer(
     instructions=(
         "Use this server only for publishable A-share financial writing and continuation. "
         "Resume unfinished tasks before starting new ones, start runtime state before research, and never skip a gate. "
-        "Financial Writing v0.8 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
+        "Financial Writing v0.8.1 is Word-only, has no image workflow, and has no legacy text-artifact compatibility surface. "
         "BLOCKED tasks preserve an explicit recovery cursor and must be resumed with resume_blocked_task after the blocker is repaired. "
-        "Raw user edits, feedback and post-publication performance may be recorded as Writing DNA evidence, but a single sample never auto-promotes itself into a durable rule. "
+        "Material USER_EDIT, USER_FEEDBACK and USER_REJECTION samples create a durable system-impact review obligation; do not treat local prose revision as maintenance closure. "
+        "Use review_writing_system_impact to compare at least two mechanisms with failure modes and either close the signal locally with reason or escalate it into the Universal maintenance/evolution loop. "
         "CHAT_BRIDGED audit payloads may request revision or report failure, but they cannot certify semantic PASS. Use run_semantic_audit_stage for owner-runtime Research, Editorial or Final audit certification. "
         "Methodology profile receipts are unverified owner receipts only; they never self-certify operational conformance and require Universal independent evidence verification. "
         "The model owns research and drafting; semantic PASS authority requires the owner-runtime stage execution path; the runtime owns state, schemas, legal transitions, Word construction and mechanical QA."
@@ -127,15 +155,18 @@ def start_writing_task(
 
 
 @mcp.tool(title="Get writing task", annotations=READ_ONLY_TOOL, structured_output=True)
-def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annotated[bool, Field(description="Return gates, learning evidence, methodology receipts and publication artifact resources when true.")] = True) -> WritingTaskSummary:
-    """Read one exact persisted financial-writing task, including its legal stage, blocked recovery cursor, optional gate evidence, raw Writing DNA evidence, unverified methodology action receipts and Word artifact resources, without mutating runtime state."""
+def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annotated[bool, Field(description="Return gates, learning evidence, system-impact obligations, methodology receipts and publication artifact resources when true.")] = True) -> WritingTaskSummary:
+    """Read one exact persisted financial-writing task, including legal stage, recovery cursor, learning evidence, system-impact obligations, unverified methodology receipts and Word artifacts, without mutating runtime state."""
     return _summary(impl.get_writing_task(task_id, detail=detail))
 
 
 @mcp.tool(title="List recent writing tasks", annotations=READ_ONLY_TOOL, structured_output=True)
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50)] = 10, include_complete: bool = False) -> WritingTaskList:
-    """List recent persisted writing-task metadata for reliable continuation without expanding detailed methodology receipts or asking the user to repeat saved context."""
-    return WritingTaskList(tasks=[_summary(item) for item in impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)])
+    """List recent persisted writing tasks, retaining completed tasks that still carry open system-impact maintenance obligations so quality incidents cannot disappear from continuation."""
+    states = impl.store.list_recent(limit=max(1, min(limit, 50)))
+    if not include_complete:
+        states = [state for state in states if state.stage != Stage.COMPLETE or open_system_impact_signals(state)]
+    return WritingTaskList(tasks=[_summary(impl._summary(state)) for state in states])
 
 
 @mcp.tool(title="Resume blocked writing task", annotations=STATE_WRITE_TOOL, structured_output=True)
@@ -155,7 +186,7 @@ def record_writing_learning_sample(
     metrics: Annotated[dict[str, str | int | float] | None, Field(description="Optional observed publication metrics such as impressions, reads, CTR, completion, shares or follows.")] = None,
     notes: list[str] | None = None,
 ) -> WritingTaskSummary:
-    """Append raw Writing DNA evidence to the persisted task and emit an unverified action-scoped evolution receipt without changing article gates or silently promoting one sample into a global writing rule."""
+    """Persist raw Writing-DNA evidence. Material edit/feedback/rejection evidence also creates a durable system-impact review obligation; this action never auto-promotes a writing rule."""
     impl.record_writing_learning_sample(
         task_id,
         sample_type,
@@ -167,7 +198,54 @@ def record_writing_learning_sample(
         notes=notes,
     )
     state = impl._load(task_id)
+    ensure_system_impact_signal_for_latest_sample(state)
     record_learning_evolution_receipt(state)
+    impl.store.save(state)
+    return _summary(impl.get_writing_task(task_id, detail=True))
+
+
+@mcp.tool(title="Review writing system impact", annotations=STATE_WRITE_TOOL, structured_output=True)
+def review_writing_system_impact(
+    task_id: Annotated[str, Field(min_length=1)],
+    signal_id: Annotated[str, Field(min_length=1, description="Exact system-impact signal emitted from the triggering learning sample.")],
+    problem_statement: Annotated[str, Field(min_length=1)],
+    root_cause_layer: RootCauseLayerText,
+    generalization_scope: Annotated[str, Field(min_length=1)],
+    alternatives: Annotated[list[SystemImpactAlternativeInput], Field(min_length=2, description="At least two credible mechanisms, each with an explicit failure mode.")],
+    selected_mechanism: Annotated[str, Field(min_length=1)],
+    selection_rationale: Annotated[str, Field(min_length=1)],
+    authority_surface: Annotated[str, Field(min_length=1)],
+    regression_or_eval_plan: Annotated[list[str], Field(min_length=1)],
+    evidence_refs: Annotated[list[str], Field(min_length=1)],
+    decision: SystemImpactDecisionText,
+    decision_reason: Annotated[str, Field(min_length=1)],
+    maintenance_ref: Annotated[str | None, Field(description="On a later closure call only: exact durable maintenance change/audit ref.")] = None,
+    validation_refs: Annotated[list[str] | None, Field(description="On a later closure call only: exact CI/eval/action validation refs.")] = None,
+    assurance_ceiling: AssuranceCeilingText | None = None,
+    remaining_open: list[str] | None = None,
+) -> WritingTaskSummary:
+    """Classify one material writing-quality signal at system level before local closure: compare alternatives/failure modes, choose the canonical authority surface, and escalate or close with bounded evidence. A SYSTEM_MAINTENANCE_REQUIRED decision emits a non-authoritative Universal control signal; a later exact replay of the accepted review may close it only with verified maintenance refs."""
+    state = impl._load(task_id)
+    apply_system_impact_review(
+        state,
+        signal_id=signal_id,
+        problem_statement=problem_statement,
+        root_cause_layer=root_cause_layer,
+        generalization_scope=generalization_scope,
+        alternatives=[item.model_dump(mode="json") for item in alternatives],
+        selected_mechanism=selected_mechanism,
+        selection_rationale=selection_rationale,
+        authority_surface=authority_surface,
+        regression_or_eval_plan=regression_or_eval_plan,
+        evidence_refs=evidence_refs,
+        decision=decision,
+        decision_reason=decision_reason,
+        maintenance_ref=maintenance_ref,
+        validation_refs=validation_refs,
+        assurance_ceiling=assurance_ceiling,
+        remaining_open=remaining_open,
+    )
+    record_system_impact_hygiene_receipt(state, signal_id)
     impl.store.save(state)
     return _summary(impl.get_writing_task(task_id, detail=True))
 
