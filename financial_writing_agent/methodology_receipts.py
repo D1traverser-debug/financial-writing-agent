@@ -14,6 +14,12 @@ ARTIFACT_IO_HOOKS = (
     "post_write_verification_method", "upstream_to_downstream_invalidation_rule",
     "delete_and_retention_rules", "superseded_artifact_cleanup_rule", "external_artifact_vault_if_any",
 )
+OPERATIONAL_HYGIENE_HOOKS = (
+    "observability_or_incident_evidence_location",
+    "self_maintenance_trigger_path",
+    "garbage_collection_owner_and_dependency_rule",
+    "reliability_or_change_freeze_guard",
+)
 EVOLUTION_HOOKS = ("learning_evidence_location", "eval_or_regression_promotion_path", "superseded_mechanism_cleanup_rule")
 
 
@@ -88,18 +94,89 @@ def record_learning_evolution_receipt(state: WritingState) -> dict[str, Any]:
     if not samples:
         raise ValueError("cannot record evolution receipt without persisted learning evidence")
     sample_index = len(samples) - 1
+    sample = samples[sample_index]
     sample_ref = f"writingstate://{state.contract.task_id}/learning_samples/{sample_index}"
     state_ref = f"writingstate://{state.contract.task_id}/current"
+    signal_id = sample.get("system_impact_signal_id")
+    signal_ref = f"writingstate://{state.contract.task_id}/system_impact_signals/{signal_id}" if signal_id else None
+    primary_refs = [sample_ref] + ([signal_ref] if signal_ref else [])
     assessments = {
-        "learning_evidence_location": _assessment("INVOKED", "The current action persisted one raw Writing-DNA evidence sample in authoritative WritingState.", [sample_ref]),
-        "eval_or_regression_promotion_path": _assessment("NOT_APPLICABLE_FOR_ACTION", "This action records raw evidence only and does not attempt production-rule or quality-method promotion.", [sample_ref]),
-        "superseded_mechanism_cleanup_rule": _assessment("NOT_APPLICABLE_FOR_ACTION", "No production mechanism changed during raw evidence capture, so no superseded mechanism exists to retire in this action.", [sample_ref]),
+        "learning_evidence_location": _assessment("INVOKED", "The current action persisted one raw Writing-DNA evidence sample in authoritative WritingState.", primary_refs),
+        "eval_or_regression_promotion_path": _assessment("NOT_APPLICABLE_FOR_ACTION", "This action records raw evidence and any required system-impact review obligation; it does not itself promote a writing rule or quality method.", primary_refs),
+        "superseded_mechanism_cleanup_rule": _assessment("NOT_APPLICABLE_FOR_ACTION", "No production mechanism changed during raw evidence capture, so no superseded mechanism exists to retire in this action.", primary_refs),
     }
+    subject_bindings: dict[str, Any] = {"learning_sample_ref": sample_ref}
+    if signal_ref:
+        subject_bindings["system_impact_signal_ref"] = signal_ref
     return _append_profile_run(
         state, profile_id="evolution", trigger="PERSIST_RAW_WRITING_LEARNING_EVIDENCE",
-        hook_order=EVOLUTION_HOOKS, hook_assessments=assessments, evidence_refs=[sample_ref],
-        subject_bindings={"learning_sample_ref": sample_ref},
+        hook_order=EVOLUTION_HOOKS, hook_assessments=assessments, evidence_refs=primary_refs,
+        subject_bindings=subject_bindings,
         input_bindings={"writing_state_ref": state_ref},
+    )
+
+
+def record_system_impact_hygiene_receipt(state: WritingState, signal_id: str) -> dict[str, Any]:
+    signals = state.working.get("system_impact_signals") or []
+    signal = next((item for item in signals if item.get("signal_id") == signal_id), None)
+    if signal is None:
+        raise ValueError(f"system impact signal not found: {signal_id}")
+    review = signal.get("review")
+    if not isinstance(review, dict):
+        raise ValueError("operational_hygiene receipt requires a completed system-impact review")
+
+    signal_ref = f"writingstate://{state.contract.task_id}/system_impact_signals/{signal_id}"
+    review_ref = f"{signal_ref}/review"
+    sample_ref = str(signal.get("sample_ref", "")).strip()
+    if not sample_ref:
+        raise ValueError("system impact receipt requires the triggering learning sample ref")
+    status = str(signal.get("status", ""))
+    control = signal.get("control_signal") or {}
+    control_signal_id = str(control.get("signal_id", "")).strip()
+    control_ref = f"{signal_ref}/control_signal" if control_signal_id else review_ref
+    closure = signal.get("maintenance_closure") or {}
+    closure_ref = f"{signal_ref}/maintenance_closure" if closure else review_ref
+
+    assessments = {
+        "observability_or_incident_evidence_location": _assessment(
+            "INVOKED",
+            "The material writing signal, trigger sample and system-impact review are durably linked inside authoritative WritingState.",
+            [sample_ref, signal_ref, review_ref],
+        ),
+        "self_maintenance_trigger_path": _assessment(
+            "INVOKED",
+            "The owner converted material feedback into an explicit reviewed maintenance decision instead of treating raw feedback as a local prose fix only.",
+            [signal_ref, review_ref, control_ref],
+        ),
+        "garbage_collection_owner_and_dependency_rule": _assessment(
+            "NOT_APPLICABLE_FOR_ACTION",
+            "This owner action classifies/escalates system impact; it does not itself mutate or supersede repository mechanisms, so cleanup belongs to any downstream verified maintenance change.",
+            [review_ref, closure_ref],
+        ),
+        "reliability_or_change_freeze_guard": _assessment(
+            "INVOKED",
+            f"The review explicitly recorded whether the defect remains local or requires system maintenance; current signal status={status}.",
+            [review_ref, control_ref],
+        ),
+    }
+    trigger = "CLOSE_SYSTEM_MAINTENANCE_SIGNAL" if status == "MAINTENANCE_CLOSED" else "REVIEW_WRITING_SYSTEM_IMPACT"
+    evidence_refs = list(dict.fromkeys([sample_ref, signal_ref, review_ref, control_ref, closure_ref]))
+    return _append_profile_run(
+        state,
+        profile_id="operational_hygiene",
+        trigger=trigger,
+        hook_order=OPERATIONAL_HYGIENE_HOOKS,
+        hook_assessments=assessments,
+        evidence_refs=evidence_refs,
+        subject_bindings={
+            "system_impact_signal_ref": signal_ref,
+            "control_signal_id": control_signal_id or "NOT_APPLICABLE",
+        },
+        input_bindings={
+            "trigger_learning_sample_ref": sample_ref,
+            "review_status": status,
+            "review_decision": str(review.get("decision", "")),
+        },
     )
 
 
