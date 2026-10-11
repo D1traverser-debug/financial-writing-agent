@@ -25,6 +25,24 @@ LearningSampleType = Literal[
 ]
 MethodologyHookStatusText = Literal["INVOKED", "NOT_APPLICABLE_FOR_ACTION"]
 MethodologyReceiptVerificationText = Literal["UNVERIFIED_OWNER_RECEIPT"]
+RootCauseLayerText = Literal[
+    "ACCOUNT_OR_PRODUCT_INSTRUCTION",
+    "STARTUP_OR_ROUTING_INSTRUCTION",
+    "REPOSITORY_POLICY",
+    "RUNTIME_OR_SCHEMA",
+    "TEST_OR_EVAL",
+    "OWNER_BINDING",
+    "PRODUCT_CAPABILITY",
+    "EVIDENCE_OR_PROPAGATION",
+]
+SystemImpactDecisionText = Literal["LOCAL_ONLY", "SYSTEM_MAINTENANCE_REQUIRED", "NO_CHANGE_WITH_REASON"]
+SystemImpactStatusText = Literal[
+    "PENDING_REVIEW", "REVIEWED_NO_MAINTENANCE", "MAINTENANCE_REQUIRED", "MAINTENANCE_CLOSED"
+]
+AssuranceCeilingText = Literal[
+    "DECLARED", "WIRED", "REGRESSION_VERIFIED", "ACTION_LEVEL_SELF_ATTESTED",
+    "ACTION_LEVEL_INDEPENDENTLY_VERIFIED", "LIVE_OUTCOME_VERIFIED",
+]
 
 
 class PublicResultModel(BaseModel):
@@ -60,6 +78,60 @@ class LearningSampleSummary(PublicResultModel):
     recorded_stage: StageText
     recorded_at: datetime
     promotion_status: Literal["RAW_EVIDENCE_ONLY"] = "RAW_EVIDENCE_ONLY"
+    system_impact_signal_id: str | None = None
+
+
+class SystemImpactAlternativeInput(PublicResultModel):
+    mechanism: str = Field(min_length=1)
+    failure_mode: str = Field(min_length=1)
+
+
+class SystemImpactReviewSummary(PublicResultModel):
+    problem_statement: str
+    root_cause_layer: RootCauseLayerText
+    generalization_scope: str
+    alternatives: list[SystemImpactAlternativeInput] = Field(min_length=2)
+    selected_mechanism: str
+    selection_rationale: str
+    authority_surface: str
+    regression_or_eval_plan: list[str] = Field(min_length=1)
+    evidence_refs: list[str] = Field(min_length=1)
+    decision: SystemImpactDecisionText
+    decision_reason: str
+    reviewed_at: datetime
+
+
+class ControlSignalSummary(PublicResultModel):
+    signal_id: str
+    signal_type: Literal["USER_REPORTED_SYSTEMIC_FAILURE"]
+    source: Literal["FINANCIAL_WRITING_AGENT_RUNTIME"]
+    observed_at: datetime
+    subject: str
+    summary: str
+    evidence_refs: list[str] = Field(min_length=1)
+    severity: Literal["MEDIUM"]
+    authority: Literal["NON_AUTHORITATIVE_CONTROL_SIGNAL"]
+
+
+class MaintenanceClosureSummary(PublicResultModel):
+    maintenance_ref: str
+    validation_refs: list[str] = Field(min_length=1)
+    assurance_ceiling: AssuranceCeilingText
+    remaining_open: list[str] = Field(default_factory=list)
+    closed_at: datetime
+
+
+class SystemImpactSignalSummary(PublicResultModel):
+    signal_id: str
+    signal_type: Literal["WRITING_QUALITY_SYSTEM_IMPACT_REVIEW"]
+    status: SystemImpactStatusText
+    trigger_sample_type: Literal["USER_EDIT", "USER_FEEDBACK", "USER_REJECTION"]
+    sample_ref: str
+    created_at: datetime
+    review: SystemImpactReviewSummary | None = None
+    control_signal: ControlSignalSummary | None = None
+    maintenance_closure: MaintenanceClosureSummary | None = None
+    remaining_open: list[str] = Field(default_factory=list)
 
 
 class MethodologyHookAssessmentSummary(PublicResultModel):
@@ -127,12 +199,14 @@ class WritingTaskSummary(PublicResultModel):
     blocked_reason: str | None = None
     blocked_resume_stage: StageText | None = None
     learning_sample_count: int = Field(ge=0)
+    open_system_impact_count: int = Field(ge=0, default=0)
     updated_at: datetime
     next_action: str
     source_refs: list[str] | None = None
     gates: dict[str, GateSummary] | None = None
     artifacts: dict[str, ArtifactSummary] | None = None
     learning_samples: list[LearningSampleSummary] | None = None
+    system_impact_signals: list[SystemImpactSignalSummary] | None = None
     methodology_profile_runs: list[MethodologyProfileRunSummary] | None = None
     completion_checklist: CompletionChecklist | None = None
 
