@@ -18,6 +18,7 @@ MODELS = ROOT / "financial_writing_agent" / "models.py"
 ENGINE = ROOT / "financial_writing_agent" / "engine.py"
 RUNTIME = ROOT / "financial_writing_agent" / "runtime_service.py"
 SEMANTIC_RUNTIME = ROOT / "financial_writing_agent" / "semantic_runtime.py"
+SYSTEM_IMPACT = ROOT / "financial_writing_agent" / "system_impact.py"
 CONTROLLER = ROOT / "financial_writing_agent" / "controller.py"
 SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 CHECKS = ROOT / "financial_writing_agent" / "checks.py"
@@ -30,11 +31,11 @@ PLUGIN_JSON = ROOT / "plugin.json"
 PYPROJECT = ROOT / "pyproject.toml"
 CAPABILITIES = ROOT / "continuity" / "EXECUTION_CAPABILITIES.json"
 
-CURRENT_VERSION = "0.8.0"
+CURRENT_VERSION = "0.8.1"
 CURRENT_LABEL = "v0.8"
 EXPECTED_TOOLS = {
     "start_writing_task", "get_writing_task", "list_recent_writing_tasks",
-    "resume_blocked_task", "record_writing_learning_sample", "record_knowledge_context",
+    "resume_blocked_task", "record_writing_learning_sample", "review_writing_system_impact", "record_knowledge_context",
     "submit_research", "submit_research_audit", "submit_editorial_plan", "submit_headlines",
     "submit_draft", "submit_hook_audit", "submit_style_audit", "submit_editorial_audit",
     "run_semantic_audit_stage", "build_and_mechanically_audit_delivery",
@@ -171,12 +172,14 @@ def check_runtime_contract() -> int:
     engine = ENGINE.read_text(encoding="utf-8")
     runtime = RUNTIME.read_text(encoding="utf-8")
     semantic_runtime = SEMANTIC_RUNTIME.read_text(encoding="utf-8")
+    system_impact = SYSTEM_IMPACT.read_text(encoding="utf-8")
     controller = CONTROLLER.read_text(encoding="utf-8")
     schemas = SCHEMAS.read_text(encoding="utf-8")
     checks = CHECKS.read_text(encoding="utf-8")
     document = DOCUMENT.read_text(encoding="utf-8")
 
-    require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "run_semantic_audit_stage", "LearningSampleSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
+    require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "review_writing_system_impact", "run_semantic_audit_stage", "LearningSampleSummary", "SystemImpactSignalSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
+    require(public + system_impact + engine, ("PENDING_REVIEW", "SYSTEM_MAINTENANCE_REQUIRED", "MAINTENANCE_REQUIRED", "REGRESSION_VERIFIED", "pending_system_impact_reviews"), "system-impact escalation runtime")
     require(public, ("_reject_unverified_semantic_pass", "PASS cannot be certified by a CHAT_BRIDGED submission"), "semantic public boundary")
     require(semantic_runtime + controller + engine + models, ("EXECUTOR_START", "EXECUTOR_END", "semantic_gate_proof_valid", "owner semantic audit", "STAGE_SEPARATED_OWNER_RUNTIME" if "STAGE_SEPARATED_OWNER_RUNTIME" in semantic_runtime + controller + engine + models else "INDEPENDENT_EXECUTOR"), "semantic proof runtime")
     forbid(public + contracts + models, ("submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "CHAT_TEXT", "Human Voice"), "public MCP")
@@ -250,6 +253,8 @@ def check_policy_and_executor() -> None:
     dna = policy["style"].get("writing_dna_learning", {})
     if not dna.get("raw_learning_sample_ledger_enabled") or not dna.get("one_off_edit_is_candidate_only"):
         fail("Writing DNA evidence discipline drift")
+    if not dna.get("material_negative_feedback_requires_system_impact_signal") or not dna.get("system_impact_review_required_before_completion") or not dna.get("system_impact_review_requires_alternative_comparison"):
+        fail("system-impact escalation policy drift")
 
     adapter = OPENAI_ADAPTER.read_text(encoding="utf-8")
     require(adapter, (
@@ -270,8 +275,8 @@ def check_policy_and_executor() -> None:
 
 def check_site_and_dead_contracts() -> None:
     site = SITE_SPEC.read_text(encoding="utf-8")
-    require(site, ("personal/private deployment only", "18 tools", "run_semantic_audit_stage", "resume_blocked_task", "record_writing_learning_sample", "Do not silently fall back to ephemeral container/local disk"), "Site spec")
-    forbid(site, ("15 tools", "16-tool", "17 tools", "submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "company-name bolding"), "Site spec")
+    require(site, ("personal/private deployment only", "19 tools", "run_semantic_audit_stage", "review_writing_system_impact", "resume_blocked_task", "record_writing_learning_sample", "Do not silently fall back to ephemeral container/local disk"), "Site spec")
+    forbid(site, ("15 tools", "16-tool", "17 tools", "18 tools", "submit_visual_package", "WECHAT_STICKER_POST", "writing-text://", "company-name bolding"), "Site spec")
     for path in (
         ROOT / "financial_writing_agent" / "contracts.py",
         ROOT / "financial_writing_agent" / "mcp_server.py",
@@ -294,7 +299,7 @@ def main() -> None:
     tools = check_runtime_contract()
     check_policy_and_executor()
     check_site_and_dead_contracts()
-    print(f"PASS: v0.8 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; proof-bearing owner-runtime semantic audits + Universe Coverage + company decision map + broad cold-reader stake + major-section bridges + clean Word presentation protected")
+    print(f"PASS: v0.8.1 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; proof-bearing semantic audits + executable material-feedback system-impact escalation + clean Word presentation protected")
 
 
 if __name__ == "__main__":
