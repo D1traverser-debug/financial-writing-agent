@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from .models import ArtifactKind, GateStatus, SEMANTIC_GATE_STAGES, Stage, TaskContract, WritingState
 from .store import SQLiteStateStore
+from .system_impact import pending_system_impact_reviews
 
 
 class WorkflowError(RuntimeError):
@@ -105,6 +106,10 @@ class WritingEngine:
         return state.attempts[key]
 
     def assert_can_complete(self, state: WritingState) -> None:
+        pending_impact = pending_system_impact_reviews(state)
+        if pending_impact:
+            ids = [item["signal_id"] for item in pending_impact]
+            raise WorkflowError(f"Pending material-feedback system-impact review(s): {ids}")
         failed = [name for name, gate in state.gates.items() if gate.status in {GateStatus.FAIL, GateStatus.REVISE, GateStatus.NOT_RUN}]
         if failed:
             raise WorkflowError(f"Unresolved gates: {failed}")
