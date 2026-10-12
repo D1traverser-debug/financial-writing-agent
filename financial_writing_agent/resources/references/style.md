@@ -55,6 +55,8 @@ Any editing pass must preserve:
 
 Naturalness never justifies deleting a limiting condition, converting an attributed claim into a naked fact or inventing concrete detail.
 
+A topic's business-realization ladder must also remain intact. Do not rewrite an earlier evidence stage as a later one merely for narrative force—for example, technology/product progress does not itself prove orders; orders do not themselves prove recognized revenue; revenue does not itself prove profit or cash-flow realization. The actual stages vary by topic, so this is a **general evidence-stage rule**, not a permanent vocabulary tied to one industry.
+
 ## Dedicated nine-part judge
 At `EDITORIAL_AUDIT`, an independent judge reviews the frozen draft. PASS requires text-level evidence for all nine dimensions:
 1. `fidelity_and_responsibility` — facts, certainty, stance, attribution and agency remain correct.
@@ -100,9 +102,9 @@ Treat patterns as evidence, not forbidden tokens. Watch for clusters such as:
 A normal dash, parallel structure, question or short sentence is not an error by itself.
 
 ## Numbering and prose naturalness
-Visible numbering is not “AI format” when it reflects real analytical branches. For a Deep article with several stock classes, stages, dimensions or causal branches, `（1）（2）（3）/①②③` can make reasoning more human-readable and less like an unbroken model-generated essay.
+Visible numbering is not “AI format” when it reflects real analytical branches. For a Deep article with several stock classes, stages, dimensions or causal branches, `（1）（2）（3）/①②③` should be used **readily and often** when it makes the reasoning easier to scan and compare. Do not reserve lower-level numbering only for extreme paragraph density.
 
-The error is mechanical symmetry: do not force every H1 to contain exactly three subpoints. Use as many numbered subpoints as the actual logic needs.
+The error is mechanical symmetry: do not force every H1 to contain exactly three subpoints. Use as many numbered subpoints, and as much hierarchy, as the actual logic earns.
 
 ## Writing DNA: what to learn
 Writing DNA can include:
@@ -140,15 +142,19 @@ The currently known audience suggests many readers around 45 and a substantial 5
 - meaningful numbering for real layers;
 - avoid unnecessarily deep sentence nesting;
 - avoid dense unbroken walls and endless one-sentence fragmentation;
-- use headings and selective bold as navigation.
+- use headings and deliberate bold as navigation.
 
 Account behavior and user feedback outrank generic demographic assumptions.
 
 ## Bold skim path
-Bold is semantic navigation, not an automatic company-name format. Explicitly emphasize the minimum useful set of keywords/entities, key numbers and key judgment sentences so **title → H1s → bold spans** reconstruct the main line. Do not bold so much text that emphasis loses signal.
+Every A-share company name supplied to the publication document is a deterministic bold entity marker. **That does not satisfy the skim-path requirement by itself.**
+
+Explicitly emphasize additional key facts, numbers, mechanisms and selected judgment sentences so **title → H1s → all bold spans** reconstruct the main line. The reader should be able to recover not only *which companies are present* but also *what changed, how the logic transmits, which comparison matters and where the conclusion is bounded*.
+
+Do not respond to automatic company-name bolding by removing semantic bold anchors. The fixed entity layer and the selective reasoning layer serve different functions.
 
 ## Extreme language
 Unambiguous promises such as “注定暴涨”“必然上涨”“唯一机会” can be deterministic hard fails. Generic superlatives such as “最强”“顶级” require semantic context: unsupported hype fails, while a genuinely sourced ranked claim can be legal if the wording and relevance are precise.
 
 ## Revision method
-Fix reasoning/reader defects before polishing surfaces. Revise the smallest region that solves the defect while preserving facts and useful authorial choices. Then reread once for fidelity, once for **major-section progression**, and once for residual template/redundancy problems.
+Fix reasoning/reader defects before polishing surfaces. Revise the smallest region that solves the defect while preserving facts and useful authorial choices. Then reread once for fidelity, once for **major-section progression**, once for evidence-stage integrity and once for residual template/redundancy problems.

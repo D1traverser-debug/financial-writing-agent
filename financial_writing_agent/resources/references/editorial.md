@@ -44,8 +44,8 @@ If scope is `NOT_MATERIAL`, do not force market-selection language into the arti
 
 FINANCE_DEEP may compress repetition, textbook background, synonym restatement and immaterial detail. It must not omit a material analytical branch or MATERIAL company merely for brevity or elegance.
 
-## Company comparison decision map — useful without becoming a buy list
-A multi-company finance article is incomplete if it names every company but never resolves **how the companies differ economically**. When company choice is a material reader question, build a comparison map before the conclusion.
+## Company comparison decision map — comparison may be a primary analytical focus
+A multi-company finance article is incomplete if it names every company but never resolves **how the companies differ economically**. When company choice or differentiation is a material reader question, build a comparison map before the conclusion. The comparison itself may occupy a major section or become one of the article's central analytical jobs when that is where the reader value lies.
 
 Use evidence-bounded dimensions such as:
 - **order visibility** — how much current demand is already visible in orders/contracts;
@@ -54,9 +54,9 @@ Use evidence-bounded dimensions such as:
 - **overseas exposure** — whether export/customer/project routes are already validated rather than merely possible;
 - **technology optionality** — whether a newer technical route is already commercial, still demonstration-stage, or only a future option.
 
-The map may state a **research order, evidence hierarchy, “current vs later”, “visibility vs sensitivity”, or what would change the ranking**. It must not translate those dimensions into “买谁/卖谁”, entry timing, target price, position sizing, “首选/上车/重点配置” language, or euphemisms whose practical purpose is to evade the same boundary.
+The map may state a **research order, evidence hierarchy, current-vs-later distinction, visibility-vs-sensitivity distinction, stronger/weaker evidence, or what would change the ranking**. It may explicitly emphasize the comparison when the evidence supports doing so. It must not translate those dimensions into executable trading instructions such as buy/sell, entry timing, target price, position sizing or equivalent euphemisms.
 
-The intended reader takeaway is: *which operating thesis is more or less evidenced right now, and what evidence would move a company between buckets*. It is not a covert stock recommendation.
+The intended reader takeaway is: *which operating thesis is more or less evidenced right now, why the companies differ, and what evidence would move a company between buckets*. Evidence-bounded comparison is useful financial analysis; the prohibited boundary is actionable trading instruction, not comparison itself.
 
 ## Stock-grounded validation / monitoring sections
 When a Deep section tells the reader **what to watch, validate, falsify, track, or wait for next**, do not detach the checklist from the stock universe.
@@ -106,11 +106,13 @@ Detailed paragraph-to-paragraph **argument progression** belongs to `style.md`. 
 Use continuous report-style prose with meaningful hierarchy when reasoning has **real** layers, categories, steps or parallel branches:
 `一、二、三 → （1）（2）（3） → ①②③`.
 
-For FINANCE_DEEP, lower-level numbering is **semantic and conditional**, never a formatting quota. Use H2/H3 numbering when it exposes distinct analytical branches that would otherwise be hard to follow. Do not create H2/H3 merely because the article is long, contains many stock names, has several H1s, or because a fixed minimum count is expected.
+For FINANCE_DEEP, lower-level numbering is still semantic rather than a fixed quota, but the default should be **to expose real branches rather than hide them in dense continuous prose**. Use `（1）（2）（3）` and `①②③` generously whenever they reduce cognitive load or make comparisons, stages, mechanisms, company classes, evidence grades or validation paths easier to scan.
 
-A section may legitimately remain continuous prose when its reasoning is sequential rather than branched. Conversely, a genuinely multi-branch section should expose those branches instead of hiding them inside one dense paragraph. The decision is made from the section's analytical structure, not from character count or company count.
+In particular, a Deep section with several company classes, multiple realization stages, three or more meaningful comparison dimensions, or multiple causal branches should normally expose those branches with lower-level numbering. Do not wait for the prose to become unreadable before using hierarchy.
 
-Navigation quality is not monotonic in the amount of numbering. Excessive or visually symmetric numbering can itself become a structural defect when it turns the article into a report template or duplicates adjacent sections. Publication articles do not use tables; convert necessary comparison material into prose whose hierarchy follows the actual argument.
+A section may remain continuous prose when its reasoning is genuinely sequential and gains nothing from subdivision. Do not force every H1 to have the same number of children or manufacture empty subpoints for visual symmetry. The number and depth of subpoints follow the actual logic.
+
+Navigation quality is not monotonic in raw heading count: excessive symmetric numbering can still become a defect when it creates fake structure. The governing preference is **more visible hierarchy for real analytical structure, less decorative hierarchy for nonexistent structure**. Publication articles do not use tables; convert necessary comparison material into prose whose hierarchy follows the argument.
 
 ## Information density
 There is no default word-count target. Length follows material information density.
@@ -128,21 +130,25 @@ Load `style.md` for fidelity, semantic contribution, argument progression, reade
 Do not use “去AI味” as a separate editorial objective. Repeated staging phrases or symmetrical section molds are a real structural defect when they cluster, even if every individual sentence is grammatical.
 
 ## Bold skim-path content selection
-Editorial helps identify which facts/numbers/judgments deserve explicit emphasis, but Word mechanics belong to Delivery. The final **title + H1s + explicit bold anchors** should recover the main line without blanket entity bolding.
+All A-share company names supplied to the publication document are bolded deterministically by Delivery. That fixed entity emphasis **does not replace semantic emphasis**.
+
+Editorial must still choose a useful set of key facts, numbers, mechanisms and judgment sentences for explicit `**...**` emphasis. The final **title + H1s + all bold spans** should recover the main line: what changed, the core transmission chain, the important company comparison and the conclusion boundary. Because A-share names are always bold, the explicit semantic anchors are especially important to prevent the skim path from degrading into a mere list of companies.
 
 ## Risk section
 The writer returns `risk_disclaimer`; deterministic delivery appends it as the final inline italic `风险提示：...` paragraph. Do not place a duplicate risk/disclaimer H1 inside article blocks.
+
+The risk paragraph should be **concise but information-complete** for the current topic. Do not pad it to satisfy a character-count quota; do not shorten it by deleting a material risk/boundary merely to look concise.
 
 ## General editorial judge
 General editorial audit is independent from Reader Funnel and Natural Authorial Prose. It checks:
 - evidence/mode contract;
 - FINANCE_DEEP material and company-universe completeness or FINANCE_BROAD legal compression;
 - stock-grounded validation/monitoring sections;
-- company-comparison decision usefulness without covert recommendation language;
+- company-comparison decision usefulness, including whether comparison deserves to be a major analytical focus, while preserving the non-actionable boundary;
 - Market Explanation discipline when scope is REQUIRED;
 - macro structural coherence, earned major-section bridges and semantically justified navigation when branching;
 - information density;
-- skim-path substance;
-- compliance and risk boundaries.
+- skim-path substance beyond automatic A-share-name emphasis;
+- compliance and concise-but-complete risk boundaries.
 
 General editorial PASS is illegal until the dedicated Reader Funnel and Authorial Prose gates PASS.
