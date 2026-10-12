@@ -12,12 +12,13 @@ This Skill is a thin router. Runtime/workflow/guards are executable authority; d
 Before material execution read `continuity/EXECUTION_CAPABILITIES.json` and handshake only the capabilities needed by the exact next action. Repository declarations are ceilings, not current-session proof.
 
 - If the Python owner runtime/plugin is actually available, use the persisted owner runtime: existing work via `list_recent_writing_tasks`; new article via `start_writing_task` before research or drafting.
-- If owner-native runtime is unavailable but this session has GPT/model execution plus GitHub owner read/write, select the explicit `CHAT_BRIDGED` path in `continuity/GITHUB_CHAT_EXECUTION.json`. Create/resume `workspaces/articles/{task_id}/STATE.json`, persist every material stage artifact to GitHub, and reread each checkpoint before advancing.
-- Never substitute free-form chat writing for a missing runtime. If neither owner-native nor GitHub-chat requirements are available, block the exact action and state the missing capability.
-- In GitHub-chat mode, semantic audits are `CHAT_SELF_REVIEW`: they may detect defects and force revision but never become owner-native `PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Normal terminal state is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
+- If owner-native runtime is unavailable, GITHUB_CHAT is legal only when this session has GPT/model execution, GitHub owner read/write **and** a deterministic way to execute `financial_writing_agent/github_chat_guard.py`. Create/resume state through that guard; do not hand-edit `current_stage`.
+- Every GITHUB_CHAT material transition must bind the fetched prior `STATE.json` blob SHA, the exact task/stage/capability/action, executor identity, subject/input bindings and output refs in one new self-attested execution receipt. Then write with the same GitHub blob SHA and reread before treating the transition as durable.
+- If the deterministic guard cannot execute, block the stage transition. Missing owner runtime is never permission to free-form a publishable article.
+- In GitHub-chat mode, semantic audits are `CHAT_SELF_REVIEW`: they may detect defects and force revision/failure but never become owner-native `PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Normal terminal state is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
 - `BLOCKED` owner-runtime work resumes only from its persisted recovery cursor through `resume_blocked_task`; never reconstruct execution stage from chat memory.
 
-GitHub `main` is engineering/rule authority. Owner-native `WritingState` is execution truth for Python/plugin runs; GitHub article checkpoints are execution truth for explicit GITHUB_CHAT runs. Chat memory is never task authority.
+GitHub `main` is engineering/rule authority. Owner-native `WritingState` is execution truth for Python/plugin runs; guard-validated GitHub article checkpoints are execution truth for explicit GITHUB_CHAT runs. Chat memory is never task authority.
 
 ## 2. Workflow and semantic gates
 
@@ -27,7 +28,7 @@ Use the owner sequence exactly:
 
 Owner-native runs may then reach `COMPLETE` only through the controller. GitHub-chat runs may deliver at their bounded chat assurance but may not relabel that result as owner-native COMPLETE.
 
-Do not free-form skip, insert or complete stages.
+Do not free-form skip, insert or complete stages. In GITHUB_CHAT, stage advancement/revision/terminalization is accepted only by `github_chat_guard`; a fluent model answer or manually edited `STATE.json` is not workflow proof.
 
 At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct required judgments.
 
@@ -68,7 +69,7 @@ These anchors stay hot because crossing them changes product behavior:
 Any **material explicit user edit, feedback, rejection or acceptance that changes how the system should write, review or deliver** must become durable owner evidence before claiming learning or closing that revision loop.
 
 - Owner-native mode: use `record_writing_learning_sample` and its system-impact path.
-- GITHUB_CHAT mode: persist the feedback in the article workspace and, for material edit/feedback/rejection, create an OPEN system-impact item in the same durable checkpoint operation. Do not fabricate owner-plugin receipts when that runtime is unavailable.
+- GITHUB_CHAT mode: use `github_chat_guard.attach_material_feedback` so material edit/feedback/rejection and its OPEN system-impact item enter the same guard-validated state mutation and action-bound receipt. Do not fabricate owner-plugin receipts when that runtime is unavailable.
 
 Systemic/non-trivial maintenance enters `references/maintenance.md` and the current Universal `operational_hygiene` / `evolution` path. Local deterministic bugs may use the lighter path defined there. Do not create another root policy or persona Agent merely to add review theatre.
 
@@ -76,6 +77,6 @@ Systemic/non-trivial maintenance enters `references/maintenance.md` and the curr
 
 Owner-native `COMPLETE` remains controlled by the owner workflow/controller and requires its proof-bearing gates and artifacts.
 
-GITHUB_CHAT may deliver a Word artifact after the full staged GitHub workflow, current-session mechanical checks, and final self-review complete, but must report its bounded state as `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` and list unavailable independent/owner-native checks as OPEN. Persist the publication source in GitHub so the Word file is reproducible even if the chat attachment is transient.
+GITHUB_CHAT may deliver a Word artifact only after the full guard-enforced GitHub workflow, current-session mechanical checks, and final self-review complete. Report its bounded state as `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` and list unavailable independent/owner-native checks as OPEN. Persist the publication source in GitHub so the Word file is reproducible even if the chat attachment is transient.
 
 For an active durable task, preserve owner lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance.
