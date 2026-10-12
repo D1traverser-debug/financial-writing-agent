@@ -70,11 +70,11 @@ def apply_revision_cleanup(state: WritingState, target: str, *, reason: str) -> 
 
 
 def reconcile_pending_revision_cleanup(state: WritingState) -> bool:
-    """Repair a crash between revision transition and downstream invalidation.
+    """Replay a crash-safe revision cleanup in memory before business use.
 
-    Returns True only when an actual recovery mutation was applied. The persistence
-    layer owns the subsequent durable save so every owner-native entrypoint sees the
-    same healed state before business execution resumes.
+    Returns True only when recovery was applied. Restoration is intentionally read-only:
+    it must not make the task appear durably newer merely because a caller inspected it.
+    The next legitimate writer persists the healed view under normal optimistic CAS.
     """
     pending = state.working.get(PENDING_REVISION_CLEANUP)
     if pending is None:
@@ -89,7 +89,11 @@ def reconcile_pending_revision_cleanup(state: WritingState) -> bool:
             f"pending revision cleanup stage mismatch: current={state.stage.value}, target={target_stage.value}"
         )
 
+    durable_updated_at = state.updated_at
     reason = str(pending.get("reason", "")).strip() or "recover pending revision cleanup"
     apply_revision_cleanup(state, target_stage.value, reason=reason)
     state.add_trace("RECOVERY_RECONCILED", f"completed pending revision cleanup target={target_stage.value}")
+    # set_gate/add_trace update the model timestamp. A restore is not itself a durable
+    # mutation, so preserve the timestamp of the checkpoint that was actually read.
+    state.updated_at = durable_updated_at
     return True
