@@ -22,12 +22,25 @@ class ArticleDocument(BaseModel):
     stock_names: list[str] = Field(default_factory=list)
 
 
-def _split_bold(text: str):
-    """Parse only explicit **...** emphasis.
+def _split_bold(
+    text: str,
+    *,
+    stock_names: list[str] | None = None,
+    auto_bold_stock_names: bool = False,
+) -> list[tuple[str, bool]]:
+    """Parse explicit ``**...**`` emphasis and optional A-share name emphasis.
 
-    Company names are not automatically bolded. Emphasis is a semantic skim-path
-    decision owned by the draft rather than a blanket entity-formatting rule.
+    ``ArticleDocument.stock_names`` is the deterministic A-share/company formatting
+    surface. When policy enables automatic stock-name emphasis, every exact occurrence
+    is bolded. Explicit emphasis remains independent and can therefore carry the wider
+    skim path through key facts, numbers and judgment sentences.
     """
+    names = sorted({name for name in (stock_names or []) if name}, key=len, reverse=True)
+    name_set = set(names)
+    name_pattern = None
+    if auto_bold_stock_names and names:
+        name_pattern = re.compile("(" + "|".join(re.escape(name) for name in names) + ")")
+
     parts = re.split(r"(\*\*.*?\*\*)", text)
     out: list[tuple[str, bool]] = []
     for part in parts:
@@ -35,7 +48,13 @@ def _split_bold(text: str):
             continue
         explicit = part.startswith("**") and part.endswith("**")
         raw = part[2:-2] if explicit else part
-        out.append((raw, explicit))
+        if explicit or name_pattern is None:
+            out.append((raw, explicit))
+            continue
+        for piece in name_pattern.split(raw):
+            if not piece:
+                continue
+            out.append((piece, piece in name_set))
     return out
 
 
@@ -109,6 +128,8 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
     r = title.add_run(article.title)
     _format_run(r, bold=True, size_pt=policy["word"]["title_pt"])
 
+    auto_bold_stock_names = bool(policy.get("word", {}).get("auto_bold_company_names", False))
+
     h1 = h2 = h3 = 0
     risk_mode = False
     for block in article.blocks:
@@ -149,7 +170,11 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
             is_risk = risk_mode or render_text.strip().startswith("风险提示：")
             if is_risk and not render_text.strip().startswith("风险提示："):
                 render_text = f"风险提示：{render_text.strip()}"
-            for text, bold in _split_bold(render_text):
+            for text, bold in _split_bold(
+                render_text,
+                stock_names=article.stock_names,
+                auto_bold_stock_names=auto_bold_stock_names,
+            ):
                 run = p.add_run(text)
                 _format_run(run, bold=bool(bold), italic=is_risk, size_pt=policy["word"]["body_pt"])
 
