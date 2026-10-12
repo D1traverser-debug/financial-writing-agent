@@ -1,3 +1,4 @@
+import ast
 import json
 from pathlib import Path
 
@@ -93,6 +94,56 @@ def test_dependency_invalidation_is_derived_from_stage_order():
         "mechanical_audit",
         "final_audit",
     )
+
+
+def _runtime_cleanup_gate_map() -> dict[str, tuple[str, ...]]:
+    """Inspect current owner-native cleanup without importing its global store.
+
+    Phase 1 leaves adapter-specific working-key/artifact cleanup in runtime_service.
+    This makes the remaining duplicated gate lists an executable parity obligation
+    until Phase 2 edits that service for recovery/task-discovery and can remove them.
+    """
+    source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    func = next(
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_cleanup_after_revision"
+    )
+    result: dict[str, tuple[str, ...]] = {}
+    node = func.body[0]
+    while isinstance(node, ast.If):
+        compare = node.test
+        if (
+            isinstance(compare, ast.Compare)
+            and len(compare.ops) == 1
+            and isinstance(compare.ops[0], ast.Eq)
+            and isinstance(compare.comparators[0], ast.Constant)
+            and isinstance(compare.comparators[0].value, str)
+        ):
+            target = compare.comparators[0].value
+            invalidate_call = next(
+                (
+                    call
+                    for statement in node.body
+                    for call in ast.walk(statement)
+                    if isinstance(call, ast.Call)
+                    and isinstance(call.func, ast.Name)
+                    and call.func.id == "_invalidate"
+                ),
+                None,
+            )
+            if invalidate_call is not None and len(invalidate_call.args) >= 2:
+                result[target] = tuple(ast.literal_eval(invalidate_call.args[1]))
+        node = node.orelse[0] if len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If) else None
+    return result
+
+
+def test_owner_native_revision_cleanup_gate_lists_match_canonical_dependencies():
+    cleanup = _runtime_cleanup_gate_map()
+    expected_targets = ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY")
+    assert set(cleanup) == set(expected_targets)
+    for target in expected_targets:
+        assert cleanup[target] == invalidated_gate_names_from(Stage(target))
 
 
 def test_github_chat_contract_points_to_kernel_instead_of_copying_stage_order():
