@@ -1,0 +1,38 @@
+{
+  "stage": "DRAFT",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "publication_sources": {
+    "FINANCE_DEEP": {
+      "path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_DEEP.json",
+      "blob_sha": "da7f019dc54e1a227e53e36d7d898abc889bd7c1"
+    },
+    "FINANCE_BROAD": {
+      "path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_BROAD.json",
+      "blob_sha": "12b3549ad7e4af542d2538c3715cf30c400e3b6b"
+    }
+  },
+  "deep_material_company_reconciliation": {
+    "required": ["深信服","启明星辰","绿盟科技","安恒信息","天融信","山石网科"],
+    "present": ["深信服","启明星辰","绿盟科技","安恒信息","天融信","山石网科"],
+    "missing": []
+  },
+  "deep_secondary_context": ["奇安信","亚信安全","迪普科技"],
+  "mode_contracts": {
+    "FINANCE_DEEP": "MATERIAL_COMPLETE relative to audited bounded universe; preserves two upgrade mechanisms, monetization ladder, counterevidence and company-grounded validation.",
+    "FINANCE_BROAD": "SELECTIVE_TRAFFIC; compresses the universe into revenue/orders/infrastructure evidence while retaining the central counterexample and uncertainty boundary."
+  },
+  "compliance_precheck": {
+    "actionable_trade_guidance": false,
+    "target_price_or_position_sizing": false,
+    "company_comparison_is_operating_evidence_only": true,
+    "market_explanation_scope_respected": true
+  },
+  "delivery_contract": {
+    "article_body_in_chat": false,
+    "publication_source_frozen_before_word": true,
+    "tables": false,
+    "risk_disclaimer_per_mode": true,
+    "explicit_skim_path_anchors": true
+  },
+  "status": "READY_FOR_EDITORIAL_AUDIT"
+}
