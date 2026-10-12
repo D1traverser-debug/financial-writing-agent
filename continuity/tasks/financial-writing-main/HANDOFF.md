@@ -101,4 +101,4 @@ Targeted/structural/fault evidence for repaired components does not prove those 
 
 Owner correctness is separate from product/account discovery. GitHub/Library files are not automatic event listeners. A completely new ChatGPT conversation can execute this system correctly **after it is routed to the Financial owner**, but zero-prompt automatic repo discovery for every generic new-chat article request requires an always-on product/account routing hook and must not be claimed from repository files alone.
 
-`resume_epoch=2` and active lease `fw-5636d680328b40c5ab4b5029441e3489` are preserved by this same-task maintenance reconciliation; no takeover is implied.
+`resume_epoch=3` and active lease `fw-4b398865ade44f1c896911a438f0c83b` were established by this new-chat takeover, superseding `fw-5636d680328b40c5ab4b5029441e3489`.
