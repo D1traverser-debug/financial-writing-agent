@@ -96,6 +96,11 @@ def test_dependency_invalidation_is_derived_from_stage_order():
     )
 
 
+def _runtime_service_ast() -> ast.Module:
+    source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    return ast.parse(source)
+
+
 def _runtime_cleanup_gate_map() -> dict[str, tuple[str, ...]]:
     """Inspect current owner-native cleanup without importing its global store.
 
@@ -103,8 +108,7 @@ def _runtime_cleanup_gate_map() -> dict[str, tuple[str, ...]]:
     This makes the remaining duplicated gate lists an executable parity obligation
     until Phase 2 edits that service for recovery/task-discovery and can remove them.
     """
-    source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
+    tree = _runtime_service_ast()
     func = next(
         node for node in tree.body
         if isinstance(node, ast.FunctionDef) and node.name == "_cleanup_after_revision"
@@ -144,6 +148,28 @@ def test_owner_native_revision_cleanup_gate_lists_match_canonical_dependencies()
     assert set(cleanup) == set(expected_targets)
     for target in expected_targets:
         assert cleanup[target] == invalidated_gate_names_from(Stage(target))
+
+
+def _literal_revision_set_for_submit(function_name: str) -> frozenset[Stage]:
+    tree = _runtime_service_ast()
+    func = next(
+        node for node in tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == function_name
+    )
+    call = next(
+        node for node in ast.walk(func)
+        if isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "_validate_revision_target"
+    )
+    raw = ast.literal_eval(call.args[1])
+    return frozenset(Stage(item) for item in raw)
+
+
+def test_public_submit_revision_sets_match_canonical_review_routes():
+    assert _literal_revision_set_for_submit("submit_research_audit") == revision_targets(Stage.RESEARCH_AUDIT)
+    assert _literal_revision_set_for_submit("submit_editorial_audit") == revision_targets(Stage.EDITORIAL_AUDIT)
+    assert _literal_revision_set_for_submit("submit_final_audit") == revision_targets(Stage.FINAL_AUDIT)
 
 
 def test_github_chat_contract_points_to_kernel_instead_of_copying_stage_order():
