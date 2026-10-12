@@ -1,194 +1,165 @@
 {
   "stage": "RESEARCH",
   "task_id": "fw-20261012-ai-security-6dd14859",
-  "source_boundary": "Public information available through 2026-10-12; primary company filings/IR preferred; secondary sell-side/media used only as corroboration/proxy where primary text was not directly indexed.",
+  "revision": 2,
+  "source_boundary": "Public information available through 2026-10-12. Overseas facts prioritize official investor-relations releases/prepared remarks. Domestic facts prioritize 2026 H1 listed-company filings and official disclosures. Secondary reports are used only to corroborate indexed filing details. Q3 2026 reports for the main A-share names were not yet a complete comparable set as of the source date.",
   "research_sweeps": [
     {
       "sweep_id": "A_OVERSEAS_PRIMARY",
-      "angle": "Latest overseas cybersecurity earnings + AI infrastructure/security demand",
+      "angle": "Latest overseas cybersecurity earnings and AI-driven infrastructure/security demand",
       "material_new_items": [
-        "Fortinet 2Q26 revenue $2.05B +26% YoY; product revenue $773M +52%; billings +33%.",
-        "Fortinet says AI is a dominant driver of security infrastructure modernization; disclosed an 8-figure neocloud AI-datacenter security win after a 7-figure Q1 deal.",
-        "CrowdStrike FY27 Q2 revenue $1.471B +26%, net new ARR $333M +51%; CEO called Q2 the best quarter in company history and said AI adoption needs security.",
-        "CrowdStrike AIDR business reported >79x growth in three quarters since launch (Oct. 7, 2026 release).",
-        "Palo Alto Networks FY26 Q4 said AI advances are elevating cybersecurity to the top of the CIO priority list."
+        "Fortinet 2Q26 revenue was $2.05B, +26% YoY; product revenue was $773M, +52%; billings +33%.",
+        "Fortinet management called AI a dominant driver of security-infrastructure modernization and disclosed an eight-figure neocloud AI-datacenter security win after a seven-figure Q1 win.",
+        "CrowdStrike FY27 Q2 revenue was $1.471B, +26%; net new ARR $333M, +51%; management called Q2 the best quarter in company history and said AI adoption needs security.",
+        "CrowdStrike said its AIDR business grew more than 79x in three quarters since launch.",
+        "Palo Alto Networks FY26 Q4 said recent AI advances are elevating cybersecurity to the top of CIO priorities."
       ],
-      "stop_reason": "Primary IR evidence converged on both hardware/network modernization and AI-native software/runtime security demand."
+      "stop_reason": "Primary IR converged on two simultaneous demand mechanisms: high-throughput network-security modernization and AI-native application/runtime/identity security."
     },
     {
-      "sweep_id": "B_CHINA_FILINGS_PEERS",
-      "angle": "2026 H1 domestic filings; AI-security commercialization and peer universe",
+      "sweep_id": "B_DOMESTIC_ORIGINAL_AND_PLATFORM_PEERS",
+      "angle": "2026 H1 domestic filings for the user's original three names plus platform-security peers",
       "material_new_items": [
         "启明星辰: H1 revenue RMB1.235B +9.01%, net profit RMB30.8M vs loss; large-model application firewall revenue +238.15%, Agentic SOC revenue +31.99%.",
-        "绿盟科技: H1 revenue RMB812.6M +1.51%, net loss RMB129.0M with loss narrowing 24.77%; AI-security orders RMB117M; operator AI-security signings +300%+, but report explicitly says revenue conversion efficiency was under pressure.",
-        "深信服: H1 revenue RMB3.998B +32.85%, net profit RMB231.2M vs loss; cloud+AI infrastructure revenue RMB2.212B +58.60%; network-security revenue RMB1.587B +10.57%; no separate AI-security revenue disclosure. Firewall processing performance improved 50%-100%.",
-        "安恒信息: H1 pure-AI revenue >RMB41M and indirect AI-enabled product revenue >RMB64M; total revenue RMB739.1M +0.86%, loss narrowed.",
-        "奇安信: H1 revenue RMB1.497B -14.09%, loss narrowed; product AI-ization underway but no quantified AI-security monetization found in checked H1 disclosures.",
-        "亚信安全: network-security segment revenue RMB540M +6%; AI-agent identity/AIXDR products advancing, but total consolidated revenue -12.40% and no quantified AI-security sales in checked disclosure."
+        "绿盟科技: H1 revenue RMB812.6M +1.51%, net loss RMB129.0M with loss narrowing 24.77%; AI-security orders RMB117M; operator AI-security signings +300%+, while revenue conversion remained under pressure.",
+        "深信服: H1 revenue RMB3.998B +32.85%, net profit RMB231.2M vs loss; cloud+AI infrastructure revenue RMB2.212B +58.60%; network-security revenue RMB1.587B +10.57%; firewall processing performance +50%-100%; no separate AI-security revenue disclosure.",
+        "安恒信息: H1 pure-AI revenue >RMB41M and indirect AI-enabled-product revenue >RMB64M; total revenue RMB739.1M +0.86%, loss narrowed.",
+        "奇安信: H1 revenue RMB1.497B -14.09%, loss narrowed; broad product AI-ization continued but no quantified AI-security monetization was found in the checked H1 disclosure.",
+        "亚信安全: network-security segment revenue RMB540M +6%; AI-agent identity/AIXDR products advanced, but no isolated quantified AI-security sales were found."
       ],
-      "stop_reason": "Second sweep added material peer 安恒信息 and showed that domestic AI-security monetization quality differs materially across revenue, orders, and product/technology progress."
+      "stop_reason": "This sweep proved domestic monetization is real but heterogeneous: reported AI-security revenue, AI-security orders, broader AI infrastructure, and product/technology progress are different evidence grades."
+    },
+    {
+      "sweep_id": "C_FIREWALL_AND_AI_SECURITY_RECALL_REPAIR",
+      "angle": "Audit-triggered peer recall across domestic firewall, ASIC security and large-model security vendors",
+      "material_new_items": [
+        "天融信: H1 AI-security-protection revenue grew more than 130% YoY and AI-enabled-security direct revenue exceeded RMB80M, while total H1 revenue fell 33.99%; this is both monetization evidence and a counterexample to the idea that AI immediately rescues the whole legacy security base.",
+        "山石网科: H1 revenue RMB451.3M +8.28%; ASIC security products achieved scale commercialization, with Q2 ASIC-security product revenue accounting for about 20%; 2G-200G firewall range provides a direct domestic high-performance-firewall modernization datapoint.",
+        "迪普科技: H1 disclosures show TB-class processing and high-performance data-center/AI-compute network scenarios, but no isolated AI-security monetization was found; classify SECONDARY rather than silently omit."
+      ],
+      "stop_reason": "The audit-triggered sweep closed the obvious material peer gaps. Additional names no longer changed the three core economic classes or the central monetization ladder, so the universe remains explicitly bounded rather than claimed exhaustive."
     }
   ],
   "market_explanation_scope": "NOT_MATERIAL",
-  "market_explanation_scope_reason": "The task is an industry-demand/earnings/commercialization article, not a cross-sectional stock-price leadership or limit-up explanation. Company comparison is based on business exposure and monetization evidence, not price formation.",
+  "market_explanation_scope_reason": "The article asks whether AI is creating incremental cybersecurity demand and how that demand is appearing in vendor results. It does not require an explanation of why one A-share stock led, hit a limit, or outperformed another. Company comparison therefore remains operating/earnings evidence, not price-formation analysis.",
   "cognition": {
     "what_changed": [
-      "AI security is no longer only a threat narrative: overseas vendors now show simultaneous acceleration in high-performance security hardware, ARR, and AI-native security products.",
-      "AI datacenter east-west traffic, encrypted traffic and AI-agent privileges increase throughput/visibility/control requirements, pushing network-security modernization beyond a routine replacement cycle.",
-      "Domestic AI-security commercialization entered 2026 H1 reports, but evidence is uneven: revenue at 启明星辰/安恒, orders at 绿盟, broader AI-infrastructure and security growth at 深信服."
+      "AI security moved from a threat narrative into measurable vendor demand: Fortinet shows unusually fast product growth and AI-datacenter wins; CrowdStrike shows accelerating ARR and a rapidly scaling AI-security category.",
+      "The network layer is changing because AI clusters create more east-west, encrypted and machine-generated traffic, raising throughput, segmentation and visibility requirements beyond a routine perimeter-firewall refresh.",
+      "The application/runtime layer is changing because models and agents introduce prompt-injection, sensitive-data leakage, identity/privilege and agent-runtime risks before and after release.",
+      "Domestic 2026 H1 reports now contain concrete AI-security revenue or orders, but evidence quality differs sharply across companies."
     ],
     "transmission_chain": [
-      "AI compute/data-center expansion → more east-west/encrypted/machine traffic + higher-value model/data assets",
-      "AI agents/models move into production → new identity, prompt-injection, data-leakage, runtime and governance attack surfaces",
-      "Security requirement moves from perimeter-only to data center + gateway + model/application + endpoint/identity/runtime",
-      "Customers refresh high-throughput firewalls and consolidate onto AI-native security platforms",
-      "Vendor monetization appears first as hardware/product revenue, ARR/orders, then domestic revenue recognition"
+      "AI compute and data-center expansion → more east-west/encrypted/machine traffic and higher-value model/data assets",
+      "Traffic/segmentation requirements exceed legacy firewall architecture → high-performance firewall/ASIC/SASE modernization and new deployment",
+      "Models and agents enter production → model gateway, application firewall, identity, endpoint/runtime, data and governance controls become incremental security surfaces",
+      "Customers shift security involvement earlier into AI development/deployment and consolidate tooling where platforms can cover more surfaces",
+      "Commercialization appears first as product revenue/ARR/orders; domestic accounting recognition then separates vendors by realization speed"
     ],
     "counterevidence": [
-      "China cybersecurity budgets remain constrained in several traditional government/enterprise segments; 奇安信 H1 revenue fell 14.09%.",
-      "绿盟 AI-security order growth has not fully converted into revenue; company explicitly cites delayed investment structure and conversion pressure.",
-      "深信服's high cloud+AI infrastructure growth cannot be equated one-for-one with AI-security revenue.",
-      "AI model/cloud providers may also embed native security and compete with third-party vendors; Palo Alto 10-K explicitly identifies this competitive risk."
+      "Traditional Chinese cybersecurity budgets remain uneven: 奇安信 H1 revenue fell 14.09%, and 天融信 total H1 revenue fell 33.99% despite fast AI-security growth.",
+      "绿盟's RMB117M AI-security orders are not equivalent to recognized revenue; its report explicitly notes conversion pressure.",
+      "深信服's +58.60% cloud+AI-infrastructure growth cannot be relabeled as AI-security revenue; its separately disclosed network-security revenue grew 10.57%.",
+      "Fortinet product acceleration cannot be attributed entirely to AI because broader refresh, vendor consolidation and firewall cycles coexist; management only indicates AI is a larger-than-normal driver.",
+      "Cloud/frontier-model providers can embed native security capabilities and compete with third-party vendors, so incremental AI-security spend is not automatically captured by incumbent standalone vendors."
     ],
     "uncertainties": [
-      "Absolute revenue base of 启明星辰 large-model application firewall is not separately disclosed in checked sources; +238.15% is a growth rate, not scale.",
-      "绿盟 AI-security orders may convert to revenue with lag; timing and gross margin are not fully disclosed.",
-      "How much of Fortinet product acceleration is AI-specific versus broader refresh/vendor consolidation is not separately quantified; management says it is larger than normal refresh but product revenue is not segmented by AI.",
-      "Domestic Q3 2026 reports for key names had not yet been fully disclosed as of 2026-10-11/12; H1 is the latest comparable reporting base for the named A-share companies."
+      "启明星辰 did not separately disclose the absolute revenue base of its large-model application firewall in the checked material; +238.15% is a growth rate, not proof of large absolute scale.",
+      "绿盟's order-to-revenue conversion timing and margin profile remain key unresolved operating variables.",
+      "山石网科's ASIC commercialization reflects AI/data-center performance demand but also domestic chip/localization and product-refresh effects; these drivers should not be collapsed.",
+      "The domestic universe is bounded to economically material platform/firewall/AI-security vendors with 2026 H1 evidence; it is not a claim to list every small cybersecurity stock."
     ]
   },
   "universe_coverage": {
     "status": "BOUNDED_WITH_GAPS",
     "recall_sources": [
-      "2026 H1 listed-company filings/official IR across named and peer A-share cybersecurity vendors",
-      "2026 overseas vendor earnings releases/prepared remarks and current AI-security product releases"
+      "2026 H1 listed-company filings and official disclosures across platform-security, firewall/ASIC and AI-security vendors",
+      "2026 overseas vendor official earnings releases/prepared remarks and AI-security product releases",
+      "Audit-triggered domestic peer recall focused on firewall/data-center and large-model security classes"
     ],
     "classes": [
       {
         "class_name": "High-performance firewall / AI data-center network security",
-        "economic_role": "Secures high-throughput east-west/encrypted AI traffic and segmentation",
+        "economic_role": "Secures high-throughput east-west/encrypted AI traffic, segmentation and AI-compute/data-center connectivity",
         "included_companies": [
-          {"name": "深信服", "materiality": "MATERIAL", "reason": "Domestic NGFW/SASE exposure plus fast-growing cloud+AI infrastructure; direct firewall performance upgrades disclosed."},
-          {"name": "Fortinet", "materiality": "REFERENCE_ONLY", "reason": "Overseas proof point for the demand mechanism, not A-share coverage."}
+          {"name": "深信服", "materiality": "MATERIAL", "reason": "Firewall performance +50%-100%, SASE/AI security platform, network-security revenue growth and fast cloud+AI infrastructure growth create a direct crossover exposure."},
+          {"name": "山石网科", "materiality": "MATERIAL", "reason": "ASIC firewall scale commercialization and Q2 ASIC-security product revenue share about 20% make it a direct domestic high-performance-firewall modernization datapoint."},
+          {"name": "天融信", "materiality": "MATERIAL", "reason": "Major domestic firewall/security vendor with quantified AI-security revenue growth and AI-enabled-security direct revenue."},
+          {"name": "迪普科技", "materiality": "SECONDARY", "reason": "High-performance/TB-class data-center security capability is relevant, but checked H1 disclosures did not isolate AI-security monetization."},
+          {"name": "Fortinet", "materiality": "REFERENCE_ONLY", "reason": "Overseas mechanism proof point, not part of A-share publication obligations."}
         ],
         "excluded_companies": [
-          {"name": "电科网安", "reason": "AI-security monetization evidence in checked H1 filing was weaker and business mix is more cryptography/traditional network security."}
+          {"name": "电科网安", "reason": "Checked H1 evidence was more weighted to cryptography/traditional security; AI-security monetization was less material to the current article thesis."}
         ]
       },
       {
         "class_name": "Large-model / AI-agent application security",
-        "economic_role": "Protects models, prompts, data, gateways and agents from injection/leakage/abuse",
+        "economic_role": "Protects models, prompts, data, APIs, gateways and agents from injection, leakage, abuse and privilege risk",
         "included_companies": [
-          {"name": "启明星辰", "materiality": "MATERIAL", "reason": "Large-model application firewall revenue growth disclosed; AI-agent security suite and Agentic SOC monetization visible."},
-          {"name": "绿盟科技", "materiality": "MATERIAL", "reason": "RMB117M AI-security orders and six-industry deployment; commercialization scale visible though revenue conversion lags."},
-          {"name": "安恒信息", "materiality": "MATERIAL", "reason": "Disclosed >RMB41M pure-AI revenue and >RMB64M indirect AI-enabled product revenue in H1."},
-          {"name": "亚信安全", "materiality": "SECONDARY", "reason": "AI-agent identity and AIXDR product stack, but quantified AI-security monetization not isolated."}
+          {"name": "启明星辰", "materiality": "MATERIAL", "reason": "Large-model application-firewall revenue +238.15% and Agentic SOC revenue +31.99% provide direct reported monetization evidence."},
+          {"name": "绿盟科技", "materiality": "MATERIAL", "reason": "RMB117M AI-security orders and six-industry deployment show commercialization scale, though revenue conversion lags."},
+          {"name": "安恒信息", "materiality": "MATERIAL", "reason": "Pure-AI revenue >RMB41M and indirect AI-enabled-product revenue >RMB64M provide direct accounting evidence."},
+          {"name": "天融信", "materiality": "MATERIAL", "reason": "AI-security-protection revenue +130%+ and AI-enabled-security direct revenue >RMB80M are direct monetization signals."},
+          {"name": "亚信安全", "materiality": "SECONDARY", "reason": "AI-agent identity/AIXDR product stack is relevant, but quantified AI-security monetization was not isolated in the checked disclosure."}
         ]
       },
       {
         "class_name": "AI-native security operations / platform consolidation",
-        "economic_role": "Uses AI for detection, triage, response and unified security operations",
+        "economic_role": "Uses AI for detection, triage, response and unified security operations while integrating model/application/network/endpoint controls",
         "included_companies": [
-          {"name": "深信服", "materiality": "MATERIAL", "reason": "AI security platform, Security GPT, MSS and SASE integrated with existing security base."},
-          {"name": "启明星辰", "materiality": "MATERIAL", "reason": "Agentic SOC and security-model architecture monetizing."},
-          {"name": "绿盟科技", "materiality": "MATERIAL", "reason": "风云卫/清风卫 product matrices cover AI-for-security and security-for-AI."},
-          {"name": "安恒信息", "materiality": "MATERIAL", "reason": "恒脑4.0 and AI security revenue disclosed."},
-          {"name": "奇安信", "materiality": "SECONDARY", "reason": "Large installed base and product AI-ization, but H1 revenue contraction and no quantified AI-security revenue found."}
+          {"name": "深信服", "materiality": "MATERIAL", "reason": "Security GPT, AI security platform, SASE and existing security installed base can convert AI demand into platform/security-service expansion."},
+          {"name": "启明星辰", "materiality": "MATERIAL", "reason": "Agentic SOC and large-model security products already appear in revenue growth disclosures."},
+          {"name": "绿盟科技", "materiality": "MATERIAL", "reason": "AI-for-security and security-for-AI product matrices are generating orders across multiple industries."},
+          {"name": "安恒信息", "materiality": "MATERIAL", "reason": "HengNao/AI-security product line has quantified pure-AI and AI-enabled revenue."},
+          {"name": "天融信", "materiality": "MATERIAL", "reason": "AI-enabled security revenue shows the AI-for-security side is commercially material even while the legacy base is weak."},
+          {"name": "奇安信", "materiality": "SECONDARY", "reason": "Large installed base and product AI-ization matter as a platform comparator, but H1 total revenue contracted and AI-security revenue was not isolated."}
         ]
       }
     ],
     "missing_classes": [
-      "No exhaustive coverage of every small-cap cybersecurity vendor; bounded to economically material A-share platform/security vendors with 2026 H1 evidence.",
-      "No direct current WeChat private search-volume dataset; later title stage will use publicly indexed current-title/search proxies and label the limitation."
+      "No exhaustive catalog of every small-cap cybersecurity vendor; coverage is bounded to material platform/firewall/AI-security vendors with current reporting evidence.",
+      "No direct private WeChat-search-volume dataset; the TITLE stage must use current public/indexed search proxies and label that limitation."
     ]
   },
   "company_findings": [
-    {
-      "name": "深信服",
-      "value_chain_class": "High-performance firewall / AI data-center network security",
-      "materiality": "MATERIAL",
-      "evidence_grade": "VERIFIED_FACT",
-      "facts": ["2026H1 revenue RMB3.998B +32.85%", "Cloud & AI infrastructure revenue RMB2.212B +58.60%", "Network security revenue RMB1.587B +10.57%", "Net profit RMB231.2M vs prior-year loss", "All-series firewall security processing performance +50%-100%"],
-      "interpretation": "Best fit to hardware/network modernization + AI infrastructure crossover, but AI-security revenue is not separately disclosed."
-    },
-    {
-      "name": "启明星辰",
-      "value_chain_class": "Large-model / AI-agent application security",
-      "materiality": "MATERIAL",
-      "evidence_grade": "VERIFIED_FACT",
-      "facts": ["2026H1 revenue RMB1.235B +9.01%", "Net profit RMB30.8M vs loss", "Large-model application firewall revenue +238.15%", "Agentic SOC revenue +31.99%", "Security operations & services revenue +28.02%"],
-      "interpretation": "Clearest named-company evidence that AI-security products are moving from product narrative into reported revenue."
-    },
-    {
-      "name": "绿盟科技",
-      "value_chain_class": "Large-model / AI-agent application security",
-      "materiality": "MATERIAL",
-      "evidence_grade": "VERIFIED_FACT",
-      "facts": ["2026H1 revenue RMB812.6M +1.51%", "Net loss RMB129.0M, loss narrowing 24.77%", "AI-security orders RMB117M", "Operator AI-security signings +300%+", "Revenue conversion efficiency described as under pressure"],
-      "interpretation": "Commercial validation is strong at order level; the key next proof is order-to-revenue conversion."
-    },
-    {
-      "name": "安恒信息",
-      "value_chain_class": "Large-model / AI-agent application security",
-      "materiality": "MATERIAL",
-      "evidence_grade": "VERIFIED_FACT",
-      "facts": ["2026H1 revenue RMB739.1M +0.86%", "Net loss RMB176.2M, loss narrowing 9.22%", "Pure-AI revenue >RMB41M", "Indirect AI-enabled product revenue >RMB64M"],
-      "interpretation": "A material peer that prevents the article from treating AI-security monetization as unique to the original three names."
-    },
-    {
-      "name": "奇安信",
-      "value_chain_class": "AI-native security operations / platform consolidation",
-      "materiality": "SECONDARY",
-      "evidence_grade": "VERIFIED_FACT",
-      "facts": ["2026H1 revenue RMB1.497B -14.09%", "Net loss RMB411.3M, loss narrowed", "Product AI-ization underway"],
-      "interpretation": "Important counterexample: AI opportunity does not erase legacy budget/competitive pressure immediately."
-    },
-    {
-      "name": "亚信安全",
-      "value_chain_class": "Large-model / AI-agent application security",
-      "materiality": "SECONDARY",
-      "evidence_grade": "VERIFIED_FACT",
-      "facts": ["2026H1 network-security segment revenue RMB540M +6%", "AI-agent identity platform and AIXDR disclosed", "Consolidated revenue RMB2.737B -12.40%"],
-      "interpretation": "Technology positioning is material, but direct AI-security monetization is not yet isolated in checked disclosures."
-    }
+    {"name": "深信服", "value_chain_class": "High-performance firewall / AI data-center network security", "materiality": "MATERIAL", "facts": ["2026H1 revenue RMB3.998B +32.85%", "Cloud+AI infrastructure revenue RMB2.212B +58.60%", "Network-security revenue RMB1.587B +10.57%", "Net profit RMB231.2M vs prior-year loss", "All-series firewall security-processing performance +50%-100%"], "interpretation": "Best fit to network/firewall modernization plus AI-infrastructure crossover, but no separately disclosed AI-security revenue."},
+    {"name": "启明星辰", "value_chain_class": "Large-model / AI-agent application security", "materiality": "MATERIAL", "facts": ["2026H1 revenue RMB1.235B +9.01%", "Net profit RMB30.8M vs loss", "Large-model application-firewall revenue +238.15%", "Agentic SOC revenue +31.99%", "Security operations/services revenue +28.02%"], "interpretation": "Clearest original-name evidence that AI-security products have entered reported revenue."},
+    {"name": "绿盟科技", "value_chain_class": "Large-model / AI-agent application security", "materiality": "MATERIAL", "facts": ["2026H1 revenue RMB812.6M +1.51%", "Net loss RMB129.0M, narrowing 24.77%", "AI-security orders RMB117M", "Operator AI-security signings +300%+", "Revenue-conversion efficiency remained under pressure"], "interpretation": "Strong order-level commercial validation; next proof is order-to-revenue conversion."},
+    {"name": "安恒信息", "value_chain_class": "Large-model / AI-agent application security", "materiality": "MATERIAL", "facts": ["2026H1 revenue RMB739.1M +0.86%", "Net loss RMB176.2M, narrowing 9.22%", "Pure-AI revenue >RMB41M", "Indirect AI-enabled-product revenue >RMB64M"], "interpretation": "Material peer showing direct AI revenue recognition beyond the user's original three names."},
+    {"name": "天融信", "value_chain_class": "High-performance firewall + AI security", "materiality": "MATERIAL", "facts": ["2026H1 total revenue RMB545.4M -33.99%", "AI-security-protection revenue +130%+", "AI-enabled-security direct revenue >RMB80M"], "interpretation": "Direct AI-security monetization is real, but the weak legacy base is a crucial counterexample: a fast AI line does not automatically mean whole-company recovery."},
+    {"name": "山石网科", "value_chain_class": "High-performance firewall / AI data-center network security", "materiality": "MATERIAL", "facts": ["2026H1 revenue RMB451.3M +8.28%", "Net loss narrowed to RMB21.1M", "ASIC security products scale-commercialized", "Q2 ASIC-security product revenue share about 20%", "2G-200G ASIC firewall range"], "interpretation": "Direct domestic hardware-upgrade datapoint; commercialization is linked to performance/localization as well as AI/data-center demand."},
+    {"name": "奇安信", "value_chain_class": "AI-native security operations / platform consolidation", "materiality": "SECONDARY", "facts": ["2026H1 revenue RMB1.497B -14.09%", "Net loss narrowed", "Product AI-ization underway"], "interpretation": "Counterexample showing AI opportunity does not erase legacy budget pressure immediately."},
+    {"name": "亚信安全", "value_chain_class": "Large-model / AI-agent application security", "materiality": "SECONDARY", "facts": ["2026H1 network-security segment revenue RMB540M +6%", "AI-agent identity and AIXDR disclosed", "Consolidated revenue RMB2.737B -12.40%"], "interpretation": "Technology position matters, but direct AI-security monetization is not yet isolated."},
+    {"name": "迪普科技", "value_chain_class": "High-performance firewall / AI data-center network security", "materiality": "SECONDARY", "facts": ["TB-class processing and high-performance data-center/AI-compute network scenarios disclosed", "No isolated AI-security revenue found in checked H1 evidence"], "interpretation": "Useful hardware/data-center comparator, but weaker current monetization evidence."}
   ],
   "overseas_findings": [
-    {
-      "company": "Fortinet",
-      "facts": ["2Q26 revenue $2.05B +26%", "Product revenue $773M +52%", "Billings +33%", "8-figure neocloud AI-datacenter security win following a 7-figure Q1 win"],
-      "supported_mechanism": "AI workloads create high-volume east-west/encrypted traffic and segmentation needs, raising performance requirements for firewalls and driving upgrades/new deployments."
-    },
-    {
-      "company": "CrowdStrike",
-      "facts": ["FY27 Q2 revenue $1.471B +26%", "Net new ARR $333M +51%", "CEO called it best quarter in company history", "AIDR business >79x in three quarters since launch"],
-      "supported_mechanism": "AI agents and applications expand endpoint/runtime/identity risks; AI security is becoming a new software security category rather than displacing security spend."
-    },
-    {
-      "company": "Palo Alto Networks",
-      "facts": ["FY26 Q4 management said latest AI advances elevate cybersecurity to the top of CIO priorities"],
-      "supported_mechanism": "Enterprise AI deployment increases security modernization priority and platform consolidation."
-    }
+    {"company": "Fortinet", "facts": ["2Q26 revenue $2.05B +26%", "Product revenue $773M +52%", "Billings +33%", "Eight-figure neocloud AI-datacenter security win after a seven-figure Q1 win"], "supported_mechanism": "AI workloads raise east-west/encrypted traffic and segmentation/performance requirements, creating both new deployment and refresh demand for high-performance network security."},
+    {"company": "CrowdStrike", "facts": ["FY27 Q2 revenue $1.471B +26%", "Net new ARR $333M +51%", "CEO called it the best quarter in company history", "AIDR business >79x in three quarters"], "supported_mechanism": "AI agents/applications expand endpoint/runtime/identity/model risks, creating incremental AI-security software demand rather than simply reallocating an unchanged security budget."},
+    {"company": "Palo Alto Networks", "facts": ["FY26 Q4 management said recent AI advances elevate cybersecurity to the top of CIO priorities"], "supported_mechanism": "Enterprise AI deployment raises security modernization priority and platform-consolidation demand."}
   ],
   "evidence_ledger": [
-    {"claim": "Fortinet 2Q26 revenue +26%, product revenue +52%, billings +33%", "source": "https://investor.fortinet.com/static-files/e4ffcc79-194e-4ca3-9a69-8a51bd0a6314", "date": "2026-07-29", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
-    {"claim": "Fortinet AI modernization + 8-figure neocloud AI-datacenter win", "source": "https://investor.fortinet.com/static-files/92543183-3383-4279-a3a4-13c7db91fcbb", "date": "2026-07-29", "type": "PRIMARY_IR_PREPARED_REMARKS", "confidence": "HIGH", "core_safe": true},
-    {"claim": "CrowdStrike FY27 Q2 best quarter; revenue $1.47B +26%; net new ARR $333M +51%", "source": "https://ir.crowdstrike.com/news-releases/news-release-details/crowdstrike-reports-second-quarter-fiscal-year-2027-financial", "date": "2026-08-26", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
-    {"claim": "CrowdStrike AIDR business >79x in 3 quarters", "source": "https://ir.crowdstrike.com/news-releases/news-release-details/crowdstrike-named-leader-2026-idc-marketscape-modern-endpoint", "date": "2026-10-07", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
-    {"claim": "Palo Alto: AI advances elevating cybersecurity to top CIO priority", "source": "https://paloaltonetworks.gcs-web.com/news-releases/news-release-details/palo-alto-networks-reports-fiscal-fourth-quarter-and-fiscal-10", "date": "2026-09-01", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
-    {"claim": "深信服 H1 revenue +32.85%, AI infra +58.60%, cybersec +10.57%", "source": "https://static.cninfo.com.cn/finalpage/2026-08-22/1225490793.PDF", "date": "2026-08-22", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
-    {"claim": "启明星辰 H1 revenue +9.01%, net profit turns positive; application firewall revenue +238.15%", "source": "2026 H1 filing + company/major financial media corroboration", "date": "2026-08-22", "type": "PRIMARY_FILING_WITH_CORROBORATION", "confidence": "HIGH", "core_safe": true},
-    {"claim": "绿盟 H1 AI-security orders RMB117M; revenue +1.51%; conversion pressure", "source": "2026 H1 filing", "date": "2026-08-26", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
-    {"claim": "安恒 H1 pure AI revenue >RMB41M, indirect AI product revenue >RMB64M", "source": "2026 H1 filing", "date": "2026-08-27", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
-    {"claim": "奇安信 H1 revenue -14.09%; AIization underway", "source": "2026 H1 filing", "date": "2026-08-28", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
-    {"claim": "亚信安全 network-security segment +6%, AI identity/AIXDR products", "source": "2026 H1 filing", "date": "2026-08-25", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true}
+    {"claim": "Fortinet 2Q26 revenue +26%, product revenue +52%, billings +33%", "source": "Fortinet official 2Q26 IR release", "date": "2026-07-29", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
+    {"claim": "Fortinet AI modernization + eight-figure neocloud AI-datacenter win", "source": "Fortinet official 2Q26 prepared remarks", "date": "2026-07-29", "type": "PRIMARY_IR_PREPARED_REMARKS", "confidence": "HIGH", "core_safe": true},
+    {"claim": "CrowdStrike FY27 Q2 best quarter; revenue $1.471B +26%; net new ARR $333M +51%", "source": "CrowdStrike official FY27 Q2 IR release", "date": "2026-08-26", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
+    {"claim": "CrowdStrike AIDR business >79x in three quarters", "source": "CrowdStrike official release", "date": "2026-10-07", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
+    {"claim": "Palo Alto: AI advances elevate cybersecurity to top CIO priority", "source": "Palo Alto Networks official FY26 Q4 release", "date": "2026-09-01", "type": "PRIMARY_IR", "confidence": "HIGH", "core_safe": true},
+    {"claim": "深信服 H1 revenue +32.85%, cloud+AI infrastructure +58.60%, network security +10.57%", "source": "深信服 2026 H1 filing", "date": "2026-08-22", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "启明星辰 H1 revenue +9.01%, profit turned positive; large-model application-firewall revenue +238.15%", "source": "启明星辰 2026 H1 filing and company/major-financial-media corroboration", "date": "2026-08", "type": "PRIMARY_FILING_WITH_CORROBORATION", "confidence": "HIGH", "core_safe": true},
+    {"claim": "绿盟 H1 AI-security orders RMB117M; revenue +1.51%; conversion pressure", "source": "绿盟科技 2026 H1 filing", "date": "2026-08-26", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "安恒 H1 pure-AI revenue >RMB41M, indirect AI-enabled-product revenue >RMB64M", "source": "安恒信息 2026 H1 filing", "date": "2026-08-27", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "天融信 H1 AI-security protection revenue +130%+, AI-enabled-security direct revenue >RMB80M; total revenue -33.99%", "source": "天融信 2026 H1 filing", "date": "2026-08", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "山石网科 H1 ASIC security scale commercialization; Q2 revenue share about 20%", "source": "山石网科 2026 H1 filing", "date": "2026-08", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "奇安信 H1 revenue -14.09%; product AI-ization underway", "source": "奇安信 2026 H1 filing", "date": "2026-08-28", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "亚信安全 network-security segment +6%, AI identity/AIXDR products", "source": "亚信安全 2026 H1 filing", "date": "2026-08-25", "type": "PRIMARY_FILING", "confidence": "HIGH", "core_safe": true},
+    {"claim": "迪普科技 high-performance/TB-class data-center security positioning", "source": "迪普科技 2026 H1 filing", "date": "2026-08", "type": "PRIMARY_FILING", "confidence": "MEDIUM_HIGH", "core_safe": false}
   ],
   "knowledge_writeback_candidates": [],
   "coverage": {
-    "concept_coverage": "AI datacenter network security + AI application/agent security + AI-native security operations covered",
-    "company_coverage": "Original 3 names plus material peer 安恒 and secondary 奇安信/亚信; bounded exclusions noted",
-    "source_coverage": "Primary overseas IR + primary domestic filings + limited corroborating secondary sources",
+    "concept_coverage": "High-performance firewall/AI data-center + large-model/agent application security + AI-native security operations/platform consolidation",
+    "company_coverage": "Six MATERIAL domestic companies: 深信服、启明星辰、绿盟科技、安恒信息、天融信、山石网科; three SECONDARY comparators: 奇安信、亚信安全、迪普科技",
+    "source_coverage": "Three materially different sweeps: overseas primary IR; domestic filings; audit-triggered firewall/AI-security peer recall",
     "coverage_status": "BOUNDED_WITH_GAPS",
-    "material_new_items_from_last_sweep": ["安恒 pure-AI revenue disclosure", "奇安信 as counterexample", "亚信 segment growth but no AI monetization split"],
-    "stop_reason": "Additional peer sweep changed breadth but no longer changed the central conclusion: overseas demand is measurable; domestic monetization exists but varies by revenue/order/technology stage."
+    "material_new_items_from_last_sweep": ["天融信 quantified AI-security monetization plus weak total revenue", "山石网科 ASIC firewall scale commercialization", "迪普科技 recorded as secondary high-performance peer"],
+    "stop_reason": "The third sweep closed obvious material peer omissions and no longer changed the core economic classes or monetization ladder. The package deliberately remains BOUNDED_WITH_GAPS rather than claiming exhaustive market saturation."
   }
 }
