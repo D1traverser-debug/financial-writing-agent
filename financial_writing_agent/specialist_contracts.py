@@ -51,11 +51,12 @@ SPECIALIST_CONTRACTS: dict[str, SpecialistContract] = {
         reference_names=("audit.md", "research.md", "market_explanation.md"),
         working_keys=("research",),
         gate_keys=("research_output",),
-        web_access=False,
+        web_access=True,
         author_identity="Financial Writing Researcher",
         execution_instruction=(
-            "Audit only the frozen ResearchPackage under the loaded Audit/Research contracts. Do not repair it in place. "
-            "Return a typed GateDecision; any non-PASS route must point to the workflow-authorized upstream repair target."
+            "Independently audit the frozen ResearchPackage under the loaded Audit/Research contracts, using web access when source, "
+            "coverage or current-fact verification is material. Do not repair the package in place. Return GateDecision and route any "
+            "non-PASS result only to the workflow-authorized upstream repair target."
         ),
     ),
     "editorial_architect": SpecialistContract(
@@ -111,11 +112,12 @@ SPECIALIST_CONTRACTS: dict[str, SpecialistContract] = {
         reference_names=("hooks.md",),
         working_keys=("research", "editorial_plan", "headlines", "draft"),
         gate_keys=("title_audit", "draft_output"),
-        web_access=False,
+        web_access=True,
         author_identity="Financial Writing Headline Engine / Financial Writing Writer",
         execution_instruction=(
-            "Judge only the Reader Funnel dimensions of the frozen title/draft and return HookAuditDecision. Do not rewrite the text, "
-            "substitute for Authorial Prose/General Editorial judgment, or change upstream state."
+            "Judge only the Reader Funnel dimensions of the frozen title/draft and independently verify current search evidence when "
+            "material. Return HookAuditDecision. Do not rewrite the text, substitute for Authorial Prose/General Editorial judgment, "
+            "or change upstream state."
         ),
     ),
     "authorial_prose_judge": SpecialistContract(
