@@ -119,6 +119,7 @@ class WritingState(BaseModel):
     blocked_reason: str | None = None
     blocked_from_stage: Stage | None = None
     blocked_resume_stage: Stage | None = None
+    checkpoint_version: int = Field(default=0, ge=0)
     updated_at: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
 
     def add_trace(self, event: str, detail: str = "") -> None:
