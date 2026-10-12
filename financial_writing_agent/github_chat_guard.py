@@ -9,6 +9,7 @@ GITHUB_CHAT_EXECUTION_MODE = "GITHUB_CHAT"
 CHAT_REVIEW_ASSURANCE = "CHAT_SELF_REVIEW"
 TERMINAL_STATUS = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
 SELF_ATTESTED_RECEIPT = "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
+ALLOWED_STATUS = {"IN_PROGRESS", "BLOCKED", TERMINAL_STATUS}
 
 STAGE_ORDER = (
     "INTAKE",
@@ -129,11 +130,23 @@ def validate_state(state: Mapping[str, Any]) -> None:
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
     _require(_nonempty(state.get("task_id")), "task_id is required")
     _require(state.get("current_stage") in STAGE_ORDER, "current_stage is not a supported Financial stage")
+    _require(state.get("status") in ALLOWED_STATUS, "status is not a supported GITHUB_CHAT status")
+    if state.get("status") == TERMINAL_STATUS:
+        _require(state.get("current_stage") == "FINAL_AUDIT", "bounded terminal status requires FINAL_AUDIT as current_stage")
     _require(state.get("review_assurance") == CHAT_REVIEW_ASSURANCE, "review_assurance must remain CHAT_SELF_REVIEW")
     _require(isinstance(state.get("stage_artifacts"), Mapping), "stage_artifacts must be an object")
     _require(isinstance(state.get("open_system_impact"), list), "open_system_impact must be a list")
     _require(isinstance(state.get("review_decisions", {}), Mapping), "review_decisions must be an object")
     _require(isinstance(state.get("learning_evidence", []), list), "learning_evidence must be a list")
+
+    current_index = STAGE_INDEX[str(state["current_stage"])]
+    for key, ref in state.get("stage_artifacts", {}).items():
+        _require(key in STAGE_INDEX and key != "INTAKE", f"unknown stage_artifact key: {key}")
+        _require(STAGE_INDEX[key] <= current_index, f"future-stage artifact is not allowed before reaching {key}")
+        _validate_artifact_ref(ref, label=f"stage_artifacts.{key}", task_id=str(state["task_id"]))
+    for key in state.get("review_decisions", {}):
+        _require(key in REVIEW_ROUTES, f"review_decisions contains non-review stage: {key}")
+        _require(STAGE_INDEX[key] <= current_index, f"future-stage review is not allowed before reaching {key}")
 
     receipts = state.get("execution_receipts")
     _require(isinstance(receipts, list) and receipts, "execution_receipts must be a non-empty list")
@@ -155,10 +168,8 @@ def validate_state(state: Mapping[str, Any]) -> None:
         _require(isinstance(receipt.get("subject_bindings"), Mapping) and bool(receipt["subject_bindings"]), "receipt subject_bindings required")
         _require(isinstance(receipt.get("input_bindings"), Mapping) and bool(receipt["input_bindings"]), "receipt input_bindings required")
         _require(isinstance(receipt.get("output_refs"), list) and bool(receipt["output_refs"]), "receipt output_refs required")
+        _require(receipt.get("result") == "GUARD_ACCEPTED", "chat receipt result must be GUARD_ACCEPTED")
         _require(receipt.get("verification_status") == SELF_ATTESTED_RECEIPT, "chat receipt must remain self-attested")
-
-    for key, ref in state.get("stage_artifacts", {}).items():
-        _validate_artifact_ref(ref, label=f"stage_artifacts.{key}", task_id=str(state["task_id"]))
 
 
 def _new_receipt(
@@ -415,7 +426,6 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
     stage = str(before["current_stage"])
     if stage in REVIEW_ROUTES:
         review = after.get("review_decisions", {}).get(stage)
-        # A revision invalidating its own stage removes that review from active refs; the receipt carries the decision.
         if review is None and receipt["input_bindings"].get("review_status") == "REVISE":
             review_status = "REVISE"
         else:
