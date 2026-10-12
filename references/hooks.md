@@ -2,9 +2,9 @@
 
 ## Objective
 Optimize the complete reading funnel for publishable financial writing:
-**qualified impression → click → first-screen retention → continued reading → completion → promised insight delivered**.
+**qualified impression → click → opening orientation/interest → continued reading → completion → promised insight delivered**.
 
-Do not optimize one surface in isolation. A title that raises clicks but attracts the wrong reader, an opening that withholds too much, or H1s that promise more than the article can support are funnel failures even if one metric improves.
+Do not optimize one surface in isolation. A title that raises clicks but attracts the wrong reader, an opening that withholds orientation too long, or H1s that promise more than the article can support are funnel failures even if one metric improves.
 
 The reader profile is an input, not a stereotype. The currently known audience skews toward readers around 45 with a substantial 55+ group. This supports clearer signposting, readable density and low avoidable cognitive friction, but it does not justify simplifying the analysis or assuming lower sophistication. Account-level behavior outranks generic demographic assumptions.
 
@@ -15,11 +15,11 @@ This remains a separate semantic gate from general editorial quality and Natural
 Before optimizing click-through rate, identify **who this version is for and what useful understanding they expect from it**.
 
 - `FINANCE_DEEP`: prioritize qualified finance readers who value complete explanation.
-- `FINANCE_BROAD`: broader finance relevance matters more. The reader should not need pre-existing interest in the niche industry. Surface the financially consequential stake early: profit, orders, cash flow, capital expenditure, asset/company differentiation, policy transmission or another evidence-backed money consequence.
+- `FINANCE_BROAD`: broader finance relevance matters more. The reader should not need pre-existing interest in the niche industry. Surface the financially consequential stake early enough to orient the reader: profit, orders, cash flow, capital expenditure, asset/company differentiation, policy transmission or another evidence-backed money consequence.
 
 A broad finance article is not defined by “mentioning stocks” or by adding hype to an industry report. It translates a sector event into a question about **where money, orders, profits, cash flow or valuation-relevant differences are moving, and which companies are economically different**.
 
-“Cross-industry finance clickability” remains optional: do not bolt on unrelated macro or market themes merely to widen reach. But `FINANCE_BROAD` normally fails audience fit if the title/opening assumes the reader already cares about the sector and never exposes a non-niche financial stake.
+“Cross-industry finance clickability” remains optional: do not bolt on unrelated macro or market themes merely to widen reach. But `FINANCE_BROAD` normally fails audience fit if the title/opening assumes the reader already cares about the sector and never establishes a non-niche financial stake.
 
 ### 2. Headline information value
 A title should reveal enough concrete information for the intended reader to understand why the article is worth attention. Prefer identifiable entities/events plus a real financial stake over generic suspense.
@@ -31,7 +31,7 @@ Avoid titles whose only force comes from adjectives, hype, mystery or emotional 
 For `FINANCE_BROAD`, a stronger title may use sharper contrast, a larger information gap or more salient money language than `FINANCE_DEEP`, provided every implication is supported by the body. “More clickable” means a stronger truthful stake, not fabricated urgency, guaranteed return language or vague sensationalism.
 
 ### 3. Curiosity / concreteness balance
-Do not maximize curiosity by maximizing vagueness. The useful target is an **information gap with a visible payoff**: enough specificity to establish relevance and credibility, enough incompleteness to leave a material question worth resolving.
+Do not maximize curiosity by maximizing vagueness. The useful target is an **information gap with a visible eventual payoff**: enough specificity to establish relevance and credibility, enough incompleteness to leave a material question worth resolving.
 
 Question headlines are not automatically stronger. Use a question only when the question itself is the clearest, most information-bearing framing for this topic.
 
@@ -84,16 +84,23 @@ Prefer, when accessible:
 
 Record candidate terms and evidence references. Never invent exact search volume or call a term “high-frequency” without evidence. Use search terms naturally; keyword stuffing that weakens title clarity or reader fit is a failure.
 
-### 7. First-three-sentence retention
-Treat the first three complete sentences as the first payoff surface. They should naturally accomplish most of the following without becoming a fixed template:
-- deliver a concrete change, fact or analytical payoff quickly;
-- establish why the intended reader should care;
-- begin paying off the title;
-- create the next supported question, distinction or unresolved mechanism that the body will answer.
+### 7. Opening strategy and early reader orientation
+There is **no single mandatory opening formula** and no universal requirement that the title's strongest answer be fully delivered in the first three sentences.
 
-For `FINANCE_BROAD`, the first screen should normally translate sector jargon into the same non-niche financial stake promised by the title before diving into technical detail.
+Choose an opening strategy that fits the material. Legal strategies include, among others:
+- `direct_fact` — begin with the hardest new fact or result;
+- `contradiction` — begin with a supported mismatch, misconception or tension;
+- `delayed_nut_graf` — begin with an example/anomaly/scene and then widen into the analytical significance;
+- `question` — begin with a real reader question when the question carries information rather than empty suspense;
+- `scene_or_example` — use a concrete event/company/example that genuinely represents the article's larger problem.
 
-Do not spend the first screen on generic background, self-introduction, throat-clearing or a paraphrase of the headline.
+The first three complete sentences remain a useful **diagnostic surface**, not a fixed checklist. They may contain the main payoff, or they may establish the scene/contradiction/question that earns a slightly later payoff.
+
+Regardless of strategy, the opening must establish enough **information scent / reader orientation** early enough that the intended reader can tell they are in the right article and why continuing could be valuable. A delayed lead therefore needs an earned transition into the article's significance (a “nut” zone) before the opening becomes self-indulgent or confusing.
+
+For `FINANCE_BROAD`, sector jargon should not dominate the opening before the cold finance reader has a reasonable path to the financial stake.
+
+Do not spend the opening on generic background, self-introduction, throat-clearing, or a decorative anecdote that never reconnects to the article's analytical job.
 
 ### 8. Continuation flow: H1 + paragraph transitions
 H1s and paragraph transitions are two parts of the same continuation mechanism.
@@ -102,19 +109,26 @@ Every H1 should be information-bearing and make the next section worth entering.
 
 Paragraph transitions must perform real work: cause, consequence, contrast, chronology, narrowing, comparison, correction or inference. A section should normally create the reason for the next section instead of ending as an isolated information block.
 
-Visible numbered H2/H3 structure is welcome when it lowers cognitive cost; Reader Funnel judges whether it improves navigation, while Editorial owns whether the analytical branches require it.
+Visible numbered H2/H3 structure is welcome and should be used generously when it lowers cognitive cost for real analytical branches; Reader Funnel judges whether it improves navigation, while Editorial owns whether the branches are semantically real.
 
 ### 9. Completion payoff
 The article must still create value in its final substantive section. It should add information, close an earlier loop, establish validation/falsification conditions, resolve an important comparison or state what remains unresolved.
 
 For stock/theme Deep articles, a final validation/monitoring section cannot retreat into a generic industry checklist if named-company implications are material. The reader should be able to connect the signal to the affected stock/class.
 
-For multi-company topics, the completion payoff should leave the reader with an evidence-based comparison map—such as current realization visibility, operating sensitivity and what still needs validation—without turning that map into a trading instruction or disguised recommendation list.
+For multi-company topics, the completion payoff may place substantial weight on an evidence-based comparison map—current realization visibility, operating sensitivity, evidence strength and what still needs validation—without turning that map into executable trading instruction.
 
 Avoid recap-only endings. The risk/disclaimer should remain concise and topic-specific so it does not become an unnecessary dead zone before the comment area.
 
-### 10. Title-opening payoff
-The opening must promptly honor the strongest title promise. A curiosity gap is legal only if the article can close it with evidence. Bait-and-switch, unsupported superlatives and deliberately withholding the promised answer too long are failures.
+### 10. Title-promise integrity and payoff timing
+The article must honor the title's material promise, but **immediate opening payoff is optional rather than mandatory**.
+
+Payoff timing follows the chosen opening strategy:
+- a direct-fact lead may pay off the title immediately;
+- a contradiction/question lead may establish the tension first and answer it shortly afterward;
+- a delayed/nut-graf or scene/example lead may defer the explicit thesis until the reader has enough context for it to land.
+
+What is not legal: bait-and-switch, an opening unrelated to the title, unsupported superlatives, or deliberately withholding the promised analytical answer so long that the reader loses orientation. Judge promise integrity across the opening zone and article structure, not by a fixed sentence number.
 
 ## Headline candidate generation
 For each applicable formal mode, generate 8–12 genuinely different candidates before selection. Each candidate records:
@@ -124,6 +138,7 @@ For each applicable formal mode, generate 8–12 genuinely different candidates 
 - why that reader has a reason to click;
 - the primary information gap;
 - the promised payoff;
+- compatible opening strategies / payoff timing when material;
 - cognitive load;
 - current WeChat search terms and evidence refs;
 - broader-finance relevance when genuinely useful.
@@ -138,7 +153,9 @@ Use evidence in this order when refining funnel rules:
 4. current platform evidence and large-scale research;
 5. generic writing heuristics.
 
-Do not turn one successful article into a permanent formula.
+Do not turn one successful article into a permanent formula. Continue to scout and evaluate opening/funnel methods as evidence changes; external methods are candidates, not automatic authority.
 
 ## Audit evidence
-A PASS must cite the final selected title, target-reader rationale, **candidate-pool strategy diversity**, actual first three sentences, representative H1/transition evidence, completion payoff and current search evidence. For `FINANCE_BROAD`, also cite the concrete non-niche financial stake exposed to a cold finance reader. “吸引人”“有钩子”“适合读者” without text-level or performance-level evidence is not an audit.
+A PASS must cite the final selected title, target-reader rationale, **candidate-pool strategy diversity**, declared/observed opening strategy, text-level evidence that the opening provides adequate orientation/information scent, representative H1/transition evidence, completion payoff and current search evidence. If payoff is delayed, the audit must identify the early transition/nut zone and show that the delay earns rather than breaks the title promise. For `FINANCE_BROAD`, also cite the concrete non-niche financial stake exposed to a cold finance reader.
+
+“吸引人”“有钩子”“适合读者” without text-level or performance-level evidence is not an audit.
