@@ -1,0 +1,109 @@
+{
+  "stage": "EDITORIAL",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "topic_dna": {
+    "what_genuinely_changed": "AI did not merely add another security threat category; it created simultaneous network-performance and model/agent-control requirements that are already visible in overseas product revenue/ARR and in domestic revenue/orders.",
+    "main_economic_transmission": "AI compute and production deployment expand east-west/encrypted traffic and model/agent attack surfaces → security requirements move earlier and broaden → high-performance firewalls plus AI-native security tools receive incremental demand → monetization appears as product revenue, ARR, orders and then accounting revenue.",
+    "most_consequential_reader_misjudgment": "Treating all 'AI security beneficiaries' as equivalent. The evidence is actually split between hardware/network modernization, direct AI-security revenue, order pipelines and broader AI-infrastructure exposure.",
+    "reader_value_question": "Is AI creating genuinely incremental cybersecurity spending, and which domestic vendors have already moved from technology narrative to measurable commercialization?",
+    "market_explanation_scope": "NOT_MATERIAL"
+  },
+  "finance_deep": {
+    "contract": "MATERIAL_COMPLETE",
+    "completeness_obligations": [
+      "Explain why AI creates two simultaneous security upgrades: data-center/firewall performance and model/agent security.",
+      "Use Fortinet, CrowdStrike and Palo Alto as overseas demand validation without importing U.S. market structure into A-share conclusions.",
+      "Preserve six MATERIAL domestic companies from the audited universe: 深信服、启明星辰、绿盟科技、安恒信息、天融信、山石网科.",
+      "Separate reported AI-security revenue from orders, broader AI-infrastructure exposure and technology progress.",
+      "Preserve counterevidence: 天融信/奇安信 legacy weakness, 绿盟 conversion lag, non-AI refresh/localization drivers, cloud-model-provider competitive risk.",
+      "End with stock-grounded validation signals mapped to named companies/classes rather than a generic industry checklist."
+    ],
+    "company_coverage_obligations": [
+      {"name": "深信服", "required_role": "network/firewall modernization + cloud/AI infrastructure crossover; explicitly state AI-security revenue is not separately disclosed"},
+      {"name": "启明星辰", "required_role": "direct AI-security revenue-growth evidence: large-model application firewall + Agentic SOC"},
+      {"name": "绿盟科技", "required_role": "AI-security order evidence with order-to-revenue conversion caveat"},
+      {"name": "安恒信息", "required_role": "quantified pure-AI and AI-enabled revenue as material peer"},
+      {"name": "天融信", "required_role": "quantified AI-security growth plus weak total revenue as counterexample"},
+      {"name": "山石网科", "required_role": "ASIC firewall scale commercialization; distinguish AI/data-center performance from localization/refresh effects"}
+    ],
+    "secondary_context": ["奇安信", "亚信安全", "迪普科技"],
+    "candidate_structures": [
+      {
+        "id": "DEEP_A_TWO_UPGRADES_TO_MONETIZATION",
+        "sections": [
+          "海外财报先确认：AI没有挤掉安全预算，而是把两类需求一起推高",
+          "第一轮升级在网络层：AI数据中心为什么要求更高性能的防火墙",
+          "第二轮升级在模型与Agent层：安全从发布后的补丁变成上线前的配套",
+          "国内开始兑现，但报表里的证据分成四档：收入、订单、基础设施暴露、产品进展",
+          "六家公司怎么区分：谁已确认收入，谁在等订单转化，谁更偏硬件性能升级",
+          "接下来验证什么：把订单、收入、ASIC放量和传统业务修复分别映射到公司"
+        ],
+        "strength": "Preserves the causal chain and all material companies while keeping comparison non-actionable."
+      },
+      {
+        "id": "DEEP_B_OVERSEAS_DOMESTIC_MIRROR",
+        "sections": [
+          "Fortinet与CrowdStrike为什么同时变好",
+          "从设备到软件：AI安全预算究竟花在哪里",
+          "中国厂商谁已经写进财报",
+          "三种兑现速度与六家公司",
+          "反证：传统网安弱势并没有自动消失",
+          "后续财报要验证的四个变量"
+        ],
+        "strength": "Cleaner overseas-to-China mirror, but slightly weaker at explaining the two distinct technical/economic upgrade mechanisms."
+      }
+    ],
+    "selected_structure": "DEEP_A_TWO_UPGRADES_TO_MONETIZATION",
+    "selection_rationale": "The task's strongest insight is not 'overseas good, domestic follows' but that AI creates two different security spending surfaces. Structure A makes that mechanism visible before company comparison and prevents the article from collapsing into a stock list."
+  },
+  "finance_broad": {
+    "contract": "SELECTIVE_TRAFFIC",
+    "core_contradictions": [
+      "Many investors assumed AI would cannibalize software/security budgets; current cybersecurity results instead show AI-linked incremental spending.",
+      "Domestic AI-security commercialization is real, but 'revenue', 'orders' and 'AI infrastructure' are not interchangeable proof.",
+      "Fast AI-security growth can coexist with weak legacy security revenue, so the next stage is conversion quality rather than theme recognition."
+    ],
+    "compression_candidates": [
+      "Compress the full six-company universe into three commercialization buckets while still naming all material names where needed for accuracy.",
+      "Reduce technical detail on east-west traffic/ASIC architecture to one explanatory paragraph.",
+      "Use only the most decision-relevant counterexamples: 绿盟 conversion lag and 天融信 legacy weakness."
+    ],
+    "candidate_structures": [
+      {
+        "id": "BROAD_A_BUDGET_REVERSAL",
+        "sections": [
+          "AI没有挤掉安全预算，反而把安全从后台成本推成AI配套投资",
+          "为什么钱会分成两笔：更快的防火墙 + 新增的模型/Agent安全",
+          "国内财报已经出现，但兑现分三种：收入、订单、基础设施",
+          "下一步不是再找概念，而是看转化质量"
+        ]
+      },
+      {
+        "id": "BROAD_B_FROM_US_TO_CHINA",
+        "sections": [
+          "海外网安为什么连续超预期",
+          "AI数据中心正在改写安全设备需求",
+          "中国厂商开始从订单走进收入",
+          "真正要区分的是兑现速度"
+        ]
+      }
+    ],
+    "selected_structure": "BROAD_A_BUDGET_REVERSAL",
+    "selection_rationale": "The cold-reader stake is the budget reversal: AI is becoming a security-spend accelerator rather than a budget cannibal. This is broader than a niche cybersecurity stock roundup and can be understood without prior sector interest."
+  },
+  "company_comparison_decision_map": [
+    {"bucket": "已出现直接AI安全收入证据", "companies": ["启明星辰", "安恒信息", "天融信"], "meaning": "Commercialization has entered reported revenue/growth disclosures; still compare base size and legacy-business health."},
+    {"bucket": "订单先行、等待收入转化", "companies": ["绿盟科技"], "meaning": "Demand is measurable at order level, but realization speed and margin require later reports."},
+    {"bucket": "网络/算力基础设施与高性能防火墙升级", "companies": ["深信服", "山石网科"], "meaning": "Evidence is strongest in network-security performance, AI infrastructure or ASIC firewall commercialization; do not relabel it as direct AI-security revenue."}
+  ],
+  "macro_coherence": {
+    "earned_transitions": [
+      "Overseas earnings establish that incremental security demand exists; that creates the need to ask where the spending lands technically.",
+      "Two technical spending surfaces create the need to separate domestic companies by monetization path rather than concept label.",
+      "Different monetization paths create the need for company-level evidence and then for future validation signals."
+    ],
+    "no_tables": true,
+    "deep_navigation_plan": "Use H1 plus conditional H2/H3 only where the company/commercialization branches genuinely diverge."
+  },
+  "compliance_boundary": "Comparison may describe evidence strength, realization speed and what would change the operating thesis. It must not rank stocks for purchase, timing, target price, position sizing or disguised recommendations."
+}
