@@ -14,24 +14,28 @@
       "financial_writing_agent/plugin_server.py",
       "financial_writing_agent/runner.py",
       "financial_writing_agent/runtime_service.py",
-      "financial_writing_agent/adapters/openai_agents.py"
+      "financial_writing_agent/adapters/openai_agents.py",
+      "financial_writing_agent/github_chat_guard.py"
     ],
     "tool_surface_refs": [
       "financial_writing_agent/plugin_server.py",
-      "financial_writing_agent/mcp_contracts.py"
+      "financial_writing_agent/mcp_contracts.py",
+      "continuity/GITHUB_CHAT_EXECUTION.json"
     ],
     "judgment_execution": "EXECUTABLE",
-    "note": "High-judgment stages can execute through the owner-native OpenAI Agents SDK path; provider-attested isolation remains a separate unavailable assurance."
+    "note": "Owner-native high-judgment stages can execute through the OpenAI Agents SDK path. The current GitHub+GPT CHAT_BRIDGED path is a bounded secondary execution adapter whose stage transitions require the deterministic github_chat_guard and self-attested action-bound receipts; provider-attested isolation remains separate and unavailable."
   },
   "workflow": {
     "state_authority_refs": [
       "financial_writing_agent/store.py",
-      "financial_writing_agent/models.py"
+      "financial_writing_agent/models.py",
+      "continuity/GITHUB_CHAT_EXECUTION.json"
     ],
     "transition_guard_refs": [
       "financial_writing_agent/controller.py",
       "financial_writing_agent/engine.py",
-      "financial_writing_agent/semantic_runtime.py"
+      "financial_writing_agent/semantic_runtime.py",
+      "financial_writing_agent/github_chat_guard.py"
     ]
   },
   "harness": {
