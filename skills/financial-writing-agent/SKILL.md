@@ -13,12 +13,13 @@ Before material execution read `continuity/EXECUTION_CAPABILITIES.json` and hand
 
 - If the Python owner runtime/plugin is actually available, use the persisted owner runtime: existing work via `list_recent_writing_tasks`; new article via `start_writing_task` before research or drafting.
 - If owner-native runtime is unavailable, GITHUB_CHAT is legal only when this session has GPT/model execution, GitHub owner read/write **and** a deterministic way to execute `financial_writing_agent/github_chat_guard.py`. Create/resume state through that guard; do not hand-edit `current_stage`.
-- Every GITHUB_CHAT material transition must bind the fetched prior `STATE.json` blob SHA, the exact task/stage/capability/action, executor identity, subject/input bindings and output refs in one new self-attested execution receipt. Then write with the same GitHub blob SHA and reread before treating the transition as durable.
+- GITHUB_CHAT inherits the same canonical `TaskContract` semantics as OWNER_NATIVE. With no explicit platform/mode request, routing defaults to `DUAL`; do not silently narrow it. Default `DUAL` therefore requires `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires explicit user provenance.
+- GITHUB_CHAT business state is written only to `main/workspaces/articles/{task_id}`. Do not create per-article business-state branches. Every material transition must bind the fetched prior `STATE.json` blob SHA, exact task/stage/capability/action, executor identity, task/output contract, subject/input bindings and output refs in one new self-attested receipt, then write to `main` with the same GitHub blob SHA and reread before treating the transition as durable.
 - If the deterministic guard cannot execute, block the stage transition. Missing owner runtime is never permission to free-form a publishable article.
 - In GitHub-chat mode, semantic audits are `CHAT_SELF_REVIEW`: they may detect defects and force revision/failure but never become owner-native `PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Normal terminal state is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
 - `BLOCKED` owner-runtime work resumes only from its persisted recovery cursor through `resume_blocked_task`; never reconstruct execution stage from chat memory.
 
-GitHub `main` is engineering/rule authority. Owner-native `WritingState` is execution truth for Python/plugin runs; guard-validated GitHub article checkpoints are execution truth for explicit GITHUB_CHAT runs. Chat memory is never task authority.
+GitHub `main` is engineering/rule authority and the only GITHUB_CHAT business-state write surface. Owner-native `WritingState` is execution truth for Python/plugin runs; guard-validated GitHub checkpoints under `main/workspaces/articles/{task_id}` are execution truth for explicit GITHUB_CHAT runs. Chat memory is never task authority.
 
 ## 2. Workflow and semantic gates
 
@@ -59,9 +60,9 @@ These anchors stay hot because crossing them changes product behavior:
 - Headline diversity is tracked by `angle_family` rather than synonym-only shells.
 - Major H1 sections must also be **earned transitions**.
 - Natural prose uses the deterministic **template-cluster guard** before semantic judgment when that guard is executable; GitHub-chat self-review must still apply the same pattern semantics and mark unavailable deterministic checks OPEN.
-- Do not automatically bold every company/stock-name occurrence.
+- Every supplied A-share company/stock name is mechanically bolded at every exact Word occurrence; this fixed entity layer does **not** replace explicit semantic skim-path anchors.
 - Publication articles do not use tables; delivery enforces **zero underlines** when the deterministic document path is executable.
-- Final disclaimer remains one inline italic paragraph beginning `风险提示：`.
+- Final disclaimer remains one inline italic paragraph beginning `风险提示：`; there is no fixed minimum-character quota, but semantic completeness remains required.
 - Public output must never become executable buy/sell guidance. A disclaimer does not cure actionable instructions.
 
 ## 5. Learning and maintenance
@@ -77,6 +78,6 @@ Systemic/non-trivial maintenance enters `references/maintenance.md` and the curr
 
 Owner-native `COMPLETE` remains controlled by the owner workflow/controller and requires its proof-bearing gates and artifacts.
 
-GITHUB_CHAT may deliver a Word artifact only after the full guard-enforced GitHub workflow, current-session mechanical checks, and final self-review complete. Report its bounded state as `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` and list unavailable independent/owner-native checks as OPEN. Persist the publication source in GitHub so the Word file is reproducible even if the chat attachment is transient.
+GITHUB_CHAT may deliver Word artifacts only after the full guard-enforced GitHub workflow, current-session mechanical checks, and final self-review complete. Before `DELIVERY` advances, the guard reconciles the article Word kinds against the immutable task contract; before terminalization it reconciles the full required-output set including `AUDIT_DOCX`. Report the bounded state as `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` and list unavailable independent/owner-native checks as OPEN. Persist each publication source in GitHub so Word files are reproducible even if chat attachments are transient.
 
 For an active durable task, preserve owner lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance.
