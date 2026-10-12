@@ -17,8 +17,13 @@ def run_owner_semantic_audit_stage(state: WritingState, *, expected_stage: Stage
 
     A CHAT_BRIDGED PASS request may call this gateway, but the caller's verdict is not
     accepted as proof. The server-side owner runtime executes the actual judge(s),
-    records runtime trajectory evidence, persists the result, and only then lets the
-    authoritative controller decide whether the stage may advance.
+    records runtime trajectory evidence, and lets the authoritative controller persist
+    the successful result together with its stage transition.
+
+    EXECUTOR_START is intentionally checkpointed before the external model call so a
+    crash can be distinguished from a completed judge run. A successful EXECUTOR_END is
+    not pre-saved: controller.advance (or block on failure) owns the next durable
+    checkpoint, preventing a durable semantic PASS from being stranded before its route.
     """
     if expected_stage not in SEMANTIC_AUDIT_STAGES:
         raise ValueError(f"not a semantic audit stage: {expected_stage.value}")
@@ -45,7 +50,6 @@ def run_owner_semantic_audit_stage(state: WritingState, *, expected_stage: Stage
         )
 
     state.add_trace("EXECUTOR_END", expected_stage.value)
-    impl.store.save(state)
     try:
         return impl.controller.advance(state)
     except WorkflowError as exc:
