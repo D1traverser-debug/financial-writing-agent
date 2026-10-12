@@ -1,8 +1,9 @@
 # User Feedback System Impact — Writing Rule Calibration — 2026-10-12
 
-Status: DESIGN_REVIEWED__IMPLEMENTATION_PENDING
+Status: IMPLEMENTED__TARGETED_VALIDATION_PASS__HOSTED_CI_INFRA_OPEN
 Scope: owner-local Financial Writing business rules, delivery mechanics, audit completeness, Reader Funnel evolution
 Trigger task: fw-20261012-ai-security-6dd14859
+Implementation PR: #18
 
 ## M0 — Signal classification
 
@@ -21,8 +22,8 @@ The user supplied explicit durable corrections after reviewing the current Finan
 
 ### Failure / counterexample
 - A prior requirement summary rendered a topic-specific example as a general rule: “有AI产品不能等同于AI已经贡献利润”. The underlying invariant is evidence-stage non-escalation, not AI-specific.
-- Current policy hard-codes title_opening_payoff_required=true, auto_bold_company_names=false and risk min_body_chars=60, conflicting with the user's durable requirements.
-- Existing audit documentation says company names need not all be bold, also conflicting with the user's durable requirement.
+- Current policy hard-coded title_opening_payoff_required=true, auto_bold_company_names=false and risk min_body_chars=60, conflicting with the user's durable requirements.
+- Existing audit documentation said company names need not all be bold, also conflicting with the user's durable requirement.
 
 ### Proposed mechanisms from user
 - Use more numbered hierarchy.
@@ -30,29 +31,34 @@ The user supplied explicit durable corrections after reviewing the current Finan
 - Continue learning Reader Funnel/opening methods, optionally via Universal evolution.
 - Keep risk wording concise without reducing information.
 
-These mechanisms are treated as candidates where implementation details remain open; the user-owned requirements themselves are authoritative.
+These mechanisms were treated as candidates where implementation details remained open; the user-owned requirements themselves were authoritative.
 
 ## M1/M2 — Root cause and impact map
 
-Root cause is split across:
+Root cause was split across:
 - TRANSCRIPTION: assistant summarized a generic evidence-stage rule with an AI-specific example as if it were canonical.
-- REPOSITORY_POLICY: title-opening timing, risk length and company-bold mechanics conflict with the user's current durable instruction.
-- RUNTIME/DELIVERY: Word builder currently preserves only explicit **...** spans and intentionally does not auto-bold stock names.
-- AUDIT: audit currently explicitly rejects a blanket company-bold requirement and Reader Funnel treats title/opening payoff as a hard check.
+- REPOSITORY_POLICY: title-opening timing, risk length and company-bold mechanics conflicted with the user's current durable instruction.
+- RUNTIME/DELIVERY: Word builder preserved only explicit **...** spans and intentionally did not auto-bold stock names.
+- SCHEMA: `ArticlePayload.risk_disclaimer` retained a hidden 60-character minimum even after policy-level relaxation would otherwise have been possible.
+- AUDIT: audit explicitly rejected blanket company-bold requirement and Reader Funnel treated title/opening payoff as a hard check.
 
 Affected authority/runtime surfaces:
+- references/research.md
 - references/editorial.md
 - references/hooks.md
 - references/style.md
 - references/delivery.md
 - references/audit.md
 - config/policy.json plus packaged mirror
+- config/rule_ownership.json
 - financial_writing_agent/document.py
 - financial_writing_agent/checks.py
+- financial_writing_agent/schemas.py
 - tests/test_document.py
+- tests/test_user_rule_calibration_20261012.py
 - intentional mirrors of canonical references/policy
 
-No stage graph, business-state schema or public MCP contract change is required.
+No stage graph, business-state schema or public MCP execution contract change was required. Existing HookAuditRubric field names were retained for compatibility while their authority semantics were narrowed by `references/hooks.md`.
 
 ## M3 — Learning / evidence scout
 
@@ -87,42 +93,62 @@ For risk length:
 
 ## M5/M6 — Control surface and complexity decision
 
-No account/startup instruction change is required. Existing owner-local authorities can own all changes.
+No account/startup instruction change is required. Existing owner-local authorities own all changes.
 
 Net complexity effect:
 - no new root policy or agent;
 - one small deterministic builder behavior change;
-- simplified risk check by removing the fixed minimum-length gate;
-- Reader Funnel rule becomes less rigid but remains auditable through strategy declaration and evidence;
+- one deterministic QA invariant for every supplied A-share name occurrence;
+- simplified risk check by removing the fixed minimum-length gate from policy and schema;
+- Reader Funnel rule becomes less rigid but remains auditable through strategy declaration/evidence;
 - audit coverage becomes more systematic by deriving default checks from the applicable writing contract instead of a hand-curated subset.
 
-## M7 — Intended implementation
+## M7 — Implemented change set
 
-1. Generalize evidence-stage non-escalation language; never encode AI-specific terminology as a cross-topic invariant.
-2. Strengthen lower-level numbered navigation preference for genuinely branched FINANCE_DEEP reasoning.
-3. Replace hard title-opening-immediate-payoff with promise integrity + strategy-specific payoff timing.
-4. Add opening-strategy diversity guidance (direct fact, contradiction, delayed/nut-graf, question, scene/example when evidence-supported) without forcing one formula.
-5. Auto-bold every A-share stock/company name supplied in ArticleDocument.stock_names while preserving explicit **...** skim anchors.
-6. Keep/select additional bold facts/numbers/judgment sentences so the skim path remains reconstructive.
-7. State that evidence-bounded company comparison may be a major analytical focus, while actionable trading instructions remain prohibited.
-8. Remove fixed 60-character risk minimum; audit for concise completeness instead.
-9. Make audit completeness default to all applicable writing requirements, with explicit N/A/special-surface exceptions rather than silent omission.
-10. Update deterministic tests and intentional mirrors.
+1. Generalized evidence-stage non-escalation language; AI-specific terminology is no longer treated as a cross-topic invariant.
+2. Strengthened lower-level numbered navigation preference for genuinely branched FINANCE_DEEP reasoning.
+3. Replaced hard title-opening-immediate-payoff with promise integrity + strategy-specific payoff timing.
+4. Added opening-strategy diversity guidance: direct fact, contradiction, delayed/nut-graf, question and scene/example where evidence-supported.
+5. Auto-bold every A-share stock/company name supplied in `ArticleDocument.stock_names` while preserving explicit `**...**` skim anchors.
+6. Kept additional bold facts/numbers/judgment sentences as an independent semantic skim-path obligation.
+7. Made evidence-bounded company comparison eligible to become a major analytical focus while preserving the non-actionable boundary.
+8. Removed fixed 60-character risk minimum from policy and `ArticlePayload` schema; semantic audit now owns concise completeness.
+9. Made audit completeness default to all applicable writing requirements, with explicit N/A/special-surface exceptions rather than silent omission.
+10. Updated deterministic tests, rule ownership and intentional reference/policy mirrors.
 
-## M8/M10 — Validation / second-order challenge
+## M8 — Validation evidence
 
-Required regression evidence:
-- all occurrences of A-share stock names become bold even without explicit ** markers;
-- explicit skim anchors remain bold;
-- overseas/non-stock entities are not accidentally auto-bolded unless explicitly emphasized;
-- concise but substantive risk paragraph passes; missing/duplicate/non-italic risk still fails;
-- policy no longer declares immediate title-opening payoff as a hard requirement;
-- references and packaged mirrors remain synchronized;
-- current document typography/no-table/no-underline checks remain intact.
+### Static authority / propagation
+PASS for the scoped changed rule set.
 
-Second-order risks:
-- blanket A-share bolding can over-emphasize company-dense paragraphs; accepted because this is an explicit user formatting preference, while additional semantic anchors still carry the argument signal.
-- relaxing immediate payoff can regress into vague openings; mitigate by requiring early information scent / reader orientation and prohibiting bait-and-switch or excessively delayed promise fulfillment.
-- removing a risk character floor can yield token disclaimers; semantic audit must check topic-specific coverage rather than length.
+For each changed canonical reference (`research.md`, `editorial.md`, `hooks.md`, `style.md`, `delivery.md`, `audit.md`), the canonical path, packaged-resource mirror and Skill mirror were re-read from the maintenance branch and share the same Git blob SHA. `config/policy.json` and the packaged policy mirror also share the same updated content blob.
 
-Assurance ceiling: repository/rule/runtime changes can be regression-verified, but live writing-quality improvement remains OPEN until exercised on later article trajectories and user feedback.
+### Current-session targeted executable regression
+PASS for the mechanisms exercised in-session:
+- multiple supplied A-share names are detected and marked bold at every exact occurrence;
+- an unlisted overseas entity is not auto-bolded;
+- explicit semantic `**...**` anchors remain bold independently of company-name emphasis;
+- a concise 20-character non-empty risk paragraph validates under the new schema, proving the old 60-character floor is not active in the exercised contract;
+- policy assertions for flexible opening strategy, optional immediate payoff, generous branching hierarchy, comparison focus, two-layer bolding and full applicable-audit coverage are encoded in dedicated repository regressions.
+
+This is action-level/current-session targeted evidence, not a substitute for full hosted CI.
+
+### Hosted GitHub Actions
+OPEN — infrastructure execution did not reach workflow steps.
+
+PR #18 triggered `financial-writing-agent-ci` run `38218047830`. The run started at 2026-10-12T07:29:41Z and ended at 07:29:44Z with failure. The single job reports zero steps, and the job-log blob is unavailable/404. Therefore there is no evidence that dependency install, pytest, static audit, render smoke or any other repository CI step actually executed. This result is classified as hosted-CI infrastructure/runner failure, not a code-test failure and not a CI PASS.
+
+Full hosted CI remains OPEN and must not be represented as executed successfully.
+
+## M10 — Second-order challenge / remaining risk
+
+- Blanket A-share bolding can over-emphasize company-dense paragraphs. Accepted because it is an explicit durable user formatting requirement; semantic anchors remain separately required so the skim path still communicates reasoning rather than only entities.
+- Relaxing immediate payoff can regress into vague openings. Mitigation: early information scent/reader orientation remains required, title-promise integrity remains required, and bait-and-switch or excessively delayed payoff still fails.
+- Removing a risk character floor can yield token disclaimers. Mitigation: exactly-one/non-empty/italic is mechanical; topic-specific information completeness is semantic and included in full applicable-contract audit.
+- Legacy HookAuditRubric field names remain for compatibility. Their old names could be misread by code readers, so `schemas.py` carries explicit compatibility comments and canonical semantics live in `references/hooks.md` / policy. A future contract-version change may rename them, but this maintenance does not introduce an unnecessary breaking schema migration.
+
+## Assurance ceiling
+
+Current evidence supports: owner-local rule/routing consistency, deterministic implementation of A-share-name bolding, removal of fixed risk-length gating, mirror propagation and targeted current-session regression.
+
+Current evidence does **not** support: full hosted-CI PASS, owner-native provider-attested verification, or a claim that future live article quality is already improved. Live writing outcome remains OPEN until exercised on later article trajectories and user feedback.
