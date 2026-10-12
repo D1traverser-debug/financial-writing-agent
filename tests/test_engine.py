@@ -1,8 +1,12 @@
+from pathlib import Path
+
 import pytest
 
 from financial_writing_agent.engine import WorkflowError, WritingEngine
 from financial_writing_agent.models import ArtifactKind, GateStatus, Stage, TaskContract
 from financial_writing_agent.store import SQLiteStateStore
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_start_is_first_trace(tmp_path):
@@ -53,6 +57,17 @@ def test_blocked_cannot_be_left_through_raw_transition(tmp_path):
     assert resumed.blocked_reason is None
     assert resumed.blocked_from_stage is None
     assert resumed.blocked_resume_stage is None
+
+
+def test_private_transition_primitive_is_engine_local_only():
+    offenders: list[str] = []
+    for path in (ROOT / "financial_writing_agent").rglob("*.py"):
+        if path.name == "engine.py":
+            continue
+        text = path.read_text(encoding="utf-8")
+        if "_apply_transition(" in text:
+            offenders.append(str(path.relative_to(ROOT)))
+    assert offenders == []
 
 
 def test_dual_word_outputs_are_required():
