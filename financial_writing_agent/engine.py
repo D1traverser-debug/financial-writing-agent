@@ -29,7 +29,7 @@ class WritingEngine:
         self.store.save(state)
         return state
 
-    def transition(self, state: WritingState, next_stage: Stage, *, reason: str = "") -> WritingState:
+    def _apply_transition(self, state: WritingState, next_stage: Stage, *, reason: str = "") -> WritingState:
         if next_stage not in LEGAL_TRANSITIONS[state.stage]:
             raise WorkflowError(f"Illegal transition: {state.stage} -> {next_stage}")
         state.add_trace("STAGE_EXIT", reason)
@@ -37,6 +37,21 @@ class WritingEngine:
         state.add_trace("STAGE_ENTER", reason)
         self.store.save(state)
         return state
+
+    def transition(self, state: WritingState, next_stage: Stage, *, reason: str = "") -> WritingState:
+        """Apply an ordinary business-stage transition.
+
+        COMPLETE and BLOCKED carry additional proof/recovery semantics. They are legal
+        graph nodes but are not ordinary edges: callers must use complete(), block()
+        and resume_blocked() so low-level graph access cannot bypass those invariants.
+        """
+        if next_stage == Stage.COMPLETE:
+            raise WorkflowError("use complete() for COMPLETE so completion gates and artifacts are revalidated")
+        if next_stage == Stage.BLOCKED:
+            raise WorkflowError("use block() for BLOCKED so reason and recovery cursor are persisted")
+        if state.stage == Stage.BLOCKED:
+            raise WorkflowError("use resume_blocked() to leave BLOCKED so recovery metadata is cleared")
+        return self._apply_transition(state, next_stage, reason=reason)
 
     def block(self, state: WritingState, reason: str, *, resume_stage: Stage | None = None) -> WritingState:
         if state.stage == Stage.COMPLETE:
@@ -57,7 +72,7 @@ class WritingEngine:
         state.blocked_reason = reason
         state.blocked_from_stage = origin
         state.blocked_resume_stage = cursor
-        self.transition(state, Stage.BLOCKED, reason=reason)
+        self._apply_transition(state, Stage.BLOCKED, reason=reason)
         self.store.save(state)
         return state
 
@@ -72,7 +87,7 @@ class WritingEngine:
         state.blocked_reason = None
         state.blocked_from_stage = None
         state.blocked_resume_stage = None
-        return self.transition(state, target, reason=f"blocker repaired; resume {target.value}")
+        return self._apply_transition(state, target, reason=f"blocker repaired; resume {target.value}")
 
     def record_gate(self, state: WritingState, name: str, status: GateStatus, evidence: list[str], notes: str = "") -> None:
         state.set_gate(name, status, evidence, notes)
@@ -113,4 +128,4 @@ class WritingEngine:
 
     def complete(self, state: WritingState) -> WritingState:
         self.assert_can_complete(state)
-        return self.transition(state, Stage.COMPLETE, reason="All applicable gates and required outputs passed")
+        return self._apply_transition(state, Stage.COMPLETE, reason="All applicable gates and required outputs passed")
