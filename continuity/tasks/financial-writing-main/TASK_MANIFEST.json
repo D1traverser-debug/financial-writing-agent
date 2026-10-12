@@ -1,6 +1,6 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 20,
+  "manifest_version": 21,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,13 +10,13 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-12T07:48:00Z",
+  "updated_at": "2026-10-12T11:45:00Z",
   "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
-  "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 10，只对当前动作所需能力做 handshake。owner-native Python/plugin 实际可用则进入其版本化 WritingState；否则仅当当前会话具备 model + GitHub owner read/write + 可执行 deterministic github_chat_guard 时选择 GITHUB_CHAT，先创建 guard-validated STATE.json 再研究，禁止 free-form publishable fallback。执行顺序必须由 canonical workflow_spec 驱动：INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT。GITHUB_CHAT 审核上限为 CHAT_SELF_REVIEW，正常终态 DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN。若用户明确继续旧文章，先定位该文章的 owner-native WritingState 或 GitHub article workspace，不从聊天记忆/Notion/Drive 恢复 stage。",
+  "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 10，只对当前动作所需能力做 handshake。owner-native Python/plugin 实际可用则进入其版本化 WritingState；否则仅当当前会话具备 model + GitHub owner read/write + 可执行 deterministic github_chat_guard 时选择 GITHUB_CHAT。GITHUB_CHAT 新业务状态只写 main/workspaces/articles/{task_id}，默认路由由 canonical TaskContract 决定；用户未明确缩窄平台/模式时必须 DUAL，required_outputs=FINANCE_DEEP_DOCX+FINANCE_BROAD_DOCX+AUDIT_DOCX。任何单模式 override 必须在 INIT receipt 绑定原始用户 prompt 的精确子串证据。DELIVERY/FINAL 必须机械对账 required_outputs 后才能继续/终态。下一次真实 fresh-chat 回归重点证明该 3-output/main-only contract；禁止 free-form fallback 和 per-article business-state branch。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
-  "runtime_version": "V0_8_1__PROFILE_10__CANONICAL_WORKFLOW_KERNEL__OWNER_NATIVE_CHECKPOINT_CAS_RECOVERY__GITHUB_CHAT_DETERMINISTIC_GUARD__FULL_HOSTED_CI_OPEN",
+  "runtime_version": "V0_8_1__PROFILE_10__CANONICAL_WORKFLOW_KERNEL__OWNER_NATIVE_CHECKPOINT_CAS_RECOVERY__GITHUB_CHAT_TASK_OUTPUT_PARITY__MAIN_ONLY_STATE__FULL_HOSTED_CI_OPEN",
   "resume_epoch": 3,
   "active_lease": {
     "lease_id": "fw-4b398865ade44f1c896911a438f0c83b",
@@ -37,16 +37,17 @@
     "financial_writing_agent/runtime_service.py",
     "financial_writing_agent/quality_regression.py",
     "references/maintenance.md",
+    "evals/FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md",
     "evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-12.md",
     "evals/FINANCIAL_FULL_SYSTEM_REBUILD_2026-10-12.md",
     "evals/FINANCIAL_PHASE0_SYSTEM_MAP_2026-10-12.md",
     "evals/FINANCIAL_FRESH_CHAT_EXTERNAL_AUTHORITY_AUDIT_2026-10-12.md"
   ],
   "assurance_boundary": {
-    "architecture_and_execution_wiring": "CURRENT_OWNER_MAIN_WIRED_WITH_PHASE1_WORKFLOW_KERNEL_AND_PHASE2_STATE_RECOVERY",
+    "architecture_and_execution_wiring": "CURRENT_MAIN_WIRED_WITH_CANONICAL_WORKFLOW_AND_TASK_OUTPUT_PARITY__MAIN_ONLY_GITHUB_CHAT_STATE",
     "hosted_full_ci": "OPEN_RUNNER_NOT_EXECUTED",
-    "real_post_rebuild_article_trajectory": "OPEN",
-    "post_rebuild_live_writing_quality": "OPEN",
+    "real_post_rebuild_article_trajectory": "LIVE_TRAJECTORY_EXECUTED__OUTPUT_CONTRACT_FAILED_3_TO_2__REPAIR_COMMITTED__FRESH_CHAT_RETEST_OPEN",
+    "post_rebuild_live_writing_quality": "LIVE_ARTIFACT_REVIEWED__EDITORIAL_RESIDUALS_FOUND__USER_ACCEPTANCE_AND_PERFORMANCE_OPEN",
     "provider_attested_independent_review": "UNAVAILABLE"
   }
 }
