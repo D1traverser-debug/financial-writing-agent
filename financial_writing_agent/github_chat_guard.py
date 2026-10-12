@@ -5,7 +5,8 @@ from datetime import datetime, timezone
 from typing import Any, Mapping
 from uuid import uuid4
 
-from .models import Stage
+from .models import ArtifactKind, DeliveryChannel, DistributionMode, Stage, TaskContract
+from .routing import build_task_contract
 from .workflow_spec import (
     BUSINESS_STAGE_NAMES,
     REVIEW_STAGE_NAMES,
@@ -19,10 +20,17 @@ CHAT_REVIEW_ASSURANCE = "CHAT_SELF_REVIEW"
 TERMINAL_STATUS = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
 SELF_ATTESTED_RECEIPT = "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
 ALLOWED_STATUS = {"IN_PROGRESS", "BLOCKED", TERMINAL_STATUS}
+CURRENT_STATE_SCHEMA_VERSION = "1.2"
+LEGACY_STATE_SCHEMA_VERSION = "1.1"
+SUPPORTED_STATE_SCHEMA_VERSIONS = {LEGACY_STATE_SCHEMA_VERSION, CURRENT_STATE_SCHEMA_VERSION}
+MAIN_STATE_REF = "main"
+MODE_SOURCE_CANONICAL = "CANONICAL_ROUTING"
+MODE_SOURCE_USER_EXPLICIT = "USER_EXPLICIT_OVERRIDE"
+MODE_SOURCE_LEGACY = "LEGACY_STATE_MIGRATION"
 
 # Adapter-local indexes/capabilities derive from the canonical workflow. The chat
 # adapter may be more conservative than owner-native execution, but it cannot invent
-# a broader stage/revision graph.
+# a broader stage/revision graph or weaken the owner TaskContract.
 STAGE_INDEX = {stage: i for i, stage in enumerate(BUSINESS_STAGE_NAMES)}
 ARTIFACT_REQUIRED_FOR_STAGE = {stage: stage for stage in BUSINESS_STAGE_NAMES if stage != "INTAKE"}
 CAPABILITY_BY_STAGE = {
@@ -33,7 +41,7 @@ CAPABILITY_BY_STAGE = {
     "MECHANICAL_AUDIT": "github_chat_delivery_and_mechanical_qa",
 }
 
-REQUIRED_STATE_FIELDS = {
+BASE_REQUIRED_STATE_FIELDS = {
     "schema_version",
     "task_id",
     "execution_mode",
@@ -49,6 +57,14 @@ REQUIRED_STATE_FIELDS = {
     "execution_receipts",
     "updated_at",
 }
+CURRENT_REQUIRED_STATE_FIELDS = BASE_REQUIRED_STATE_FIELDS | {
+    "state_ref",
+    "target_platforms",
+    "distribution_mode_source",
+    "delivery_channel",
+    "required_outputs",
+    "delivery_artifacts",
+}
 REQUIRED_RECEIPT_FIELDS = {
     "receipt_id",
     "action_id",
@@ -62,6 +78,14 @@ REQUIRED_RECEIPT_FIELDS = {
     "output_refs",
     "result",
 }
+CONTRACT_FIELDS = (
+    "state_ref",
+    "target_platforms",
+    "distribution_mode",
+    "distribution_mode_source",
+    "delivery_channel",
+    "required_outputs",
+)
 
 
 class GithubChatGuardError(ValueError):
@@ -97,6 +121,19 @@ def _revision_target_names(stage: str) -> set[str]:
     return {target.value for target in revision_targets(stage_enum)}
 
 
+def _required_outputs_for_mode(distribution_mode: str) -> list[str]:
+    try:
+        mode = DistributionMode(distribution_mode)
+    except ValueError as exc:
+        raise GithubChatGuardError(f"unsupported distribution_mode: {distribution_mode}") from exc
+    contract = TaskContract(prompt="contract-validation", distribution_mode=mode)
+    return [kind.value for kind in contract.required_outputs]
+
+
+def _required_article_outputs(state: Mapping[str, Any]) -> set[str]:
+    return {kind for kind in state.get("required_outputs", []) if kind != ArtifactKind.AUDIT_DOCX.value}
+
+
 def _validate_artifact_ref(ref: Any, *, label: str, task_id: str) -> None:
     _require(isinstance(ref, Mapping), f"{label} must be an object")
     path = ref.get("path")
@@ -108,10 +145,61 @@ def _validate_artifact_ref(ref: Any, *, label: str, task_id: str) -> None:
     )
 
 
+def _validate_delivery_artifact_metadata(meta: Any, *, kind: str) -> None:
+    _require(isinstance(meta, Mapping), f"delivery_artifacts.{kind} must be an object")
+    _require(meta.get("kind") == kind, f"delivery_artifacts.{kind}.kind mismatch")
+    _require(_nonempty(meta.get("file_name")), f"delivery_artifacts.{kind}.file_name is required")
+    sha = meta.get("sha256")
+    _require(isinstance(sha, str) and len(sha) == 64 and all(ch in "0123456789abcdefABCDEF" for ch in sha), f"delivery_artifacts.{kind}.sha256 must be a 64-character hex digest")
+
+
+def _normalize_delivery_artifacts(items: list[Mapping[str, Any]] | None) -> dict[str, dict[str, Any]]:
+    normalized: dict[str, dict[str, Any]] = {}
+    for item in items or []:
+        _require(isinstance(item, Mapping), "delivery artifact must be an object")
+        kind = str(item.get("kind", ""))
+        _require(kind in {member.value for member in ArtifactKind}, f"unsupported delivery artifact kind: {kind}")
+        _require(kind not in normalized, f"duplicate delivery artifact kind: {kind}")
+        payload = dict(item)
+        _validate_delivery_artifact_metadata(payload, kind=kind)
+        normalized[kind] = payload
+    return normalized
+
+
+def _require_article_output_contract(state: Mapping[str, Any]) -> None:
+    expected = _required_article_outputs(state)
+    actual = set(state.get("delivery_artifacts", {}))
+    _require(actual == expected, f"article delivery outputs mismatch: required={sorted(expected)}, actual={sorted(actual)}")
+
+
+def _require_full_output_contract(state: Mapping[str, Any]) -> None:
+    expected = set(state.get("required_outputs", []))
+    actual = set(state.get("delivery_artifacts", {}))
+    _require(actual == expected, f"final delivery outputs mismatch: required={sorted(expected)}, actual={sorted(actual)}")
+
+
+def _upgrade_legacy_state(state: Mapping[str, Any], *, state_ref: str) -> dict[str, Any]:
+    upgraded = deepcopy(dict(state))
+    if upgraded.get("schema_version") != LEGACY_STATE_SCHEMA_VERSION:
+        return upgraded
+    _require(state_ref == MAIN_STATE_REF, "legacy GITHUB_CHAT state may only be resumed after placement on main")
+    mode = str(upgraded.get("distribution_mode", ""))
+    upgraded["schema_version"] = CURRENT_STATE_SCHEMA_VERSION
+    upgraded["state_ref"] = MAIN_STATE_REF
+    upgraded["target_platforms"] = []
+    upgraded["distribution_mode_source"] = MODE_SOURCE_LEGACY
+    upgraded["delivery_channel"] = DeliveryChannel.WORD_FILE_ONLY.value
+    upgraded["required_outputs"] = _required_outputs_for_mode(mode)
+    upgraded["delivery_artifacts"] = {}
+    return upgraded
+
+
 def validate_state(state: Mapping[str, Any]) -> None:
-    missing = sorted(REQUIRED_STATE_FIELDS - set(state))
+    schema = state.get("schema_version")
+    _require(schema in SUPPORTED_STATE_SCHEMA_VERSIONS, f"unsupported state schema_version: {schema}")
+    required_fields = CURRENT_REQUIRED_STATE_FIELDS if schema == CURRENT_STATE_SCHEMA_VERSION else BASE_REQUIRED_STATE_FIELDS
+    missing = sorted(required_fields - set(state))
     _require(not missing, f"state missing required fields: {missing}")
-    _require(state.get("schema_version") == "1.1", "state schema_version must be 1.1")
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
     _require(_nonempty(state.get("task_id")), "task_id is required")
     _require(state.get("current_stage") in BUSINESS_STAGE_NAMES, "current_stage is not a supported Financial stage")
@@ -123,6 +211,20 @@ def validate_state(state: Mapping[str, Any]) -> None:
     _require(isinstance(state.get("open_system_impact"), list), "open_system_impact must be a list")
     _require(isinstance(state.get("review_decisions", {}), Mapping), "review_decisions must be an object")
     _require(isinstance(state.get("learning_evidence", []), list), "learning_evidence must be a list")
+
+    if schema == CURRENT_STATE_SCHEMA_VERSION:
+        _require(state.get("state_ref") == MAIN_STATE_REF, "GITHUB_CHAT business state must live on main")
+        _require(isinstance(state.get("target_platforms"), list), "target_platforms must be a list")
+        _require(state.get("distribution_mode_source") in {MODE_SOURCE_CANONICAL, MODE_SOURCE_USER_EXPLICIT, MODE_SOURCE_LEGACY}, "distribution_mode_source invalid")
+        _require(state.get("delivery_channel") == DeliveryChannel.WORD_FILE_ONLY.value, "delivery_channel must remain WORD_FILE_ONLY")
+        expected_outputs = _required_outputs_for_mode(str(state.get("distribution_mode")))
+        _require(state.get("required_outputs") == expected_outputs, f"required_outputs drift from TaskContract: expected={expected_outputs}")
+        _require(isinstance(state.get("delivery_artifacts"), Mapping), "delivery_artifacts must be an object")
+        for kind, meta in state.get("delivery_artifacts", {}).items():
+            _require(kind in expected_outputs, f"unexpected delivery artifact kind: {kind}")
+            _validate_delivery_artifact_metadata(meta, kind=kind)
+        if state.get("status") == TERMINAL_STATUS:
+            _require_full_output_contract(state)
 
     current_index = STAGE_INDEX[str(state["current_stage"])]
     for key, ref in state.get("stage_artifacts", {}).items():
@@ -152,6 +254,8 @@ def validate_state(state: Mapping[str, Any]) -> None:
         _require(_nonempty(receipt.get("execution_ref")), "receipt execution_ref is required")
         _require(isinstance(receipt.get("subject_bindings"), Mapping) and bool(receipt["subject_bindings"]), "receipt subject_bindings required")
         _require(isinstance(receipt.get("input_bindings"), Mapping) and bool(receipt["input_bindings"]), "receipt input_bindings required")
+        if "state_ref" in receipt.get("input_bindings", {}):
+            _require(receipt["input_bindings"]["state_ref"] == MAIN_STATE_REF, "receipt state_ref must be main")
         _require(isinstance(receipt.get("output_refs"), list) and bool(receipt["output_refs"]), "receipt output_refs required")
         _require(receipt.get("result") == "GUARD_ACCEPTED", "chat receipt result must be GUARD_ACCEPTED")
         _require(receipt.get("verification_status") == SELF_ATTESTED_RECEIPT, "chat receipt must remain self-attested")
@@ -169,12 +273,14 @@ def _new_receipt(
     input_bindings: Mapping[str, Any],
     output_refs: list[str],
     action_id: str | None = None,
+    state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
     _require(_nonempty(executor_identity), "executor_identity is required")
     _require(_nonempty(previous_state_blob_sha), "previous_state_blob_sha is required")
+    _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
     action_id = action_id or f"{task_id}:{action_kind}:{uuid4()}"
     return {
-        "receipt_contract_version": "1.0",
+        "receipt_contract_version": "1.1",
         "receipt_id": f"receipt:{uuid4()}",
         "action_id": action_id,
         "task_id": task_id,
@@ -183,7 +289,7 @@ def _new_receipt(
         "executor_identity": executor_identity,
         "execution_ref": f"github-chat://{task_id}/{action_id}",
         "subject_bindings": dict(subject_bindings),
-        "input_bindings": {"previous_state_blob_sha": previous_state_blob_sha, **dict(input_bindings)},
+        "input_bindings": {"previous_state_blob_sha": previous_state_blob_sha, "state_ref": state_ref, **dict(input_bindings)},
         "output_refs": list(output_refs),
         "result": "GUARD_ACCEPTED",
         "verification_status": SELF_ATTESTED_RECEIPT,
@@ -194,12 +300,39 @@ def build_initial_state(
     *,
     task_id: str,
     prompt: str,
-    distribution_mode: str,
     source_refs: list[str] | None,
     executor_identity: str,
+    target_platforms: list[str] | None = None,
+    distribution_mode: str | None = None,
+    distribution_mode_source: str | None = None,
+    state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
     _require(_nonempty(task_id), "task_id is required")
     _require(_nonempty(prompt), "prompt is required")
+    _require(state_ref == MAIN_STATE_REF, "new GITHUB_CHAT tasks must be created on main")
+    refs = list(source_refs or [])
+    platforms = list(target_platforms or [])
+
+    if distribution_mode is None:
+        _require(distribution_mode_source in {None, MODE_SOURCE_CANONICAL}, "distribution_mode_source must be CANONICAL_ROUTING when mode is inferred")
+        contract = build_task_contract(prompt=prompt, source_refs=refs, target_platforms=platforms)
+        mode_source = MODE_SOURCE_CANONICAL
+    else:
+        _require(distribution_mode_source == MODE_SOURCE_USER_EXPLICIT, "distribution_mode override requires USER_EXPLICIT_OVERRIDE provenance")
+        try:
+            mode = DistributionMode(distribution_mode)
+        except ValueError as exc:
+            raise GithubChatGuardError(f"unsupported distribution_mode: {distribution_mode}") from exc
+        contract = TaskContract(
+            prompt=prompt,
+            source_refs=refs,
+            target_platforms=platforms,
+            distribution_mode=mode,
+            delivery_channel=DeliveryChannel.WORD_FILE_ONLY,
+        )
+        mode_source = MODE_SOURCE_USER_EXPLICIT
+
+    required_outputs = [kind.value for kind in contract.required_outputs]
     receipt = _new_receipt(
         task_id=task_id,
         stage="INTAKE",
@@ -208,19 +341,33 @@ def build_initial_state(
         previous_state_blob_sha="NEW_FILE",
         action_kind="INIT",
         subject_bindings={"task_id": task_id, "from_stage": None, "to_stage": "INTAKE"},
-        input_bindings={"prompt": prompt, "distribution_mode": distribution_mode},
+        input_bindings={
+            "prompt": prompt,
+            "target_platforms": platforms,
+            "distribution_mode": contract.distribution_mode.value,
+            "distribution_mode_source": mode_source,
+            "delivery_channel": contract.delivery_channel.value,
+            "required_outputs": required_outputs,
+        },
         output_refs=[_state_path(task_id)],
+        state_ref=state_ref,
     )
     state = {
-        "schema_version": "1.1",
+        "schema_version": CURRENT_STATE_SCHEMA_VERSION,
         "task_id": task_id,
         "execution_mode": GITHUB_CHAT_EXECUTION_MODE,
         "status": "IN_PROGRESS",
         "current_stage": "INTAKE",
         "next_action": "run exact-stage capability handshake, then guard transition INTAKE → RESEARCH",
-        "distribution_mode": distribution_mode,
+        "state_ref": MAIN_STATE_REF,
+        "target_platforms": platforms,
+        "distribution_mode": contract.distribution_mode.value,
+        "distribution_mode_source": mode_source,
+        "delivery_channel": contract.delivery_channel.value,
+        "required_outputs": required_outputs,
+        "delivery_artifacts": {},
         "prompt": prompt,
-        "source_refs": list(source_refs or []),
+        "source_refs": refs,
         "stage_artifacts": {},
         "review_decisions": {},
         "review_assurance": CHAT_REVIEW_ASSURANCE,
@@ -256,6 +403,8 @@ def _invalidate_from(state: dict[str, Any], target_stage: str) -> list[str]:
             artifacts.pop(stage, None)
             invalidated.append(stage)
         reviews.pop(stage, None)
+    if "DELIVERY" in downstream:
+        state["delivery_artifacts"] = {}
     return invalidated
 
 
@@ -269,10 +418,15 @@ def advance_state(
     artifact_blob_sha: str | None = None,
     review_status: str | None = None,
     revision_target: str | None = None,
+    delivery_artifacts: list[Mapping[str, Any]] | None = None,
+    audit_artifact: Mapping[str, Any] | None = None,
+    state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
+    _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
     validate_state(state)
-    before = deepcopy(dict(state))
-    after = deepcopy(dict(state))
+    before = _upgrade_legacy_state(state, state_ref=state_ref)
+    validate_state(before)
+    after = deepcopy(dict(before))
     stage = str(before["current_stage"])
     _require(before.get("status") != TERMINAL_STATUS, "terminal chat state cannot advance")
     _require(before.get("status") != "BLOCKED", "BLOCKED chat state must be explicitly repaired before advance")
@@ -293,6 +447,18 @@ def advance_state(
         input_bindings["required_artifact_blob_sha"] = ref["blob_sha"]
         output_refs.append(str(ref["path"]))
 
+    if stage == "DELIVERY":
+        provided = _normalize_delivery_artifacts(delivery_artifacts)
+        _require(provided, "DELIVERY requires structured article delivery_artifacts")
+        _require(ArtifactKind.AUDIT_DOCX.value not in provided, "AUDIT_DOCX is finalized at FINAL_AUDIT, not DELIVERY")
+        after["delivery_artifacts"] = provided
+        _require_article_output_contract(after)
+        input_bindings["required_article_outputs"] = sorted(_required_article_outputs(after))
+        input_bindings["delivered_article_outputs"] = sorted(provided)
+
+    if stage == "MECHANICAL_AUDIT" and review_status == "PASS":
+        _require_article_output_contract(after)
+
     subject_bindings: dict[str, Any] = {"task_id": before["task_id"], "from_stage": stage}
     capability_id = _expected_capability(stage)
 
@@ -306,6 +472,15 @@ def advance_state(
             review["revision_target"] = None
             after.setdefault("review_decisions", {})[stage] = review
             if next_stage == "COMPLETE":
+                _require(isinstance(audit_artifact, Mapping), "FINAL_AUDIT PASS requires structured AUDIT_DOCX metadata")
+                audit_map = _normalize_delivery_artifacts([audit_artifact])
+                _require(set(audit_map) == {ArtifactKind.AUDIT_DOCX.value}, "FINAL_AUDIT audit_artifact must be AUDIT_DOCX")
+                merged = dict(after.get("delivery_artifacts", {}))
+                merged.update(audit_map)
+                after["delivery_artifacts"] = merged
+                _require_full_output_contract(after)
+                input_bindings["required_outputs"] = list(after["required_outputs"])
+                input_bindings["final_delivery_outputs"] = sorted(merged)
                 after["status"] = TERMINAL_STATUS
                 after["current_stage"] = stage
                 after["next_action"] = "owner-native/independent certification remains OPEN unless stronger evidence is separately obtained"
@@ -354,6 +529,7 @@ def advance_state(
         subject_bindings=subject_bindings,
         input_bindings=input_bindings,
         output_refs=output_refs,
+        state_ref=state_ref,
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
@@ -368,16 +544,19 @@ def attach_material_feedback(
     executor_identity: str,
     sample: Mapping[str, Any],
     system_impact: Mapping[str, Any],
+    state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
+    _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
     validate_state(state)
+    before = _upgrade_legacy_state(state, state_ref=state_ref)
+    validate_state(before)
     _require(sample.get("sample_type") in {"USER_EDIT", "USER_FEEDBACK", "USER_REJECTION"}, "material feedback sample_type invalid")
     _require(_nonempty(sample.get("summary")), "feedback summary required")
     _require(_nonempty(system_impact.get("signal_id")), "system-impact signal_id required")
     _require(system_impact.get("status") == "OPEN", "system-impact status must be OPEN")
     _require(system_impact.get("trigger_sample_type") == sample.get("sample_type"), "system-impact trigger_sample_type mismatch")
 
-    before = deepcopy(dict(state))
-    after = deepcopy(dict(state))
+    after = deepcopy(dict(before))
     after.setdefault("learning_evidence", []).append(dict(sample))
     after.setdefault("open_system_impact", []).append(dict(system_impact))
     receipt = _new_receipt(
@@ -394,6 +573,7 @@ def attach_material_feedback(
         },
         input_bindings={"feedback_summary": sample["summary"], "signal_status": system_impact["status"]},
         output_refs=[_state_path(str(before["task_id"]))],
+        state_ref=state_ref,
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
@@ -401,14 +581,21 @@ def attach_material_feedback(
     return after
 
 
+def _validate_contract_immutability(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
+    for field in CONTRACT_FIELDS:
+        _require(before.get(field) == after.get(field), f"task contract field cannot change during transition: {field}")
+
+
 def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, previous_state_blob_sha: str) -> None:
     validate_state(before)
     validate_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
+    _validate_contract_immutability(before, after)
     _require(len(after["execution_receipts"]) == len(before["execution_receipts"]) + 1, "exactly one execution receipt must be appended")
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     receipt = after["execution_receipts"][-1]
     _require(receipt["input_bindings"].get("previous_state_blob_sha") == previous_state_blob_sha, "receipt must bind current GitHub state blob SHA")
+    _require(receipt["input_bindings"].get("state_ref") == MAIN_STATE_REF, "receipt must bind main state_ref")
     _require(receipt["stage"] == before["current_stage"], "receipt stage must bind the stage being left/reviewed")
     _require(receipt["capability_id"] == _expected_capability(str(before["current_stage"])), "receipt capability_id does not match stage executor")
 
@@ -424,9 +611,12 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
         if review_status == "PASS":
             expected = pass_target_name(stage)
             _require(expected is not None, f"no canonical PASS route from {stage}")
+            if stage == "MECHANICAL_AUDIT":
+                _require_article_output_contract(after)
             if expected == "COMPLETE":
                 _require(after.get("status") == TERMINAL_STATUS, "FINAL_AUDIT PASS must use bounded chat terminal status")
                 _require(after.get("current_stage") == stage, "terminal chat state keeps FINAL_AUDIT as last stage")
+                _require_full_output_contract(after)
             else:
                 _require(after.get("current_stage") == expected, f"{stage} PASS must advance to {expected}")
         elif review_status == "REVISE":
@@ -436,6 +626,8 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
             for downstream in invalidated_stage_names_from(str(target)):
                 _require(downstream not in after.get("stage_artifacts", {}), f"stale artifact survived revision: {downstream}")
                 _require(downstream not in after.get("review_decisions", {}), f"stale review survived revision: {downstream}")
+            if "DELIVERY" in invalidated_stage_names_from(str(target)):
+                _require(after.get("delivery_artifacts") == {}, "stale delivery artifacts survived revision")
         elif review_status == "FAIL":
             _require(after.get("status") == "BLOCKED" and after.get("current_stage") == stage, f"{stage} FAIL must block in place")
         else:
@@ -444,6 +636,8 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
         expected = pass_target_name(stage)
         _require(expected is not None and expected != "COMPLETE", f"no forward transition from {stage}")
         _require(after.get("current_stage") == expected, f"stage skip/route mismatch: {stage} must advance to {expected}")
+        if stage == "DELIVERY":
+            _require_article_output_contract(after)
 
     required = ARTIFACT_REQUIRED_FOR_STAGE.get(stage)
     if required and receipt["input_bindings"].get("review_status") != "REVISE":
@@ -454,6 +648,7 @@ def validate_feedback_update(before: Mapping[str, Any], after: Mapping[str, Any]
     validate_state(before)
     validate_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
+    _validate_contract_immutability(before, after)
     _require(before["current_stage"] == after["current_stage"], "feedback checkpoint cannot change current_stage")
     _require(len(after.get("learning_evidence", [])) == len(before.get("learning_evidence", [])) + 1, "exactly one learning sample must be appended")
     _require(len(after["open_system_impact"]) == len(before["open_system_impact"]) + 1, "exactly one OPEN system-impact item must be appended")
@@ -462,3 +657,4 @@ def validate_feedback_update(before: Mapping[str, Any], after: Mapping[str, Any]
     receipt = after["execution_receipts"][-1]
     _require(receipt["capability_id"] == "github_chat_learning_evidence_capture", "feedback receipt capability mismatch")
     _require(receipt["input_bindings"].get("previous_state_blob_sha") == previous_state_blob_sha, "feedback receipt must bind current state blob SHA")
+    _require(receipt["input_bindings"].get("state_ref") == MAIN_STATE_REF, "feedback receipt must bind main state_ref")
