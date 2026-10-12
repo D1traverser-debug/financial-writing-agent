@@ -11,6 +11,8 @@ from .engine import WorkflowError, WritingEngine
 from .models import GateStatus, Stage, WritingState
 from .routing import build_task_contract
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
+from .state_recovery import apply_revision_cleanup as _apply_revision_cleanup
+from .state_recovery import mark_revision_cleanup as _mark_revision_cleanup
 from .store import SQLiteStateStore
 from .system_impact import open_system_impact_signals, system_impact_next_action
 from .workflow_spec import invalidated_gate_names_from, revision_targets
@@ -28,35 +30,18 @@ LEARNING_SAMPLE_TYPES = {
     "POST_PUBLICATION_PERFORMANCE",
 }
 
-_PENDING_REVISION_CLEANUP = "_pending_revision_cleanup"
-_REVISION_CLEAR_WORKING_KEYS: dict[Stage, tuple[str, ...]] = {
-    Stage.RESEARCH: (
-        "editorial_plan", "headlines", "draft", "hook_audit", "style_audit",
-        "render_manifest", "revise_target", "final_revise_target",
-    ),
-    Stage.EDITORIAL: (
-        "headlines", "draft", "hook_audit", "style_audit", "render_manifest",
-        "revise_target", "final_revise_target",
-    ),
-    Stage.TITLE: (
-        "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target",
-    ),
-    Stage.DRAFT: (
-        "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target",
-    ),
-    Stage.DELIVERY: ("render_manifest", "final_revise_target"),
-}
-
 store = SQLiteStateStore(DB_PATH)
 engine = WritingEngine(store)
 controller = WorkflowController(engine)
 
 
 def _load(task_id: str) -> WritingState:
+    # SQLiteStateStore restores every task through the shared state_recovery boundary,
+    # so all owner-native entrypoints consume the same crash-reconciled view.
     state = store.load(task_id)
     if state is None:
         raise ValueError(f"task not found: {task_id}")
-    return _reconcile_pending_revision_cleanup(state)
+    return state
 
 
 def _require_stage(state: WritingState, expected: Stage) -> None:
@@ -100,61 +85,9 @@ def _canonical_revision_target_names(stage: Stage) -> set[str]:
     return {target.value for target in revision_targets(stage)}
 
 
-def _apply_revision_cleanup(state: WritingState, target: str, *, reason: str) -> None:
-    try:
-        target_stage = Stage(target)
-    except ValueError as exc:
-        raise ValueError(f"unsupported revision target: {target}") from exc
-    clear_working_keys = _REVISION_CLEAR_WORKING_KEYS.get(target_stage)
-    if clear_working_keys is None:
-        raise ValueError(f"unsupported revision target: {target}")
-    _invalidate(
-        state,
-        invalidated_gate_names_from(target_stage),
-        reason=reason,
-        clear_artifacts=True,
-        clear_working_keys=clear_working_keys,
-    )
-    if target_stage == Stage.RESEARCH:
-        _invalidate_knowledge_writeback(state, reason)
-    state.working.pop(_PENDING_REVISION_CLEANUP, None)
-
-
-def _mark_revision_cleanup(state: WritingState, target: str, *, reason: str) -> None:
-    try:
-        target_stage = Stage(target)
-    except ValueError as exc:
-        raise ValueError(f"unsupported revision target: {target}") from exc
-    if target_stage not in _REVISION_CLEAR_WORKING_KEYS:
-        raise ValueError(f"unsupported revision target: {target}")
-    state.working[_PENDING_REVISION_CLEANUP] = {"target": target_stage.value, "reason": reason}
-
-
 def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) -> None:
     _apply_revision_cleanup(state, target, reason=reason)
     store.save(state)
-
-
-def _reconcile_pending_revision_cleanup(state: WritingState) -> WritingState:
-    pending = state.working.get(_PENDING_REVISION_CLEANUP)
-    if pending is None:
-        return state
-    if not isinstance(pending, dict):
-        raise ValueError("pending revision cleanup marker is malformed")
-    target = str(pending.get("target", ""))
-    reason = str(pending.get("reason", "")).strip() or "recover pending revision cleanup"
-    try:
-        target_stage = Stage(target)
-    except ValueError as exc:
-        raise ValueError(f"pending revision cleanup target invalid: {target}") from exc
-    if state.stage != target_stage:
-        raise ValueError(
-            f"pending revision cleanup stage mismatch: current={state.stage.value}, target={target_stage.value}"
-        )
-    _apply_revision_cleanup(state, target_stage.value, reason=reason)
-    state.add_trace("RECOVERY_RECONCILED", f"completed pending revision cleanup target={target_stage.value}")
-    store.save(state)
-    return state
 
 
 def _invalidate_for_stage_change(
