@@ -4,6 +4,7 @@ import sqlite3
 from pathlib import Path
 
 from .models import WritingState
+from .state_recovery import reconcile_pending_revision_cleanup
 
 
 class StateConflictError(RuntimeError):
@@ -23,6 +24,11 @@ class SQLiteStateStore:
     The store performs an additive legacy-schema migration for the internal
     ``checkpoint_version`` column. The database version is authoritative on read even
     when an older serialized payload predates the model field.
+
+    Crash-recovery replay is applied in memory to every restored state. Read-only
+    callers therefore never consume stale downstream evidence, but a read does not
+    secretly mutate durable state or increment checkpoint_version. The next legitimate
+    business write persists the reconciled state under normal CAS.
     """
 
     def __init__(self, path: str | Path = "financial_writing_state.db"):
@@ -69,6 +75,7 @@ class SQLiteStateStore:
     def _restore(payload: str, version: int) -> WritingState:
         state = WritingState.model_validate_json(payload)
         state.checkpoint_version = int(version)
+        reconcile_pending_revision_cleanup(state)
         return state
 
     def save(self, state: WritingState) -> None:
