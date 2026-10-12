@@ -1,50 +1,30 @@
 {
   "stage": "RESEARCH_AUDIT",
   "task_id": "fw-20261012-ai-security-6dd14859",
+  "revision": 2,
   "assurance": "CHAT_SELF_REVIEW",
-  "status": "REVISE",
-  "revision_target": "RESEARCH",
+  "status": "PASS",
+  "revision_target": null,
   "review_basis": {
-    "research_artifact": {
-      "path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/RESEARCH.json",
-      "blob_sha": "b19720a1565cc9adbaee91f5a5af3ac4342ed542"
-    },
-    "checks": [
-      "Material value-chain classes enumerated before narrowing",
-      "At least two materially different recall sources",
-      "Every company reconciled to a class/materiality",
-      "Obvious peer/material class omissions",
-      "SATURATED/BOUNDED stop condition",
-      "Market Explanation scope",
-      "Counterevidence and uncertainty"
-    ]
+    "research_artifact": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/RESEARCH.json", "blob_sha": "f61e6e5a582acc73bbcc44037cb6fda18300cff3"},
+    "scope": "Universe coverage, source diversity, class mapping, materiality, counterevidence, uncertainty and Market Explanation activation"
   },
-  "passes": [
-    "Market Explanation correctly scoped NOT_MATERIAL; no need to force short-term price-selection analysis.",
-    "Overseas evidence uses primary IR and establishes both hardware/network modernization and AI-native software demand.",
-    "Original three companies are differentiated by revenue vs orders vs broader AI-infrastructure exposure rather than treated as equivalent.",
-    "Counterevidence is explicit: domestic legacy budget pressure, order conversion lag, AI-vs-refresh attribution limits."
+  "findings": [
+    "Three materially different research sweeps are present: overseas primary IR, domestic filings, and audit-triggered firewall/AI-security peer recall.",
+    "The material A-share universe is now class-accounted rather than selected from the user's original three names. Six MATERIAL companies are explicit: 深信服、启明星辰、绿盟科技、安恒信息、天融信、山石网科.",
+    "Three SECONDARY comparators are retained with evidence-bounded roles: 奇安信、亚信安全、迪普科技. No material peer found in the repair sweep is silently omitted.",
+    "The research deliberately remains BOUNDED_WITH_GAPS rather than claiming exhaustive saturation; the stop condition is auditable.",
+    "AI-security commercialization evidence is correctly separated into reported revenue, orders, broader AI-infrastructure exposure and product/technology progress. The article may not collapse these into one monetization grade.",
+    "Counterevidence is material and must survive editorial: 奇安信 and 天融信 show that legacy cybersecurity weakness can coexist with AI-security progress; 绿盟 shows order-to-revenue lag.",
+    "Market Explanation = NOT_MATERIAL is correct because this task does not require an explanation of cross-sectional stock-price leadership."
   ],
-  "defects": [
-    {
-      "severity": "MATERIAL",
-      "finding": "Firewall/AI-security A-share universe undercovered: 天融信 is an obvious material peer.",
-      "evidence": "2026 H1 disclosure says AI-security protection revenue grew >130% YoY, AI-enabled security direct revenue exceeded RMB80M, and the company remains a major domestic firewall vendor.",
-      "required_fix": "Add 天融信 as MATERIAL in both high-performance firewall and AI-security application/operations classes; compare disclosed monetization."
-    },
-    {
-      "severity": "MATERIAL",
-      "finding": "High-performance firewall class omitted 山石网科 despite direct ASIC firewall commercialization evidence.",
-      "evidence": "2026 H1 filing says ASIC firewall products entered large-scale shipments; Q2 ASIC-security product revenue share was about 20%, with 2G-200G firewall range and AI-security positioning.",
-      "required_fix": "Add 山石网科 as MATERIAL for hardware modernization / high-performance firewall; distinguish AI-driven overseas refresh from domestic ASIC/localization tailwinds."
-    },
-    {
-      "severity": "SECONDARY",
-      "finding": "迪普科技 should be recorded as a secondary high-performance firewall/data-center peer rather than absent.",
-      "evidence": "2026 H1 filing cites TB-class processing, data-center/AI-compute network scenarios and high firewall market share, but no quantified AI-security monetization found.",
-      "required_fix": "Add as SECONDARY or evidence-bounded exclusion."
-    }
+  "publication_constraints": [
+    "FINANCE_DEEP must mention every MATERIAL company and preserve the difference between firewall/data-center modernization and large-model/agent security.",
+    "Domestic hardware acceleration must not be attributed entirely to AI; ASIC/localization and ordinary refresh are competing/coexisting drivers.",
+    "Do not describe 深信服's cloud+AI-infrastructure growth as AI-security revenue.",
+    "Do not describe 绿盟's AI-security orders as recognized revenue.",
+    "Do not infer large absolute scale from 启明星辰's +238.15% growth rate without a disclosed base.",
+    "No company comparison may become executable stock-selection guidance."
   ],
-  "audit_conclusion": "Research breadth is not yet sufficient for a MATERIAL_COMPLETE Deep article. Revise the universe before editorial selection.",
-  "next_action": "REVISE to RESEARCH; update ResearchPackage with 天融信, 山石网科, and 迪普科技 classification and re-run audit."
+  "audit_conclusion": "Research is sufficiently bounded and materially complete for editorial planning in both FINANCE_DEEP and FINANCE_BROAD. This chat review may route the workflow but does not constitute owner-native semantic certification."
 }
