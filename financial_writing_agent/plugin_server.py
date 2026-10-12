@@ -28,12 +28,7 @@ from .methodology_receipts import (
 from .models import ArtifactKind, GateStatus, Stage
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 from .semantic_runtime import run_owner_semantic_audit_stage
-from .system_impact import (
-    apply_system_impact_review,
-    ensure_system_impact_signal_for_latest_sample,
-    open_system_impact_signals,
-    system_impact_next_action,
-)
+from .system_impact import apply_system_impact_review, ensure_system_impact_signal_for_latest_sample
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 DOCX_KINDS = {ArtifactKind.FINANCE_DEEP_DOCX, ArtifactKind.FINANCE_BROAD_DOCX, ArtifactKind.AUDIT_DOCX}
@@ -68,24 +63,13 @@ def _publicize(raw: dict) -> dict:
 
 
 def _summary(raw: dict) -> WritingTaskSummary:
-    enriched = dict(raw)
-    task_id = enriched.get("task_id")
-    detail_requested = any(key in enriched for key in ("source_refs", "gates", "artifacts", "learning_samples"))
-    if isinstance(task_id, str) and task_id:
-        try:
-            state = impl._load(task_id)
-        except ValueError:
-            state = None
-        if state is not None:
-            signals = list(state.working.get("system_impact_signals", []))
-            enriched["open_system_impact_count"] = len(open_system_impact_signals(state))
-            enriched["system_impact_signals"] = signals if detail_requested or signals else None
-            impact_action = system_impact_next_action(state)
-            if impact_action:
-                enriched["next_action"] = impact_action
-            if detail_requested:
-                enriched["methodology_profile_runs"] = list(state.working.get("methodology_profile_runs", []))
-    return WritingTaskSummary.model_validate(_publicize(enriched))
+    """Convert one runtime snapshot to the public schema without rereading state.
+
+    runtime_service owns task-state summary semantics. A second task load here could mix
+    stage/status from checkpoint N with maintenance or receipt fields from checkpoint
+    N+1 under concurrent execution, so the MCP layer is deliberately presentation-only.
+    """
+    return WritingTaskSummary.model_validate(_publicize(raw))
 
 
 def _resource_bytes(task_id: str, kind: str) -> bytes:
