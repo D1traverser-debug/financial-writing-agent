@@ -3,12 +3,14 @@
   "task_id": "_guard_tracer_20261012",
   "execution_mode": "GITHUB_CHAT",
   "status": "IN_PROGRESS",
-  "current_stage": "RESEARCH",
-  "next_action": "execute and persist RESEARCH",
+  "current_stage": "RESEARCH_AUDIT",
+  "next_action": "execute and persist RESEARCH_AUDIT",
   "distribution_mode": "FINANCE_DEEP",
   "prompt": "synthetic guard tracer; no publication output",
   "source_refs": [],
-  "stage_artifacts": {},
+  "stage_artifacts": {
+    "RESEARCH": {"path": "workspaces/articles/_guard_tracer_20261012/stages/RESEARCH.json", "blob_sha": "e4c90d9d0760b68bbff6895dafa0eaa49e69499e"}
+  },
   "review_decisions": {},
   "review_assurance": "CHAT_SELF_REVIEW",
   "learning_evidence": [],
@@ -43,7 +45,22 @@
       "output_refs": ["workspaces/articles/_guard_tracer_20261012/STATE.json"],
       "result": "GUARD_ACCEPTED",
       "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
+    },
+    {
+      "receipt_contract_version": "1.0",
+      "receipt_id": "receipt:_guard_tracer_20261012:TRANSITION:0003",
+      "action_id": "_guard_tracer_20261012:TRANSITION:0003",
+      "task_id": "_guard_tracer_20261012",
+      "stage": "RESEARCH",
+      "capability_id": "github_chat_workflow",
+      "executor_identity": "chat-session:universal-maintenance-tracer",
+      "execution_ref": "github-chat://_guard_tracer_20261012/_guard_tracer_20261012:TRANSITION:0003",
+      "subject_bindings": {"task_id": "_guard_tracer_20261012", "from_stage": "RESEARCH", "to_stage": "RESEARCH_AUDIT"},
+      "input_bindings": {"previous_state_blob_sha": "1e7a18f5d15ccaf00baf216de4a189048c3c1553", "from_stage": "RESEARCH", "required_artifact_key": "RESEARCH", "required_artifact_blob_sha": "e4c90d9d0760b68bbff6895dafa0eaa49e69499e"},
+      "output_refs": ["workspaces/articles/_guard_tracer_20261012/STATE.json", "workspaces/articles/_guard_tracer_20261012/stages/RESEARCH.json"],
+      "result": "GUARD_ACCEPTED",
+      "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
     }
   ],
-  "updated_at": "2026-10-12T01:41:00+00:00"
+  "updated_at": "2026-10-12T01:42:00+00:00"
 }
