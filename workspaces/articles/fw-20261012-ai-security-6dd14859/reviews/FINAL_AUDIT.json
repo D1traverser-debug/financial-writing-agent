@@ -1,0 +1,84 @@
+{
+  "stage": "FINAL_AUDIT",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "assurance": "CHAT_SELF_REVIEW",
+  "status": "PASS",
+  "revision_target": null,
+  "frozen_evidence": {
+    "research": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/RESEARCH.json", "blob_sha": "f61e6e5a582acc73bbcc44037cb6fda18300cff3"},
+    "research_audit": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/reviews/RESEARCH_AUDIT.json", "blob_sha": "ee3605352ccec583d997f093646a955125b5d339"},
+    "editorial": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/EDITORIAL.json", "blob_sha": "2cef7a87b25e7ec697fe250591dd7affe45d2d26"},
+    "title": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/TITLE.json", "blob_sha": "b5d24119da4ffa1b15fcddc5dec726772a8a4346"},
+    "draft": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/DRAFT.json", "blob_sha": "94c99cf7f4f34508a6b4682e738f38ab6f6dd5ce"},
+    "editorial_audit": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/reviews/EDITORIAL_AUDIT.json", "blob_sha": "5f2f8ffd0aa267906796c72d67c35961235b3d89"},
+    "delivery": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/DELIVERY.json", "blob_sha": "5e07611fceb3b4ab4e937ff5f01825b738758b53"},
+    "mechanical_audit": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/MECHANICAL_AUDIT.json", "blob_sha": "ac4f97cecf573ab271abf59b6ff7c6466c31e618"},
+    "finance_deep_source": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_DEEP.json", "blob_sha": "93117e559e467cfcd4aaca8c75ccee7d9be92a01"},
+    "finance_broad_source": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_BROAD.json", "blob_sha": "12b3549ad7e4af542d2538c3715cf30c400e3b6b"}
+  },
+  "final_checks": {
+    "research_and_source_boundary": {
+      "status": "PASS",
+      "notes": "Overseas primary IR and domestic H1 filings are separated from proxies; uncertainty and competing explanations survive into publication."
+    },
+    "universe_reconciliation": {
+      "status": "PASS",
+      "notes": "First Research Audit forced a universe expansion. Final Deep includes all six MATERIAL companies: 深信服、启明星辰、绿盟科技、安恒信息、天融信、山石网科; secondary peers remain bounded context."
+    },
+    "finance_deep_material_completeness": {
+      "status": "PASS",
+      "notes": "Two security-upgrade mechanisms, monetization ladder, counterevidence and company-grounded validation are all retained."
+    },
+    "finance_broad_legal_compression": {
+      "status": "PASS",
+      "notes": "Broad compresses detail into direct revenue / orders / infrastructure evidence without upgrading weaker evidence or deleting the central counterexample."
+    },
+    "market_explanation": {
+      "status": "N_A_NOT_MATERIAL",
+      "notes": "The article does not attempt to explain short-term stock-price leadership, limit-up behavior or price formation."
+    },
+    "reader_funnel_and_title_payoff": {
+      "status": "PASS",
+      "notes": "Ten title candidates per mode with diverse angle families; selected titles are paid off immediately and Broad exposes a cold-reader financial stake. No exact private WeChat search-volume claim is invented."
+    },
+    "natural_authorial_prose": {
+      "status": "PASS",
+      "notes": "Initial deterministic template-cluster defect forced DRAFT revision; rerun cleared the threshold and nine-part prose review passed."
+    },
+    "macro_editorial_and_navigation": {
+      "status": "PASS",
+      "notes": "Overseas proof → network upgrade → model/agent security → domestic monetization → validation forms an earned chain; lower-level numbering is used where comparison branches diverge."
+    },
+    "skim_path": {
+      "status": "PASS",
+      "notes": "Explicit bold anchors preserve the main line without blanket company-name bolding and survived Word construction."
+    },
+    "platform_fit": {
+      "status": "PASS",
+      "notes": "Deep serves complete finance explanation; Broad lowers first-read friction around budget, revenue and order realization."
+    },
+    "compliance_and_risk": {
+      "status": "PASS",
+      "notes": "No target price, position sizing, timing, buy/sell or covert recommendation language; exactly one substantive italic risk paragraph per publication file."
+    },
+    "word_and_render": {
+      "status": "PASS",
+      "notes": "Deep 6 pages, Broad 3 pages, audit report 1 page; exact typography checks, zero tables, zero underlines, no tail bibliography, bold anchors, redline scan, fresh render and visual inspection all passed."
+    },
+    "knowledge_sync": {
+      "status": "N_A",
+      "notes": "Research produced no reusable cross-task knowledge_writeback_candidates. This GITHUB_CHAT session also lacks an owner-native knowledge-store writeback receipt; no owner-plugin synchronization is fabricated."
+    }
+  },
+  "artifact_identity": {
+    "FINANCE_DEEP.docx": "sha256:ff546974144497c99693c5a0b1ac2bc0418c33f21dd2564d8d5e442b4e0e37ec",
+    "FINANCE_BROAD.docx": "sha256:a0d15e086352e37b90a0526c061e5d88841dc34a368ee593e674962c9ac69c30",
+    "WRITING_AUDIT_REPORT.docx": "sha256:1c2b7154ba2a0198673f3c18ca752fd289dfe4ac6acede253ebeea2345334f59"
+  },
+  "remaining_open": [
+    "Owner-native semantic certification is not available in this session.",
+    "Provider-attested independent review is not available in the current Financial runtime.",
+    "Therefore the legal terminal status is DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN, not COMPLETE."
+  ],
+  "audit_conclusion": "The frozen sources and delivered Word artifacts are suitable for delivery under the bounded GITHUB_CHAT assurance contract. The self-review PASS may terminalize only to DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN and must not be represented as owner-native or independently certified PASS."
+}
