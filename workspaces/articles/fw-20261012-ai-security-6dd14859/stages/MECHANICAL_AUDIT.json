@@ -1,0 +1,54 @@
+{
+  "stage": "MECHANICAL_AUDIT",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "execution_mode": "GITHUB_CHAT",
+  "status": "PASS",
+  "checks": {
+    "required_files_exist": "PASS",
+    "typography": "PASS__TITLE_20PT_H1_18PT_H2_15PT_H3_12PT_BODY_13_5PT",
+    "chinese_hierarchy": "PASS",
+    "tables": "PASS__ZERO",
+    "underlines": "PASS__ZERO",
+    "tail_source_section": "PASS__ABSENT",
+    "bold_skim_anchors": "PASS",
+    "risk_disclaimer": "PASS__EXACTLY_ONE_INLINE_FULLY_ITALIC_PER_ARTICLE",
+    "risk_disclaimer_minimum_substance": "PASS__DEEP_155_CHARS__BROAD_123_CHARS",
+    "hard_finance_redlines": "PASS__NONE_FOUND",
+    "hard_extreme_promotional_phrases": "PASS__NONE_FOUND",
+    "semantic_buy_sell_terms": "PASS__NONE_FOUND",
+    "deep_material_company_coverage": "PASS__6_OF_6",
+    "render": "PASS",
+    "visual_page_inspection": "PASS_ALL_10_PAGES",
+    "stale_render_contamination": "PASS__FRESH_RENDER_DIRECTORIES",
+    "audit_docx_tables": "PASS__ZERO",
+    "audit_docx_underlines": "PASS__ZERO"
+  },
+  "artifacts": {
+    "FINANCE_DEEP.docx": {
+      "sha256": "ff546974144497c99693c5a0b1ac2bc0418c33f21dd2564d8d5e442b4e0e37ec",
+      "pages": 6,
+      "paragraphs": 34,
+      "tables": 0,
+      "inline_images": 0
+    },
+    "FINANCE_BROAD.docx": {
+      "sha256": "a0d15e086352e37b90a0526c061e5d88841dc34a368ee593e674962c9ac69c30",
+      "pages": 3,
+      "paragraphs": 18,
+      "tables": 0,
+      "inline_images": 0
+    },
+    "WRITING_AUDIT_REPORT.docx": {
+      "sha256": "1c2b7154ba2a0198673f3c18ca752fd289dfe4ac6acede253ebeea2345334f59",
+      "pages": 1,
+      "tables": 0,
+      "underlines": 0
+    }
+  },
+  "visual_notes": [
+    "All article pages render legibly with no clipped headings, text overlap, missing glyphs or corrupted punctuation.",
+    "Deep final page is intentionally sparse because the final substantive paragraph and risk paragraph fit on the last page without forced filler or layout distortion.",
+    "Audit report was rebuilt after the mechanical checks so its delivery line reports PASS rather than build-time pending status, then rerendered and reinspected."
+  ],
+  "assurance_note": "These are deterministic/mechanical and direct visual checks actually executed in the current session. They do not upgrade semantic reviews beyond CHAT_SELF_REVIEW."
+}
