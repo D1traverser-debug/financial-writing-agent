@@ -8,6 +8,7 @@ from uuid import uuid4
 GITHUB_CHAT_EXECUTION_MODE = "GITHUB_CHAT"
 CHAT_REVIEW_ASSURANCE = "CHAT_SELF_REVIEW"
 TERMINAL_STATUS = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
+SELF_ATTESTED_RECEIPT = "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
 
 STAGE_ORDER = (
     "INTAKE",
@@ -21,6 +22,7 @@ STAGE_ORDER = (
     "MECHANICAL_AUDIT",
     "FINAL_AUDIT",
 )
+STAGE_INDEX = {stage: i for i, stage in enumerate(STAGE_ORDER)}
 
 REGULAR_FORWARD = {
     "INTAKE": "RESEARCH",
@@ -44,18 +46,7 @@ REVIEW_ROUTES = {
     },
 }
 
-ARTIFACT_REQUIRED_FOR_STAGE = {
-    "RESEARCH": "RESEARCH",
-    "RESEARCH_AUDIT": "RESEARCH_AUDIT",
-    "EDITORIAL": "EDITORIAL",
-    "TITLE": "TITLE",
-    "DRAFT": "DRAFT",
-    "EDITORIAL_AUDIT": "EDITORIAL_AUDIT",
-    "DELIVERY": "DELIVERY",
-    "MECHANICAL_AUDIT": "MECHANICAL_AUDIT",
-    "FINAL_AUDIT": "FINAL_AUDIT",
-}
-
+ARTIFACT_REQUIRED_FOR_STAGE = {stage: stage for stage in STAGE_ORDER if stage != "INTAKE"}
 CAPABILITY_BY_STAGE = {
     "RESEARCH_AUDIT": "github_chat_review_stages",
     "EDITORIAL_AUDIT": "github_chat_review_stages",
@@ -80,7 +71,6 @@ REQUIRED_STATE_FIELDS = {
     "execution_receipts",
     "updated_at",
 }
-
 REQUIRED_RECEIPT_FIELDS = {
     "receipt_id",
     "action_id",
@@ -113,21 +103,38 @@ def _require(condition: bool, message: str) -> None:
         raise GithubChatGuardError(message)
 
 
-def _validate_artifact_ref(ref: Any, *, label: str) -> None:
+def _state_path(task_id: str) -> str:
+    return f"workspaces/articles/{task_id}/STATE.json"
+
+
+def _expected_capability(stage: str) -> str:
+    return CAPABILITY_BY_STAGE.get(stage, "github_chat_workflow")
+
+
+def _validate_artifact_ref(ref: Any, *, label: str, task_id: str) -> None:
     _require(isinstance(ref, Mapping), f"{label} must be an object")
-    _require(_nonempty(ref.get("path")), f"{label}.path is required")
+    path = ref.get("path")
+    _require(_nonempty(path), f"{label}.path is required")
     _require(_nonempty(ref.get("blob_sha")), f"{label}.blob_sha is required")
+    _require(
+        str(path).startswith(f"workspaces/articles/{task_id}/"),
+        f"{label}.path must belong to the current article workspace",
+    )
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
     missing = sorted(REQUIRED_STATE_FIELDS - set(state))
     _require(not missing, f"state missing required fields: {missing}")
+    _require(state.get("schema_version") == "1.1", "state schema_version must be 1.1")
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
     _require(_nonempty(state.get("task_id")), "task_id is required")
     _require(state.get("current_stage") in STAGE_ORDER, "current_stage is not a supported Financial stage")
     _require(state.get("review_assurance") == CHAT_REVIEW_ASSURANCE, "review_assurance must remain CHAT_SELF_REVIEW")
     _require(isinstance(state.get("stage_artifacts"), Mapping), "stage_artifacts must be an object")
     _require(isinstance(state.get("open_system_impact"), list), "open_system_impact must be a list")
+    _require(isinstance(state.get("review_decisions", {}), Mapping), "review_decisions must be an object")
+    _require(isinstance(state.get("learning_evidence", []), list), "learning_evidence must be a list")
+
     receipts = state.get("execution_receipts")
     _require(isinstance(receipts, list) and receipts, "execution_receipts must be a non-empty list")
     seen_receipts: set[str] = set()
@@ -136,28 +143,22 @@ def validate_state(state: Mapping[str, Any]) -> None:
         _require(isinstance(receipt, Mapping), "execution receipt must be an object")
         missing_receipt = sorted(REQUIRED_RECEIPT_FIELDS - set(receipt))
         _require(not missing_receipt, f"execution receipt missing fields: {missing_receipt}")
-        rid = str(receipt.get("receipt_id"))
-        aid = str(receipt.get("action_id"))
-        _require(rid not in seen_receipts, f"duplicate receipt_id: {rid}")
-        _require(aid not in seen_actions, f"duplicate action_id: {aid}")
-        seen_receipts.add(rid)
-        seen_actions.add(aid)
+        receipt_id = str(receipt.get("receipt_id"))
+        action_id = str(receipt.get("action_id"))
+        _require(receipt_id not in seen_receipts, f"duplicate receipt_id: {receipt_id}")
+        _require(action_id not in seen_actions, f"duplicate action_id: {action_id}")
+        seen_receipts.add(receipt_id)
+        seen_actions.add(action_id)
         _require(receipt.get("task_id") == state.get("task_id"), "receipt task_id mismatch")
         _require(_nonempty(receipt.get("executor_identity")), "receipt executor_identity is required")
         _require(_nonempty(receipt.get("execution_ref")), "receipt execution_ref is required")
-        _require(
-            isinstance(receipt.get("subject_bindings"), Mapping) and bool(receipt["subject_bindings"]),
-            "receipt subject_bindings required",
-        )
-        _require(
-            isinstance(receipt.get("input_bindings"), Mapping) and bool(receipt["input_bindings"]),
-            "receipt input_bindings required",
-        )
+        _require(isinstance(receipt.get("subject_bindings"), Mapping) and bool(receipt["subject_bindings"]), "receipt subject_bindings required")
+        _require(isinstance(receipt.get("input_bindings"), Mapping) and bool(receipt["input_bindings"]), "receipt input_bindings required")
         _require(isinstance(receipt.get("output_refs"), list) and bool(receipt["output_refs"]), "receipt output_refs required")
-        _require(
-            receipt.get("verification_status") == "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT",
-            "chat receipt verification_status must remain self-attested",
-        )
+        _require(receipt.get("verification_status") == SELF_ATTESTED_RECEIPT, "chat receipt must remain self-attested")
+
+    for key, ref in state.get("stage_artifacts", {}).items():
+        _validate_artifact_ref(ref, label=f"stage_artifacts.{key}", task_id=str(state["task_id"]))
 
 
 def _new_receipt(
@@ -189,7 +190,7 @@ def _new_receipt(
         "input_bindings": {"previous_state_blob_sha": previous_state_blob_sha, **dict(input_bindings)},
         "output_refs": list(output_refs),
         "result": "GUARD_ACCEPTED",
-        "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT",
+        "verification_status": SELF_ATTESTED_RECEIPT,
     }
 
 
@@ -203,7 +204,6 @@ def build_initial_state(
 ) -> dict[str, Any]:
     _require(_nonempty(task_id), "task_id is required")
     _require(_nonempty(prompt), "prompt is required")
-    state_path = f"workspaces/articles/{task_id}/STATE.json"
     receipt = _new_receipt(
         task_id=task_id,
         stage="INTAKE",
@@ -213,7 +213,7 @@ def build_initial_state(
         action_kind="INIT",
         subject_bindings={"task_id": task_id, "from_stage": None, "to_stage": "INTAKE"},
         input_bindings={"prompt": prompt, "distribution_mode": distribution_mode},
-        output_refs=[state_path],
+        output_refs=[_state_path(task_id)],
     )
     state = {
         "schema_version": "1.1",
@@ -237,17 +237,27 @@ def build_initial_state(
     return state
 
 
-def _expected_capability(stage: str) -> str:
-    return CAPABILITY_BY_STAGE.get(stage, "github_chat_workflow")
-
-
 def _required_artifact(stage: str, state: Mapping[str, Any]) -> tuple[str, Mapping[str, Any]] | None:
     key = ARTIFACT_REQUIRED_FOR_STAGE.get(stage)
     if key is None:
         return None
     ref = state.get("stage_artifacts", {}).get(key)
-    _validate_artifact_ref(ref, label=f"stage_artifacts.{key}")
+    _validate_artifact_ref(ref, label=f"stage_artifacts.{key}", task_id=str(state["task_id"]))
     return key, ref
+
+
+def _invalidate_from(state: dict[str, Any], target_stage: str) -> list[str]:
+    """Invalidate target-stage and downstream derived evidence after a revision route."""
+    start = STAGE_INDEX[target_stage]
+    invalidated: list[str] = []
+    artifacts = state.setdefault("stage_artifacts", {})
+    reviews = state.setdefault("review_decisions", {})
+    for stage in STAGE_ORDER[start:]:
+        if stage in artifacts:
+            artifacts.pop(stage, None)
+            invalidated.append(stage)
+        reviews.pop(stage, None)
+    return invalidated
 
 
 def advance_state(
@@ -269,17 +279,20 @@ def advance_state(
     _require(before.get("status") != "BLOCKED", "BLOCKED chat state must be explicitly repaired before advance")
 
     if artifact_key is not None:
+        _require(artifact_key == ARTIFACT_REQUIRED_FOR_STAGE.get(stage), f"artifact_key must match current stage {stage}")
         _require(_nonempty(artifact_path) and _nonempty(artifact_blob_sha), "artifact path/blob_sha required together")
-        after.setdefault("stage_artifacts", {})[artifact_key] = {"path": artifact_path, "blob_sha": artifact_blob_sha}
+        ref = {"path": artifact_path, "blob_sha": artifact_blob_sha}
+        _validate_artifact_ref(ref, label=f"stage_artifacts.{artifact_key}", task_id=str(before["task_id"]))
+        after.setdefault("stage_artifacts", {})[artifact_key] = ref
 
     required = _required_artifact(stage, after)
-    output_refs = [f"workspaces/articles/{before['task_id']}/STATE.json"]
+    output_refs = [_state_path(str(before["task_id"]))]
     input_bindings: dict[str, Any] = {"from_stage": stage}
     if required:
         key, ref = required
         input_bindings["required_artifact_key"] = key
         input_bindings["required_artifact_blob_sha"] = ref["blob_sha"]
-        output_refs.append(ref["path"])
+        output_refs.append(str(ref["path"]))
 
     subject_bindings: dict[str, Any] = {"task_id": before["task_id"], "from_stage": stage}
     capability_id = _expected_capability(stage)
@@ -291,6 +304,7 @@ def advance_state(
         if review_status == "PASS":
             next_stage = REVIEW_ROUTES[stage]["pass_next"]
             review["revision_target"] = None
+            after.setdefault("review_decisions", {})[stage] = review
             if next_stage is None:
                 after["status"] = TERMINAL_STATUS
                 after["current_stage"] = stage
@@ -305,17 +319,20 @@ def advance_state(
             allowed = set(REVIEW_ROUTES[stage]["revise_targets"])
             _require(revision_target in allowed, f"{stage} revision_target must be one of {sorted(allowed)}")
             review["revision_target"] = revision_target
+            after.setdefault("review_decisions", {})[stage] = review
+            invalidated = _invalidate_from(after, str(revision_target))
             after["current_stage"] = revision_target
-            after["next_action"] = f"revise and persist {revision_target}"
+            after["next_action"] = f"revise and persist a new {revision_target} artifact before advancing"
             subject_bindings["to_stage"] = revision_target
+            input_bindings["invalidated_stage_refs"] = invalidated
         else:
             review["revision_target"] = None
+            after.setdefault("review_decisions", {})[stage] = review
             after["status"] = "BLOCKED"
             after["current_stage"] = stage
             after["next_action"] = f"resolve {stage} failure before any further stage transition"
             subject_bindings["to_stage"] = stage
             subject_bindings["blocked"] = True
-        after.setdefault("review_decisions", {})[stage] = review
         input_bindings["review_status"] = review_status
         if revision_target:
             input_bindings["revision_target"] = revision_target
@@ -328,7 +345,7 @@ def advance_state(
         subject_bindings["to_stage"] = next_stage
 
     receipt = _new_receipt(
-        task_id=before["task_id"],
+        task_id=str(before["task_id"]),
         stage=stage,
         capability_id=capability_id,
         executor_identity=executor_identity,
@@ -363,10 +380,9 @@ def attach_material_feedback(
     after = deepcopy(dict(state))
     after.setdefault("learning_evidence", []).append(dict(sample))
     after.setdefault("open_system_impact", []).append(dict(system_impact))
-    state_path = f"workspaces/articles/{before['task_id']}/STATE.json"
     receipt = _new_receipt(
-        task_id=before["task_id"],
-        stage=before["current_stage"],
+        task_id=str(before["task_id"]),
+        stage=str(before["current_stage"]),
         capability_id="github_chat_learning_evidence_capture",
         executor_identity=executor_identity,
         previous_state_blob_sha=previous_state_blob_sha,
@@ -377,7 +393,7 @@ def attach_material_feedback(
             "signal_id": system_impact["signal_id"],
         },
         input_bindings={"feedback_summary": sample["summary"], "signal_status": system_impact["status"]},
-        output_refs=[state_path],
+        output_refs=[_state_path(str(before["task_id"]))],
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
@@ -385,12 +401,7 @@ def attach_material_feedback(
     return after
 
 
-def validate_transition(
-    before: Mapping[str, Any],
-    after: Mapping[str, Any],
-    *,
-    previous_state_blob_sha: str,
-) -> None:
+def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, previous_state_blob_sha: str) -> None:
     validate_state(before)
     validate_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
@@ -399,24 +410,33 @@ def validate_transition(
     receipt = after["execution_receipts"][-1]
     _require(receipt["input_bindings"].get("previous_state_blob_sha") == previous_state_blob_sha, "receipt must bind current GitHub state blob SHA")
     _require(receipt["stage"] == before["current_stage"], "receipt stage must bind the stage being left/reviewed")
-    _require(receipt["capability_id"] == _expected_capability(before["current_stage"]), "receipt capability_id does not match stage executor")
+    _require(receipt["capability_id"] == _expected_capability(str(before["current_stage"])), "receipt capability_id does not match stage executor")
 
     stage = str(before["current_stage"])
     if stage in REVIEW_ROUTES:
         review = after.get("review_decisions", {}).get(stage)
-        _require(isinstance(review, Mapping), f"{stage} review decision missing")
-        _require(review.get("assurance") == CHAT_REVIEW_ASSURANCE, "chat review assurance may not be upgraded")
-        status = review.get("status")
-        if status == "PASS":
+        # A revision invalidating its own stage removes that review from active refs; the receipt carries the decision.
+        if review is None and receipt["input_bindings"].get("review_status") == "REVISE":
+            review_status = "REVISE"
+        else:
+            _require(isinstance(review, Mapping), f"{stage} review decision missing")
+            _require(review.get("assurance") == CHAT_REVIEW_ASSURANCE, "chat review assurance may not be upgraded")
+            review_status = review.get("status")
+        if review_status == "PASS":
             expected = REVIEW_ROUTES[stage]["pass_next"]
             if expected is None:
                 _require(after.get("status") == TERMINAL_STATUS, "FINAL_AUDIT PASS must use bounded chat terminal status")
                 _require(after.get("current_stage") == stage, "terminal chat state keeps FINAL_AUDIT as last stage")
             else:
                 _require(after.get("current_stage") == expected, f"{stage} PASS must advance to {expected}")
-        elif status == "REVISE":
-            _require(after.get("current_stage") in REVIEW_ROUTES[stage]["revise_targets"], f"{stage} REVISE routed to unsupported target")
-        elif status == "FAIL":
+        elif review_status == "REVISE":
+            target = receipt["input_bindings"].get("revision_target")
+            _require(target in REVIEW_ROUTES[stage]["revise_targets"], f"{stage} REVISE target unsupported")
+            _require(after.get("current_stage") == target, f"{stage} REVISE must route to {target}")
+            for downstream in STAGE_ORDER[STAGE_INDEX[str(target)]:]:
+                _require(downstream not in after.get("stage_artifacts", {}), f"stale artifact survived revision: {downstream}")
+                _require(downstream not in after.get("review_decisions", {}), f"stale review survived revision: {downstream}")
+        elif review_status == "FAIL":
             _require(after.get("status") == "BLOCKED" and after.get("current_stage") == stage, f"{stage} FAIL must block in place")
         else:
             raise GithubChatGuardError(f"{stage} review status invalid")
@@ -426,21 +446,16 @@ def validate_transition(
         _require(after.get("current_stage") == expected, f"stage skip/route mismatch: {stage} must advance to {expected}")
 
     required = ARTIFACT_REQUIRED_FOR_STAGE.get(stage)
-    if required:
-        _validate_artifact_ref(after.get("stage_artifacts", {}).get(required), label=f"stage_artifacts.{required}")
+    if required and receipt["input_bindings"].get("review_status") != "REVISE":
+        _validate_artifact_ref(after.get("stage_artifacts", {}).get(required), label=f"stage_artifacts.{required}", task_id=str(after["task_id"]))
 
 
-def validate_feedback_update(
-    before: Mapping[str, Any],
-    after: Mapping[str, Any],
-    *,
-    previous_state_blob_sha: str,
-) -> None:
+def validate_feedback_update(before: Mapping[str, Any], after: Mapping[str, Any], *, previous_state_blob_sha: str) -> None:
     validate_state(before)
     validate_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
     _require(before["current_stage"] == after["current_stage"], "feedback checkpoint cannot change current_stage")
-    _require(len(after["learning_evidence"]) == len(before.get("learning_evidence", [])) + 1, "exactly one learning sample must be appended")
+    _require(len(after.get("learning_evidence", [])) == len(before.get("learning_evidence", [])) + 1, "exactly one learning sample must be appended")
     _require(len(after["open_system_impact"]) == len(before["open_system_impact"]) + 1, "exactly one OPEN system-impact item must be appended")
     _require(len(after["execution_receipts"]) == len(before["execution_receipts"]) + 1, "feedback checkpoint must append exactly one execution receipt")
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
