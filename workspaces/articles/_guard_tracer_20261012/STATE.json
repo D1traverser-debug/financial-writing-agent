@@ -3,14 +3,12 @@
   "task_id": "_guard_tracer_20261012",
   "execution_mode": "GITHUB_CHAT",
   "status": "IN_PROGRESS",
-  "current_stage": "RESEARCH_AUDIT",
-  "next_action": "execute and persist RESEARCH_AUDIT",
+  "current_stage": "RESEARCH",
+  "next_action": "revise and persist a new RESEARCH artifact before advancing",
   "distribution_mode": "FINANCE_DEEP",
   "prompt": "synthetic guard tracer; no publication output",
   "source_refs": [],
-  "stage_artifacts": {
-    "RESEARCH": {"path": "workspaces/articles/_guard_tracer_20261012/stages/RESEARCH.json", "blob_sha": "e4c90d9d0760b68bbff6895dafa0eaa49e69499e"}
-  },
+  "stage_artifacts": {},
   "review_decisions": {},
   "review_assurance": "CHAT_SELF_REVIEW",
   "learning_evidence": [],
@@ -60,7 +58,22 @@
       "output_refs": ["workspaces/articles/_guard_tracer_20261012/STATE.json", "workspaces/articles/_guard_tracer_20261012/stages/RESEARCH.json"],
       "result": "GUARD_ACCEPTED",
       "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
+    },
+    {
+      "receipt_contract_version": "1.0",
+      "receipt_id": "receipt:_guard_tracer_20261012:TRANSITION:0004",
+      "action_id": "_guard_tracer_20261012:TRANSITION:0004",
+      "task_id": "_guard_tracer_20261012",
+      "stage": "RESEARCH_AUDIT",
+      "capability_id": "github_chat_review_stages",
+      "executor_identity": "chat-session:universal-maintenance-tracer",
+      "execution_ref": "github-chat://_guard_tracer_20261012/_guard_tracer_20261012:TRANSITION:0004",
+      "subject_bindings": {"task_id": "_guard_tracer_20261012", "from_stage": "RESEARCH_AUDIT", "to_stage": "RESEARCH"},
+      "input_bindings": {"previous_state_blob_sha": "9f7de40504c3f3cc34168a193e6b8327dd44065c", "from_stage": "RESEARCH_AUDIT", "required_artifact_key": "RESEARCH_AUDIT", "required_artifact_blob_sha": "bf165f5bf51748faacbf2941bcb4575715bd4af0", "review_status": "REVISE", "revision_target": "RESEARCH", "invalidated_stage_refs": ["RESEARCH", "RESEARCH_AUDIT"]},
+      "output_refs": ["workspaces/articles/_guard_tracer_20261012/STATE.json", "workspaces/articles/_guard_tracer_20261012/reviews/RESEARCH_AUDIT.json"],
+      "result": "GUARD_ACCEPTED",
+      "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
     }
   ],
-  "updated_at": "2026-10-12T01:42:00+00:00"
+  "updated_at": "2026-10-12T01:44:00+00:00"
 }
