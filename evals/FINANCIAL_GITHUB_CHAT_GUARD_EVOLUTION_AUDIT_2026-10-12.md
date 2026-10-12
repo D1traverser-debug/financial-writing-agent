@@ -55,7 +55,8 @@ Implemented:
 - GITHUB_CHAT state schema 1.1 with exact action-bound self-attested execution receipts;
 - every material transition binds the fetched prior `STATE.json` blob SHA;
 - GitHub replacement must use that same SHA; stale writers fail at the provider CAS boundary;
-- stage skips, wrong revision targets, missing current-stage artifacts, foreign-task artifact refs and chat-assurance inflation fail closed;
+- stage skips, wrong revision targets, missing current-stage artifacts, foreign-task artifact refs, future-stage artifact/review pre-seeding, unsupported status spoofing and chat-assurance inflation fail closed;
+- only `IN_PROGRESS`, `BLOCKED`, and bounded chat terminal status are legal for GITHUB_CHAT; owner-native `COMPLETE` cannot be hand-injected;
 - `REVISE` invalidates target-stage and all downstream active artifact/review refs so stale evidence cannot satisfy a replayed stage;
 - material negative/corrective feedback + OPEN system-impact item share one guarded state mutation and receipt;
 - `AGENT_MANIFEST.json` now models the GitHub-chat state authority and transition guard;
@@ -79,6 +80,8 @@ PASS for:
 - missing review artifact rejection;
 - stage route enforcement;
 - same-chat assurance upgrade rejection;
+- owner-native `COMPLETE` spoof rejection;
+- future-stage artifact/review pre-seeding rejection;
 - bounded terminalization below owner-native COMPLETE;
 - paired negative-feedback/system-impact checkpoint;
 - revision invalidation requiring a fresh upstream artifact;
@@ -91,13 +94,21 @@ A synthetic tracer on isolated branch `test/github-chat-guard-tracer-20261012` e
 
 `STATE init → INTAKE→RESEARCH receipt → persisted Research artifact/blob SHA → RESEARCH→RESEARCH_AUDIT receipt → stale prior STATE SHA rejected with HTTP 409 → persisted RESEARCH_AUDIT REVISE artifact → REVISE→RESEARCH receipt → reread state with stage_artifacts={} and review_decisions={}`.
 
+The synthetic workspace was then deleted from the tracer branch. Commit history remains the receipt.
+
 This proves provider CAS + the new state/receipt/invalidation shape can compose. It does **not** prove a real article, live autonomous routing or prose quality.
 
 ### Full GitHub Actions
-BLOCKED externally. Latest PR runs again create a job with `steps=null`; no SDK smoke, MCP smoke, pytest, static audit, wheel or render command actually begins. Do not call full CI PASS or `REGRESSION_VERIFIED` on that basis.
+BLOCKED externally. PR runs again create a job with `steps=null`; no SDK smoke, MCP smoke, pytest, static audit, wheel or render command actually begins. Do not call full CI PASS or `REGRESSION_VERIFIED` on that basis.
 
 ## M8/M9 — Reliability and second-order challenge
-Second-order attack found and repaired one defect in the first guard draft: after a review routed `REVISE` upstream, old target/downstream artifact refs initially survived and could have been reused. The guard now invalidates them before the revised stage can advance.
+Second-order attack found and repaired multiple defects in the first guard draft:
+
+1. after a review routed `REVISE` upstream, old target/downstream artifact refs initially survived and could have been reused;
+2. manually pre-seeded future-stage artifact/review refs were not initially rejected;
+3. an unsupported status such as owner-native `COMPLETE` could initially be injected into chat state because status was not allow-listed.
+
+The guard now invalidates downstream evidence on revision, rejects future-stage state pollution, allow-lists chat statuses and keeps bounded terminalization tied to `FINAL_AUDIT`.
 
 Other explicit boundaries:
 - a repository guard still cannot physically prevent an arbitrary LLM from printing text outside the supported execution path; it defines the only supported/certifiable Financial path and makes unsupported free-form output lack valid state/receipts;
