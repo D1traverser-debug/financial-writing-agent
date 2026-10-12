@@ -5,49 +5,26 @@ from datetime import datetime, timezone
 from typing import Any, Mapping
 from uuid import uuid4
 
+from .models import Stage
+from .workflow_spec import (
+    BUSINESS_STAGE_NAMES,
+    REVIEW_STAGE_NAMES,
+    invalidated_stage_names_from,
+    pass_target_name,
+    revision_targets,
+)
+
 GITHUB_CHAT_EXECUTION_MODE = "GITHUB_CHAT"
 CHAT_REVIEW_ASSURANCE = "CHAT_SELF_REVIEW"
 TERMINAL_STATUS = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
 SELF_ATTESTED_RECEIPT = "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
 ALLOWED_STATUS = {"IN_PROGRESS", "BLOCKED", TERMINAL_STATUS}
 
-STAGE_ORDER = (
-    "INTAKE",
-    "RESEARCH",
-    "RESEARCH_AUDIT",
-    "EDITORIAL",
-    "TITLE",
-    "DRAFT",
-    "EDITORIAL_AUDIT",
-    "DELIVERY",
-    "MECHANICAL_AUDIT",
-    "FINAL_AUDIT",
-)
-STAGE_INDEX = {stage: i for i, stage in enumerate(STAGE_ORDER)}
-
-REGULAR_FORWARD = {
-    "INTAKE": "RESEARCH",
-    "RESEARCH": "RESEARCH_AUDIT",
-    "EDITORIAL": "TITLE",
-    "TITLE": "DRAFT",
-    "DRAFT": "EDITORIAL_AUDIT",
-    "DELIVERY": "MECHANICAL_AUDIT",
-}
-
-REVIEW_ROUTES = {
-    "RESEARCH_AUDIT": {"pass_next": "EDITORIAL", "revise_targets": {"RESEARCH"}},
-    "EDITORIAL_AUDIT": {
-        "pass_next": "DELIVERY",
-        "revise_targets": {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT"},
-    },
-    "MECHANICAL_AUDIT": {"pass_next": "FINAL_AUDIT", "revise_targets": {"DELIVERY"}},
-    "FINAL_AUDIT": {
-        "pass_next": None,
-        "revise_targets": {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY"},
-    },
-}
-
-ARTIFACT_REQUIRED_FOR_STAGE = {stage: stage for stage in STAGE_ORDER if stage != "INTAKE"}
+# Adapter-local indexes/capabilities derive from the canonical workflow. The chat
+# adapter may be more conservative than owner-native execution, but it cannot invent
+# a broader stage/revision graph.
+STAGE_INDEX = {stage: i for i, stage in enumerate(BUSINESS_STAGE_NAMES)}
+ARTIFACT_REQUIRED_FOR_STAGE = {stage: stage for stage in BUSINESS_STAGE_NAMES if stage != "INTAKE"}
 CAPABILITY_BY_STAGE = {
     "RESEARCH_AUDIT": "github_chat_review_stages",
     "EDITORIAL_AUDIT": "github_chat_review_stages",
@@ -112,6 +89,14 @@ def _expected_capability(stage: str) -> str:
     return CAPABILITY_BY_STAGE.get(stage, "github_chat_workflow")
 
 
+def _revision_target_names(stage: str) -> set[str]:
+    try:
+        stage_enum = Stage(stage)
+    except ValueError:
+        return set()
+    return {target.value for target in revision_targets(stage_enum)}
+
+
 def _validate_artifact_ref(ref: Any, *, label: str, task_id: str) -> None:
     _require(isinstance(ref, Mapping), f"{label} must be an object")
     path = ref.get("path")
@@ -129,7 +114,7 @@ def validate_state(state: Mapping[str, Any]) -> None:
     _require(state.get("schema_version") == "1.1", "state schema_version must be 1.1")
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
     _require(_nonempty(state.get("task_id")), "task_id is required")
-    _require(state.get("current_stage") in STAGE_ORDER, "current_stage is not a supported Financial stage")
+    _require(state.get("current_stage") in BUSINESS_STAGE_NAMES, "current_stage is not a supported Financial stage")
     _require(state.get("status") in ALLOWED_STATUS, "status is not a supported GITHUB_CHAT status")
     if state.get("status") == TERMINAL_STATUS:
         _require(state.get("current_stage") == "FINAL_AUDIT", "bounded terminal status requires FINAL_AUDIT as current_stage")
@@ -145,7 +130,7 @@ def validate_state(state: Mapping[str, Any]) -> None:
         _require(STAGE_INDEX[key] <= current_index, f"future-stage artifact is not allowed before reaching {key}")
         _validate_artifact_ref(ref, label=f"stage_artifacts.{key}", task_id=str(state["task_id"]))
     for key in state.get("review_decisions", {}):
-        _require(key in REVIEW_ROUTES, f"review_decisions contains non-review stage: {key}")
+        _require(key in REVIEW_STAGE_NAMES, f"review_decisions contains non-review stage: {key}")
         _require(STAGE_INDEX[key] <= current_index, f"future-stage review is not allowed before reaching {key}")
 
     receipts = state.get("execution_receipts")
@@ -259,11 +244,14 @@ def _required_artifact(stage: str, state: Mapping[str, Any]) -> tuple[str, Mappi
 
 def _invalidate_from(state: dict[str, Any], target_stage: str) -> list[str]:
     """Invalidate target-stage and downstream derived evidence after a revision route."""
-    start = STAGE_INDEX[target_stage]
+    try:
+        downstream = invalidated_stage_names_from(target_stage)
+    except ValueError as exc:
+        raise GithubChatGuardError(str(exc)) from exc
     invalidated: list[str] = []
     artifacts = state.setdefault("stage_artifacts", {})
     reviews = state.setdefault("review_decisions", {})
-    for stage in STAGE_ORDER[start:]:
+    for stage in downstream:
         if stage in artifacts:
             artifacts.pop(stage, None)
             invalidated.append(stage)
@@ -308,15 +296,16 @@ def advance_state(
     subject_bindings: dict[str, Any] = {"task_id": before["task_id"], "from_stage": stage}
     capability_id = _expected_capability(stage)
 
-    if stage in REVIEW_ROUTES:
+    if stage in REVIEW_STAGE_NAMES:
         _require(review_status in {"PASS", "REVISE", "FAIL"}, f"{stage} requires review_status PASS/REVISE/FAIL")
         _require(required is not None, f"{stage} requires persisted review artifact")
         review = {"status": review_status, "artifact_ref": dict(required[1]), "assurance": CHAT_REVIEW_ASSURANCE}
         if review_status == "PASS":
-            next_stage = REVIEW_ROUTES[stage]["pass_next"]
+            next_stage = pass_target_name(stage)
+            _require(next_stage is not None, f"no canonical PASS transition is defined from {stage}")
             review["revision_target"] = None
             after.setdefault("review_decisions", {})[stage] = review
-            if next_stage is None:
+            if next_stage == "COMPLETE":
                 after["status"] = TERMINAL_STATUS
                 after["current_stage"] = stage
                 after["next_action"] = "owner-native/independent certification remains OPEN unless stronger evidence is separately obtained"
@@ -327,7 +316,7 @@ def advance_state(
                 after["next_action"] = f"execute and persist {next_stage}"
                 subject_bindings["to_stage"] = next_stage
         elif review_status == "REVISE":
-            allowed = set(REVIEW_ROUTES[stage]["revise_targets"])
+            allowed = _revision_target_names(stage)
             _require(revision_target in allowed, f"{stage} revision_target must be one of {sorted(allowed)}")
             review["revision_target"] = revision_target
             after.setdefault("review_decisions", {})[stage] = review
@@ -349,8 +338,8 @@ def advance_state(
             input_bindings["revision_target"] = revision_target
     else:
         _require(review_status is None and revision_target is None, f"{stage} is not a review stage")
-        next_stage = REGULAR_FORWARD.get(stage)
-        _require(next_stage is not None, f"no regular forward transition is defined from {stage}")
+        next_stage = pass_target_name(stage)
+        _require(next_stage is not None and next_stage != "COMPLETE", f"no regular forward transition is defined from {stage}")
         after["current_stage"] = next_stage
         after["next_action"] = f"execute and persist {next_stage}"
         subject_bindings["to_stage"] = next_stage
@@ -424,7 +413,7 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
     _require(receipt["capability_id"] == _expected_capability(str(before["current_stage"])), "receipt capability_id does not match stage executor")
 
     stage = str(before["current_stage"])
-    if stage in REVIEW_ROUTES:
+    if stage in REVIEW_STAGE_NAMES:
         review = after.get("review_decisions", {}).get(stage)
         if review is None and receipt["input_bindings"].get("review_status") == "REVISE":
             review_status = "REVISE"
@@ -433,17 +422,18 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
             _require(review.get("assurance") == CHAT_REVIEW_ASSURANCE, "chat review assurance may not be upgraded")
             review_status = review.get("status")
         if review_status == "PASS":
-            expected = REVIEW_ROUTES[stage]["pass_next"]
-            if expected is None:
+            expected = pass_target_name(stage)
+            _require(expected is not None, f"no canonical PASS route from {stage}")
+            if expected == "COMPLETE":
                 _require(after.get("status") == TERMINAL_STATUS, "FINAL_AUDIT PASS must use bounded chat terminal status")
                 _require(after.get("current_stage") == stage, "terminal chat state keeps FINAL_AUDIT as last stage")
             else:
                 _require(after.get("current_stage") == expected, f"{stage} PASS must advance to {expected}")
         elif review_status == "REVISE":
             target = receipt["input_bindings"].get("revision_target")
-            _require(target in REVIEW_ROUTES[stage]["revise_targets"], f"{stage} REVISE target unsupported")
+            _require(target in _revision_target_names(stage), f"{stage} REVISE target unsupported")
             _require(after.get("current_stage") == target, f"{stage} REVISE must route to {target}")
-            for downstream in STAGE_ORDER[STAGE_INDEX[str(target)]:]:
+            for downstream in invalidated_stage_names_from(str(target)):
                 _require(downstream not in after.get("stage_artifacts", {}), f"stale artifact survived revision: {downstream}")
                 _require(downstream not in after.get("review_decisions", {}), f"stale review survived revision: {downstream}")
         elif review_status == "FAIL":
@@ -451,8 +441,8 @@ def validate_transition(before: Mapping[str, Any], after: Mapping[str, Any], *, 
         else:
             raise GithubChatGuardError(f"{stage} review status invalid")
     else:
-        expected = REGULAR_FORWARD.get(stage)
-        _require(expected is not None, f"no forward transition from {stage}")
+        expected = pass_target_name(stage)
+        _require(expected is not None and expected != "COMPLETE", f"no forward transition from {stage}")
         _require(after.get("current_stage") == expected, f"stage skip/route mismatch: {stage} must advance to {expected}")
 
     required = ARTIFACT_REQUIRED_FOR_STAGE.get(stage)
