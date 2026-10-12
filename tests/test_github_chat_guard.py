@@ -53,6 +53,19 @@ def test_research_cannot_advance_without_persisted_artifact():
         advance_state(state, previous_state_blob_sha="state-1", executor_identity="chat-session:test")
 
 
+def test_foreign_article_artifact_cannot_satisfy_current_stage():
+    state = advance_state(_initial(), previous_state_blob_sha="state-0", executor_identity="chat-session:test")
+    with pytest.raises(GithubChatGuardError, match="current article workspace"):
+        advance_state(
+            state,
+            previous_state_blob_sha="state-1",
+            executor_identity="chat-session:test",
+            artifact_key="RESEARCH",
+            artifact_path="workspaces/articles/other-task/stages/RESEARCH.json",
+            artifact_blob_sha="foreign-blob",
+        )
+
+
 def test_stage_skip_is_rejected_even_if_state_is_manually_tampered():
     before = _advance_research(_initial())
     after = deepcopy(before)
@@ -102,6 +115,26 @@ def test_research_audit_pass_requires_review_artifact_and_stays_chat_self_review
     assert state["execution_receipts"][-1]["capability_id"] == "github_chat_review_stages"
 
 
+def test_revision_invalidates_target_and_all_downstream_artifact_refs():
+    state = _advance_research(_initial())
+    state = advance_state(
+        state,
+        previous_state_blob_sha="state-2",
+        executor_identity="chat-session:test",
+        artifact_key="RESEARCH_AUDIT",
+        artifact_path="workspaces/articles/guard-task/reviews/RESEARCH_AUDIT.json",
+        artifact_blob_sha="review-old",
+        review_status="REVISE",
+        revision_target="RESEARCH",
+    )
+    assert state["current_stage"] == "RESEARCH"
+    assert state["stage_artifacts"] == {}
+    assert state["review_decisions"] == {}
+    assert "RESEARCH" in state["execution_receipts"][-1]["input_bindings"]["invalidated_stage_refs"]
+    with pytest.raises(GithubChatGuardError, match="stage_artifacts.RESEARCH"):
+        advance_state(state, previous_state_blob_sha="state-3", executor_identity="chat-session:test")
+
+
 def test_chat_assurance_cannot_be_upgraded_by_state_edit():
     state = _initial()
     state["review_assurance"] = "INDEPENDENT_EXECUTOR"
@@ -131,7 +164,6 @@ def test_material_negative_feedback_and_open_system_impact_are_one_guarded_check
 
 def test_final_chat_review_uses_bounded_terminal_status_not_native_complete():
     state = _initial()
-    # Build the straight-through path with persisted artifacts at every stage.
     state = advance_state(state, previous_state_blob_sha="s0", executor_identity="chat-session:test")
     state = advance_state(
         state,
