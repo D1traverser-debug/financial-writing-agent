@@ -94,18 +94,37 @@ Partial snippets/feedback may enter the corpus immediately but cannot by themsel
 
 The current corpus is **not quality-promotion-ready** even for FINANCE_DEEP: it has one complete FINANCE_DEEP real rejection and only one complete FINANCE_DEEP held-out topic family. That is enough for diagnosis and candidate design, but not production quality promotion. A second complete FINANCE_DEEP held-out case from a distinct topic family is required before a FINANCE_DEEP candidate may enter the promotion gate. FINANCE_BROAD is also not ready. Personalized Writing DNA remains `NOT_READY` until all general requirements pass and real user acceptance/edit or post-publication performance evidence exists.
 
+## Impact-map closure and stale-consumer scan
+An impact map is a **hypothesis about affected surfaces**, not proof that the list is complete. Systemic maintenance may not declare propagation/closure PASS merely because every file named in the initial map was edited.
+
+Before closure, scan the repository for both the **new invariant and the superseded invariant** and reconcile every executable or startup consumer. The minimum consumer classes, when applicable, are:
+- canonical `config/policy.json`, rule ownership and canonical `references/*`;
+- startup/router surfaces such as `SKILL.md`, Continuity task index/manifest and execution contracts;
+- owner-native runtime, schemas, routing, builders, deterministic checks and adapters;
+- CHAT_BRIDGED guard/state schema and its task/output contract;
+- `scripts/static_audit.py`, `scripts/eval_contracts.py`, unit/trajectory/eval fixtures and CI commands;
+- generated/package mirrors and public/deployment contracts;
+- obsolete branches, open PRs, retired compatibility paths, shadow copies and historical files that still look active;
+- at least one zero-memory/fresh-chat or deterministic reference trajectory when the changed invariant affects cold-start execution.
+
+For policy-key/value changes, the closure evidence should include a consumer scan for the key and for distinctive text/value of the old rule. A stale executable assertion is a **CONFIRMED_DEFECT**, not documentation debt. If a machine consumer still enforces the superseded value, maintenance remains OPEN even when targeted new tests pass.
+
+When hosted CI reports a run/job but no workflow steps actually executed, classify hosted CI as `OPEN_RUNNER_NOT_EXECUTED`. Do not use that red/green shell as regression evidence. Run available targeted current-session checks and static reconciliation, and keep full hosted CI OPEN.
+
 ## Change protocol
 1. For systemic/non-trivial changes, complete the Universal meta-maintenance entry above before treating the first owner-local patch as accepted architecture.
-2. Identify the canonical rule owner and affected runtime stages.
-3. Decide whether the defect belongs in rules, schema, runtime/state machine, deterministic delivery, tests/evals or deployment—not every problem is a prompt problem.
-4. Modify the canonical owner first.
-5. Search for contradictory, duplicated or legacy wording/code.
-6. Synchronize intentional rule mirrors byte-for-byte.
-7. Align schema/runtime/MCP contracts when behavior changes.
-8. Add regression tests for both success and failure paths, including revision invalidation/recovery when relevant.
-9. Run SDK/MCP smoke, unit/trajectory tests, executable contract evals, static ownership/bundle/version audit, isolated wheel install and DOCX render smoke.
-10. When behavior depends on live model/tool execution, run a representative real writing E2E before calling that deployment production-ready.
-11. Re-read final authority files and CI state before reporting the change as committed.
+2. Identify the canonical rule owner, affected runtime stages **and canonical TaskContract/output semantics**.
+3. Build an initial impact/failure map, then treat it as provisional until the stale-consumer scan is complete.
+4. Decide whether the defect belongs in rules, schema, runtime/state machine, deterministic delivery, tests/evals or deployment—not every problem is a prompt problem.
+5. Modify the canonical owner first.
+6. Search for contradictory, duplicated, synonymous-but-divergent, legacy and shadow wording/code, including startup Skill and harness consumers.
+7. Synchronize intentional rule mirrors byte-for-byte; delete/close obsolete active-looking surfaces instead of leaving two authorities.
+8. Align owner-native and GITHUB_CHAT task/output semantics whenever the business contract is shared; adapters may differ in assurance but not silently redefine business behavior.
+9. Add regression tests for both success and failure paths, including revision invalidation/recovery and required-output failure when relevant.
+10. Run SDK/MCP smoke, unit/trajectory tests, executable contract evals, static ownership/bundle/version audit, isolated wheel install and DOCX render smoke when available. If hosted CI does not execute steps, record that exact boundary and run narrower current-session checks rather than inventing PASS.
+11. When behavior depends on live model/tool execution, run a representative real writing E2E or convert an observed live failure into a durable trajectory regression before calling that deployment production-ready.
+12. Re-run the stale-consumer scan after implementation and after any secondary fix; the second scan is what can close propagation.
+13. Re-read final authority files, business output contract, Continuity/startup surfaces and CI state before reporting the change as committed.
 
 ## Version / cutover discipline
 A breaking schema or public MCP change requires a contract version bump. `pyproject.toml`, `plugin.json`, policy contract version, README/architecture/Site spec and active Continuity metadata must not silently disagree about the current contract.
@@ -116,6 +135,8 @@ Do not preserve obsolete compatibility surfaces merely because they once existed
 Fail-closed must still be recoverable. A BLOCKED task needs an explicit persisted recovery cursor and a tested resume path; permanent deadlocks are not acceptable durability.
 
 Semantic audit PASS is not a free status bit. A PASS that authorizes a forward transition must be bound to current owner-runtime execution evidence and the persisted audit payload; CHAT_BRIDGED/self-authored provenance without the owner-runtime stage trajectory cannot certify completion. The historical schema label `INDEPENDENT_EXECUTOR` means only a stage-separated owner runtime run in this v0.7 contract; it is **not** provider-attested isolation.
+
+Execution adapters may differ in tool substrate and assurance, but the owner business contract is not adapter-local. Default distribution mode, delivery channel, required outputs, stage order, invalidation and terminal semantics must remain aligned. A chat path that produces fewer required outputs than the same canonical TaskContract is silent degradation and must fail closed.
 
 Revisions must invalidate stale downstream QA and stale generated artifacts. Re-running deterministic render/delivery steps must be idempotent so old output cannot contaminate current evidence.
 
