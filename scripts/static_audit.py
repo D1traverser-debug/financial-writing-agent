@@ -24,6 +24,7 @@ SCHEMAS = ROOT / "financial_writing_agent" / "schemas.py"
 CHECKS = ROOT / "financial_writing_agent" / "checks.py"
 DOCUMENT = ROOT / "financial_writing_agent" / "document.py"
 OPENAI_ADAPTER = ROOT / "financial_writing_agent" / "adapters" / "openai_agents.py"
+GITHUB_CHAT_GUARD = ROOT / "financial_writing_agent" / "github_chat_guard.py"
 SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
 README = ROOT / "README.md"
 ARCHITECTURE = ROOT / "docs" / "architecture.md"
@@ -82,14 +83,14 @@ def check_rule_ownership() -> int:
                 fail(f"duplicate rule owner: {key}: {seen[key]} and {owner}")
             seen[key] = owner
     required = {
-        "runtime": {"blocked_recovery", "downstream_invalidation"},
+        "runtime": {"blocked_recovery", "downstream_invalidation", "required_outputs", "delivery_channel", "no_silent_degradation"},
         "research": {"universe_class_coverage", "universe_recall_sources", "material_company_classification"},
         "market_explanation": {"explicit_scope_activation", "stock_universe_not_activation"},
         "editorial": {"topic_specific_structures", "macro_structural_coherence", "finance_deep_company_coverage", "stock_grounded_validation_sections", "company_comparison_decision_map", "deep_numbered_navigation"},
         "hooks": {"reader_funnel", "continuation_value", "headline_angle_family_diversity", "finance_broad_non_niche_stake"},
         "style": {"natural_authorial_prose", "raw_learning_sample_ledger", "argument_progression", "major_section_bridge", "template_cluster_guard"},
-        "delivery": {"explicit_bold_preservation", "no_underlines", "no_end_source_section", "risk_italic", "artifact_path_privacy", "render_idempotency"},
-        "audit": {"authorial_prose_judge", "reader_funnel_judge", "semantic_audit_provenance", "chat_self_review_no_pass", "universe_article_reconciliation", "covert_recommendation_evasion_check"},
+        "delivery": {"a_share_company_name_bold", "explicit_semantic_bold_preservation", "no_underlines", "no_end_source_section", "risk_italic", "artifact_path_privacy", "render_idempotency"},
+        "audit": {"authorial_prose_judge", "reader_funnel_judge", "semantic_audit_provenance", "chat_self_review_no_pass", "universe_article_reconciliation", "covert_recommendation_evasion_check", "complete_applicable_writing_contract_reconciliation"},
         "maintenance": {"version_consistency", "learning_sample_promotion"},
     }
     for owner, markers in required.items():
@@ -139,11 +140,14 @@ def check_reference_bundle() -> None:
         "angle_family",
         "template-cluster guard",
         "CHAT_SELF_REVIEW",
-        "Do not automatically bold every company/stock-name occurrence",
+        "Every supplied A-share company/stock name is mechanically bolded",
+        "defaults to `DUAL`",
+        "FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX",
+        "only GITHUB_CHAT business-state write surface",
     ), "Skill")
     if "publication articles do not use tables" not in lower:
         fail("Skill must prohibit publication tables")
-    forbid(skill, ("references/structure_patterns.md", "Company/stock names remain bold on every occurrence", "Human Voice Gate", "CHAT_TEXT", "writing-text://"), "Skill")
+    forbid(skill, ("references/structure_patterns.md", "Do not automatically bold every company/stock-name occurrence", "Human Voice Gate", "CHAT_TEXT", "writing-text://", "per-article business-state branches"), "Skill")
 
 
 def _tool_names(path: Path) -> set[str]:
@@ -177,6 +181,7 @@ def check_runtime_contract() -> int:
     schemas = SCHEMAS.read_text(encoding="utf-8")
     checks = CHECKS.read_text(encoding="utf-8")
     document = DOCUMENT.read_text(encoding="utf-8")
+    github_guard = GITHUB_CHAT_GUARD.read_text(encoding="utf-8")
 
     require(public + contracts, ("resume_blocked_task", "record_writing_learning_sample", "review_writing_system_impact", "run_semantic_audit_stage", "LearningSampleSummary", "SystemImpactSignalSummary", "writing-docx://{task_id}/{kind}"), "public MCP")
     require(public + system_impact + engine, ("PENDING_REVIEW", "SYSTEM_MAINTENANCE_REQUIRED", "MAINTENANCE_REQUIRED", "REGRESSION_VERIFIED", "pending_system_impact_reviews"), "system-impact escalation runtime")
@@ -186,8 +191,18 @@ def check_runtime_contract() -> int:
     if "path: str" in contracts or "trace_tail" in contracts:
         fail("public contract exposes local path/trace")
 
-    require(engine + models, ("blocked_resume_stage", "resume_blocked", "RUNTIME_UNBLOCKED"), "recovery runtime")
+    require(engine + models, ("blocked_resume_stage", "resume_blocked", "RUNTIME_UNBLOCKED", "required_outputs"), "recovery/runtime output contract")
     require(runtime, ("record_writing_learning_sample", "RAW_EVIDENCE_ONLY", "_cleanup_after_revision"), "runtime service")
+    require(github_guard, (
+        "CURRENT_STATE_SCHEMA_VERSION = \"1.2\"",
+        "build_task_contract",
+        "required_outputs",
+        "delivery_artifacts",
+        "USER_EXPLICIT_OVERRIDE",
+        "GITHUB_CHAT business state must live on main",
+        "article delivery outputs mismatch",
+        "final delivery outputs mismatch",
+    ), "GITHUB_CHAT task/output parity")
     require(schemas, (
         'MarketExplanationScope = Literal["REQUIRED", "NOT_MATERIAL"]',
         "class UniverseCoverage(StrictModel)",
@@ -221,6 +236,8 @@ def check_runtime_contract() -> int:
 
 def check_policy_and_executor() -> None:
     policy = json.loads(SOURCE_POLICY.read_text(encoding="utf-8"))
+    if policy["defaults"].get("distribution_mode") != "DUAL" or policy["defaults"].get("delivery_channel") != "WORD_FILE_ONLY":
+        fail("default task/output contract drift")
     if policy["market_explanation"].get("activation_policy") != "EXPLICIT_SCOPE" or policy["market_explanation"].get("stock_universe_alone_is_not_activation") is not True:
         fail("Market Explanation activation drift")
     if policy["research"].get("universe_class_coverage_required") is not True or policy["research"].get("universe_recall_sources_min", 0) < 2:
@@ -233,21 +250,28 @@ def check_policy_and_executor() -> None:
         fail("headline strategy-diversity hardening drift")
     if policy["hooks"].get("finance_broad_non_niche_stake_required") is not True or not policy["hooks"].get("finance_broad_stake_dimensions"):
         fail("broad-finance cold-reader stake drift")
+    if policy["hooks"].get("title_opening_payoff_required") is not False or policy["hooks"].get("first_three_sentences_required") is not False:
+        fail("Reader Funnel flexible-opening semantics regressed")
     if policy["style"].get("template_cluster_guard_required") is not True or policy["style"].get("deep_numbered_navigation_required_when_branching") is not True or policy["style"].get("major_section_bridge_required") is not True:
         fail("prose/navigation/bridge hardening drift")
     audit = policy["audit"]
     if audit.get("semantic_pass_requires_owner_runtime_execution_proof") is not True or audit.get("chat_self_review_cannot_pass") is not True or audit.get("provider_attested_isolation_required_for_true_independent_claim") is not True:
         fail("semantic audit proof/independence boundary drift")
+    if audit.get("all_applicable_writing_requirements_default_coverage") is not True or audit.get("special_surface_or_mode_na_must_be_explicit") is not True:
+        fail("complete applicable audit coverage drift")
     if policy["finance_compliance"].get("no_covert_recommendation_evasion") is not True or policy["finance_compliance"].get("company_comparison_must_remain_non_actionable") is not True:
         fail("covert-recommendation compliance boundary drift")
-    if policy["word"].get("auto_bold_company_names") is not False:
-        fail("blanket company bolding returned")
+    if policy["word"].get("auto_bold_company_names") is not True or policy["word"].get("auto_bold_scope") != "A_SHARE_NAMES_SUPPLIED_BY_ARTICLE_DOCUMENT":
+        fail("A-share company-name automatic bolding drift")
     if policy["word"].get("allow_tables") is not False or policy["word"].get("tables_are_hard_fail") is not True:
         fail("table prohibition drift")
     if policy["word"].get("allow_underline") is not False or policy["word"].get("end_source_section_allowed") is not False:
         fail("Word underline/source-tail prohibition drift")
-    if policy["risk_disclaimer"].get("italic") is not True or policy["risk_disclaimer"].get("inline_paragraph") is not True or policy["risk_disclaimer"].get("visible_heading") is not False:
+    risk = policy["risk_disclaimer"]
+    if risk.get("italic") is not True or risk.get("inline_paragraph") is not True or risk.get("visible_heading") is not False:
         fail("risk disclaimer presentation drift")
+    if risk.get("min_body_chars") != 0 or risk.get("semantic_completeness_required") is not True:
+        fail("risk disclaimer fixed-minimum removal drift")
     if set(policy["style"].get("hard_fail_extreme_phrases", [])) != {"注定暴涨", "必然上涨", "唯一机会"}:
         fail("deterministic extreme-language boundary drift")
     dna = policy["style"].get("writing_dna_learning", {})
@@ -299,7 +323,7 @@ def main() -> None:
     tools = check_runtime_contract()
     check_policy_and_executor()
     check_site_and_dead_contracts()
-    print(f"PASS: v0.8.1 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; proof-bearing semantic audits + executable material-feedback system-impact escalation + clean Word presentation protected")
+    print(f"PASS: v0.8.1 versions aligned; {groups} owned rules; mirrored references aligned; {tools} typed MCP tools; owner/GITHUB_CHAT task-output parity + proof-bearing semantic audits + material-feedback system-impact escalation + current Word presentation protected")
 
 
 if __name__ == "__main__":
