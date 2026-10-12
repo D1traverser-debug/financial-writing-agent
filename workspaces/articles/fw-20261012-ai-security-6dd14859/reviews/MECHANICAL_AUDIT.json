@@ -1,0 +1,42 @@
+{
+  "stage": "MECHANICAL_AUDIT",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "status": "PASS",
+  "execution_mode": "GITHUB_CHAT",
+  "checked_delivery_blob_sha": "5e07611fceb3b4ab4e937ff5f01825b738758b53",
+  "checks": {
+    "FINANCE_DEEP.docx": {
+      "sha256": "ff546974144497c99693c5a0b1ac2bc0418c33f21dd2564d8d5e442b4e0e37ec",
+      "paragraphs": 34,
+      "tables": 0,
+      "underlines": 0,
+      "risk_disclaimer": "PASS_155_BODY_CHARS_FULLY_ITALIC",
+      "typography_and_hierarchy": "PASS",
+      "bold_skim_anchors": "PASS",
+      "finance_redlines": "PASS",
+      "render_pages": 6,
+      "visual_inspection": "PASS_ALL_PAGES"
+    },
+    "FINANCE_BROAD.docx": {
+      "sha256": "a0d15e086352e37b90a0526c061e5d88841dc34a368ee593e674962c9ac69c30",
+      "paragraphs": 18,
+      "tables": 0,
+      "underlines": 0,
+      "risk_disclaimer": "PASS_123_BODY_CHARS_FULLY_ITALIC",
+      "typography_and_hierarchy": "PASS",
+      "bold_skim_anchors": "PASS",
+      "finance_redlines": "PASS",
+      "render_pages": 3,
+      "visual_inspection": "PASS_ALL_PAGES"
+    },
+    "WRITING_AUDIT_REPORT.docx": {
+      "sha256": "1c2b7154ba2a0198673f3c18ca752fd289dfe4ac6acede253ebeea2345334f59",
+      "render_pages": 1,
+      "visual_inspection": "PASS"
+    }
+  },
+  "render_engine": "/home/oai/skills/docx/render_docx.py + LibreOffice",
+  "stale_render_reuse": false,
+  "open_checks": [],
+  "decision": "All mechanical and page-level Word checks actually executed in the current session passed."
+}
