@@ -3,7 +3,7 @@
   "execution_readiness_contract": "1.0",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "repository": "D1traverser-debug/financial-writing-agent",
-  "profile_version": 10,
+  "profile_version": 11,
   "purpose": "Owner-level execution wiring metadata for the universal dispatcher. This file is not business task state and does not replace TASK_MANIFEST/HANDOFF or per-article GitHub chat checkpoints.",
   "capabilities": [
     {
@@ -15,6 +15,26 @@
       "executor_ref": "financial_writing_agent/controller.py",
       "required_tools": ["python_runtime_or_owner_plugin"],
       "evidence_contract": ["authoritative WritingState", "gate state", "stage transition/checkpoint", "semantic PASS transitions fail closed without current owner-runtime proof", "COMPLETE fails closed while a material-feedback system-impact review remains PENDING_REVIEW"],
+      "side_channel_allowed": false,
+      "safe_degraded_modes": []
+    },
+    {
+      "capability_id": "specialist_execution_boundaries",
+      "scope": "OWNER_NATIVE_HIGH_JUDGMENT_AND_SEMANTIC_SPECIALISTS",
+      "assurance_ceiling": "SESSION_EXECUTABLE",
+      "invocation_path": "financial_writing_agent.specialist_contracts -> financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor",
+      "executor_type": "TYPED_SPECIALIST_CONTRACT_AND_CONTEXT_PROJECTOR",
+      "executor_ref": "financial_writing_agent/specialist_contracts.py",
+      "required_tools": ["python_runtime_or_owner_plugin", "model_runtime", "web_search_only_for_contract_authorized_specialists"],
+      "evidence_contract": [
+        "every model specialist has one explicit stage/output/reference/context/tool/forbidden-action contract",
+        "specialist context contains only declared working and gate slices rather than the full WritingState",
+        "Research Auditor and Reader Funnel Judge receive web search only because their canonical duties require independent current-evidence verification",
+        "Writer, Editorial Architect, Authorial Prose Judge, General Editorial Judge and Final Auditor do not receive web by default",
+        "only Final Auditor receives artifact metadata and that projection excludes server-local paths",
+        "canonical references remain business-semantic authority; specialist contracts add execution boundaries rather than copying domain rules",
+        "stage or output-schema mismatch fails before SDK execution"
+      ],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
     },
@@ -45,11 +65,11 @@
       "capability_id": "high_judgment_generation_stages",
       "scope": "RESEARCH,EDITORIAL,TITLE,DRAFT",
       "assurance_ceiling": "SESSION_EXECUTABLE",
-      "invocation_path": "financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor.execute OR current-session GITHUB_CHAT adapter when selected by execution readiness",
+      "invocation_path": "financial_writing_agent.specialist_contracts -> financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor.execute OR current-session GITHUB_CHAT adapter when selected by execution readiness",
       "executor_type": "OPENAI_AGENTS_SDK_OR_CONTRACTED_CHAT_BRIDGE",
       "executor_ref": "financial_writing_agent/adapters/openai_agents.py",
-      "required_tools": ["model_runtime", "web_search_for_web_enabled_stages"],
-      "evidence_contract": ["typed stage output", "authoritative owner state mutation", "schema and downstream invalidation guards", "in GITHUB_CHAT mode the equivalent structured stage artifact is persisted and the stage transition is guard-validated before progression"],
+      "required_tools": ["model_runtime", "web_search_for_contract_authorized_stages"],
+      "evidence_contract": ["typed stage output", "specialist contract binds exact stage/output/reference/context/tool boundary", "authoritative owner state mutation", "schema and downstream invalidation guards", "in GITHUB_CHAT mode the equivalent structured stage artifact is persisted and the stage transition is guard-validated before progression"],
       "side_channel_allowed": false,
       "safe_degraded_modes": ["CHAT_BRIDGED"]
     },
@@ -57,11 +77,11 @@
       "capability_id": "semantic_audit_stages",
       "scope": "RESEARCH_AUDIT,EDITORIAL_AUDIT,FINAL_AUDIT",
       "assurance_ceiling": "SESSION_EXECUTABLE",
-      "invocation_path": "financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor.execute -> WritingState semantic proof -> WorkflowController",
+      "invocation_path": "financial_writing_agent.specialist_contracts -> financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor.execute -> WritingState semantic proof -> WorkflowController",
       "executor_type": "OPENAI_AGENTS_SDK_STAGE_SEPARATED_OWNER_RUNTIME",
       "executor_ref": "financial_writing_agent/adapters/openai_agents.py",
-      "required_tools": ["openai_agents_sdk", "model_runtime", "owner_runtime_trajectory"],
-      "evidence_contract": ["typed audit output with persisted provenance", "execution_ref bound to exact task and audit stage", "current-stage owner-runtime EXECUTOR_START and EXECUTOR_END after latest STAGE_ENTER", "reviewer identity differs from author identity", "controller and COMPLETE revalidate semantic proof", "legacy schema assurance label INDEPENDENT_EXECUTOR means stage-separated owner run only and is not provider-attested isolation"],
+      "required_tools": ["openai_agents_sdk", "model_runtime", "owner_runtime_trajectory", "web_search_for_research_audit_and_reader_funnel_audit"],
+      "evidence_contract": ["typed audit output with persisted provenance", "specialist contract projects only role-authorized state slices and tool access", "Research Auditor may independently verify current sources/coverage and Reader Funnel Judge may independently verify current search evidence", "Final Auditor receives safe artifact identity/availability/hash metadata without server-local paths", "execution_ref bound to exact task and audit stage", "current-stage owner-runtime EXECUTOR_START and EXECUTOR_END after latest STAGE_ENTER", "reviewer identity differs from author identity", "controller and COMPLETE revalidate semantic proof", "legacy schema assurance label INDEPENDENT_EXECUTOR means stage-separated owner run only and is not provider-attested isolation"],
       "side_channel_allowed": false,
       "safe_degraded_modes": []
     },
@@ -177,6 +197,8 @@
   "owner_notes": [
     "The user's current production mode is GitHub-mounted owner authority plus GPT chat execution; Site/MCP deployment is optional/future and is not required for GITHUB_CHAT execution.",
     "The Python state machine remains the higher-assurance executable reference and owner-native path; GITHUB_CHAT is a bounded CHAT_BRIDGED adapter, not a claim that Python owner-runtime execution occurred.",
+    "Owner-native model specialists are constrained by financial_writing_agent/specialist_contracts.py: each role has explicit stage/output/reference/context/tool boundaries, and canonical references remain the business-semantic authority rather than prompt copies.",
+    "Research Auditor and Reader Funnel Judge receive web search because their canonical responsibilities include independent current-evidence verification; this does not grant web access to Writer, Editorial, Style, General Editorial or Final Audit by default.",
     "Repository wiring does not prove the current ChatGPT session can execute the adapter. GITHUB_CHAT is session-executable only when the model, GitHub write surface and deterministic github_chat_guard (plus exact-stage web/document capabilities) are actually available now.",
     "CHAT_BRIDGED generation/review is legal only through the explicit GITHUB_CHAT adapter, guard-accepted state transitions and action-bound receipts; free-form publishable output from INTAKE is not a degraded mode.",
     "A GITHUB_CHAT review is CHAT_SELF_REVIEW and a chat execution receipt is SELF_ATTESTED_CHAT_EXECUTION_RECEIPT. Either may prove bounded action/route evidence but neither certifies Python semantic PASS, INDEPENDENT_EXECUTOR or provider-attested isolation.",
