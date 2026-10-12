@@ -3,38 +3,17 @@ from __future__ import annotations
 from .models import ArtifactKind, GateStatus, SEMANTIC_GATE_STAGES, Stage, TaskContract, WritingState
 from .store import SQLiteStateStore
 from .system_impact import pending_system_impact_reviews
+from .workflow_spec import LEGAL_TRANSITIONS, RECOVERABLE_STAGES
 
 
 class WorkflowError(RuntimeError):
     pass
 
 
-RECOVERABLE_STAGES = {
-    Stage.INTAKE,
-    Stage.RESEARCH,
-    Stage.RESEARCH_AUDIT,
-    Stage.EDITORIAL,
-    Stage.TITLE,
-    Stage.DRAFT,
-    Stage.EDITORIAL_AUDIT,
-    Stage.DELIVERY,
-    Stage.MECHANICAL_AUDIT,
-    Stage.FINAL_AUDIT,
-}
-
+# Backward-compatible public names now derive from the canonical workflow spec.
+# Keep them read-only by convention; adapters must not redefine their own broader graph.
 ALLOWED_TRANSITIONS: dict[Stage, set[Stage]] = {
-    Stage.INTAKE: {Stage.RESEARCH, Stage.BLOCKED},
-    Stage.RESEARCH: {Stage.RESEARCH_AUDIT, Stage.BLOCKED},
-    Stage.RESEARCH_AUDIT: {Stage.RESEARCH, Stage.EDITORIAL, Stage.BLOCKED},
-    Stage.EDITORIAL: {Stage.TITLE, Stage.BLOCKED},
-    Stage.TITLE: {Stage.TITLE, Stage.DRAFT, Stage.BLOCKED},
-    Stage.DRAFT: {Stage.EDITORIAL_AUDIT, Stage.BLOCKED},
-    Stage.EDITORIAL_AUDIT: {Stage.RESEARCH, Stage.EDITORIAL, Stage.TITLE, Stage.DRAFT, Stage.DELIVERY, Stage.BLOCKED},
-    Stage.DELIVERY: {Stage.MECHANICAL_AUDIT, Stage.BLOCKED},
-    Stage.MECHANICAL_AUDIT: {Stage.DELIVERY, Stage.FINAL_AUDIT, Stage.BLOCKED},
-    Stage.FINAL_AUDIT: {Stage.RESEARCH, Stage.EDITORIAL, Stage.TITLE, Stage.DRAFT, Stage.DELIVERY, Stage.COMPLETE, Stage.BLOCKED},
-    Stage.COMPLETE: set(),
-    Stage.BLOCKED: set(RECOVERABLE_STAGES),
+    stage: set(targets) for stage, targets in LEGAL_TRANSITIONS.items()
 }
 
 
@@ -51,7 +30,7 @@ class WritingEngine:
         return state
 
     def transition(self, state: WritingState, next_stage: Stage, *, reason: str = "") -> WritingState:
-        if next_stage not in ALLOWED_TRANSITIONS[state.stage]:
+        if next_stage not in LEGAL_TRANSITIONS[state.stage]:
             raise WorkflowError(f"Illegal transition: {state.stage} -> {next_stage}")
         state.add_trace("STAGE_EXIT", reason)
         state.stage = next_stage
