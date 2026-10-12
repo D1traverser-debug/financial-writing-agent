@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "execution_mode": "CHAT_BRIDGED",
   "executor_type": "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE",
@@ -21,6 +21,16 @@
     "stage_artifact_directory": "workspaces/articles/{task_id}/stages",
     "review_directory": "workspaces/articles/{task_id}/reviews",
     "publication_source_directory": "workspaces/articles/{task_id}/publication",
+    "business_state_ref_policy": {
+      "allowed_refs": ["main", "article/{task_id}"],
+      "dedicated_article_branch_pattern": "article/{task_id}",
+      "dedicated_branch_base_rule": "A dedicated article branch must be created from the exact current GitHub main engineering/rule authority HEAD before INTAKE. The branch is a business-state ref only; it must not introduce engineering/rule changes relative to that base.",
+      "task_id_resolution_rule": "When an explicit GITHUB_CHAT task_id is known, resolve `article/{task_id}` first. If that branch exists and contains a matching STATE.json, it is the state ref for that task. Otherwise check the main business_state_root. If both refs contain divergent state for the same task_id, fail closed and reconcile instead of guessing.",
+      "generic_resume_rule": "For an explicit continue/resume-article intent without a task_id, inspect current `article/*` refs plus main article workspaces and resolve the intended task from durable STATE metadata. Do not rely on prior chat history as the candidate list.",
+      "branch_content_boundary": "A dedicated article branch may change only `workspaces/articles/{task_id}/...` business artifacts for its own task. Any architecture/runtime/policy/continuity change on that branch invalidates the branch as a pure business-state ref and requires maintenance reconciliation.",
+      "final_receipt_rule": "A COMMITTED final reply for a branch-backed task must identify the durable state ref as well as task_id so a cold-start chat can resolve the checkpoint without prior-chat memory.",
+      "central_duplicate_index_required": false
+    },
     "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
     "transition_guard": "financial_writing_agent/github_chat_guard.py",
     "chat_memory_is_business_state_authority": false,
@@ -56,11 +66,11 @@
       "updated_at"
     ],
     "execution_mode_value": "GITHUB_CHAT",
-    "mutation_guard": "Fetch the current STATE.json blob SHA, run financial_writing_agent.github_chat_guard to build/validate the next state and exact action-bound receipt, then replace STATE.json using that same SHA. A stale writer or guard failure blocks the mutation.",
+    "mutation_guard": "Resolve the durable business-state ref first, fetch the current STATE.json blob SHA on that ref, run financial_writing_agent.github_chat_guard to build/validate the next state and exact action-bound receipt, then replace STATE.json on the same ref using that same SHA. A stale writer, ref mismatch or guard failure blocks the mutation.",
     "execution_receipt_rule": "Every material chat-mode state mutation appends one self-attested execution receipt containing task/stage/capability/action, executor identity, prior state blob SHA, subject/input bindings, output refs and result. Receipt existence does not make the chat independent or owner-native.",
-    "post_write_verification": "Reread STATE.json and every newly referenced stage artifact after the GitHub mutation; a guard PASS or GitHub tool success alone is not commit proof.",
-    "stage_artifact_identity": "Git repository path + blob SHA",
-    "article_source_identity": "Git repository path + blob SHA or content digest"
+    "post_write_verification": "Reread STATE.json and every newly referenced stage artifact from the same resolved business-state ref after the GitHub mutation; a guard PASS or GitHub tool success alone is not commit proof.",
+    "stage_artifact_identity": "Git repository ref + path + blob SHA",
+    "article_source_identity": "Git repository ref + path + blob SHA or content digest"
   },
   "stage_evidence": {
     "RESEARCH": "Persist a structured research artifact covering the canonical Research contract: evidence ledger, source boundary, coverage sweeps, Universe Coverage where applicable, counterevidence, uncertainty and Market Explanation scope.",
@@ -84,7 +94,7 @@
     "terminal_claim_rule": "A useful article may be delivered after the full guard-enforced GitHub-chat workflow and self-review path completes, but owner-native/independent certification remains OPEN. Never translate CHAT_REVIEWED or a self-attested chat execution receipt into the Python GateStatus PASS proof model."
   },
   "learning_and_maintenance": {
-    "material_user_edit_feedback_rejection": "Use github_chat_guard.attach_material_feedback so material negative/corrective evidence and its OPEN system-impact item are written into the same guarded STATE.json mutation and exact action-bound receipt before the learning loop is called closed.",
+    "material_user_edit_feedback_rejection": "Use github_chat_guard.attach_material_feedback so material negative/corrective evidence and its OPEN system-impact item enter the same guarded STATE.json mutation and exact action-bound receipt before the learning loop is called closed.",
     "one_off_feedback_auto_promotes_rule": false,
     "owner_plugin_receipt_claim_when_plugin_unavailable": "FORBIDDEN",
     "shared_method_propagation": "Use current Universal operational_hygiene/evolution method; keep Financial business truth local."
@@ -95,7 +105,8 @@
     "missing_web_for_current_fact_research": "BLOCK or explicitly bound the research scope; do not invent current evidence.",
     "missing_document_tooling": "Keep publication source complete in GitHub and mark DOCX delivery OPEN; do not claim Word contract satisfied.",
     "missing_independent_or_owner_native_audit": "Continue only at CHAT_SELF_REVIEW assurance and keep certification OPEN; do not fabricate PASS.",
-    "context_or_connection_loss": "Resume from GitHub STATE.json + exact stage artifact refs + execution receipts, not remembered prose."
+    "missing_or_ambiguous_state_ref": "BLOCK resume/mutation until the task's durable Git ref is resolved. Do not silently fall back to main or chat memory when an `article/{task_id}` ref exists or main/branch states conflict.",
+    "context_or_connection_loss": "Resolve the durable state ref, then resume from GitHub STATE.json + exact stage artifact refs + execution receipts on that ref, not remembered prose."
   },
   "anti_bypass": [
     "No publishable final article is produced directly from INTAKE without a guarded GitHub task checkpoint.",
@@ -103,6 +114,7 @@
     "No current_stage change, review route or terminalization is accepted without github_chat_guard validation and one new action-bound execution receipt.",
     "No chat self-review is relabeled as INDEPENDENT_EXECUTOR or owner-runtime PASS.",
     "No missing owner runtime is silently replaced by free-form writing; the explicit guard-enforced GitHub-chat adapter is the only chat fallback.",
+    "No branch-backed task may be reported COMMITTED without identifying and rereading the durable state ref.",
     "No Site/MCP deployment is required merely to use this adapter."
   ]
 }
