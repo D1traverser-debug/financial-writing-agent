@@ -1,0 +1,10 @@
+{
+  "schema_version": "1.0",
+  "task_id": "_guard_tracer_20261012",
+  "stage": "RESEARCH",
+  "synthetic": true,
+  "source_boundary": "mechanism tracer only",
+  "evidence_ledger": [{"claim": "guard tracer research artifact exists", "source": "synthetic", "confidence": "high"}],
+  "counterevidence": ["not evidence of article quality"],
+  "market_explanation_scope": "NOT_MATERIAL"
+}
