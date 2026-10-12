@@ -16,10 +16,14 @@ Adapter: `continuity/UNIVERSAL_PROTOCOL_ADAPTER.json`
 - 在任何 material action 前，读取当前 `skills/financial-writing-agent/SKILL.md`、`continuity/AGENT_MANIFEST.json` 与 `continuity/EXECUTION_CAPABILITIES.json` profile 10，只对当前步骤所需能力做 session handshake；仓库声明不是当前聊天的执行证明。
 - owner-native Python/plugin 实际可用时走版本化 WritingState；不可用时，只有当前聊天同时具备模型执行、GitHub owner 读写和可执行 deterministic `github_chat_guard.py`（以及当前阶段需要的 web/document 能力）才可选择 GITHUB_CHAT。
 - 缺少 deterministic guard 时必须阻塞对应 transition；不得退化成自由写作。
-- GITHUB_CHAT 业务状态位于 `workspaces/articles/{task_id}`。每个 material transition 必须绑定 prior STATE blob SHA、action identity 与输出 refs，由 guard 接受后写入并回读。
+- GITHUB_CHAT 业务状态位于 `workspaces/articles/{task_id}`，其 durable Git ref 按 `continuity/GITHUB_CHAT_EXECUTION.json` 解析：允许 `main` 或从当前 main authority HEAD 创建的专用 `article/{task_id}` 分支。专用文章分支只能写本 task 的 `workspaces/articles/{task_id}/...` 业务工件，不得夹带代码/规则/架构修改。
+- 新聊天若收到明确 `task_id`，先解析 `article/{task_id}`；该分支存在且含匹配 STATE 时，以该 ref 为业务状态真相，否则再检查 main。若 main 与专用分支存在同一 task_id 的冲突状态，fail closed，不凭聊天记忆猜测。
+- 明确“继续/恢复上一篇文章”但没有 task_id 时，候选发现必须同时覆盖当前 `article/*` refs 与 main 的文章 workspace，并按 durable STATE 元数据解析；不能把旧聊天列表当候选集。健康 NEW_TASK 不做历史文章全量扫描。
+- 每个 material transition 必须在同一个已解析 state ref 上绑定 prior STATE blob SHA、action identity 与输出 refs，由 guard 接受后写入并从同一 ref 回读。
+- 分支型 GITHUB_CHAT task 的最终 `进度提交` 必须同时报告 `task_id` 与 durable `state_ref`；删除/丢失旧聊天后，下一聊天仍应能仅靠 GitHub authority 恢复。
 - GITHUB_CHAT Research/Editorial/Final review 只能是 `CHAT_SELF_REVIEW`；可 REVISE/FAIL，不得冒充 owner-native semantic PASS、`INDEPENDENT_EXECUTOR` 或 provider-attested isolation。正常终态是 `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`。
 - owner-native Hosted/MCP 路径若可用，语义 PASS 继续只通过 owner-runtime proof-bearing path；缺少其 SDK/model runtime 时不得用聊天自证替代。
 - Financial task manifest / handoff 已对齐 profile 10、canonical workflow kernel 与 Phase-2 checkpoint-CAS/recovery；同一 task maintenance 保持既有 `resume_epoch` 与 active lease。
 - 新聊天 takeover 仍按 Universal Continuity v3.7 增加 `resume_epoch` 并淘汰旧 writer；但普通 NEW_TASK 不需要先“继承”旧文章。
 - GitHub/Library/Notion/Drive 都不是自动事件监听器。**是否能在完全全新的 ChatGPT 对话中仅凭普通财经写作请求自动发现本 repo，属于产品/账号级 routing capability，必须用真实 fresh-chat product trace 证明；不能由本索引自证。**
-- 活跃持久任务最终答复输出 v3.7 `进度提交`；只有 owner authority 回读验证后才能报告 `COMMITTED`。
+- 活跃持久任务最终答复输出 v3.7 `进度提交`；只有 owner authority 在准确 state ref 上回读验证后才能报告 `COMMITTED`。
