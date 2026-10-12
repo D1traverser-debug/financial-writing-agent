@@ -1,0 +1,60 @@
+{
+  "stage": "DELIVERY",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "execution_mode": "GITHUB_CHAT",
+  "publication_source_authority": {
+    "FINANCE_DEEP": {
+      "path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_DEEP.json",
+      "blob_sha": "93117e559e467cfcd4aaca8c75ccee7d9be92a01"
+    },
+    "FINANCE_BROAD": {
+      "path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_BROAD.json",
+      "blob_sha": "12b3549ad7e4af542d2538c3715cf30c400e3b6b"
+    }
+  },
+  "delivery_artifacts": [
+    {
+      "kind": "FINANCE_DEEP_DOCX",
+      "file_name": "FINANCE_DEEP.docx",
+      "sha256": "ff546974144497c99693c5a0b1ac2bc0418c33f21dd2564d8d5e442b4e0e37ec",
+      "rendered_pages": 6,
+      "transient_attachment_is_authority": false
+    },
+    {
+      "kind": "FINANCE_BROAD_DOCX",
+      "file_name": "FINANCE_BROAD.docx",
+      "sha256": "a0d15e086352e37b90a0526c061e5d88841dc34a368ee593e674962c9ac69c30",
+      "rendered_pages": 3,
+      "transient_attachment_is_authority": false
+    },
+    {
+      "kind": "AUDIT_DOCX",
+      "file_name": "WRITING_AUDIT_REPORT.docx",
+      "sha256": "1c2b7154ba2a0198673f3c18ca752fd289dfe4ac6acede253ebeea2345334f59",
+      "rendered_pages": 1,
+      "transient_attachment_is_authority": false
+    }
+  ],
+  "builder_contract": {
+    "title_pt": 20,
+    "h1_pt": 18,
+    "h2_pt": 15,
+    "h3_pt": 12,
+    "body_pt": 13.5,
+    "h1_red": true,
+    "tables": 0,
+    "underlines": 0,
+    "tail_source_section": false,
+    "explicit_bold_skim_anchors_preserved": true,
+    "single_inline_italic_risk_paragraph": true
+  },
+  "delivery_evidence": {
+    "deterministic_word_check": "PASS",
+    "render_engine": "LibreOffice via /home/oai/skills/docx/render_docx.py",
+    "visual_page_inspection": "PASS_ALL_10_PAGES",
+    "stale_render_reuse": false,
+    "article_body_pasted_in_chat": false
+  },
+  "durability_note": "GitHub publication JSON sources are regeneration authority. DOCX files are delivery artifacts and are not business checkpoint authority.",
+  "status": "PASS"
+}
