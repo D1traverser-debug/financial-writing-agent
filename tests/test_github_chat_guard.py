@@ -53,6 +53,7 @@ def test_initial_state_is_receipt_bound_self_attested_and_owner_contract_parity(
     assert receipt["capability_id"] == "github_chat_workflow"
     assert receipt["input_bindings"]["previous_state_blob_sha"] == "NEW_FILE"
     assert receipt["input_bindings"]["state_ref"] == "main"
+    assert receipt["input_bindings"]["distribution_mode_override_evidence"] is None
     assert receipt["verification_status"] == "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
 
 
@@ -67,18 +68,44 @@ def test_distribution_mode_cannot_be_silently_narrowed_by_chat():
         )
 
 
+def test_user_explicit_distribution_override_requires_exact_prompt_evidence():
+    with pytest.raises(GithubChatGuardError, match="exact user prompt evidence"):
+        build_initial_state(
+            task_id="missing-evidence",
+            prompt="这篇只要宽版",
+            source_refs=[],
+            executor_identity="chat-session:test",
+            distribution_mode="FINANCE_BROAD",
+            distribution_mode_source=MODE_SOURCE_USER_EXPLICIT,
+        )
+
+    with pytest.raises(GithubChatGuardError, match="exact substring"):
+        build_initial_state(
+            task_id="mismatched-evidence",
+            prompt="这篇只要宽版",
+            source_refs=[],
+            executor_identity="chat-session:test",
+            distribution_mode="FINANCE_BROAD",
+            distribution_mode_source=MODE_SOURCE_USER_EXPLICIT,
+            distribution_mode_override_evidence="用户只要广义财经版",
+        )
+
+
 def test_user_explicit_distribution_override_is_auditable():
     state = build_initial_state(
         task_id="explicit-broad",
-        prompt="user explicitly asks for broad only",
+        prompt="这篇只要宽版，其他按默认流程",
         source_refs=[],
         executor_identity="chat-session:test",
         distribution_mode="FINANCE_BROAD",
         distribution_mode_source=MODE_SOURCE_USER_EXPLICIT,
+        distribution_mode_override_evidence="只要宽版",
     )
     assert state["distribution_mode"] == "FINANCE_BROAD"
     assert state["required_outputs"] == ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"]
-    assert state["execution_receipts"][0]["input_bindings"]["distribution_mode_source"] == MODE_SOURCE_USER_EXPLICIT
+    init_bindings = state["execution_receipts"][0]["input_bindings"]
+    assert init_bindings["distribution_mode_source"] == MODE_SOURCE_USER_EXPLICIT
+    assert init_bindings["distribution_mode_override_evidence"] == "只要宽版"
 
 
 def test_research_cannot_advance_without_persisted_artifact():
