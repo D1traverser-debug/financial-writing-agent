@@ -101,8 +101,9 @@ def eval_e13() -> list[str]:
     contract = build_task_contract(prompt="没说平台，根据资料正常写")
     check(contract.distribution_mode == DistributionMode.DUAL, "E13 unspecified platform must route DUAL")
     check(contract.delivery_channel == DeliveryChannel.WORD_FILE_ONLY, "E13 must remain Word-only")
+    check(set(contract.required_outputs) == {ArtifactKind.AUDIT_DOCX, ArtifactKind.FINANCE_DEEP_DOCX, ArtifactKind.FINANCE_BROAD_DOCX}, "E13 default DUAL must require Deep + Broad + Audit Word outputs")
     check(all("VISUAL" not in kind.value and "STICKER" not in kind.value and kind.value != "CHAT_TEXT" for kind in contract.required_outputs), "E13 removed artifact contracts forbidden")
-    return ["DUAL", "WORD_FILE_ONLY", "no visual/sticker/chat artifacts"]
+    return ["DUAL", "WORD_FILE_ONLY", "Deep+Broad+Audit required", "no visual/sticker/chat artifacts"]
 
 
 def eval_e14() -> list[str]:
@@ -126,9 +127,11 @@ def eval_e16() -> list[str]:
 
 def eval_e17() -> list[str]:
     policy = json.loads(POLICY.read_text(encoding="utf-8"))
-    check(policy["risk_disclaimer"]["required"], "E17 risk disclaimer must be mandatory")
-    check(policy["risk_disclaimer"]["min_body_chars"] > 0, "E17 minimum substance must be nonzero")
-    return ["risk mandatory", f"min_chars={policy['risk_disclaimer']['min_body_chars']}"]
+    risk = policy["risk_disclaimer"]
+    check(risk["required"], "E17 risk disclaimer must be mandatory")
+    check(risk["min_body_chars"] == 0, "E17 fixed risk-length quota must remain removed")
+    check(risk["semantic_completeness_required"] is True, "E17 concise risk still requires semantic completeness")
+    return ["risk mandatory", "no fixed minimum character quota", "semantic completeness required"]
 
 
 def _headline(title: str, broader: str = "", family: str = "profit_orders") -> HeadlineCandidate:
