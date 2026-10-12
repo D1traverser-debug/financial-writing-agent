@@ -40,8 +40,6 @@ def test_canonical_workflow_sequence_and_revision_contract():
     assert revision_targets(Stage.FINAL_AUDIT) == frozenset(
         {Stage.RESEARCH, Stage.EDITORIAL, Stage.TITLE, Stage.DRAFT, Stage.DELIVERY}
     )
-    # Regression for the pre-kernel defect: controller supported DRAFT->DRAFT
-    # revision but the old engine transition table rejected it.
     assert Stage.DRAFT in LEGAL_TRANSITIONS[Stage.DRAFT]
 
 
@@ -55,14 +53,9 @@ def test_owner_native_draft_revision_loop_is_now_legal(tmp_path):
     state = engine.start(TaskContract(prompt="draft revise parity"))
     state.stage = Stage.DRAFT
     state.set_gate("draft_output", GateStatus.REVISE, ["deterministic draft guard requested rewrite"])
-
     revised = controller.advance(state)
-
     assert revised.stage == Stage.DRAFT
-    assert any(
-        event.event == "STAGE_ENTER" and event.stage == Stage.DRAFT
-        for event in revised.trace
-    )
+    assert any(event.event == "STAGE_ENTER" and event.stage == Stage.DRAFT for event in revised.trace)
 
 
 def test_dependency_invalidation_is_derived_from_stage_order():
@@ -71,48 +64,23 @@ def test_dependency_invalidation_is_derived_from_stage_order():
     assert invalidated_stage_names_from("TITLE") == BUSINESS_STAGE_NAMES[4:]
     assert invalidated_stage_names_from("DRAFT") == BUSINESS_STAGE_NAMES[5:]
     assert invalidated_stage_names_from("DELIVERY") == BUSINESS_STAGE_NAMES[7:]
-
     assert invalidated_gate_names_from(Stage.RESEARCH) == (
-        "research_output",
-        "research_audit",
-        "editorial_plan",
-        "title_audit",
-        "draft_output",
-        "hook_audit",
-        "style_audit",
-        "editorial_audit",
-        "delivery_output",
-        "mechanical_audit",
-        "final_audit",
+        "research_output", "research_audit", "editorial_plan", "title_audit", "draft_output",
+        "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit",
     )
     assert invalidated_gate_names_from(Stage.DRAFT) == (
-        "draft_output",
-        "hook_audit",
-        "style_audit",
-        "editorial_audit",
-        "delivery_output",
-        "mechanical_audit",
-        "final_audit",
+        "draft_output", "hook_audit", "style_audit", "editorial_audit",
+        "delivery_output", "mechanical_audit", "final_audit",
     )
 
 
 def _runtime_service_ast() -> ast.Module:
-    source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
-    return ast.parse(source)
+    return ast.parse((ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8"))
 
 
 def _runtime_cleanup_gate_map() -> dict[str, tuple[str, ...]]:
-    """Inspect current owner-native cleanup without importing its global store.
-
-    Phase 1 leaves adapter-specific working-key/artifact cleanup in runtime_service.
-    This makes the remaining duplicated gate lists an executable parity obligation
-    until Phase 2 edits that service for recovery/task-discovery and can remove them.
-    """
     tree = _runtime_service_ast()
-    func = next(
-        node for node in tree.body
-        if isinstance(node, ast.FunctionDef) and node.name == "_cleanup_after_revision"
-    )
+    func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_cleanup_after_revision")
     result: dict[str, tuple[str, ...]] = {}
     node = func.body[0]
     while isinstance(node, ast.If):
@@ -126,14 +94,8 @@ def _runtime_cleanup_gate_map() -> dict[str, tuple[str, ...]]:
         ):
             target = compare.comparators[0].value
             invalidate_call = next(
-                (
-                    call
-                    for statement in node.body
-                    for call in ast.walk(statement)
-                    if isinstance(call, ast.Call)
-                    and isinstance(call.func, ast.Name)
-                    and call.func.id == "_invalidate"
-                ),
+                (call for statement in node.body for call in ast.walk(statement)
+                 if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == "_invalidate"),
                 None,
             )
             if invalidate_call is not None and len(invalidate_call.args) >= 2:
@@ -152,15 +114,10 @@ def test_owner_native_revision_cleanup_gate_lists_match_canonical_dependencies()
 
 def _literal_revision_set_for_submit(function_name: str) -> frozenset[Stage]:
     tree = _runtime_service_ast()
-    func = next(
-        node for node in tree.body
-        if isinstance(node, ast.FunctionDef) and node.name == function_name
-    )
+    func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == function_name)
     call = next(
         node for node in ast.walk(func)
-        if isinstance(node, ast.Call)
-        and isinstance(node.func, ast.Name)
-        and node.func.id == "_validate_revision_target"
+        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_validate_revision_target"
     )
     raw = ast.literal_eval(call.args[1])
     return frozenset(Stage(item) for item in raw)
@@ -175,7 +132,6 @@ def test_public_submit_revision_sets_match_canonical_review_routes():
 def test_github_chat_contract_points_to_kernel_instead_of_copying_stage_order():
     contract = json.loads((ROOT / "continuity/GITHUB_CHAT_EXECUTION.json").read_text(encoding="utf-8"))
     workflow = contract["workflow"]
-
     assert contract["schema_version"] == "1.2"
     assert contract["authority"]["canonical_workflow_spec"] == "financial_writing_agent/workflow_spec.py"
     assert workflow["canonical_stage_order_symbol"] == "BUSINESS_STAGE_ORDER"
@@ -186,21 +142,11 @@ def test_github_chat_contract_points_to_kernel_instead_of_copying_stage_order():
 
 def test_github_chat_guard_follows_canonical_initial_forward_edges():
     state = build_initial_state(
-        task_id="workflow-parity",
-        prompt="test",
-        distribution_mode="FINANCE_DEEP",
-        source_refs=[],
-        executor_identity="chat-session:test",
+        task_id="workflow-parity", prompt="test", distribution_mode="FINANCE_DEEP", source_refs=[], executor_identity="chat-session:test"
     )
     assert state["current_stage"] == "INTAKE"
-
-    state = advance_state(
-        state,
-        previous_state_blob_sha="state-0",
-        executor_identity="chat-session:test",
-    )
+    state = advance_state(state, previous_state_blob_sha="state-0", executor_identity="chat-session:test")
     assert state["current_stage"] == pass_target(Stage.INTAKE).value
-
     state = advance_state(
         state,
         previous_state_blob_sha="state-1",
@@ -210,6 +156,25 @@ def test_github_chat_guard_follows_canonical_initial_forward_edges():
         artifact_blob_sha="research-blob",
     )
     assert state["current_stage"] == pass_target(Stage.RESEARCH).value
+
+
+def test_no_parallel_workflow_tables_are_reintroduced_outside_kernel():
+    forbidden_assignments = {"STAGE_ORDER", "REGULAR_FORWARD", "REVIEW_ROUTES", "PASS_TARGET", "REVISION_TARGETS"}
+    offenders: list[str] = []
+    for path in (ROOT / "financial_writing_agent").rglob("*.py"):
+        if path.name == "workflow_spec.py":
+            continue
+        tree = ast.parse(path.read_text(encoding="utf-8"))
+        assigned: set[str] = set()
+        for node in ast.walk(tree):
+            if isinstance(node, (ast.Assign, ast.AnnAssign)):
+                targets = node.targets if isinstance(node, ast.Assign) else [node.target]
+                for target in targets:
+                    if isinstance(target, ast.Name):
+                        assigned.add(target.id)
+        if assigned & forbidden_assignments:
+            offenders.append(str(path.relative_to(ROOT)))
+    assert offenders == []
 
 
 def test_chat_guard_no_longer_owns_a_second_route_table():
