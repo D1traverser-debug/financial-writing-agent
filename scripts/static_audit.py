@@ -147,7 +147,15 @@ def check_reference_bundle() -> None:
     ), "Skill")
     if "publication articles do not use tables" not in lower:
         fail("Skill must prohibit publication tables")
-    forbid(skill, ("references/structure_patterns.md", "Do not automatically bold every company/stock-name occurrence", "Human Voice Gate", "CHAT_TEXT", "writing-text://", "per-article business-state branches"), "Skill")
+    forbid(skill, (
+        "references/structure_patterns.md",
+        "Do not automatically bold every company/stock-name occurrence",
+        "Human Voice Gate",
+        "CHAT_TEXT",
+        "writing-text://",
+        "article/{task_id} is the business-state authority",
+        "per-article branch is business-state authority",
+    ), "Skill")
 
 
 def _tool_names(path: Path) -> set[str]:
