@@ -8,6 +8,7 @@ import pytest
 
 from financial_writing_agent import runtime_service as runtime
 from financial_writing_agent.models import GateStatus, Stage, TaskContract, WritingState
+from financial_writing_agent.runner import AgentRuntime
 from financial_writing_agent.store import SQLiteStateStore, StateConflictError
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -124,9 +125,8 @@ def test_completed_task_with_open_maintenance_debt_remains_discoverable(tmp_path
     assert "review_writing_system_impact" in rows[0]["next_action"]
 
 
-def test_pending_revision_cleanup_is_reconciled_on_next_load_and_is_idempotent(tmp_path, monkeypatch):
-    store = SQLiteStateStore(tmp_path / "state.db")
-    state = _state("revision-crash", stage=Stage.RESEARCH)
+def _persist_revision_crash(store: SQLiteStateStore, task_id: str = "revision-crash") -> None:
+    state = _state(task_id, stage=Stage.RESEARCH)
     for gate in (
         "research_output",
         "research_audit",
@@ -148,20 +148,60 @@ def test_pending_revision_cleanup_is_reconciled_on_next_load_and_is_idempotent(t
         "reason": "simulated crash after revision transition",
     }
     store.save(state)
+
+
+def test_pending_revision_cleanup_is_replayed_in_memory_without_mutating_read(tmp_path, monkeypatch):
+    store = SQLiteStateStore(tmp_path / "state.db")
+    _persist_revision_crash(store)
     monkeypatch.setattr(runtime, "store", store)
 
     recovered = runtime._load("revision-crash")
     assert recovered.stage == Stage.RESEARCH
-    assert recovered.checkpoint_version == 2
+    assert recovered.checkpoint_version == 1
     assert "_pending_revision_cleanup" not in recovered.working
     assert "editorial_plan" not in recovered.working
     assert "draft" not in recovered.working
     assert all(record.status == GateStatus.NOT_RUN for record in recovered.gates.values())
-    assert any(event.event == "RECOVERY_RECONCILED" for event in recovered.trace)
+    assert sum(event.event == "RECOVERY_RECONCILED" for event in recovered.trace) == 1
 
+    # A second read replays the same durable recovery intent but still does not write.
     second = runtime._load("revision-crash")
-    assert second.checkpoint_version == 2
+    assert second.checkpoint_version == 1
     assert sum(event.event == "RECOVERY_RECONCILED" for event in second.trace) == 1
+
+    with sqlite3.connect(store.path) as conn:
+        raw_payload, raw_version = conn.execute(
+            "SELECT payload, checkpoint_version FROM runs WHERE task_id='revision-crash'"
+        ).fetchone()
+    assert raw_version == 1
+    assert "_pending_revision_cleanup" in json.loads(raw_payload)["working"]
+
+    # The next legitimate writer commits the healed state with normal CAS.
+    store.save(recovered)
+    assert recovered.checkpoint_version == 2
+    durable = store.load("revision-crash")
+    assert durable is not None
+    assert durable.checkpoint_version == 2
+    assert "_pending_revision_cleanup" not in durable.working
+    assert sum(event.event == "RECOVERY_RECONCILED" for event in durable.trace) == 1
+
+
+def test_runner_resume_persists_replayed_recovery_without_entrypoint_specific_logic(tmp_path):
+    store = SQLiteStateStore(tmp_path / "state.db")
+    _persist_revision_crash(store, task_id="runner-recovery")
+    agent = AgentRuntime(engine=runtime.WritingEngine(store), executors={})
+
+    resumed = agent.resume("runner-recovery")
+    assert resumed.stage == Stage.RESEARCH
+    assert resumed.checkpoint_version == 2
+    assert "_pending_revision_cleanup" not in resumed.working
+    assert any(event.event == "RECOVERY_RECONCILED" for event in resumed.trace)
+    assert any(event.event == "RUNTIME_RESUMED" for event in resumed.trace)
+
+    durable = store.load("runner-recovery")
+    assert durable is not None
+    assert durable.checkpoint_version == 2
+    assert "_pending_revision_cleanup" not in durable.working
 
 
 def test_pending_revision_cleanup_fails_closed_on_stage_mismatch(tmp_path, monkeypatch):
