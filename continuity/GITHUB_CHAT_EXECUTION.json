@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.1",
+  "schema_version": "1.2",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "execution_mode": "CHAT_BRIDGED",
   "executor_type": "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE",
@@ -21,27 +21,21 @@
     "stage_artifact_directory": "workspaces/articles/{task_id}/stages",
     "review_directory": "workspaces/articles/{task_id}/reviews",
     "publication_source_directory": "workspaces/articles/{task_id}/publication",
+    "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
     "transition_guard": "financial_writing_agent/github_chat_guard.py",
     "chat_memory_is_business_state_authority": false,
     "python_sqlite_state_is_required_for_this_mode": false,
     "site_or_mcp_deployment_is_required_for_this_mode": false
   },
   "workflow": {
-    "stage_order": [
-      "INTAKE",
-      "RESEARCH",
-      "RESEARCH_AUDIT",
-      "EDITORIAL",
-      "TITLE",
-      "DRAFT",
-      "EDITORIAL_AUDIT",
-      "DELIVERY",
-      "MECHANICAL_AUDIT",
-      "FINAL_AUDIT"
-    ],
+    "canonical_stage_order_symbol": "BUSINESS_STAGE_ORDER",
+    "canonical_pass_target_symbol": "PASS_TARGET",
+    "canonical_revision_targets_symbol": "REVISION_TARGETS",
+    "canonical_invalidation_symbol": "invalidated_stages_from",
     "terminal_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
     "owner_native_terminal_status": "COMPLETE",
-    "rule": "Use the same Financial business sequence as the owner-native workflow. Stage advancement/revision/terminalization is accepted only through github_chat_guard against the fetched current STATE.json blob identity; the model may not hand-edit current_stage to skip or invent a gate."
+    "adapter_narrowing_rule": "GITHUB_CHAT may expose a conservative subset of canonical workflow capabilities because its semantic assurance is weaker, but it may not add a stage edge or revision target that is absent from financial_writing_agent.workflow_spec.",
+    "rule": "Use the Financial business sequence from financial_writing_agent.workflow_spec. Stage advancement/revision/terminalization is accepted only through github_chat_guard against the fetched current STATE.json blob identity; this JSON contract intentionally does not maintain a second independent stage list."
   },
   "checkpoint_contract": {
     "state_schema_version": "1.1",

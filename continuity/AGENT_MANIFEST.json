@@ -32,6 +32,7 @@
       "continuity/GITHUB_CHAT_EXECUTION.json"
     ],
     "transition_guard_refs": [
+      "financial_writing_agent/workflow_spec.py",
       "financial_writing_agent/controller.py",
       "financial_writing_agent/engine.py",
       "financial_writing_agent/semantic_runtime.py",

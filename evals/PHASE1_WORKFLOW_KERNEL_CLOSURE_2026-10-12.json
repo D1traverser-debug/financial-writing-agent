@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.0",
+  "phase": "PHASE_1_WORKFLOW_KERNEL",
+  "status": "ACCEPTED_FOR_MAIN_WITH_SCOPED_ASSURANCE",
+  "base_main": "098746d07f0d9ca55574d8012457e922a612ea2a",
+  "pr": 15,
+  "decision": {
+    "selected_mechanism": "ONE_CANONICAL_BUSINESS_WORKFLOW_KERNEL_WITH_ADAPTER_NARROWING",
+    "rejected_alternatives": [
+      "KEEP_INDEPENDENT_GRAPHS_PLUS_MORE_PARITY_TESTS",
+      "REQUIRE_OWNER_NATIVE_RUNTIME_FOR_ALL_GPT_CHAT_EXECUTION",
+      "FULLY_UNIFY_PERSISTENCE_AND_ASSURANCE_IN_PHASE_1"
+    ]
+  },
+  "confirmed_repairs": [
+    "DRAFT_REVISE_SELF_LOOP_ENGINE_CONTROLLER_MISMATCH",
+    "LOW_LEVEL_COMPLETE_BYPASS",
+    "LOW_LEVEL_BLOCKED_ENTRY_BYPASS",
+    "LOW_LEVEL_BLOCKED_EXIT_BYPASS",
+    "GITHUB_CHAT_SECOND_INDEPENDENT_STAGE_LIST"
+  ],
+  "final_review": {
+    "pr_diff_scope": "12 files; workflow authority/adapters/tests/audit only; no research/editorial/style/delivery policy rewrite",
+    "new_shadow_graph_attack": "NO_NEW_PARALLEL_ROUTE_TABLE_FOUND_IN_CHANGED_SURFACES; package regression added to reject reintroduction",
+    "assurance_flattening_attack": "PASS; GITHUB_CHAT remains CHAT_SELF_REVIEW and bounded terminal, owner-native COMPLETE remains proof-gated",
+    "universal_architecture_validator_logic": "STRUCTURAL_PASS_AGAINST_CURRENT_CONTRACT_RULES",
+    "architecture_boundary": "structural conformance only; not live quality, provider isolation, current-session execution or global correctness"
+  },
+  "execution_evidence": {
+    "targeted_exact_code_and_fault_harness": "PASS_RECORDED_IN_PHASE1_AUDIT",
+    "github_chat_exact_blob_guard_harness": "PASS_RECORDED_IN_PHASE1_AUDIT",
+    "runtime_service_parity_harness": "PASS_RECORDED_IN_PHASE1_AUDIT",
+    "hosted_full_ci": {
+      "status": "NOT_EXECUTED",
+      "latest_run_id": 38197169494,
+      "latest_job_id": 114642309098,
+      "job_steps": null,
+      "interpretation": "HOSTED_RUNNER_NOT_ALLOCATED; NOT A CODE_TEST_FAILURE AND NOT A FULL_REGRESSION_PASS"
+    }
+  },
+  "assurance_ceiling": "WORKFLOW_KERNEL_SCOPED_EXACT_CODE_AND_FAULT_PASS__STRUCTURAL_ARCHITECTURE_PASS__FULL_OWNER_CI_RUNNER_NOT_EXECUTED__LIVE_ARTICLE_OPEN",
+  "remaining_open": [
+    "FULL_OWNER_CI",
+    "LIVE_ARTICLE_TRAJECTORY",
+    "POST_CHANGE_WRITING_QUALITY",
+    "RUNTIME_SERVICE_REVISION_IMPLEMENTATION_DUPLICATION_TO_REMOVE_IN_PHASE_2",
+    "TASK_DISCOVERY_MAINTENANCE_DEBT_FILTERING_FORK_TO_REMOVE_IN_PHASE_2"
+  ],
+  "phase_2_entry": "EXECUTION_READINESS_STATE_RECOVERY_CONVERGENCE"
+}
