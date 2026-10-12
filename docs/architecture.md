@@ -7,7 +7,7 @@ Build a reliable A-share financial-writing system that keeps the business workfl
 Financial Writing has one business owner and one canonical business sequence. It currently supports two execution adapters:
 
 1. **OWNER_NATIVE / Python** — `WorkflowController + WritingEngine + OpenAI Agents SDK/deterministic executors`. This path can produce proof-bearing owner-runtime semantic PASS when its exact runtime is session-available.
-2. **CHAT_BRIDGED / GitHub** — current GPT chat performs the stage work while GitHub stores per-article checkpoints and stage artifacts under `workspaces/articles/{task_id}` according to `continuity/GITHUB_CHAT_EXECUTION.json`. This is the user's current production mode and does not require a Site/MCP deployment.
+2. **CHAT_BRIDGED / GitHub** — current GPT chat performs the stage work while GitHub stores per-article checkpoints and stage artifacts under `workspaces/articles/{task_id}` according to `continuity/GITHUB_CHAT_EXECUTION.json`. Business state may live on `main` or on a dedicated `article/{task_id}` ref created from the exact current main authority head. A dedicated article ref is business-state isolation only and may not carry engineering/rule changes. This is the user's current production mode and does not require a Site/MCP deployment.
 
 The second path is not a free-form fallback. It uses the same business stage order and domain references, requires a session capability handshake and durable GitHub checkpoint after every material stage, and keeps its weaker review assurance explicit.
 
@@ -30,11 +30,14 @@ The historical payload label `INDEPENDENT_EXECUTOR` means stage-separated owner-
 ## 5. Persistence and recovery
 - GitHub `main`: engineering/rule authority.
 - OWNER_NATIVE run: authoritative `WritingState` in its configured owner store; SQLite is local/CI reference.
-- GITHUB_CHAT run: `workspaces/articles/{task_id}/STATE.json` + exact stage/review/publication refs in GitHub are business execution truth.
-- Chat memory: never checkpoint authority.
+- GITHUB_CHAT run: `workspaces/articles/{task_id}/STATE.json` + exact stage/review/publication refs on the resolved business-state Git ref are business execution truth.
+- GITHUB_CHAT state refs: `main` or deterministic `article/{task_id}`. Dedicated article refs must start from the exact current main authority head and may change only that task's workspace.
+- Cold-start task-id recovery: resolve `article/{task_id}` first when present, otherwise main. If both refs contain divergent state for the same task, fail closed instead of choosing from chat memory.
+- Generic article resume without a task id: inspect current dedicated `article/*` refs plus main article workspaces and resolve from durable STATE metadata; healthy NEW_TASK does not scan historical articles.
+- Chat memory: never checkpoint authority or task-discovery authority.
 - A transient chat DOCX attachment: delivery artifact only; the persisted GitHub publication source is the regeneration authority.
 
-Every material GITHUB_CHAT mutation fetches the current state blob identity, writes the intended checkpoint, and rereads it before claiming durability. Context loss resumes from GitHub, not remembered prose.
+Every material GITHUB_CHAT mutation resolves the state ref first, fetches the current state blob identity on that ref, writes the intended checkpoint to the same ref, and rereads it before claiming durability. A branch-backed final progress receipt identifies both `task_id` and `state_ref` so a replacement chat can recover without the terminated transcript.
 
 ## 6. Content modes
 - `FINANCE_DEEP`: `MATERIAL_COMPLETE` relative to the bounded audited research universe.
