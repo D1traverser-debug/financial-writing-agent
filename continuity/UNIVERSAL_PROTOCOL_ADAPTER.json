@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "1.9",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "owner_contract_version": "0.8.1",
