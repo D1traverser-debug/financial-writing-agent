@@ -3,8 +3,8 @@
   "task_id": "_guard_tracer_20261012",
   "execution_mode": "GITHUB_CHAT",
   "status": "IN_PROGRESS",
-  "current_stage": "INTAKE",
-  "next_action": "run exact-stage capability handshake, then guard transition INTAKE → RESEARCH",
+  "current_stage": "RESEARCH",
+  "next_action": "execute and persist RESEARCH",
   "distribution_mode": "FINANCE_DEEP",
   "prompt": "synthetic guard tracer; no publication output",
   "source_refs": [],
@@ -28,7 +28,22 @@
       "output_refs": ["workspaces/articles/_guard_tracer_20261012/STATE.json"],
       "result": "GUARD_ACCEPTED",
       "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
+    },
+    {
+      "receipt_contract_version": "1.0",
+      "receipt_id": "receipt:_guard_tracer_20261012:TRANSITION:0002",
+      "action_id": "_guard_tracer_20261012:TRANSITION:0002",
+      "task_id": "_guard_tracer_20261012",
+      "stage": "INTAKE",
+      "capability_id": "github_chat_workflow",
+      "executor_identity": "chat-session:universal-maintenance-tracer",
+      "execution_ref": "github-chat://_guard_tracer_20261012/_guard_tracer_20261012:TRANSITION:0002",
+      "subject_bindings": {"task_id": "_guard_tracer_20261012", "from_stage": "INTAKE", "to_stage": "RESEARCH"},
+      "input_bindings": {"previous_state_blob_sha": "1a8f4f8fb28e48b0b52c0152a41b6bfb42040f7c", "from_stage": "INTAKE"},
+      "output_refs": ["workspaces/articles/_guard_tracer_20261012/STATE.json"],
+      "result": "GUARD_ACCEPTED",
+      "verification_status": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
     }
   ],
-  "updated_at": "2026-10-12T01:40:00+00:00"
+  "updated_at": "2026-10-12T01:41:00+00:00"
 }
