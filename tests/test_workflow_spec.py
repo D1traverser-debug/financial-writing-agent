@@ -74,19 +74,44 @@ def test_dependency_invalidation_is_derived_from_stage_order():
     )
 
 
-def test_runtime_service_consumes_kernel_instead_of_maintaining_gate_route_copies():
-    source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
-    tree = ast.parse(source)
+def test_runtime_service_consumes_kernel_and_shared_recovery_instead_of_maintaining_copies():
+    runtime_source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    runtime_tree = ast.parse(runtime_source)
+    recovery_source = (ROOT / "financial_writing_agent/state_recovery.py").read_text(encoding="utf-8")
+    recovery_tree = ast.parse(recovery_source)
 
-    imports = {
+    workflow_imports = {
         alias.name
-        for node in tree.body
+        for node in runtime_tree.body
         if isinstance(node, ast.ImportFrom) and node.module == "workflow_spec"
         for alias in node.names
     }
-    assert {"invalidated_gate_names_from", "revision_targets"}.issubset(imports)
+    assert {"invalidated_gate_names_from", "revision_targets"}.issubset(workflow_imports)
 
-    apply_cleanup = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_apply_revision_cleanup")
+    recovery_import_aliases = {
+        alias.asname: alias.name
+        for node in runtime_tree.body
+        if isinstance(node, ast.ImportFrom) and node.module == "state_recovery"
+        for alias in node.names
+    }
+    assert recovery_import_aliases == {
+        "_apply_revision_cleanup": "apply_revision_cleanup",
+        "_mark_revision_cleanup": "mark_revision_cleanup",
+    }
+
+    runtime_function_names = {
+        node.name for node in runtime_tree.body if isinstance(node, ast.FunctionDef)
+    }
+    assert "_apply_revision_cleanup" not in runtime_function_names
+    assert "_mark_revision_cleanup" not in runtime_function_names
+    assert "_reconcile_pending_revision_cleanup" not in runtime_function_names
+    assert "_REVISION_CLEAR_WORKING_KEYS" not in runtime_source
+    assert "_PENDING_REVISION_CLEANUP" not in runtime_source
+
+    apply_cleanup = next(
+        node for node in recovery_tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "apply_revision_cleanup"
+    )
     assert any(
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
@@ -94,7 +119,10 @@ def test_runtime_service_consumes_kernel_instead_of_maintaining_gate_route_copie
         for node in ast.walk(apply_cleanup)
     )
 
-    stage_change = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_invalidate_for_stage_change")
+    stage_change = next(
+        node for node in runtime_tree.body
+        if isinstance(node, ast.FunctionDef) and node.name == "_invalidate_for_stage_change"
+    )
     assert any(
         isinstance(node, ast.Call)
         and isinstance(node.func, ast.Name)
@@ -107,7 +135,7 @@ def test_runtime_service_consumes_kernel_instead_of_maintaining_gate_route_copie
         ("submit_editorial_audit", Stage.EDITORIAL_AUDIT),
         ("submit_final_audit", Stage.FINAL_AUDIT),
     ):
-        func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == function_name)
+        func = next(node for node in runtime_tree.body if isinstance(node, ast.FunctionDef) and node.name == function_name)
         calls = [
             node for node in ast.walk(func)
             if isinstance(node, ast.Call)
@@ -118,8 +146,8 @@ def test_runtime_service_consumes_kernel_instead_of_maintaining_gate_route_copie
         assert isinstance(calls[0].args[0], ast.Attribute)
         assert calls[0].args[0].attr == expected_stage.name
 
-    assert '_validate_revision_target(payload, {"RESEARCH"}' not in source
-    assert '_validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT"}' not in source
+    assert '_validate_revision_target(payload, {"RESEARCH"}' not in runtime_source
+    assert '_validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT"}' not in runtime_source
 
 
 def test_github_chat_contract_points_to_kernel_instead_of_copying_stage_order():
