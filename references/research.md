@@ -60,6 +60,23 @@ A late sweep that still finds a material concept, company class, contradictory f
 - Keep title/opening/core-conclusion facts on a stronger evidence standard than background material.
 - Do not silently omit a material company because another company is easier to explain or has better-known disclosures.
 
+## Evidence-stage integrity — domain-general, not topic-specific
+Research must distinguish **where a claim sits in the current topic's realization chain** and must not promote an earlier stage into a later stage without evidence.
+
+Possible stages vary by industry and article. Examples may include:
+`research/technology → product → qualification/capacity → order/contract → delivery → recognized revenue → margin/profit → cash flow`.
+
+This is not a fixed mandatory ladder and must not be rewritten into a permanent rule about one domain such as AI, semiconductors, wind power or pharmaceuticals. For the current topic, identify the stages that actually matter and preserve their differences.
+
+Examples of illegal escalation include:
+- treating a product launch as proof of material orders;
+- treating an order or contract as recognized revenue;
+- treating revenue growth as proof of profit or cash-flow improvement;
+- treating capacity or technical readiness as proof of utilization;
+- treating an industry-wide demand signal as proof that every listed company captures the same economics.
+
+The inverse also matters: if later-stage evidence really exists, do not bury it by describing the company only as an early-stage option. The research package should make the realization stage and evidence boundary explicit enough for Editorial/Audit to preserve it.
+
 ## Explicit Market Explanation scope
 Every `ResearchPackage` declares:
 - `market_explanation_scope = REQUIRED` or `NOT_MATERIAL`;
@@ -112,6 +129,7 @@ RESEARCH is ready for independent audit only when:
 - every universe company is reconciled to the class ledger;
 - exclusions and unresolved candidates are explicit;
 - at least two materially different recall sources were used for company/theme research;
+- realization/evidence stages that matter to the topic are distinguished without unsupported escalation;
 - unresolved gaps are explicit;
 - the stop condition is auditable;
 - Market Explanation scope has been explicitly justified;

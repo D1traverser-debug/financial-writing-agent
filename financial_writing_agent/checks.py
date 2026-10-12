@@ -161,6 +161,29 @@ def _is_bold_occurrence(doc: Document, needle: str) -> bool:
     return False
 
 
+def _unbold_occurrence_count(doc: Document, needle: str) -> int:
+    """Count exact occurrences that are not fully bold across their character span."""
+    if not needle:
+        return 0
+    unbold = 0
+    for paragraph in doc.paragraphs:
+        full = "".join(run.text for run in paragraph.runs)
+        if needle not in full:
+            continue
+        mask: list[bool] = []
+        for run in paragraph.runs:
+            mask.extend([bool(run.bold)] * len(run.text))
+        start = 0
+        while True:
+            idx = full.find(needle, start)
+            if idx < 0:
+                break
+            if not all(mask[idx : idx + len(needle)]):
+                unbold += 1
+            start = idx + 1
+    return unbold
+
+
 def _check_run_sizes(paragraph, expected_pt: float, label: str, errors: list[str]) -> None:
     visible_runs = [run for run in paragraph.runs if run.text]
     if not visible_runs:
@@ -207,7 +230,6 @@ def check_docx(
     require_deep_navigation: bool = False,
 ) -> dict:
     """Run deterministic Word checks without treating formatting density as editorial quality."""
-    _ = stock_names
     _ = require_deep_navigation
     doc = Document(path)
     errors: list[str] = []
@@ -234,6 +256,12 @@ def check_docx(
 
     _check_typography(doc, policy, errors)
 
+    if policy.get("word", {}).get("auto_bold_company_names", False):
+        for stock_name in sorted({name for name in stock_names if name}):
+            unbold = _unbold_occurrence_count(doc, stock_name)
+            if unbold:
+                errors.append(f"A-share/company name must be bold at every occurrence: {stock_name} unbold_occurrences={unbold}")
+
     if not policy.get("word", {}).get("allow_underline", False):
         underlined = [
             p.text[:60]
@@ -256,8 +284,10 @@ def check_docx(
     else:
         risk_p = risk_paragraphs[0]
         risk_text = risk_p.text.strip()[len("风险提示：") :].strip()
-        min_chars = int(policy.get("risk_disclaimer", {}).get("min_body_chars", 0))
-        if len(risk_text) < min_chars:
+        if not risk_text:
+            errors.append("risk/disclaimer body must not be empty")
+        min_chars = int(policy.get("risk_disclaimer", {}).get("min_body_chars", 0) or 0)
+        if min_chars and len(risk_text) < min_chars:
             errors.append(f"risk/disclaimer body too thin: {len(risk_text)} < {min_chars} chars")
         recommended_max = int(policy.get("risk_disclaimer", {}).get("recommended_max_chars", 0) or 0)
         if recommended_max and len(risk_text) > recommended_max:

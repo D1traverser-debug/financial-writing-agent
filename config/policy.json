@@ -13,13 +13,16 @@
     "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
     "semantic_review_terms": ["买入", "卖出"],
     "no_covert_recommendation_evasion": true,
-    "company_comparison_must_remain_non_actionable": true
+    "company_comparison_must_remain_non_actionable": true,
+    "company_comparison_may_be_primary_analytical_focus": true
   },
   "research": {
     "universe_class_coverage_required": true,
     "universe_recall_sources_min": 2,
     "silent_company_omission_forbidden": true,
-    "saturation_requires_class_level_recall": true
+    "saturation_requires_class_level_recall": true,
+    "evidence_stage_non_escalation_required": true,
+    "evidence_stage_non_escalation_principle": "Do not infer a later business/financial realization stage from an earlier stage without supporting evidence; use topic-appropriate stages such as technology/product/capacity/order/delivery/revenue/profit/cash-flow rather than domain-specific permanent wording."
   },
   "style": {
     "continuous_report_prose": true,
@@ -28,6 +31,7 @@
     "heading_hierarchy": ["一、", "（1）", "①"],
     "numbering_encouraged": true,
     "deep_numbered_navigation_required_when_branching": true,
+    "deep_numbered_navigation_preference": "USE_GENEROUSLY_WHEN_REAL_LAYERS_OR_PARALLEL_BRANCHES_EXIST",
     "major_section_bridge_required": true,
     "forbidden_heading_prefixes": ["·", "•"],
     "bold_skim_path_required": true,
@@ -63,6 +67,7 @@
     "finance_deep_representative_stock_shortcut_forbidden": true,
     "stock_grounded_validation_sections_required": true,
     "company_comparison_decision_map_required": true,
+    "company_comparison_may_be_primary_focus": true,
     "company_comparison_dimensions": ["order_visibility", "realization_speed", "earnings_sensitivity", "overseas_exposure", "technology_optionality"],
     "finance_broad_selective_compression": true,
     "finance_broad_core_contradictions_max": 3,
@@ -92,10 +97,15 @@
     "headline_curiosity_balance_required": true,
     "question_title_default": "avoid_unless_information_bearing",
     "wechat_search_intent_required": true,
-    "first_three_sentences_required": true,
+    "first_three_sentences_required": false,
+    "early_reader_orientation_required": true,
+    "opening_strategy_flexible": true,
+    "opening_strategy_examples": ["direct_fact", "contradiction", "delayed_nut_graf", "question", "scene_or_example"],
     "continuation_flow_required": true,
     "completion_payoff_required": true,
-    "title_opening_payoff_required": true,
+    "title_promise_integrity_required": true,
+    "title_opening_payoff_required": false,
+    "immediate_title_payoff_is_optional": true,
     "account_performance_over_generic_demographics": true
   },
   "audit": {
@@ -103,13 +113,17 @@
     "chat_self_review_cannot_pass": true,
     "provider_attested_isolation_required_for_true_independent_claim": true,
     "universe_to_deep_article_reconciliation_required": true,
-    "template_cluster_guard_can_force_revise": true
+    "template_cluster_guard_can_force_revise": true,
+    "all_applicable_writing_requirements_default_coverage": true,
+    "special_surface_or_mode_na_must_be_explicit": true
   },
   "risk_disclaimer": {
     "required": true,
-    "min_body_chars": 60,
-    "recommended_max_chars": 320,
+    "min_body_chars": 0,
+    "recommended_max_chars": 220,
     "topic_specific_required": true,
+    "concise_complete_preferred": true,
+    "semantic_completeness_required": true,
     "italic": true,
     "inline_paragraph": true,
     "visible_heading": false
@@ -126,7 +140,8 @@
     "h1_rgb": "FF0000",
     "allow_tables": false,
     "tables_are_hard_fail": true,
-    "auto_bold_company_names": false,
+    "auto_bold_company_names": true,
+    "auto_bold_scope": "A_SHARE_NAMES_SUPPLIED_BY_ARTICLE_DOCUMENT",
     "allow_underline": false,
     "end_source_section_allowed": false
   }

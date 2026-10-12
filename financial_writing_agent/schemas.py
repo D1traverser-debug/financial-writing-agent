@@ -338,7 +338,9 @@ class ArticleBlock(StrictModel):
 class ArticlePayload(StrictModel):
     title: str = Field(min_length=1)
     blocks: list[ArticleBlock] = Field(min_length=3)
-    risk_disclaimer: str = Field(min_length=60)
+    # Risk quality is semantic: concise wording is allowed as long as the paragraph is
+    # non-empty, topic-specific and information-complete. Do not restore a character quota.
+    risk_disclaimer: str = Field(min_length=1)
     stock_names: list[str] = Field(default_factory=list)
     skim_path_anchors: list[str] = Field(min_length=3)
 
@@ -400,9 +402,14 @@ class HookAuditRubric(StrictModel):
     headline_curiosity_balance: Literal["PASS", "REVISE"]
     headline_strategy_diversity: Literal["PASS", "REVISE"]
     title_wechat_search_intent: Literal["PASS", "REVISE"]
+    # Compatibility field names are retained for contract stability. Their current
+    # semantics are defined by references/hooks.md: this is an opening diagnostic,
+    # not a fixed rule that the first three sentences must deliver the full answer.
     opening_three_sentence_retention: Literal["PASS", "REVISE"]
     continuation_flow: Literal["PASS", "REVISE"]
     completion_payoff: Literal["PASS", "REVISE"]
+    # Compatibility field: PASS means title-promise integrity with strategy-appropriate
+    # payoff timing. It does not require immediate payoff in sentence one/the opening.
     title_opening_payoff: Literal["PASS", "REVISE"]
 
 
