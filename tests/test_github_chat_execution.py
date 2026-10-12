@@ -39,6 +39,27 @@ def test_every_material_stage_has_durable_evidence_obligation_without_second_sta
     assert "execution_receipts" in c["checkpoint_contract"]["required_fields"]
 
 
+def test_branch_backed_business_state_is_cold_start_discoverable_without_chat_memory():
+    c = contract()
+    ref_policy = c["authority"]["business_state_ref_policy"]
+
+    assert c["schema_version"] == "1.3"
+    assert "main" in ref_policy["allowed_refs"]
+    assert ref_policy["dedicated_article_branch_pattern"] == "article/{task_id}"
+    assert "current GitHub main" in ref_policy["dedicated_branch_base_rule"]
+    assert "engineering/rule changes" in ref_policy["dedicated_branch_base_rule"]
+    assert "resolve `article/{task_id}` first" in ref_policy["task_id_resolution_rule"]
+    assert "fail closed" in ref_policy["task_id_resolution_rule"]
+    assert "article/*" in ref_policy["generic_resume_rule"]
+    assert "prior chat history" in ref_policy["generic_resume_rule"]
+    assert "workspaces/articles/{task_id}/..." in ref_policy["branch_content_boundary"]
+    assert ref_policy["central_duplicate_index_required"] is False
+    assert "state ref" in ref_policy["final_receipt_rule"]
+    assert "same resolved business-state ref" in c["checkpoint_contract"]["post_write_verification"]
+    assert "missing_or_ambiguous_state_ref" in c["failure_behavior"]
+    assert "durable state ref" in c["anti_bypass"][-2]
+
+
 def test_chat_review_never_upgrades_itself_to_native_or_independent_pass():
     c = contract()
     assurance = c["assurance"]
@@ -68,4 +89,5 @@ def test_failure_modes_fail_closed_at_exact_missing_capability():
     assert "do not invent current evidence" in failure["missing_web_for_current_fact_research"]
     assert "DOCX delivery OPEN" in failure["missing_document_tooling"]
     assert "do not fabricate PASS" in failure["missing_independent_or_owner_native_audit"]
+    assert "BLOCK" in failure["missing_or_ambiguous_state_ref"]
     assert "STATE.json" in failure["context_or_connection_loss"]
