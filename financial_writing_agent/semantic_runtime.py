@@ -3,6 +3,7 @@ from __future__ import annotations
 from .adapters.openai_agents import OpenAIAgentsUnavailable, OpenAIStageExecutor
 from .engine import WorkflowError
 from .models import Stage, WritingState
+from .store import StateConflictError
 
 
 SEMANTIC_AUDIT_STAGES = {
@@ -36,6 +37,10 @@ def run_owner_semantic_audit_stage(state: WritingState, *, expected_stage: Stage
     impl.store.save(state)
     try:
         state = OpenAIStageExecutor(expected_stage).execute(state)
+    except StateConflictError:
+        # Concurrency conflict is not an audit verdict. Never convert a stale semantic
+        # writer into a BLOCKED mutation that would itself attempt to overwrite the winner.
+        raise
     except OpenAIAgentsUnavailable as exc:
         return impl.engine.block(
             state,
