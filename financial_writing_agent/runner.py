@@ -38,6 +38,9 @@ class AgentRuntime:
         return self.controller.advance(state)
 
     def resume(self, task_id: str) -> WritingState:
+        # Store restoration replays any pending crash-recovery cleanup in memory before
+        # this runtime sees the state. The RUNTIME_RESUMED checkpoint then persists that
+        # healed view through normal optimistic CAS.
         state = self.engine.store.load(task_id)
         if state is None:
             raise RuntimeUnavailable(f"checkpoint not found: {task_id}")
@@ -59,13 +62,20 @@ class AgentRuntime:
                 return self.engine.block(state, f"no executor registered for stage {state.stage.value}", resume_stage=state.stage)
 
             try:
-                state.add_trace("EXECUTOR_START", state.stage.value)
+                stage_before = state.stage
+                state.add_trace("EXECUTOR_START", stage_before.value)
+                # Persist invocation start before the external/high-judgment execution so
+                # an interrupted call cannot be confused with a completed execution.
                 self.engine.store.save(state)
                 state = executor.execute(state)
-                state.add_trace("EXECUTOR_END", state.stage.value)
-                self.engine.store.save(state)
+                state.add_trace("EXECUTOR_END", stage_before.value)
                 if state.stage in {Stage.COMPLETE, Stage.BLOCKED}:
+                    # An executor that legitimately terminalized/blocked may already have
+                    # persisted that transition; save only the final execution trace here.
+                    self.engine.store.save(state)
                     break
+                # Successful output + EXECUTOR_END + stage transition are one durable
+                # checkpoint. Do not pre-save PASS/output before controller routing.
                 state = self.controller.advance(state)
             except (WorkflowError, RuntimeUnavailable) as exc:
                 return self.engine.block(state, str(exc), resume_stage=state.stage)
