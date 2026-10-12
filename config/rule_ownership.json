@@ -11,7 +11,11 @@
     "execution_capability_handshake",
     "execution_mode_selection",
     "github_chat_checkpointing",
-    "runtime_recovery_authority"
+    "runtime_recovery_authority",
+    "specialist_context_projection",
+    "specialist_tool_boundary",
+    "specialist_output_contract",
+    "specialist_forbidden_actions"
   ],
   "research": [
     "source_quality",
