@@ -1,0 +1,59 @@
+{
+  "stage": "TITLE",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "search_evidence": {
+    "direct_wechat_private_data": "UNAVAILABLE",
+    "proxy_boundary": "Current public/indexed search evidence only; no exact WeChat search volume is claimed.",
+    "current_proxies": [
+      "IDC 2026-10-08: first China large-model application firewall technology assessment; 15 vendors included; terms 大模型应用防火墙 / AI安全 are current industry labels.",
+      "Public 2026-10-10 industry report title: 'AI安全：海外需求持续验证 国内业绩修复&需求放量在即', showing current indexed phrasing around AI安全 / 海外需求验证 / 国内业绩.",
+      "Fortinet official Q2 release emphasizes AI infrastructure requirements and SASE firewall; CrowdStrike current results emphasize AI adoption needs security."
+    ],
+    "candidate_terms": ["AI安全", "大模型安全", "大模型应用防火墙", "AI数据中心", "防火墙", "网络安全", "AI Agent安全", "网安业绩"]
+  },
+  "finance_deep": {
+    "target_reader": "Wants a complete finance explanation of the AI-security spending mechanism and differentiated A-share commercialization evidence.",
+    "candidates": [
+      {"title":"AI开始重写网安支出：防火墙换代之外，国内AI安全已经进入财报","angle_family":"hard_fact","financial_relevance":"Overseas product/ARR acceleration + domestic revenue/order evidence","information_gap":"What exactly is changing beyond a normal firewall refresh?","promised_payoff":"Explain two upgrade layers and domestic monetization grades."},
+      {"title":"Fortinet产品收入增长52%背后：AI数据中心为什么把防火墙和模型安全一起推上新周期","angle_family":"hard_fact","financial_relevance":"Product revenue acceleration tied to new security capex","information_gap":"Why hardware and software security accelerate together","promised_payoff":"Trace traffic and model/agent risk into spending."},
+      {"title":"AI没有挤掉安全预算：从Fortinet到国内半年报，一轮网安支出正在分成两条线","angle_family":"expectation_gap","financial_relevance":"Budget direction and vendor revenue/order conversion","information_gap":"Why AI is additive rather than cannibalizing security","promised_payoff":"Separate network upgrade from AI-native security."},
+      {"title":"大模型应用防火墙开始写进收入：AI安全从概念走到财报，关键差别在哪","angle_family":"profit_orders","financial_relevance":"Revenue/order recognition quality","information_gap":"Which evidence is revenue vs orders vs infrastructure exposure","promised_payoff":"Build a monetization ladder across vendors."},
+      {"title":"网安厂商的新分水岭：有人先兑现AI安全收入，有人还在等订单转化","angle_family":"company_divergence","financial_relevance":"Realization speed and earnings evidence","information_gap":"Why 'AI security beneficiary' is too broad a label","promised_payoff":"Compare companies by evidence grade, not concept membership."},
+      {"title":"AI数据中心把防火墙性能推到新门槛：国内网安的硬件升级与软件增量怎么兑现","angle_family":"supply_demand","financial_relevance":"Hardware performance, ASIC commercialization, software demand","information_gap":"Where the incremental spend lands","promised_payoff":"Connect high-throughput demand to domestic vendors."},
+      {"title":"从52%产品增速到1.17亿元订单：AI安全的海外验证，正在变成国内三种兑现路径","angle_family":"global_comparison","financial_relevance":"Cross-market commercialization evidence","information_gap":"How overseas proof maps—imperfectly—to China","promised_payoff":"Revenue/order/infrastructure buckets with caveats."},
+      {"title":"AI安全进入报表后，真正要看的不是概念名单，而是收入、订单和传统业务能不能同时改善","angle_family":"validation_risk","financial_relevance":"Quality of earnings and conversion","information_gap":"What can falsify the sector thesis","promised_payoff":"Show validation variables and counterexamples."},
+      {"title":"一边是AI安全收入翻倍，一边是传统网安仍承压：这轮安全支出并不是普涨逻辑","angle_family":"company_divergence","financial_relevance":"Mixed operating results across vendors","information_gap":"Why AI line growth can coexist with weak company totals","promised_payoff":"Separate new growth engines from legacy drag."},
+      {"title":"企业部署AI之前，安全预算已经前移：模型、Agent和数据中心正在改写网安产品结构","angle_family":"policy_transmission","financial_relevance":"Earlier security involvement expands addressable spending","information_gap":"Why security moves upstream in deployment","promised_payoff":"Explain model/agent/network controls as one capital-allocation change."}
+    ],
+    "angle_families": ["hard_fact","expectation_gap","profit_orders","company_divergence","supply_demand","global_comparison","validation_risk","policy_transmission"],
+    "selected_title": "AI没有挤掉安全预算：从Fortinet到国内半年报，一轮网安支出正在分成两条线",
+    "selection_rationale": "It states the most consequential expectation gap, names an overseas proof point and promises a two-line mechanism without implying a stock recommendation. It also matches the selected Deep structure."
+  },
+  "finance_broad": {
+    "target_reader": "Cold finance reader who may not follow cybersecurity but understands budgets, revenue, orders and profit realization.",
+    "candidates": [
+      {"title":"AI没挤掉安全预算，反而催出一轮新支出：国内AI安全开始进入财报","angle_family":"expectation_gap","non_niche_stake":"Enterprise budget allocation","information_gap":"Why AI adds security spend","promised_payoff":"Show overseas proof and domestic monetization."},
+      {"title":"Fortinet产品收入猛增52%：AI烧完算力之后，下一笔钱正流向安全","angle_family":"hard_fact","non_niche_stake":"Where enterprise AI capex spills over","information_gap":"What follows compute spending","promised_payoff":"Explain firewall/model-security spending."},
+      {"title":"AI支出的下一站，开始轮到网络安全了","angle_family":"capital_allocation","non_niche_stake":"AI capex diffusion","information_gap":"Why security joins the AI spending chain","promised_payoff":"Translate technical risks into budget demand."},
+      {"title":"大模型上生产之前，企业先补安全：一笔新预算正在从海外传到国内","angle_family":"policy_transmission","non_niche_stake":"Pre-deployment enterprise spending","information_gap":"Why security demand moves earlier","promised_payoff":"Show model/agent controls and domestic evidence."},
+      {"title":"AI安全终于不只讲产品了：半年报里已经出现收入和亿元订单","angle_family":"profit_orders","non_niche_stake":"Reported monetization","information_gap":"How real the commercialization is","promised_payoff":"Separate revenue from orders and exposure."},
+      {"title":"同样叫AI安全，财报含金量差很多：收入、订单和AI基础设施不是一回事","angle_family":"company_divergence","non_niche_stake":"Earnings quality","information_gap":"Which numbers mean what","promised_payoff":"A simple monetization ladder."},
+      {"title":"为什么AI越普及，安全预算反而越难省","angle_family":"supply_demand","non_niche_stake":"Recurring enterprise cost structure","information_gap":"Why AI raises security intensity","promised_payoff":"Two new demand surfaces."},
+      {"title":"从数据中心到AI Agent，一轮新的安全开支正在被迫前置","angle_family":"hard_fact","non_niche_stake":"Earlier capex/opex commitment","information_gap":"Where new security spend appears","promised_payoff":"Network plus application/runtime controls."},
+      {"title":"海外网安创新高，国内开始写进报表：AI安全进入第二阶段","angle_family":"global_comparison","non_niche_stake":"Earnings diffusion","information_gap":"What 'second stage' means","promised_payoff":"From demand validation to conversion quality."},
+      {"title":"AI安全最重要的变化，不是概念更热，而是客户开始真付钱了","angle_family":"validation_risk","non_niche_stake":"Cash/revenue evidence","information_gap":"What counts as real payment/commercialization","promised_payoff":"Revenue, orders and counterexamples."}
+    ],
+    "angle_families": ["expectation_gap","hard_fact","capital_allocation","policy_transmission","profit_orders","company_divergence","supply_demand","global_comparison","validation_risk"],
+    "selected_title": "AI没挤掉安全预算，反而催出一轮新支出：国内AI安全开始进入财报",
+    "cold_reader_test": "PASS: the title exposes a budget/financial consequence before requiring prior cybersecurity knowledge.",
+    "selection_rationale": "Best broad-finance stake with truthful payoff; concise enough for a feed title and does not promise a stock pick."
+  },
+  "title_audit": {
+    "candidate_count_per_mode": 10,
+    "minimum_angle_families_met": true,
+    "synonym_only_pool": false,
+    "current_search_evidence_recorded": true,
+    "unsupported_search_volume_claims": false,
+    "status": "PASS"
+  }
+}
