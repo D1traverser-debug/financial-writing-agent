@@ -13,92 +13,91 @@
 
 ## Current architecture
 
-Financial Writing has one owner workflow and two bounded execution adapters.
+Financial Writing has **one BUSINESS owner, one canonical TaskContract, one canonical workflow kernel, and two bounded execution adapters**.
 
 Canonical business workflow authority is `financial_writing_agent/workflow_spec.py`:
 
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`
 
-Adapters may be stricter than this graph but may not invent broader business routes.
+Adapters may be stricter in assurance/capability, but may not redefine the owner's defaults, required outputs, stage graph, revision routes, invalidation or terminal semantics.
 
 ### OWNER_NATIVE
-
 Use only when the current session actually has the Python/plugin owner runtime required by the next action.
 
 - authoritative article state: versioned `WritingState`;
-- SQLite mutations use `checkpoint_version` optimistic CAS and reject stale writers;
-- crash-safe revision cleanup is replayed through shared `state_recovery.py` before business use;
-- read-only recovery does not secretly advance the durable checkpoint;
-- semantic PASS remains proof-bearing and cannot be supplied by chat prose;
-- owner-native COMPLETE is controlled by the workflow/controller and completion gates.
+- SQLite mutations use checkpoint CAS and reject stale writers;
+- crash-safe revision cleanup is replayed through shared `state_recovery.py`;
+- semantic PASS remains proof-bearing;
+- `WritingEngine.complete()` rechecks required outputs before COMPLETE.
 
 ### GITHUB_CHAT
+Use only when owner-native is unavailable and the current session has model execution, GitHub owner read/write, an executable deterministic `github_chat_guard.py`, and exact-stage web/document capabilities.
 
-This is the current bounded fallback when owner-native is unavailable. It is not free-form writing.
+Current write surface is **only** `main/workspaces/articles/{task_id}`. New per-article business-state branches are forbidden.
 
-Use only when the current session has:
-- model execution;
-- GitHub owner read/write;
-- an executable deterministic `financial_writing_agent/github_chat_guard.py` path;
-- exact-stage web/document capabilities required by the current action.
+GITHUB_CHAT inherits the same canonical TaskContract as OWNER_NATIVE:
+- no explicit platform/mode narrowing → `DUAL`;
+- delivery channel → `WORD_FILE_ONLY`;
+- default required outputs → `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`;
+- direct single-mode override requires `USER_EXPLICIT_OVERRIDE` plus an exact substring from the original user prompt persisted as `distribution_mode_override_evidence` in the INIT receipt.
 
-Business state lives under `workspaces/articles/{task_id}`. Every material transition must:
-1. fetch current `STATE.json` and bind its blob SHA;
-2. execute the exact stage action;
-3. persist the stage/review/publication artifact with stable Git identity;
-4. let `github_chat_guard` validate the route and emit the action-bound self-attested receipt;
-5. update `STATE.json` using the same prior blob SHA;
-6. reread before treating the transition as durable.
+Every material mutation must fetch the current main `STATE.json` blob SHA, execute the exact stage, persist stage/review/publication evidence, let the guard build/validate the next state and receipt, replace the same main state with CAS, then reread it.
 
-Chat cannot hand-edit the stage, self-certify owner-native PASS, or relabel its result COMPLETE. Semantic review assurance is `CHAT_SELF_REVIEW`; normal terminal state is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
+DELIVERY cannot advance unless every article Word output required by the immutable TaskContract is present. FINAL_AUDIT cannot terminalize until the complete required-output set including `AUDIT_DOCX` is reconciled. Semantic review assurance remains `CHAT_SELF_REVIEW`; normal terminal state remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
+
+## Live fresh-chat result on 2026-10-12
+
+A real zero-memory fresh chat successfully reconstructed the repo, selected GITHUB_CHAT, executed the stage workflow, persisted research/reviews, performed a genuine `EDITORIAL_AUDIT → DRAFT` revision, generated/rendered Word output and stopped at the correct bounded terminal assurance.
+
+However, the visible delivery was only **2 files** (Broad + Audit). The user had not requested single-mode output. The canonical default was DUAL and should have produced **3 files** (Deep + Broad + Audit).
+
+Therefore that live run is classified as:
+
+`LIVE_TRAJECTORY_EXECUTED__OUTPUT_CONTRACT_FAILED_3_TO_2`
+
+not a clean E2E PASS.
+
+Root cause was adapter-semantic parity drift: Phase-1 had unified stage/revision semantics, but GITHUB_CHAT did not mechanically inherit/enforce the owner TaskContract's default distribution mode and required outputs. The defect crossed INTAKE routing, adapter state, DELIVERY, FINAL reconciliation and post-run audit ordering.
+
+Durable incident record:
+`evals/FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md`
+
+## Evolution / propagation lesson
+
+The same re-audit found stale previous-rule assertions in Skill/static/eval surfaces after a prior writing-rule calibration had claimed propagation PASS. The maintenance contract now requires **consumer-complete propagation**: before closure, search all current consumers of a changed invariant (startup/Skill, policy/reference, runtime/adapter, schema, harness/evals, mirrors, continuity/deployment) and remove or explicitly justify stale/superseded assertions.
+
+A real defect is not permission to keep adding reminder prose. Fix the canonical enforcement gap and regress it.
+
+## Branch policy and cleanup boundary
+
+PR #19, which proposed formalizing article-branch discovery, was closed unmerged. Adding `article/{task_id}` as another business-state authority would increase discovery/recovery/conflict/cleanup complexity and does not solve the actual output-contract defect.
+
+Historical `article/*` refs may remain as evidence, but no new GITHUB_CHAT business mutation may use them. A legacy branch-backed task must be migrated to main before any future continuation.
+
+Several `tmp-should-not-create*` refs were accidentally created during the maintenance tool sequence. They carry no intended authority. The current connected GitHub surface does not expose branch deletion, so physical cleanup remains OPEN with that exact tooling blocker; this does not widen current authority because guard/Skill/contract all fail closed on non-main new business-state writes.
 
 ## New task vs continuation
 
-### Normal new article request
+A normal request such as “写一篇关于 X 的财经文章” is **NEW_TASK**. Do not auto-resume an old article.
 
-A normal request such as “写一篇关于 X 的财经文章” is **NEW_TASK**, not continuation of an old article.
-
-After the Financial owner is selected:
-1. read current main Skill / manifest / profile 10;
+For a new task:
+1. read current main Skill / manifest / capability profile;
 2. handshake only capabilities needed now;
-3. choose OWNER_NATIVE or GITHUB_CHAT from observed session capabilities;
-4. create new durable article state **before research or drafting**;
-5. execute the canonical workflow.
+3. choose OWNER_NATIVE or guarded GITHUB_CHAT;
+4. create durable article state before research/drafting;
+5. preserve canonical TaskContract defaults unless exact user-prompt override evidence exists;
+6. execute the canonical workflow;
+7. reconcile required outputs mechanically before delivery/terminal claims.
 
-Do not load old article stage/draft/next_action merely because old tasks exist. Long-term validated knowledge may be retrieved as reference evidence subject to current Research rules.
-
-### Explicit continuation
-
-Only an explicit request to continue/recover a prior article may resume old article state. Resolve the exact article through owner-native WritingState or its GitHub article workspace. Do not reconstruct execution state from chat history, Notion, Drive, Library, or remembered summaries.
-
-## External knowledge boundary
-
-- GitHub `main` is Financial rule/engineering authority.
-- Owner-native WritingState or guard-validated GitHub article workspace is per-article execution authority.
-- Google Drive, Notion, ChatGPT Library, StockBase, ArticleBase, EvidenceCache and historical drafts are reference/bootstrap/evidence surfaces only unless the current owner contract explicitly promotes a stable ref for the current action.
-- External sources may contribute research facts, prior article learning or evidence, but may not restore an old Financial Controller, task pointer, stage, gate PASS, or obsolete execution mode.
-
-## Current completed rebuild layers
-
-- GITHUB_CHAT is a first-class bounded owner adapter; free-form publishable fallback is forbidden.
-- GitHub-chat stage transitions are guarded by deterministic code and exact Git state identity.
-- Phase 1 established one canonical workflow kernel shared by execution adapters and removed duplicate route truth; it also repaired the owner-native `DRAFT → DRAFT` revision mismatch.
-- Phase 2 added owner-native checkpoint CAS, shared crash recovery, paged continuation discovery, single-snapshot MCP summaries and stale-conflict fail-closed behavior.
-- Material corrective/negative feedback creates durable system-impact review debt rather than disappearing into local prose revision.
+Only explicit continuation may resume old article state. Resolve exact owner-native WritingState or main GitHub article workspace; do not reconstruct stage from chat history, Notion, Drive, Library or remembered summaries.
 
 ## Assurance boundaries still OPEN
 
-Do not collapse these evidence classes:
-
-- full current GitHub-hosted owner CI: **OPEN** — recent jobs were not allocated a runner and executed no steps;
-- one real post-rebuild article trajectory through the current end-to-end workflow: **OPEN**;
-- post-rebuild live user acceptance/performance evidence proving better writing quality: **OPEN**;
+- current full GitHub-hosted owner CI: **OPEN** — latest Financial Actions jobs continue to return a job with `steps=null`; no test step executed, so this is neither code-test failure nor CI PASS;
+- fresh-chat regression under the repaired main-only/TaskContract parity path: **OPEN**;
+- live user acceptance/performance proving writing quality improvement: **OPEN**;
 - provider-attested isolated independent review: **UNAVAILABLE**.
 
-Targeted/structural/fault evidence for repaired components does not prove those stronger layers.
+The next decisive product proof is another zero-memory fresh-chat article with no explicit mode/platform narrowing. It must persist DUAL + the three required outputs on main and mechanically refuse a 2-file terminal delivery.
 
-## Fresh-chat routing boundary
-
-Owner correctness is separate from product/account discovery. GitHub/Library files are not automatic event listeners. A completely new ChatGPT conversation can execute this system correctly **after it is routed to the Financial owner**, but zero-prompt automatic repo discovery for every generic new-chat article request requires an always-on product/account routing hook and must not be claimed from repository files alone.
-
-`resume_epoch=3` and active lease `fw-4b398865ade44f1c896911a438f0c83b` were established by this new-chat takeover, superseding `fw-5636d680328b40c5ab4b5029441e3489`.
+`resume_epoch=3` and active lease `fw-4b398865ade44f1c896911a438f0c83b` remain unchanged; this maintenance did not create a new BUSINESS lease.
