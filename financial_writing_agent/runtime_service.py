@@ -12,6 +12,8 @@ from .models import GateStatus, Stage, WritingState
 from .routing import build_task_contract
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 from .store import SQLiteStateStore
+from .system_impact import open_system_impact_signals, system_impact_next_action
+from .workflow_spec import invalidated_gate_names_from, revision_targets
 
 DATA_DIR = Path(os.getenv("FINANCIAL_WRITING_DATA_DIR", "/data"))
 DB_PATH = Path(os.getenv("FINANCIAL_WRITING_DB", str(DATA_DIR / "financial_writing_state.db")))
@@ -26,6 +28,25 @@ LEARNING_SAMPLE_TYPES = {
     "POST_PUBLICATION_PERFORMANCE",
 }
 
+_PENDING_REVISION_CLEANUP = "_pending_revision_cleanup"
+_REVISION_CLEAR_WORKING_KEYS: dict[Stage, tuple[str, ...]] = {
+    Stage.RESEARCH: (
+        "editorial_plan", "headlines", "draft", "hook_audit", "style_audit",
+        "render_manifest", "revise_target", "final_revise_target",
+    ),
+    Stage.EDITORIAL: (
+        "headlines", "draft", "hook_audit", "style_audit", "render_manifest",
+        "revise_target", "final_revise_target",
+    ),
+    Stage.TITLE: (
+        "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target",
+    ),
+    Stage.DRAFT: (
+        "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target",
+    ),
+    Stage.DELIVERY: ("render_manifest", "final_revise_target"),
+}
+
 store = SQLiteStateStore(DB_PATH)
 engine = WritingEngine(store)
 controller = WorkflowController(engine)
@@ -35,7 +56,7 @@ def _load(task_id: str) -> WritingState:
     state = store.load(task_id)
     if state is None:
         raise ValueError(f"task not found: {task_id}")
-    return state
+    return _reconcile_pending_revision_cleanup(state)
 
 
 def _require_stage(state: WritingState, expected: Stage) -> None:
@@ -75,51 +96,84 @@ def _invalidate_knowledge_writeback(state: WritingState, reason: str) -> None:
     state.working.pop("knowledge_writeback_notes", None)
 
 
-def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) -> None:
-    if target == "RESEARCH":
-        _invalidate(
-            state,
-            ("research_output", "research_audit", "editorial_plan", "title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
-            reason=reason,
-            clear_artifacts=True,
-            clear_working_keys=("editorial_plan", "headlines", "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
-        )
-        _invalidate_knowledge_writeback(state, reason)
-    elif target == "EDITORIAL":
-        _invalidate(
-            state,
-            ("editorial_plan", "title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
-            reason=reason,
-            clear_artifacts=True,
-            clear_working_keys=("headlines", "draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
-        )
-    elif target == "TITLE":
-        _invalidate(
-            state,
-            ("title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
-            reason=reason,
-            clear_artifacts=True,
-            clear_working_keys=("draft", "hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
-        )
-    elif target == "DRAFT":
-        _invalidate(
-            state,
-            ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
-            reason=reason,
-            clear_artifacts=True,
-            clear_working_keys=("hook_audit", "style_audit", "render_manifest", "revise_target", "final_revise_target"),
-        )
-    elif target == "DELIVERY":
-        _invalidate(
-            state,
-            ("delivery_output", "mechanical_audit", "final_audit"),
-            reason=reason,
-            clear_artifacts=True,
-            clear_working_keys=("render_manifest", "final_revise_target"),
-        )
-    else:
+def _canonical_revision_target_names(stage: Stage) -> set[str]:
+    return {target.value for target in revision_targets(stage)}
+
+
+def _apply_revision_cleanup(state: WritingState, target: str, *, reason: str) -> None:
+    try:
+        target_stage = Stage(target)
+    except ValueError as exc:
+        raise ValueError(f"unsupported revision target: {target}") from exc
+    clear_working_keys = _REVISION_CLEAR_WORKING_KEYS.get(target_stage)
+    if clear_working_keys is None:
         raise ValueError(f"unsupported revision target: {target}")
+    _invalidate(
+        state,
+        invalidated_gate_names_from(target_stage),
+        reason=reason,
+        clear_artifacts=True,
+        clear_working_keys=clear_working_keys,
+    )
+    if target_stage == Stage.RESEARCH:
+        _invalidate_knowledge_writeback(state, reason)
+    state.working.pop(_PENDING_REVISION_CLEANUP, None)
+
+
+def _mark_revision_cleanup(state: WritingState, target: str, *, reason: str) -> None:
+    try:
+        target_stage = Stage(target)
+    except ValueError as exc:
+        raise ValueError(f"unsupported revision target: {target}") from exc
+    if target_stage not in _REVISION_CLEAR_WORKING_KEYS:
+        raise ValueError(f"unsupported revision target: {target}")
+    state.working[_PENDING_REVISION_CLEANUP] = {"target": target_stage.value, "reason": reason}
+
+
+def _cleanup_after_revision(state: WritingState, target: str, *, reason: str) -> None:
+    _apply_revision_cleanup(state, target, reason=reason)
     store.save(state)
+
+
+def _reconcile_pending_revision_cleanup(state: WritingState) -> WritingState:
+    pending = state.working.get(_PENDING_REVISION_CLEANUP)
+    if pending is None:
+        return state
+    if not isinstance(pending, dict):
+        raise ValueError("pending revision cleanup marker is malformed")
+    target = str(pending.get("target", ""))
+    reason = str(pending.get("reason", "")).strip() or "recover pending revision cleanup"
+    try:
+        target_stage = Stage(target)
+    except ValueError as exc:
+        raise ValueError(f"pending revision cleanup target invalid: {target}") from exc
+    if state.stage != target_stage:
+        raise ValueError(
+            f"pending revision cleanup stage mismatch: current={state.stage.value}, target={target_stage.value}"
+        )
+    _apply_revision_cleanup(state, target_stage.value, reason=reason)
+    state.add_trace("RECOVERY_RECONCILED", f"completed pending revision cleanup target={target_stage.value}")
+    store.save(state)
+    return state
+
+
+def _invalidate_for_stage_change(
+    state: WritingState,
+    stage: Stage,
+    *,
+    reason: str,
+    clear_working_keys: tuple[str, ...],
+    invalidate_knowledge: bool = False,
+) -> None:
+    _invalidate(
+        state,
+        invalidated_gate_names_from(stage),
+        reason=reason,
+        clear_artifacts=True,
+        clear_working_keys=clear_working_keys,
+    )
+    if invalidate_knowledge:
+        _invalidate_knowledge_writeback(state, reason)
 
 
 def _completion_checklist(state: WritingState) -> dict[str, Any]:
@@ -147,6 +201,9 @@ def _completion_checklist(state: WritingState) -> dict[str, Any]:
 
 
 def _next_action(state: WritingState) -> str:
+    impact_action = system_impact_next_action(state)
+    if impact_action:
+        return impact_action
     if state.stage == Stage.BLOCKED:
         cursor = state.blocked_resume_stage.value if state.blocked_resume_stage else "UNKNOWN"
         return f"repair the recorded blocker, then call resume_blocked_task; recovery cursor={cursor}"
@@ -188,6 +245,7 @@ def _next_action(state: WritingState) -> str:
 def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
     research = state.working.get("research") or {}
     samples = state.working.get("learning_samples") or []
+    signals = open_system_impact_signals(state)
     summary: dict[str, Any] = {
         "task_id": state.contract.task_id,
         "status": "BLOCKED" if state.stage == Stage.BLOCKED else ("COMPLETE" if state.stage == Stage.COMPLETE else "IN_PROGRESS"),
@@ -202,6 +260,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         "blocked_reason": state.blocked_reason,
         "blocked_resume_stage": state.blocked_resume_stage.value if state.blocked_resume_stage else None,
         "learning_sample_count": len(samples),
+        "open_system_impact_count": len(signals),
         "updated_at": state.updated_at.isoformat(),
         "next_action": _next_action(state),
     }
@@ -210,13 +269,15 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         summary["gates"] = {name: {"status": gate.status.value, "evidence": gate.evidence, "notes": gate.notes} for name, gate in state.gates.items()}
         summary["artifacts"] = {kind.value: {"path": artifact.path, "exists": artifact.exists, "sha256": artifact.sha256} for kind, artifact in state.artifacts.items()}
         summary["learning_samples"] = samples
+        summary["system_impact_signals"] = list(state.working.get("system_impact_signals", []))
     if state.stage == Stage.COMPLETE:
         summary["completion_checklist"] = _completion_checklist(state)
     return summary
 
 
 def _save_and_advance(state: WritingState) -> WritingState:
-    store.save(state)
+    # The transition itself is the durable checkpoint. Pre-saving a stage payload before
+    # transition creates a crash window where gate/state disagree, so do not persist here.
     return controller.advance(state)
 
 
@@ -234,9 +295,13 @@ def _apply_gate_decision(state: WritingState, gate_name: str, decision: GateDeci
     if status == GateStatus.FAIL:
         resume_stage = Stage(decision.revision_target) if decision.revision_target else state.stage
         return engine.block(state, f"{gate_name} failed: {'; '.join(decision.defects)}", resume_stage=resume_stage)
-    advanced = _save_and_advance(state)
+    cleanup_reason = None
     if status == GateStatus.REVISE and decision.revision_target:
-        _cleanup_after_revision(advanced, decision.revision_target, reason=f"{gate_name} requested {decision.revision_target} revision")
+        cleanup_reason = f"{gate_name} requested {decision.revision_target} revision"
+        _mark_revision_cleanup(state, decision.revision_target, reason=cleanup_reason)
+    advanced = _save_and_advance(state)
+    if cleanup_reason and decision.revision_target:
+        _cleanup_after_revision(advanced, decision.revision_target, reason=cleanup_reason)
     return advanced
 
 
@@ -283,11 +348,37 @@ def get_writing_task(task_id: str, detail: bool = True) -> dict[str, Any]:
     return _summary(_load(task_id), detail=detail)
 
 
+def _visible_for_continuation(state: WritingState, *, include_complete: bool) -> bool:
+    if include_complete:
+        return True
+    return state.stage != Stage.COMPLETE or bool(open_system_impact_signals(state))
+
+
+def _recent_visible_states(limit: int, *, include_complete: bool) -> list[WritingState]:
+    wanted = max(1, min(int(limit), 50))
+    if include_complete:
+        return store.list_recent(limit=wanted)
+
+    selected: list[WritingState] = []
+    offset = 0
+    page_size = 50
+    while len(selected) < wanted:
+        page = store.list_recent(limit=page_size, offset=offset)
+        if not page:
+            break
+        for state in page:
+            if _visible_for_continuation(state, include_complete=False):
+                selected.append(state)
+                if len(selected) >= wanted:
+                    break
+        offset += len(page)
+        if len(page) < page_size:
+            break
+    return selected[:wanted]
+
+
 def list_recent_writing_tasks(limit: int = 10, include_complete: bool = False) -> list[dict[str, Any]]:
-    states = store.list_recent(limit=max(1, min(limit, 50)))
-    if not include_complete:
-        states = [state for state in states if state.stage != Stage.COMPLETE]
-    return [_summary(state) for state in states]
+    return [_summary(state) for state in _recent_visible_states(limit, include_complete=include_complete)]
 
 
 def resume_blocked_task(task_id: str) -> dict[str, Any]:
@@ -351,14 +442,13 @@ def submit_research(task_id: str, research: dict[str, Any]) -> dict[str, Any]:
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH)
     payload = ResearchPackage.model_validate(research)
-    _invalidate(
+    _invalidate_for_stage_change(
         state,
-        ("research_audit", "editorial_plan", "title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        Stage.RESEARCH,
         reason="research package changed; all downstream editorial/draft/QA evidence is stale",
-        clear_artifacts=True,
         clear_working_keys=("editorial_plan", "headlines", "draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
+        invalidate_knowledge=True,
     )
-    _invalidate_knowledge_writeback(state, "research package changed; previous knowledge writeback decision is stale")
     state.working["research"] = payload.model_dump(mode="json")
     state.set_gate(
         "research_output",
@@ -379,7 +469,7 @@ def submit_research_audit(task_id: str, decision: dict[str, Any]) -> dict[str, A
     state = _load(task_id)
     _require_stage(state, Stage.RESEARCH_AUDIT)
     payload = GateDecision.model_validate(decision)
-    _validate_revision_target(payload, {"RESEARCH"}, "research_audit")
+    _validate_revision_target(payload, _canonical_revision_target_names(Stage.RESEARCH_AUDIT), "research_audit")
     return _summary(_apply_gate_decision(state, "research_audit", payload, revision_key="research_revise_target"))
 
 
@@ -388,11 +478,10 @@ def submit_editorial_plan(task_id: str, editorial_plan: dict[str, Any]) -> dict[
     _require_stage(state, Stage.EDITORIAL)
     payload = EditorialPlan.model_validate(editorial_plan)
     _validate_editorial_for_contract(state, payload)
-    _invalidate(
+    _invalidate_for_stage_change(
         state,
-        ("title_audit", "draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        Stage.EDITORIAL,
         reason="editorial plan changed; all downstream title/draft/QA evidence is stale",
-        clear_artifacts=True,
         clear_working_keys=("headlines", "draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
     )
     state.working["editorial_plan"] = payload.model_dump(mode="json")
@@ -411,11 +500,10 @@ def submit_headlines(task_id: str, headlines: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.TITLE)
     payload = HeadlinePackage.model_validate(headlines)
     _validate_headlines_for_contract(state, payload)
-    _invalidate(
+    _invalidate_for_stage_change(
         state,
-        ("draft_output", "hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        Stage.TITLE,
         reason="headline selection changed; draft and downstream QA are stale",
-        clear_artifacts=True,
         clear_working_keys=("draft", "hook_audit", "style_audit", "revise_target", "final_revise_target"),
     )
     state.working["headlines"] = payload.model_dump(mode="json")
@@ -429,11 +517,10 @@ def submit_draft(task_id: str, draft: dict[str, Any]) -> dict[str, Any]:
     _require_stage(state, Stage.DRAFT)
     payload = DraftPackage.model_validate(draft)
     _validate_draft_for_contract(state, payload)
-    _invalidate(
+    _invalidate_for_stage_change(
         state,
-        ("hook_audit", "style_audit", "editorial_audit", "delivery_output", "mechanical_audit", "final_audit"),
+        Stage.DRAFT,
         reason="draft changed; semantic/mechanical/final QA must be rerun",
-        clear_artifacts=True,
         clear_working_keys=("hook_audit", "style_audit", "revise_target", "final_revise_target"),
     )
     state.working["draft"] = payload.model_dump(mode="json")
@@ -455,8 +542,10 @@ def submit_hook_audit(task_id: str, report: dict[str, Any]) -> dict[str, Any]:
         target = payload.revision_target or "DRAFT"
         state.set_gate("editorial_audit", GateStatus.REVISE, payload.evidence, "Reader Funnel gate requires revision before general editorial audit")
         state.working["revise_target"] = target
+        cleanup_reason = f"Reader Funnel audit requested {target} revision"
+        _mark_revision_cleanup(state, target, reason=cleanup_reason)
         advanced = _save_and_advance(state)
-        _cleanup_after_revision(advanced, target, reason=f"Reader Funnel audit requested {target} revision")
+        _cleanup_after_revision(advanced, target, reason=cleanup_reason)
         return _summary(advanced)
     store.save(state)
     return _summary(state)
@@ -474,8 +563,10 @@ def submit_style_audit(task_id: str, report: dict[str, Any]) -> dict[str, Any]:
     if status == GateStatus.REVISE:
         state.set_gate("editorial_audit", GateStatus.REVISE, payload.evidence, "Authorial Prose gate requires draft revision before general editorial audit")
         state.working["revise_target"] = "DRAFT"
+        cleanup_reason = "Authorial Prose audit requested DRAFT revision"
+        _mark_revision_cleanup(state, "DRAFT", reason=cleanup_reason)
         advanced = _save_and_advance(state)
-        _cleanup_after_revision(advanced, "DRAFT", reason="Authorial Prose audit requested DRAFT revision")
+        _cleanup_after_revision(advanced, "DRAFT", reason=cleanup_reason)
         return _summary(advanced)
     store.save(state)
     return _summary(state)
@@ -485,7 +576,7 @@ def submit_editorial_audit(task_id: str, decision: dict[str, Any]) -> dict[str, 
     state = _load(task_id)
     _require_stage(state, Stage.EDITORIAL_AUDIT)
     payload = GateDecision.model_validate(decision)
-    _validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT"}, "editorial_audit")
+    _validate_revision_target(payload, _canonical_revision_target_names(Stage.EDITORIAL_AUDIT), "editorial_audit")
     if payload.status == "PASS":
         if _gate_status(state, "hook_audit") != "PASS":
             raise ValueError("hook_audit must PASS before editorial_audit can PASS")
@@ -502,7 +593,6 @@ def build_and_mechanically_audit_delivery(task_id: str) -> dict[str, Any]:
         except Exception as exc:
             return _summary(engine.block(state, f"delivery executor error: {type(exc).__name__}: {exc}", resume_stage=Stage.DELIVERY))
         state.add_trace("MCP_DETERMINISTIC", "Word-only delivery executor completed")
-        store.save(state)
         if state.gates.get("delivery_output") is None or state.gates["delivery_output"].status != GateStatus.PASS:
             return _summary(engine.block(state, "delivery_output did not pass", resume_stage=Stage.DELIVERY))
         state = controller.advance(state)
@@ -512,10 +602,13 @@ def build_and_mechanically_audit_delivery(task_id: str) -> dict[str, Any]:
     except Exception as exc:
         return _summary(engine.block(state, f"mechanical audit executor error: {type(exc).__name__}: {exc}", resume_stage=Stage.MECHANICAL_AUDIT))
     state.add_trace("MCP_DETERMINISTIC", "mechanical audit executor completed")
-    store.save(state)
+    cleanup_reason = None
+    if state.gates.get("mechanical_audit") and state.gates["mechanical_audit"].status == GateStatus.REVISE:
+        cleanup_reason = "mechanical audit requires Word rebuild"
+        _mark_revision_cleanup(state, "DELIVERY", reason=cleanup_reason)
     advanced = controller.advance(state)
-    if advanced.stage == Stage.DELIVERY:
-        _cleanup_after_revision(advanced, "DELIVERY", reason="mechanical audit requires Word rebuild")
+    if cleanup_reason and advanced.stage == Stage.DELIVERY:
+        _cleanup_after_revision(advanced, "DELIVERY", reason=cleanup_reason)
     return _summary(advanced, detail=True)
 
 
@@ -542,7 +635,7 @@ def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]
     state = _load(task_id)
     _require_stage(state, Stage.FINAL_AUDIT)
     payload = GateDecision.model_validate(decision)
-    _validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY"}, "final_audit")
+    _validate_revision_target(payload, _canonical_revision_target_names(Stage.FINAL_AUDIT), "final_audit")
     if payload.status == "PASS":
         for required_gate in ("hook_audit", "style_audit", "editorial_audit", "mechanical_audit"):
             if _gate_status(state, required_gate) != "PASS":
@@ -557,13 +650,16 @@ def submit_final_audit(task_id: str, decision: dict[str, Any]) -> dict[str, Any]
     if status == GateStatus.FAIL:
         resume_stage = Stage(payload.revision_target) if payload.revision_target else Stage.EDITORIAL
         return _summary(engine.block(state, f"final_audit failed: {'; '.join(payload.defects)}", resume_stage=resume_stage))
+    cleanup_reason = None
+    if status == GateStatus.REVISE and payload.revision_target:
+        cleanup_reason = f"final audit requested {payload.revision_target} revision"
+        _mark_revision_cleanup(state, payload.revision_target, reason=cleanup_reason)
     if status == GateStatus.PASS:
         finalize_audit_artifact(state)
-        store.save(state)
     try:
         advanced = controller.advance(state)
     except WorkflowError as exc:
         return _summary(engine.block(state, str(exc), resume_stage=state.stage))
-    if status == GateStatus.REVISE and payload.revision_target:
-        _cleanup_after_revision(advanced, payload.revision_target, reason=f"final audit requested {payload.revision_target} revision")
+    if cleanup_reason and payload.revision_target:
+        _cleanup_after_revision(advanced, payload.revision_target, reason=cleanup_reason)
     return _summary(advanced, detail=True)
