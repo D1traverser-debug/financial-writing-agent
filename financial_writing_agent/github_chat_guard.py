@@ -305,6 +305,7 @@ def build_initial_state(
     target_platforms: list[str] | None = None,
     distribution_mode: str | None = None,
     distribution_mode_source: str | None = None,
+    distribution_mode_override_evidence: str | None = None,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
     _require(_nonempty(task_id), "task_id is required")
@@ -315,10 +316,15 @@ def build_initial_state(
 
     if distribution_mode is None:
         _require(distribution_mode_source in {None, MODE_SOURCE_CANONICAL}, "distribution_mode_source must be CANONICAL_ROUTING when mode is inferred")
+        _require(not _nonempty(distribution_mode_override_evidence), "canonical routing must not carry single-mode override evidence")
         contract = build_task_contract(prompt=prompt, source_refs=refs, target_platforms=platforms)
         mode_source = MODE_SOURCE_CANONICAL
+        override_evidence = None
     else:
         _require(distribution_mode_source == MODE_SOURCE_USER_EXPLICIT, "distribution_mode override requires USER_EXPLICIT_OVERRIDE provenance")
+        _require(_nonempty(distribution_mode_override_evidence), "distribution_mode override requires exact user prompt evidence")
+        override_evidence = str(distribution_mode_override_evidence).strip()
+        _require(override_evidence in prompt, "distribution_mode override evidence must be an exact substring of the user prompt")
         try:
             mode = DistributionMode(distribution_mode)
         except ValueError as exc:
@@ -346,6 +352,7 @@ def build_initial_state(
             "target_platforms": platforms,
             "distribution_mode": contract.distribution_mode.value,
             "distribution_mode_source": mode_source,
+            "distribution_mode_override_evidence": override_evidence,
             "delivery_channel": contract.delivery_channel.value,
             "required_outputs": required_outputs,
         },
