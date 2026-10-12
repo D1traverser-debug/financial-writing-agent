@@ -1,0 +1,50 @@
+{
+  "stage": "RESEARCH_AUDIT",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "assurance": "CHAT_SELF_REVIEW",
+  "status": "REVISE",
+  "revision_target": "RESEARCH",
+  "review_basis": {
+    "research_artifact": {
+      "path": "workspaces/articles/fw-20261012-ai-security-6dd14859/stages/RESEARCH.json",
+      "blob_sha": "b19720a1565cc9adbaee91f5a5af3ac4342ed542"
+    },
+    "checks": [
+      "Material value-chain classes enumerated before narrowing",
+      "At least two materially different recall sources",
+      "Every company reconciled to a class/materiality",
+      "Obvious peer/material class omissions",
+      "SATURATED/BOUNDED stop condition",
+      "Market Explanation scope",
+      "Counterevidence and uncertainty"
+    ]
+  },
+  "passes": [
+    "Market Explanation correctly scoped NOT_MATERIAL; no need to force short-term price-selection analysis.",
+    "Overseas evidence uses primary IR and establishes both hardware/network modernization and AI-native software demand.",
+    "Original three companies are differentiated by revenue vs orders vs broader AI-infrastructure exposure rather than treated as equivalent.",
+    "Counterevidence is explicit: domestic legacy budget pressure, order conversion lag, AI-vs-refresh attribution limits."
+  ],
+  "defects": [
+    {
+      "severity": "MATERIAL",
+      "finding": "Firewall/AI-security A-share universe undercovered: 天融信 is an obvious material peer.",
+      "evidence": "2026 H1 disclosure says AI-security protection revenue grew >130% YoY, AI-enabled security direct revenue exceeded RMB80M, and the company remains a major domestic firewall vendor.",
+      "required_fix": "Add 天融信 as MATERIAL in both high-performance firewall and AI-security application/operations classes; compare disclosed monetization."
+    },
+    {
+      "severity": "MATERIAL",
+      "finding": "High-performance firewall class omitted 山石网科 despite direct ASIC firewall commercialization evidence.",
+      "evidence": "2026 H1 filing says ASIC firewall products entered large-scale shipments; Q2 ASIC-security product revenue share was about 20%, with 2G-200G firewall range and AI-security positioning.",
+      "required_fix": "Add 山石网科 as MATERIAL for hardware modernization / high-performance firewall; distinguish AI-driven overseas refresh from domestic ASIC/localization tailwinds."
+    },
+    {
+      "severity": "SECONDARY",
+      "finding": "迪普科技 should be recorded as a secondary high-performance firewall/data-center peer rather than absent.",
+      "evidence": "2026 H1 filing cites TB-class processing, data-center/AI-compute network scenarios and high firewall market share, but no quantified AI-security monetization found.",
+      "required_fix": "Add as SECONDARY or evidence-bounded exclusion."
+    }
+  ],
+  "audit_conclusion": "Research breadth is not yet sufficient for a MATERIAL_COMPLETE Deep article. Revise the universe before editorial selection.",
+  "next_action": "REVISE to RESEARCH; update ResearchPackage with 天融信, 山石网科, and 迪普科技 classification and re-run audit."
+}
