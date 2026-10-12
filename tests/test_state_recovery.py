@@ -125,7 +125,7 @@ def test_completed_task_with_open_maintenance_debt_remains_discoverable(tmp_path
     assert "review_writing_system_impact" in rows[0]["next_action"]
 
 
-def _persist_revision_crash(store: SQLiteStateStore, task_id: str = "revision-crash") -> None:
+def _persist_revision_crash(store: SQLiteStateStore, task_id: str = "revision-crash") -> datetime:
     state = _state(task_id, stage=Stage.RESEARCH)
     for gate in (
         "research_output",
@@ -148,16 +148,18 @@ def _persist_revision_crash(store: SQLiteStateStore, task_id: str = "revision-cr
         "reason": "simulated crash after revision transition",
     }
     store.save(state)
+    return state.updated_at
 
 
 def test_pending_revision_cleanup_is_replayed_in_memory_without_mutating_read(tmp_path, monkeypatch):
     store = SQLiteStateStore(tmp_path / "state.db")
-    _persist_revision_crash(store)
+    durable_updated_at = _persist_revision_crash(store)
     monkeypatch.setattr(runtime, "store", store)
 
     recovered = runtime._load("revision-crash")
     assert recovered.stage == Stage.RESEARCH
     assert recovered.checkpoint_version == 1
+    assert recovered.updated_at == durable_updated_at
     assert "_pending_revision_cleanup" not in recovered.working
     assert "editorial_plan" not in recovered.working
     assert "draft" not in recovered.working
@@ -167,16 +169,19 @@ def test_pending_revision_cleanup_is_replayed_in_memory_without_mutating_read(tm
     # A second read replays the same durable recovery intent but still does not write.
     second = runtime._load("revision-crash")
     assert second.checkpoint_version == 1
+    assert second.updated_at == durable_updated_at
     assert sum(event.event == "RECOVERY_RECONCILED" for event in second.trace) == 1
 
     with sqlite3.connect(store.path) as conn:
-        raw_payload, raw_version = conn.execute(
-            "SELECT payload, checkpoint_version FROM runs WHERE task_id='revision-crash'"
+        raw_payload, raw_version, raw_updated_at = conn.execute(
+            "SELECT payload, checkpoint_version, updated_at FROM runs WHERE task_id='revision-crash'"
         ).fetchone()
     assert raw_version == 1
+    assert raw_updated_at == durable_updated_at.isoformat()
     assert "_pending_revision_cleanup" in json.loads(raw_payload)["working"]
 
     # The next legitimate writer commits the healed state with normal CAS.
+    recovered.add_trace("REAL_WRITE", "persist healed state")
     store.save(recovered)
     assert recovered.checkpoint_version == 2
     durable = store.load("revision-crash")
@@ -241,3 +246,42 @@ def test_plugin_recent_task_tool_delegates_to_runtime_single_filter():
 
     assert calls_runtime is True
     assert calls_store_directly is False
+
+
+def test_plugin_summary_is_presentation_only_and_never_reloads_task_state():
+    source = (ROOT / "financial_writing_agent/plugin_server.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
+    func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_summary")
+    assert not any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Attribute)
+        and isinstance(node.func.value, ast.Name)
+        and node.func.value.id == "impl"
+        and node.func.attr in {"_load", "get_writing_task"}
+        for node in ast.walk(func)
+    )
+
+
+def test_runtime_detailed_summary_contains_all_public_detail_without_second_read():
+    state = _state("snapshot-task", stage=Stage.RESEARCH)
+    state.working["methodology_profile_runs"] = [{"activation_id": "profile-run-1"}]
+    state.working["system_impact_signals"] = [
+        {
+            "signal_id": "impact-1",
+            "status": "PENDING_REVIEW",
+            "signal_type": "WRITING_QUALITY_SYSTEM_IMPACT_REVIEW",
+        }
+    ]
+    raw = runtime._summary(state, detail=True)
+    assert raw["methodology_profile_runs"] == [{"activation_id": "profile-run-1"}]
+    assert raw["system_impact_signals"][0]["signal_id"] == "impact-1"
+    assert raw["open_system_impact_count"] == 1
+
+
+def test_runner_and_semantic_runtime_do_not_translate_state_conflicts_into_business_blockers():
+    runner_source = (ROOT / "financial_writing_agent/runner.py").read_text(encoding="utf-8")
+    semantic_source = (ROOT / "financial_writing_agent/semantic_runtime.py").read_text(encoding="utf-8")
+    assert "except StateConflictError:" in runner_source
+    assert "except StateConflictError:" in semantic_source
+    assert runner_source.index("except StateConflictError:") < runner_source.index("except (WorkflowError, RuntimeUnavailable)")
+    assert semantic_source.index("except StateConflictError:") < semantic_source.index("except OpenAIAgentsUnavailable")
