@@ -1,0 +1,37 @@
+{
+  "stage": "EDITORIAL_AUDIT",
+  "task_id": "fw-20261012-ai-security-6dd14859",
+  "assurance": "CHAT_SELF_REVIEW",
+  "status": "REVISE",
+  "revision_target": "DRAFT",
+  "template_cluster_guard": {
+    "deterministic_semantics": "financial_writing_agent.checks.analyze_template_scaffolding equivalent current-session evaluation",
+    "finance_deep": {
+      "counts": {"not_x_but_y": 3},
+      "repeated_family": true,
+      "requires_revise": true,
+      "evidence_excerpts": [
+        "AI改变的不是单一产品需求，而是把安全支出拆成了两条同时向上的线",
+        "企业面对的不是‘把原来的安全预算换个AI名字’，而是新增工作负载带来了新增控制面",
+        "差别不在‘有没有AI’，而在兑现到了哪一步"
+      ]
+    },
+    "finance_broad": {
+      "requires_revise": false,
+      "note": "No rhetorical family reaches the deterministic repetition threshold in the frozen Broad source."
+    }
+  },
+  "reader_funnel": {
+    "preliminary": "PASS_EXCEPT_DRAFT_REVISION_REQUIRED",
+    "evidence": ["Selected titles pay off in the first three sentences", "H1 sequence follows budget → mechanism → domestic monetization → validation", "Broad exposes a non-niche budget/earnings stake"]
+  },
+  "authorial_prose": {
+    "preliminary": "REVISE",
+    "reason": "template_redundancy_control cannot pass while deterministic repeated-family threshold is tripped; factual fidelity and argument progression otherwise remain acceptable."
+  },
+  "general_editorial": {
+    "preliminary": "PASS_EXCEPT_DRAFT_REVISION_REQUIRED",
+    "evidence": ["Deep contains all six MATERIAL companies", "company comparison remains non-actionable", "Market Explanation NOT_MATERIAL respected", "validation section maps signals back to named companies/classes"]
+  },
+  "required_fix": "Rewrite the three repeated 'not X but Y / not in X but in Y' scaffolds using different logical forms without changing facts, certainty or structure; then rerun all three editorial audit surfaces."
+}
