@@ -1,6 +1,8 @@
 import json
 from pathlib import Path
 
+from financial_writing_agent.workflow_spec import BUSINESS_STAGE_NAMES
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -26,6 +28,7 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert any("exact task/stage/capability/action" in item for item in chat_flow["evidence_contract"])
     assert chat["activation"]["free_form_article_fallback_allowed"] is False
     assert chat["authority"]["state_file"] == "workspaces/articles/{task_id}/STATE.json"
+    assert chat["authority"]["canonical_workflow_spec"] == "financial_writing_agent/workflow_spec.py"
     assert chat["authority"]["transition_guard"] == "financial_writing_agent/github_chat_guard.py"
     assert chat["workflow"]["terminal_status"] == "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
     assert chat["assurance"]["chat_review_can_issue_owner_native_semantic_pass"] is False
@@ -59,12 +62,14 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert any("callback presence alone" in item for item in quality_gate["evidence_contract"])
 
 
-def test_github_chat_stage_order_matches_owner_business_sequence_and_cannot_claim_native_complete():
+def test_github_chat_uses_canonical_owner_business_sequence_and_cannot_claim_native_complete():
     chat = json.loads((ROOT / "continuity/GITHUB_CHAT_EXECUTION.json").read_text(encoding="utf-8"))
-    assert chat["workflow"]["stage_order"] == [
+    assert BUSINESS_STAGE_NAMES == (
         "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
         "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT",
-    ]
+    )
+    assert chat["workflow"]["canonical_stage_order_symbol"] == "BUSINESS_STAGE_ORDER"
+    assert "stage_order" not in chat["workflow"]
     assert chat["workflow"]["owner_native_terminal_status"] == "COMPLETE"
     assert chat["workflow"]["terminal_status"] != "COMPLETE"
     assert chat["authority"]["chat_memory_is_business_state_authority"] is False
