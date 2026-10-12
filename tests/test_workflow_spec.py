@@ -4,7 +4,7 @@ from pathlib import Path
 
 from financial_writing_agent.controller import WorkflowController
 from financial_writing_agent.engine import ALLOWED_TRANSITIONS, WritingEngine
-from financial_writing_agent.github_chat_guard import build_initial_state, advance_state
+from financial_writing_agent.github_chat_guard import advance_state, build_initial_state
 from financial_writing_agent.models import GateStatus, Stage, TaskContract
 from financial_writing_agent.store import SQLiteStateStore
 from financial_writing_agent.workflow_spec import (
@@ -74,59 +74,52 @@ def test_dependency_invalidation_is_derived_from_stage_order():
     )
 
 
-def _runtime_service_ast() -> ast.Module:
-    return ast.parse((ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8"))
+def test_runtime_service_consumes_kernel_instead_of_maintaining_gate_route_copies():
+    source = (ROOT / "financial_writing_agent/runtime_service.py").read_text(encoding="utf-8")
+    tree = ast.parse(source)
 
+    imports = {
+        alias.name
+        for node in tree.body
+        if isinstance(node, ast.ImportFrom) and node.module == "workflow_spec"
+        for alias in node.names
+    }
+    assert {"invalidated_gate_names_from", "revision_targets"}.issubset(imports)
 
-def _runtime_cleanup_gate_map() -> dict[str, tuple[str, ...]]:
-    tree = _runtime_service_ast()
-    func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_cleanup_after_revision")
-    result: dict[str, tuple[str, ...]] = {}
-    node = func.body[0]
-    while isinstance(node, ast.If):
-        compare = node.test
-        if (
-            isinstance(compare, ast.Compare)
-            and len(compare.ops) == 1
-            and isinstance(compare.ops[0], ast.Eq)
-            and isinstance(compare.comparators[0], ast.Constant)
-            and isinstance(compare.comparators[0].value, str)
-        ):
-            target = compare.comparators[0].value
-            invalidate_call = next(
-                (call for statement in node.body for call in ast.walk(statement)
-                 if isinstance(call, ast.Call) and isinstance(call.func, ast.Name) and call.func.id == "_invalidate"),
-                None,
-            )
-            if invalidate_call is not None and len(invalidate_call.args) >= 2:
-                result[target] = tuple(ast.literal_eval(invalidate_call.args[1]))
-        node = node.orelse[0] if len(node.orelse) == 1 and isinstance(node.orelse[0], ast.If) else None
-    return result
-
-
-def test_owner_native_revision_cleanup_gate_lists_match_canonical_dependencies():
-    cleanup = _runtime_cleanup_gate_map()
-    expected_targets = ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY")
-    assert set(cleanup) == set(expected_targets)
-    for target in expected_targets:
-        assert cleanup[target] == invalidated_gate_names_from(Stage(target))
-
-
-def _literal_revision_set_for_submit(function_name: str) -> frozenset[Stage]:
-    tree = _runtime_service_ast()
-    func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == function_name)
-    call = next(
-        node for node in ast.walk(func)
-        if isinstance(node, ast.Call) and isinstance(node.func, ast.Name) and node.func.id == "_validate_revision_target"
+    apply_cleanup = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_apply_revision_cleanup")
+    assert any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "invalidated_gate_names_from"
+        for node in ast.walk(apply_cleanup)
     )
-    raw = ast.literal_eval(call.args[1])
-    return frozenset(Stage(item) for item in raw)
 
+    stage_change = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == "_invalidate_for_stage_change")
+    assert any(
+        isinstance(node, ast.Call)
+        and isinstance(node.func, ast.Name)
+        and node.func.id == "invalidated_gate_names_from"
+        for node in ast.walk(stage_change)
+    )
 
-def test_public_submit_revision_sets_match_canonical_review_routes():
-    assert _literal_revision_set_for_submit("submit_research_audit") == revision_targets(Stage.RESEARCH_AUDIT)
-    assert _literal_revision_set_for_submit("submit_editorial_audit") == revision_targets(Stage.EDITORIAL_AUDIT)
-    assert _literal_revision_set_for_submit("submit_final_audit") == revision_targets(Stage.FINAL_AUDIT)
+    for function_name, expected_stage in (
+        ("submit_research_audit", Stage.RESEARCH_AUDIT),
+        ("submit_editorial_audit", Stage.EDITORIAL_AUDIT),
+        ("submit_final_audit", Stage.FINAL_AUDIT),
+    ):
+        func = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and node.name == function_name)
+        calls = [
+            node for node in ast.walk(func)
+            if isinstance(node, ast.Call)
+            and isinstance(node.func, ast.Name)
+            and node.func.id == "_canonical_revision_target_names"
+        ]
+        assert len(calls) == 1
+        assert isinstance(calls[0].args[0], ast.Attribute)
+        assert calls[0].args[0].attr == expected_stage.name
+
+    assert '_validate_revision_target(payload, {"RESEARCH"}' not in source
+    assert '_validate_revision_target(payload, {"RESEARCH", "EDITORIAL", "TITLE", "DRAFT"}' not in source
 
 
 def test_github_chat_contract_points_to_kernel_instead_of_copying_stage_order():
