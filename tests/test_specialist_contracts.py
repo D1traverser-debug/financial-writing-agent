@@ -76,7 +76,14 @@ def test_specialist_contracts_cover_every_model_role_with_typed_outputs_and_forb
         for ref in contract.reference_names:
             assert (ROOT / "references" / ref).is_file(), (specialist_id, ref)
 
-    assert {sid for sid, c in SPECIALIST_CONTRACTS.items() if c.web_access} == {"researcher", "headline_engine"}
+    assert {sid for sid, c in SPECIALIST_CONTRACTS.items() if c.web_access} == {
+        "researcher",
+        "research_auditor",
+        "headline_engine",
+        "reader_funnel_judge",
+    }
+    assert specialist_contract("writer").web_access is False
+    assert specialist_contract("final_auditor").web_access is False
     assert specialist_contract("final_auditor").artifact_metadata_access is True
     assert all(
         not c.artifact_metadata_access
