@@ -162,11 +162,9 @@ def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annot
 
 @mcp.tool(title="List recent writing tasks", annotations=READ_ONLY_TOOL, structured_output=True)
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50)] = 10, include_complete: bool = False) -> WritingTaskList:
-    """List recent persisted writing tasks, retaining completed tasks that still carry open system-impact maintenance obligations so quality incidents cannot disappear from continuation."""
-    states = impl.store.list_recent(limit=max(1, min(limit, 50)))
-    if not include_complete:
-        states = [state for state in states if state.stage != Stage.COMPLETE or open_system_impact_signals(state)]
-    return WritingTaskList(tasks=[_summary(impl._summary(state)) for state in states])
+    """List recent persisted writing tasks through the owner runtime's single continuation filter, retaining completed tasks with open system-impact maintenance obligations and scanning past clean completions until the requested eligible count is filled or history is exhausted."""
+    rows = impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)
+    return WritingTaskList(tasks=[_summary(row) for row in rows])
 
 
 @mcp.tool(title="Resume blocked writing task", annotations=STATE_WRITE_TOOL, structured_output=True)
@@ -206,7 +204,7 @@ def record_writing_learning_sample(
 
 @mcp.tool(title="Review writing system impact", annotations=STATE_WRITE_TOOL, structured_output=True)
 def review_writing_system_impact(
-    task_id: Annotated[str, Field(min_length=1)],
+    task_id: Annotated[str, Field(min_length=1, description="Exact persisted task that owns the material writing-quality signal.")],
     signal_id: Annotated[str, Field(min_length=1, description="Exact system-impact signal emitted from the triggering learning sample.")],
     problem_statement: Annotated[str, Field(min_length=1)],
     root_cause_layer: RootCauseLayerText,
