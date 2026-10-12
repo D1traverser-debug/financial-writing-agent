@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from dataclasses import dataclass
+from pathlib import Path
 
 from .models import Stage
 
@@ -17,6 +18,7 @@ class SpecialistContract:
     web_access: bool
     author_identity: str | None
     execution_instruction: str
+    artifact_metadata_access: bool = False
     forbidden_actions: tuple[str, ...] = (
         "change or invent workflow stages",
         "silently repair upstream evidence while certifying the current stage",
@@ -164,9 +166,10 @@ SPECIALIST_CONTRACTS: dict[str, SpecialistContract] = {
         ),
         web_access=False,
         author_identity="Financial Writing Writer / Delivery Executor",
+        artifact_metadata_access=True,
         execution_instruction=(
-            "Perform a read-only final red-team judgment over the frozen publication source and recorded audit/mechanical evidence. "
-            "Return GateDecision; do not repair content in place or upgrade assurance beyond the actual executor evidence."
+            "Perform a read-only final red-team judgment over the frozen publication source, safe artifact metadata and recorded "
+            "audit/mechanical evidence. Return GateDecision; do not repair content in place or upgrade assurance beyond the actual executor evidence."
         ),
     ),
 }
@@ -187,3 +190,18 @@ def projected_working(state_working: dict, specialist_id: str) -> dict:
 def projected_gates(state_gates: dict, specialist_id: str) -> dict:
     contract = specialist_contract(specialist_id)
     return {key: state_gates[key] for key in contract.gate_keys if key in state_gates}
+
+
+def projected_artifacts(state_artifacts: dict, specialist_id: str) -> dict:
+    """Expose only non-path artifact identity/availability to authorized specialists."""
+    contract = specialist_contract(specialist_id)
+    if not contract.artifact_metadata_access:
+        return {}
+    return {
+        kind.value: {
+            "file_name": Path(artifact.path).name,
+            "exists": artifact.exists,
+            "sha256": artifact.sha256,
+        }
+        for kind, artifact in state_artifacts.items()
+    }
