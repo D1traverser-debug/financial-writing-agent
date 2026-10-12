@@ -14,7 +14,7 @@ from ..checks import analyze_template_scaffolding, check_deep_company_grounding,
 from ..models import GateStatus, Stage, WritingState
 from ..resources import read_reference
 from ..schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
-from ..specialist_contracts import projected_gates, projected_working, specialist_contract
+from ..specialist_contracts import projected_artifacts, projected_gates, projected_working, specialist_contract
 from .deterministic import finalize_audit_artifact
 
 
@@ -61,6 +61,7 @@ def _state_context(state: WritingState, specialist_id: str) -> str:
             key: value.model_dump(mode="json")
             for key, value in projected_gates(state.gates, specialist_id).items()
         },
+        "artifacts": projected_artifacts(state.artifacts, specialist_id),
     }
     return json.dumps(payload, ensure_ascii=False, indent=2)
 
