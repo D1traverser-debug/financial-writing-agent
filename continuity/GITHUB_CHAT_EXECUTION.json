@@ -1,14 +1,15 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "execution_mode": "CHAT_BRIDGED",
   "executor_type": "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE",
-  "purpose": "Make the user's current GitHub-mounted + GPT-chat operating mode an explicit Financial Writing execution path without weakening owner-native assurance boundaries or requiring a deployed Site/MCP runtime.",
+  "purpose": "Make the user's GitHub-mounted + GPT-chat operating mode explicit without weakening owner-native assurance boundaries or requiring a deployed Site/MCP runtime. Chat mode is executable only when its deterministic transition guard can run in the current session.",
   "activation": {
-    "when": "A publishable Financial Writing action is requested, the current session can read/write this GitHub owner and has the model/web/document capabilities required by the exact next stage, but the Python owner runtime or owner plugin is unavailable.",
+    "when": "A publishable Financial Writing action is requested, owner-native runtime is unavailable, and the current session can execute the model work, GitHub owner reads/writes, plus the deterministic GitHub-chat transition guard required by the exact next action.",
     "must_not_activate_when": [
       "GitHub owner read/write is unavailable for a material state mutation",
-      "the exact stage requires a capability that the current session cannot execute",
+      "financial_writing_agent.github_chat_guard cannot be executed or equivalently evaluated by a deterministic current-session tool",
+      "the exact stage requires another capability that the current session cannot execute",
       "the user explicitly requests owner-native or independently attested assurance"
     ],
     "free_form_article_fallback_allowed": false
@@ -20,6 +21,7 @@
     "stage_artifact_directory": "workspaces/articles/{task_id}/stages",
     "review_directory": "workspaces/articles/{task_id}/reviews",
     "publication_source_directory": "workspaces/articles/{task_id}/publication",
+    "transition_guard": "financial_writing_agent/github_chat_guard.py",
     "chat_memory_is_business_state_authority": false,
     "python_sqlite_state_is_required_for_this_mode": false,
     "site_or_mcp_deployment_is_required_for_this_mode": false
@@ -39,9 +41,10 @@
     ],
     "terminal_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
     "owner_native_terminal_status": "COMPLETE",
-    "rule": "Use the same Financial business sequence and stage references as the Python owner runtime. Every material stage mutation must be checkpointed to GitHub and reread before the chat treats the stage as durable. A chat-mode stage may not be skipped merely because the model can draft the final article directly."
+    "rule": "Use the same Financial business sequence as the owner-native workflow. Stage advancement/revision/terminalization is accepted only through github_chat_guard against the fetched current STATE.json blob identity; the model may not hand-edit current_stage to skip or invent a gate."
   },
   "checkpoint_contract": {
+    "state_schema_version": "1.1",
     "required_fields": [
       "schema_version",
       "task_id",
@@ -55,51 +58,57 @@
       "stage_artifacts",
       "review_assurance",
       "open_system_impact",
+      "execution_receipts",
       "updated_at"
     ],
     "execution_mode_value": "GITHUB_CHAT",
-    "mutation_guard": "Fetch current STATE.json blob SHA before every replacement; stale or ambiguous writers fail closed rather than last-write-wins from chat memory.",
-    "post_write_verification": "Reread STATE.json and every newly written stage artifact after material checkpoint; a GitHub tool success alone is not commit proof.",
+    "mutation_guard": "Fetch the current STATE.json blob SHA, run financial_writing_agent.github_chat_guard to build/validate the next state and exact action-bound receipt, then replace STATE.json using that same SHA. A stale writer or guard failure blocks the mutation.",
+    "execution_receipt_rule": "Every material chat-mode state mutation appends one self-attested execution receipt containing task/stage/capability/action, executor identity, prior state blob SHA, subject/input bindings, output refs and result. Receipt existence does not make the chat independent or owner-native.",
+    "post_write_verification": "Reread STATE.json and every newly referenced stage artifact after the GitHub mutation; a guard PASS or GitHub tool success alone is not commit proof.",
     "stage_artifact_identity": "Git repository path + blob SHA",
     "article_source_identity": "Git repository path + blob SHA or content digest"
   },
   "stage_evidence": {
     "RESEARCH": "Persist a structured research artifact covering the canonical Research contract: evidence ledger, source boundary, coverage sweeps, Universe Coverage where applicable, counterevidence, uncertainty and Market Explanation scope.",
-    "RESEARCH_AUDIT": "Persist a separate red-team review artifact. In one GPT chat its assurance is CHAT_SELF_REVIEW; it may force REVISE but must not be represented as owner-native or independent PASS.",
+    "RESEARCH_AUDIT": "Persist a separate red-team review artifact. In one GPT chat its assurance is CHAT_SELF_REVIEW; it may force REVISE or FAIL but must not be represented as owner-native or independent PASS.",
     "EDITORIAL": "Persist TopicDNA, at least two topic-specific candidate structures per applicable mode, selected structure, completeness/company obligations and comparison map where applicable.",
     "TITLE": "Persist the 8-12 candidate pool per applicable mode, angle-family diversity, selected title and current search evidence.",
     "DRAFT": "Persist the complete structured publication source before any delivery artifact is created.",
-    "EDITORIAL_AUDIT": "Persist Reader Funnel, Authorial Prose/template, and general editorial self-review separately. CHAT_SELF_REVIEW may revise the draft; it is not proof-bearing independent certification.",
+    "EDITORIAL_AUDIT": "Persist Reader Funnel, Authorial Prose/template, and general editorial self-review separately. CHAT_SELF_REVIEW may revise or fail the draft; it is not proof-bearing independent certification.",
     "DELIVERY": "Generate Word from the persisted publication source using current document tooling when available. The GitHub publication source is durable authority for regeneration; a transient chat attachment is a delivery artifact, not checkpoint authority.",
-    "MECHANICAL_AUDIT": "Run all deterministic checks executable in the current session and record exactly which checks ran. Unavailable render or file checks stay OPEN rather than silently PASS.",
-    "FINAL_AUDIT": "Perform a final red-team pass against frozen GitHub source + available delivery evidence. In this mode the strongest normal terminal claim is DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN unless stronger execution evidence is actually obtained."
+    "MECHANICAL_AUDIT": "Persist the checks actually executed and their result. A PASS may advance only through the deterministic transition guard; unavailable render/file checks stay OPEN rather than silently PASS.",
+    "FINAL_AUDIT": "Persist a final red-team artifact against frozen GitHub source + available delivery evidence. PASS may only terminalize through the guard and remains DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN unless stronger execution evidence separately exists."
   },
   "assurance": {
     "chat_review_label": "CHAT_SELF_REVIEW",
+    "chat_execution_receipt_label": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT",
     "chat_review_can_identify_revise_or_fail": true,
     "chat_review_can_issue_owner_native_semantic_pass": false,
     "chat_review_can_claim_independent_execution": false,
+    "guard_pass_is_independent_execution": false,
     "owner_native_semantic_pass_requires_existing_python_owner_runtime_evidence_contract": true,
-    "terminal_claim_rule": "A useful article may be delivered after the full GitHub-chat workflow and self-review path completes, but the state and user-visible QA must keep owner-native/independent certification OPEN. Never translate CHAT_REVIEWED into the Python GateStatus PASS proof model."
+    "terminal_claim_rule": "A useful article may be delivered after the full guard-enforced GitHub-chat workflow and self-review path completes, but owner-native/independent certification remains OPEN. Never translate CHAT_REVIEWED or a self-attested chat execution receipt into the Python GateStatus PASS proof model."
   },
   "learning_and_maintenance": {
-    "material_user_edit_feedback_rejection": "Persist the evidence inside the article workspace even when the owner plugin is unavailable, create an OPEN system-impact review item in STATE.json in the same GitHub mutation set, and enter current Universal maintenance/evolution when classified systemic.",
+    "material_user_edit_feedback_rejection": "Use github_chat_guard.attach_material_feedback so material negative/corrective evidence and its OPEN system-impact item are written into the same guarded STATE.json mutation and exact action-bound receipt before the learning loop is called closed.",
     "one_off_feedback_auto_promotes_rule": false,
     "owner_plugin_receipt_claim_when_plugin_unavailable": "FORBIDDEN",
     "shared_method_propagation": "Use current Universal operational_hygiene/evolution method; keep Financial business truth local."
   },
   "failure_behavior": {
+    "missing_transition_guard": "BLOCK the stage transition; do not hand-edit STATE.json or continue as if the SOP was enforced.",
     "missing_github_write": "BLOCK exact material mutation; do not continue as if state were durable.",
     "missing_web_for_current_fact_research": "BLOCK or explicitly bound the research scope; do not invent current evidence.",
     "missing_document_tooling": "Keep publication source complete in GitHub and mark DOCX delivery OPEN; do not claim Word contract satisfied.",
     "missing_independent_or_owner_native_audit": "Continue only at CHAT_SELF_REVIEW assurance and keep certification OPEN; do not fabricate PASS.",
-    "context_or_connection_loss": "Resume from GitHub STATE.json + exact stage artifact refs, not remembered prose."
+    "context_or_connection_loss": "Resume from GitHub STATE.json + exact stage artifact refs + execution receipts, not remembered prose."
   },
   "anti_bypass": [
-    "No publishable final article is produced directly from INTAKE without a GitHub task checkpoint.",
+    "No publishable final article is produced directly from INTAKE without a guarded GitHub task checkpoint.",
     "No Research/Editorial/Title/Draft stage is treated as completed without a durable artifact ref.",
+    "No current_stage change, review route or terminalization is accepted without github_chat_guard validation and one new action-bound execution receipt.",
     "No chat self-review is relabeled as INDEPENDENT_EXECUTOR or owner-runtime PASS.",
-    "No missing owner runtime is silently replaced by free-form writing; the explicit GitHub-chat adapter is the only chat fallback.",
+    "No missing owner runtime is silently replaced by free-form writing; the explicit guard-enforced GitHub-chat adapter is the only chat fallback.",
     "No Site/MCP deployment is required merely to use this adapter."
   ]
 }
