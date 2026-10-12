@@ -28,12 +28,7 @@ from .methodology_receipts import (
 from .models import ArtifactKind, GateStatus, Stage
 from .schemas import DraftPackage, EditorialPlan, GateDecision, HeadlinePackage, HookAuditDecision, ResearchPackage, StyleAuditDecision
 from .semantic_runtime import run_owner_semantic_audit_stage
-from .system_impact import (
-    apply_system_impact_review,
-    ensure_system_impact_signal_for_latest_sample,
-    open_system_impact_signals,
-    system_impact_next_action,
-)
+from .system_impact import apply_system_impact_review, ensure_system_impact_signal_for_latest_sample
 
 DOCX_MIME = "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
 DOCX_KINDS = {ArtifactKind.FINANCE_DEEP_DOCX, ArtifactKind.FINANCE_BROAD_DOCX, ArtifactKind.AUDIT_DOCX}
@@ -68,24 +63,13 @@ def _publicize(raw: dict) -> dict:
 
 
 def _summary(raw: dict) -> WritingTaskSummary:
-    enriched = dict(raw)
-    task_id = enriched.get("task_id")
-    detail_requested = any(key in enriched for key in ("source_refs", "gates", "artifacts", "learning_samples"))
-    if isinstance(task_id, str) and task_id:
-        try:
-            state = impl._load(task_id)
-        except ValueError:
-            state = None
-        if state is not None:
-            signals = list(state.working.get("system_impact_signals", []))
-            enriched["open_system_impact_count"] = len(open_system_impact_signals(state))
-            enriched["system_impact_signals"] = signals if detail_requested or signals else None
-            impact_action = system_impact_next_action(state)
-            if impact_action:
-                enriched["next_action"] = impact_action
-            if detail_requested:
-                enriched["methodology_profile_runs"] = list(state.working.get("methodology_profile_runs", []))
-    return WritingTaskSummary.model_validate(_publicize(enriched))
+    """Convert one runtime snapshot to the public schema without rereading state.
+
+    runtime_service owns task-state summary semantics. A second task load here could mix
+    stage/status from checkpoint N with maintenance or receipt fields from checkpoint
+    N+1 under concurrent execution, so the MCP layer is deliberately presentation-only.
+    """
+    return WritingTaskSummary.model_validate(_publicize(raw))
 
 
 def _resource_bytes(task_id: str, kind: str) -> bytes:
@@ -162,11 +146,9 @@ def get_writing_task(task_id: Annotated[str, Field(min_length=1)], detail: Annot
 
 @mcp.tool(title="List recent writing tasks", annotations=READ_ONLY_TOOL, structured_output=True)
 def list_recent_writing_tasks(limit: Annotated[int, Field(ge=1, le=50)] = 10, include_complete: bool = False) -> WritingTaskList:
-    """List recent persisted writing tasks, retaining completed tasks that still carry open system-impact maintenance obligations so quality incidents cannot disappear from continuation."""
-    states = impl.store.list_recent(limit=max(1, min(limit, 50)))
-    if not include_complete:
-        states = [state for state in states if state.stage != Stage.COMPLETE or open_system_impact_signals(state)]
-    return WritingTaskList(tasks=[_summary(impl._summary(state)) for state in states])
+    """List recent persisted writing tasks through the owner runtime's single continuation filter, retaining completed tasks with open system-impact maintenance obligations and scanning past clean completions until the requested eligible count is filled or history is exhausted."""
+    rows = impl.list_recent_writing_tasks(limit=limit, include_complete=include_complete)
+    return WritingTaskList(tasks=[_summary(row) for row in rows])
 
 
 @mcp.tool(title="Resume blocked writing task", annotations=STATE_WRITE_TOOL, structured_output=True)
@@ -206,7 +188,7 @@ def record_writing_learning_sample(
 
 @mcp.tool(title="Review writing system impact", annotations=STATE_WRITE_TOOL, structured_output=True)
 def review_writing_system_impact(
-    task_id: Annotated[str, Field(min_length=1)],
+    task_id: Annotated[str, Field(min_length=1, description="Exact persisted task that owns the material writing-quality signal.")],
     signal_id: Annotated[str, Field(min_length=1, description="Exact system-impact signal emitted from the triggering learning sample.")],
     problem_statement: Annotated[str, Field(min_length=1)],
     root_cause_layer: RootCauseLayerText,

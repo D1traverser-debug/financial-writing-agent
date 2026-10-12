@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "phase": "PHASE_2_EXECUTION_READINESS_STATE_RECOVERY",
+  "status": "ACCEPTED_FOR_MAIN_WITH_SCOPED_ASSURANCE",
+  "base_main": "1948a9f80275aad202955c932430d7c882c82c97",
+  "reviewed_code_head": "8874d675800deedcde766e3bbc7a66752b11735b",
+  "pr": 16,
+  "scope": [
+    "OWNER_NATIVE_STATE_CONCURRENCY",
+    "OWNER_NATIVE_CRASH_RECOVERY",
+    "CONTINUATION_DISCOVERY",
+    "READ_SNAPSHOT_CONSISTENCY",
+    "EXECUTOR_CHECKPOINT_BOUNDARIES"
+  ],
+  "confirmed_defects": [
+    {
+      "id": "P2-D1",
+      "defect": "OWNER_NATIVE_LAST_WRITER_WINS",
+      "repair": "WritingState checkpoint_version plus SQLite compare-and-swap; stale writes raise StateConflictError"
+    },
+    {
+      "id": "P2-D2",
+      "defect": "LIMIT_BEFORE_FILTER_CAN_HIDE_ACTIVE_OR_OPEN_MAINTENANCE_TASK",
+      "repair": "runtime-owned paged continuation scan until eligible limit is filled or history is exhausted"
+    },
+    {
+      "id": "P2-D3",
+      "defect": "PLUGIN_AND_RUNTIME_OWNED_DIFFERENT_CONTINUATION_FILTERS",
+      "repair": "MCP delegates task discovery to runtime_service only"
+    },
+    {
+      "id": "P2-D4",
+      "defect": "REVISION_TRANSITION_TO_CLEANUP_CRASH_WINDOW",
+      "repair": "persist pending revision-cleanup intent with revision route; state_recovery replays cleanup before later business use"
+    },
+    {
+      "id": "P2-D5",
+      "defect": "SUCCESS_OUTPUT_COULD_BE_DURABLY_SAVED_BEFORE_STAGE_ROUTE",
+      "repair": "retain pre-call EXECUTOR_START evidence but collapse successful output/EXECUTOR_END and controller route into the next durable checkpoint where possible"
+    },
+    {
+      "id": "P2-D6",
+      "defect": "RUNNER_RECOVERY_SEMANTICS_DIVERGED_FROM_RUNTIME_SERVICE",
+      "repair": "shared store restoration invokes owner-local state_recovery for every owner-native entrypoint"
+    },
+    {
+      "id": "P2-D7",
+      "defect": "READ_ONLY_RECOVERY_COULD_HAVE_BECOME_A_HIDDEN_DURABLE_WRITE",
+      "repair": "recovery replay is in-memory only on restore; durable updated_at/checkpoint_version remain unchanged until a legitimate writer saves"
+    },
+    {
+      "id": "P2-D8",
+      "defect": "MCP_SUMMARY_COULD_MIX_TWO_CHECKPOINT_VERSIONS",
+      "repair": "runtime_service emits the complete task snapshot; MCP _summary is presentation-only and performs no task reread"
+    },
+    {
+      "id": "P2-D9",
+      "defect": "STALE_WRITER_CONFLICT_COULD_BE_MISCLASSIFIED_AS_BUSINESS_BLOCKED",
+      "repair": "runner and semantic runtime re-raise StateConflictError instead of attempting a stale BLOCKED mutation"
+    }
+  ],
+  "proposal_falsification": {
+    "rejected_or_modified": [
+      {
+        "proposal": "WRITE_RECOVERY_RESULT_DURING_READ",
+        "disposition": "REJECT",
+        "reason": "would violate read-only semantics and increment checkpoint_version merely because a task was inspected"
+      },
+      {
+        "proposal": "KEEP_MCP_ENRICHMENT_SECOND_READ",
+        "disposition": "REJECT",
+        "reason": "concurrent writes can create a response assembled from checkpoint N and N+1"
+      },
+      {
+        "proposal": "TRANSLATE_STATE_CONFLICT_TO_BLOCKED",
+        "disposition": "REJECT",
+        "reason": "a stale writer is a concurrency conflict, not a business-stage failure, and cannot safely persist a blocker from stale state"
+      },
+      {
+        "proposal": "BUMP_UNIVERSAL_ADAPTER_SCHEMA_TO_2_0",
+        "disposition": "REJECT",
+        "reason": "Phase 2 is additive owner hardening; no proven breaking adapter-schema change justified a major schema bump, so schema remains 1.9"
+      }
+    ],
+    "selected_mechanism": "VERSIONED_OWNER_STATE_CAS_PLUS_SHARED_READ_ONLY_RECOVERY_REPLAY_PLUS_RUNTIME_OWNED_CONTINUATION_AND_SINGLE_SNAPSHOT_PRESENTATION"
+  },
+  "executed_evidence": {
+    "targeted_core_reference_harness": {
+      "status": "PASS",
+      "coverage": [
+        "SQLITE_STALE_WRITER_REJECTION",
+        "WINNER_REMAINS_DURABLE",
+        "LEGACY_SCHEMA_ADDITIVE_MIGRATION",
+        "READ_ONLY_PENDING_REVISION_REPLAY",
+        "NEXT_REAL_WRITE_PERSISTS_HEALED_STATE"
+      ],
+      "boundary": "targeted core persistence/recovery harness only; not full repository pytest or live article execution"
+    },
+    "current_pr_diff_review": {
+      "status": "PASS",
+      "changed_files": 11,
+      "business_content_policy_changed": false,
+      "public_mcp_surface_changed": false,
+      "note": "diff remains in state/store/runtime/plugin/runner/semantic/recovery/contract/tests"
+    },
+    "latest_hosted_ci": {
+      "head": "8874d675800deedcde766e3bbc7a66752b11735b",
+      "run_id": 38199061660,
+      "job_id": 114648148161,
+      "conclusion": "failure",
+      "steps": null,
+      "interpretation": "HOSTED_RUNNER_NOT_ALLOCATED; workflow steps did not execute, so this is neither a code-test failure nor a regression PASS"
+    }
+  },
+  "assurance_ceiling": "TARGETED_CORE_STATE_RECOVERY_EXECUTION_PASS__CURRENT_DIFF_STRUCTURALLY_REVIEWED__FULL_OWNER_CI_NOT_EXECUTED__LIVE_ARTICLE_OPEN",
+  "remaining_open": [
+    "FULL_OWNER_REPOSITORY_CI",
+    "REAL_GITHUB_CHAT_ARTICLE_TRAJECTORY",
+    "POST_REBUILD_WRITING_QUALITY_EVIDENCE",
+    "PROVIDER_ATTESTED_OR_INDEPENDENT_SEMANTIC_EXECUTION",
+    "ACTIVE_FINANCIAL_USER_TASK_PROFILE_9_TO_10_RECONCILIATION_BY_AUTHORIZED_TASK_WRITER"
+  ],
+  "next_phase": "PHASE_3_SPECIALIST_PROMPT_SCHEMA_RESPONSIBILITY_CLEANUP",
+  "closure_claim": "Phase 2 repairs and bounds the owner-native state/recovery defects listed above. It does not claim the entire Financial system, all repository regressions, live writing quality, or independent semantic execution are complete."
+}
