@@ -21,6 +21,40 @@ def test_illegal_skip_is_blocked_by_engine(tmp_path):
         engine.transition(state, Stage.DRAFT)
 
 
+def test_complete_cannot_be_reached_through_raw_transition(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="write"))
+    state.stage = Stage.FINAL_AUDIT
+    with pytest.raises(WorkflowError, match=r"use complete\(\)"):
+        engine.transition(state, Stage.COMPLETE, reason="attempt semantic bypass")
+    assert state.stage == Stage.FINAL_AUDIT
+
+
+def test_blocked_cannot_be_entered_through_raw_transition(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="write"))
+    with pytest.raises(WorkflowError, match=r"use block\(\)"):
+        engine.transition(state, Stage.BLOCKED, reason="attempt recovery bypass")
+    assert state.stage == Stage.INTAKE
+    assert state.blocked_reason is None
+    assert state.blocked_resume_stage is None
+
+
+def test_blocked_cannot_be_left_through_raw_transition(tmp_path):
+    engine = WritingEngine(SQLiteStateStore(tmp_path / "state.db"))
+    state = engine.start(TaskContract(prompt="write"))
+    blocked = engine.block(state, "web unavailable", resume_stage=Stage.RESEARCH)
+    assert blocked.stage == Stage.BLOCKED
+    assert blocked.blocked_reason == "web unavailable"
+    with pytest.raises(WorkflowError, match=r"use resume_blocked\(\)"):
+        engine.transition(blocked, Stage.RESEARCH, reason="attempt stale recovery bypass")
+    resumed = engine.resume_blocked(blocked)
+    assert resumed.stage == Stage.RESEARCH
+    assert resumed.blocked_reason is None
+    assert resumed.blocked_from_stage is None
+    assert resumed.blocked_resume_stage is None
+
+
 def test_dual_word_outputs_are_required():
     c = TaskContract(prompt="x")
     assert set(c.required_outputs) == {
