@@ -1,6 +1,6 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 19,
+  "manifest_version": 20,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,18 +10,18 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-12T03:33:00Z",
+  "updated_at": "2026-10-12T07:48:00Z",
   "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
   "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 10，只对当前动作所需能力做 handshake。owner-native Python/plugin 实际可用则进入其版本化 WritingState；否则仅当当前会话具备 model + GitHub owner read/write + 可执行 deterministic github_chat_guard 时选择 GITHUB_CHAT，先创建 guard-validated STATE.json 再研究，禁止 free-form publishable fallback。执行顺序必须由 canonical workflow_spec 驱动：INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT。GITHUB_CHAT 审核上限为 CHAT_SELF_REVIEW，正常终态 DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN。若用户明确继续旧文章，先定位该文章的 owner-native WritingState 或 GitHub article workspace，不从聊天记忆/Notion/Drive 恢复 stage。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
   "runtime_version": "V0_8_1__PROFILE_10__CANONICAL_WORKFLOW_KERNEL__OWNER_NATIVE_CHECKPOINT_CAS_RECOVERY__GITHUB_CHAT_DETERMINISTIC_GUARD__FULL_HOSTED_CI_OPEN",
-  "resume_epoch": 2,
+  "resume_epoch": 3,
   "active_lease": {
-    "lease_id": "fw-5636d680328b40c5ab4b5029441e3489",
-    "acquired_at": "2026-10-10T16:38:39Z",
-    "supersedes_lease_id": "fw-e68921c619c84b51b1407baa95be9c1f"
+    "lease_id": "fw-4b398865ade44f1c896911a438f0c83b",
+    "acquired_at": "2026-10-12T07:48:00Z",
+    "supersedes_lease_id": "fw-5636d680328b40c5ab4b5029441e3489"
   },
   "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作"],
   "artifact_refs": [
