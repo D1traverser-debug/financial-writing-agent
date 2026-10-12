@@ -203,6 +203,7 @@ def _summary(state: WritingState, *, detail: bool = False) -> dict[str, Any]:
         summary["artifacts"] = {kind.value: {"path": artifact.path, "exists": artifact.exists, "sha256": artifact.sha256} for kind, artifact in state.artifacts.items()}
         summary["learning_samples"] = samples
         summary["system_impact_signals"] = list(state.working.get("system_impact_signals", []))
+        summary["methodology_profile_runs"] = list(state.working.get("methodology_profile_runs", []))
     if state.stage == Stage.COMPLETE:
         summary["completion_checklist"] = _completion_checklist(state)
     return summary
