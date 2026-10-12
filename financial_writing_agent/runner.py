@@ -6,7 +6,7 @@ from typing import Protocol
 from .controller import WorkflowController
 from .engine import WorkflowError, WritingEngine
 from .models import Stage, TaskContract, WritingState
-from .store import SQLiteStateStore
+from .store import SQLiteStateStore, StateConflictError
 
 
 class StageExecutor(Protocol):
@@ -77,6 +77,10 @@ class AgentRuntime:
                 # Successful output + EXECUTOR_END + stage transition are one durable
                 # checkpoint. Do not pre-save PASS/output before controller routing.
                 state = self.controller.advance(state)
+            except StateConflictError:
+                # A stale writer is not a business-stage failure and must never try to
+                # overwrite the winner by persisting a BLOCKED mutation from stale state.
+                raise
             except (WorkflowError, RuntimeUnavailable) as exc:
                 return self.engine.block(state, str(exc), resume_stage=state.stage)
             except Exception as exc:
