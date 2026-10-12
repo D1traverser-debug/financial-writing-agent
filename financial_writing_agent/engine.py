@@ -72,9 +72,10 @@ class WritingEngine:
         state.blocked_reason = reason
         state.blocked_from_stage = origin
         state.blocked_resume_stage = cursor
-        self._apply_transition(state, Stage.BLOCKED, reason=reason)
-        self.store.save(state)
-        return state
+        # _apply_transition persists the BLOCKED stage together with its reason/cursor.
+        # A second save here would add a meaningless checkpoint version and widen the
+        # persistence surface without changing durable business state.
+        return self._apply_transition(state, Stage.BLOCKED, reason=reason)
 
     def resume_blocked(self, state: WritingState, *, target_stage: Stage | None = None) -> WritingState:
         if state.stage != Stage.BLOCKED:
