@@ -1,37 +1,54 @@
 {
   "stage": "EDITORIAL_AUDIT",
   "task_id": "fw-20261012-ai-security-6dd14859",
+  "revision": 2,
   "assurance": "CHAT_SELF_REVIEW",
-  "status": "REVISE",
-  "revision_target": "DRAFT",
+  "status": "PASS",
+  "revision_target": null,
+  "frozen_sources": {
+    "FINANCE_DEEP": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_DEEP.json", "blob_sha": "93117e559e467cfcd4aaca8c75ccee7d9be92a01"},
+    "FINANCE_BROAD": {"path": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_BROAD.json", "blob_sha": "12b3549ad7e4af542d2538c3715cf30c400e3b6b"}
+  },
   "template_cluster_guard": {
-    "deterministic_semantics": "financial_writing_agent.checks.analyze_template_scaffolding equivalent current-session evaluation",
-    "finance_deep": {
-      "counts": {"not_x_but_y": 3},
-      "repeated_family": true,
-      "requires_revise": true,
-      "evidence_excerpts": [
-        "AI改变的不是单一产品需求，而是把安全支出拆成了两条同时向上的线",
-        "企业面对的不是‘把原来的安全预算换个AI名字’，而是新增工作负载带来了新增控制面",
-        "差别不在‘有没有AI’，而在兑现到了哪一步"
-      ]
-    },
-    "finance_broad": {
-      "requires_revise": false,
-      "note": "No rhetorical family reaches the deterministic repetition threshold in the frozen Broad source."
-    }
+    "finance_deep": {"not_x_but_y_count": 1, "repeated_family": false, "clustered": false, "requires_revise": false},
+    "finance_broad": {"not_x_but_y_count": 2, "repeated_family": false, "clustered": false, "requires_revise": false},
+    "result": "PASS"
   },
   "reader_funnel": {
-    "preliminary": "PASS_EXCEPT_DRAFT_REVISION_REQUIRED",
-    "evidence": ["Selected titles pay off in the first three sentences", "H1 sequence follows budget → mechanism → domestic monetization → validation", "Broad exposes a non-niche budget/earnings stake"]
+    "status": "PASS",
+    "evidence": [
+      "Both selected titles expose a concrete financial stake and are paid off in the first three sentences.",
+      "FINANCE_BROAD passes the cold-reader test by framing the topic as incremental enterprise security spending and financial realization, not as a niche cybersecurity product roundup.",
+      "Headline pools contain ten candidates per mode and at least eight/nine distinct angle families rather than synonym-only variants.",
+      "Deep H1 progression creates continuation value: overseas proof → network layer → model/Agent layer → domestic realization ladder → validation.",
+      "Completion sections add falsification/validation conditions rather than merely recapping the article."
+    ]
   },
   "authorial_prose": {
-    "preliminary": "REVISE",
-    "reason": "template_redundancy_control cannot pass while deterministic repeated-family threshold is tripped; factual fidelity and argument progression otherwise remain acceptable."
+    "status": "PASS",
+    "dimensions": {
+      "fidelity_and_responsibility": "PASS — revenue, orders and AI-infrastructure exposure remain explicitly distinguished; uncertain attribution is bounded.",
+      "semantic_contribution": "PASS — each substantive paragraph adds mechanism, evidence, comparison, counterevidence or validation.",
+      "argument_progression": "PASS — each major section follows from the previous causal question; the revised prose removes the repeated rhetorical scaffold.",
+      "reader_calibration": "PASS — technical concepts such as east-west traffic, ASIC, Prompt injection and Agent permissions are explained at finance-reader depth without oversimplifying.",
+      "authorial_selectivity": "PASS — stronger evidence receives more space; weaker/secondary peers are compressed and explicitly labeled as context.",
+      "evidence_specificity": "PASS — material claims use named companies, dates/periods, revenue/order figures and explicit disclosure boundaries.",
+      "structural_rhythm_naturalness": "PASS — continuous prose is mixed with conditional lower-level navigation only where the company-realization branches diverge.",
+      "template_redundancy_control": "PASS — deterministic repeated-family trigger cleared after revision.",
+      "uncertainty_rhetoric_calibration": "PASS — Fortinet AI attribution, 启明星辰 base-size ambiguity, 绿盟 conversion lag and 山石 ASIC multi-driver attribution remain conditional."
+    }
   },
   "general_editorial": {
-    "preliminary": "PASS_EXCEPT_DRAFT_REVISION_REQUIRED",
-    "evidence": ["Deep contains all six MATERIAL companies", "company comparison remains non-actionable", "Market Explanation NOT_MATERIAL respected", "validation section maps signals back to named companies/classes"]
+    "status": "PASS",
+    "checks": [
+      "FINANCE_DEEP mentions all six MATERIAL companies and preserves all material classes.",
+      "SECONDARY peers 奇安信、亚信安全、迪普科技 are retained as bounded context rather than promoted to equal-evidence conclusions.",
+      "Company comparison is an operating-evidence map and does not become an executable recommendation list.",
+      "Market Explanation remains NOT_MATERIAL; no short-term stock-price causality is invented.",
+      "Deep validation section maps signals back to named companies/classes.",
+      "Skim-path anchors reconstruct the real thesis rather than blanket-bolding stock names.",
+      "No publication tables or tail bibliography are planned."
+    ]
   },
-  "required_fix": "Rewrite the three repeated 'not X but Y / not in X but in Y' scaffolds using different logical forms without changing facts, certainty or structure; then rerun all three editorial audit surfaces."
+  "audit_conclusion": "The revised frozen publication sources are ready for deterministic Word delivery. PASS is a GITHUB_CHAT route decision at CHAT_SELF_REVIEW assurance and is not owner-native semantic certification."
 }
