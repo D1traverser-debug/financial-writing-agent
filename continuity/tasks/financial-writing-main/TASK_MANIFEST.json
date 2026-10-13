@@ -1,6 +1,6 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 25,
+  "manifest_version": 26,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,9 +10,9 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-13T10:10:47Z",
-  "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
-  "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、FINANCIAL_OWNER_EXECUTION、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 11，只对当前动作所需能力做 handshake。所有正式财经写作进入同一个 ChatGPT + GitHub owner 路径；不得再选择 OWNER_NATIVE/GITHUB_CHAT 等平行业务模式。新业务状态只写 main/workspaces/articles/{task_id}，当前 mutation guard=financial_writing_agent/owner_guard.py，BLOCKED/system-impact lifecycle=financial_writing_agent/owner_lifecycle.py；默认 canonical TaskContract=DUAL，required_outputs=FINANCE_DEEP_DOCX+FINANCE_BROAD_DOCX+AUDIT_DOCX。任何单模式 override 必须绑定原始用户 prompt 的精确子串证据。缺能力只阻塞受影响阶段，不允许 free-form fallback、SQLite/plugin 备用状态、per-article business-state branch 或历史维护分支回退。DELIVERY/FINAL 必须机械对账 required_outputs 后才能继续/终态。",
+  "updated_at": "2026-10-13T11:08:21Z",
+  "current_stage": "ACTIVE_ARTICLE_FINAL_AUDIT",
+  "next_action": "显式 continuation 必须优先恢复 main/workspaces/articles/ice-snow-economy-20261013/STATE.json。当前 authoritative article stage=FINAL_AUDIT，status=IN_PROGRESS；不要从聊天或临时本地文件重建。先回读该 STATE.json 与其已登记 DELIVERY/MECHANICAL_AUDIT refs，确认 canonical FINANCE_DEEP_DOCX sha256=e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922、FINANCE_BROAD_DOCX sha256=10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895；然后在 FINAL_AUDIT 生成/重新机械验证 AUDIT_DOCX，持久化 FINAL_AUDIT.md，调用当前 owner guard 以 CHAT_SELF_REVIEW=PASS 对账完整三输出并进入合法终态 DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN。任何新窗口 takeover 先按 Universal v3.7 增加 resume_epoch、换新 lease 并 supersede 当前 lease，再做 article mutation。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
@@ -23,7 +23,33 @@
     "acquired_at": "2026-10-13T10:10:47Z",
     "supersedes_lease_id": "fw-e3dff9bf4dd547eb94fab8e15456c34f"
   },
-  "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作"],
+  "active_article": {
+    "task_id": "ice-snow-economy-20261013",
+    "topic": "冰雪经济",
+    "state_path": "workspaces/articles/ice-snow-economy-20261013/STATE.json",
+    "status": "IN_PROGRESS",
+    "current_stage": "FINAL_AUDIT",
+    "distribution_mode": "DUAL",
+    "delivery_channel": "WORD_FILE_ONLY",
+    "required_outputs": [
+      "AUDIT_DOCX",
+      "FINANCE_DEEP_DOCX",
+      "FINANCE_BROAD_DOCX"
+    ],
+    "completed_gates": [
+      "RESEARCH_AUDIT_PASS",
+      "EDITORIAL_AUDIT_PASS",
+      "DELIVERY_PERSISTED",
+      "MECHANICAL_AUDIT_PASS"
+    ],
+    "canonical_article_docx_sha256": {
+      "FINANCE_DEEP_DOCX": "e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922",
+      "FINANCE_BROAD_DOCX": "10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895"
+    },
+    "remaining": "AUDIT_DOCX + FINAL_AUDIT persistence + full three-output reconciliation + terminal transition",
+    "assurance": "CHAT_SELF_REVIEW"
+  },
+  "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作", "冰雪经济"],
   "artifact_refs": [
     "skills/financial-writing-agent/SKILL.md",
     "continuity/AGENT_MANIFEST.json",
@@ -35,8 +61,9 @@
     "financial_writing_agent/owner_lifecycle.py",
     "references/maintenance.md",
     "scripts/static_audit.py",
-    "evals/FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md",
-    "evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-12.md"
+    "workspaces/articles/ice-snow-economy-20261013/STATE.json",
+    "workspaces/articles/ice-snow-economy-20261013/stages/DELIVERY.md",
+    "workspaces/articles/ice-snow-economy-20261013/reviews/MECHANICAL_AUDIT.md"
   ],
   "assurance_boundary": {
     "architecture_and_execution_wiring": "SINGLE_GITHUB_BACKED_OWNER_ACTIVE_ON_MAIN__PR21_MERGED__MERGE_34666897D1884659E76427D12DE71123A78FFD2F",
