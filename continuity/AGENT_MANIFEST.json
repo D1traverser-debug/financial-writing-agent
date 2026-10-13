@@ -13,29 +13,28 @@
   "skill": {
     "role": "ROUTER",
     "entrypoint": "skills/financial-writing-agent/SKILL.md",
-    "current_note": "Skill is the single ChatGPT-facing Financial entry. There is one GitHub-backed owner trajectory; model/web/Python/document/plugin/MCP facilities are capability providers only and may not create alternate business-state authorities or route selection."
+    "current_note": "Skill is the single ChatGPT-facing Financial entry. There is one GitHub-backed owner trajectory; model/web/Python/document facilities are capability providers only and may not create alternate business-state authorities or route selection."
   },
   "runtime": {
     "runtime_type": "SINGLE_GITHUB_BACKED_OWNER",
     "execution_contract": "continuity/FINANCIAL_OWNER_EXECUTION.json",
-    "canonical_guard_implementation": "financial_writing_agent/github_chat_guard.py",
+    "canonical_guard_implementation": "financial_writing_agent/owner_guard.py",
     "canonical_lifecycle_implementation": "financial_writing_agent/owner_lifecycle.py",
-    "guard_filename_status": "LEGACY_NAME_RETAINED_FOR_CODE_COMPATIBILITY_ONLY__NOT_ROUTE_SELECTOR",
     "capability_profile": "continuity/EXECUTION_CAPABILITIES.json",
     "judgment_execution": "EXECUTABLE_WHEN_EXACT_STAGE_CAPABILITIES_ARE_AVAILABLE",
     "alternate_business_state_runtime_allowed": false,
-    "note": "New and resumed Financial business work uses main/workspaces/articles/{task_id} only. Legacy owner-native/SQLite/plugin task state is not a fallback. Missing capability blocks the affected stage rather than selecting another execution mode."
+    "note": "New and resumed Financial business work uses main/workspaces/articles/{task_id} only. Legacy SQLite/plugin task state is not a fallback. Missing capability blocks the affected stage rather than selecting another execution mode."
   },
   "workflow": {
     "state_authority_refs": [
       "continuity/FINANCIAL_OWNER_EXECUTION.json",
       "financial_writing_agent/models.py",
       "financial_writing_agent/routing.py",
-      "financial_writing_agent/github_chat_guard.py"
+      "financial_writing_agent/owner_guard.py"
     ],
     "transition_guard_refs": [
       "financial_writing_agent/workflow_spec.py",
-      "financial_writing_agent/github_chat_guard.py",
+      "financial_writing_agent/owner_guard.py",
       "financial_writing_agent/owner_lifecycle.py"
     ],
     "shared_business_contract": {
