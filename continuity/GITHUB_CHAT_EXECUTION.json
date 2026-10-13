@@ -1,9 +1,9 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "execution_mode": "CHAT_BRIDGED",
   "executor_type": "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE",
-  "purpose": "Make the user's GitHub-mounted + GPT-chat operating mode explicit without weakening owner-native business semantics or assurance boundaries. Chat mode is executable only when its deterministic transition guard can run in the current session.",
+  "purpose": "Make the user's GitHub-mounted + GPT-chat operating mode explicit without weakening owner-native business semantics or assurance boundaries. Chat mode is executable only when the deterministic transition or lifecycle guard required by the exact action can run in the current session.",
   "activation": {
     "when": "A publishable Financial Writing action is requested, owner-native runtime is unavailable, and the current session can execute the model work, GitHub owner reads/writes, plus the deterministic GitHub-chat transition/lifecycle guard required by the exact next action.",
     "must_not_activate_when": [
@@ -77,7 +77,7 @@
     "execution_mode_value": "GITHUB_CHAT",
     "state_ref_value": "main",
     "mutation_guard": "Fetch main/workspaces/articles/{task_id}/STATE.json and its current blob SHA, run the exact deterministic Financial guard required by the action (github_chat_guard for normal transitions/feedback; github_chat_lifecycle for BLOCKED recovery or system-impact review/closure), then replace that same main file using the same SHA. A stale blob, non-main state ref or guard failure blocks the mutation.",
-    "blocked_recovery": "A BLOCKED review task resumes only through github_chat_lifecycle.resume_blocked_state with non-empty repair evidence. Recovery stays on the exact blocked review stage, invalidates the failed review artifact/decision and requires a fresh review artifact before guarded advancement.",
+    "blocked_recovery": "A BLOCKED review task resumes only through github_chat_lifecycle.resume_blocked_state with non-empty repair evidence. Recovery stays on the exact blocked review stage, requires the persisted failed review artifact/decision, invalidates both, and requires a fresh review artifact before guarded advancement.",
     "execution_receipt_rule": "Every material chat-mode state mutation appends one self-attested execution receipt containing task/stage/capability/action, executor identity, main state_ref, prior state blob SHA, subject/input bindings, task/output contract bindings where applicable, output refs and result. INIT additionally records exact user-prompt evidence for any explicit single-mode override. Receipt existence does not make the chat independent or owner-native.",
     "post_write_verification": "Reread STATE.json and every newly referenced stage artifact from main after the GitHub mutation; a guard PASS or GitHub tool success alone is not commit proof.",
     "stage_artifact_identity": "Git main repository path + blob SHA",
@@ -97,16 +97,18 @@
   "assurance": {
     "chat_review_label": "CHAT_SELF_REVIEW",
     "chat_execution_receipt_label": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT",
+    "chat_lifecycle_closure_label": "SELF_ATTESTED_CHAT_EVIDENCE_BINDING",
     "chat_review_can_identify_revise_or_fail": true,
     "chat_review_can_issue_owner_native_semantic_pass": false,
     "chat_review_can_claim_independent_execution": false,
     "guard_pass_is_independent_execution": false,
+    "lifecycle_evidence_ref_binding_is_independent_verification": false,
     "owner_native_semantic_pass_requires_existing_python_owner_runtime_evidence_contract": true,
-    "terminal_claim_rule": "A useful article may be delivered after the full guard-enforced GitHub-chat workflow and self-review path completes, but owner-native/independent certification remains OPEN. Never translate CHAT_REVIEWED or a self-attested chat execution receipt into the Python GateStatus PASS proof model."
+    "terminal_claim_rule": "A useful article may be delivered after the full guard-enforced GitHub-chat workflow and self-review path completes, but owner-native/independent certification remains OPEN. Never translate CHAT_REVIEWED, lifecycle evidence binding, or a self-attested chat execution receipt into the Python GateStatus PASS proof model."
   },
   "learning_and_maintenance": {
     "material_user_edit_feedback_rejection": "Use github_chat_guard.attach_material_feedback so material negative/corrective evidence and its OPEN system-impact item are written into the same guarded STATE.json mutation and exact action-bound receipt before the learning loop is called closed.",
-    "system_impact_lifecycle": "Use github_chat_lifecycle.review_system_impact_state to classify each OPEN item as LOCAL_ONLY, SYSTEM_MAINTENANCE_REQUIRED or NO_CHANGE_WITH_REASON. SYSTEM_MAINTENANCE_REQUIRED stays open until an exact replay of the accepted diagnosis supplies maintenance_ref, validation_refs and assurance_ceiling >= REGRESSION_VERIFIED; closure moves the item to system_impact_history instead of erasing it.",
+    "system_impact_lifecycle": "Use github_chat_lifecycle.review_system_impact_state to classify each OPEN item as LOCAL_ONLY, SYSTEM_MAINTENANCE_REQUIRED or NO_CHANGE_WITH_REASON. SYSTEM_MAINTENANCE_REQUIRED stays open until an exact replay of the accepted diagnosis binds maintenance_ref + validation_refs whose evidence assurance is labeled at least REGRESSION_VERIFIED. The lifecycle guard records this as SELF_ATTESTED_CHAT_EVIDENCE_BINDING, not independent verification, and moves the closed item to system_impact_history instead of erasing it.",
     "one_off_feedback_auto_promotes_rule": false,
     "owner_plugin_receipt_claim_when_plugin_unavailable": "FORBIDDEN",
     "shared_method_propagation": "Use current Universal operational_hygiene/evolution method; keep Financial business truth local. A maintenance change is not closed until its impact map includes startup/Skill, canonical policy/reference, runtime adapters, deterministic harness/evals, mirrors and stale/legacy surfaces that consume the changed invariant."
@@ -133,8 +135,9 @@
     "No DELIVERY advancement is accepted with a missing applicable article Word output.",
     "No FINAL terminalization is accepted until the complete TaskContract.required_outputs set is present in the structured delivery manifest.",
     "No current_stage change, review route or terminalization is accepted without github_chat_guard validation and one new action-bound execution receipt.",
-    "No BLOCKED task is resumed by manual state surgery; exact-stage recovery requires repair evidence and invalidates failed review evidence before retry.",
+    "No BLOCKED task is resumed by manual state surgery; exact-stage recovery requires repair evidence, the persisted failed review evidence, invalidation of that failed evidence, and a fresh retry artifact.",
     "No OPEN or MAINTENANCE_REQUIRED system-impact item is removed by manual state surgery; classification and closure use the deterministic lifecycle guard and retain history.",
+    "No GITHUB_CHAT lifecycle evidence binding is relabeled as independent verification or owner-native proof.",
     "No GITHUB_CHAT business state is newly written to an article branch; main/workspaces/articles/{task_id} is the only write surface.",
     "No chat self-review is relabeled as INDEPENDENT_EXECUTOR or owner-runtime PASS.",
     "No missing owner runtime is silently replaced by free-form writing; the explicit guard-enforced GitHub-chat adapter is the only chat fallback.",
