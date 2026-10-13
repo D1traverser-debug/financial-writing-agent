@@ -3,10 +3,10 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
-from .github_chat_guard import (
+from .owner_guard import (
     MAIN_STATE_REF,
     SELF_ATTESTED_RECEIPT,
-    GithubChatGuardError,
+    GithubChatGuardError as OwnerGuardError,
     _invalidate_from,
     _new_receipt,
     _state_path,
@@ -15,16 +15,34 @@ from .github_chat_guard import (
     validate_state,
 )
 from .models import Stage
-from .system_impact import ASSURANCE_LADDER, ROOT_CAUSE_LAYERS, SYSTEM_IMPACT_DECISIONS
 from .workflow_spec import REVIEW_STAGE_NAMES, revision_targets
 
 MATERIAL_FEEDBACK_TYPES = {"USER_EDIT", "USER_FEEDBACK", "USER_REJECTION"}
 OWNER_CLOSURE_ATTESTATION = "SELF_ATTESTED_OWNER_EVIDENCE_BINDING"
+ROOT_CAUSE_LAYERS = {
+    "ACCOUNT_OR_PRODUCT_INSTRUCTION",
+    "STARTUP_OR_ROUTING_INSTRUCTION",
+    "REPOSITORY_POLICY",
+    "RUNTIME_OR_SCHEMA",
+    "TEST_OR_EVAL",
+    "OWNER_BINDING",
+    "PRODUCT_CAPABILITY",
+    "EVIDENCE_OR_PROPAGATION",
+}
+SYSTEM_IMPACT_DECISIONS = {"LOCAL_ONLY", "SYSTEM_MAINTENANCE_REQUIRED", "NO_CHANGE_WITH_REASON"}
+ASSURANCE_LADDER = [
+    "DECLARED",
+    "WIRED",
+    "REGRESSION_VERIFIED",
+    "ACTION_LEVEL_SELF_ATTESTED",
+    "ACTION_LEVEL_INDEPENDENTLY_VERIFIED",
+    "LIVE_OUTCOME_VERIFIED",
+]
 
 
 def _require(condition: bool, message: str) -> None:
     if not condition:
-        raise GithubChatGuardError(message)
+        raise OwnerGuardError(message)
 
 
 def _clean_string_list(values: list[str] | None, *, label: str, required: bool = True) -> list[str]:
@@ -108,7 +126,7 @@ def _blocking_recovery_cursor(state: Mapping[str, Any]) -> str:
         target = str(bindings.get("revision_target", "")).strip()
         _require(target in _allowed_revision_targets(stage), "BLOCKED state has no valid persisted canonical recovery cursor")
         return target
-    raise GithubChatGuardError("BLOCKED state has no persisted FAIL receipt with a recovery cursor")
+    raise OwnerGuardError("BLOCKED state has no persisted FAIL receipt with a recovery cursor")
 
 
 def resume_blocked_state(
