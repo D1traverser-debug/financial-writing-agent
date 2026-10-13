@@ -5,7 +5,7 @@ description: Create and continue publishable A-share financial articles through 
 
 # Financial Writing Agent v0.8
 
-This Skill is the single ChatGPT-facing Financial entry and thin router. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable guards.
+This Skill is a thin router and the single ChatGPT-facing Financial entry. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable guards.
 
 ## 1. Enter or resume the owner
 
@@ -52,7 +52,7 @@ Do not copy full reference rules into this Skill.
 
 - Research uses the **Universe Coverage Ledger** with `MATERIAL / SECONDARY / REFERENCE_ONLY`; FINANCE_DEEP preserves `company_coverage_obligations` and the company comparison decision map.
 - Material market explanation preserves `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
-- `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry appeal is not universally required.
+- `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry appeal is not a universal hard requirement.
 - Headline diversity is tracked by `angle_family`. Major H1 sections must also be **earned transitions**.
 - Natural prose uses the deterministic template-cluster guard when executable; unavailable deterministic checks remain OPEN.
 - Every supplied A-share company/stock name is mechanically bolded at every exact Word occurrence; this does not replace semantic skim anchors.
