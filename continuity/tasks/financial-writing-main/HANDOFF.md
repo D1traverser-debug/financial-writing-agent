@@ -6,84 +6,74 @@
 - status: ACTIVE
 - resume_visibility: DEFAULT
 - owner: `FINANCIAL_WRITING_AGENT_RUNTIME`
-- current_stage: `ACTIVE_ARTICLE_FINAL_AUDIT`
+- current_stage: `ACTIVE_ARTICLE_FINAL_AUDIT_PAUSED_BY_USER`
 - continuity_contract: `CONTINUITY_V3_7`
 - owner rule authority: `D1traverser-debug/financial-writing-agent@main`
 - execution capability profile: **11**
 
-## Active article checkpoint — 2026-10-13
+## Paused active article checkpoint — 2026-10-13
 
-当前正在执行的具体文章不是“等待新任务”，而是：
+用户明确要求现在停下并留存，稍后在**新窗口**用“继承”恢复。
 
+当前 active article：
 - article task_id: `ice-snow-economy-20261013`
 - topic: **冰雪经济**
 - authoritative state: `main/workspaces/articles/ice-snow-economy-20261013/STATE.json`
+- article state blob at pause: `0afcfa1fd2121bdbb4e5a8a95f64a493b240b9fa`
 - article status: `IN_PROGRESS`
 - current article stage: `FINAL_AUDIT`
 - distribution mode: `DUAL`
 - delivery channel: `WORD_FILE_ONLY`
-- review assurance: `CHAT_SELF_REVIEW`
+- assurance: `CHAT_SELF_REVIEW`
 
-已经持久化并通过的阶段：
+已经完成并持久化：
 
-`RESEARCH → RESEARCH_AUDIT(PASS) → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT(PASS) → DELIVERY → MECHANICAL_AUDIT(PASS) → FINAL_AUDIT(current)`
+`RESEARCH → RESEARCH_AUDIT(PASS) → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT(PASS) → DELIVERY → MECHANICAL_AUDIT(PASS) → FINAL_AUDIT evidence prepared`
 
-当前 canonical 两份文章 Word 已经在 article STATE 的 `delivery_artifacts` 中登记，恢复时必须按这些身份对账，不能用新窗口里的临时重建件替代：
+Canonical article Word identities：
+- `FINANCE_DEEP_DOCX` — `ice_snow_economy_deep.docx` — SHA-256 `e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922`
+- `FINANCE_BROAD_DOCX` — `ice_snow_economy_broad.docx` — SHA-256 `10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895`
 
-- `FINANCE_DEEP_DOCX` — file_name `ice_snow_economy_deep.docx` — SHA-256 `e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922`
-- `FINANCE_BROAD_DOCX` — file_name `ice_snow_economy_broad.docx` — SHA-256 `10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895`
-
-机械审计已经 PASS，durable refs：
-
+Durable audit evidence：
 - `stages/DELIVERY.md` blob `e92543eb28eb12844339fe4938cde3af34388687`
 - `reviews/MECHANICAL_AUDIT.md` blob `d2e42d6cd760c99b2caeb8817942120456fe6477`
+- `reviews/FINAL_AUDIT.md` blob `ab28a10196430ca21b6b07b32b3e43e93d3b3ad7`
+- FINAL_AUDIT prepared decision: `PASS`
+- prepared `AUDIT_DOCX`: `WRITING_AUDIT_REPORT.docx`, SHA-256 `3446a155f31b6d005959768e3431a7de5342d69dbf78ddec93fff1ff46d3f509`
 
-**尚未完成的唯一业务闭环：**
+**重要：FINAL_AUDIT.md 已持久化，但 FINAL_AUDIT PASS 尚未写回 article STATE，终态尚未提交。** 因此恢复后不能宣称文章已经完成，也不能重新做前序阶段。
 
-1. 在 `FINAL_AUDIT` 生成或重新生成 `AUDIT_DOCX`；
-2. 对 AUDIT_DOCX 做机械/渲染验证；
-3. 持久化 `reviews/FINAL_AUDIT.md`；
-4. 用当前 `financial_writing_agent/owner_guard.py` 对 `AUDIT_DOCX + FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX` 做完整三输出 reconciliation；
-5. FINAL_AUDIT 以真实 `CHAT_SELF_REVIEW=PASS` 终态化为 `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`；
-6. 回读 `STATE.json` 与 final audit 后才能报告 `COMMITTED`。
+剩余唯一业务动作：
+1. 新窗口 takeover 后回读最新 `STATE.json` 和 `FINAL_AUDIT.md`；
+2. 如精确 AUDIT_DOCX 二进制仍可用，则核对其 SHA-256=`3446a155f31b6d005959768e3431a7de5342d69dbf78ddec93fff1ff46d3f509`；如不可用，则从 durable final-audit evidence 重新生成并重新机械/渲染验证，不假设 byte identity；
+3. 使用当前 `financial_writing_agent/owner_guard.py` 在 `FINAL_AUDIT` 对 `AUDIT_DOCX + FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX` 做三输出 reconciliation；
+4. 以真实 `CHAT_SELF_REVIEW=PASS` 写回 article STATE，合法终态必须是 `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`；
+5. 回读 STATE + FINAL_AUDIT + delivery artifacts 后才可报告 `COMMITTED` 和交付文件。
 
-上一个聊天中曾生成并渲染过审计 Word 的瞬时本地副本，但它**没有成为 durable authority**。新窗口不得凭聊天记忆、旧容器路径或旧本地文件认定 AUDIT_DOCX 已完成；应从上述 authoritative FINAL_AUDIT 状态重新验证/生成。
+## Exact resume procedure in the new window
 
-## Exact resume procedure for a new chat
+用户下一次说“继承”时：
 
-用户下一次在新窗口说“继承”时：
+1. Universal v3.7 Bare CONTINUE discovery 选择 `financial-writing:main`；
+2. 读取 `TASK_MANIFEST.json` + 本 HANDOFF，报告“继承前进度”：冰雪经济，`FINAL_AUDIT`，仅余三输出终态 reconciliation；
+3. 因为是**fresh-chat takeover**，必须先 `resume_epoch 5 → 6`，签发新 lease，并 supersede 当前 `fw-fbadb6dbc3544d048325c9778cd0df6a`；
+4. takeover 后立即回读 `main/workspaces/articles/ice-snow-economy-20261013/STATE.json`；若它已被其他 writer 推进，以最新 STATE 为准；
+5. 只加载 FINAL_AUDIT 所需的 Skill / owner execution / capabilities / audit+delivery rules；
+6. 不重新研究、不重写标题/正文、不重新走 DELIVERY/MECHANICAL_AUDIT，除非 authoritative state 明确失效或 review route 要求 revision；
+7. 完成 terminal write 后回读，再输出最终交付。
 
-1. Universal v3.7 Bare CONTINUE discovery 选择 `financial-writing:main` 后，先读本 manifest + 本 HANDOFF；
-2. 报告“继承前进度”：active article=`ice-snow-economy-20261013`，stage=`FINAL_AUDIT`，只剩审计 Word 和终态闭环；
-3. 因为是**新聊天 takeover**，先按 Universal adapter 增加 `resume_epoch`（当前为 5，因此下一 writer 应成为 6）并签发新 lease，supersede `fw-fbadb6dbc3544d048325c9778cd0df6a`；
-4. 回读 `main/workspaces/articles/ice-snow-economy-20261013/STATE.json`，以它而不是本 HANDOFF 的复制信息作为具体业务 authority；
-5. 如果 article STATE 已被其他 writer 推进，服从更新后的 article STATE，不要回退到这里；
-6. 仅加载 FINAL_AUDIT 所需 Skill / owner execution / capability profile / audit+delivery rules，继续真实 next_action；
-7. 不重新研究、不重新写正文、不创建重复 article task，除非 authoritative state 明确要求 revision。
+## Architecture / authority reminder
 
-## Current architecture
+Financial Writing 只有一条业务路径：
 
-Financial Writing has **one BUSINESS owner, one canonical TaskContract, one canonical workflow, one durable article-state authority and one ChatGPT product path**.
+`ChatGPT → GitHub main Financial owner → main/workspaces/articles/{task_id} → canonical stages → Word delivery`
 
-`ChatGPT request → current GitHub main Financial owner → main/workspaces/articles/{task_id} → canonical stages → Word delivery`
-
-Canonical workflow:
-
+Canonical workflow：
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`
 
-Canonical mutation guard: `financial_writing_agent/owner_guard.py`.  
-Canonical BLOCKED/system-impact lifecycle: `financial_writing_agent/owner_lifecycle.py`.
+Canonical mutation guard：`financial_writing_agent/owner_guard.py`。  
+Canonical BLOCKED/system-impact lifecycle：`financial_writing_agent/owner_lifecycle.py`。
 
-New and resumed business state lives only at `main/workspaces/articles/{task_id}`. No per-article branch, chat memory, SQLite owner store, plugin-local store, historical branch or eval artifact may become fallback authority.
+GitHub `main/workspaces/articles/{task_id}` 是具体文章 durable authority。Chat history、本 HANDOFF、Memory、旧容器路径、SQLite/plugin state、历史 branch/eval 都不能覆盖最新 article STATE。
 
-Default TaskContract is `DUAL + WORD_FILE_ONLY + FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact original user-prompt evidence.
-
-## Assurance boundaries still OPEN
-
-- GitHub-hosted full owner CI: `OPEN_RUNNER_NOT_EXECUTED`;
-- fresh-chat single-owner live trajectory regression: `OPEN`;
-- final-response owner admission / physical GitHub-write interception: `OPEN at shared Universal/product control plane`;
-- non-forgeable Universal lease/resume_epoch fencing at every Financial mutation: `OPEN`;
-- provider-attested isolated independent review: `UNAVAILABLE`.
-
-Current `resume_epoch=5`; active lease=`fw-fbadb6dbc3544d048325c9778cd0df6a`. Same-chat checkpointing does not invent a new epoch. The next fresh-chat takeover must advance the epoch and replace this lease before any article mutation.
+Current `resume_epoch=5`; current lease=`fw-fbadb6dbc3544d048325c9778cd0df6a`. 本次只是同聊天安全暂停，不增加 epoch。下一 fresh chat takeover 才增加 epoch。
