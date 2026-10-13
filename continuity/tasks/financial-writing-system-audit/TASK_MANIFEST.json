@@ -1,18 +1,18 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 1,
+  "manifest_version": 2,
   "task_id": "financial-writing:system-audit",
   "task_class": "SYSTEM_INFRA",
   "domain": "FINANCIAL_WRITING_SYSTEM",
   "title": "Financial Writing full-system audit and reliability maintenance",
   "display_name_zh": "财经写作系统全局审视与可靠性维护",
-  "status": "ACTIVE",
+  "status": "WAITING",
   "resume_eligible": true,
   "resume_visibility": "EXPLICIT_ONLY",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_ENGINEERING",
-  "updated_at": "2026-10-13T12:20:00Z",
-  "current_stage": "GLOBAL_AUDIT_AND_LIVE_E2E_REPAIR",
-  "next_action": "Continue the current Financial Writing full-system audit against current main and the live ice-snow-economy-20261013 trajectory. Confirmed defects already in scope: (1) named continuation '财经写作系统' was incorrectly treated as bare continuation because the engineering/system task was not registered as an exact resumable candidate; (2) terminal delivery metadata proves output kinds and hashes but not current user-accessible artifact availability, and the live trajectory has no retrievable Deep/Broad Word binaries in the new chat. Treat the latter as RECURRED_AFTER_FIX relative to the 2026-10-12 3-to-2 visible-delivery incident and escalate from output-count checks to artifact lifecycle / fresh availability verification. Continue reviewing research/editorial/audit/learning/continuity/tests and persist the bounded global audit before closing or promoting any repair.",
+  "updated_at": "2026-10-13T12:36:00Z",
+  "current_stage": "BOUNDED_AUDIT_COMPLETE__OPEN_EXTERNAL_ASSURANCE",
+  "next_action": "On the next explicit continuation, do not rerun a full global audit by default. First verify that a fresh-chat Named CONTINUE such as '继承财经写作系统' resolves this exact SYSTEM_INFRA task, then reobserve hosted CI execution evidence for current main. Reopen scoped maintenance only if those checks or new live evidence reveal a defect. Current OPEN boundaries are fresh-chat product routing trace, hosted CI execution evidence, provider-attested independent semantic review, and open-world writing-quality generalization beyond the inspected live/regression corpus.",
   "checkpoint_ref": "continuity/tasks/financial-writing-system-audit/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "continuity_protocol_version": "3.7",
@@ -24,17 +24,32 @@
     "supersedes_lease_id": null
   },
   "writer_model": "SINGLE_ACTIVE_CHAT",
+  "keywords": [
+    "财经写作系统",
+    "财经写作全局审视",
+    "金融写作系统",
+    "Financial Writing system audit",
+    "全局审视"
+  ],
   "artifact_refs": [
     "evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-12.md",
     "evals/FINANCIAL_FULL_SYSTEM_REBUILD_2026-10-12.md",
     "evals/FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md",
+    "evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-13.md",
     "docs/architecture.md",
     "references/maintenance.md",
+    "references/delivery.md",
+    "continuity/TASK_INDEX.md",
     "continuity/FINANCIAL_OWNER_EXECUTION.json",
     "continuity/EXECUTION_CAPABILITIES.json",
     "financial_writing_agent/workflow_spec.py",
     "financial_writing_agent/owner_guard.py",
     "financial_writing_agent/owner_lifecycle.py",
+    "financial_writing_agent/delivery_availability.py",
+    "financial_writing_agent/structure_geometry.py",
+    "tests/test_delivery_availability.py",
+    "tests/test_structure_geometry.py",
+    "tests/test_global_audit_regressions_20261013.py",
     "workspaces/articles/ice-snow-economy-20261013/STATE.json",
     "workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_DEEP.md",
     "workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_BROAD.md",
@@ -45,20 +60,66 @@
     {
       "id": "FW-GA-20261013-01",
       "class": "CONTINUATION_ROUTING_AND_SYSTEM_TASK_REGISTRATION",
-      "status": "CONFIRMED",
-      "summary": "Named continuation for the Financial Writing system was downgraded to bare USER-task discovery; system/global-audit durable work had evidence files but no explicit resumable task candidate."
+      "status": "REPAIRED_OWNER_SIDE__FRESH_CHAT_TRACE_OPEN",
+      "summary": "Named continuation for the Financial Writing system had been downgraded to bare USER-task discovery. An explicit SYSTEM_INFRA task and Financial index route now exist; a real future fresh-chat product trace remains required."
     },
     {
       "id": "FW-GA-20261013-02",
       "class": "ARTIFACT_LIFECYCLE_AND_VISIBLE_DELIVERY",
-      "status": "CONFIRMED_RECURRED_AFTER_FIX",
-      "summary": "Terminal state reconciles required output kinds and hashes but does not prove current user-accessible Word resources. The fresh-window live trajectory could not retrieve either canonical article Word despite terminal three-output metadata."
+      "status": "REPAIRED_AND_LIVE_REDELIVERY_VERIFIED__HOSTED_CI_OPEN",
+      "summary": "Terminal output identity no longer counts as current user-visible availability. A fresh presentation gate was implemented and validated by rebuilding and re-rendering the missing ice-snow Deep/Broad Word binaries from durable source."
+    },
+    {
+      "id": "FW-GA-20261013-03",
+      "class": "DETERMINISTIC_QUALITY_GUARD_COVERAGE_GAP",
+      "status": "REPAIRED_CLASS_GUARD__HISTORICAL_INSTANCE_BOUND_AS_REGRESSION",
+      "summary": "The live Deep article used five consecutive H1 sections each with exactly three H2 children while self-audit incorrectly passed structural rhythm. A deterministic structure-geometry guard and live regression case now force REVISE for this extreme pattern."
+    },
+    {
+      "id": "FW-GA-20261013-04",
+      "class": "STALE_CROSS_TOPIC_POLICY",
+      "status": "REPAIRED_POLICY_AUTHORITY",
+      "summary": "Technology/manufacturing-shaped fixed company-comparison dimensions were removed from canonical policy and replaced by topic-specific dimensions derived from current audited evidence."
     }
   ],
+  "live_redelivery": {
+    "article_task_id": "ice-snow-economy-20261013",
+    "deep": {
+      "file_name": "ice_snow_economy_deep_redelivery_20261013.docx",
+      "sha256": "a23fdc5d8ea82cedeed627c1e2d989a67e3b70fd94ff5c27d7e050ffebe1624b",
+      "source_blob_sha": "79be75d2cfe1a58a30a1a5b547a82d223c168a38",
+      "render_pages": 9,
+      "mechanical_qa": "PASS",
+      "render_qa": "PASS"
+    },
+    "broad": {
+      "file_name": "ice_snow_economy_broad_redelivery_20261013.docx",
+      "sha256": "3b54adfcf3a9ed726e8a679819f70bde8d8797bba9bb7528771a950db3f4876d",
+      "source_blob_sha": "9aa181f5534cbea111a2cfaa8a7abafa07451da1",
+      "render_pages": 4,
+      "mechanical_qa": "PASS",
+      "render_qa": "PASS"
+    },
+    "audit": {
+      "file_name": "WRITING_AUDIT_REPORT.docx",
+      "sha256": "02a7e8069ae59f26f889ffd5f7e555d101f5189471431505abc3b70db2922157",
+      "current_binary_matches_owner_identity": true
+    },
+    "visible_delivery_receipt": "VISIBLE_DELIVERY_READY",
+    "identity_note": "Deep/Broad are regenerated current-session binary instances from exact frozen publication source. They do not claim historical byte identity."
+  },
+  "validation": {
+    "local_delivery_availability_tests": "6_OF_6_PASS",
+    "live_deep_structure_geometry": "H2_COUNTS_3_3_3_3_3__REQUIRES_REVISE_CONFIRMED",
+    "live_broad_structure_geometry": "H2_COUNTS_0_0_0_0__NO_FALSE_FAIL",
+    "deep_redelivery_word_and_render": "PASS__9_OF_9_PAGES_INSPECTED",
+    "broad_redelivery_word_and_render": "PASS__4_OF_4_PAGES_INSPECTED",
+    "hosted_ci": "OPEN__LATEST_OBSERVED_RUN_FAILURE_LABEL_WITH_STEPS_NULL_AND_LOG_404_BLOBNOTFOUND__NO_EXECUTED_STEP_FAILURE_OR_PASS_PROOF"
+  },
   "open_review": [
-    "semantic self-review assurance remains CHAT_SELF_REVIEW and must be assessed as an OPEN assurance boundary rather than silently promoted",
-    "current live article quality must be reviewed as evidence, not assumed good because prior self-audits passed",
-    "research source traceability and rule/policy consumer drift require global reconciliation",
-    "hosted full CI remains an independent evidence gate if workflow steps still do not execute"
+    "fresh-chat product trace proving Named CONTINUE '继承财经写作系统' resolves this exact task end to end",
+    "hosted CI execution evidence for current main",
+    "provider-attested independent semantic review remains unavailable",
+    "open-world writing-quality generalization beyond the inspected live sample and current regression corpus"
   ]
 }
