@@ -35,6 +35,7 @@ jobs:
           from financial_writing_agent.models import DistributionMode, TaskContract
           from financial_writing_agent.resources import load_packaged_policy, read_reference
           from financial_writing_agent.adapters.deterministic import DeliveryExecutor
+          from financial_writing_agent.owner_guard import build_initial_state
           from financial_writing_agent.owner_lifecycle import resume_blocked_state
 
           policy = load_packaged_policy()
@@ -42,8 +43,9 @@ jobs:
           assert TaskContract(prompt="smoke").distribution_mode == DistributionMode.DUAL
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
           DeliveryExecutor(root="/tmp/fwa-wheel-runs")
+          assert callable(build_initial_state)
           assert callable(resume_blocked_state)
-          print("PASS: clean wheel contains canonical policy/references, TaskContract, owner lifecycle and deterministic delivery")
+          print("PASS: clean wheel contains canonical policy/references, TaskContract, owner guard/lifecycle and deterministic delivery")
           PY
       - name: Install render dependencies
         run: |
