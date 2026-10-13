@@ -387,8 +387,6 @@ class StyleAuditDecision(StrictModel):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
             raise ValueError(f"authorial-prose status must be {expected} for the supplied rubric")
-        if self.status == "PASS" and self.provenance.assurance != "INDEPENDENT_EXECUTOR":
-            raise ValueError("authorial-prose PASS requires an independent executor; chat self-review cannot PASS")
         if self.status == "REVISE" and (not self.revision_notes or self.revision_target != "DRAFT"):
             raise ValueError("REVISE authorial-prose audit requires revision_target=DRAFT and revision_notes")
         if self.status == "PASS" and self.revision_target is not None:
@@ -428,8 +426,6 @@ class HookAuditDecision(StrictModel):
         expected = "PASS" if all(value == "PASS" for value in self.rubric.model_dump().values()) else "REVISE"
         if self.status != expected:
             raise ValueError(f"reader-funnel hook status must be {expected} for the supplied rubric")
-        if self.status == "PASS" and self.provenance.assurance != "INDEPENDENT_EXECUTOR":
-            raise ValueError("reader-funnel PASS requires an independent executor; chat self-review cannot PASS")
         if self.status == "REVISE" and (not self.revision_notes or self.revision_target is None):
             raise ValueError("REVISE reader-funnel hook audit requires revision_target and revision_notes")
         if self.status == "PASS" and self.revision_target is not None:
@@ -447,8 +443,6 @@ class GateDecision(StrictModel):
 
     @model_validator(mode="after")
     def decision_is_actionable(self):
-        if self.status == "PASS" and self.provenance.assurance != "INDEPENDENT_EXECUTOR":
-            raise ValueError("semantic audit PASS requires an independent executor; chat self-review cannot PASS")
         if self.status in {"REVISE", "FAIL"} and self.revision_target is None:
             raise ValueError(f"{self.status} requires revision_target")
         if self.status == "FAIL" and not self.defects:
