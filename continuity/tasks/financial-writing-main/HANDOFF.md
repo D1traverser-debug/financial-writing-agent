@@ -99,4 +99,4 @@ Only explicit continuation may resume an old article. Resolve the exact main art
 - non-forgeable Universal lease/resume_epoch fencing at every Financial mutation: **OPEN**;
 - provider-attested isolated independent review: **UNAVAILABLE**.
 
-`resume_epoch=4`; active lease remains `fw-e3dff9bf4dd547eb94fab8e15456c34f` for the current durable Financial workspace. Same-chat maintenance does not invent a new takeover epoch.
+`resume_epoch=5`; active lease is `fw-fbadb6dbc3544d048325c9778cd0df6a`, superseding `fw-e3dff9bf4dd547eb94fab8e15456c34f`, for the current durable Financial workspace. Same-chat maintenance does not invent a new takeover epoch.
