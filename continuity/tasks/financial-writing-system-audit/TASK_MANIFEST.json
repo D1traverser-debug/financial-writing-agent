@@ -1,0 +1,64 @@
+{
+  "schema_version": "3.7",
+  "manifest_version": 1,
+  "task_id": "financial-writing:system-audit",
+  "task_class": "SYSTEM_INFRA",
+  "domain": "FINANCIAL_WRITING_SYSTEM",
+  "title": "Financial Writing full-system audit and reliability maintenance",
+  "display_name_zh": "财经写作系统全局审视与可靠性维护",
+  "status": "ACTIVE",
+  "resume_eligible": true,
+  "resume_visibility": "EXPLICIT_ONLY",
+  "recovery_owner": "FINANCIAL_WRITING_AGENT_ENGINEERING",
+  "updated_at": "2026-10-13T12:20:00Z",
+  "current_stage": "GLOBAL_AUDIT_AND_LIVE_E2E_REPAIR",
+  "next_action": "Continue the current Financial Writing full-system audit against current main and the live ice-snow-economy-20261013 trajectory. Confirmed defects already in scope: (1) named continuation '财经写作系统' was incorrectly treated as bare continuation because the engineering/system task was not registered as an exact resumable candidate; (2) terminal delivery metadata proves output kinds and hashes but not current user-accessible artifact availability, and the live trajectory has no retrievable Deep/Broad Word binaries in the new chat. Treat the latter as RECURRED_AFTER_FIX relative to the 2026-10-12 3-to-2 visible-delivery incident and escalate from output-count checks to artifact lifecycle / fresh availability verification. Continue reviewing research/editorial/audit/learning/continuity/tests and persist the bounded global audit before closing or promoting any repair.",
+  "checkpoint_ref": "continuity/tasks/financial-writing-system-audit/HANDOFF.md",
+  "contract_version": "CONTINUITY_V3_7",
+  "continuity_protocol_version": "3.7",
+  "resume_epoch": 1,
+  "active_lease": {
+    "lease_id": "fw-eng-b8292233f43340b0912cbb20db3e227d",
+    "resume_epoch": 1,
+    "acquired_at": "2026-10-13T12:20:00Z",
+    "supersedes_lease_id": null
+  },
+  "writer_model": "SINGLE_ACTIVE_CHAT",
+  "artifact_refs": [
+    "evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-12.md",
+    "evals/FINANCIAL_FULL_SYSTEM_REBUILD_2026-10-12.md",
+    "evals/FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md",
+    "docs/architecture.md",
+    "references/maintenance.md",
+    "continuity/FINANCIAL_OWNER_EXECUTION.json",
+    "continuity/EXECUTION_CAPABILITIES.json",
+    "financial_writing_agent/workflow_spec.py",
+    "financial_writing_agent/owner_guard.py",
+    "financial_writing_agent/owner_lifecycle.py",
+    "workspaces/articles/ice-snow-economy-20261013/STATE.json",
+    "workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_DEEP.md",
+    "workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_BROAD.md",
+    "workspaces/articles/ice-snow-economy-20261013/reviews/EDITORIAL_AUDIT.md",
+    "workspaces/articles/ice-snow-economy-20261013/reviews/FINAL_AUDIT.md"
+  ],
+  "confirmed_defects": [
+    {
+      "id": "FW-GA-20261013-01",
+      "class": "CONTINUATION_ROUTING_AND_SYSTEM_TASK_REGISTRATION",
+      "status": "CONFIRMED",
+      "summary": "Named continuation for the Financial Writing system was downgraded to bare USER-task discovery; system/global-audit durable work had evidence files but no explicit resumable task candidate."
+    },
+    {
+      "id": "FW-GA-20261013-02",
+      "class": "ARTIFACT_LIFECYCLE_AND_VISIBLE_DELIVERY",
+      "status": "CONFIRMED_RECURRED_AFTER_FIX",
+      "summary": "Terminal state reconciles required output kinds and hashes but does not prove current user-accessible Word resources. The fresh-window live trajectory could not retrieve either canonical article Word despite terminal three-output metadata."
+    }
+  ],
+  "open_review": [
+    "semantic self-review assurance remains CHAT_SELF_REVIEW and must be assessed as an OPEN assurance boundary rather than silently promoted",
+    "current live article quality must be reviewed as evidence, not assumed good because prior self-audits passed",
+    "research source traceability and rule/policy consumer drift require global reconciliation",
+    "hosted full CI remains an independent evidence gate if workflow steps still do not execute"
+  ]
+}
