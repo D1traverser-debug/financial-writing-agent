@@ -1,12 +1,18 @@
 {
   "schema_version": "1.0",
-  "architecture_contract_version": "1.0",
+  "architecture_contract_version": "1.2",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "owner_kind": "BUSINESS",
+  "product_interface": {
+    "interaction_surface": "CHATGPT",
+    "entry_model": "SINGLE_OWNER_ENTRY",
+    "execution_mode_selection": "SYSTEM_INTERNAL",
+    "business_contract_model": "SINGLE_CANONICAL_OWNER_WORKFLOW"
+  },
   "skill": {
     "role": "ROUTER",
     "entrypoint": "skills/financial-writing-agent/SKILL.md",
-    "current_note": "Skill is a thin router; detailed research/editorial/style/delivery/maintenance semantics remain in canonical references, policy and executable runtime guards."
+    "current_note": "Skill is the single ChatGPT-facing Financial product entry and thin router; detailed research/editorial/style/delivery/maintenance semantics remain in canonical references, policy and executable guards. Internal execution modes are selected by the system and are not user-facing workflows."
   },
   "runtime": {
     "runtime_type": "HYBRID",
@@ -23,7 +29,7 @@
       "continuity/GITHUB_CHAT_EXECUTION.json"
     ],
     "judgment_execution": "EXECUTABLE",
-    "note": "Owner-native and GITHUB_CHAT are execution adapters for one Financial business owner and one canonical TaskContract. They may differ in assurance/tool substrate but may not redefine default distribution mode, delivery channel, required outputs, workflow, invalidation or terminal semantics. GITHUB_CHAT material state is main/workspaces/articles/{task_id} only and requires github_chat_guard + self-attested action-bound receipts; provider-attested isolation remains separate and unavailable."
+    "note": "Owner-native and GITHUB_CHAT are internal execution/evidence adapters for one Financial business owner and one canonical TaskContract. The system selects the available binding; normal users are not asked to choose a mode. Adapters may differ in assurance/tool substrate but may not redefine default distribution mode, delivery channel, required outputs, workflow, invalidation or terminal semantics. GITHUB_CHAT material state is main/workspaces/articles/{task_id} only and requires github_chat_guard + self-attested action-bound receipts; provider-attested isolation remains separate and unavailable."
   },
   "workflow": {
     "state_authority_refs": [
@@ -50,13 +56,7 @@
   },
   "harness": {
     "ci_workflow_ref": ".github/workflows/ci.yml",
-    "commands": [
-      "python scripts/sdk_smoke.py",
-      "python scripts/mcp_smoke.py",
-      "pytest -q",
-      "python scripts/eval_contracts.py",
-      "python scripts/static_audit.py"
-    ],
+    "commands": ["python scripts/sdk_smoke.py", "python scripts/mcp_smoke.py", "pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"],
     "suites": ["architecture", "contract", "trajectory", "quality", "artifact"]
   },
   "references": {

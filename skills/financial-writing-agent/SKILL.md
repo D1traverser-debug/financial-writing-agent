@@ -5,21 +5,23 @@ description: Create and continue publishable A-share financial articles through 
 
 # Financial Writing Agent v0.8
 
-This Skill is a thin router. Runtime/workflow/guards are executable authority; detailed domain rules live in `references/` and `config/policy.json`.
+This Skill is the single ChatGPT-facing Financial entry and thin router. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable guards.
 
-## 1. Enter or resume through an explicit owner execution mode
+## 1. Enter or resume the owner
 
-Before material execution read `continuity/EXECUTION_CAPABILITIES.json` and handshake only the capabilities needed by the exact next action. Repository declarations are ceilings, not current-session proof.
+Normal use has one product path: the user gives the Financial Writing Agent a task in ChatGPT. Do not ask the user to choose `OWNER_NATIVE`, `GITHUB_CHAT`, Python, MCP, plugin, or another execution plane; those are internal dispatch/evidence labels.
 
-- If the Python owner runtime/plugin is actually available, use the persisted owner runtime: existing work via `list_recent_writing_tasks`; new article via `start_writing_task` before research or drafting.
-- If owner-native runtime is unavailable, GITHUB_CHAT is legal only when this session has GPT/model execution, GitHub owner read/write **and** a deterministic way to execute `financial_writing_agent/github_chat_guard.py`. Create/resume state through that guard; do not hand-edit `current_stage`.
-- GITHUB_CHAT inherits the same canonical `TaskContract` semantics as OWNER_NATIVE. With no explicit platform/mode request, routing defaults to `DUAL`; do not silently narrow it. Default `DUAL` therefore requires `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires an exact user-prompt substring persisted in the INIT receipt.
-- GITHUB_CHAT business state is written only to `main/workspaces/articles/{task_id}`. Do not create per-article business-state branches. Every material transition must bind the fetched prior `STATE.json` blob SHA, exact task/stage/capability/action, executor identity, task/output contract, subject/input bindings and output refs in one new self-attested receipt, then write to `main` with the same GitHub blob SHA and reread before treating the transition as durable.
-- If the deterministic guard cannot execute, block the stage transition. Missing owner runtime is never permission to free-form a publishable article.
-- In GitHub-chat mode, semantic audits are `CHAT_SELF_REVIEW`: they may detect defects and force revision/failure but never become owner-native `PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Normal terminal state is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
-- `BLOCKED` owner-runtime work resumes only from its persisted recovery cursor through `resume_blocked_task`; never reconstruct execution stage from chat memory.
+Before material work read `continuity/EXECUTION_CAPABILITIES.json` and handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
 
-GitHub `main` is engineering/rule authority and the only GITHUB_CHAT business-state write surface. Owner-native `WritingState` is execution truth for Python/plugin runs; guard-validated GitHub checkpoints under `main/workspaces/articles/{task_id}` are execution truth for explicit GITHUB_CHAT runs. Chat memory is never task authority.
+- Use exposed persisted owner tools when actually available (`list_recent_writing_tasks`, `start_writing_task`).
+- Otherwise guarded GitHub-chat execution is legal only with model execution, GitHub owner read/write, and deterministic `financial_writing_agent/github_chat_guard.py` execution. Never hand-edit `current_stage`.
+- Both bindings inherit the same canonical `TaskContract`. Default routing is `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
+- GITHUB_CHAT state lives only at `main/workspaces/articles/{task_id}`. Each material transition binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
+- Missing hard capability blocks the affected stage; it never authorizes free-form writing or a lower business SOP.
+- GitHub-chat semantic audits remain `CHAT_SELF_REVIEW`; they may force revision/failure but cannot become owner-native or provider-attested PASS.
+- `BLOCKED` owner-runtime work resumes only through its persisted recovery cursor.
+
+GitHub `main` is engineering/rule authority. Exact execution-state authority depends on the internal binding declared above; that difference does not create a second Financial product or workflow. Chat memory is never task authority.
 
 ## 2. Workflow and semantic gates
 
@@ -27,57 +29,47 @@ Use the owner sequence exactly:
 
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
 
-Owner-native runs may then reach `COMPLETE` only through the controller. GitHub-chat runs may deliver at their bounded chat assurance but may not relabel that result as owner-native COMPLETE.
+Do not skip, insert, or free-form complete stages. GITHUB_CHAT advancement/revision/terminalization requires `github_chat_guard`. Owner-native `COMPLETE` requires controller proof; bounded chat delivery remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
 
-Do not free-form skip, insert or complete stages. In GITHUB_CHAT, stage advancement/revision/terminalization is accepted only by `github_chat_guard`; a fluent model answer or manually edited `STATE.json` is not workflow proof.
+At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct judgments. `CHAT_SELF_REVIEW` may identify defects but cannot certify owner-runtime semantic PASS. Hosted/MCP PASS, when available, goes through `run_semantic_audit_stage`; otherwise certification stays OPEN.
 
-At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct required judgments.
-
-For owner-native execution, semantic PASS is proof-bearing. `CHAT_SELF_REVIEW` / `CHAT_BRIDGED` may find defects or request revision but may not certify Research Audit, Reader Funnel, Authorial Prose, General Editorial or Final Audit as owner-runtime PASS. Hosted/MCP PASS certification goes through `run_semantic_audit_stage`; if its required runtime is unavailable, keep that certification OPEN rather than self-certifying.
-
-The legacy `INDEPENDENT_EXECUTOR` token means stage-separated owner-runtime execution only; it is not provider-attested isolation.
+The legacy `INDEPENDENT_EXECUTOR` token means stage-separated owner-runtime execution only, not provider-attested isolation.
 
 ## 3. Progressive reference map
 
 Load only what the current stage needs:
 
-- RESEARCH → `references/research.md` + `references/knowledge.md`; use `references/market_explanation.md` only when deciding or applying material market-explanation scope.
-- RESEARCH_AUDIT / FINAL_AUDIT → `references/audit.md` (+ market explanation reference only when applicable).
+- RESEARCH → `references/research.md` + `references/knowledge.md`; add `references/market_explanation.md` only when material.
+- RESEARCH_AUDIT / FINAL_AUDIT → `references/audit.md` (+ market explanation when applicable).
 - EDITORIAL / TITLE / DRAFT → `references/editorial.md` + `references/hooks.md` + `references/style.md`.
 - Platform adaptation → `references/platforms.md`.
 - Word/delivery/mechanical QA → `references/delivery.md`.
 - Durable system/rule changes → `references/maintenance.md`.
 
-`references/*` are canonical domain semantics. Do not copy their full rules back into this Skill.
+Do not copy full reference rules into this Skill.
 
-## 4. Hard-boundary contract anchors
+## 4. Hard-boundary anchors
 
-These anchors stay hot because crossing them changes product behavior:
-
-- Research breadth uses the **Universe Coverage Ledger** with `MATERIAL / SECONDARY / REFERENCE_ONLY`; Deep preserves `company_coverage_obligations` and a company comparison decision map.
-- When market explanation is material, preserve `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
-- `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry finance appeal is **not a universal hard requirement**.
-- Headline diversity is tracked by `angle_family` rather than synonym-only shells.
-- Major H1 sections must also be **earned transitions**.
-- Natural prose uses the deterministic **template-cluster guard** before semantic judgment when that guard is executable; GitHub-chat self-review must still apply the same pattern semantics and mark unavailable deterministic checks OPEN.
-- Every supplied A-share company/stock name is mechanically bolded at every exact Word occurrence; this fixed entity layer does **not** replace explicit semantic skim-path anchors.
-- Publication articles do not use tables; delivery enforces **zero underlines** when the deterministic document path is executable.
-- Final disclaimer remains one inline italic paragraph beginning `风险提示：`; there is no fixed minimum-character quota, but semantic completeness remains required.
-- Public output must never become executable buy/sell guidance. A disclaimer does not cure actionable instructions.
+- Research uses the **Universe Coverage Ledger** with `MATERIAL / SECONDARY / REFERENCE_ONLY`; Deep preserves company obligations and comparison decisions.
+- Material market explanation preserves `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
+- `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry appeal is not universally required.
+- Headline diversity is tracked by `angle_family`; major H1 sections require earned transitions.
+- Natural prose uses the deterministic template-cluster guard when executable; unavailable deterministic checks remain OPEN.
+- Every supplied A-share company/stock name is mechanically bolded at every exact Word occurrence; this does not replace semantic skim anchors.
+- Publication articles use no tables; delivery enforces zero underlines when deterministic document tooling is executable.
+- Final disclaimer is one inline italic paragraph beginning `风险提示：`; semantic completeness remains required.
+- Public output must never become executable buy/sell guidance.
 
 ## 5. Learning and maintenance
 
-Any **material explicit user edit, feedback, rejection or acceptance that changes how the system should write, review or deliver** must become durable owner evidence before claiming learning or closing that revision loop.
+Material user edit/feedback/rejection/acceptance that changes writing, review, or delivery must become durable owner evidence before claiming learning.
 
-- Owner-native mode: use `record_writing_learning_sample` and its system-impact path.
-- GITHUB_CHAT mode: use `github_chat_guard.attach_material_feedback` so material edit/feedback/rejection and its OPEN system-impact item enter the same guard-validated state mutation and action-bound receipt. Do not fabricate owner-plugin receipts when that runtime is unavailable.
+Use `record_writing_learning_sample` when the owner learning tool is exposed; otherwise use `github_chat_guard.attach_material_feedback`. Do not fabricate owner-plugin receipts.
 
-Systemic/non-trivial maintenance enters `references/maintenance.md` and the current Universal `operational_hygiene` / `evolution` path. Local deterministic bugs may use the lighter path defined there. Do not create another root policy or persona Agent merely to add review theatre.
+Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Do not create another root policy or persona Agent merely to add review theatre.
 
 ## 6. Completion / delivery
 
-Owner-native `COMPLETE` remains controlled by the owner workflow/controller and requires its proof-bearing gates and artifacts.
-
-GITHUB_CHAT may deliver Word artifacts only after the full guard-enforced GitHub workflow, current-session mechanical checks, and final self-review complete. Before `DELIVERY` advances, the guard reconciles the article Word kinds against the immutable task contract; before terminalization it reconciles the full required-output set including `AUDIT_DOCX`. Report the bounded state as `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` and list unavailable independent/owner-native checks as OPEN. Persist each publication source in GitHub so Word files are reproducible even if chat attachments are transient.
+Before `DELIVERY`, reconcile all article Word outputs required by the immutable task contract. Before terminalization, reconcile the full set including `AUDIT_DOCX`. Persist publication source in GitHub so Word artifacts remain reproducible.
 
 For an active durable task, preserve owner lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance.
