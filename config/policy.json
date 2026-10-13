@@ -44,6 +44,7 @@
     "structural_rhythm_naturalness_required": true,
     "template_redundancy_control_required": true,
     "template_cluster_guard_required": true,
+    "structure_geometry_guard_required": true,
     "uncertainty_rhetoric_calibration_required": true,
     "optimize_for_ai_detector": false,
     "writing_dna_learning": {
@@ -68,7 +69,9 @@
     "stock_grounded_validation_sections_required": true,
     "company_comparison_decision_map_required": true,
     "company_comparison_may_be_primary_focus": true,
-    "company_comparison_dimensions": ["order_visibility", "realization_speed", "earnings_sensitivity", "overseas_exposure", "technology_optionality"],
+    "company_comparison_dimensions_policy": "TOPIC_SPECIFIC_FROM_CURRENT_AUDITED_EVIDENCE",
+    "fixed_cross_topic_comparison_dimension_list_forbidden": true,
+    "company_comparison_dimension_examples": ["demand_to_revenue_distance", "realization_speed", "earnings_sensitivity", "adverse_variable", "evidence_strength"],
     "finance_broad_selective_compression": true,
     "finance_broad_core_contradictions_max": 3,
     "macro_structural_coherence_required": true
@@ -116,6 +119,7 @@
     "bounded_terminal_remains_certification_open_without_stronger_evidence": true,
     "universe_to_deep_article_reconciliation_required": true,
     "template_cluster_guard_can_force_revise": true,
+    "structure_geometry_guard_can_force_revise": true,
     "all_applicable_writing_requirements_default_coverage": true,
     "special_surface_or_mode_na_must_be_explicit": true
   },
@@ -146,5 +150,15 @@
     "auto_bold_scope": "A_SHARE_NAMES_SUPPLIED_BY_ARTICLE_DOCUMENT",
     "allow_underline": false,
     "end_source_section_allowed": false
+  },
+  "visible_delivery": {
+    "fresh_current_session_resource_required": true,
+    "filename_and_hash_alone_are_availability_proof": false,
+    "prior_session_local_path_is_durable_resource_ref": false,
+    "regeneration_from_durable_source_allowed": true,
+    "regenerated_binary_is_new_instance": true,
+    "regenerated_binary_requires_fresh_mechanical_qa": true,
+    "regenerated_binary_requires_fresh_render_qa": true,
+    "presentation_gate": "financial_writing_agent.delivery_availability.build_visible_delivery_receipt"
   }
 }
