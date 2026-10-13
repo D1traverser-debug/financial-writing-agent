@@ -15,11 +15,11 @@ Before material work read `continuity/EXECUTION_CAPABILITIES.json` and handshake
 
 - Use exposed persisted owner tools when actually available (`list_recent_writing_tasks`, `start_writing_task`).
 - Otherwise guarded GitHub-chat execution is legal only with model execution, GitHub owner read/write, and the deterministic Financial guard required by the exact next action: `financial_writing_agent/github_chat_guard.py` for normal task transitions/feedback capture and `financial_writing_agent/github_chat_lifecycle.py` for BLOCKED recovery or system-impact review/closure. Never hand-edit `current_stage`, clear a blocker, or clear maintenance debt by state surgery.
-- Both bindings inherit the same canonical `TaskContract`. Default routing is `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
-- GITHUB_CHAT state lives only at `main/workspaces/articles/{task_id}`. Each material transition binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
+- Both bindings inherit the same canonical `TaskContract`. Routing defaults to `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
+- `main/workspaces/articles/{task_id}` is the only GITHUB_CHAT business-state write surface. Each material transition binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
 - Missing hard capability blocks the affected stage; it never authorizes free-form writing or a lower business SOP.
 - GitHub-chat semantic audits remain `CHAT_SELF_REVIEW`; they may force revision/failure but cannot become owner-native or provider-attested PASS.
-- `BLOCKED` owner-runtime work resumes only through its persisted recovery cursor. `BLOCKED` GITHUB_CHAT review work resumes only through `github_chat_lifecycle.resume_blocked_state`, with explicit repair evidence and a fresh review artifact at the exact blocked stage.
+- `BLOCKED` owner-runtime work resumes only through `resume_blocked_task` and its persisted recovery cursor. `BLOCKED` GITHUB_CHAT review work resumes only through `github_chat_lifecycle.resume_blocked_state`, with explicit repair evidence and a fresh review artifact at the exact blocked stage.
 
 GitHub `main` is engineering/rule authority. Exact execution-state authority depends on the internal binding declared above; that difference does not create a second Financial product or workflow. Chat memory is never task authority.
 
@@ -50,10 +50,10 @@ Do not copy full reference rules into this Skill.
 
 ## 4. Hard-boundary anchors
 
-- Research uses the **Universe Coverage Ledger** with `MATERIAL / SECONDARY / REFERENCE_ONLY`; Deep preserves company obligations and comparison decisions.
+- Research uses the **Universe Coverage Ledger** with `MATERIAL / SECONDARY / REFERENCE_ONLY`; FINANCE_DEEP preserves `company_coverage_obligations` and the company comparison decision map.
 - Material market explanation preserves `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 - `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry appeal is not universally required.
-- Headline diversity is tracked by `angle_family`; major H1 sections require earned transitions.
+- Headline diversity is tracked by `angle_family`. Major H1 sections must also be **earned transitions**.
 - Natural prose uses the deterministic template-cluster guard when executable; unavailable deterministic checks remain OPEN.
 - Every supplied A-share company/stock name is mechanically bolded at every exact Word occurrence; this does not replace semantic skim anchors.
 - Publication articles use no tables; delivery enforces zero underlines when deterministic document tooling is executable.
