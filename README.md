@@ -9,7 +9,7 @@ Financial Writing therefore has two execution adapters behind one business owner
 - **OWNER_NATIVE / Python** — the deterministic state machine + owner-native audit runtime when those capabilities are actually available in the current session.
 - **GITHUB_CHAT / CHAT_BRIDGED** — current GPT chat executes the same business sequence while GitHub stores per-article state and stage artifacts under `workspaces/articles/{task_id}` according to `continuity/GITHUB_CHAT_EXECUTION.json`.
 
-GITHUB_CHAT is not permission to write freely from the prompt. It must create/resume durable state before research/drafting, checkpoint every material stage, and reread GitHub after writes. Chat memory is never execution truth.
+GITHUB_CHAT is not permission to write freely from the prompt. It must create/resume durable state before research/drafting, checkpoint every material stage, and reread GitHub after writes. Normal stage mutations use `github_chat_guard.py`; BLOCKED recovery and material-feedback system-impact lifecycle mutations use `github_chat_lifecycle.py`. Chat memory is never execution truth.
 
 ## Core behavior
 - `FINANCE_DEEP`: material-complete within the bounded audited research universe.
@@ -19,7 +19,7 @@ GITHUB_CHAT is not permission to write freely from the prompt. It must create/re
 - No publication tables, no underlines, no publication-tail source appendix, and no image/cover/section-visual/avatar/sticker workflow.
 - Final risk disclaimer is one inline italic `风险提示：...` paragraph.
 - Numbering hierarchy: `一、二、三 → （1）（2）（3） → ①②③`.
-- Bold skim path uses selected anchors; company names are not blanket-bolded on every occurrence.
+- Bold skim path uses selected semantic anchors, and every exact occurrence of user-supplied A-share company/stock names is mechanically bolded in Word.
 
 ## Workflow
 Canonical sequence:
@@ -49,7 +49,7 @@ The prose gate audits fidelity/responsibility, semantic contribution, argument p
 
 OWNER_NATIVE `record_writing_learning_sample` stores raw user edits, feedback, acceptance/rejection and post-publication evidence. GITHUB_CHAT persists equivalent evidence in the exact article workspace. A single sample is evidence only; it never auto-promotes itself into policy.
 
-Material `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` must also create a durable system-impact review obligation. In GITHUB_CHAT the evidence and OPEN system-impact item are checkpointed together; the chat may not fabricate owner-plugin receipts when the plugin did not execute.
+Material `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` must also create a durable system-impact review obligation. In GITHUB_CHAT the evidence and OPEN system-impact item are checkpointed together; `github_chat_lifecycle.review_system_impact_state` then classifies the item, optionally emits a non-authoritative Universal control signal, and moves a closed item into history. Any GITHUB_CHAT closure is `SELF_ATTESTED_CHAT_EVIDENCE_BINDING`, not independent verification or owner-native methodology proof.
 
 ## Quality-promotion evidence
 Quality promotion is stricter than runtime correctness:
@@ -64,7 +64,9 @@ Current FINANCE_DEEP evidence remains diagnostic because held-out diversity is s
 ## Recoverability and anti-bypass
 OWNER_NATIVE mandatory failures use persisted `BLOCKED` recovery cursors and `resume_blocked_task`.
 
-GITHUB_CHAT resumes from GitHub `STATE.json` + exact stage refs. If GitHub write, current web evidence, document tooling or another exact stage capability is unavailable, the affected action stays BLOCKED/OPEN. The system must not jump from a user prompt to a pseudo-final article merely because GPT can produce fluent prose.
+GITHUB_CHAT review-stage FAIL blocks in place. Recovery requires `github_chat_lifecycle.resume_blocked_state`, non-empty repair evidence, the persisted failed review artifact/decision, invalidation of that failed evidence, and a fresh review artifact at the exact same stage before later advancement.
+
+GITHUB_CHAT otherwise resumes from GitHub `STATE.json` + exact stage refs. If GitHub write, current web evidence, document tooling or another exact stage capability is unavailable, the affected action stays BLOCKED/OPEN. The system must not jump from a user prompt to a pseudo-final article merely because GPT can produce fluent prose.
 
 Changes to research, editorial plans, titles or drafts invalidate affected downstream evidence and stale artifacts.
 
@@ -74,15 +76,16 @@ Changes to research, editorial plans, titles or drafts invalidate affected downs
 - zero underlines
 - no end-of-article source appendix
 - one final italic `风险提示：...` paragraph, no rendered numbered risk H1
-- deterministic numbering and explicit bold preservation
+- deterministic numbering and explicit semantic bold preservation
+- every user-supplied A-share company/stock name mechanically bold at every exact occurrence
 - required artifact/check evidence must reflect what actually ran
 - stale render pages are cleared before rerender when render QA is available
 
 ## Runtime surfaces
 `financial_writing_agent/plugin_server.py` remains the single public MCP registration surface for the optional owner-native MCP path. v0.8.1 exposes 19 typed tools and one Word resource template.
 
-`continuity/GITHUB_CHAT_EXECUTION.json` is the owner-local adapter for the current GitHub + GPT-chat path. It does not create a second business-rule authority; it defines how the existing owner workflow persists evidence and calibrates assurance when Python/MCP execution is absent.
+`continuity/GITHUB_CHAT_EXECUTION.json` is the owner-local adapter for the current GitHub + GPT-chat path. `financial_writing_agent/github_chat_guard.py` owns normal guarded chat transitions/feedback capture; `financial_writing_agent/github_chat_lifecycle.py` owns bounded BLOCKED recovery and system-impact lifecycle mutation. These do not create a second business-rule authority; they adapt the existing owner workflow at explicitly self-attested chat assurance.
 
 There is no compatibility shim, legacy `CHAT_TEXT`, visual/sticker contract or canned `structure_patterns.md` library on current `main`.
 
-`main` remains code/rule truth. Repository/CI correctness, current-session execution, independent review and live writing quality are separate evidence classes and must never be collapsed.
+`main` remains code/rule truth. Repository/CI correctness, current-session execution, independent review and live writing quality are separate evidence classes and must never be collapsed. The owner-local chat guards do not by themselves solve outer final-response admission, non-forgeable Continuity lease fencing, or physical GitHub write interception; those remain separate control-plane boundaries.
