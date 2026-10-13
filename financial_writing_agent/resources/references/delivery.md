@@ -3,6 +3,8 @@
 ## Ownership
 Delivery owns **Word construction, deterministic typography, hierarchy normalization, fixed A-share entity emphasis, explicit reasoning-emphasis preservation, file identity, mechanical checks and renderability**. It does not decide what evidence is true, what argument should be made or whether a headline is persuasive.
 
+Delivery is a capability inside the single Financial owner trajectory. It does not own article task state; durable delivery/publication evidence is reconciled back into the same `main/workspaces/articles/{task_id}` owner state.
+
 ## Default channel
 Formal publication content is delivered **only as Word**. Do not paste the article body or preview into chat.
 
@@ -11,7 +13,7 @@ Completion has two QA surfaces:
 2. a concise chat checklist/list — visible status for required gates.
 
 ## Word construction
-Mechanical formatting belongs to code, not the drafting model.
+Mechanical formatting belongs to deterministic document tooling, not the drafting model.
 - Article title: centered, current policy controls exact size.
 - H1: red + bold, **24px equivalent = 18pt**.
 - H2: Normal + bold, **20px equivalent = 15pt**.
@@ -25,7 +27,7 @@ Mechanical formatting belongs to code, not the drafting model.
 ## Source presentation
 Do **not** append a publication-tail bibliography or a `资料来源 / 参考资料 / 参考来源 / 来源汇总` section to the article by default.
 
-Evidence provenance still matters. Keep source IDs/URLs and research attribution in the ResearchPackage and audit evidence, and use natural in-text attribution when the source identity is material to the claim (for example, “公司公告显示” or “监管文件提出”). Removing the end source appendix never licenses uncited invention or loss of evidence traceability.
+Evidence provenance still matters. Keep source IDs/URLs and research attribution in durable research/audit evidence, and use natural in-text attribution when source identity is material to the claim. Removing the end source appendix never licenses uncited invention or loss of traceability.
 
 ## Two-layer bold contract
 Publication bold has two distinct jobs and both are required.
@@ -33,7 +35,7 @@ Publication bold has two distinct jobs and both are required.
 ### 1. Deterministic A-share company emphasis
 Every A-share company/stock name supplied in `ArticleDocument.stock_names` is bolded at **every exact occurrence** in the Word article. This is a durable user formatting preference and is mechanical rather than editorial.
 
-Do not infer additional stock names inside Delivery. The drafting/research path supplies the authoritative A-share name list for the article; overseas companies or other entities are not automatically bold unless they are explicitly emphasized for semantic reasons.
+Do not infer additional stock names inside Delivery. The drafting/research path supplies the authoritative A-share name list for the article; overseas companies or other entities are not automatically bold unless explicitly emphasized for semantic reasons.
 
 ### 2. Explicit semantic skim-path emphasis
 The drafting layer separately marks `**...**` spans for important:
@@ -54,7 +56,7 @@ The publication surface uses **one final inline paragraph beginning `风险提�
 Risk wording should be **as concise as possible without deleting material risk information**. A fixed minimum character count is not a quality target and must not force boilerplate. Mechanical QA requires a non-empty single italic risk paragraph; semantic audit checks whether it is topic-specific and information-complete.
 
 ## No visual workflow
-Financial Writing has no image-generation, cover, section-image, avatar, sticker, visual-manifest or image-insertion step. Image work is outside this runtime.
+Financial Writing has no image-generation, cover, section-image, avatar, sticker, visual-manifest or image-insertion step. Image work is outside this owner workflow.
 
 ## Mechanical verification
 For every applicable article Word file, check:
@@ -77,9 +79,11 @@ Repeated rendering must be idempotent: stale page images from an earlier documen
 Generic superlatives and context-sensitive promotional language belong to semantic review unless the phrase is unambiguously prohibited by policy; deterministic scanning should avoid unnecessary false positives.
 
 ## Artifact privacy / identity
-Server-local filesystem paths are implementation details. Public MCP results and `WRITING_AUDIT_REPORT.docx` identify artifacts by kind/file name/hash/resource reference, not `/data/...` or other local runtime paths.
+Environment-local filesystem paths are implementation details. User-visible delivery/audit surfaces identify artifacts by kind, file name, hash/resource reference and availability, not `/data/...`, `/mnt/...` or another transient local path as durable identity.
 
 A successful render process alone is not proof of perfect pagination. Claim visual page inspection only when rendered page evidence was actually inspected.
 
 ## Visible completion checklist
-On COMPLETE, chat returns a concise list covering applicable research/evidence, Market Explanation scope, Reader Funnel, Natural Authorial Prose/Writing DNA, general editorial audit, numbered navigation where applicable, **A-share name bolding plus semantic skim path**, Word/no-table/no-underline/source-tail/risk-italic/render, compliance/risk and knowledge sync. The article body remains in Word only.
+At the current legal terminal state, chat returns a concise status summary covering applicable research/evidence, Market Explanation scope, Reader Funnel, Natural Authorial Prose/Writing DNA, general editorial audit, numbered navigation where applicable, **A-share name bolding plus semantic skim path**, Word/no-table/no-underline/source-tail/risk-italic/render, compliance/risk and remaining open assurance boundaries. The article body remains in Word only.
+
+Under ordinary same-chat semantic review, the legal terminal remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`; Delivery must not rename that state to `COMPLETE` merely because the files exist.
