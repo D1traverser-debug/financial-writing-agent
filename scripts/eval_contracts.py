@@ -6,7 +6,7 @@ from pathlib import Path
 from pydantic import ValidationError
 
 from financial_writing_agent.checks import analyze_template_scaffolding
-from financial_writing_agent.github_chat_guard import (
+from financial_writing_agent.owner_guard import (
     GithubChatGuardError,
     advance_state,
     build_initial_state,
@@ -37,13 +37,16 @@ def eval_single_owner_authority() -> list[str]:
     check(execution["authority"]["business_state_root"] == "workspaces/articles/{task_id}", "article state root drift")
     check(execution["authority"]["alternate_runtime_state_authority_allowed"] is False, "alternate runtime state authority enabled")
     check(execution["execution"]["free_form_article_fallback_allowed"] is False, "free-form fallback enabled")
+    check(execution["authority"]["canonical_mutation_guard_implementation"] == "financial_writing_agent/owner_guard.py", "owner guard not bound")
     check(execution["authority"]["canonical_lifecycle_implementation"] == "financial_writing_agent/owner_lifecycle.py", "owner lifecycle not bound")
     check(agent["product_interface"]["execution_mode_selection"] == "NONE", "agent still selects an execution mode")
     check(agent["runtime"]["runtime_type"] == "SINGLE_GITHUB_BACKED_OWNER", "agent runtime is not single-owner")
+    check(agent["runtime"]["canonical_guard_implementation"] == "financial_writing_agent/owner_guard.py", "agent guard path drift")
     check(capabilities["profile_version"] == 11, "capability profile drift")
-    check("blocked_recovery" in {item["capability_id"] for item in capabilities["capabilities"]}, "blocked recovery capability missing")
-    check("system_impact_lifecycle" in {item["capability_id"] for item in capabilities["capabilities"]}, "system-impact lifecycle capability missing")
-    return ["single owner", "main-only state", "no route selection", "owner lifecycle bound"]
+    capability_ids = {item["capability_id"] for item in capabilities["capabilities"]}
+    check("financial_owner_workflow" in capability_ids, "single owner workflow capability missing")
+    check("blocked_recovery_and_system_impact_lifecycle" in capability_ids, "owner lifecycle capability missing")
+    return ["single owner", "main-only state", "no route selection", "owner guard/lifecycle bound"]
 
 
 def eval_task_contract() -> list[str]:
@@ -171,6 +174,9 @@ def eval_word_and_style_policy() -> list[str]:
 
 def eval_legacy_quarantine() -> list[str]:
     check(not (ROOT / "continuity" / "GITHUB_CHAT_EXECUTION.json").exists(), "retired dual-adapter contract returned")
+    check(not (ROOT / "financial_writing_agent" / "github_chat_guard.py").exists(), "retired guard component path returned")
+    check((ROOT / "financial_writing_agent" / "owner_guard.py").is_file(), "current owner guard missing")
+    check((ROOT / "financial_writing_agent" / "owner_lifecycle.py").is_file(), "current owner lifecycle missing")
     check(not (ROOT / "plugin.json").exists(), "retired plugin discovery manifest returned")
     check(not (ROOT / "scripts" / "sdk_smoke.py").exists(), "retired SDK runtime smoke returned")
     check(not (ROOT / "scripts" / "mcp_smoke.py").exists(), "retired MCP runtime smoke returned")
@@ -178,7 +184,7 @@ def eval_legacy_quarantine() -> list[str]:
     execution = json.loads((ROOT / "continuity" / "FINANCIAL_OWNER_EXECUTION.json").read_text(encoding="utf-8"))
     check(execution["checkpoint_contract"]["storage_token_status"] == "LEGACY_INTERNAL_TOKEN_ONLY__NOT_A_ROUTE_SELECTOR", "legacy state token is not quarantined")
     check(execution["legacy_quarantine"]["historical_evals_and_branches"] == "EVIDENCE_ONLY__NEVER_EXECUTION_AUTHORITY", "historical evidence can still become authority")
-    return ["no retired discovery contract", "no retired package discovery", "historical evidence only"]
+    return ["no retired discovery contract", "no retired component path", "no retired package discovery", "historical evidence only"]
 
 
 def main() -> None:
