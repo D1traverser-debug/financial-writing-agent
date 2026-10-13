@@ -5,10 +5,11 @@
   "executor_type": "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE",
   "purpose": "Make the user's GitHub-mounted + GPT-chat operating mode explicit without weakening owner-native business semantics or assurance boundaries. Chat mode is executable only when its deterministic transition guard can run in the current session.",
   "activation": {
-    "when": "A publishable Financial Writing action is requested, owner-native runtime is unavailable, and the current session can execute the model work, GitHub owner reads/writes, plus the deterministic GitHub-chat transition guard required by the exact next action.",
+    "when": "A publishable Financial Writing action is requested, owner-native runtime is unavailable, and the current session can execute the model work, GitHub owner reads/writes, plus the deterministic GitHub-chat transition/lifecycle guard required by the exact next action.",
     "must_not_activate_when": [
       "GitHub owner read/write is unavailable for a material state mutation",
       "financial_writing_agent.github_chat_guard cannot be executed or equivalently evaluated by a deterministic current-session tool",
+      "the exact recovery or system-impact action requires financial_writing_agent.github_chat_lifecycle but it cannot be executed or equivalently evaluated by a deterministic current-session tool",
       "the exact stage requires another capability that the current session cannot execute",
       "the user explicitly requests owner-native or independently attested assurance"
     ],
@@ -25,6 +26,7 @@
     "canonical_task_contract": "financial_writing_agent.models.TaskContract + financial_writing_agent.routing.build_task_contract",
     "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
     "transition_guard": "financial_writing_agent/github_chat_guard.py",
+    "lifecycle_guard": "financial_writing_agent/github_chat_lifecycle.py",
     "per_article_business_state_branches_allowed": false,
     "chat_memory_is_business_state_authority": false,
     "python_sqlite_state_is_required_for_this_mode": false,
@@ -35,7 +37,7 @@
     "default_delivery_channel": "WORD_FILE_ONLY",
     "default_required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
     "routing_rule": "When the user did not explicitly request a platform/mode narrowing, GITHUB_CHAT must call the same canonical routing semantics as OWNER_NATIVE and therefore keep DUAL. A direct distribution-mode override requires USER_EXPLICIT_OVERRIDE plus distribution_mode_override_evidence that is an exact substring of the original user prompt and is persisted in the INIT receipt.",
-    "adapter_parity_rule": "Execution adapters may differ in assurance/executor substrate but may not redefine distribution mode, delivery channel, required outputs, stage graph, revision targets, invalidation or terminal semantics."
+    "adapter_parity_rule": "Execution adapters may differ in assurance/executor substrate but may not redefine distribution mode, delivery channel, required outputs, stage graph, revision targets, invalidation, blocked recovery semantics, system-impact lifecycle semantics or terminal semantics."
   },
   "workflow": {
     "canonical_stage_order_symbol": "BUSINESS_STAGE_ORDER",
@@ -45,7 +47,7 @@
     "terminal_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
     "owner_native_terminal_status": "COMPLETE",
     "adapter_narrowing_rule": "GITHUB_CHAT may expose a conservative subset of canonical workflow capabilities because its semantic assurance is weaker, but it may not change the canonical TaskContract or add a stage edge/revision target absent from the Financial owner.",
-    "rule": "Use the Financial business sequence from financial_writing_agent.workflow_spec and task/output semantics from TaskContract/routing. Stage advancement/revision/terminalization is accepted only through github_chat_guard against the fetched current main STATE.json blob identity."
+    "rule": "Use the Financial business sequence from financial_writing_agent.workflow_spec and task/output semantics from TaskContract/routing. Stage advancement/revision/terminalization is accepted only through github_chat_guard against the fetched current main STATE.json blob identity. A review FAIL enters BLOCKED; leaving BLOCKED requires github_chat_lifecycle.resume_blocked_state with explicit repair evidence and invalidation of the failed review artifact/decision before the same review stage is retried."
   },
   "checkpoint_contract": {
     "state_schema_version": "1.2",
@@ -74,8 +76,9 @@
     ],
     "execution_mode_value": "GITHUB_CHAT",
     "state_ref_value": "main",
-    "mutation_guard": "Fetch main/workspaces/articles/{task_id}/STATE.json and its current blob SHA, run financial_writing_agent.github_chat_guard to build/validate the next state and exact action-bound receipt, then replace that same main file using the same SHA. A stale writer, non-main state ref or guard failure blocks the mutation.",
-    "execution_receipt_rule": "Every material chat-mode state mutation appends one self-attested execution receipt containing task/stage/capability/action, executor identity, main state_ref, prior state blob SHA, subject/input bindings, task/output contract bindings, output refs and result. INIT additionally records exact user-prompt evidence for any explicit single-mode override. Receipt existence does not make the chat independent or owner-native.",
+    "mutation_guard": "Fetch main/workspaces/articles/{task_id}/STATE.json and its current blob SHA, run the exact deterministic Financial guard required by the action (github_chat_guard for normal transitions/feedback; github_chat_lifecycle for BLOCKED recovery or system-impact review/closure), then replace that same main file using the same SHA. A stale blob, non-main state ref or guard failure blocks the mutation.",
+    "blocked_recovery": "A BLOCKED review task resumes only through github_chat_lifecycle.resume_blocked_state with non-empty repair evidence. Recovery stays on the exact blocked review stage, invalidates the failed review artifact/decision and requires a fresh review artifact before guarded advancement.",
+    "execution_receipt_rule": "Every material chat-mode state mutation appends one self-attested execution receipt containing task/stage/capability/action, executor identity, main state_ref, prior state blob SHA, subject/input bindings, task/output contract bindings where applicable, output refs and result. INIT additionally records exact user-prompt evidence for any explicit single-mode override. Receipt existence does not make the chat independent or owner-native.",
     "post_write_verification": "Reread STATE.json and every newly referenced stage artifact from main after the GitHub mutation; a guard PASS or GitHub tool success alone is not commit proof.",
     "stage_artifact_identity": "Git main repository path + blob SHA",
     "article_source_identity": "Git main repository path + blob SHA or content digest"
@@ -103,12 +106,14 @@
   },
   "learning_and_maintenance": {
     "material_user_edit_feedback_rejection": "Use github_chat_guard.attach_material_feedback so material negative/corrective evidence and its OPEN system-impact item are written into the same guarded STATE.json mutation and exact action-bound receipt before the learning loop is called closed.",
+    "system_impact_lifecycle": "Use github_chat_lifecycle.review_system_impact_state to classify each OPEN item as LOCAL_ONLY, SYSTEM_MAINTENANCE_REQUIRED or NO_CHANGE_WITH_REASON. SYSTEM_MAINTENANCE_REQUIRED stays open until an exact replay of the accepted diagnosis supplies maintenance_ref, validation_refs and assurance_ceiling >= REGRESSION_VERIFIED; closure moves the item to system_impact_history instead of erasing it.",
     "one_off_feedback_auto_promotes_rule": false,
     "owner_plugin_receipt_claim_when_plugin_unavailable": "FORBIDDEN",
     "shared_method_propagation": "Use current Universal operational_hygiene/evolution method; keep Financial business truth local. A maintenance change is not closed until its impact map includes startup/Skill, canonical policy/reference, runtime adapters, deterministic harness/evals, mirrors and stale/legacy surfaces that consume the changed invariant."
   },
   "failure_behavior": {
     "missing_transition_guard": "BLOCK the stage transition; do not hand-edit STATE.json or continue as if the SOP was enforced.",
+    "missing_lifecycle_guard": "BLOCK BLOCKED-recovery or system-impact lifecycle mutation; do not hand-edit STATE.json to clear a blocker or maintenance obligation.",
     "missing_github_write": "BLOCK exact material mutation; do not continue as if state were durable.",
     "non_main_business_state_ref": "BLOCK the material mutation. Per-article branches are not a current GITHUB_CHAT business-state authority.",
     "missing_or_narrowed_task_contract": "BLOCK. When no explicit user narrowing exists, default routing is DUAL and cannot be silently changed by the chat executor.",
@@ -128,6 +133,8 @@
     "No DELIVERY advancement is accepted with a missing applicable article Word output.",
     "No FINAL terminalization is accepted until the complete TaskContract.required_outputs set is present in the structured delivery manifest.",
     "No current_stage change, review route or terminalization is accepted without github_chat_guard validation and one new action-bound execution receipt.",
+    "No BLOCKED task is resumed by manual state surgery; exact-stage recovery requires repair evidence and invalidates failed review evidence before retry.",
+    "No OPEN or MAINTENANCE_REQUIRED system-impact item is removed by manual state surgery; classification and closure use the deterministic lifecycle guard and retain history.",
     "No GITHUB_CHAT business state is newly written to an article branch; main/workspaces/articles/{task_id} is the only write surface.",
     "No chat self-review is relabeled as INDEPENDENT_EXECUTOR or owner-runtime PASS.",
     "No missing owner runtime is silently replaced by free-form writing; the explicit guard-enforced GitHub-chat adapter is the only chat fallback.",
