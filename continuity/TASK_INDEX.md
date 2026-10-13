@@ -11,7 +11,7 @@ Execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`
 
 ## Explicit-only SYSTEM candidate
 
-- `financial-writing:system-audit` — **财经写作系统全局审视与可靠性维护** — SYSTEM_INFRA — ACTIVE — stage `GLOBAL_AUDIT_AND_LIVE_E2E_REPAIR` — resume `EXPLICIT_ONLY` — owner `FINANCIAL_WRITING_AGENT_ENGINEERING` — manifest: `continuity/tasks/financial-writing-system-audit/TASK_MANIFEST.json` — checkpoint: `continuity/tasks/financial-writing-system-audit/HANDOFF.md`
+- `financial-writing:system-audit` — **财经写作系统全局审视与可靠性维护** — SYSTEM_INFRA — WAITING — stage `BOUNDED_AUDIT_COMPLETE__OPEN_EXTERNAL_ASSURANCE` — resume `EXPLICIT_ONLY` — owner `FINANCIAL_WRITING_AGENT_ENGINEERING` — manifest: `continuity/tasks/financial-writing-system-audit/TASK_MANIFEST.json` — checkpoint: `continuity/tasks/financial-writing-system-audit/HANDOFF.md`
 
 Named continuation phrases such as `继承财经写作系统`、`继续财经写作全局审视`、`继承：financial-writing:system-audit` must resolve the explicit system task before any Bare CONTINUE discovery. `SYSTEM_INFRA` remains excluded from bare/default candidate lists.
 
@@ -37,4 +37,5 @@ Named continuation phrases such as `继承财经写作系统`、`继续财经写
 - 历史 `OWNER_NATIVE`、旧 `GITHUB_CHAT` fallback-adapter 语义、SQLite WritingState、plugin/MCP-local task state、旧 `article/*` refs、maintenance branches 与历史 evals 都不是当前 authority。它们可以作为 Git/审计证据保留，但不能参与 routing / resume / fallback。
 - 同一 task maintenance 保持既有 `resume_epoch` 与 active lease；新聊天 takeover 仍按 Universal v3.7 增加 `resume_epoch` 并淘汰旧 writer。
 - GitHub/Library/Notion/Drive 都不是自动事件监听器。完全全新的 ChatGPT 对话是否能仅凭普通财经写作请求自动发现本 repo，属于产品/账号级 routing capability，必须用真实 fresh-chat trace 证明，不能由本索引自证。
+- 当前 system-audit scoped pass 已完成；下次显式恢复优先验证 fresh-chat Named CONTINUE 路由与 hosted CI 执行证据，不得默认重跑全局审查，除非出现新的 defect/evidence。
 - 活跃持久任务最终答复输出 v3.7 `进度提交`；只有 current owner authority、stage evidence 与 required-output manifest/availability evidence appropriate to the current action 全部回读验证后才能报告 `COMMITTED`。
