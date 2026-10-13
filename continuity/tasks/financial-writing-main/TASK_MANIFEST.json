@@ -1,6 +1,6 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 24,
+  "manifest_version": 25,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,18 +10,18 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-13T09:56:00Z",
+  "updated_at": "2026-10-13T10:10:47Z",
   "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
   "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、FINANCIAL_OWNER_EXECUTION、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 11，只对当前动作所需能力做 handshake。所有正式财经写作进入同一个 ChatGPT + GitHub owner 路径；不得再选择 OWNER_NATIVE/GITHUB_CHAT 等平行业务模式。新业务状态只写 main/workspaces/articles/{task_id}，当前 mutation guard=financial_writing_agent/owner_guard.py，BLOCKED/system-impact lifecycle=financial_writing_agent/owner_lifecycle.py；默认 canonical TaskContract=DUAL，required_outputs=FINANCE_DEEP_DOCX+FINANCE_BROAD_DOCX+AUDIT_DOCX。任何单模式 override 必须绑定原始用户 prompt 的精确子串证据。缺能力只阻塞受影响阶段，不允许 free-form fallback、SQLite/plugin 备用状态、per-article business-state branch 或历史维护分支回退。DELIVERY/FINAL 必须机械对账 required_outputs 后才能继续/终态。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
   "runtime_version": "V0_8_1__PROFILE_11__SINGLE_GITHUB_BACKED_FINANCIAL_OWNER__OWNER_GUARD_LIFECYCLE__CANONICAL_WORKFLOW__MAIN_ONLY_STATE__LEGACY_QUARANTINED__LOCAL_EXECUTION_VERIFIED__FULL_HOSTED_CI_OPEN",
-  "resume_epoch": 4,
+  "resume_epoch": 5,
   "active_lease": {
-    "lease_id": "fw-e3dff9bf4dd547eb94fab8e15456c34f",
-    "acquired_at": "2026-10-13T01:12:00Z",
-    "supersedes_lease_id": "fw-4b398865ade44f1c896911a438f0c83b"
+    "lease_id": "fw-fbadb6dbc3544d048325c9778cd0df6a",
+    "acquired_at": "2026-10-13T10:10:47Z",
+    "supersedes_lease_id": "fw-e3dff9bf4dd547eb94fab8e15456c34f"
   },
   "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作"],
   "artifact_refs": [
