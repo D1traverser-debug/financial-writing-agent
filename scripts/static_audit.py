@@ -13,17 +13,25 @@ SOURCE_POLICY = ROOT / "config" / "policy.json"
 PACKAGE_POLICY = ROOT / "financial_writing_agent" / "resources" / "policy.json"
 RULE_OWNERSHIP = ROOT / "config" / "rule_ownership.json"
 PYPROJECT = ROOT / "pyproject.toml"
-PLUGIN_JSON = ROOT / "plugin.json"
 AGENT_MANIFEST = ROOT / "continuity" / "AGENT_MANIFEST.json"
 CAPABILITIES = ROOT / "continuity" / "EXECUTION_CAPABILITIES.json"
 OWNER_EXECUTION = ROOT / "continuity" / "FINANCIAL_OWNER_EXECUTION.json"
 UNIVERSAL_ADAPTER = ROOT / "continuity" / "UNIVERSAL_PROTOCOL_ADAPTER.json"
 TASK_MANIFEST = ROOT / "continuity" / "tasks" / "financial-writing-main" / "TASK_MANIFEST.json"
 HANDOFF = ROOT / "continuity" / "tasks" / "financial-writing-main" / "HANDOFF.md"
+TASK_INDEX = ROOT / "continuity" / "TASK_INDEX.md"
+README = ROOT / "README.md"
+ARCHITECTURE = ROOT / "docs" / "architecture.md"
+SITE_SPEC = ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md"
+CI = ROOT / ".github" / "workflows" / "ci.yml"
 LEGACY_EXECUTION_CONTRACT = ROOT / "continuity" / "GITHUB_CHAT_EXECUTION.json"
+PLUGIN_MANIFEST = ROOT / "plugin.json"
+LEGACY_SDK_SMOKE = ROOT / "scripts" / "sdk_smoke.py"
+LEGACY_MCP_SMOKE = ROOT / "scripts" / "mcp_smoke.py"
 MODELS = ROOT / "financial_writing_agent" / "models.py"
 WORKFLOW = ROOT / "financial_writing_agent" / "workflow_spec.py"
 GUARD = ROOT / "financial_writing_agent" / "github_chat_guard.py"
+LIFECYCLE = ROOT / "financial_writing_agent" / "owner_lifecycle.py"
 CHECKS = ROOT / "financial_writing_agent" / "checks.py"
 DOCUMENT = ROOT / "financial_writing_agent" / "document.py"
 
@@ -57,13 +65,19 @@ def load_json(path: Path) -> dict:
     return json.loads(path.read_text(encoding="utf-8"))
 
 
-def check_versions() -> None:
+def check_versions_and_distribution_surface() -> None:
     pyproject = tomllib.loads(PYPROJECT.read_text(encoding="utf-8"))
-    plugin = load_json(PLUGIN_JSON)
     policy = load_json(SOURCE_POLICY)
-    versions = {pyproject["project"]["version"], plugin.get("version"), policy.get("contract_version")}
+    versions = {pyproject["project"]["version"], policy.get("contract_version")}
     require(versions == {CURRENT_VERSION}, f"machine-readable version drift: {versions}")
     require(CURRENT_LABEL in SKILL.read_text(encoding="utf-8"), "Skill version label drift")
+
+    # Retired local/plugin runtimes may remain as source history, but current package
+    # discovery must not export them as production task authorities.
+    require("scripts" not in pyproject["project"], "pyproject still exports a legacy runtime command entrypoint")
+    require(not PLUGIN_MANIFEST.exists(), "retired plugin.json rediscovered as a current product entry")
+    require(not LEGACY_SDK_SMOKE.exists(), "retired SDK runtime smoke still exists in current scripts")
+    require(not LEGACY_MCP_SMOKE.exists(), "retired MCP runtime smoke still exists in current scripts")
 
 
 def check_reference_bundle() -> None:
@@ -119,7 +133,10 @@ def check_single_owner_authority() -> None:
     require(agent["product_interface"].get("execution_mode_selection") == "NONE", "agent still exposes execution-mode selection")
     require(agent["runtime"].get("runtime_type") == "SINGLE_GITHUB_BACKED_OWNER", "runtime is not single GitHub-backed owner")
     require(agent["runtime"].get("execution_contract") == "continuity/FINANCIAL_OWNER_EXECUTION.json", "agent points at wrong execution contract")
+    require(agent["runtime"].get("canonical_lifecycle_implementation") == "financial_writing_agent/owner_lifecycle.py", "owner lifecycle is not canonical")
     require(agent["runtime"].get("alternate_business_state_runtime_allowed") is False, "alternate business-state runtime is still allowed")
+    require(agent["harness"].get("commands") == ["pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"], "harness still carries retired runtime smokes")
+
     active_state_refs = set(agent["workflow"].get("state_authority_refs", []))
     for retired_ref in ("financial_writing_agent/store.py", "financial_writing_agent/runtime_service.py", "financial_writing_agent/plugin_server.py", "continuity/GITHUB_CHAT_EXECUTION.json"):
         require(retired_ref not in active_state_refs, f"retired state authority remains active: {retired_ref}")
@@ -143,7 +160,6 @@ def check_single_owner_authority() -> None:
     require(execution.get("authority", {}).get("per_article_business_state_branches_allowed") is False, "per-article state branches allowed")
     require(execution.get("execution", {}).get("free_form_article_fallback_allowed") is False, "free-form fallback allowed")
     require(execution.get("checkpoint_contract", {}).get("storage_token_status") == "LEGACY_INTERNAL_TOKEN_ONLY__NOT_A_ROUTE_SELECTOR", "legacy execution token is not quarantined")
-    require(execution.get("legacy_quarantine", {}).get("fallback_rule"), "legacy fallback quarantine rule missing")
 
     binding = universal.get("execution_mode_binding", {})
     require(binding.get("route_selection") == "NONE", "Universal adapter still exposes route selection")
@@ -154,7 +170,7 @@ def check_single_owner_authority() -> None:
 
     require(task.get("manifest_version") >= 22, "task manifest not migrated to single owner")
     require("PROFILE_11__SINGLE_GITHUB_BACKED_FINANCIAL_OWNER" in task.get("runtime_version", ""), "task runtime version not single-owner")
-    require("FINANCIAL_OWNER_EXECUTION.json" in task.get("artifact_refs", []), "task manifest missing single owner execution contract")
+    require("continuity/FINANCIAL_OWNER_EXECUTION.json" in task.get("artifact_refs", []), "task manifest missing single owner execution contract")
     require("continuity/GITHUB_CHAT_EXECUTION.json" not in task.get("artifact_refs", []), "task manifest still references retired chat execution contract")
 
     require_text(skill, (
@@ -173,12 +189,11 @@ def check_single_owner_authority() -> None:
     require_text(handoff, (
         "one ChatGPT product path",
         "There is no longer a product/runtime decision between `OWNER_NATIVE` and `GITHUB_CHAT`",
-        "Historical `OWNER_NATIVE`",
         "not current business authority",
     ), "Handoff")
 
 
-def check_business_contract_and_delivery_guards() -> None:
+def check_business_contract_and_lifecycle() -> None:
     policy = load_json(SOURCE_POLICY)
     require(policy["defaults"].get("distribution_mode") == "DUAL", "default distribution mode drift")
     require(policy["defaults"].get("delivery_channel") == "WORD_FILE_ONLY", "default delivery channel drift")
@@ -192,23 +207,35 @@ def check_business_contract_and_delivery_guards() -> None:
     models = MODELS.read_text(encoding="utf-8")
     workflow = WORKFLOW.read_text(encoding="utf-8")
     guard = GUARD.read_text(encoding="utf-8")
+    lifecycle = LIFECYCLE.read_text(encoding="utf-8")
     checks = CHECKS.read_text(encoding="utf-8")
     document = DOCUMENT.read_text(encoding="utf-8")
-    require_text(models, ("class TaskContract", "required_outputs"), "TaskContract")
+
+    require_text(models, ("class TaskContract", "required_outputs must exactly match the canonical output set"), "TaskContract")
     require_text(workflow, ("BUSINESS_STAGE_ORDER", "REVISION_TARGETS", "invalidated_stages_from"), "workflow")
     require_text(guard, ("required_outputs", "delivery_artifacts", "article delivery outputs mismatch", "final delivery outputs mismatch", "USER_EXPLICIT_OVERRIDE"), "owner guard")
+    require_text(lifecycle, ("block_review_failure_state", "resume_blocked_state", "review_system_impact_state", "canonical recovery cursor", "REGRESSION_VERIFIED"), "owner lifecycle")
     require_text(checks, ("analyze_template_scaffolding", "publication article must not contain end source section", "risk disclaimer must be italic", "publication article contains prohibited underline(s)"), "checks")
     require_text(document, ('render_text = f"风险提示：{render_text.strip()}"', "run.underline = False", "italic=is_risk"), "document")
 
 
-def check_legacy_quarantine_negative_space() -> None:
-    current_authority_paths = [SKILL, AGENT_MANIFEST, CAPABILITIES, OWNER_EXECUTION, UNIVERSAL_ADAPTER, TASK_MANIFEST, HANDOFF]
-    for path in current_authority_paths:
-        require(path.is_file(), f"missing current authority surface: {path.relative_to(ROOT)}")
+def check_docs_ci_and_legacy_negative_space() -> None:
+    current_docs = [README, ARCHITECTURE, SKILL, TASK_INDEX, HANDOFF, SITE_SPEC]
+    forbidden = (
+        "two execution adapters behind one business owner",
+        "two execution adapters",
+        "owner-native Python/plugin 实际可用时",
+        "Otherwise guarded GitHub-chat execution",
+    )
+    for path in current_docs:
+        text = path.read_text(encoding="utf-8")
+        for marker in forbidden:
+            require(marker not in text, f"{path.relative_to(ROOT)} contains retired marker: {marker}")
 
-    # Legacy code may physically remain while migration is incomplete, but it may not
-    # regain authority through current manifests. Historical evals/branches are outside
-    # this hot-path set by design.
+    ci = CI.read_text(encoding="utf-8")
+    forbid_text(ci, ("scripts/sdk_smoke.py", "scripts/mcp_smoke.py", "financial_writing_agent.plugin_server", ".[dev,openai]"), "CI")
+    require_text(ci, ("pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py", "financial_writing_agent.owner_lifecycle"), "CI")
+
     agent = load_json(AGENT_MANIFEST)
     current_refs = json.dumps(agent, ensure_ascii=False)
     forbid_text(current_refs, (
@@ -220,13 +247,13 @@ def check_legacy_quarantine_negative_space() -> None:
 
 
 def main() -> None:
-    check_versions()
+    check_versions_and_distribution_surface()
     check_reference_bundle()
     check_rule_ownership()
     check_single_owner_authority()
-    check_business_contract_and_delivery_guards()
-    check_legacy_quarantine_negative_space()
-    print("PASS: v0.8.1 single GitHub-backed Financial owner authority, canonical output contract, legacy quarantine and Word hard boundaries protected")
+    check_business_contract_and_lifecycle()
+    check_docs_ci_and_legacy_negative_space()
+    print("PASS: v0.8.1 single GitHub-backed Financial owner, canonical TaskContract/lifecycle, legacy quarantine and Word hard boundaries protected")
 
 
 if __name__ == "__main__":
