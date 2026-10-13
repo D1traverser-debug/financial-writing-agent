@@ -1,6 +1,6 @@
 import pytest
 
-from financial_writing_agent.github_chat_guard import (
+from financial_writing_agent.owner_guard import (
     GithubChatGuardError,
     advance_state,
     attach_material_feedback,
