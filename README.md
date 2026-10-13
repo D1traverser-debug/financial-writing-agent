@@ -8,9 +8,9 @@ The user's production path is exactly one path:
 
 `ChatGPT request → Financial Writing owner on current GitHub main → main/workspaces/articles/{task_id} → canonical workflow → Word delivery`.
 
-There is no product/runtime choice between OWNER_NATIVE, GITHUB_CHAT, Python, MCP, plugin or another business route. Model, web, Python, document, plugin and MCP facilities are capability providers inside the same owner trajectory when actually available. They may not create a second article-state authority.
+There is no product/runtime choice between OWNER_NATIVE, GITHUB_CHAT, Python or another business route. Model, web, deterministic/Python and document facilities are capabilities inside the same owner trajectory when actually available. They may not create a second article-state authority.
 
-The canonical execution contract is `continuity/FINANCIAL_OWNER_EXECUTION.json`. The current deterministic mutation implementation remains `financial_writing_agent/github_chat_guard.py` for code compatibility; that historical filename and existing `STATE.json.execution_mode=GITHUB_CHAT` value are internal legacy identifiers only, never route selectors.
+The canonical execution contract is `continuity/FINANCIAL_OWNER_EXECUTION.json`. The current deterministic mutation implementation is `financial_writing_agent/owner_guard.py`; BLOCKED recovery and system-impact lifecycle are in `financial_writing_agent/owner_lifecycle.py`. Existing `STATE.json.execution_mode=GITHUB_CHAT` values are backward-compatible storage tokens only, never route selectors.
 
 Missing required capability blocks the affected stage. It never authorizes free-form writing, an alternate SQLite/plugin task state, a per-article business branch or a historical fallback mechanism.
 
@@ -82,6 +82,6 @@ If GitHub write, current web evidence, document tooling or another exact-stage c
 
 ## Legacy quarantine
 
-Historical OWNER_NATIVE / dual-adapter designs, SQLite WritingState task authority, `article/*` business-state branches, old maintenance branches and historical evals may remain in Git history or evidence directories. They are not startup authority, routing authority or task recovery fallback.
+Historical OWNER_NATIVE / dual-adapter designs, SQLite WritingState task authority, plugin/MCP-local task-state flows, `article/*` business-state branches, old maintenance branches and historical evals may remain in Git history or evidence directories. They are not startup authority, routing authority or task recovery fallback.
 
 `main` is current code/rule truth and `main/workspaces/articles/{task_id}` is the only durable Financial business-state authority. Repository wiring, current-session capability execution, independent review and live writing quality remain separate evidence classes and must never be collapsed.
