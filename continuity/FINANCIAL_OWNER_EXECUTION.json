@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.2",
+  "schema_version": "2.3",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "product_path": "SINGLE_GITHUB_BACKED_FINANCIAL_OWNER",
   "interaction_surface": "CHATGPT",
@@ -64,7 +64,9 @@
     "retired_route_concepts": ["OWNER_NATIVE", "GITHUB_CHAT_AS_FALLBACK_ADAPTER", "PYTHON_OR_PLUGIN_AS_SEPARATE_BUSINESS_STATE_AUTHORITY"],
     "retired_state_authorities_for_new_tasks": ["SQLite WritingState", "per-article Git branches", "chat memory", "Site/MCP-local state"],
     "historical_evals_and_branches": "EVIDENCE_ONLY__NEVER_EXECUTION_AUTHORITY",
-    "legacy_owner_runtime_code": "May remain temporarily only where dependency cleanup has not yet completed. Current Skill/manifest/capability/task handoff/package discovery/default tests must not route new or resumed business work through it.",
+    "negative_space_contract": "config/retired_runtime_paths.json",
+    "retired_runtime_current_tree_status": "PHYSICALLY_ABSENT_REQUIRED",
+    "retired_runtime_reintroduction_rule": "Any retired runtime/discovery path listed by the negative-space contract reappearing in the current tree is a regression and must fail tests/CI.",
     "fallback_rule": "No legacy mechanism may become active merely because the current capability set is incomplete. Missing capability blocks the affected stage."
   },
   "anti_bypass": [
@@ -79,6 +81,7 @@
     "No FINAL terminalization is accepted until the complete required_outputs set including AUDIT_DOCX is present.",
     "No per-article business-state branch is created or resumed as current authority.",
     "No historical eval, maintenance branch, chat summary or deprecated runtime store overrides current main authority.",
+    "No retired second-runtime implementation may re-enter the current repository tree without an explicit future architecture migration that replaces this contract and passes negative-space regression review.",
     "No missing capability authorizes free-form writing."
   ]
 }
