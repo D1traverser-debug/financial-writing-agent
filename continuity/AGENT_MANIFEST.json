@@ -55,12 +55,8 @@
   },
   "harness": {
     "ci_workflow_ref": ".github/workflows/ci.yml",
-    "commands": [
-      "pytest -q",
-      "python scripts/eval_contracts.py",
-      "python scripts/static_audit.py",
-      "python scripts/retired_runtime_static_audit.py"
-    ],
+    "commands": ["pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"],
+    "negative_space_command": "python scripts/retired_runtime_static_audit.py",
     "suites": ["architecture", "contract", "trajectory", "quality", "artifact", "legacy_quarantine", "blocked_recovery", "system_impact_lifecycle", "retired_runtime_negative_space"]
   },
   "references": {
