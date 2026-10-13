@@ -100,4 +100,4 @@ Only explicit continuation may resume old article state. Resolve exact owner-nat
 
 The next decisive product proof is another zero-memory fresh-chat article with no explicit mode/platform narrowing. It must persist DUAL + the three required outputs on main and mechanically refuse a 2-file terminal delivery.
 
-`resume_epoch=3` and active lease `fw-4b398865ade44f1c896911a438f0c83b` remain unchanged; this maintenance did not create a new BUSINESS lease.
+`resume_epoch=4` and active lease `fw-e3dff9bf4dd547eb94fab8e15456c34f` are now owned by this new-chat takeover; superseded lease: `fw-4b398865ade44f1c896911a438f0c83b`.
