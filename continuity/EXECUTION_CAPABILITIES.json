@@ -53,9 +53,9 @@
       "capability_id": "delivery_and_mechanical_qa",
       "scope": "DELIVERY,MECHANICAL_AUDIT,FINAL_OUTPUT_RECONCILIATION",
       "assurance_ceiling": "SESSION_EXECUTABLE",
-      "invocation_path": "persisted GitHub publication source -> current document/Python tooling -> mechanical/render checks -> owner guard -> GitHub checkpoint",
-      "executor_type": "DOCUMENT_AND_DETERMINISTIC_STAGE_PROVIDER",
-      "executor_ref": "financial_writing_agent/adapters/deterministic.py",
+      "invocation_path": "persisted GitHub publication source -> current document tooling + financial_writing_agent.document/checks/rendering -> owner guard output reconciliation -> GitHub checkpoint",
+      "executor_type": "STATELESS_DOCUMENT_AND_DETERMINISTIC_UTILITIES_INSIDE_OWNER_TRAJECTORY",
+      "executor_ref": "financial_writing_agent/document.py + financial_writing_agent/checks.py + financial_writing_agent/rendering.py",
       "required_tools": ["GitHub_owner_read_write", "python_runtime_or_equivalent_deterministic_guard", "document_tooling_for_word_delivery"],
       "evidence_contract": ["publication source Git identity", "DOCX file/hash for each required output", "DELIVERY exact article-output reconciliation", "FINAL_AUDIT exact full required-output reconciliation including AUDIT_DOCX", "explicit checks actually executed"],
       "side_channel_allowed": false,
@@ -123,7 +123,7 @@
     }
   ],
   "legacy_quarantine": {
-    "not_current_capabilities": ["owner_plugin_runtime_as_task_authority", "SQLite_WritingState_as_task_authority", "GITHUB_CHAT_as_fallback_adapter"],
+    "not_current_capabilities": ["owner_plugin_runtime_as_task_authority", "SQLite_WritingState_as_task_authority", "GITHUB_CHAT_as_fallback_adapter", "WritingState_DeliveryExecutor_wrapper"],
     "legacy_state_token": "GITHUB_CHAT may remain inside schema-1.2 STATE.json only as a backward-compatible storage token; it is never a route selector",
     "legacy_code_may_be_used_as_provider_only_if": "it does not create or resume an alternate article state authority and the current execution contract explicitly admits the exact action",
     "legacy_presence_never_implies_activation": true
