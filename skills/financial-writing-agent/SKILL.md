@@ -5,23 +5,27 @@ description: Create and continue publishable A-share financial articles through 
 
 # Financial Writing Agent v0.8
 
-This Skill is the single ChatGPT-facing Financial entry and thin router. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable guards.
+This Skill is the single ChatGPT-facing Financial entry and thin router. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable owner guards.
 
-## 1. Enter or resume the owner
+## 1. Enter the one Financial owner path
 
-Normal use has one product path: the user gives the Financial Writing Agent a task in ChatGPT. Do not ask the user to choose `OWNER_NATIVE`, `GITHUB_CHAT`, Python, MCP, plugin, or another execution plane; those are internal dispatch/evidence labels.
+Normal use has exactly one product/execution path:
 
-Before material work read `continuity/EXECUTION_CAPABILITIES.json` and handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
+`ChatGPT request → current GitHub main Financial owner → main/workspaces/articles/{task_id} durable state → canonical workflow → Word delivery`.
 
-- Use exposed persisted owner tools when actually available (`list_recent_writing_tasks`, `start_writing_task`).
-- Otherwise guarded GitHub-chat execution is legal only with model execution, GitHub owner read/write, and deterministic `financial_writing_agent/github_chat_guard.py` execution. Never hand-edit `current_stage`.
-- Both bindings inherit the same canonical `TaskContract`. Default routing is `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
-- GITHUB_CHAT state lives only at `main/workspaces/articles/{task_id}`. Each material transition binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
-- Missing hard capability blocks the affected stage; it never authorizes free-form writing or a lower business SOP.
-- GitHub-chat semantic audits remain `CHAT_SELF_REVIEW`; they may force revision/failure but cannot become owner-native or provider-attested PASS.
-- `BLOCKED` owner-runtime work resumes only through its persisted recovery cursor.
+Do not ask the user to choose an execution mode. Do not choose between owner-native, GitHub-chat, Python, MCP, plugin or any other alternate business route. Model, web, Python, document, plugin or MCP facilities are capability providers inside the same owner trajectory when actually available; they never create a second article-state authority.
 
-GitHub `main` is engineering/rule authority. Exact execution-state authority depends on the internal binding declared above; that difference does not create a second Financial product or workflow. Chat memory is never task authority.
+Before material work read `continuity/FINANCIAL_OWNER_EXECUTION.json` and `continuity/EXECUTION_CAPABILITIES.json`, then handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
+
+- Durable article business state lives only at `main/workspaces/articles/{task_id}`.
+- Create durable article state before research or drafting. Chat memory is never task authority.
+- Every material transition uses the deterministic Financial owner guard against freshly fetched main state, binds the prior state blob SHA, writes with compare-and-swap, then rereads authoritative state and new artifact refs.
+- The current guard implementation remains `financial_writing_agent/github_chat_guard.py` for code compatibility. Its historical filename is not an execution-mode selector.
+- Missing hard capability blocks the affected stage. It never authorizes free-form writing or a lower business SOP.
+- New per-article business-state branches are forbidden. Historical branches/evals are evidence only and never current authority.
+- Legacy owner-native/SQLite/plugin task state is not a fallback for new or resumed Financial business work.
+
+The canonical TaskContract defaults to `DUAL` unless the user explicitly narrows it. Default formal delivery therefore requires `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX` through `WORD_FILE_ONLY`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
 
 ## 2. Workflow and semantic gates
 
@@ -29,11 +33,11 @@ Use the owner sequence exactly:
 
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
 
-Do not skip, insert, or free-form complete stages. GITHUB_CHAT advancement/revision/terminalization requires `github_chat_guard`. Owner-native `COMPLETE` requires controller proof; bounded chat delivery remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
+Do not skip, insert, or free-form complete stages. Stage advancement, revision, blocked recovery, feedback mutation and terminalization require deterministic owner-state validation.
 
-At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct judgments. `CHAT_SELF_REVIEW` may identify defects but cannot certify owner-runtime semantic PASS. Hosted/MCP PASS, when available, goes through `run_semantic_audit_stage`; otherwise certification stays OPEN.
+At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct judgments. In a single GPT chat, semantic review assurance remains `CHAT_SELF_REVIEW`; it may identify PASS/REVISE/FAIL for routing, but it must not be relabeled as provider-attested independent review. If genuinely stronger provider-attested review becomes available, it is an additional capability inside the same owner state trajectory, not a new execution path.
 
-The legacy `INDEPENDENT_EXECUTOR` token means stage-separated owner-runtime execution only, not provider-attested isolation.
+Current bounded terminal status remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` unless stronger exact-action evidence actually exists.
 
 ## 3. Progressive reference map
 
@@ -62,14 +66,14 @@ Do not copy full reference rules into this Skill.
 
 ## 5. Learning and maintenance
 
-Material user edit/feedback/rejection/acceptance that changes writing, review, or delivery must become durable owner evidence before claiming learning.
+Material user edit/feedback/rejection/acceptance that changes writing, review or delivery must become durable owner evidence before claiming learning.
 
-Use `record_writing_learning_sample` when the owner learning tool is exposed; otherwise use `github_chat_guard.attach_material_feedback`. Do not fabricate owner-plugin receipts.
+Persist corrective evidence in the same main article workspace and keep systemic impact OPEN until the maintenance/evolution lifecycle has evidence-backed closure. Do not fabricate plugin/runtime receipts that were not actually produced.
 
-Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Do not create another root policy or persona Agent merely to add review theatre.
+Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Prefer consolidation/deletion over adding another execution adapter, state store or persona Agent. A superseded mechanism may remain in Git history or historical evals, but it must be removed or mechanically quarantined from current authority and hot-path routing.
 
 ## 6. Completion / delivery
 
 Before `DELIVERY`, reconcile all article Word outputs required by the immutable task contract. Before terminalization, reconcile the full set including `AUDIT_DOCX`. Persist publication source in GitHub so Word artifacts remain reproducible.
 
-For an active durable task, preserve owner lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance.
+For an active durable task, preserve Universal lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance. `COMMITTED` is valid only after authoritative reread.
