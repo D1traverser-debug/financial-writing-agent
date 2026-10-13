@@ -1,6 +1,6 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 28,
+  "manifest_version": 29,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,9 +10,9 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-13T11:43:00Z",
-  "current_stage": "ACTIVE_ARTICLE_FINAL_AUDIT_PAUSED_BY_USER",
-  "next_action": "显式 continuation 必须优先恢复 main/workspaces/articles/ice-snow-economy-20261013/STATE.json。当前 authoritative article stage=FINAL_AUDIT，status=IN_PROGRESS；不要从聊天或临时本地文件重建。先按 Universal v3.7 对新窗口执行 takeover（resume_epoch +1、新 lease supersede 当前 lease），再回读该 STATE.json、reviews/FINAL_AUDIT.md、DELIVERY/MECHANICAL_AUDIT refs，确认 canonical FINANCE_DEEP_DOCX sha256=e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922、FINANCE_BROAD_DOCX sha256=10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895。FINAL_AUDIT.md 已持久化，AUDIT_DOCX 已在暂停聊天生成并检查，但 FINAL_AUDIT PASS/终态尚未写入 STATE.json。恢复后只做剩余 FINAL_AUDIT 三输出对账与合法终态提交；除非 authority 显示失效/不一致，不得重做 RESEARCH/EDITORIAL/DRAFT/DELIVERY/MECHANICAL_AUDIT。",
+  "updated_at": "2026-10-13T11:58:00Z",
+  "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
+  "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、FINANCIAL_OWNER_EXECUTION、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 11，只对当前动作所需能力做 handshake。所有正式财经写作进入同一个 ChatGPT + GitHub owner 路径；不得再选择 OWNER_NATIVE/GITHUB_CHAT 等平行业务模式。新业务状态只写 main/workspaces/articles/{task_id}，当前 mutation guard=financial_writing_agent/owner_guard.py，BLOCKED/system-impact lifecycle=financial_writing_agent/owner_lifecycle.py；默认 canonical TaskContract=DUAL，required_outputs=FINANCE_DEEP_DOCX+FINANCE_BROAD_DOCX+AUDIT_DOCX。任何单模式 override 必须绑定原始用户 prompt 的精确子串证据。缺能力只阻塞受影响阶段，不允许 free-form fallback、SQLite/plugin 备用状态、per-article business-state branch 或历史维护分支回退。DELIVERY/FINAL 必须机械对账 required_outputs 后才能继续/终态。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
@@ -23,46 +23,7 @@
     "acquired_at": "2026-10-13T11:43:00Z",
     "supersedes_lease_id": "fw-fbadb6dbc3544d048325c9778cd0df6a"
   },
-  "active_article": {
-    "task_id": "ice-snow-economy-20261013",
-    "topic": "冰雪经济",
-    "state_path": "workspaces/articles/ice-snow-economy-20261013/STATE.json",
-    "status": "IN_PROGRESS",
-    "current_stage": "FINAL_AUDIT",
-    "state_blob_sha_at_pause": "0afcfa1fd2121bdbb4e5a8a95f64a493b240b9fa",
-    "distribution_mode": "DUAL",
-    "delivery_channel": "WORD_FILE_ONLY",
-    "required_outputs": [
-      "AUDIT_DOCX",
-      "FINANCE_DEEP_DOCX",
-      "FINANCE_BROAD_DOCX"
-    ],
-    "completed_gates": [
-      "RESEARCH_AUDIT_PASS",
-      "EDITORIAL_AUDIT_PASS",
-      "DELIVERY_PERSISTED",
-      "MECHANICAL_AUDIT_PASS"
-    ],
-    "canonical_article_docx_sha256": {
-      "FINANCE_DEEP_DOCX": "e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922",
-      "FINANCE_BROAD_DOCX": "10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895"
-    },
-    "final_audit": {
-      "path": "workspaces/articles/ice-snow-economy-20261013/reviews/FINAL_AUDIT.md",
-      "blob_sha": "ab28a10196430ca21b6b07b32b3e43e93d3b3ad7",
-      "decision_prepared": "PASS",
-      "state_transition_committed": false
-    },
-    "prepared_audit_docx": {
-      "file_name": "WRITING_AUDIT_REPORT.docx",
-      "sha256": "3446a155f31b6d005959768e3431a7de5342d69dbf78ddec93fff1ff46d3f509",
-      "availability_note": "Generated and visually checked in the pausing chat. If the exact binary is unavailable after fresh-window takeover, regenerate from durable audit evidence and re-verify; do not assume byte identity."
-    },
-    "remaining": "FINAL_AUDIT three-output reconciliation + audit artifact binding + terminal transition only",
-    "pause_reason": "USER_REQUESTED_SAFE_CHECKPOINT_FOR_FRESH_WINDOW_CONTINUATION",
-    "assurance": "CHAT_SELF_REVIEW"
-  },
-  "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作", "冰雪经济"],
+  "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作"],
   "artifact_refs": [
     "skills/financial-writing-agent/SKILL.md",
     "continuity/AGENT_MANIFEST.json",
@@ -75,8 +36,6 @@
     "references/maintenance.md",
     "scripts/static_audit.py",
     "workspaces/articles/ice-snow-economy-20261013/STATE.json",
-    "workspaces/articles/ice-snow-economy-20261013/stages/DELIVERY.md",
-    "workspaces/articles/ice-snow-economy-20261013/reviews/MECHANICAL_AUDIT.md",
     "workspaces/articles/ice-snow-economy-20261013/reviews/FINAL_AUDIT.md"
   ],
   "assurance_boundary": {
