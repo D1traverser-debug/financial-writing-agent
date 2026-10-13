@@ -7,12 +7,12 @@ Execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`
 
 ## Default USER candidate
 
-- `financial-writing:main` — **金融文章写作** — USER — ACTIVE — stage `ACTIVE_ARTICLE_FINAL_AUDIT` — active article `ice-snow-economy-20261013`（冰雪经济）— resume `DEFAULT` — manifest: `continuity/tasks/financial-writing-main/TASK_MANIFEST.json` — checkpoint: `continuity/tasks/financial-writing-main/HANDOFF.md`
+- `financial-writing:main` — **金融文章写作** — USER — ACTIVE — stage `ACTIVE_ARTICLE_FINAL_AUDIT_PAUSED_BY_USER` — active article `ice-snow-economy-20261013`（冰雪经济）— resume `DEFAULT` — manifest: `continuity/tasks/financial-writing-main/TASK_MANIFEST.json` — checkpoint: `continuity/tasks/financial-writing-main/HANDOFF.md`
 
 ## Rules
 
 - 裸“继承”只把 `financial-writing:main` 作为 Financial owner 的默认 USER candidate；具体文章必须按当前 main manifest/HANDOFF 再回读对应 article `STATE.json` 解析。
-- 当前存在 active article 时，显式 continuation 不得误判为“等待新任务”。本次 active article 是 `ice-snow-economy-20261013`，HANDOFF 记录的 checkpoint 为 `FINAL_AUDIT`；恢复时 article `STATE.json` 是更高优先级具体业务 authority。
+- 当前存在 active article 时，显式 continuation 不得误判为“等待新任务”。本次 active article 是 `ice-snow-economy-20261013`，HANDOFF 记录的 checkpoint 为 `FINAL_AUDIT` 且为用户主动安全暂停；恢复时 article `STATE.json` 是更高优先级具体业务 authority。
 - 普通“写金融文章 / 写财经文章 / 投研文章”仍是 **NEW_TASK intent**，除非用户显式说继承/继续/恢复或明确引用该旧任务。
 - Financial 当前只有一个正式产品/执行路径：`ChatGPT → GitHub main Financial owner → main/workspaces/articles/{task_id}`。不再选择 OWNER_NATIVE / GITHUB_CHAT / Python 等平行业务模式。
 - GitHub `main` 是代码/规则权威，也是唯一业务状态写入 ref。新任务不得创建 `article/{task_id}` 等文章业务分支。文章隔离依靠 `main/workspaces/articles/{task_id}`。
