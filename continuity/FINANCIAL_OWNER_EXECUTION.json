@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.1",
+  "schema_version": "2.2",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "product_path": "SINGLE_GITHUB_BACKED_FINANCIAL_OWNER",
   "interaction_surface": "CHATGPT",
@@ -14,9 +14,8 @@
     "publication_source_directory": "workspaces/articles/{task_id}/publication",
     "canonical_task_contract": "financial_writing_agent.models.TaskContract + financial_writing_agent.routing.build_task_contract",
     "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
-    "canonical_mutation_guard_implementation": "financial_writing_agent/github_chat_guard.py",
+    "canonical_mutation_guard_implementation": "financial_writing_agent/owner_guard.py",
     "canonical_lifecycle_implementation": "financial_writing_agent/owner_lifecycle.py",
-    "guard_filename_note": "The github_chat_guard.py filename is retained temporarily for code compatibility only. It is the single Financial owner mutation guard, not a selectable GITHUB_CHAT adapter and not a second business workflow.",
     "chat_memory_is_business_state_authority": false,
     "alternate_runtime_state_authority_allowed": false,
     "per_article_business_state_branches_allowed": false
@@ -32,7 +31,7 @@
       "document_tooling_for_WORD_FILE_ONLY_delivery",
       "optional_provider_attested_review_if_future_strict_isolation_is_actually_available"
     ],
-    "provider_rule": "Python, plugin, MCP, model, web and document tooling are capability providers inside one owner trajectory. No provider may create a parallel article state store or alternate terminal semantics.",
+    "provider_rule": "Model, web, deterministic/Python, document and any future attested review facilities are capability providers inside one owner trajectory. No provider may create a parallel article state store, alternate workflow, alternate terminal semantics or alternate route selector.",
     "free_form_article_fallback_allowed": false
   },
   "task_contract": {
@@ -45,7 +44,7 @@
   "workflow": {
     "canonical_stage_order": ["INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT", "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"],
     "transition_source": "financial_writing_agent/workflow_spec.py",
-    "mutation_rule": "Normal stage advancement/revision/terminalization uses the deterministic owner guard; BLOCKED recovery and system-impact lifecycle use financial_writing_agent/owner_lifecycle.py. All mutations operate against freshly read main state and require authoritative reread after write.",
+    "mutation_rule": "Normal stage advancement/revision/terminalization uses financial_writing_agent/owner_guard.py; BLOCKED recovery and system-impact lifecycle use financial_writing_agent/owner_lifecycle.py. All mutations operate against freshly read main state and require authoritative reread after write.",
     "review_fail_rule": "A recoverable review FAIL must be persisted through owner_lifecycle.block_review_failure_state with a canonical revision_target valid for the failed review stage. The target is bound into the blocking action receipt and may not be invented later.",
     "blocked_recovery_rule": "owner_lifecycle.resume_blocked_state requires non-empty repair evidence, reuses the persisted canonical recovery target, invalidates that target and every downstream artifact/review/delivery identity, and resumes only on that target.",
     "system_impact_rule": "owner_lifecycle.review_system_impact_state classifies material corrective evidence. SYSTEM_MAINTENANCE_REQUIRED remains open until immutable diagnosis plus maintenance_ref, validation_refs and assurance >= REGRESSION_VERIFIED are supplied; closure remains self-attested unless stronger exact-action provider evidence actually exists.",
@@ -56,7 +55,7 @@
     "current_state_schema_version": "1.2",
     "current_execution_mode_storage_token": "GITHUB_CHAT",
     "storage_token_status": "LEGACY_INTERNAL_TOKEN_ONLY__NOT_A_ROUTE_SELECTOR",
-    "migration_rule": "Existing main article STATE.json using the GITHUB_CHAT token remains readable. The token must never be used to choose an execution route. A future schema migration may rename it only with explicit backward-compatible migration and regression proof.",
+    "migration_rule": "Existing main article STATE.json using the GITHUB_CHAT token remains readable. The token must never be used to choose an execution route. New control-plane names and paths are owner-neutral. A future state-schema migration may rename the token only with backward-compatible migration and regression proof.",
     "state_ref_value": "main",
     "mutation_conflict_rule": "Every material mutation binds the freshly fetched STATE.json blob SHA and writes with the same SHA. Universal lease/epoch fencing remains a separate required outer invariant and is not proven by blob CAS alone.",
     "post_write_verification": "Reread STATE.json and every newly referenced artifact from main before claiming COMMITTED."
