@@ -14,12 +14,12 @@ Normal use has one product path: the user gives the Financial Writing Agent a ta
 Before material work read `continuity/EXECUTION_CAPABILITIES.json` and handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
 
 - Use exposed persisted owner tools when actually available (`list_recent_writing_tasks`, `start_writing_task`).
-- Otherwise guarded GitHub-chat execution is legal only with model execution, GitHub owner read/write, and deterministic `financial_writing_agent/github_chat_guard.py` execution. Never hand-edit `current_stage`.
+- Otherwise guarded GitHub-chat execution is legal only with model execution, GitHub owner read/write, and the deterministic Financial guard required by the exact next action: `financial_writing_agent/github_chat_guard.py` for normal task transitions/feedback capture and `financial_writing_agent/github_chat_lifecycle.py` for BLOCKED recovery or system-impact review/closure. Never hand-edit `current_stage`, clear a blocker, or clear maintenance debt by state surgery.
 - Both bindings inherit the same canonical `TaskContract`. Default routing is `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
 - GITHUB_CHAT state lives only at `main/workspaces/articles/{task_id}`. Each material transition binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
 - Missing hard capability blocks the affected stage; it never authorizes free-form writing or a lower business SOP.
 - GitHub-chat semantic audits remain `CHAT_SELF_REVIEW`; they may force revision/failure but cannot become owner-native or provider-attested PASS.
-- `BLOCKED` owner-runtime work resumes only through its persisted recovery cursor.
+- `BLOCKED` owner-runtime work resumes only through its persisted recovery cursor. `BLOCKED` GITHUB_CHAT review work resumes only through `github_chat_lifecycle.resume_blocked_state`, with explicit repair evidence and a fresh review artifact at the exact blocked stage.
 
 GitHub `main` is engineering/rule authority. Exact execution-state authority depends on the internal binding declared above; that difference does not create a second Financial product or workflow. Chat memory is never task authority.
 
@@ -29,7 +29,7 @@ Use the owner sequence exactly:
 
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
 
-Do not skip, insert, or free-form complete stages. GITHUB_CHAT advancement/revision/terminalization requires `github_chat_guard`. Owner-native `COMPLETE` requires controller proof; bounded chat delivery remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
+Do not skip, insert, or free-form complete stages. GITHUB_CHAT advancement/revision/terminalization requires `github_chat_guard`; its BLOCKED recovery and system-impact lifecycle require `github_chat_lifecycle`. Owner-native `COMPLETE` requires controller proof; bounded chat delivery remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
 
 At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct judgments. `CHAT_SELF_REVIEW` may identify defects but cannot certify owner-runtime semantic PASS. Hosted/MCP PASS, when available, goes through `run_semantic_audit_stage`; otherwise certification stays OPEN.
 
@@ -64,7 +64,7 @@ Do not copy full reference rules into this Skill.
 
 Material user edit/feedback/rejection/acceptance that changes writing, review, or delivery must become durable owner evidence before claiming learning.
 
-Use `record_writing_learning_sample` when the owner learning tool is exposed; otherwise use `github_chat_guard.attach_material_feedback`. Do not fabricate owner-plugin receipts.
+Use `record_writing_learning_sample` when the owner learning tool is exposed; otherwise use `github_chat_guard.attach_material_feedback`. A GITHUB_CHAT OPEN system-impact item is then classified/closed only through `github_chat_lifecycle.review_system_impact_state`; any closure remains evidence-bound and self-attested at chat assurance and must not be relabeled as owner-native or independent verification. Do not fabricate owner-plugin receipts.
 
 Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Do not create another root policy or persona Agent merely to add review theatre.
 
