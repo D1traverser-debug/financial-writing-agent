@@ -28,9 +28,10 @@ LEGACY_EXECUTION_CONTRACT = ROOT / "continuity" / "GITHUB_CHAT_EXECUTION.json"
 PLUGIN_MANIFEST = ROOT / "plugin.json"
 LEGACY_SDK_SMOKE = ROOT / "scripts" / "sdk_smoke.py"
 LEGACY_MCP_SMOKE = ROOT / "scripts" / "mcp_smoke.py"
+LEGACY_GUARD_COMPONENT = ROOT / "financial_writing_agent" / "github_chat_guard.py"
 MODELS = ROOT / "financial_writing_agent" / "models.py"
 WORKFLOW = ROOT / "financial_writing_agent" / "workflow_spec.py"
-GUARD = ROOT / "financial_writing_agent" / "github_chat_guard.py"
+GUARD = ROOT / "financial_writing_agent" / "owner_guard.py"
 LIFECYCLE = ROOT / "financial_writing_agent" / "owner_lifecycle.py"
 CHECKS = ROOT / "financial_writing_agent" / "checks.py"
 DOCUMENT = ROOT / "financial_writing_agent" / "document.py"
@@ -72,9 +73,6 @@ def check_versions_and_distribution_surface() -> None:
     require(versions == {CURRENT_VERSION}, f"machine-readable version drift: {versions}")
     require(CURRENT_LABEL in SKILL.read_text(encoding="utf-8"), "Skill version label drift")
 
-    # Current distribution surface must not re-export or install the retired local/MCP
-    # runtime. Source-history modules can exist only as inert legacy code while they are
-    # being deleted/migrated; their presence must not impose current install/runtime cost.
     require("scripts" not in pyproject["project"], "pyproject still exports a legacy runtime command entrypoint")
     dependencies = {str(item).split(";")[0].strip().lower() for item in pyproject["project"].get("dependencies", [])}
     require(not any(dep.startswith("mcp") for dep in dependencies), "retired MCP runtime dependency returned to current distribution")
@@ -83,6 +81,9 @@ def check_versions_and_distribution_surface() -> None:
     require(not PLUGIN_MANIFEST.exists(), "retired plugin.json rediscovered as a current product entry")
     require(not LEGACY_SDK_SMOKE.exists(), "retired SDK runtime smoke still exists in current scripts")
     require(not LEGACY_MCP_SMOKE.exists(), "retired MCP runtime smoke still exists in current scripts")
+    require(not LEGACY_GUARD_COMPONENT.exists(), "retired github_chat_guard.py component path returned")
+    require(GUARD.is_file(), "canonical owner_guard.py missing")
+    require(LIFECYCLE.is_file(), "canonical owner_lifecycle.py missing")
 
 
 def check_reference_bundle() -> None:
@@ -138,18 +139,21 @@ def check_single_owner_authority() -> None:
     require(agent["product_interface"].get("execution_mode_selection") == "NONE", "agent still exposes execution-mode selection")
     require(agent["runtime"].get("runtime_type") == "SINGLE_GITHUB_BACKED_OWNER", "runtime is not single GitHub-backed owner")
     require(agent["runtime"].get("execution_contract") == "continuity/FINANCIAL_OWNER_EXECUTION.json", "agent points at wrong execution contract")
+    require(agent["runtime"].get("canonical_guard_implementation") == "financial_writing_agent/owner_guard.py", "owner guard is not canonical")
     require(agent["runtime"].get("canonical_lifecycle_implementation") == "financial_writing_agent/owner_lifecycle.py", "owner lifecycle is not canonical")
     require(agent["runtime"].get("alternate_business_state_runtime_allowed") is False, "alternate business-state runtime is still allowed")
     require(agent["harness"].get("commands") == ["pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"], "harness still carries retired runtime smokes")
 
     active_state_refs = set(agent["workflow"].get("state_authority_refs", []))
-    for retired_ref in ("financial_writing_agent/store.py", "financial_writing_agent/runtime_service.py", "financial_writing_agent/plugin_server.py", "continuity/GITHUB_CHAT_EXECUTION.json"):
+    for retired_ref in ("financial_writing_agent/store.py", "financial_writing_agent/runtime_service.py", "financial_writing_agent/plugin_server.py", "financial_writing_agent/github_chat_guard.py", "continuity/GITHUB_CHAT_EXECUTION.json"):
         require(retired_ref not in active_state_refs, f"retired state authority remains active: {retired_ref}")
+    require("financial_writing_agent/owner_guard.py" in active_state_refs, "owner guard absent from state authority refs")
 
     require(capabilities.get("profile_version") == 11, "execution capability profile is not 11")
     ids = [item.get("capability_id") for item in capabilities.get("capabilities", [])]
     require(len(ids) == len(set(ids)), "duplicate capability ids")
     require("financial_owner_workflow" in ids, "single owner workflow capability missing")
+    require("blocked_recovery_and_system_impact_lifecycle" in ids, "owner lifecycle capability missing")
     for item in capabilities.get("capabilities", []):
         require(item.get("side_channel_allowed") is False, f"side channel enabled: {item.get('capability_id')}")
         require(item.get("safe_degraded_modes") == [], f"degraded alternate mode remains: {item.get('capability_id')}")
@@ -161,6 +165,7 @@ def check_single_owner_authority() -> None:
     require(execution.get("execution", {}).get("route_selection") == "NONE", "execution contract still selects routes")
     require(execution.get("authority", {}).get("business_state_ref") == "main", "business state ref is not main")
     require(execution.get("authority", {}).get("business_state_root") == "workspaces/articles/{task_id}", "business state root drift")
+    require(execution.get("authority", {}).get("canonical_mutation_guard_implementation") == "financial_writing_agent/owner_guard.py", "execution contract points at wrong guard")
     require(execution.get("authority", {}).get("alternate_runtime_state_authority_allowed") is False, "alternate runtime state authority allowed")
     require(execution.get("authority", {}).get("per_article_business_state_branches_allowed") is False, "per-article state branches allowed")
     require(execution.get("execution", {}).get("free_form_article_fallback_allowed") is False, "free-form fallback allowed")
@@ -173,9 +178,11 @@ def check_single_owner_authority() -> None:
     require(universal.get("execution_capability_profile_version") == 11, "Universal adapter capability profile drift")
     require(universal.get("legacy_quarantine", {}).get("legacy_presence_may_activate_route") is False, "legacy presence may activate a route")
 
-    require(task.get("manifest_version") >= 22, "task manifest not migrated to single owner")
+    require(task.get("manifest_version") >= 23, "task manifest not migrated to current single owner guard")
     require("PROFILE_11__SINGLE_GITHUB_BACKED_FINANCIAL_OWNER" in task.get("runtime_version", ""), "task runtime version not single-owner")
-    require("continuity/FINANCIAL_OWNER_EXECUTION.json" in task.get("artifact_refs", []), "task manifest missing single owner execution contract")
+    require("financial_writing_agent/owner_guard.py" in task.get("artifact_refs", []), "task manifest missing owner guard")
+    require("financial_writing_agent/owner_lifecycle.py" in task.get("artifact_refs", []), "task manifest missing owner lifecycle")
+    require("financial_writing_agent/github_chat_guard.py" not in task.get("artifact_refs", []), "task manifest still references retired guard path")
     require("continuity/GITHUB_CHAT_EXECUTION.json" not in task.get("artifact_refs", []), "task manifest still references retired chat execution contract")
 
     require_text(skill, (
@@ -190,10 +197,12 @@ def check_single_owner_authority() -> None:
         "Otherwise guarded GitHub-chat execution",
         "choose OWNER_NATIVE",
         "choose `OWNER_NATIVE`",
+        "financial_writing_agent/github_chat_guard.py",
     ), "Skill")
     require_text(handoff, (
         "one ChatGPT product path",
-        "There is no longer a product/runtime decision between `OWNER_NATIVE` and `GITHUB_CHAT`",
+        "There is no product/runtime decision between `OWNER_NATIVE` and `GITHUB_CHAT`",
+        "financial_writing_agent/owner_guard.py",
         "not current business authority",
     ), "Handoff")
 
@@ -231,6 +240,7 @@ def check_docs_ci_and_legacy_negative_space() -> None:
         "two execution adapters",
         "owner-native Python/plugin 实际可用时",
         "Otherwise guarded GitHub-chat execution",
+        "financial_writing_agent/github_chat_guard.py",
     )
     for path in current_docs:
         text = path.read_text(encoding="utf-8")
@@ -238,8 +248,8 @@ def check_docs_ci_and_legacy_negative_space() -> None:
             require(marker not in text, f"{path.relative_to(ROOT)} contains retired marker: {marker}")
 
     ci = CI.read_text(encoding="utf-8")
-    forbid_text(ci, ("scripts/sdk_smoke.py", "scripts/mcp_smoke.py", "financial_writing_agent.plugin_server", ".[dev,openai]"), "CI")
-    require_text(ci, ("pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py", "financial_writing_agent.owner_lifecycle"), "CI")
+    forbid_text(ci, ("scripts/sdk_smoke.py", "scripts/mcp_smoke.py", "financial_writing_agent.plugin_server", ".[dev,openai]", "financial_writing_agent.github_chat_guard"), "CI")
+    require_text(ci, ("pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py", "financial_writing_agent.owner_guard", "financial_writing_agent.owner_lifecycle"), "CI")
 
     agent = load_json(AGENT_MANIFEST)
     current_refs = json.dumps(agent, ensure_ascii=False)
@@ -248,6 +258,7 @@ def check_docs_ci_and_legacy_negative_space() -> None:
         '"owner_native_mode"',
         '"chat_mode"',
         '"GITHUB_CHAT_EXECUTION.json"',
+        '"github_chat_guard.py"',
     ), "Agent manifest")
 
 
@@ -258,7 +269,7 @@ def main() -> None:
     check_single_owner_authority()
     check_business_contract_and_lifecycle()
     check_docs_ci_and_legacy_negative_space()
-    print("PASS: v0.8.1 single GitHub-backed Financial owner, canonical TaskContract/lifecycle, legacy quarantine and Word hard boundaries protected")
+    print("PASS: v0.8.1 single GitHub-backed Financial owner, owner_guard/lifecycle, canonical TaskContract, legacy quarantine and Word hard boundaries protected")
 
 
 if __name__ == "__main__":
