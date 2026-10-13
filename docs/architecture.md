@@ -7,9 +7,9 @@ Build a reliable A-share financial-writing system that keeps the business workfl
 Financial Writing has one business owner, one canonical `TaskContract`, one canonical business sequence and two execution adapters:
 
 1. **OWNER_NATIVE / Python** — `WorkflowController + WritingEngine + OpenAI Agents SDK/deterministic executors`. This path can produce proof-bearing owner-runtime semantic PASS when its exact runtime is session-available.
-2. **CHAT_BRIDGED / GitHub** — current GPT chat performs the stage work while GitHub `main` stores per-article checkpoints and stage artifacts under `workspaces/articles/{task_id}` according to `continuity/GITHUB_CHAT_EXECUTION.json`. This is the user's current production mode and does not require a Site/MCP deployment.
+2. **CHAT_BRIDGED / GitHub** — current GPT chat performs the stage work while GitHub `main` stores per-article checkpoints and stage artifacts under `workspaces/articles/{task_id}` according to `continuity/GITHUB_CHAT_EXECUTION.json`. Normal stage transitions and feedback capture use `financial_writing_agent/github_chat_guard.py`; BLOCKED recovery and system-impact classify/close actions use `financial_writing_agent/github_chat_lifecycle.py`. This is the user's current production mode and does not require a Site/MCP deployment.
 
-The second path is not a free-form fallback and is not a second business definition. It inherits `TaskContract` routing, delivery channel and required-output semantics from OWNER_NATIVE, uses the same business stage order/domain references, requires a session capability handshake and durable GitHub checkpoint after every material stage, and keeps its weaker review assurance explicit.
+The second path is not a free-form fallback and is not a second business definition. It inherits `TaskContract` routing, delivery channel and required-output semantics from OWNER_NATIVE, uses the same business stage order/domain references, requires a session capability handshake and durable GitHub checkpoint after every material action, and keeps its weaker review/lifecycle assurance explicit.
 
 If no platform/mode narrowing was explicitly requested, the canonical route is `DUAL`, so both article modes plus the audit Word are required. A chat executor may not silently narrow this to one mode.
 
@@ -25,7 +25,7 @@ Mandatory dependency or required-output failure blocks the exact affected action
 ## 4. Semantic audit proof model
 For OWNER_NATIVE, `WritingState.semantic_gate_proof_valid()` binds semantic PASS to the exact task/stage, persisted audit provenance, distinct reviewer/author identities, an execution ref and current-stage `EXECUTOR_START/EXECUTOR_END` evidence. `WorkflowController` and `WritingEngine.complete()` revalidate it.
 
-For GITHUB_CHAT, Research/Editorial/Final review artifacts are persisted separately but carry `CHAT_SELF_REVIEW`. They may find defects and force REVISE; they never become Python `GateStatus.PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Missing stronger audit capability therefore leaves certification OPEN rather than encouraging a fake PASS.
+For GITHUB_CHAT, Research/Editorial/Final review artifacts are persisted separately but carry `CHAT_SELF_REVIEW`. They may find defects and force REVISE/FAIL; they never become Python `GateStatus.PASS`, `INDEPENDENT_EXECUTOR`, or provider-attested evidence. Missing stronger audit capability therefore leaves certification OPEN rather than encouraging a fake PASS.
 
 The historical payload label `INDEPENDENT_EXECUTOR` means stage-separated owner-runtime judge execution only, not provider-attested isolation.
 
@@ -37,17 +37,21 @@ The historical payload label `INDEPENDENT_EXECUTOR` means stage-separated owner-
 - Chat memory: never checkpoint authority.
 - A transient chat DOCX attachment: delivery artifact only; the persisted GitHub publication source + structured output manifest are the regeneration/identity authority.
 
-Every material GITHUB_CHAT mutation fetches the current **main** state blob identity, validates the immutable task/output contract plus the stage transition, writes the intended checkpoint with the same blob SHA, and rereads it before claiming durability. Context loss resumes from `main`, not remembered prose or an article branch.
+Every normal material GITHUB_CHAT stage mutation fetches the current **main** state blob identity, validates the immutable task/output contract plus the stage transition through `github_chat_guard.py`, writes the intended checkpoint with the same blob SHA, and rereads it before claiming durability. Lifecycle mutations use the same fetch/CAS/reread discipline through `github_chat_lifecycle.py`.
+
+A GITHUB_CHAT review `FAIL` blocks in place. Recovery may not hand-edit status or guess a new stage: `resume_blocked_state` requires non-empty repair evidence plus the persisted failed review artifact and FAIL decision, invalidates both, keeps the exact review stage, and requires a fresh review artifact before any later guarded advancement.
+
+This owner-local Git blob-SHA discipline prevents stale-blob updates but does not itself prove that the caller still owns the current outer Continuity writer lease, nor does it physically intercept every direct GitHub write. Those are explicit control-plane boundaries rather than hidden assurance claims.
 
 ## 6. Content modes and output contract
 - `FINANCE_DEEP`: `MATERIAL_COMPLETE` relative to the bounded audited research universe.
 - `FINANCE_BROAD`: `SELECTIVE_TRAFFIC`, preserving evidence/uncertainty while exposing a non-niche financial stake.
 - Default distribution mode when no platform/mode is explicitly requested: `DUAL`.
 - Delivery channel: `WORD_FILE_ONLY`.
-- Required outputs derive from `TaskContract`:
-  - `FINANCE_DEEP` → `FINANCE_DEEP_DOCX + AUDIT_DOCX`;
-  - `FINANCE_BROAD` → `FINANCE_BROAD_DOCX + AUDIT_DOCX`;
-  - `DUAL` → `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`.
+- Required outputs derive from `TaskContract` and the model rejects a non-empty required-output list inconsistent with its distribution mode:
+  - `FINANCE_DEEP` → `AUDIT_DOCX + FINANCE_DEEP_DOCX`;
+  - `FINANCE_BROAD` → `AUDIT_DOCX + FINANCE_BROAD_DOCX`;
+  - `DUAL` → `AUDIT_DOCX + FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX`.
 
 There is no image/sticker workflow.
 
@@ -65,12 +69,14 @@ Multi-company Deep work keeps MATERIAL companies/classes visible and requires a 
 ## 9. Writing DNA, system impact and quality evolution
 OWNER_NATIVE `record_writing_learning_sample` stores raw edit/feedback/acceptance/rejection/performance evidence. Material corrective/negative samples create the system-impact lifecycle `PENDING_REVIEW → REVIEWED_NO_MAINTENANCE | MAINTENANCE_REQUIRED → MAINTENANCE_CLOSED`.
 
-GITHUB_CHAT must persist material user evidence inside the exact `main` article workspace. Edit/feedback/rejection that may affect system behavior creates an OPEN system-impact item in the same durable checkpoint operation; it may then enter the current Universal maintenance/evolution loop. It must not fabricate owner-plugin methodology receipts when that plugin did not execute.
+GITHUB_CHAT persists material user evidence inside the exact `main` article workspace. Edit/feedback/rejection that may affect system behavior creates an OPEN system-impact item in the same guarded checkpoint operation. `github_chat_lifecycle.review_system_impact_state` then reuses the canonical owner root-cause/decision constants, requires at least two mechanisms with failure modes, freezes the accepted diagnosis, and either closes it locally or emits a structurally complete non-authoritative Universal control-signal object. A `MAINTENANCE_REQUIRED` item can move to history only when the unchanged diagnosis is replayed with maintenance/validation refs and an evidence assurance label of at least `REGRESSION_VERIFIED`.
+
+That chat closure is explicitly `SELF_ATTESTED_CHAT_EVIDENCE_BINDING`: the adapter binds refs and labels but does not independently verify those refs merely by receiving them, and it never fabricates owner-native methodology receipts.
 
 Quality promotion is separate. Complete cases require immutable artifact identity, real rejection evidence, held-out diversity, candidate distillation, semantic evidence verification, hard-regression execution bound to the candidate/change, blind position-swapped pairwise judging and appropriate positive/live evidence for personalized claims. Current FINANCE_DEEP evidence remains diagnostic only; no current evidence proves prose quality improved.
 
 ## 10. Delivery architecture
-Canonical publication source is frozen before delivery. OWNER_NATIVE deterministic Word rules include H1 18pt, H2 15pt, body 13.5pt, H3 12pt, zero tables, zero underlines, no tail bibliography, deterministic A-share-name bolding plus explicit skim-path bold preservation, final inline italic `风险提示：...`, required-file presence and rerender hygiene.
+Canonical publication source is frozen before delivery. OWNER_NATIVE deterministic Word rules include H1 18pt, H2 15pt, body 13.5pt, H3 12pt, zero tables, zero underlines, no tail bibliography, deterministic A-share-name bolding on every exact occurrence plus explicit skim-path bold preservation, final inline italic `风险提示：...`, required-file presence and rerender hygiene.
 
 GITHUB_CHAT uses current document/Python tooling when session-available and records exactly which deterministic/render checks actually ran. Its guard additionally enforces the owner `TaskContract` at two points:
 1. `DELIVERY → MECHANICAL_AUDIT`: every applicable article Word kind must exist in the structured delivery manifest with file identity/hash;
@@ -94,7 +100,7 @@ Repository wiring is a capability ceiling. Current-session execution is establis
 Assurance classes stay distinct:
 1. declaration/contract wiring;
 2. deterministic/static/regression evidence;
-3. GITHUB_CHAT structured self-attested stage/review evidence;
+3. GITHUB_CHAT structured self-attested stage/review/lifecycle evidence;
 4. stage-separated owner-runtime semantic review;
 5. owner action-level methodology receipts;
 6. independently verified/provider-attested execution when actually available;
@@ -104,3 +110,5 @@ Passing one class never substitutes for another. When hosted CI does not execute
 
 ## 14. Anti-bypass invariant
 A publishable Financial article may not jump from user prompt to final prose. The selected execution adapter must first create/resume durable owner state, preserve the same canonical task/output contract, then leave evidence at each material stage. If the current session cannot execute the required adapter or satisfy every required output, it blocks the exact action instead of producing a pseudo-final article.
+
+The current owner-local guards make the supported chat trajectory explicit and recoverable, but they do not physically prevent a noncompliant ChatGPT response from bypassing the owner before admission, do not provide a non-forgeable outer writer fencing token, and do not make GitHub Contents API call the owner guard. Those boundaries remain separate shared/product-control issues rather than being hidden behind stronger wording.
