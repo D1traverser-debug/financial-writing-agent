@@ -7,33 +7,38 @@ description: Create and continue publishable A-share financial articles through 
 
 This Skill is a thin router and the single ChatGPT-facing Financial entry. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable guards.
 
-## 1. Enter or resume the owner
+## 1. One production path
 
-Normal use has one product path: the user gives the Financial Writing Agent a task in ChatGPT. Do not ask the user to choose `OWNER_NATIVE`, `GITHUB_CHAT`, Python, MCP, plugin, or another execution plane; those are internal dispatch/evidence labels.
+Financial Writing has one production path for this user:
+
+**ChatGPT executes the writing task; GitHub `main` stores the Financial code, rules, article state and durable evidence.**
+
+Do not ask the user to choose `OWNER_NATIVE`, `GITHUB_CHAT`, Python, MCP, plugin, or any other execution mode. Python modules, controllers, plugin/MCP surfaces and deterministic executors are implementation/test components behind this one ChatGPT + GitHub workflow, not alternative user workflows.
 
 Before material work read `continuity/EXECUTION_CAPABILITIES.json` and handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
 
-- Use exposed persisted owner tools when actually available (`list_recent_writing_tasks`, `start_writing_task`).
-- Otherwise guarded GitHub-chat execution is legal only with model execution, GitHub owner read/write, and the deterministic Financial guard required by the exact next action: `financial_writing_agent/github_chat_guard.py` for normal task transitions/feedback capture and `financial_writing_agent/github_chat_lifecycle.py` for BLOCKED recovery or system-impact review/closure. Never hand-edit `current_stage`, clear a blocker, or clear maintenance debt by state surgery.
-- Both bindings inherit the same canonical `TaskContract`. Routing defaults to `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
-- `main/workspaces/articles/{task_id}` is the only GITHUB_CHAT business-state write surface. Each material transition binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
-- Missing hard capability blocks the affected stage; it never authorizes free-form writing or a lower business SOP.
-- GitHub-chat semantic audits remain `CHAT_SELF_REVIEW`; they may force revision/failure but cannot become owner-native or provider-attested PASS.
-- `BLOCKED` owner-runtime work resumes only through `resume_blocked_task` and its persisted recovery cursor. `BLOCKED` GITHUB_CHAT review work resumes only through `github_chat_lifecycle.resume_blocked_state`, with explicit repair evidence and a fresh review artifact at the exact blocked stage.
+- Normal task transitions and material feedback capture use `financial_writing_agent/github_chat_guard.py`.
+- BLOCKED review recovery and system-impact review/closure use `financial_writing_agent/github_chat_lifecycle.py`.
+- Never hand-edit `current_stage`, clear a blocker, clear maintenance debt, narrow required outputs, or claim a transition happened unless the corresponding deterministic guard accepted it.
+- The canonical `TaskContract` is always authoritative. Routing defaults to `DUAL` unless the user explicitly narrows it, requiring `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`. A single-mode override requires exact user-prompt evidence in the INIT receipt.
+- `main/workspaces/articles/{task_id}` is the only Financial article business-state write surface. Each material mutation binds the fetched prior state SHA, exact action/contract/input/output identities, appends an action-bound receipt, writes with the same SHA, then rereads.
+- Missing hard capability blocks the affected action; it never authorizes free-form writing or a lower business SOP.
+- Semantic review in the ChatGPT path is `CHAT_SELF_REVIEW`; it may force revision/failure but cannot be mislabeled as independent/provider-attested certification.
+- `BLOCKED` review work resumes only through `github_chat_lifecycle.resume_blocked_state`, with explicit repair evidence and a fresh review artifact at the exact blocked stage.
 
-GitHub `main` is engineering/rule authority. Exact execution-state authority depends on the internal binding declared above; that difference does not create a second Financial product or workflow. Chat memory is never task authority.
+GitHub `main` is engineering/rule authority and Financial article-state authority. Chat memory is never task authority.
 
 ## 2. Workflow and semantic gates
 
 Use the owner sequence exactly:
 
-`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
+`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`
 
-Do not skip, insert, or free-form complete stages. GITHUB_CHAT advancement/revision/terminalization requires `github_chat_guard`; its BLOCKED recovery and system-impact lifecycle require `github_chat_lifecycle`. Owner-native `COMPLETE` requires controller proof; bounded chat delivery remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`.
+Do not skip, insert, or free-form complete stages. Advancement/revision/terminalization requires `github_chat_guard`; BLOCKED recovery and system-impact lifecycle require `github_chat_lifecycle`. The production terminal status is `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` unless separately verified independent evidence exists.
 
-At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct judgments. `CHAT_SELF_REVIEW` may identify defects but cannot certify owner-runtime semantic PASS. Hosted/MCP PASS, when available, goes through `run_semantic_audit_stage`; otherwise certification stays OPEN.
+At `EDITORIAL_AUDIT`, **Reader Funnel / Hook Gate**, **Natural Authorial Prose / Writing DNA Gate**, and general editorial audit are distinct judgments. `CHAT_SELF_REVIEW` may identify defects but cannot certify independent execution.
 
-The legacy `INDEPENDENT_EXECUTOR` token means stage-separated owner-runtime execution only, not provider-attested isolation.
+Legacy/internal Python audit labels such as `INDEPENDENT_EXECUTOR` are implementation-test vocabulary only and must not be surfaced as a second production mode.
 
 ## 3. Progressive reference map
 
@@ -64,7 +69,7 @@ Do not copy full reference rules into this Skill.
 
 A material explicit user edit, feedback, rejection or acceptance that changes writing, review, or delivery must become durable owner evidence before claiming learning.
 
-Use `record_writing_learning_sample` when the owner learning tool is exposed; otherwise use `github_chat_guard.attach_material_feedback`. A GITHUB_CHAT OPEN system-impact item is then classified/closed only through `github_chat_lifecycle.review_system_impact_state`; any closure remains evidence-bound and self-attested at chat assurance and must not be relabeled as owner-native or independent verification. Do not fabricate owner-plugin receipts.
+Use `github_chat_guard.attach_material_feedback` to persist material feedback. A GITHUB_CHAT OPEN system-impact item is then classified/closed only through `github_chat_lifecycle.review_system_impact_state`; any closure remains evidence-bound and self-attested at chat assurance and must not be relabeled as independent verification. Internal plugin helpers may be used in tests or future infrastructure, but they are not a second production workflow.
 
 Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Do not create another root policy or persona Agent merely to add review theatre.
 
