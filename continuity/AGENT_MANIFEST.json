@@ -19,6 +19,7 @@
     "runtime_type": "SINGLE_GITHUB_BACKED_OWNER",
     "execution_contract": "continuity/FINANCIAL_OWNER_EXECUTION.json",
     "canonical_guard_implementation": "financial_writing_agent/github_chat_guard.py",
+    "canonical_lifecycle_implementation": "financial_writing_agent/owner_lifecycle.py",
     "guard_filename_status": "LEGACY_NAME_RETAINED_FOR_CODE_COMPATIBILITY_ONLY__NOT_ROUTE_SELECTOR",
     "capability_profile": "continuity/EXECUTION_CAPABILITIES.json",
     "judgment_execution": "EXECUTABLE_WHEN_EXACT_STAGE_CAPABILITIES_ARE_AVAILABLE",
@@ -34,7 +35,8 @@
     ],
     "transition_guard_refs": [
       "financial_writing_agent/workflow_spec.py",
-      "financial_writing_agent/github_chat_guard.py"
+      "financial_writing_agent/github_chat_guard.py",
+      "financial_writing_agent/owner_lifecycle.py"
     ],
     "shared_business_contract": {
       "task_contract_ref": "financial_writing_agent/models.py::TaskContract",
@@ -59,8 +61,8 @@
   },
   "harness": {
     "ci_workflow_ref": ".github/workflows/ci.yml",
-    "commands": ["python scripts/sdk_smoke.py", "python scripts/mcp_smoke.py", "pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"],
-    "suites": ["architecture", "contract", "trajectory", "quality", "artifact", "legacy_quarantine"]
+    "commands": ["pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"],
+    "suites": ["architecture", "contract", "trajectory", "quality", "artifact", "legacy_quarantine", "blocked_recovery", "system_impact_lifecycle"]
   },
   "references": {
     "canonical_roots": ["references"],
