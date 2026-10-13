@@ -19,12 +19,16 @@ def test_current_authority_has_one_financial_owner_path():
     assert agent["product_interface"]["entry_model"] == "SINGLE_OWNER_ENTRY"
     assert agent["product_interface"]["execution_mode_selection"] == "NONE"
     assert agent["runtime"]["runtime_type"] == "SINGLE_GITHUB_BACKED_OWNER"
+    assert agent["runtime"]["canonical_guard_implementation"] == "financial_writing_agent/owner_guard.py"
+    assert agent["runtime"]["canonical_lifecycle_implementation"] == "financial_writing_agent/owner_lifecycle.py"
     assert agent["runtime"]["alternate_business_state_runtime_allowed"] is False
 
     assert execution["product_path"] == "SINGLE_GITHUB_BACKED_FINANCIAL_OWNER"
     assert execution["execution"]["route_selection"] == "NONE"
     assert execution["authority"]["business_state_ref"] == "main"
     assert execution["authority"]["business_state_root"] == "workspaces/articles/{task_id}"
+    assert execution["authority"]["canonical_mutation_guard_implementation"] == "financial_writing_agent/owner_guard.py"
+    assert execution["authority"]["canonical_lifecycle_implementation"] == "financial_writing_agent/owner_lifecycle.py"
     assert execution["authority"]["alternate_runtime_state_authority_allowed"] is False
     assert execution["execution"]["free_form_article_fallback_allowed"] is False
 
@@ -34,6 +38,7 @@ def test_current_authority_has_one_financial_owner_path():
         "high_judgment_generation_stages",
         "semantic_review_stages",
         "delivery_and_mechanical_qa",
+        "blocked_recovery_and_system_impact_lifecycle",
     }
     assert all(cap["side_channel_allowed"] is False for cap in capabilities["capabilities"])
     assert all(cap["safe_degraded_modes"] == [] for cap in capabilities["capabilities"])
@@ -44,15 +49,25 @@ def test_current_authority_has_one_financial_owner_path():
 
     assert "PROFILE_11__SINGLE_GITHUB_BACKED_FINANCIAL_OWNER" in task["runtime_version"]
     assert "continuity/FINANCIAL_OWNER_EXECUTION.json" in task["artifact_refs"]
+    assert "financial_writing_agent/owner_guard.py" in task["artifact_refs"]
+    assert "financial_writing_agent/owner_lifecycle.py" in task["artifact_refs"]
     assert "continuity/GITHUB_CHAT_EXECUTION.json" not in task["artifact_refs"]
+    assert "financial_writing_agent/github_chat_guard.py" not in task["artifact_refs"]
 
 
 def test_retired_discovery_and_runtime_entrypoints_are_not_current_surface():
     assert not (ROOT / "continuity" / "GITHUB_CHAT_EXECUTION.json").exists()
+    assert not (ROOT / "financial_writing_agent" / "github_chat_guard.py").exists()
+    assert (ROOT / "financial_writing_agent" / "owner_guard.py").is_file()
+    assert (ROOT / "financial_writing_agent" / "owner_lifecycle.py").is_file()
     assert not (ROOT / "plugin.json").exists()
+    assert not (ROOT / "scripts" / "sdk_smoke.py").exists()
+    assert not (ROOT / "scripts" / "mcp_smoke.py").exists()
 
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert "scripts" not in pyproject["project"]
+    assert not any(str(dep).lower().startswith("mcp") for dep in pyproject["project"].get("dependencies", []))
+    assert "openai" not in pyproject["project"].get("optional-dependencies", {})
 
     agent = _json("continuity/AGENT_MANIFEST.json")
     current_refs = json.dumps(agent, ensure_ascii=False)
@@ -61,6 +76,7 @@ def test_retired_discovery_and_runtime_entrypoints_are_not_current_surface():
         "financial_writing_agent/store.py",
         "financial_writing_agent/runtime_service.py",
         "financial_writing_agent/plugin_server.py",
+        "financial_writing_agent/github_chat_guard.py",
     ):
         assert retired not in json.dumps(agent["workflow"]["state_authority_refs"], ensure_ascii=False)
     assert '"runtime_type": "HYBRID"' not in current_refs
@@ -89,6 +105,7 @@ def test_current_docs_do_not_reintroduce_dual_adapter_operating_model():
         "owner-native Python/plugin 实际可用时",
         "choose OWNER_NATIVE",
         "Otherwise guarded GitHub-chat execution",
+        "financial_writing_agent/github_chat_guard.py",
     )
     for path in current_docs:
         text = path.read_text(encoding="utf-8")
