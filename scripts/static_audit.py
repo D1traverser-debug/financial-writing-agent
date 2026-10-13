@@ -72,9 +72,14 @@ def check_versions_and_distribution_surface() -> None:
     require(versions == {CURRENT_VERSION}, f"machine-readable version drift: {versions}")
     require(CURRENT_LABEL in SKILL.read_text(encoding="utf-8"), "Skill version label drift")
 
-    # Retired local/plugin runtimes may remain as source history, but current package
-    # discovery must not export them as production task authorities.
+    # Current distribution surface must not re-export or install the retired local/MCP
+    # runtime. Source-history modules can exist only as inert legacy code while they are
+    # being deleted/migrated; their presence must not impose current install/runtime cost.
     require("scripts" not in pyproject["project"], "pyproject still exports a legacy runtime command entrypoint")
+    dependencies = {str(item).split(";")[0].strip().lower() for item in pyproject["project"].get("dependencies", [])}
+    require(not any(dep.startswith("mcp") for dep in dependencies), "retired MCP runtime dependency returned to current distribution")
+    optional = pyproject["project"].get("optional-dependencies", {})
+    require("openai" not in optional, "retired owner-native OpenAI runtime optional dependency returned")
     require(not PLUGIN_MANIFEST.exists(), "retired plugin.json rediscovered as a current product entry")
     require(not LEGACY_SDK_SMOKE.exists(), "retired SDK runtime smoke still exists in current scripts")
     require(not LEGACY_MCP_SMOKE.exists(), "retired MCP runtime smoke still exists in current scripts")
