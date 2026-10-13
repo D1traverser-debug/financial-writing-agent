@@ -2,7 +2,7 @@ from copy import deepcopy
 
 import pytest
 
-from financial_writing_agent.github_chat_guard import (
+from financial_writing_agent.owner_guard import (
     CHAT_REVIEW_ASSURANCE,
     MODE_SOURCE_USER_EXPLICIT,
     TERMINAL_STATUS,
