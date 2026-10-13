@@ -72,9 +72,10 @@ Article mechanical checks:
 
 ### AUDIT_DOCX
 - file: `WRITING_AUDIT_REPORT.docx`
-- sha256: `3446a155f31b6d005959768e3431a7de5342d69dbf78ddec93fff1ff46d3f509`
-- final render: 3 pages, all pages visually inspected
+- sha256: `02a7e8069ae59f26f889ffd5f7e555d101f5189471431505abc3b70db2922157`
+- final render: 3 pages, all pages visually inspected after fresh-window regeneration
 - tables = 0; underlines = 0
+- regeneration disposition: the same-name Library file available after takeover did not match the paused checkpoint hash, so it was not reused. The audit Word was regenerated from this durable FINAL_AUDIT evidence and rechecked from scratch; no prior byte identity is assumed.
 
 ## 8. Three-output reconciliation — PASS
 
@@ -83,7 +84,7 @@ Immutable DUAL TaskContract requires exactly:
 - `FINANCE_BROAD_DOCX`
 - `AUDIT_DOCX`
 
-All three exist, are hash-bound, and the article Word files plus audit Word have completed final render/visual QA. No extra output is used to satisfy the contract.
+All three exist, are hash-bound, and the article Word files plus regenerated audit Word have completed final render/visual QA. No extra output is used to satisfy the contract.
 
 ## 9. Remaining assurance boundary
 
