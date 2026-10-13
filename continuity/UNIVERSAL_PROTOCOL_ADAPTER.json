@@ -21,7 +21,7 @@
   "task_manifest_update_authority": "CURRENT_VALID_TASK_WRITER_OR_NEW_CHAT_TAKEOVER_ONLY",
   "handoff_update_authority": "CURRENT_VALID_TASK_WRITER_OR_NEW_CHAT_TAKEOVER_ONLY",
   "handoff_conformance": {
-    "status": "CONFORMANT_V3_7_SINGLE_OWNER_CANDIDATE",
+    "status": "CONFORMANT_V3_7_SINGLE_OWNER_ACTIVE_MAIN",
     "business_rule_authority": "skills/financial-writing-agent/SKILL.md plus stage-specific references plus continuity/FINANCIAL_OWNER_EXECUTION.json",
     "known_stale_content": []
   },
@@ -86,7 +86,7 @@
   },
   "methodology_assurance": {
     "declaration_status": "ALL_THREE_PROFILES_BOUND_EXACT_VERSION__SINGLE_OWNER_HOOKS_REBOUND",
-    "operational_status": "PROFILE_11_SINGLE_GITHUB_BACKED_OWNER_CANDIDATE__HOSTED_FULL_CI_OPEN__FRESH_CHAT_REGRESSION_OPEN",
+    "operational_status": "PROFILE_11_SINGLE_GITHUB_BACKED_OWNER_ACTIVE_MAIN__OWNER_LOCAL_EXECUTION_VERIFIED__HOSTED_CI_RUNNER_NOT_EXECUTED__FRESH_CHAT_REGRESSION_OPEN",
     "remaining_unproven_boundaries": [
       "shared final-response owner admission",
       "physical GitHub write interception",
