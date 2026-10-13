@@ -5,7 +5,7 @@ description: Create and continue publishable A-share financial articles through 
 
 # Financial Writing Agent v0.8
 
-This Skill is the single ChatGPT-facing Financial entry and thin router. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable owner guards.
+This Skill is a thin router and the single ChatGPT-facing Financial entry. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable owner guards.
 
 ## 1. Enter the one Financial owner path
 
