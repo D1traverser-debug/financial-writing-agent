@@ -51,7 +51,7 @@ Current normal terminal status remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_O
 - stage/review/publication refs under that workspace: durable execution evidence.
 - per-article Git branches: not current business-state authority.
 - historical maintenance branches/evals: evidence only.
-- legacy SQLite WritingState/plugin-local task state: not current new-task or recovery authority.
+- legacy SQLite WritingState/plugin-local task state: not current new-task or recovery authority; its second-runtime implementation is physically absent from the current tree.
 - chat memory: never checkpoint authority.
 - transient DOCX attachment: delivery surface only; persisted source + file hash/manifest are regeneration/identity evidence.
 
@@ -116,7 +116,7 @@ Examples:
 - document tooling: Word generation/render inspection;
 - future provider-attested reviewer: optional stronger review evidence.
 
-Legacy plugin/MCP/local owner runtimes may remain in source history or temporarily as unreachable migration code while cleanup is incomplete, but current manifests, package entrypoints, dependencies, default tests and continuity do not admit them as alternate task-state authorities. Presence is not activation.
+The former plugin/MCP/SQLite/owner-native second runtime and WritingState delivery wrapper are physically absent from the current repository tree. Current manifests, package entrypoints, dependencies, default tests and continuity cannot activate them. Their Git history and historical evals remain evidence only.
 
 ## 12. Maintenance architecture and legacy quarantine
 
@@ -130,7 +130,8 @@ Superseded mechanisms follow this rule:
 - delete current duplicate contracts/components when safe;
 - retain Git history/historical evals only as evidence;
 - never activate them because a current capability is missing;
-- add a deterministic/static regression when the failure class can recur.
+- maintain `config/retired_runtime_paths.json` as the negative-space contract;
+- fail unit/static CI if any listed retired runtime/discovery path reappears.
 
 The retired dual-adapter execution contract is not current authority. The previous PR #20 is closed/unmerged historical evidence only.
 
