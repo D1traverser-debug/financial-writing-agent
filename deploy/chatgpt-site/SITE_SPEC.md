@@ -26,7 +26,7 @@ A Site/MCP deployment must read and mutate the same durable owner state under:
 
 `main/workspaces/articles/{task_id}`
 
-It may not treat local SQLite, process memory, server-local files or a separate database as authoritative Financial task state unless a future contract explicitly replaces the GitHub-main authority with a migration that updates every current consumer and regression test. Presence of legacy runtime code is not such a migration.
+It may not treat local SQLite, process memory, server-local files or a separate database as authoritative Financial task state unless a future contract explicitly replaces the GitHub-main authority with a migration that updates every current consumer and regression test. Historical Git code/evals are not such a migration.
 
 Every material mutation must preserve task/output invariants, bind the latest main state identity, perform conflict-safe write semantics and reread authoritative state/artifacts before COMMITTED.
 
@@ -96,7 +96,7 @@ Do not call a Site integration production-ready until all are true:
 
 ## Legacy quarantine
 
-The former 19-tool owner-native MCP surface is not current business authority. Existing plugin/runtime code may remain temporarily for migration/history, but it must not be advertised by current manifests as an alternate execution path and must not create/resume a separate article task store.
+The former owner-native/plugin/SQLite second runtime has been **physically removed from the current repository tree**. Its Git history and historical evals may remain as evidence only. Reintroducing any retired runtime/discovery path listed in `config/retired_runtime_paths.json` is a regression and must fail current CI. A future Site integration must extend the single owner trajectory rather than restore those deleted task-state mechanisms.
 
 ## Canonical source
 
