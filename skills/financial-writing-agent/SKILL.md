@@ -59,7 +59,7 @@ Do not copy full reference rules into this Skill.
 - Material market explanation preserves `VERIFIED_FACT → SUPPORTED_MECHANISM → PLAUSIBLE_INTERPRETATION → UNRESOLVED`.
 - `FINANCE_BROAD` keeps the domain **cold-reader test**; cross-industry appeal is not universally required.
 - Headline diversity is tracked by `angle_family`; major H1 sections require earned transitions.
-- Natural prose uses the deterministic template-cluster guard when executable; unavailable deterministic checks remain OPEN.
+- Natural prose uses both deterministic template-scaffolding analysis and the section-geometry guard when executable. `financial_writing_agent.structure_geometry.analyze_structure_geometry` forces REVISE on extreme repeated H1→H2 symmetry such as four or more consecutive substantive H1 sections each forced into the same three-or-more child count; unavailable deterministic checks remain OPEN.
 - Every supplied A-share company/stock name is mechanically bolded at every exact Word occurrence; this does not replace semantic skim anchors.
 - Publication articles use no tables; delivery enforces zero underlines when deterministic document tooling is executable.
 - Final disclaimer is one inline italic paragraph beginning `风险提示：`; semantic completeness remains required.
@@ -76,5 +76,9 @@ Systemic/non-trivial maintenance follows `references/maintenance.md` and current
 ## 6. Completion / delivery
 
 Before `DELIVERY`, reconcile all article Word outputs required by the immutable task contract. Before terminalization, reconcile the full set including `AUDIT_DOCX`. Persist publication source in GitHub so Word artifacts remain reproducible.
+
+Business-state terminalization and current user-visible file availability are different evidence classes. A filename/hash stored in owner state, an old chat attachment, or an earlier session-local path is not proof that the user can receive the file now. Before the final visible delivery or any cross-chat re-delivery, run `financial_writing_agent.delivery_availability.build_visible_delivery_receipt` against a freshly verified current resource for every required output.
+
+If a historical canonical binary is not currently resolvable, regenerate the Word from its durable publication/audit source inside the same owner trajectory, rerun the required mechanical and render QA, and present the regenerated binary as a **new artifact instance** with its actual current SHA-256 and source identity. Never silently reuse the historical binary hash for a regenerated file. The presentation resource/receipt is delivery evidence only; it is not a second task-state authority.
 
 For an active durable task, preserve Universal lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance. `COMMITTED` is valid only after authoritative reread.
