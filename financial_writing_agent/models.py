@@ -88,15 +88,24 @@ class TaskContract(BaseModel):
     run_constraints: dict[str, Any] = Field(default_factory=dict)
 
     @model_validator(mode="after")
-    def populate_required_outputs(self):
-        if self.required_outputs:
-            return self
+    def enforce_required_outputs(self):
         required = [ArtifactKind.AUDIT_DOCX]
         if self.distribution_mode in (DistributionMode.FINANCE_DEEP, DistributionMode.DUAL):
             required.append(ArtifactKind.FINANCE_DEEP_DOCX)
         if self.distribution_mode in (DistributionMode.FINANCE_BROAD, DistributionMode.DUAL):
             required.append(ArtifactKind.FINANCE_BROAD_DOCX)
-        self.required_outputs = required
+
+        if not self.required_outputs:
+            self.required_outputs = required
+            return self
+
+        if self.required_outputs != required:
+            raise ValueError(
+                "required_outputs must exactly match the canonical output set for "
+                f"distribution_mode={self.distribution_mode.value}: "
+                f"expected={[kind.value for kind in required]}, "
+                f"actual={[kind.value for kind in self.required_outputs]}"
+            )
         return self
 
 
