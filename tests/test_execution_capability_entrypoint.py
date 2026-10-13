@@ -17,24 +17,33 @@ def test_skill_and_continuity_index_require_execution_capability_handshake():
     assert "session" in skill.lower() and "handshake" in skill.lower()
     assert profile["execution_readiness_contract"] == "1.0"
     assert profile["owner"] == "FINANCIAL_WRITING_AGENT_RUNTIME"
-    assert profile["profile_version"] == 10
+    assert profile["profile_version"] == 11
 
     chat_flow = capabilities["github_chat_workflow"]
-    assert chat_flow["executor_type"] == "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE_AND_DETERMINISTIC_TRANSITION_GUARD"
+    assert chat_flow["executor_type"] == "CHAT_BRIDGED_LLM_WITH_GITHUB_STATE_AND_DETERMINISTIC_FINANCIAL_GUARDS"
     assert "GitHub_owner_read_write" in chat_flow["required_tools"]
     assert "python_runtime_or_equivalent_deterministic_guard" in chat_flow["required_tools"]
     assert "github_chat_guard" in chat_flow["invocation_path"]
+    assert "github_chat_lifecycle" in chat_flow["invocation_path"]
     assert any("DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN" in item for item in chat_flow["evidence_contract"])
     assert any("exact task/stage/capability/action" in item for item in chat_flow["evidence_contract"])
     assert chat["activation"]["free_form_article_fallback_allowed"] is False
     assert chat["authority"]["state_file"] == "workspaces/articles/{task_id}/STATE.json"
     assert chat["authority"]["canonical_workflow_spec"] == "financial_writing_agent/workflow_spec.py"
     assert chat["authority"]["transition_guard"] == "financial_writing_agent/github_chat_guard.py"
+    assert chat["authority"]["lifecycle_guard"] == "financial_writing_agent/github_chat_lifecycle.py"
     assert chat["workflow"]["terminal_status"] == "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
     assert chat["assurance"]["chat_review_can_issue_owner_native_semantic_pass"] is False
     assert chat["assurance"]["guard_pass_is_independent_execution"] is False
+    assert chat["assurance"]["lifecycle_evidence_ref_binding_is_independent_verification"] is False
     assert "GITHUB_CHAT_EXECUTION.json" in skill
     assert "github_chat_guard" in skill
+    assert "github_chat_lifecycle" in skill
+
+    blocked = capabilities["github_chat_blocked_recovery"]
+    assert blocked["executor_ref"] == "financial_writing_agent/github_chat_lifecycle.py"
+    assert any("exact blocked review stage" in item for item in blocked["evidence_contract"])
+    assert any("failed review artifact and decision are invalidated" in item for item in blocked["evidence_contract"])
 
     generation = capabilities["high_judgment_generation_stages"]
     assert generation["safe_degraded_modes"] == ["CHAT_BRIDGED"]
@@ -78,6 +87,8 @@ def test_github_chat_uses_canonical_owner_business_sequence_and_cannot_claim_nat
     assert any("No publishable final article" in item for item in chat["anti_bypass"])
     assert any("No chat self-review" in item for item in chat["anti_bypass"])
     assert any("action-bound execution receipt" in item for item in chat["anti_bypass"])
+    assert any("No BLOCKED task" in item for item in chat["anti_bypass"])
+    assert any("lifecycle evidence binding" in item for item in chat["anti_bypass"])
 
 
 def test_material_user_feedback_has_real_durable_learning_and_system_impact_paths():
@@ -103,6 +114,11 @@ def test_material_user_feedback_has_real_durable_learning_and_system_impact_path
     assert "github_chat_guard.attach_material_feedback" in chat["learning_and_maintenance"]["material_user_edit_feedback_rejection"]
     assert chat["learning_and_maintenance"]["owner_plugin_receipt_claim_when_plugin_unavailable"] == "FORBIDDEN"
 
+    chat_impact = capabilities["github_chat_system_impact_lifecycle"]
+    assert chat_impact["executor_ref"] == "financial_writing_agent/github_chat_lifecycle.py"
+    assert any("required observed_at, severity" in item for item in chat_impact["evidence_contract"])
+    assert any("SELF_ATTESTED_CHAT_EVIDENCE_BINDING" in item for item in chat_impact["evidence_contract"])
+
     impact = capabilities["system_impact_escalation"]
     assert impact["assurance_ceiling"] == "SESSION_EXECUTABLE"
     assert "review_writing_system_impact" in impact["required_tools"]
@@ -125,7 +141,9 @@ def test_financial_systemic_maintenance_inherits_universal_meta_governance_witho
     assert "instruction" in maintenance and "complexity/efficiency" in maintenance
     assert adapter["methodology"]["profile_refs"]["operational_hygiene"] == "1.0"
     assert adapter["methodology"]["profile_refs"]["evolution"] == "1.0"
-    assert "review_writing_system_impact" in adapter["methodology"]["hook_bindings"]["self_maintenance_trigger_path"]
+    trigger_path = adapter["methodology"]["hook_bindings"]["self_maintenance_trigger_path"]
+    assert "review_writing_system_impact" in trigger_path
+    assert "github_chat_lifecycle.review_system_impact_state" in trigger_path
 
 
 def test_financial_owner_binds_artifact_io_and_all_three_action_receipt_profiles():
@@ -154,9 +172,15 @@ def test_financial_owner_binds_artifact_io_and_all_three_action_receipt_profiles
     }
     assert required_artifact_hooks.issubset(methodology["hook_bindings"])
     assurance = adapter["methodology_assurance"]
-    assert "PROFILE_10_GITHUB_CHAT_EXECUTION_DECLARED" in assurance["operational_status"]
+    assert "PROFILE_11_GITHUB_CHAT_TRANSITION_AND_LIFECYCLE_EXECUTION_DECLARED" in assurance["operational_status"]
     assert "OWNER_NATIVE_ACTION_RECEIPT_V1_3_WIRED" in assurance["operational_status"]
     assert "INDEPENDENT_OPERATIONAL_VERIFICATION_PENDING" in assurance["operational_status"]
+    hardening = assurance["owner_execution_hardening"]
+    assert hardening["execution_capability_profile_version"] == 11
+    assert hardening["github_chat_execution_contract"].endswith("@1.4")
+    assert hardening["github_chat_outer_final_response_admission"].startswith("OPEN_CONTROL_SIGNAL")
+    assert hardening["github_chat_outer_writer_lease_fencing"].startswith("OPEN_CONTROL_SIGNAL")
+    assert hardening["github_chat_physical_github_write_interception"].startswith("OPEN_CONTROL_SIGNAL")
     wiring = assurance["action_receipt_wiring"]
     assert wiring["receipt_contract_version"] == "1.3"
     assert wiring["receipt_status"] == "UNVERIFIED_OWNER_RECEIPT"
@@ -165,7 +189,7 @@ def test_financial_owner_binds_artifact_io_and_all_three_action_receipt_profiles
     ]
     assert wiring["independent_verification_required"] == "EVIDENCE_REF_PLUS_SEMANTIC_HOOK_ASSESSMENT_PLUS_EXACT_ACTION_BINDING"
     assert wiring["wired_profiles"] == ["artifact_io", "operational_hygiene", "evolution"]
-    assert "independent" in wiring["remaining_unproven_boundary"].lower()
+    assert "independently unverified" in wiring["remaining_unproven_boundary"].lower()
 
 
 def test_public_owner_actions_emit_unverified_action_receipts_but_do_not_self_attest():
