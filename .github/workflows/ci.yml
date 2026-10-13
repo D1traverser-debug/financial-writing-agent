@@ -23,6 +23,8 @@ jobs:
         run: python scripts/eval_contracts.py
       - name: Static single-owner and legacy-quarantine audit
         run: python scripts/static_audit.py
+      - name: Static retired-runtime absence audit
+        run: python scripts/retired_runtime_static_audit.py
       - name: Build wheel and isolated install smoke
         run: |
           python -m build --wheel
