@@ -1,6 +1,6 @@
 {
   "schema_version": "3.7",
-  "manifest_version": 27,
+  "manifest_version": 28,
   "task_id": "financial-writing:main",
   "task_class": "USER",
   "domain": "FINANCIAL_WRITING",
@@ -10,18 +10,18 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-13T11:08:25Z",
+  "updated_at": "2026-10-13T11:43:00Z",
   "current_stage": "ACTIVE_ARTICLE_FINAL_AUDIT_PAUSED_BY_USER",
   "next_action": "显式 continuation 必须优先恢复 main/workspaces/articles/ice-snow-economy-20261013/STATE.json。当前 authoritative article stage=FINAL_AUDIT，status=IN_PROGRESS；不要从聊天或临时本地文件重建。先按 Universal v3.7 对新窗口执行 takeover（resume_epoch +1、新 lease supersede 当前 lease），再回读该 STATE.json、reviews/FINAL_AUDIT.md、DELIVERY/MECHANICAL_AUDIT refs，确认 canonical FINANCE_DEEP_DOCX sha256=e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922、FINANCE_BROAD_DOCX sha256=10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895。FINAL_AUDIT.md 已持久化，AUDIT_DOCX 已在暂停聊天生成并检查，但 FINAL_AUDIT PASS/终态尚未写入 STATE.json。恢复后只做剩余 FINAL_AUDIT 三输出对账与合法终态提交；除非 authority 显示失效/不一致，不得重做 RESEARCH/EDITORIAL/DRAFT/DELIVERY/MECHANICAL_AUDIT。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
   "runtime_version": "V0_8_1__PROFILE_11__SINGLE_GITHUB_BACKED_FINANCIAL_OWNER__OWNER_GUARD_LIFECYCLE__CANONICAL_WORKFLOW__MAIN_ONLY_STATE__LEGACY_QUARANTINED__LOCAL_EXECUTION_VERIFIED__FULL_HOSTED_CI_OPEN",
-  "resume_epoch": 5,
+  "resume_epoch": 6,
   "active_lease": {
-    "lease_id": "fw-fbadb6dbc3544d048325c9778cd0df6a",
-    "acquired_at": "2026-10-13T10:10:47Z",
-    "supersedes_lease_id": "fw-e3dff9bf4dd547eb94fab8e15456c34f"
+    "lease_id": "fw-90c1e83dda084a1392ad58b25a1cdc9b",
+    "acquired_at": "2026-10-13T11:43:00Z",
+    "supersedes_lease_id": "fw-fbadb6dbc3544d048325c9778cd0df6a"
   },
   "active_article": {
     "task_id": "ice-snow-economy-20261013",
