@@ -7,7 +7,6 @@ def _state():
     return build_initial_state(
         task_id="pollution-task",
         prompt="test",
-        distribution_mode="FINANCE_DEEP",
         source_refs=[],
         executor_identity="chat-session:test",
     )
