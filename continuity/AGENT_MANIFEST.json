@@ -21,7 +21,8 @@
       "financial_writing_agent/runner.py",
       "financial_writing_agent/runtime_service.py",
       "financial_writing_agent/adapters/openai_agents.py",
-      "financial_writing_agent/github_chat_guard.py"
+      "financial_writing_agent/github_chat_guard.py",
+      "financial_writing_agent/github_chat_lifecycle.py"
     ],
     "tool_surface_refs": [
       "financial_writing_agent/plugin_server.py",
@@ -29,7 +30,7 @@
       "continuity/GITHUB_CHAT_EXECUTION.json"
     ],
     "judgment_execution": "EXECUTABLE",
-    "note": "Owner-native and GITHUB_CHAT are internal execution/evidence adapters for one Financial business owner and one canonical TaskContract. The system selects the available binding; normal users are not asked to choose a mode. Adapters may differ in assurance/tool substrate but may not redefine default distribution mode, delivery channel, required outputs, workflow, invalidation or terminal semantics. GITHUB_CHAT material state is main/workspaces/articles/{task_id} only and requires github_chat_guard + self-attested action-bound receipts; provider-attested isolation remains separate and unavailable."
+    "note": "Owner-native and GITHUB_CHAT are internal execution/evidence adapters for one Financial business owner and one canonical TaskContract. The system selects the available binding; normal users are not asked to choose a mode. Adapters may differ in assurance/tool substrate but may not redefine default distribution mode, delivery channel, required outputs, workflow, invalidation, recovery, system-impact lifecycle or terminal semantics. GITHUB_CHAT material state is main/workspaces/articles/{task_id} only and requires the appropriate deterministic transition/lifecycle guard plus self-attested action-bound receipts; provider-attested isolation remains separate and unavailable."
   },
   "workflow": {
     "state_authority_refs": [
@@ -43,7 +44,8 @@
       "financial_writing_agent/controller.py",
       "financial_writing_agent/engine.py",
       "financial_writing_agent/semantic_runtime.py",
-      "financial_writing_agent/github_chat_guard.py"
+      "financial_writing_agent/github_chat_guard.py",
+      "financial_writing_agent/github_chat_lifecycle.py"
     ],
     "shared_business_contract": {
       "task_contract_ref": "financial_writing_agent/models.py::TaskContract",
