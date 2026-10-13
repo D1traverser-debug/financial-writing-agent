@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.0",
+  "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
+  "production_path": "CHATGPT_WITH_GITHUB_CODE_AND_STATE",
+  "purpose": "Canonical production execution contract. The user works in ChatGPT; GitHub main supplies Financial code/rules, durable article state and evidence. Python/controller/plugin modules are implementation and validation components, not alternative production routes.",
+  "activation": {
+    "when": "A publishable Financial Writing action is requested and the current ChatGPT session can execute model work, GitHub owner reads/writes, the deterministic Financial guard required by the exact action, and any exact-stage web/document capability.",
+    "must_block_when": [
+      "GitHub owner read/write is unavailable for a material mutation",
+      "financial_writing_agent.github_chat_guard cannot be executed or equivalently evaluated deterministically for a normal task mutation",
+      "financial_writing_agent.github_chat_lifecycle cannot be executed or equivalently evaluated deterministically for BLOCKED recovery or system-impact lifecycle mutation",
+      "the exact stage requires another unavailable capability"
+    ],
+    "free_form_article_fallback_allowed": false
+  },
+  "authority": {
+    "rule_authority": "GitHub main",
+    "business_state_ref": "main",
+    "business_state_root": "workspaces/articles/{task_id}",
+    "state_file": "workspaces/articles/{task_id}/STATE.json",
+    "stage_artifact_directory": "workspaces/articles/{task_id}/stages",
+    "review_directory": "workspaces/articles/{task_id}/reviews",
+    "publication_source_directory": "workspaces/articles/{task_id}/publication",
+    "canonical_task_contract": "financial_writing_agent.models.TaskContract + financial_writing_agent.routing.build_task_contract",
+    "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
+    "transition_guard": "financial_writing_agent/github_chat_guard.py",
+    "lifecycle_guard": "financial_writing_agent/github_chat_lifecycle.py",
+    "per_article_business_state_branches_allowed": false,
+    "chat_memory_is_business_state_authority": false,
+    "alternate_production_mode_allowed": false,
+    "site_or_mcp_deployment_required": false
+  },
+  "task_contract": {
+    "default_distribution_mode": "DUAL",
+    "default_delivery_channel": "WORD_FILE_ONLY",
+    "default_required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+    "routing_rule": "When the user did not explicitly request a platform/mode narrowing, keep DUAL. A direct single-mode override requires USER_EXPLICIT_OVERRIDE plus exact user-prompt substring evidence persisted in the INIT receipt."
+  },
+  "workflow": {
+    "canonical_stage_order_symbol": "BUSINESS_STAGE_ORDER",
+    "canonical_pass_target_symbol": "PASS_TARGET",
+    "canonical_revision_targets_symbol": "REVISION_TARGETS",
+    "canonical_invalidation_symbol": "invalidated_stages_from",
+    "terminal_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
+    "rule": "Normal stage advancement/revision/terminalization requires github_chat_guard against the fetched current main STATE.json identity. A review FAIL enters BLOCKED; recovery requires github_chat_lifecycle.resume_blocked_state with explicit repair evidence, failed-review evidence invalidation and exact-stage retry."
+  },
+  "checkpoint_contract": {
+    "current_state_schema_version": "1.2",
+    "legacy_read_schema_version": "1.1",
+    "legacy_execution_mode_value": "GITHUB_CHAT",
+    "legacy_execution_mode_policy": "READ_COMPATIBILITY_ONLY__NO_ROUTE_SELECTION_AUTHORITY",
+    "state_ref_value": "main",
+    "mutation_guard": "Fetch current main STATE.json and blob SHA, run the exact deterministic Financial guard, replace the same file with the same SHA, then reread STATE.json and newly referenced artifacts before claiming durability.",
+    "blocked_recovery": "BLOCKED review recovery stays on the exact blocked review stage, requires persisted failed artifact/FAIL decision plus repair evidence, invalidates the failed evidence and requires a fresh review artifact before advancement.",
+    "receipt_rule": "Every material mutation appends one self-attested action-bound receipt containing task/stage/capability/action, executor identity, prior state blob SHA, subject/input bindings and output refs."
+  },
+  "assurance": {
+    "review_label": "CHAT_SELF_REVIEW",
+    "execution_receipt_label": "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT",
+    "lifecycle_closure_label": "SELF_ATTESTED_CHAT_EVIDENCE_BINDING",
+    "independent_or_provider_attested_claim_allowed_without_external_evidence": false,
+    "terminal_claim_rule": "Full Financial workflow and output-contract completion may reach DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN. Stronger independent/provider-attested certification remains separate and must not create a second production workflow."
+  },
+  "learning_and_maintenance": {
+    "material_feedback_capture": "github_chat_guard.attach_material_feedback",
+    "system_impact_lifecycle": "github_chat_lifecycle.review_system_impact_state",
+    "one_off_feedback_auto_promotes_rule": false,
+    "closure_rule": "SYSTEM_MAINTENANCE_REQUIRED stays open until the unchanged accepted diagnosis binds maintenance_ref + validation_refs with evidence assurance labeled at least REGRESSION_VERIFIED; closure remains self-attested evidence binding and moves the item to history."
+  },
+  "anti_bypass": [
+    "No publishable final article may jump from prompt to prose without durable Financial task state.",
+    "No material state mutation may bypass the deterministic guard required by that action.",
+    "No task may silently narrow the canonical required-output set.",
+    "No stage is complete without its durable artifact/evidence obligation.",
+    "No BLOCKED task or OPEN maintenance debt may be cleared by manual state surgery.",
+    "No article business state may be newly written to a per-article branch.",
+    "No legacy execution-mode token may select a different current production route.",
+    "No missing capability authorizes free-form fallback."
+  ]
+}
