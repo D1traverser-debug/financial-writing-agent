@@ -22,10 +22,12 @@ def test_agent_architecture_and_continuity_recovery_match_current_owner_contract
     assert agent_manifest["skill"]["role"] == "ROUTER"
     assert agent_manifest["skill"]["entrypoint"] == "skills/financial-writing-agent/SKILL.md"
     assert "financial_writing_agent/plugin_server.py" in agent_manifest["runtime"]["entrypoints"]
+    assert "financial_writing_agent/github_chat_lifecycle.py" in agent_manifest["runtime"]["entrypoints"]
     assert "financial_writing_agent/controller.py" in agent_manifest["workflow"]["transition_guard_refs"]
     assert "financial_writing_agent/engine.py" in agent_manifest["workflow"]["transition_guard_refs"]
+    assert "financial_writing_agent/github_chat_lifecycle.py" in agent_manifest["workflow"]["transition_guard_refs"]
     assert adapter["owner_contract_version"] == project["project"]["version"]
-    assert adapter["execution_capability_profile_version"] == capabilities["profile_version"] == 10
+    assert adapter["execution_capability_profile_version"] == capabilities["profile_version"] == 11
     assert adapter["execution_mode_binding"]["current_user_operating_mode"] == "GITHUB_MOUNTED_PLUS_GPT_CHAT"
     assert adapter["execution_mode_binding"]["site_deployment_required_for_current_mode"] is False
     assert adapter["methodology_assurance"]["owner_execution_hardening"]["public_mcp_tool_count"] == 19
