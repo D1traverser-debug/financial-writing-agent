@@ -140,7 +140,7 @@ The writer returns `risk_disclaimer`; deterministic delivery appends it as the f
 The risk paragraph should be **concise but information-complete** for the current topic. Do not pad it to satisfy a character-count quota; do not shorten it by deleting a material risk/boundary merely to look concise.
 
 ## General editorial judge
-General editorial audit is independent from Reader Funnel and Natural Authorial Prose. It checks:
+General editorial audit is a distinct judgment responsibility from Reader Funnel and Natural Authorial Prose. This separation is conceptual and rubric-level; it does not imply a physically independent executor unless separate provenance is actually present. It checks:
 - evidence/mode contract;
 - FINANCE_DEEP material and company-universe completeness or FINANCE_BROAD legal compression;
 - stock-grounded validation/monitoring sections;
