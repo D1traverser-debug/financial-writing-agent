@@ -1,6 +1,6 @@
 import pytest
 
-from financial_writing_agent.github_chat_guard import GithubChatGuardError, build_initial_state, validate_state
+from financial_writing_agent.owner_guard import GithubChatGuardError, build_initial_state, validate_state
 
 
 def _state():
@@ -13,7 +13,7 @@ def _state():
     )
 
 
-def test_owner_native_complete_cannot_be_spoofed_in_github_chat_state():
+def test_complete_cannot_be_spoofed_in_owner_state():
     state = _state()
     state["status"] = "COMPLETE"
     with pytest.raises(GithubChatGuardError, match="supported GITHUB_CHAT status"):
