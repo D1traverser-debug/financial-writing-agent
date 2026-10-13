@@ -6,74 +6,77 @@
 - status: ACTIVE
 - resume_visibility: DEFAULT
 - owner: `FINANCIAL_WRITING_AGENT_RUNTIME`
-- current_stage: `ACTIVE_ARTICLE_FINAL_AUDIT_PAUSED_BY_USER`
+- current_stage: `READY_FOR_NEW_OR_EXPLICIT_ARTICLE`
 - continuity_contract: `CONTINUITY_V3_7`
 - owner rule authority: `D1traverser-debug/financial-writing-agent@main`
 - execution capability profile: **11**
 
-## Paused active article checkpoint — 2026-10-13
+## Latest completed article — 2026-10-13
 
-用户明确要求现在停下并留存，稍后在**新窗口**用“继承”恢复。
-
-当前 active article：
+最近完成文章：
 - article task_id: `ice-snow-economy-20261013`
 - topic: **冰雪经济**
 - authoritative state: `main/workspaces/articles/ice-snow-economy-20261013/STATE.json`
-- article state blob at pause: `0afcfa1fd2121bdbb4e5a8a95f64a493b240b9fa`
-- article status: `IN_PROGRESS`
-- current article stage: `FINAL_AUDIT`
+- terminal STATE blob: `3f1c51a856feac90056fce6c59c003687e81b072`
+- article status: `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`
+- final stage: `FINAL_AUDIT`
 - distribution mode: `DUAL`
 - delivery channel: `WORD_FILE_ONLY`
 - assurance: `CHAT_SELF_REVIEW`
 
-已经完成并持久化：
-
-`RESEARCH → RESEARCH_AUDIT(PASS) → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT(PASS) → DELIVERY → MECHANICAL_AUDIT(PASS) → FINAL_AUDIT evidence prepared`
-
-Canonical article Word identities：
+Canonical output identities：
 - `FINANCE_DEEP_DOCX` — `ice_snow_economy_deep.docx` — SHA-256 `e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922`
 - `FINANCE_BROAD_DOCX` — `ice_snow_economy_broad.docx` — SHA-256 `10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895`
+- `AUDIT_DOCX` — `WRITING_AUDIT_REPORT.docx` — SHA-256 `02a7e8069ae59f26f889ffd5f7e555d101f5189471431505abc3b70db2922157`
 
-Durable audit evidence：
-- `stages/DELIVERY.md` blob `e92543eb28eb12844339fe4938cde3af34388687`
-- `reviews/MECHANICAL_AUDIT.md` blob `d2e42d6cd760c99b2caeb8817942120456fe6477`
-- `reviews/FINAL_AUDIT.md` blob `ab28a10196430ca21b6b07b32b3e43e93d3b3ad7`
-- FINAL_AUDIT prepared decision: `PASS`
-- prepared `AUDIT_DOCX`: `WRITING_AUDIT_REPORT.docx`, SHA-256 `3446a155f31b6d005959768e3431a7de5342d69dbf78ddec93fff1ff46d3f509`
+Final audit authority：
+- `workspaces/articles/ice-snow-economy-20261013/reviews/FINAL_AUDIT.md`
+- blob `4222d557d283a31132ad619675729e34928ac37d`
+- decision: `PASS`
+- exact three-output reconciliation: `PASS`
 
-**重要：FINAL_AUDIT.md 已持久化，但 FINAL_AUDIT PASS 尚未写回 article STATE，终态尚未提交。** 因此恢复后不能宣称文章已经完成，也不能重新做前序阶段。
+Fresh-window recovery note: the same-name Library audit file found after takeover did not match the paused checkpoint hash, so it was rejected rather than silently rebound. `AUDIT_DOCX` was regenerated from durable FINAL_AUDIT evidence, mechanically checked, freshly rendered to 3 pages, visually inspected page-by-page, rebound to the new SHA-256 above, and only then used for terminalization. The two canonical article Word identities were not rebuilt or overwritten.
 
-剩余唯一业务动作：
-1. 新窗口 takeover 后回读最新 `STATE.json` 和 `FINAL_AUDIT.md`；
-2. 如精确 AUDIT_DOCX 二进制仍可用，则核对其 SHA-256=`3446a155f31b6d005959768e3431a7de5342d69dbf78ddec93fff1ff46d3f509`；如不可用，则从 durable final-audit evidence 重新生成并重新机械/渲染验证，不假设 byte identity；
-3. 使用当前 `financial_writing_agent/owner_guard.py` 在 `FINAL_AUDIT` 对 `AUDIT_DOCX + FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX` 做三输出 reconciliation；
-4. 以真实 `CHAT_SELF_REVIEW=PASS` 写回 article STATE，合法终态必须是 `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`；
-5. 回读 STATE + FINAL_AUDIT + delivery artifacts 后才可报告 `COMMITTED` 和交付文件。
+The article is now terminal under the strongest currently legal same-chat assurance state. Provider-attested independent certification remains OPEN by contract; this does **not** make the article business task incomplete.
 
-## Exact resume procedure in the new window
+## Current workspace state
 
-用户下一次说“继承”时：
+There is no active in-progress article. The durable Financial workspace is ready for either:
+1. a **NEW_TASK** such as “写一篇关于 X 的财经文章”; or
+2. an **explicit continuation** naming an existing article/task, which must resolve that exact `main/workspaces/articles/{task_id}/STATE.json` and obey its current authoritative state.
 
-1. Universal v3.7 Bare CONTINUE discovery 选择 `financial-writing:main`；
-2. 读取 `TASK_MANIFEST.json` + 本 HANDOFF，报告“继承前进度”：冰雪经济，`FINAL_AUDIT`，仅余三输出终态 reconciliation；
-3. 因为是**fresh-chat takeover**，必须先 `resume_epoch 5 → 6`，签发新 lease，并 supersede 当前 `fw-fbadb6dbc3544d048325c9778cd0df6a`；
-4. takeover 后立即回读 `main/workspaces/articles/ice-snow-economy-20261013/STATE.json`；若它已被其他 writer 推进，以最新 STATE 为准；
-5. 只加载 FINAL_AUDIT 所需的 Skill / owner execution / capabilities / audit+delivery rules；
-6. 不重新研究、不重写标题/正文、不重新走 DELIVERY/MECHANICAL_AUDIT，除非 authoritative state 明确失效或 review route 要求 revision；
-7. 完成 terminal write 后回读，再输出最终交付。
+Do not use Memory, chat summaries, Library, Drive, Notion, historical branches or evals as article-state authority.
 
-## Architecture / authority reminder
+## Current architecture
 
-Financial Writing 只有一条业务路径：
+Financial Writing has **one BUSINESS owner, one canonical TaskContract, one canonical workflow, one durable article-state authority and one ChatGPT product path**:
 
-`ChatGPT → GitHub main Financial owner → main/workspaces/articles/{task_id} → canonical stages → Word delivery`
+`ChatGPT request → current GitHub main Financial owner → main/workspaces/articles/{task_id} → canonical stages → Word delivery`
 
-Canonical workflow：
+Canonical workflow:
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`
 
-Canonical mutation guard：`financial_writing_agent/owner_guard.py`。  
-Canonical BLOCKED/system-impact lifecycle：`financial_writing_agent/owner_lifecycle.py`。
+Canonical execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`.  
+Canonical mutation guard: `financial_writing_agent/owner_guard.py`.  
+Canonical BLOCKED/system-impact lifecycle: `financial_writing_agent/owner_lifecycle.py`.
 
-GitHub `main/workspaces/articles/{task_id}` 是具体文章 durable authority。Chat history、本 HANDOFF、Memory、旧容器路径、SQLite/plugin state、历史 branch/eval 都不能覆盖最新 article STATE。
+Default TaskContract:
+- distribution mode: `DUAL`;
+- delivery channel: `WORD_FILE_ONLY`;
+- required outputs: `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`.
 
-Current `resume_epoch=5`; current lease=`fw-fbadb6dbc3544d048325c9778cd0df6a`. 本次只是同聊天安全暂停，不增加 epoch。下一 fresh chat takeover 才增加 epoch。
+A single-mode override requires `USER_EXPLICIT_OVERRIDE` plus an exact substring from the original user prompt in the INIT receipt. Missing capability blocks only the affected stage; it never authorizes free-form writing or revival of SQLite/plugin/per-article-branch fallback state.
+
+## Continuity writer state
+
+`resume_epoch=6`; active lease is `fw-90c1e83dda084a1392ad58b25a1cdc9b`, superseding `fw-fbadb6dbc3544d048325c9778cd0df6a`.
+
+This epoch was acquired by the fresh-chat takeover that completed the ice-snow article. Same-chat follow-up preserves the epoch/lease; a future genuine new-chat takeover increments the epoch according to Universal v3.7.
+
+## Assurance boundaries still OPEN
+
+- GitHub-hosted full owner CI: **OPEN_RUNNER_NOT_EXECUTED**;
+- fresh-chat single-owner live trajectory regression: **OPEN** at the repo-level assurance surface unless separately promoted by evidence;
+- final-response owner admission / physical GitHub-write interception: **OPEN at the shared Universal/product control plane**;
+- non-forgeable Universal lease/resume_epoch fencing at every Financial mutation: **OPEN**;
+- provider-attested isolated independent review: **UNAVAILABLE**.
