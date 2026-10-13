@@ -19,7 +19,7 @@ Product path:
 
 `ChatGPT request → current GitHub main Financial owner → main/workspaces/articles/{task_id} → canonical stages → Word delivery`
 
-There is no longer a product/runtime decision between `OWNER_NATIVE` and `GITHUB_CHAT`. Model, web, Python, document, plugin or MCP facilities are capability providers inside the same owner trajectory when actually available. They may not create an alternate article-state authority or different terminal semantics.
+There is no product/runtime decision between `OWNER_NATIVE` and `GITHUB_CHAT`. Model, web, deterministic/Python and document facilities are capabilities inside the same owner trajectory. They may not create an alternate article-state authority, workflow or terminal semantics.
 
 Canonical workflow:
 
@@ -27,7 +27,10 @@ Canonical workflow:
 
 Canonical execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`.
 
-The current deterministic guard implementation remains `financial_writing_agent/github_chat_guard.py` for code compatibility. The historical filename and existing `STATE.json.execution_mode=GITHUB_CHAT` token are **legacy internal identifiers only**; neither is allowed to select a route. A future rename requires explicit state migration and regression proof rather than an implicit compatibility fork.
+Canonical mutation guard: `financial_writing_agent/owner_guard.py`.  
+Canonical BLOCKED/system-impact lifecycle: `financial_writing_agent/owner_lifecycle.py`.
+
+Existing schema-1.2 article states may still contain `STATE.json.execution_mode=GITHUB_CHAT` and legacy receipt/capability tokens. Those are **backward-compatible storage/evidence identifiers only**. They are not a route selector, component name or permission to revive a second execution path.
 
 ## Business state and output contract
 
@@ -44,7 +47,13 @@ Default TaskContract:
 
 A single-mode override requires `USER_EXPLICIT_OVERRIDE` plus an exact substring from the original user prompt in the INIT receipt.
 
-Every material mutation must read the latest main `STATE.json`, bind its blob SHA, persist exact stage/review/publication evidence, run the deterministic owner guard, write with compare-and-swap and reread the authoritative state/artifacts before `COMMITTED`.
+Every material mutation must read the latest main `STATE.json`, bind its blob SHA, persist exact stage/review/publication evidence, run the deterministic owner guard/lifecycle action, write with compare-and-swap and reread authoritative state/artifacts before `COMMITTED`.
+
+## Recovery and system-impact lifecycle
+
+A recoverable review `FAIL` must persist a canonical `revision_target` at the time of failure. `resume_blocked_state` may resume only through that persisted target, requires repair evidence, and invalidates target/downstream evidence before retry.
+
+Material `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` create durable learning/system-impact evidence in the same article workspace. Systemic maintenance debt may close only with an immutable accepted diagnosis plus maintenance and validation refs at least `REGRESSION_VERIFIED`. Current chat/provider closure remains self-attested unless stronger exact-action evidence actually exists.
 
 ## Legacy quarantine
 
@@ -54,11 +63,7 @@ They may remain in Git history or historical evals as evidence. They must not be
 
 Missing capability blocks only the affected stage. It never authorizes free-form writing or an old fallback mechanism.
 
-## Why this convergence exists
-
-The live recurrence on 2026-10-13 proved that maintaining two internal execution adapters increased ambiguity without matching the user's actual operating model. The user consistently uses ChatGPT while the Financial system/rules/state live in GitHub. The architecture therefore converges on that real product boundary instead of maintaining parallel state machines and certification semantics.
-
-The previous dual-adapter repair PR #20 was closed unmerged. It is historical evidence only and must not be used as implementation authority.
+PR #20 is closed and unmerged; it is historical evidence only. The active single-owner candidate is draft PR #21 on `maintenance/single-financial-owner-20261013` until validation and second-order review are complete.
 
 ## New task vs continuation
 
@@ -76,7 +81,7 @@ Only explicit continuation may resume an old article. Resolve the exact main art
 
 ## Assurance boundaries still OPEN
 
-- current full GitHub-hosted owner CI: **OPEN** — Financial Actions currently creates a failed job shell with no executed steps, so current-head code is neither CI PASS nor a demonstrated code-test failure;
+- current full GitHub-hosted owner CI for the newest PR #21 head: **OPEN until that exact head run is inspected**;
 - final-response owner admission / physical GitHub-write interception: **OPEN at the shared Universal/product control plane**;
 - non-forgeable Universal lease/resume_epoch fencing at every Financial mutation: **OPEN**;
 - fresh-chat single-owner trajectory regression: **OPEN**;
