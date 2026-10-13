@@ -1,7 +1,7 @@
 # Delivery module
 
 ## Ownership
-Delivery owns **Word construction, deterministic typography, hierarchy normalization, fixed A-share entity emphasis, explicit reasoning-emphasis preservation, file identity, mechanical checks and renderability**. It does not decide what evidence is true, what argument should be made or whether a headline is persuasive.
+Delivery owns **Word construction, deterministic typography, hierarchy normalization, fixed A-share entity emphasis, explicit reasoning-emphasis preservation, file identity, mechanical checks, renderability and current visible-delivery availability**. It does not decide what evidence is true, what argument should be made or whether a headline is persuasive.
 
 Delivery is a capability inside the single Financial owner trajectory. It does not own article task state; durable delivery/publication evidence is reconciled back into the same `main/workspaces/articles/{task_id}` owner state.
 
@@ -83,7 +83,24 @@ Environment-local filesystem paths are implementation details. User-visible deli
 
 A successful render process alone is not proof of perfect pagination. Claim visual page inspection only when rendered page evidence was actually inspected.
 
+## Current visible-delivery availability
+Owner `STATE.json` records the business output contract and canonical/historical binary identities. That is necessary but **not sufficient evidence that a Word file is obtainable in the current chat**.
+
+Before the final visible response, or whenever a completed article is re-delivered in a later chat, run `financial_writing_agent.delivery_availability.build_visible_delivery_receipt` with one freshly verified current resource for every required output.
+
+Hard rules:
+- filename + SHA-256 alone is artifact identity, not current resource availability;
+- an old chat attachment or previous session-local path is not a durable current resource ref;
+- the current resource set must exactly match `required_outputs` before saying the files are available now;
+- if the original canonical binary is still resolvable, its current SHA-256 must match owner state;
+- if the old binary is unavailable, regeneration from the durable publication/audit source is legal, but the regenerated file is a **new binary instance**;
+- a regenerated instance must carry durable source identity and pass fresh mechanical QA plus fresh render/visual QA before presentation;
+- never reuse or report the historical binary hash as the hash of a regenerated file;
+- presentation resources/receipts are delivery evidence only and never become a second article-state authority.
+
+An unavailable historical attachment therefore does not corrupt the GitHub business state, but it **does block a claim of current user-visible file availability** until the resource is resolved or regenerated and verified.
+
 ## Visible completion checklist
-At the current legal terminal state, chat returns a concise status summary covering applicable research/evidence, Market Explanation scope, Reader Funnel, Natural Authorial Prose/Writing DNA, general editorial audit, numbered navigation where applicable, **A-share name bolding plus semantic skim path**, Word/no-table/no-underline/source-tail/risk-italic/render, compliance/risk and remaining open assurance boundaries. The article body remains in Word only.
+At the current legal terminal state, chat returns a concise status summary covering applicable research/evidence, Market Explanation scope, Reader Funnel, Natural Authorial Prose/Writing DNA, general editorial audit, numbered navigation where applicable, **A-share name bolding plus semantic skim path**, Word/no-table/no-underline/source-tail/risk-italic/render, compliance/risk, current resource availability, and remaining open assurance boundaries. The article body remains in Word only.
 
 Under ordinary same-chat semantic review, the legal terminal remains `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN`; Delivery must not rename that state to `COMPLETE` merely because the files exist.
