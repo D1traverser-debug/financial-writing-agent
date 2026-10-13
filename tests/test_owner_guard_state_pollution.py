@@ -1,19 +1,18 @@
 import pytest
 
-from financial_writing_agent.github_chat_guard import GithubChatGuardError, build_initial_state, validate_state
+from financial_writing_agent.owner_guard import GithubChatGuardError, build_initial_state, validate_state
 
 
 def _state():
     return build_initial_state(
         task_id="pollution-task",
         prompt="test",
-        distribution_mode="FINANCE_DEEP",
         source_refs=[],
         executor_identity="chat-session:test",
     )
 
 
-def test_owner_native_complete_cannot_be_spoofed_in_github_chat_state():
+def test_complete_cannot_be_spoofed_in_owner_state():
     state = _state()
     state["status"] = "COMPLETE"
     with pytest.raises(GithubChatGuardError, match="supported GITHUB_CHAT status"):

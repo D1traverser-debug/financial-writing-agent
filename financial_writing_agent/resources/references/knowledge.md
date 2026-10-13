@@ -1,29 +1,37 @@
 # Shared cognition and knowledge layer
 
 ## Purpose
-The long-term goal is one reusable cognition layer shared by writing, future stock-picking and future post-close review agents. The point is not merely archival writeback after an article; every workflow should begin with broader/deeper verified understanding before it makes a selective decision or writes selectively.
+The long-term goal is a reusable cognition layer that can support writing and, if separately implemented later, other financial workflows. For Financial Writing today, connected knowledge stores are **optional recall/evidence providers inside the single owner trajectory**, not business-state authorities and not a separate workflow gate.
 
-## What the shared layer should represent
+Current durable article truth remains `main/workspaces/articles/{task_id}`. Notion, Drive, Library, StockBase, ArticleBase or another connected store never overrides current GitHub rules/state merely because information exists there.
+
+## What a reusable knowledge layer may represent
 - Event/catalyst records and chronology.
 - Concept definitions, overlaps and competing narratives.
 - Industry-chain nodes and causal/transmission relationships.
 - Listed-company business mappings and fundamental evidence.
-- Company role history: industrial beneficiary, earnings beneficiary, sentiment leader, liquidity carrier/中军, follow-up/补涨,卡位/arbitrage roles when observed.
+- Company role history when explicitly dated and evidenced.
 - Verification/falsification conditions and unresolved questions.
 - Source-quality notes and stale/conflicting claims.
 
 ## Stable vs ephemeral
-Promote stable business/industry relationships cautiously. Timestamp ephemeral market-state observations such as price action,身位,抢筹,封单/订单簿 strength, intraday leadership or crowding; they are evidence for a dated market state, not permanent company identity.
+Promote stable business/industry relationships cautiously. Timestamp ephemeral market-state observations such as price action, 身位, 抢筹, 封单/订单簿 strength, intraday leadership or crowding; they are evidence for a dated market state, not permanent company identity.
 
 ## Read-before-research choreography
-The runtime must start first. Then, when a connected knowledge store exists, the ChatGPT orchestrator uses the actual Notion/Drive/other connector to query relevant EventBase/StockBase/topic knowledge before open-web expansion. Record the returned references with `record_knowledge_context`. Treat retrieved knowledge as hypotheses/context and reverify anything current, material or contested.
+When an actually connected knowledge source is available and relevant, use that connector/source as a recall input before or alongside open-web expansion. Persist the useful stable source/page/file identifiers in the current Research evidence or article `source_refs` so the evidence can be traced from the same owner state.
 
-The standalone Python runtime intentionally does **not** claim that it can directly authenticate to the user's Notion/Drive connectors. The MCP record is a receipt/boundary between connector-side retrieval and runtime state.
+Treat retrieved knowledge as hypotheses/context. Reverify anything current, material, contested or capable of changing the article thesis. A stale external record never outranks current first-party evidence.
 
-## Writeback choreography
-Research emits `knowledge_writeback_candidates`. Before final audit, the orchestrator writes back only reusable, evidence-bounded knowledge through the connected store when available, avoiding duplicates and preserving source/date/confidence. Record resulting page/file/item references with `record_knowledge_writeback(status="PASS")`. If there is no connected destination or nothing reusable, record `N_A` with a reason. The runtime keeps this gate `NOT_RUN` until that explicit decision is recorded.
+If no connected knowledge source is available, continue with the normal research capability set. Do not invent a missing connector receipt, create a parallel local store or block the article merely because optional recall infrastructure is absent.
+
+## Optional writeback
+Research may identify reusable knowledge candidates. If the user has an appropriate connected destination and writeback is useful/authorized, write only reusable, evidence-bounded knowledge while avoiding duplicates and preserving source/date/confidence.
+
+Record any resulting stable external references back into the current article evidence when they matter. External writeback is **not a default canonical workflow stage or completion gate**. If no destination exists, nothing reusable exists or writeback is outside the current request, record no fictional action and continue the Financial workflow.
 
 Article-specific rhetoric, headline wording and temporary stylistic choices are not knowledge-base facts. Contradictions are recorded rather than silently overwritten.
 
-## Current implementation boundary
-Writing now has an explicit connector/runtime boundary and reusable candidate/receipt contract. Stock-picking/review agents still do not share one executable store, so never claim cross-agent synchronization until those agents are implemented against the same layer.
+## Cross-agent boundary
+Do not claim that Financial Writing, stock-picking, review or other agents share one executable knowledge store unless those systems actually use the same verified identity/write/readback contract.
+
+Shared methodology may propagate through Universal governance, but owner-local business facts and article state remain with the Financial owner unless separately justified.

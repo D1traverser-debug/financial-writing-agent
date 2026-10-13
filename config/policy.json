@@ -109,9 +109,11 @@
     "account_performance_over_generic_demographics": true
   },
   "audit": {
-    "semantic_pass_requires_owner_runtime_execution_proof": true,
-    "chat_self_review_cannot_pass": true,
+    "chat_self_review_can_route_pass": true,
+    "route_pass_is_not_independent_certification": true,
+    "chat_self_review_cannot_claim_independent_certification": true,
     "provider_attested_isolation_required_for_true_independent_claim": true,
+    "bounded_terminal_remains_certification_open_without_stronger_evidence": true,
     "universe_to_deep_article_reconciliation_required": true,
     "template_cluster_guard_can_force_revise": true,
     "all_applicable_writing_requirements_default_coverage": true,

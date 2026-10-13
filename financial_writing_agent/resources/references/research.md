@@ -123,7 +123,7 @@ Maintain claim, source, date when available, evidence type, confidence, whether 
 If evidence remains unresolved, downgrade or remove the claim. Do not bridge missing evidence with confident prose.
 
 ## Exit gate
-RESEARCH is ready for independent audit only when:
+RESEARCH is ready to enter `RESEARCH_AUDIT` only when:
 - the main thesis has an evidence chain;
 - material concepts/value-chain classes and company classes are represented;
 - every universe company is reconciled to the class ledger;
@@ -134,3 +134,5 @@ RESEARCH is ready for independent audit only when:
 - the stop condition is auditable;
 - Market Explanation scope has been explicitly justified;
 - and, when scope is `REQUIRED`, the market-explanation map is strong enough to discuss economic benefit and market selection without hindsight storytelling.
+
+`RESEARCH_AUDIT` then applies the assurance available to the current owner trajectory. The existence of an audit stage does not itself imply provider-attested independence.

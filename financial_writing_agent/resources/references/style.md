@@ -31,17 +31,17 @@ If large paragraph blocks can be reordered without affecting the argument, the a
 ### Major-section bridge hard gate
 A correct section order is not enough if the prose still feels like separate research cards pasted together. Before every new H1, the preceding substantive paragraph should normally create an **earned bridge** into the next analytical job through at least one real relation: cause, consequence, chronology, comparison, narrowing, correction, unresolved question or inference.
 
-Do not add empty bridge phrases such as “接下来我们来看”“说完A再看B”. The bridge must tell the reader *why B follows from A*. If the next H1 could be moved elsewhere with no loss of reasoning, revisit the transition or the macro structure.
+Do not add empty bridge phrases such as “接下来我们来看”“说完A再看B”. The bridge must tell the reader *why B follows from A*. If the next H1 could be moved elsewhere with no loss of reasoning, revisit the transition or macro structure.
 
 The final paragraph of a section need not announce the next heading mechanically. A good bridge can be a conclusion whose consequence naturally makes the next section necessary.
 
 ## “交流感” = reader calibration
 Model the intended reader's likely prior belief, confusion, objection or missing premise and answer it where it naturally arises. Use clarification, contrast, a genuine question, `why_this / why_not`, or a short corrective sentence when useful.
 
-Do not simulate intimacy with stock phrases such as “你有没有发现”“我们来看一下” unless they genuinely improve the reasoning and fit the author's voice.
+Do not simulate intimacy with stock phrases such as “你有没有发现”“我们来看一下” unless they genuinely improve reasoning and fit the author's voice.
 
 ## “活人感” = authorial selectivity
-Do not give every fact equal weight. Stronger evidence gets more space; weak mechanisms get conditional wording; low-value background is compressed; counterevidence can visibly change the interpretation.
+Do not give every fact equal weight. Stronger evidence gets more space; weak mechanisms get conditional wording; low-value background is compressed; counterevidence can visibly change interpretation.
 
 This is judgment, not swagger. Unsupported confidence fails.
 
@@ -55,10 +55,12 @@ Any editing pass must preserve:
 
 Naturalness never justifies deleting a limiting condition, converting an attributed claim into a naked fact or inventing concrete detail.
 
-A topic's business-realization ladder must also remain intact. Do not rewrite an earlier evidence stage as a later one merely for narrative force—for example, technology/product progress does not itself prove orders; orders do not themselves prove recognized revenue; revenue does not itself prove profit or cash-flow realization. The actual stages vary by topic, so this is a **general evidence-stage rule**, not a permanent vocabulary tied to one industry.
+A topic's business-realization ladder must also remain intact. Do not rewrite an earlier evidence stage as a later one merely for narrative force—for example, technology/product progress does not itself prove orders; orders do not themselves prove recognized revenue; revenue does not itself prove profit or cash-flow realization. Actual stages vary by topic, so this is a **general evidence-stage rule**, not permanent vocabulary tied to one industry.
 
-## Dedicated nine-part judge
-At `EDITORIAL_AUDIT`, an independent judge reviews the frozen draft. PASS requires text-level evidence for all nine dimensions:
+## Dedicated nine-part review
+At `EDITORIAL_AUDIT`, review the frozen draft against all nine dimensions. In the current ChatGPT path this decision carries `CHAT_SELF_REVIEW`; PASS is a workflow-routing result, not provider-attested independent certification. If a genuinely separate reviewer capability is available, record its stronger provenance on the same owner trajectory rather than creating another state path.
+
+A routing PASS requires text-level evidence for all nine dimensions:
 1. `fidelity_and_responsibility` — facts, certainty, stance, attribution and agency remain correct.
 2. `semantic_contribution` — substantive units add fact, inference, distinction, boundary, reader orientation or necessary connective work rather than restating importance.
 3. `argument_progression` — paragraphs form an earned reasoning sequence, major sections are causally/comparatively bridged and open loops close coherently.
@@ -70,7 +72,7 @@ At `EDITORIAL_AUDIT`, an independent judge reviews the frozen draft. PASS requir
 9. `uncertainty_rhetoric_calibration` — wording strength matches evidence and unresolved/competing explanations remain visible.
 
 ## Deterministic template-cluster guard
-The semantic judge is not allowed to wave away a visible template cluster with “整体自然”. Before Authorial Prose judgment, the runtime computes a structural signal report over the frozen article.
+Semantic review is not allowed to wave away a visible template cluster with “整体自然”. When deterministic Python/check capability is available, run the current template-scaffolding analysis over the frozen article before Authorial Prose judgment. If that capability was unavailable, record the deterministic check OPEN rather than pretending it ran.
 
 Signals include recurring families such as:
 - “真正的X不是/不在Y，而是/而在Z”；
@@ -102,9 +104,9 @@ Treat patterns as evidence, not forbidden tokens. Watch for clusters such as:
 A normal dash, parallel structure, question or short sentence is not an error by itself.
 
 ## Numbering and prose naturalness
-Visible numbering is not “AI format” when it reflects real analytical branches. For a Deep article with several stock classes, stages, dimensions or causal branches, `（1）（2）（3）/①②③` should be used **readily and often** when it makes the reasoning easier to scan and compare. Do not reserve lower-level numbering only for extreme paragraph density.
+Visible numbering is not “AI format” when it reflects real analytical branches. For a Deep article with several stock classes, stages, dimensions or causal branches, `（1）（2）（3）/①②③` should be used **readily and often** when it makes reasoning easier to scan and compare. Do not reserve lower-level numbering only for extreme paragraph density.
 
-The error is mechanical symmetry: do not force every H1 to contain exactly three subpoints. Use as many numbered subpoints, and as much hierarchy, as the actual logic earns.
+The error is mechanical symmetry: do not force every H1 to contain exactly three subpoints. Use as many numbered subpoints, and as much hierarchy, as actual logic earns.
 
 ## Writing DNA: what to learn
 Writing DNA can include:
@@ -129,12 +131,12 @@ Do not reduce Writing DNA to personality sliders or a list of banned words.
 Original→final edit pairs are especially valuable because they show changes in information order, emphasis, confidence, sentence/paragraph shape, terminology, evidence handling and reader relationship.
 
 ## Raw learning-sample ledger
-Use `record_writing_learning_sample` to retain task-level evidence such as:
+Persist task-level evidence in the exact article workspace when it matters to future writing behavior:
 - `USER_EDIT` — original→revised text or durable refs;
-- `USER_FEEDBACK` / `USER_ACCEPTANCE` / `USER_REJECTION`;
-- `POST_PUBLICATION_PERFORMANCE` — observed metrics/analytics refs.
+- `USER_FEEDBACK` / `USER_REJECTION` — use the current owner feedback mutation so corrective evidence and its system-impact obligation are checkpointed together;
+- `USER_ACCEPTANCE` / `POST_PUBLICATION_PERFORMANCE` — retain durable evidence when a current supported evidence-capture action is available; otherwise do not claim it has been durably learned.
 
-Each stored sample is `RAW_EVIDENCE_ONLY`. Recording it does **not** promote it into a permanent rule. Promotion follows the evidence hierarchy and `maintenance.md`.
+Each stored sample is evidence only. Recording it does **not** promote it into a permanent rule. Promotion follows the evidence hierarchy and `maintenance.md`.
 
 ## Older-reader usability
 The currently known audience suggests many readers around 45 and a substantial 55+ group. Treat this as a readability prior, not a sophistication label:
@@ -151,10 +153,10 @@ Every A-share company name supplied to the publication document is a determinist
 
 Explicitly emphasize additional key facts, numbers, mechanisms and selected judgment sentences so **title → H1s → all bold spans** reconstruct the main line. The reader should be able to recover not only *which companies are present* but also *what changed, how the logic transmits, which comparison matters and where the conclusion is bounded*.
 
-Do not respond to automatic company-name bolding by removing semantic bold anchors. The fixed entity layer and the selective reasoning layer serve different functions.
+Do not respond to automatic company-name bolding by removing semantic bold anchors. The fixed entity layer and selective reasoning layer serve different functions.
 
 ## Extreme language
-Unambiguous promises such as “注定暴涨”“必然上涨”“唯一机会” can be deterministic hard fails. Generic superlatives such as “最强”“顶级” require semantic context: unsupported hype fails, while a genuinely sourced ranked claim can be legal if the wording and relevance are precise.
+Unambiguous promises such as “注定暴涨”“必然上涨”“唯一机会” can be deterministic hard fails. Generic superlatives such as “最强”“顶级” require semantic context: unsupported hype fails, while a genuinely sourced ranked claim can be legal if wording and relevance are precise.
 
 ## Revision method
 Fix reasoning/reader defects before polishing surfaces. Revise the smallest region that solves the defect while preserving facts and useful authorial choices. Then reread once for fidelity, once for **major-section progression**, once for evidence-stage integrity and once for residual template/redundancy problems.

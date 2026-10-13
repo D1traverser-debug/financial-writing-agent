@@ -16,39 +16,37 @@ jobs:
           python-version: "3.11"
           cache: pip
       - name: Install Python dependencies
-        run: python -m pip install -e '.[dev,openai]'
-      - name: OpenAI Agents SDK surface smoke
-        run: python scripts/sdk_smoke.py
-      - name: MCP Streamable HTTP smoke
-        run: python scripts/mcp_smoke.py
+        run: python -m pip install -e '.[dev]'
       - name: Unit and trajectory tests
         run: pytest -q
       - name: Executable contract eval baseline
         run: python scripts/eval_contracts.py
-      - name: Static rule ownership and bundle audit
+      - name: Static single-owner and legacy-quarantine audit
         run: python scripts/static_audit.py
+      - name: Static retired-runtime absence audit
+        run: python scripts/retired_runtime_static_audit.py
       - name: Build wheel and isolated install smoke
         run: |
           python -m build --wheel
           python -m venv /tmp/fwa-wheel
           WHEEL=$(ls "$GITHUB_WORKSPACE"/dist/*.whl | head -1)
           /tmp/fwa-wheel/bin/pip install "$WHEEL"
-          mkdir -p /tmp/fwa-wheel-data
           cd /tmp
-          FINANCIAL_WRITING_DATA_DIR=/tmp/fwa-wheel-data /tmp/fwa-wheel/bin/python - <<'PY'
-          import importlib.util
-
+          /tmp/fwa-wheel/bin/python - <<'PY'
+          from financial_writing_agent.models import DistributionMode, TaskContract
           from financial_writing_agent.resources import load_packaged_policy, read_reference
-          from financial_writing_agent.adapters.deterministic import DeliveryExecutor
-          import financial_writing_agent.plugin_server as server
+          from financial_writing_agent.document import build_article_docx, build_audit_docx
+          from financial_writing_agent.checks import check_docx
+          from financial_writing_agent.owner_guard import build_initial_state
+          from financial_writing_agent.owner_lifecycle import resume_blocked_state
 
           policy = load_packaged_policy()
           assert policy["defaults"]["distribution_mode"] == "DUAL"
+          assert TaskContract(prompt="smoke").distribution_mode == DistributionMode.DUAL
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
-          DeliveryExecutor(root="/tmp/fwa-wheel-runs")
-          assert server.mcp is not None
-          assert importlib.util.find_spec("financial_writing_agent.adapters.mock") is None
-          print("PASS: clean wheel install contains policy/references and public MCP, with no test-only mock adapter")
+          assert callable(build_article_docx) and callable(build_audit_docx) and callable(check_docx)
+          assert callable(build_initial_state) and callable(resume_blocked_state)
+          print("PASS: clean wheel contains canonical policy/references, TaskContract, owner guard/lifecycle and stateless Word utilities")
           PY
       - name: Install render dependencies
         run: |

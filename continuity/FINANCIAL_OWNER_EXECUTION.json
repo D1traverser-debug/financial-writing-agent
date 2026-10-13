@@ -1,0 +1,87 @@
+{
+  "schema_version": "2.3",
+  "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
+  "product_path": "SINGLE_GITHUB_BACKED_FINANCIAL_OWNER",
+  "interaction_surface": "CHATGPT",
+  "purpose": "Define the one supported Financial Writing execution path used by the user: ChatGPT invokes the Financial owner, current GitHub main supplies code/rules and durable article state, and exact-stage capabilities are providers inside that path rather than alternate execution modes.",
+  "authority": {
+    "rule_authority": "D1traverser-debug/financial-writing-agent@main",
+    "business_state_ref": "main",
+    "business_state_root": "workspaces/articles/{task_id}",
+    "state_file": "workspaces/articles/{task_id}/STATE.json",
+    "stage_artifact_directory": "workspaces/articles/{task_id}/stages",
+    "review_directory": "workspaces/articles/{task_id}/reviews",
+    "publication_source_directory": "workspaces/articles/{task_id}/publication",
+    "canonical_task_contract": "financial_writing_agent.models.TaskContract + financial_writing_agent.routing.build_task_contract",
+    "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
+    "canonical_mutation_guard_implementation": "financial_writing_agent/owner_guard.py",
+    "canonical_lifecycle_implementation": "financial_writing_agent/owner_lifecycle.py",
+    "chat_memory_is_business_state_authority": false,
+    "alternate_runtime_state_authority_allowed": false,
+    "per_article_business_state_branches_allowed": false
+  },
+  "execution": {
+    "route_selection": "NONE",
+    "rule": "Every publishable Financial Writing request enters this owner path. Exact-stage capabilities are handshaken only as needed; availability may block an affected stage but never selects a second business-state authority or permits free-form article completion.",
+    "capability_providers": [
+      "model_runtime",
+      "GitHub_owner_read_write",
+      "web_search_when_current_research_requires_it",
+      "python_or_equivalent_deterministic_checks",
+      "document_tooling_for_WORD_FILE_ONLY_delivery",
+      "optional_provider_attested_review_if_future_strict_isolation_is_actually_available"
+    ],
+    "provider_rule": "Model, web, deterministic/Python, document and any future attested review facilities are capability providers inside one owner trajectory. No provider may create a parallel article state store, alternate workflow, alternate terminal semantics or alternate route selector.",
+    "free_form_article_fallback_allowed": false
+  },
+  "task_contract": {
+    "default_distribution_mode": "DUAL",
+    "default_delivery_channel": "WORD_FILE_ONLY",
+    "default_required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+    "single_mode_override_rule": "A direct distribution-mode override requires USER_EXPLICIT_OVERRIDE plus distribution_mode_override_evidence that is an exact substring of the original user prompt and is persisted in the INIT receipt.",
+    "integrity_rule": "Any non-empty required_outputs supplied by deserialization or another caller must exactly equal the canonical set derived from distribution_mode; mismatch fails closed."
+  },
+  "workflow": {
+    "canonical_stage_order": ["INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT", "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"],
+    "transition_source": "financial_writing_agent/workflow_spec.py",
+    "mutation_rule": "Normal stage advancement/revision/terminalization uses financial_writing_agent/owner_guard.py; BLOCKED recovery and system-impact lifecycle use financial_writing_agent/owner_lifecycle.py. All mutations operate against freshly read main state and require authoritative reread after write.",
+    "review_fail_rule": "A recoverable review FAIL must be persisted through owner_lifecycle.block_review_failure_state with a canonical revision_target valid for the failed review stage. The target is bound into the blocking action receipt and may not be invented later.",
+    "blocked_recovery_rule": "owner_lifecycle.resume_blocked_state requires non-empty repair evidence, reuses the persisted canonical recovery target, invalidates that target and every downstream artifact/review/delivery identity, and resumes only on that target.",
+    "system_impact_rule": "owner_lifecycle.review_system_impact_state classifies material corrective evidence. SYSTEM_MAINTENANCE_REQUIRED remains open until immutable diagnosis plus maintenance_ref, validation_refs and assurance >= REGRESSION_VERIFIED are supplied; closure remains self-attested unless stronger exact-action provider evidence actually exists.",
+    "semantic_assurance": "CHAT_SELF_REVIEW unless stronger provider-attested evidence is actually present for that exact review action",
+    "terminal_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
+  },
+  "checkpoint_contract": {
+    "current_state_schema_version": "1.2",
+    "current_execution_mode_storage_token": "GITHUB_CHAT",
+    "storage_token_status": "LEGACY_INTERNAL_TOKEN_ONLY__NOT_A_ROUTE_SELECTOR",
+    "migration_rule": "Existing main article STATE.json using the GITHUB_CHAT token remains readable. The token must never be used to choose an execution route. New control-plane names and paths are owner-neutral. A future state-schema migration may rename the token only with backward-compatible migration and regression proof.",
+    "state_ref_value": "main",
+    "mutation_conflict_rule": "Every material mutation binds the freshly fetched STATE.json blob SHA and writes with the same SHA. Universal lease/epoch fencing remains a separate required outer invariant and is not proven by blob CAS alone.",
+    "post_write_verification": "Reread STATE.json and every newly referenced artifact from main before claiming COMMITTED."
+  },
+  "legacy_quarantine": {
+    "retired_route_concepts": ["OWNER_NATIVE", "GITHUB_CHAT_AS_FALLBACK_ADAPTER", "PYTHON_OR_PLUGIN_AS_SEPARATE_BUSINESS_STATE_AUTHORITY"],
+    "retired_state_authorities_for_new_tasks": ["SQLite WritingState", "per-article Git branches", "chat memory", "Site/MCP-local state"],
+    "historical_evals_and_branches": "EVIDENCE_ONLY__NEVER_EXECUTION_AUTHORITY",
+    "negative_space_contract": "config/retired_runtime_paths.json",
+    "retired_runtime_current_tree_status": "PHYSICALLY_ABSENT_REQUIRED",
+    "retired_runtime_reintroduction_rule": "Any retired runtime/discovery path listed by the negative-space contract reappearing in the current tree is a regression and must fail tests/CI.",
+    "fallback_rule": "No legacy mechanism may become active merely because the current capability set is incomplete. Missing capability blocks the affected stage."
+  },
+  "anti_bypass": [
+    "No publishable final article is produced before a durable article STATE.json exists on main.",
+    "No alternate owner-native/plugin/SQLite route may be selected for new Financial business work.",
+    "No chat executor may silently change the canonical distribution mode or required-output set.",
+    "No Research/Editorial/Title/Draft stage is completed without a durable artifact ref.",
+    "No review FAIL is recoverable without a persisted canonical repair target and repair evidence.",
+    "No BLOCKED recovery preserves stale target/downstream evidence.",
+    "No OPEN or MAINTENANCE_REQUIRED system-impact obligation is erased without deterministic lifecycle review/closure evidence.",
+    "No DELIVERY advancement is accepted with a missing applicable article Word output.",
+    "No FINAL terminalization is accepted until the complete required_outputs set including AUDIT_DOCX is present.",
+    "No per-article business-state branch is created or resumed as current authority.",
+    "No historical eval, maintenance branch, chat summary or deprecated runtime store overrides current main authority.",
+    "No retired second-runtime implementation may re-enter the current repository tree without an explicit future architecture migration that replaces this contract and passes negative-space regression review.",
+    "No missing capability authorizes free-form writing."
+  ]
+}

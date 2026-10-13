@@ -1,80 +1,69 @@
 # ChatGPT Site deployment specification — Financial Writing Agent v0.8
 
 ## Goal
-Deploy Financial Writing Agent v0.8.1 as a fresh **personal/private deployment only** Site-backed MCP runtime. Implement current `main` directly; do not revive removed compatibility surfaces or older schemas.
+
+If a private Site/MCP deployment is used in the future, it must act only as a **capability transport inside the existing single Financial owner trajectory**. It must not create a second business-state authority, alternate workflow, alternate terminal semantics or fallback runtime.
+
+Current product path remains:
+
+`ChatGPT request → Financial owner on GitHub main → main/workspaces/articles/{task_id} → canonical workflow → Word delivery`.
+
+Canonical execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`.
 
 ## Security boundary
+
 Do not enable public/workspace/multi-user sharing until tenant isolation, authorization, task/artifact namespaces and cross-user access tests exist.
 
 ## Runtime invariant
-`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT → COMPLETE`
 
-Mandatory dependency failures fail closed to recoverable `BLOCKED` with an exact cursor. Do not silently fall back to ephemeral container/local disk, free-form writing or duplicate tasks.
+`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`
 
-## Semantic PASS authority
-Semantic `PASS` is not accepted from a CHAT_BRIDGED caller merely because a typed audit payload contains `PASS` or `INDEPENDENT_EXECUTOR`.
+Mandatory dependency failures fail closed at the exact affected owner state. Do not silently fall back to ephemeral local disk, free-form writing, duplicate tasks, legacy SQLite WritingState or an alternate plugin task store.
 
-For `RESEARCH_AUDIT`, `EDITORIAL_AUDIT` and `FINAL_AUDIT`, PASS certification must go through `run_semantic_audit_stage`. The Site runtime must have the OpenAI Agents SDK/model runtime required by `financial_writing_agent.adapters.openai_agents.OpenAIStageExecutor` for this tool. The server executes the owner-native audit stage, records current-stage `EXECUTOR_START/EXECUTOR_END` trajectory and persisted audit provenance, then the deterministic controller decides whether the stage advances.
+## State authority
 
-At `EDITORIAL_AUDIT`, the owner-native stage performs three distinct judgments:
-1. Reader Funnel / Hook Gate;
-2. Natural Authorial Prose / Writing DNA Gate;
-3. general editorial audit.
+A Site/MCP deployment must read and mutate the same durable owner state under:
 
-If the owner-native semantic runtime is unavailable, preserve the task as recoverably BLOCKED at the audit cursor. Do not downgrade to caller self-certification.
+`main/workspaces/articles/{task_id}`
 
-The historical payload value `INDEPENDENT_EXECUTOR` means stage-separated owner-runtime execution in v0.8; it is **not provider-attested isolation**. A true independent/provider-attested claim requires a distinct provider execution identity/trace and remains a separate capability.
+It may not treat local SQLite, process memory, server-local files or a separate database as authoritative Financial task state unless a future contract explicitly replaces the GitHub-main authority with a migration that updates every current consumer and regression test. Historical Git code/evals are not such a migration.
+
+Every material mutation must preserve task/output invariants, bind the latest main state identity, perform conflict-safe write semantics and reread authoritative state/artifacts before COMMITTED.
 
 ## Responsibility split
-- ChatGPT/model generation path: research, synthesis, TopicDNA, optional market-explanation hypotheses, mode-specific structures, current WeChat search reconnaissance, titles and drafting.
-- Owner-native semantic runtime: proof-bearing Research/Editorial/Final audit execution.
-- Hosted MCP runtime: TaskContract, legal transitions, BLOCKED recovery, schemas, durable checkpoints, stale-evidence invalidation, required outputs, system-impact obligations and completion authority.
-- Deterministic delivery: Word construction, numbering, typography, explicit bold preservation, zero-table/zero-underline/source-tail checks, inline italic risk insertion, required-file verification, rerender hygiene and mechanical QA.
-- Universal maintenance/evolution control plane: consumes escalated non-authoritative owner control signals and performs any cross-authority/systemic maintenance; the Site runtime must not silently mutate GitHub policy/code on its own.
+
+- ChatGPT/model capability: research, synthesis, TopicDNA, structures, current search reconnaissance, titles and drafting.
+- Web capability: current public evidence when the stage requires it.
+- Deterministic/Python capability: schema/guard checks, output reconciliation and mechanical QA.
+- Document capability: Word generation/render inspection.
+- Optional provider-attested review capability: stronger review evidence only when real provider identity/trace exists.
+- Site/MCP: transport/invocation convenience for those capabilities; **not a business-state owner**.
+- Universal maintenance/evolution control plane: consumes escalated non-authoritative owner signals for shared/systemic defects.
 
 Financial Writing has no image-generation, cover, section-image, avatar, sticker or image-insertion workflow.
 
-## Durable state and artifacts
-Persist complete WritingState per `task_id`, including stage, gates, structured outputs, artifacts, trace, attempts, blocker/recovery cursor, timestamps, learning samples, system-impact signals and methodology receipts.
+## Semantic review authority
 
-SQLite is local/CI reference only. Production state and Word artifacts must survive runtime restart and fresh chats. Public outputs must not expose server-local paths.
+A Site may host a stronger reviewer capability, but a semantic PASS claim is valid only when the exact review action has the promised provider/runtime evidence. Typed payloads, tool names or the legacy token `INDEPENDENT_EXECUTOR` are not proof by themselves.
 
-The only public artifact resource template is:
-`writing-docx://{task_id}/{kind}`
+If stronger review is unavailable, the same owner trajectory remains at `CHAT_SELF_REVIEW` assurance and current bounded terminal semantics. Missing stronger review must not select another workflow or state store.
 
-Required Word outputs remain applicable article files plus `WRITING_AUDIT_REPORT.docx`. Article body is not pasted into chat.
+## Task/output contract
 
-## MCP surface
-There is exactly one registration surface: `financial_writing_agent/plugin_server.py`.
+Default distribution mode is `DUAL` unless the user explicitly narrows it with exact prompt evidence. Default delivery is `WORD_FILE_ONLY` and requires:
 
-Expose exactly **19 tools**:
-- `start_writing_task`
-- `get_writing_task`
-- `list_recent_writing_tasks`
-- `resume_blocked_task`
-- `record_writing_learning_sample`
-- `review_writing_system_impact`
-- `record_knowledge_context`
-- `submit_research`
-- `submit_research_audit`
-- `submit_editorial_plan`
-- `submit_headlines`
-- `submit_draft`
-- `submit_hook_audit`
-- `submit_style_audit`
-- `submit_editorial_audit`
-- `run_semantic_audit_stage`
-- `build_and_mechanically_audit_delivery`
-- `record_knowledge_writeback`
-- `submit_final_audit`
+`FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX`
 
-The five `submit_*audit` tools may persist conservative REVISE/FAIL evidence where their schemas permit it, but they cannot certify semantic PASS from CHAT_BRIDGED input. `run_semantic_audit_stage` is the public proof-bearing PASS gateway.
+`TaskContract.required_outputs` must exactly match distribution mode; no Site tool may silently narrow the output set.
 
-Material `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` learning samples must create a persisted system-impact review obligation. `review_writing_system_impact` requires at least two alternative mechanisms and explicit failure modes. `PENDING_REVIEW` cannot be silently bypassed at COMPLETE. `MAINTENANCE_REQUIRED` must remain discoverable even on a completed article until a later closure call binds the exact accepted review to durable maintenance/validation refs with at least `REGRESSION_VERIFIED` assurance. Owner receipts remain self-attested and require Universal independent verification before operational PASS claims.
+## Recovery and system impact
 
-Every tool needs typed input/output, explicit annotations, human-readable title and operational description. Unknown fields/stages fail closed.
+A review FAIL persists a canonical repair target. Recovery uses that persisted cursor, requires repair evidence and invalidates stale target/downstream evidence.
+
+Material `USER_EDIT`, `USER_FEEDBACK` and `USER_REJECTION` create durable owner evidence and, where applicable, an open system-impact obligation. Systemic closure requires accepted diagnosis plus maintenance/validation evidence at least `REGRESSION_VERIFIED`. Site-local success is not enough to close a shared-control-plane defect.
 
 ## Research/editorial invariants
+
 - FINANCE_DEEP is `MATERIAL_COMPLETE` relative to the bounded audited research universe.
 - FINANCE_BROAD is `SELECTIVE_TRAFFIC` but must expose a truthful non-niche financial stake to a cold finance reader.
 - Universe Coverage is class-accounted; representative-stock shortcuts do not satisfy Deep completeness.
@@ -83,40 +72,35 @@ Every tool needs typed input/output, explicit annotations, human-readable title 
 - When active, separate economic benefit from market selection, compare mechanisms, preserve `why_this/why_not`, continuation/reversal conditions and causal-confidence boundaries.
 
 ## Reader Funnel / Authorial Prose
-Reader Funnel covers audience-promise fit, information value, curiosity/concreteness balance, current WeChat search evidence, first-screen retention, continuation, completion payoff and title/opening payoff. Title pools need genuine strategy diversity, not synonym variants.
 
-Natural Authorial Prose uses the nine-part rubric for fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration. Template-cluster guards may force REVISE.
+Reader Funnel covers audience-promise fit, information value, curiosity/concreteness balance, current search evidence, first-screen retention, continuation, completion payoff and title/opening payoff. Title pools need genuine strategy diversity, not synonym variants.
 
-Do not optimize for detector evasion or recreate overlapping “活人感” silos.
-
-## Writing DNA and quality evolution
-`record_writing_learning_sample` stores raw task-level user edit/feedback/acceptance/rejection/performance evidence. A sample never auto-promotes policy. Corrective/negative material samples additionally enter the system-impact lifecycle described above so local prose revision cannot be mistaken for durable learning.
-
-Quality-promotion evidence is separate from article execution. Promotion requires immutable regression/held-out case identities, semantic candidate evidence verification, real hard-regression execution bound to the exact candidate/change, blind A/B position-swapped pairwise judging, and separate reference/semantic verification. A callback named “verifier” is not proof of independent execution identity.
-
-Current FINANCE_DEEP evidence remains diagnostic only until a second held-out topic family exists. FINANCE_BROAD and Personalized Writing DNA remain not ready under their documented evidence requirements.
+Natural Authorial Prose uses the current rubric for fidelity/responsibility, semantic contribution, argument progression, reader calibration, authorial selectivity, evidence specificity, structural/rhythm naturalness, template/redundancy control and uncertainty/rhetoric calibration. Template-cluster guards may force REVISE.
 
 ## Word contract
-Deterministic Word enforces H1 `18pt`, H2 `15pt`, body `13.5pt`, H3 currently `12pt`, Chinese hierarchy, zero publication tables, zero underlines, no tail source appendix, explicit skim-anchor bolding without blanket company bold, one final italic inline `风险提示：...`, required-file presence, stale-render cleanup and renderability.
+
+Deterministic Word enforces H1 `18pt`, H2 `15pt`, body `13.5pt`, H3 currently `12pt`, Chinese hierarchy, zero publication tables, zero underlines, no tail source appendix, every supplied A-share company/stock name bolded at exact occurrences, explicit semantic skim-anchor bolding, one final italic inline `风险提示：...`, required-file presence, stale-render cleanup and renderability.
 
 ## Promotion validation
-Do not call a Site production-ready until all are true:
-1. activation routing is correct;
-2. all **19 typed v0.8.1 tools** and only the Word resource template are discoverable;
-3. owner-native `run_semantic_audit_stage` can really execute with the deployed SDK/model runtime;
-4. direct CHAT_BRIDGED semantic PASS is rejected;
-5. semantic-runtime unavailability produces recoverable BLOCKED rather than self-review fallback;
-6. durable state/artifacts survive restart and fresh chat;
-7. legal stage/revision/invalidation/recovery paths pass;
-8. Deep/Broad research/editorial invariants pass;
-9. semantic audit gates require current owner-runtime proof and COMPLETE rechecks it;
-10. material negative/corrective feedback creates and exposes a durable system-impact review obligation;
-11. pending system-impact review cannot be bypassed and maintenance-required signals survive completed-task discovery until closed;
-12. deterministic Word QA and path privacy pass;
-13. one user-authorized real article E2E includes deliberate interruption/recovery and fresh-chat recovery;
-14. public/multi-user sharing remains disabled.
+
+Do not call a Site integration production-ready until all are true:
+1. it enters the existing single Financial owner path rather than creating a Site-local task;
+2. durable state/artifacts remain on the canonical main article workspace and survive restart/fresh chat;
+3. legal stage/revision/invalidation/BLOCKED recovery paths pass;
+4. default DUAL three-output contract cannot be narrowed without exact user override evidence;
+5. semantic assurance claims match actual provider evidence;
+6. material corrective feedback creates and exposes durable system-impact obligations;
+7. deterministic Word QA and path privacy pass;
+8. one user-authorized real article E2E includes interruption/recovery and fresh-chat recovery;
+9. public/multi-user sharing remains disabled.
+
+## Legacy quarantine
+
+The former owner-native/plugin/SQLite second runtime has been **physically removed from the current repository tree**. Its Git history and historical evals may remain as evidence only. Reintroducing any retired runtime/discovery path listed in `config/retired_runtime_paths.json` is a regression and must fail current CI. A future Site integration must extend the single owner trajectory rather than restore those deleted task-state mechanisms.
 
 ## Canonical source
-Repository: `D1traverser-debug/financial-writing-agent`
-Branch: `main`
-Skill: `skills/financial-writing-agent/SKILL.md`
+
+Repository: `D1traverser-debug/financial-writing-agent`  
+Branch: `main`  
+Skill: `skills/financial-writing-agent/SKILL.md`  
+Execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`

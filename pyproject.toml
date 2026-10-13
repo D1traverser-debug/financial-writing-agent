@@ -5,21 +5,19 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "financial-writing-agent"
 version = "0.8.1"
-description = "Deterministic A-share financial-writing runtime with material-complete finance analysis, explicit-scope market explanation, recoverable workflow state, proof-bearing semantic audits, executable system-impact escalation, Reader Funnel and Writing DNA assurance, and auditable Word delivery."
+description = "A-share financial-writing owner for the single ChatGPT + GitHub main trajectory, with material-complete finance analysis, explicit-scope market explanation, durable article checkpoints, evidence-bounded review, system-impact escalation, Reader Funnel and Writing DNA controls, and auditable Word delivery."
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7",
   "python-docx>=1.1",
-  "mcp>=2.0,<3",
 ]
 
 [project.optional-dependencies]
-openai = ["openai-agents>=0.4"]
 dev = ["pytest>=8", "build>=1.2"]
 
-[project.scripts]
-financial-write = "financial_writing_agent.cli:main"
-financial-writing-mcp = "financial_writing_agent.plugin_server:main"
+# No production console/MCP entrypoint is exported. The user's supported product
+# path is ChatGPT -> GitHub main Financial owner. Retired local/plugin modules are
+# not part of the supported execution surface and carry no install-time dependency.
 
 [tool.setuptools.packages.find]
 include = ["financial_writing_agent*"]

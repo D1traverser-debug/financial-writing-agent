@@ -1,0 +1,27 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Negative-space regression authority for retired Financial runtime/discovery paths. These paths may exist in Git history or historical eval text, but must not exist in the current repository tree.",
+  "retired_current_tree_paths": [
+    "continuity/GITHUB_CHAT_EXECUTION.json",
+    "financial_writing_agent/github_chat_guard.py",
+    "financial_writing_agent/adapters/deterministic.py",
+    "financial_writing_agent/adapters/openai_agents.py",
+    "financial_writing_agent/cli.py",
+    "financial_writing_agent/controller.py",
+    "financial_writing_agent/engine.py",
+    "financial_writing_agent/mcp_contracts.py",
+    "financial_writing_agent/methodology_receipts.py",
+    "financial_writing_agent/network_safety.py",
+    "financial_writing_agent/plugin_server.py",
+    "financial_writing_agent/runner.py",
+    "financial_writing_agent/runtime_factory.py",
+    "financial_writing_agent/runtime_service.py",
+    "financial_writing_agent/semantic_runtime.py",
+    "financial_writing_agent/state_recovery.py",
+    "financial_writing_agent/store.py",
+    "financial_writing_agent/system_impact.py",
+    "plugin.json",
+    "scripts/sdk_smoke.py",
+    "scripts/mcp_smoke.py"
+  ]
+}

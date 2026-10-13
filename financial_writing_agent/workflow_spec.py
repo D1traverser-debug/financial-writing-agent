@@ -2,8 +2,8 @@ from __future__ import annotations
 
 from .models import Stage
 
-# Canonical Financial business sequence. Execution adapters may narrow what they can
-# certify, but they must not invent broader stage/revision paths outside this graph.
+# Canonical Financial business sequence. Every current capability provider must obey
+# this graph; no provider may invent a broader stage/revision path or alternate workflow.
 BUSINESS_STAGE_ORDER: tuple[Stage, ...] = (
     Stage.INTAKE,
     Stage.RESEARCH,
@@ -19,9 +19,9 @@ BUSINESS_STAGE_ORDER: tuple[Stage, ...] = (
 BUSINESS_STAGE_NAMES: tuple[str, ...] = tuple(stage.value for stage in BUSINESS_STAGE_ORDER)
 RECOVERABLE_STAGES = frozenset(BUSINESS_STAGE_ORDER)
 
-# PASS/normal forward route. FINAL_AUDIT reaches the owner-native terminal stage;
-# bounded adapters such as GITHUB_CHAT may translate that edge into their weaker
-# terminal status without claiming Stage.COMPLETE.
+# PASS/normal forward route. FINAL_AUDIT maps to the abstract business COMPLETE edge.
+# The current owner guard translates that edge into the evidence-bounded terminal
+# status defined by the active execution contract without changing this workflow graph.
 PASS_TARGET: dict[Stage, Stage] = {
     Stage.INTAKE: Stage.RESEARCH,
     Stage.RESEARCH: Stage.RESEARCH_AUDIT,
@@ -35,9 +35,9 @@ PASS_TARGET: dict[Stage, Stage] = {
     Stage.FINAL_AUDIT: Stage.COMPLETE,
 }
 
-# Legal revision targets owned by the business workflow, not by an execution adapter.
-# A specific adapter may expose only a subset when its assurance/executor cannot
-# support every route, but it may never add a target outside this map.
+# Legal revision targets owned by the single business workflow. Capability providers
+# may fail to execute a route and block the affected action, but they may never add a
+# target outside this map or select a separate state machine.
 REVISION_TARGETS: dict[Stage, frozenset[Stage]] = {
     Stage.RESEARCH_AUDIT: frozenset({Stage.RESEARCH}),
     Stage.TITLE: frozenset({Stage.TITLE}),
