@@ -62,7 +62,7 @@ Do not copy full reference rules into this Skill.
 
 ## 5. Learning and maintenance
 
-Material user edit/feedback/rejection/acceptance that changes writing, review, or delivery must become durable owner evidence before claiming learning.
+A material explicit user edit, feedback, rejection or acceptance that changes writing, review, or delivery must become durable owner evidence before claiming learning.
 
 Use `record_writing_learning_sample` when the owner learning tool is exposed; otherwise use `github_chat_guard.attach_material_feedback`. A GITHUB_CHAT OPEN system-impact item is then classified/closed only through `github_chat_lifecycle.review_system_impact_state`; any closure remains evidence-bound and self-attested at chat assurance and must not be relabeled as owner-native or independent verification. Do not fabricate owner-plugin receipts.
 
