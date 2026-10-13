@@ -9,9 +9,9 @@
     "retry_limits",
     "no_silent_degradation",
     "execution_capability_handshake",
-    "execution_mode_selection",
-    "github_chat_checkpointing",
-    "runtime_recovery_authority"
+    "single_owner_execution",
+    "main_article_checkpointing",
+    "owner_lifecycle_recovery"
   ],
   "research": [
     "source_quality",
@@ -43,7 +43,7 @@
     "prior_knowledge_reuse",
     "stable_vs_ephemeral_knowledge",
     "knowledge_conflict_handling",
-    "knowledge_writeback"
+    "optional_external_writeback"
   ],
   "editorial": [
     "topic_dna",
@@ -117,7 +117,8 @@
     "reader_funnel_judge",
     "authorial_prose_judge",
     "semantic_audit_provenance",
-    "chat_self_review_no_pass",
+    "route_pass_assurance_boundary",
+    "independent_claim_boundary",
     "universe_article_reconciliation",
     "evidence_stage_integrity_audit",
     "market_explanation_audit",
@@ -142,6 +143,7 @@
     "regression_testing",
     "version_consistency",
     "cutover_policy",
-    "learning_sample_promotion"
+    "learning_sample_promotion",
+    "retired_runtime_negative_space"
   ]
 }
