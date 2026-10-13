@@ -10,18 +10,18 @@
   "resume_eligible": true,
   "resume_visibility": "DEFAULT",
   "recovery_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
-  "updated_at": "2026-10-12T11:45:00Z",
+  "updated_at": "2026-10-13T01:12:00Z",
   "current_stage": "READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
   "next_action": "普通新财经文章请求：读取 GitHub main 当前 thin Skill、AGENT_MANIFEST、UNIVERSAL_PROTOCOL_ADAPTER 与 EXECUTION_CAPABILITIES profile 10，只对当前动作所需能力做 handshake。owner-native Python/plugin 实际可用则进入其版本化 WritingState；否则仅当当前会话具备 model + GitHub owner read/write + 可执行 deterministic github_chat_guard 时选择 GITHUB_CHAT。GITHUB_CHAT 新业务状态只写 main/workspaces/articles/{task_id}，默认路由由 canonical TaskContract 决定；用户未明确缩窄平台/模式时必须 DUAL，required_outputs=FINANCE_DEEP_DOCX+FINANCE_BROAD_DOCX+AUDIT_DOCX。任何单模式 override 必须在 INIT receipt 绑定原始用户 prompt 的精确子串证据。DELIVERY/FINAL 必须机械对账 required_outputs 后才能继续/终态。下一次真实 fresh-chat 回归重点证明该 3-output/main-only contract；禁止 free-form fallback 和 per-article business-state branch。",
   "checkpoint_ref": "continuity/tasks/financial-writing-main/HANDOFF.md",
   "contract_version": "CONTINUITY_V3_7",
   "skill_version": "FINANCIAL_WRITING_AGENT_V0_8",
   "runtime_version": "V0_8_1__PROFILE_10__CANONICAL_WORKFLOW_KERNEL__OWNER_NATIVE_CHECKPOINT_CAS_RECOVERY__GITHUB_CHAT_TASK_OUTPUT_PARITY__MAIN_ONLY_STATE__FULL_HOSTED_CI_OPEN",
-  "resume_epoch": 3,
+  "resume_epoch": 4,
   "active_lease": {
-    "lease_id": "fw-4b398865ade44f1c896911a438f0c83b",
-    "acquired_at": "2026-10-12T07:48:00Z",
-    "supersedes_lease_id": "fw-5636d680328b40c5ab4b5029441e3489"
+    "lease_id": "fw-e3dff9bf4dd547eb94fab8e15456c34f",
+    "acquired_at": "2026-10-13T01:12:00Z",
+    "supersedes_lease_id": "fw-4b398865ade44f1c896911a438f0c83b"
   },
   "keywords": ["金融文章", "财经文章", "写金融文章", "写财经文章", "投研文章", "公众号财经写作", "写作"],
   "artifact_refs": [
