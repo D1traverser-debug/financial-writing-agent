@@ -4,89 +4,121 @@
 - task_class: `SYSTEM_INFRA`
 - domain: `FINANCIAL_WRITING_SYSTEM`
 - owner: `FINANCIAL_WRITING_AGENT_ENGINEERING`
-- status: `ACTIVE`
+- status: `WAITING`
 - resume_visibility: `EXPLICIT_ONLY`
 - continuity_contract: `CONTINUITY_V3_7`
-- current_stage: `GLOBAL_AUDIT_AND_LIVE_E2E_REPAIR`
+- current_stage: `BOUNDED_AUDIT_COMPLETE__OPEN_EXTERNAL_ASSURANCE`
 - resume_epoch: `1`
 - active_lease: `fw-eng-b8292233f43340b0912cbb20db3e227d`
 
-## Why this task now exists
+## 本轮全局审视结论
 
-The Financial repository already contained durable system-level evidence such as:
-- `evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-12.md`;
-- `evals/FINANCIAL_FULL_SYSTEM_REBUILD_2026-10-12.md`;
-- `evals/FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md`;
-- Phase 0/1/2 closure evidence.
+本轮不是文章 FINAL_AUDIT，而是 **Financial Writing 整个系统的 bounded global audit + live E2E repair**。主报告：
 
-But the current continuity surface exposed only the ordinary USER article workspace as a resumable Financial task. In a fresh chat the user explicitly said `继承财经写作系统`, which is a Named CONTINUE under Universal v3.7, yet the system-level durable work did not have an exact Financial task manifest/checkpoint to resolve. The chat incorrectly fell back to bare USER discovery and resumed `financial-writing:main` / the ice-snow article instead.
+`evals/FINANCIAL_GLOBAL_SYSTEM_AUDIT_2026-10-13.md`
 
-This file normalizes the already-existing system work into an explicit resumable engineering task. It does not turn historical evals into current authority; current `main` remains engineering authority.
+本轮确认并处理 4 类缺陷：
 
-## Current live evidence
+1. `FW-GA-20261013-01` — **系统级 continuation 路由/任务注册缺口**  
+   `继承财经写作系统` 是 Named CONTINUE，却曾被错误降格为 Bare CONTINUE，最终误接普通文章 workspace。现在已建立本 explicit-only SYSTEM_INFRA task，并在 Financial TASK_INDEX 注册精确恢复入口。owner-side repair 已完成；真实 future fresh-chat product trace 仍 OPEN。
 
-Latest real article trajectory: `ice-snow-economy-20261013`.
+2. `FW-GA-20261013-02` — **artifact lifecycle / 用户可见交付复发**  
+   10/12 的 3→2 visible-delivery incident 修过“要求几个文件”，但 10/13 live trajectory 证明更高层问题仍存在：STATE 有三份输出 identity/hash，不代表新窗口真的拿得到文件。现新增 `financial_writing_agent.delivery_availability.build_visible_delivery_receipt`，把历史 canonical identity 与当前 resource availability 分开；旧二进制不可取回时允许从 durable source 重建，但必须视为新 binary instance，重新 mechanical/render QA，并报告真实新 SHA。
 
-Current article state is terminal at `DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN` after a full DUAL workflow and FINAL_AUDIT PASS. It therefore serves as the newest live E2E sample for the global audit.
+3. `FW-GA-20261013-03` — **Writing DNA / 结构几何审计漏检**  
+   冰雪经济 Deep 一共 5 个 H1，H2 子节点数量恰好 `(3,3,3,3,3)`；这违反现有 style 里对 repeated section geometry / 机械三段式的警戒，但原 `CHAT_SELF_REVIEW` 仍错误 PASS。现新增 `financial_writing_agent.structure_geometry.analyze_structure_geometry`，四个以上连续 substantive H1 若都被强迫成相同的 >=3 子节点结构则强制 REVISE，并以当前冰雪 Deep 作为 regression case。
 
-Two canonical article identities are recorded in owner state:
-- `FINANCE_DEEP_DOCX` sha256 `e863a831a1659b993ee9b46f578d9eb8c70f56ecc1de1b74f1d65a10fdb68922`;
-- `FINANCE_BROAD_DOCX` sha256 `10dcfb53e46d629b669045b3f91b1f90169ed47ff4cd168745209ee17ff34895`.
+4. `FW-GA-20261013-04` — **跨题材 stale policy**  
+   `config/policy.json` 曾把公司比较维度固定成 `order_visibility / realization_speed / earnings_sensitivity / overseas_exposure / technology_optionality`，明显偏科技/制造题材。已改成 `TOPIC_SPECIFIC_FROM_CURRENT_AUDITED_EVIDENCE`，禁止固定跨题材维度列表。
 
-However a fresh-window artifact lookup found neither article Word in current Conversation/Library. Only audit-report copies were discoverable. Therefore current terminal metadata proves artifact identity/history but does not prove current user-accessible binary availability.
+## 冰雪经济 live E2E 文章恢复
 
-## Confirmed defect FW-GA-20261013-01 — system-task continuation routing
+原 owner STATE 中两份正文 Word 的历史 canonical identities 仍保留，但 fresh chat 中旧 Deep/Broad 二进制不可取回。没有冒充旧文件仍存在，而是从 exact frozen publication source 重建新实例：
 
-Classification: `STARTUP_OR_ROUTING_INSTRUCTION + OWNER_BINDING / TASK_REGISTRATION`.
+### Deep redelivery
+- source: `workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_DEEP.md`
+- source blob: `79be75d2cfe1a58a30a1a5b547a82d223c168a38`
+- current file: `ice_snow_economy_deep_redelivery_20261013.docx`
+- current SHA-256: `a23fdc5d8ea82cedeed627c1e2d989a67e3b70fd94ff5c27d7e050ffebe1624b`
+- mechanical QA: PASS
+- render QA: PASS, 9/9 pages inspected
 
-Evidence:
-- Universal `ENTRYPOINT.md` says `Named CONTINUE → exact owner/task manifest + short checkpoint first; global discovery only if ambiguous`.
-- The user's phrase `继承财经写作系统` was named, not bare.
-- Financial continuity had no explicit engineering/system-audit task candidate even though system-audit durable evidence existed.
-- The prior chat therefore incorrectly entered Bare CONTINUE and selected the default USER article workspace.
+### Broad redelivery
+- source: `workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_BROAD.md`
+- source blob: `9aa181f5534cbea111a2cfaa8a7abafa07451da1`
+- current file: `ice_snow_economy_broad_redelivery_20261013.docx`
+- current SHA-256: `3b54adfcf3a9ed726e8a679819f70bde8d8797bba9bb7528771a950db3f4876d`
+- mechanical QA: PASS
+- render QA: PASS, 4/4 pages inspected
 
-Repair direction:
-1. keep ordinary `financial-writing:main` as the only DEFAULT USER candidate;
-2. register this system audit as `SYSTEM_INFRA / EXPLICIT_ONLY` under the Financial index;
-3. named phrases such as `财经写作系统`, `财经写作全局审视`, `Financial Writing system audit` must resolve here before bare discovery.
+### Audit Word
+- `WRITING_AUDIT_REPORT.docx`
+- SHA-256: `02a7e8069ae59f26f889ffd5f7e555d101f5189471431505abc3b70db2922157`
+- current binary matches owner audit identity.
 
-## Confirmed defect FW-GA-20261013-02 — artifact lifecycle / visible delivery recurrence
+The three current resources passed the new visible-delivery presentation gate as `VISIBLE_DELIVERY_READY`.
 
-Classification: `ARTIFACT_IO / DELIVERY / EVIDENCE_OR_PROPAGATION`.
-Recurrence: `RECURRED_AFTER_FIX`.
+**Important:** Deep/Broad redelivery files are new binary instances generated from exact frozen publication source. They do not claim the historical canonical DOCX byte identity. No article text was silently rewritten during redelivery.
 
-Prior incident `FINANCIAL_LIVE_E2E_TASK_OUTPUT_CONTRACT_INCIDENT_2026-10-12.md` proved a visible-delivery mismatch: default DUAL required three files but the user saw only two. The repair added exact required-output reconciliation.
+## 验证证据
 
-The current live trajectory passes that count/hash reconciliation yet exposes a higher-layer recurrence: all three output identities exist in STATE, but the two article Word binaries are not retrievable in the new chat. Current `owner_guard._validate_delivery_artifact_metadata` validates only `kind + file_name + sha256`; tests do the same. Therefore terminalization can succeed without a fresh user-accessible artifact reference.
+本轮实际执行：
+- delivery availability unit regression: `6/6 PASS`;
+- live Deep structure geometry: `(3,3,3,3,3)` → REVISE trigger confirmed;
+- live Broad structure geometry: `(0,0,0,0)` → no false fail;
+- Deep Word QA + 9-page render inspection: PASS;
+- Broad Word QA + 4-page render inspection: PASS;
+- current audit Word SHA verification: PASS;
+- current-session three-output visible-delivery receipt: `VISIBLE_DELIVERY_READY`;
+- TASK_INDEX explicit USER/SYSTEM separation reread: PASS;
+- source/package policy mirror updated consistently;
+- delivery reference source/Skill/package mirrors updated consistently.
 
-The repair must not be another count check. It must move up one layer to artifact lifecycle semantics:
-- distinguish immutable publication source / delivered-binary identity / current-session availability;
-- never treat filename/hash metadata as proof that a file can be given to the user now;
-- before visible delivery or cross-chat re-delivery, perform a fresh availability handshake;
-- if the prior binary is unavailable, regenerate from durable publication source, rerun mechanical/render QA, bind a new real resource reference and report any new binary hash rather than pretending old byte identity survived;
-- keep GitHub control-plane state independent of Library/Drive availability; external stores are artifact vault/reference surfaces, not task-state authority.
+New regression files:
+- `tests/test_delivery_availability.py`
+- `tests/test_structure_geometry.py`
+- `tests/test_global_audit_regressions_20261013.py`
 
-## Global review scope still active
+## Hosted CI 边界
 
-Continue auditing current main across:
-1. entry/routing/continuity;
-2. TaskContract/workflow/state/lease/CAS;
-3. research recall/source traceability/universe completeness;
-4. editorial architecture/title/reader funnel/prose naturalness;
-5. semantic audit and assurance boundaries;
-6. Word generation/mechanical/render/visible delivery/artifact lifecycle;
-7. feedback/system-impact/quality promotion;
-8. rule ownership/stale consumer/legacy negative space;
-9. tests/static audits/hosted CI/current live E2E;
-10. complexity and operator experience.
+Latest observed push run for head `2983a60a8465082eda71c5fed81d42fb92b78023`:
+- run `38397865130`;
+- GitHub overall conclusion: `failure`;
+- job payload: `steps=null`;
+- job-log fetch: `404 BlobNotFound`.
 
-The live ice-snow Deep/Broad articles must be reviewed as actual output evidence. Prior `CHAT_SELF_REVIEW=PASS` is not accepted as independent proof of writing quality.
+因此当前准确结论是：
 
-## Resume instruction
+`HOSTED_CI_EXECUTION_EVIDENCE_UNAVAILABLE__OPEN`
 
-Future explicit continuation should use one of:
+这既不能解释成代码测试失败，也不能解释成 CI PASS。
+
+## 本轮未确认出新系统缺陷的面
+
+在当前检查范围内：
+- Research/evidence 的 source-class recall、Universe Coverage Ledger、MATERIAL/SECONDARY/REFERENCE_ONLY 与 attribution gap 没有再证明一个新的 systemic defect；
+- canonical TaskContract / workflow / main-only article state / downstream invalidation 未发现新的结构性断裂；
+- BLOCKED/system-impact lifecycle 未发现新的 concrete defect；
+- provider-attested independent review 仍不可用，这是 OPEN assurance boundary，不用另造 persona agent 假装解决。
+
+## 下一次怎么恢复
+
+下次明确发送任一：
 - `继承财经写作系统`
 - `继续财经写作全局审视`
 - `继承：financial-writing:system-audit`
 
-Recovery must read this task manifest + HANDOFF first, show the pre-resume stage, perform takeover when it is a new chat, then continue from the current `next_action`. Do not fall back to `financial-writing:main` unless the user is actually resuming/writing an article.
+应先恢复本 task，而不是 `financial-writing:main`。
+
+当前 scoped audit 已完成，所以**下一次不得默认再跑一遍全局审查**。优先做两件事：
+1. 用真实 fresh-chat trace 验证 Named CONTINUE 是否确实命中本 task；
+2. 重新观察当时 current main 的 hosted CI 是否真正获得执行步骤/日志。
+
+只有出现新 defect/evidence 才 reopen 对应审查范围。
+
+## 仍 OPEN
+
+- fresh-chat product routing trace；
+- hosted CI execution evidence；
+- provider-attested independent semantic review；
+- 超出当前 live sample / regression corpus 的 open-world writing-quality generalization。
