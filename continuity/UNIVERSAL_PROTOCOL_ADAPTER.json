@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "2.1",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "current_universal_protocol": "3.7",
   "owner_contract_version": "0.8.1",
@@ -45,12 +45,12 @@
       "artifact_io": {
         "status": "APPLIES",
         "reason": "Financial Writing persists article state, stage/review/publication evidence and delivery identities under one GitHub main workspace and requires fresh-read/CAS/post-write verification.",
-        "evidence_refs": ["continuity/FINANCIAL_OWNER_EXECUTION.json", "financial_writing_agent/github_chat_guard.py", "references/delivery.md"]
+        "evidence_refs": ["continuity/FINANCIAL_OWNER_EXECUTION.json", "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py", "references/delivery.md"]
       },
       "operational_hygiene": {
         "status": "APPLIES",
         "reason": "Material writing defects and user corrections must become durable owner evidence, be globally reframed when systemic, and close only after verified maintenance without creating duplicate execution paths.",
-        "evidence_refs": ["continuity/FINANCIAL_OWNER_EXECUTION.json", "references/maintenance.md", "scripts/static_audit.py"]
+        "evidence_refs": ["continuity/FINANCIAL_OWNER_EXECUTION.json", "financial_writing_agent/owner_lifecycle.py", "references/maintenance.md", "scripts/static_audit.py"]
       },
       "evolution": {
         "status": "APPLIES",
@@ -99,6 +99,7 @@
     "retired_active_route_concepts": ["OWNER_NATIVE", "GITHUB_CHAT_AS_FALLBACK_ADAPTER"],
     "retired_state_authorities": ["SQLite WritingState for new/resumed Financial work", "per-article business-state branches", "plugin-local task state", "chat memory"],
     "historical_evals_and_branches": "EVIDENCE_ONLY",
+    "legacy_state_token": "GITHUB_CHAT is tolerated only inside schema-1.2 article state/receipt compatibility surfaces and must not appear as a current route selector or component path",
     "legacy_presence_may_activate_route": false
   },
   "universal_policy_refs": [
