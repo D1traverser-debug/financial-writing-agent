@@ -1,35 +1,21 @@
+import json
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
+QUARANTINE = ROOT / "config" / "retired_runtime_paths.json"
 
-RETIRED_CURRENT_TREE_PATHS = (
-    "continuity/GITHUB_CHAT_EXECUTION.json",
-    "financial_writing_agent/github_chat_guard.py",
-    "financial_writing_agent/adapters/deterministic.py",
-    "financial_writing_agent/adapters/openai_agents.py",
-    "financial_writing_agent/cli.py",
-    "financial_writing_agent/controller.py",
-    "financial_writing_agent/engine.py",
-    "financial_writing_agent/mcp_contracts.py",
-    "financial_writing_agent/methodology_receipts.py",
-    "financial_writing_agent/network_safety.py",
-    "financial_writing_agent/plugin_server.py",
-    "financial_writing_agent/runner.py",
-    "financial_writing_agent/runtime_factory.py",
-    "financial_writing_agent/runtime_service.py",
-    "financial_writing_agent/semantic_runtime.py",
-    "financial_writing_agent/state_recovery.py",
-    "financial_writing_agent/store.py",
-    "financial_writing_agent/system_impact.py",
-    "plugin.json",
-    "scripts/sdk_smoke.py",
-    "scripts/mcp_smoke.py",
-)
+
+def _retired_paths() -> list[str]:
+    payload = json.loads(QUARANTINE.read_text(encoding="utf-8"))
+    assert payload["schema_version"] == "1.0"
+    paths = payload["retired_current_tree_paths"]
+    assert len(paths) == len(set(paths))
+    return paths
 
 
 def test_retired_second_runtime_cannot_reenter_current_tree():
-    offenders = [path for path in RETIRED_CURRENT_TREE_PATHS if (ROOT / path).exists()]
+    offenders = [path for path in _retired_paths() if (ROOT / path).exists()]
     assert offenders == [], f"retired Financial runtime files returned to current tree: {offenders}"
 
 
