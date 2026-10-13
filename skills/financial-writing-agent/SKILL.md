@@ -13,14 +13,15 @@ Normal use has exactly one product/execution path:
 
 `ChatGPT request → current GitHub main Financial owner → main/workspaces/articles/{task_id} durable state → canonical workflow → Word delivery`.
 
-Do not ask the user to choose an execution mode. Do not choose between owner-native, GitHub-chat, Python, MCP, plugin or any other alternate business route. Model, web, Python, document, plugin or MCP facilities are capability providers inside the same owner trajectory when actually available; they never create a second article-state authority.
+Do not ask the user to choose an execution mode. Do not choose between owner-native, GitHub-chat, Python or any other alternate business route. Model, web, deterministic/Python and document facilities are capabilities inside the same owner trajectory when actually available; they never create a second article-state authority.
 
 Before material work read `continuity/FINANCIAL_OWNER_EXECUTION.json` and `continuity/EXECUTION_CAPABILITIES.json`, then handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
 
 - Durable article business state lives only at `main/workspaces/articles/{task_id}`.
 - Create durable article state before research or drafting. Chat memory is never task authority.
-- Every material transition uses the deterministic Financial owner guard against freshly fetched main state, binds the prior state blob SHA, writes with compare-and-swap, then rereads authoritative state and new artifact refs.
-- The current guard implementation remains `financial_writing_agent/github_chat_guard.py` for code compatibility. Its historical filename is not an execution-mode selector.
+- Every material transition uses `financial_writing_agent/owner_guard.py` against freshly fetched main state, binds the prior state blob SHA, writes with compare-and-swap, then rereads authoritative state and new artifact refs.
+- Review FAIL/BLOCKED recovery and system-impact lifecycle use `financial_writing_agent/owner_lifecycle.py` against that same owner state; they do not create another state machine.
+- Existing schema-1.2 `execution_mode=GITHUB_CHAT` and old receipt labels are compatibility data only, not route selectors.
 - Missing hard capability blocks the affected stage. It never authorizes free-form writing or a lower business SOP.
 - New per-article business-state branches are forbidden. Historical branches/evals are evidence only and never current authority.
 - Legacy owner-native/SQLite/plugin task state is not a fallback for new or resumed Financial business work.
@@ -68,7 +69,7 @@ Do not copy full reference rules into this Skill.
 
 Material user edit/feedback/rejection/acceptance that changes writing, review or delivery must become durable owner evidence before claiming learning.
 
-Persist corrective evidence in the same main article workspace and keep systemic impact OPEN until the maintenance/evolution lifecycle has evidence-backed closure. Do not fabricate plugin/runtime receipts that were not actually produced.
+Persist corrective evidence in the same main article workspace and keep systemic impact OPEN until the maintenance/evolution lifecycle has evidence-backed closure. Do not fabricate runtime receipts that were not actually produced.
 
 Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Prefer consolidation/deletion over adding another execution adapter, state store or persona Agent. A superseded mechanism may remain in Git history or historical evals, but it must be removed or mechanically quarantined from current authority and hot-path routing.
 
