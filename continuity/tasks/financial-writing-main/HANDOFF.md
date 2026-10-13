@@ -63,7 +63,19 @@ They may remain in Git history or historical evals as evidence. They must not be
 
 Missing capability blocks only the affected stage. It never authorizes free-form writing or an old fallback mechanism.
 
-PR #20 is closed and unmerged; it is historical evidence only. The active single-owner candidate is draft PR #21 on `maintenance/single-financial-owner-20261013` until validation and second-order review are complete.
+PR #20 is closed and unmerged historical evidence only. PR #21 was validated and merged to `main` as merge commit `34666897d1884659e76427d12de71123a78ffd2f`; the single GitHub-backed owner path is now current main authority.
+
+## Validation state after single-owner cutover
+
+Owner-local validation performed against PR #21/current cutover code:
+- exact-blob local pytest: **81/81 PASS**;
+- canonical contract eval: **PASS**;
+- retired-runtime negative-space audit: **PASS** (21 retired runtime/discovery paths absent);
+- single-owner/static authority invariants: **PASS** against current Git tree/blob identities;
+- Word mechanical smoke and actual DOCX→PDF/PNG render: **PASS**;
+- wheel build plus target-install import/resource/owner/document smoke: **PASS**.
+
+GitHub-hosted Actions remains **OPEN_RUNNER_NOT_EXECUTED**: the inspected PR-head run allocated no runner and executed zero steps. That is neither a code PASS nor a code FAIL.
 
 ## New task vs continuation
 
@@ -81,10 +93,10 @@ Only explicit continuation may resume an old article. Resolve the exact main art
 
 ## Assurance boundaries still OPEN
 
-- current full GitHub-hosted owner CI for the newest PR #21 head: **OPEN until that exact head run is inspected**;
+- GitHub-hosted full owner CI: **OPEN_RUNNER_NOT_EXECUTED**;
+- fresh-chat single-owner live trajectory regression: **OPEN** until the next real new-chat/new-task trajectory is observed;
 - final-response owner admission / physical GitHub-write interception: **OPEN at the shared Universal/product control plane**;
 - non-forgeable Universal lease/resume_epoch fencing at every Financial mutation: **OPEN**;
-- fresh-chat single-owner trajectory regression: **OPEN**;
 - provider-attested isolated independent review: **UNAVAILABLE**.
 
 `resume_epoch=4`; active lease remains `fw-e3dff9bf4dd547eb94fab8e15456c34f` for the current durable Financial workspace. Same-chat maintenance does not invent a new takeover epoch.
