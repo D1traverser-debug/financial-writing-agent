@@ -1,65 +1,71 @@
 {
-  "schema_version": "1.0",
-  "architecture_contract_version": "1.3",
+  "schema_version": "1.1",
+  "architecture_contract_version": "1.4",
   "owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
   "owner_kind": "BUSINESS",
   "product_interface": {
     "interaction_surface": "CHATGPT",
     "entry_model": "SINGLE_OWNER_ENTRY",
-    "execution_mode_selection": "SYSTEM_INTERNAL",
+    "production_path": "CHATGPT_WITH_GITHUB_CODE_AND_STATE",
+    "alternate_production_mode_allowed": false,
     "business_contract_model": "SINGLE_CANONICAL_OWNER_WORKFLOW"
   },
   "skill": {
     "role": "ROUTER",
     "entrypoint": "skills/financial-writing-agent/SKILL.md",
-    "current_note": "Skill is the single ChatGPT-facing Financial product entry and thin router; detailed research/editorial/style/delivery/maintenance semantics remain in canonical references, policy and executable guards. Internal execution modes are selected by the system and are not user-facing workflows."
+    "current_note": "Single ChatGPT-facing Financial product entry. GitHub main contains the code/rules/state authority; Python/controller/plugin modules are implementation or validation components, not alternate user workflows."
   },
   "runtime": {
-    "runtime_type": "HYBRID",
+    "runtime_type": "CHATGPT_WITH_GITHUB_CODE",
     "entrypoints": [
-      "financial_writing_agent/plugin_server.py",
-      "financial_writing_agent/runner.py",
-      "financial_writing_agent/runtime_service.py",
-      "financial_writing_agent/adapters/openai_agents.py",
       "financial_writing_agent/github_chat_guard.py",
       "financial_writing_agent/github_chat_lifecycle.py"
     ],
     "tool_surface_refs": [
+      "continuity/FINANCIAL_EXECUTION_CONTRACT.json"
+    ],
+    "internal_validation_components": [
       "financial_writing_agent/plugin_server.py",
-      "financial_writing_agent/mcp_contracts.py",
-      "continuity/GITHUB_CHAT_EXECUTION.json"
-    ],
-    "judgment_execution": "EXECUTABLE",
-    "note": "Owner-native and GITHUB_CHAT are internal execution/evidence adapters for one Financial business owner and one canonical TaskContract. The system selects the available binding; normal users are not asked to choose a mode. Adapters may differ in assurance/tool substrate but may not redefine default distribution mode, delivery channel, required outputs, workflow, invalidation, recovery, system-impact lifecycle or terminal semantics. GITHUB_CHAT material state is main/workspaces/articles/{task_id} only and requires the appropriate deterministic transition/lifecycle guard plus self-attested action-bound receipts; provider-attested isolation remains separate and unavailable."
-  },
-  "workflow": {
-    "state_authority_refs": [
-      "financial_writing_agent/store.py",
-      "financial_writing_agent/models.py",
-      "financial_writing_agent/routing.py",
-      "continuity/GITHUB_CHAT_EXECUTION.json"
-    ],
-    "transition_guard_refs": [
-      "financial_writing_agent/workflow_spec.py",
+      "financial_writing_agent/runner.py",
+      "financial_writing_agent/runtime_service.py",
       "financial_writing_agent/controller.py",
       "financial_writing_agent/engine.py",
       "financial_writing_agent/semantic_runtime.py",
+      "financial_writing_agent/adapters/openai_agents.py"
+    ],
+    "judgment_execution": "EXECUTABLE",
+    "note": "There is one production path: ChatGPT executes the Financial workflow against GitHub main authority and deterministic Financial guards. Internal Python/MCP components may validate, simulate or support the implementation, but they do not define a second production route or terminal contract."
+  },
+  "workflow": {
+    "state_authority_refs": [
+      "financial_writing_agent/models.py",
+      "financial_writing_agent/routing.py",
+      "continuity/FINANCIAL_EXECUTION_CONTRACT.json"
+    ],
+    "transition_guard_refs": [
+      "financial_writing_agent/workflow_spec.py",
       "financial_writing_agent/github_chat_guard.py",
       "financial_writing_agent/github_chat_lifecycle.py"
     ],
-    "shared_business_contract": {
+    "internal_reference_implementations": [
+      "financial_writing_agent/controller.py",
+      "financial_writing_agent/engine.py",
+      "financial_writing_agent/semantic_runtime.py"
+    ],
+    "business_contract": {
       "task_contract_ref": "financial_writing_agent/models.py::TaskContract",
       "routing_ref": "financial_writing_agent/routing.py::build_task_contract",
       "default_distribution_mode": "DUAL",
       "default_delivery_channel": "WORD_FILE_ONLY",
       "default_required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
-      "github_chat_state_ref": "main"
+      "article_state_ref": "main"
     }
   },
   "harness": {
     "ci_workflow_ref": ".github/workflows/ci.yml",
     "commands": ["python scripts/sdk_smoke.py", "python scripts/mcp_smoke.py", "pytest -q", "python scripts/eval_contracts.py", "python scripts/static_audit.py"],
-    "suites": ["architecture", "contract", "trajectory", "quality", "artifact"]
+    "suites": ["architecture", "contract", "trajectory", "quality", "artifact"],
+    "note": "Harness and MCP/Python checks validate the implementation; passing them does not create an alternate production mode."
   },
   "references": {
     "canonical_roots": ["references"],
@@ -69,6 +75,7 @@
   "continuity": {
     "task_index_ref": "continuity/TASK_INDEX.md",
     "protocol_adapter_ref": "continuity/UNIVERSAL_PROTOCOL_ADAPTER.json",
-    "execution_capability_ref": "continuity/EXECUTION_CAPABILITIES.json"
+    "execution_capability_ref": "continuity/EXECUTION_CAPABILITIES.json",
+    "execution_contract_ref": "continuity/FINANCIAL_EXECUTION_CONTRACT.json"
   }
 }
