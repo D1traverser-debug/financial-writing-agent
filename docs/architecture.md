@@ -18,11 +18,11 @@ Product path:
 
 `ChatGPT request → current GitHub main Financial owner → durable article workspace → canonical stages → Word delivery`.
 
-There is no business/runtime selection between OWNER_NATIVE and GITHUB_CHAT. Model, web, Python, document, plugin and MCP facilities are capability providers inside the same state trajectory. A provider may supply an exact-stage capability, but it may not create another task-state authority, route, output contract or terminal meaning.
+There is no business/runtime selection between OWNER_NATIVE and GITHUB_CHAT. Model, web, deterministic/Python and document facilities are capabilities inside the same state trajectory. A capability may serve an exact stage, but it may not create another task-state authority, route, output contract or terminal meaning.
 
 Canonical execution contract: `continuity/FINANCIAL_OWNER_EXECUTION.json`.
 
-The current deterministic mutation implementation is `financial_writing_agent/github_chat_guard.py`. Its historical filename and existing `STATE.json.execution_mode=GITHUB_CHAT` token are retained only as compatibility identifiers. They must never be interpreted as a route selector.
+Canonical mutation guard: `financial_writing_agent/owner_guard.py`. Canonical BLOCKED recovery/system-impact lifecycle: `financial_writing_agent/owner_lifecycle.py`. Existing schema-1.2 `STATE.json.execution_mode=GITHUB_CHAT` values and old receipt labels remain compatibility data only; they must never be interpreted as route selectors or current component names.
 
 ## 3. Runtime graph
 
@@ -116,7 +116,7 @@ Examples:
 - document tooling: Word generation/render inspection;
 - future provider-attested reviewer: optional stronger review evidence.
 
-Legacy plugin/MCP/Python owner runtimes may remain in source history or code while migration/cleanup is incomplete, but current manifests do not admit them as alternate task-state authorities. Presence is not activation.
+Legacy plugin/MCP/local owner runtimes may remain in source history or temporarily as unreachable migration code while cleanup is incomplete, but current manifests, package entrypoints, dependencies, default tests and continuity do not admit them as alternate task-state authorities. Presence is not activation.
 
 ## 12. Maintenance architecture and legacy quarantine
 
@@ -127,7 +127,7 @@ A maintenance closure reconciles every current consumer of the changed invariant
 Superseded mechanisms follow this rule:
 
 - remove them from current authority/hot-path routing;
-- delete current duplicate contracts when safe;
+- delete current duplicate contracts/components when safe;
 - retain Git history/historical evals only as evidence;
 - never activate them because a current capability is missing;
 - add a deterministic/static regression when the failure class can recur.
