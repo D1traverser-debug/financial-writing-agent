@@ -5,22 +5,19 @@ from typing import Any, Mapping
 
 from .github_chat_guard import (
     MAIN_STATE_REF,
+    SELF_ATTESTED_RECEIPT,
     GithubChatGuardError,
     _new_receipt,
     _state_path,
     _utc_now,
     validate_state,
 )
+from .system_impact import ASSURANCE_LADDER, ROOT_CAUSE_LAYERS, SYSTEM_IMPACT_DECISIONS
+from .workflow_spec import REVIEW_STAGE_NAMES
 
-SYSTEM_IMPACT_DECISIONS = {"LOCAL_ONLY", "SYSTEM_MAINTENANCE_REQUIRED", "NO_CHANGE_WITH_REASON"}
-ASSURANCE_LADDER = [
-    "DECLARED",
-    "WIRED",
-    "REGRESSION_VERIFIED",
-    "ACTION_LEVEL_SELF_ATTESTED",
-    "ACTION_LEVEL_INDEPENDENTLY_VERIFIED",
-    "LIVE_OUTCOME_VERIFIED",
-]
+
+MATERIAL_FEEDBACK_TYPES = {"USER_EDIT", "USER_FEEDBACK", "USER_REJECTION"}
+CHAT_CLOSURE_ATTESTATION = "SELF_ATTESTED_CHAT_EVIDENCE_BINDING"
 
 
 def _require(condition: bool, message: str) -> None:
@@ -57,31 +54,39 @@ def resume_blocked_state(
     repair_evidence: list[str],
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Resume one GITHUB_CHAT task conservatively after an explicit BLOCKED repair.
+    """Resume one GITHUB_CHAT task after an explicit repair of a review-stage blocker.
 
-    Current chat-mode FAIL blocks only on a review stage. Recovery reruns that exact
-    review stage and invalidates the failed review artifact/decision so stale evidence
-    cannot be reused as a new PASS.
+    Chat-mode FAIL blocks in place. Recovery therefore reruns the exact failed review
+    stage and invalidates its failed artifact/decision so stale failure evidence cannot
+    later be reused as a fresh PASS.
     """
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
     validate_state(state)
     before = deepcopy(dict(state))
     _require(before.get("status") == "BLOCKED", "only BLOCKED chat state may be resumed")
     stage = str(before.get("current_stage", ""))
-    _require(stage.endswith("AUDIT"), "BLOCKED recovery currently supports canonical review-stage failures only")
+    _require(stage in REVIEW_STAGE_NAMES, "BLOCKED recovery requires a canonical review-stage failure")
     evidence = _clean_string_list(repair_evidence, label="repair_evidence")
 
+    failed_artifact = before.get("stage_artifacts", {}).get(stage)
+    failed_review = before.get("review_decisions", {}).get(stage)
+    _require(isinstance(failed_artifact, Mapping), "BLOCKED recovery requires the persisted failed review artifact")
+    _require(
+        isinstance(failed_review, Mapping) and failed_review.get("status") == "FAIL",
+        "BLOCKED recovery requires the persisted FAIL review decision",
+    )
+
     after = deepcopy(before)
-    failed_artifact = after.setdefault("stage_artifacts", {}).pop(stage, None)
-    failed_review = after.setdefault("review_decisions", {}).pop(stage, None)
+    after.setdefault("stage_artifacts", {}).pop(stage, None)
+    after.setdefault("review_decisions", {}).pop(stage, None)
     after["status"] = "IN_PROGRESS"
     after["next_action"] = f"persist a fresh {stage} artifact, then rerun the guarded review transition"
     after.setdefault("recovery_history", []).append(
         {
             "recovery_stage": stage,
             "repair_evidence": evidence,
-            "invalidated_artifact": failed_artifact,
-            "invalidated_review": failed_review,
+            "invalidated_artifact": dict(failed_artifact),
+            "invalidated_review": dict(failed_review),
             "resumed_at": _utc_now(),
         }
     )
@@ -94,7 +99,11 @@ def resume_blocked_state(
         previous_state_blob_sha=previous_state_blob_sha,
         action_kind="RESUME_BLOCKED",
         subject_bindings={"task_id": before["task_id"], "from_status": "BLOCKED", "resume_stage": stage},
-        input_bindings={"repair_evidence": evidence, "invalidated_failed_stage_artifact": bool(failed_artifact)},
+        input_bindings={
+            "repair_evidence": evidence,
+            "invalidated_failed_stage_artifact": True,
+            "invalidated_failed_review": True,
+        },
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
     )
@@ -105,6 +114,7 @@ def resume_blocked_state(
     _require(after["current_stage"] == before["current_stage"], "blocked recovery may not guess a different stage")
     _require(stage not in after.get("stage_artifacts", {}), "failed review artifact must be invalidated before retry")
     _require(stage not in after.get("review_decisions", {}), "failed review decision must be invalidated before retry")
+    _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     return after
 
 
@@ -133,15 +143,16 @@ def review_system_impact_state(
 ) -> dict[str, Any]:
     """Classify or close one GITHUB_CHAT material-feedback system-impact obligation.
 
-    This mirrors the owner-native business lifecycle at CHAT_SELF_REVIEW assurance:
-    OPEN -> reviewed local close, or OPEN -> MAINTENANCE_REQUIRED -> verified closure.
-    It does not fabricate owner-native methodology receipts.
+    The business lifecycle mirrors owner-native semantics, but every chat lifecycle
+    receipt and closure remains self-attested. Evidence refs may be bound to a closure;
+    this adapter does not convert them into owner-native or independently verified proof.
     """
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
     validate_state(state)
     before = deepcopy(dict(state))
     _require(bool(str(signal_id).strip()), "signal_id is required")
     _require(decision in SYSTEM_IMPACT_DECISIONS, f"unsupported system-impact decision: {decision}")
+    _require(root_cause_layer in ROOT_CAUSE_LAYERS, f"unsupported root_cause_layer: {root_cause_layer}")
 
     problem = problem_statement.strip()
     scope = generalization_scope.strip()
@@ -149,7 +160,7 @@ def review_system_impact_state(
     rationale = selection_rationale.strip()
     authority = authority_surface.strip()
     decision_note = decision_reason.strip()
-    _require(all([problem, root_cause_layer.strip(), scope, selected, rationale, authority, decision_note]), "system-impact review requires non-empty diagnosis, authority and decision rationale")
+    _require(all([problem, scope, selected, rationale, authority, decision_note]), "system-impact review requires non-empty diagnosis, authority and decision rationale")
 
     normalized_alternatives = _normalize_alternatives(alternatives)
     _require(selected in {item["mechanism"] for item in normalized_alternatives}, "selected_mechanism must exactly match one reviewed alternative")
@@ -160,10 +171,16 @@ def review_system_impact_state(
     open_signals = list(before.get("open_system_impact", []))
     matches = [(index, item) for index, item in enumerate(open_signals) if item.get("signal_id") == signal_id]
     _require(len(matches) == 1, "system-impact signal must exist exactly once in open_system_impact")
-    index, existing = matches[0]
+    index, original_signal = matches[0]
+    _require(original_signal.get("status") in {"OPEN", "MAINTENANCE_REQUIRED"}, "system-impact signal is not open")
+    _require(
+        original_signal.get("trigger_sample_type") in MATERIAL_FEEDBACK_TYPES,
+        "system-impact signal must originate from material corrective feedback",
+    )
+
     review_core = {
         "problem_statement": problem,
-        "root_cause_layer": root_cause_layer.strip(),
+        "root_cause_layer": root_cause_layer,
         "generalization_scope": scope,
         "alternatives": normalized_alternatives,
         "selected_mechanism": selected,
@@ -181,18 +198,28 @@ def review_system_impact_state(
     action = "SYSTEM_IMPACT_REVIEW"
 
     if existing_review is None:
+        _require(current.get("status") == "OPEN", "first system-impact review requires OPEN status")
         _require(not maintenance_ref and not validation_refs and not assurance_ceiling, "first system-impact review must classify before maintenance closure")
         current["review"] = {**review_core, "reviewed_at": _utc_now()}
         if decision == "SYSTEM_MAINTENANCE_REQUIRED":
+            observed_at = _utc_now()
+            signal_ref = f"github-state://{before['task_id']}/open_system_impact/{signal_id}"
+            control_evidence = list(dict.fromkeys([signal_ref, *refs]))
+            sample_ref = str(current.get("sample_ref", "")).strip()
+            if sample_ref:
+                control_evidence.insert(0, sample_ref)
+                control_evidence = list(dict.fromkeys(control_evidence))
             current["status"] = "MAINTENANCE_REQUIRED"
-            current["remaining_open"] = open_items or ["verified maintenance closure evidence is required"]
+            current["remaining_open"] = open_items or ["evidence-bound maintenance closure remains required"]
             current["control_signal"] = {
                 "signal_id": f"fwa-{before['task_id']}-{signal_id}",
                 "signal_type": "USER_REPORTED_SYSTEMIC_FAILURE",
                 "source": "FINANCIAL_WRITING_AGENT_RUNTIME:GITHUB_CHAT",
+                "observed_at": observed_at,
                 "subject": f"writing-task:{before['task_id']}:{signal_id}",
                 "summary": problem,
-                "evidence_refs": refs,
+                "evidence_refs": control_evidence,
+                "severity": "MEDIUM",
                 "authority": "NON_AUTHORITATIVE_CONTROL_SIGNAL",
             }
             after["open_system_impact"][index] = current
@@ -212,13 +239,15 @@ def review_system_impact_state(
         _require(assurance_ceiling in ASSURANCE_LADDER, "maintenance closure requires a recognized assurance_ceiling")
         _require(
             ASSURANCE_LADDER.index(str(assurance_ceiling)) >= ASSURANCE_LADDER.index("REGRESSION_VERIFIED"),
-            "maintenance closure requires at least REGRESSION_VERIFIED evidence",
+            "maintenance closure requires evidence labeled at least REGRESSION_VERIFIED",
         )
         current["status"] = "MAINTENANCE_CLOSED"
         current["maintenance_closure"] = {
             "maintenance_ref": clean_maintenance_ref,
             "validation_refs": clean_validation_refs,
-            "assurance_ceiling": assurance_ceiling,
+            "evidence_assurance_ceiling": assurance_ceiling,
+            "closure_attestation": CHAT_CLOSURE_ATTESTATION,
+            "receipt_verification_status": SELF_ATTESTED_RECEIPT,
             "remaining_open": open_items,
             "closed_at": _utc_now(),
         }
@@ -240,7 +269,8 @@ def review_system_impact_state(
             "authority_surface": authority,
             "maintenance_ref": maintenance_ref,
             "validation_refs": list(validation_refs or []),
-            "assurance_ceiling": assurance_ceiling,
+            "evidence_assurance_ceiling": assurance_ceiling,
+            "closure_attestation": CHAT_CLOSURE_ATTESTATION if action == "SYSTEM_IMPACT_CLOSE" else None,
         },
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
@@ -248,4 +278,5 @@ def review_system_impact_state(
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
     validate_state(after)
+    _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     return after
