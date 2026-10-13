@@ -29,12 +29,12 @@ jobs:
           python -m venv /tmp/fwa-wheel
           WHEEL=$(ls "$GITHUB_WORKSPACE"/dist/*.whl | head -1)
           /tmp/fwa-wheel/bin/pip install "$WHEEL"
-          mkdir -p /tmp/fwa-wheel-data
           cd /tmp
-          FINANCIAL_WRITING_DATA_DIR=/tmp/fwa-wheel-data /tmp/fwa-wheel/bin/python - <<'PY'
+          /tmp/fwa-wheel/bin/python - <<'PY'
           from financial_writing_agent.models import DistributionMode, TaskContract
           from financial_writing_agent.resources import load_packaged_policy, read_reference
-          from financial_writing_agent.adapters.deterministic import DeliveryExecutor
+          from financial_writing_agent.document import build_article_docx, build_audit_docx
+          from financial_writing_agent.checks import check_docx
           from financial_writing_agent.owner_guard import build_initial_state
           from financial_writing_agent.owner_lifecycle import resume_blocked_state
 
@@ -42,10 +42,9 @@ jobs:
           assert policy["defaults"]["distribution_mode"] == "DUAL"
           assert TaskContract(prompt="smoke").distribution_mode == DistributionMode.DUAL
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
-          DeliveryExecutor(root="/tmp/fwa-wheel-runs")
-          assert callable(build_initial_state)
-          assert callable(resume_blocked_state)
-          print("PASS: clean wheel contains canonical policy/references, TaskContract, owner guard/lifecycle and deterministic delivery")
+          assert callable(build_article_docx) and callable(build_audit_docx) and callable(check_docx)
+          assert callable(build_initial_state) and callable(resume_blocked_state)
+          print("PASS: clean wheel contains canonical policy/references, TaskContract, owner guard/lifecycle and stateless Word utilities")
           PY
       - name: Install render dependencies
         run: |
