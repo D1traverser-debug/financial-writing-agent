@@ -7,6 +7,7 @@ from financial_writing_agent.github_chat_guard import (
     build_initial_state,
 )
 from financial_writing_agent.github_chat_lifecycle import (
+    CHAT_CLOSURE_ATTESTATION,
     resume_blocked_state,
     review_system_impact_state,
 )
@@ -74,6 +75,31 @@ def test_blocked_state_requires_explicit_repair_evidence_and_reruns_exact_stage(
     assert resumed["execution_receipts"][-1]["capability_id"] == "github_chat_blocked_recovery"
 
 
+def test_blocked_recovery_rejects_missing_persisted_failure_evidence():
+    blocked = _blocked_research_audit()
+    blocked["stage_artifacts"].pop("RESEARCH_AUDIT")
+    with pytest.raises(GithubChatGuardError, match="failed review artifact"):
+        resume_blocked_state(
+            blocked,
+            previous_state_blob_sha="s3",
+            executor_identity="chat-session:test",
+            repair_evidence=["repair://one"],
+        )
+
+
+def test_blocked_recovery_rejects_non_review_stage_even_if_state_is_marked_blocked():
+    state = _initial()
+    state["status"] = "BLOCKED"
+    state["current_stage"] = "TITLE"
+    with pytest.raises(GithubChatGuardError, match="canonical review-stage"):
+        resume_blocked_state(
+            state,
+            previous_state_blob_sha="s3",
+            executor_identity="chat-session:test",
+            repair_evidence=["repair://one"],
+        )
+
+
 def _state_with_feedback():
     state = _initial()
     return attach_material_feedback(
@@ -109,7 +135,7 @@ def _review_kwargs():
     )
 
 
-def test_system_impact_can_escalate_then_close_with_bound_evidence():
+def test_system_impact_can_escalate_then_close_with_bound_self_attested_evidence():
     state = _state_with_feedback()
     reviewed = review_system_impact_state(
         state,
@@ -117,8 +143,13 @@ def test_system_impact_can_escalate_then_close_with_bound_evidence():
         executor_identity="chat-session:test",
         **_review_kwargs(),
     )
-    assert reviewed["open_system_impact"][0]["status"] == "MAINTENANCE_REQUIRED"
-    assert reviewed["open_system_impact"][0]["review"]["decision"] == "SYSTEM_MAINTENANCE_REQUIRED"
+    item = reviewed["open_system_impact"][0]
+    assert item["status"] == "MAINTENANCE_REQUIRED"
+    assert item["review"]["decision"] == "SYSTEM_MAINTENANCE_REQUIRED"
+    assert item["control_signal"]["observed_at"]
+    assert item["control_signal"]["severity"] == "MEDIUM"
+    assert item["control_signal"]["signal_type"] == "USER_REPORTED_SYSTEMIC_FAILURE"
+    assert item["control_signal"]["evidence_refs"]
 
     with pytest.raises(GithubChatGuardError, match="REGRESSION_VERIFIED"):
         review_system_impact_state(
@@ -141,9 +172,25 @@ def test_system_impact_can_escalate_then_close_with_bound_evidence():
         **_review_kwargs(),
     )
     assert closed["open_system_impact"] == []
-    assert closed["system_impact_history"][-1]["status"] == "MAINTENANCE_CLOSED"
-    assert closed["system_impact_history"][-1]["maintenance_closure"]["maintenance_ref"] == "pr://repair"
+    history = closed["system_impact_history"][-1]
+    assert history["status"] == "MAINTENANCE_CLOSED"
+    assert history["maintenance_closure"]["maintenance_ref"] == "pr://repair"
+    assert history["maintenance_closure"]["evidence_assurance_ceiling"] == "REGRESSION_VERIFIED"
+    assert history["maintenance_closure"]["closure_attestation"] == CHAT_CLOSURE_ATTESTATION
     assert closed["execution_receipts"][-1]["capability_id"] == "github_chat_system_impact_lifecycle"
+
+
+def test_system_impact_rejects_noncanonical_root_cause_layer():
+    state = _state_with_feedback()
+    kwargs = _review_kwargs()
+    kwargs["root_cause_layer"] = "MADE_UP_LAYER"
+    with pytest.raises(GithubChatGuardError, match="root_cause_layer"):
+        review_system_impact_state(
+            state,
+            previous_state_blob_sha="f1",
+            executor_identity="chat-session:test",
+            **kwargs,
+        )
 
 
 def test_local_only_review_moves_signal_out_of_open_debt():
