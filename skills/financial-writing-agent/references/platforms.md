@@ -49,7 +49,7 @@ Algorithms are changing external systems. Prefer current official/UI evidence an
 One viral or failed article is a sample, not a permanent rule.
 
 ## Post-publication learning
-When data is available, record it with `record_writing_learning_sample(sample_type="POST_PUBLICATION_PERFORMANCE", ...)` or an equivalent durable evidence record.
+When post-publication data is available and materially useful, persist it as durable evidence through a **currently supported owner evidence-capture action** or another verified durable reference bound to the exact article workspace. Do not invoke or reconstruct retired plugin/MCP learning tools, and do not claim learning was persisted when no supported durable write actually occurred.
 
 Useful metrics can include platform, version type, topic, title, publish time, article length, impressions/recommendations, reads, CTR/read-recommend rate, average read time, completion/effective rate, likes, comments, shares, favorites, follows, traffic-source mix, search share and recommendation share.
 
