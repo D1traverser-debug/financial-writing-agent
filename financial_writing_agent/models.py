@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from enum import Enum
 from typing import Any
-from uuid import uuid4
 
 from pydantic import BaseModel, Field, model_validator
 
@@ -43,9 +42,13 @@ class ArtifactKind(str, Enum):
 
 
 class TaskContract(BaseModel):
-    """Immutable business/output contract for the single Financial owner trajectory."""
+    """Immutable Financial business/output contract, intentionally identity-free.
 
-    task_id: str = Field(default_factory=lambda: str(uuid4()))
+    Article identity belongs to the Financial article state/workspace aggregate. Keeping
+    identity out of this value object prevents a second task-id namespace inside the
+    domain and keeps routing/output choices separate from lifecycle identity.
+    """
+
     prompt: str
     source_refs: list[str] = Field(default_factory=list)
     target_platforms: list[str] = Field(default_factory=list)
