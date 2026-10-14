@@ -1,0 +1,45 @@
+{
+  "eval_id":"FWA-UAOS-ARTICLE-BINDING-20261014",
+  "status":"PASSED",
+  "trigger":"FINANCIAL_INHERITANCE_AND_USAGE_AUDIT",
+  "baseline":{
+    "main_commit":"3f29a6f1713c37b86302033d153ef85a4326b0e6",
+    "hosted_ci_run":38535584171,
+    "hosted_ci_result":"PASS__100_TESTS__CONTRACT_EVAL__STATIC_AUDITS__WHEEL_SMOKE__DOCX_RENDER_SMOKE",
+    "observed_gap":"UAOS router promised per-article durable task + Financial state, but the cross-repository one-to-one identity binding was convention-only rather than a validated contract."
+  },
+  "proposal":{
+    "version":"0.8.2",
+    "changes":[
+      "add pure UAOS/article binding validator",
+      "declare exact new-article and explicit-resume binding sequence",
+      "declare required UAOS common capabilities",
+      "wire binding into Skill/manifest/adapter/execution contract/static audits",
+      "modernize GitHub Actions v7 and concurrency without weakening DOCX render smoke"
+    ],
+    "new_controller_surfaces":0,
+    "new_persistent_state_surfaces":0,
+    "historical_article_rewrites":0
+  },
+  "non_changes":[
+    "canonical 10-stage article workflow unchanged",
+    "writing policy and quality rules unchanged",
+    "unknown-platform routing unchanged because no failure evidence supports changing DUAL fallback",
+    "completed historical receipts remain immutable"
+  ],
+  "evaluation":{
+    "candidate_head":"7e6d6f01399ac5249bd372cadbe0a20ed4b799d1",
+    "ci_run":38554338677,
+    "job_id":115819625162,
+    "pytest":"109 passed",
+    "contract_eval":"PASS",
+    "single_owner_static_audit":"PASS",
+    "retired_runtime_audit":"PASS__17_RETIRED_PATHS_ABSENT",
+    "isolated_wheel_smoke":"PASS__UAOS_BINDING_VALIDATOR_INCLUDED",
+    "docx_render_smoke":"PASS__1_PNG_PAGE",
+    "actions_runtime":"CHECKOUT_V7__SETUP_PYTHON_V7__NO_NODE20_DEPRECATION_WARNING",
+    "result":"PASS"
+  },
+  "promotion":{"state":"AUTHORIZED_PENDING_OBSERVED_HEAD_CAS","expected_main":"3f29a6f1713c37b86302033d153ef85a4326b0e6"},
+  "updated_at":"2026-10-14T11:09:00Z"
+}
