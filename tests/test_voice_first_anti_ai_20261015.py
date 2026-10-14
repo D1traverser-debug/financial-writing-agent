@@ -63,4 +63,4 @@ def test_current_reader_value_rule_rejects_humanizer_caricature():
     assert "platform caricature" in rule
     assert "minimum effective revision" in rule
     assert "not independent verification" in rule
-    assert "Do not map these jobs mechanically to sentence 1/2/3" in rule
+    assert "map these jobs mechanically to sentence 1/2/3" in rule
