@@ -1,6 +1,6 @@
 ---
 name: financial-writing-agent-uaos
-scope: publishable A-share financial articles
+scope: publishable A-share financial content
 ---
 
 # Financial Writing Agent — UAOS Entry
@@ -8,99 +8,88 @@ scope: publishable A-share financial articles
 Controller/common-governance authority: `D1traverser-debug/universal-agent-os@main`.
 Domain business authority: `D1traverser-debug/financial-writing-agent@main`.
 
-UAOS owns cross-domain selection/governance, shared product-engineering method, parent-session continuity and hosted common capabilities. Financial Writing independently owns article identity, article lifecycle, product/business requirements, workflow, business/output contract, writing rules, article state, review evidence and deliverable artifacts.
+UAOS owns cross-domain selection/governance, parent continuity and hosted common capabilities. Financial Writing owns article identity/state, product requirements, workflow, business/output contract, domain rules, review evidence and deliverables. Parent/router IDs and Financial article IDs are distinct namespaces with **no equality requirement**. `TaskContract` is intentionally identity-free.
 
-The two identity namespaces are deliberately distinct. A UAOS controller/router task ID is not a Financial article ID and there is no equality requirement between them.
+## Start and authority
 
-## Start and direct activation
+A fresh chat may select Financial Writing directly. Once selected, `DOMAIN:financial_writing` is the current work plane; normal article turns do **not** traverse a live UAOS business proxy.
 
-A fresh chat may select Financial Writing directly. Once selected, `DOMAIN:financial_writing` is the current Agent/work plane; normal article turns do **not** traverse a live UAOS business proxy and the user does not need to first enter a UAOS controller conversation.
+Load only what the action needs:
+1. `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CAPABILITIES.json`;
+2. `config/EXECUTION_CONTRACT.json`;
+3. `docs/product_requirements.md` / `docs/architecture.md` for product/architecture work;
+4. exact article `STATE.json` only when an article exists.
 
-Read only what the current action needs, beginning with:
-1. `.uaos/ADAPTER.json`;
-2. `.uaos/MANIFEST.json`;
-3. `.uaos/CAPABILITIES.json`;
-4. `docs/product_requirements.md` and `docs/architecture.md` when product/architecture scope is material;
-5. `config/EXECUTION_CONTRACT.json`;
-6. the exact `workspaces/articles/{task_id}/STATE.json` only when a Financial article already exists.
+Confirm the hosted UAOS common-capability contract before material work. Binding drift blocks affected capability only; it never transfers Financial ownership to UAOS.
 
-Before material work, confirm that the current UAOS-hosted common-capability contract referenced by `.uaos/CAPABILITIES.json` is available. Binding drift blocks only the affected hosted capability; it never transfers Financial business ownership to UAOS.
+`financial-writing:main` is a selector/router entry, not an article task. Financial creates/owns its own article `task_id` and `STATE.json`; UAOS may retain only an opaque returned state reference.
 
-Never discover controller state from repository search, chat memory, historical evals or retired continuity surfaces.
+## Workflow and references
 
-## New article and continuation
-
-`financial-writing:main` is a UAOS selector/router entry only. It never becomes an article workspace and is not a prerequisite business task.
-
-For a new article:
-1. the current Financial Agent receives the user brief plus any applicable global requirements/governance context already present in the session;
-2. Financial Writing chooses/creates its own article `task_id`, creates the corresponding `STATE.json`, and builds an identity-free `TaskContract` for output/business constraints;
-3. Financial Writing executes and resumes the article using its own state/workspace identity;
-4. UAOS may retain an opaque reference to the returned Financial state when parent continuity actually needs one, but it must not manufacture, rename or require equality with the Financial article ID.
-
-For explicit continuation, resolve the exact Financial article workspace from the user-selected or previously returned domain reference. Completed historical articles are not auto-reactivated merely because the domain matches.
-
-## Canonical workflow
-
+Canonical workflow:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`
 
-Missing hard capability blocks only the affected stage. It never authorizes a weaker SOP, free-form completion or another business-state authority.
+Missing hard capability blocks the affected stage; it does not authorize a weaker fallback.
 
-Progressively load domain references:
-- research: `references/research.md`, `references/knowledge.md`;
-- audit: `references/audit.md`;
-- editorial/title/draft: `references/editorial.md`, `references/hooks.md`, `references/style.md`;
-- platform adaptation: `references/platforms.md`;
-- delivery: `references/delivery.md`;
-- durable business-rule/product changes: `references/maintenance.md`, `docs/product_requirements.md`, `docs/architecture.md`.
+Progressive references:
+- research: `references/research.md`, `references/knowledge.md`, `references/reader_value.md`;
+- audit: `references/audit.md`, `references/reader_value.md`;
+- editorial/title/draft: `references/editorial.md`, `references/hooks.md`, `references/style.md`, `references/reader_value.md`;
+- platform: `references/platforms.md`, `references/reader_value.md`;
+- delivery: `references/delivery.md`, `references/reader_value.md`;
+- maintenance: `references/maintenance.md`, product/architecture docs.
 
-## Hosted cognition — mandatory problem response
+## Current product contract
 
-Financial Writing inherits UAOS adaptive deliberation; it does not create a second cognition controller.
+For new ordinary work, default `PORTFOLIO + WORD_FILE_ONLY` produces:
+- `FINANCE_DEEP_DOCX` — deep finance/review;
+- `FINANCE_BROAD_DOCX` — acquisition long-form;
+- `PLATFORM_INTERACTION_PACK_DOCX` — independently rewritten short image-text / 微头条 / 动态 copy;
+- `AUDIT_DOCX`.
 
-Whenever a problem is detected — defect, failed/degraded output, user correction/rejection, contradiction, repeated repair, uncertain goal satisfaction or other evidence that the current behavior is unreliable — the session must perform at least:
-1. concrete/micro diagnosis;
-2. macro goal/topology/architecture alignment;
-3. challenge of the current governing assumption/boundary/causal explanation;
+Broad-feed-only targets may use `ACQUISITION` (Broad + interaction pack + audit). Finance-community-only targets may use `FINANCE_DEEP`.
+
+Historical compatibility is immutable: existing `DUAL` remains Deep + Broad + Audit and existing `FINANCE_BROAD` remains Broad + Audit. Never rewrite historical task contracts or receipts because the new default expanded.
+
+## Reader value / company decision utility
+
+`references/reader_value.md` owns the current promoted semantics:
+- publication prose does not expose the research trail merely to prove sourcing;
+- Natural Authorial Prose controls repeated title/H1/body rhetorical/syntactic molds rather than doing surface synonym replacement;
+- title = concrete hard information + finance-wide stake + one real unresolved payoff;
+- first three complete sentences collectively establish hard fact/anomaly + finance-wide consequence + material unresolved payoff, with flexible order/syntax;
+- two or more `MATERIAL` companies require a Company Decision Map and a named evidence-bounded comparative verdict;
+- relative judgments such as more direct/pure, faster realization, harder evidence or higher-but-less-certain elasticity are legal when evidenced and paired with change conditions;
+- buy/sell, entry timing, target price, position sizing and covert equivalents remain prohibited;
+- H1 with H2/H3 children requires a substantive lead paragraph for reasoning continuity and the user's later image insertion;
+- Broad is rebuilt for acquisition rather than shortened from Deep;
+- interaction copy is independently rewritten from the audited evidence base.
+
+## Mandatory problem response
+
+Financial inherits UAOS adaptive deliberation. Every detected defect, user correction/rejection, degraded outcome, contradiction, repeated repair or unreliable goal satisfaction requires at least:
+1. micro diagnosis;
+2. macro goal/topology alignment;
+3. governing-assumption challenge;
 4. relevant external research.
 
-Familiarity is not a waiver. Small problems may use a lightweight pass; material/systemic problems require deeper comparison, counterexamples and stronger verification. Research must affect or validate the diagnosis/repair rather than being ceremonial browsing.
-
-If the problem is common/cross-domain, changes parent/common capabilities, or needs scope arbitration, Financial issues a non-mutating parent upcall for UAOS guidance. Otherwise Financial retains business ownership and repairs the Financial owning surface itself.
+Familiarity is not a waiver. Material problems require alternatives/counterexamples and stronger verification. Common/cross-domain causes upcall UAOS; Financial-local causes remain Financial-owned.
 
 ## Governed evolution
 
-Every detected problem is evaluated for learning impact after the cognition floor, but not every incident becomes a durable rule.
+Financial-owned learning follows:
+`problem/feedback -> research+reflection -> root cause/scope -> alternatives -> candidate -> regression/eval -> owner promotion -> post-promotion observation -> keep/rollback/retire`.
 
-For Financial-owned learning:
-1. preserve the observed problem/user feedback as evidence;
-2. classify the failure/root-cause layer and generalization scope;
-3. compare credible alternatives and identify the unique owning surface;
-4. keep one-off observations as candidates unless evidence supports promotion;
-5. add regression/eval evidence for systemic changes;
-6. promote only through Financial-owned authority and verify the final tree;
-7. observe post-promotion behavior and keep/rollback/retire accordingly.
+`financial_writing_agent/owner_lifecycle.py` owns article-linked feedback/system-impact state; `references/maintenance.md` owns the maintenance method. One article can create evidence but does not silently become a universal rule. Cross-domain/common-capability evolution remains UAOS-owned.
 
-`financial_writing_agent/owner_lifecycle.py` owns article-linked material-feedback/system-impact state. `references/maintenance.md` owns domain maintenance method. Cross-domain/common-capability evolution remains UAOS-owned; Financial supplies evidence and a parent upcall rather than creating another controller.
+Major product changes use UAOS-hosted product-review method and persist resulting domain requirements/architecture locally. Product documentation alone is not acceptance evidence.
 
-## Product review / requirements completeness
+## State integrity and completion
 
-For a major feature family, rebuild, or a failure that reveals missing product assumptions, use UAOS-hosted product requirements/architecture governance before implementation. Financial persists the domain result in `docs/product_requirements.md` and `docs/architecture.md`.
+Financial article identity authority is `workspaces/articles/{task_id}/STATE.json::task_id`. `TaskContract` is intentionally identity-free and only describes business/output constraints.
 
-The review must cover at minimum: user outcome, functional requirements, non-functional constraints, article/workflow state, failure/recovery, evidence/assurance, acceptance/evals, ownership boundaries and explicit non-goals. Product documentation is not proof by itself; requirements must map to executable tests/evals or observable acceptance evidence.
+Material changes bind fresh owner state, use owner guard/lifecycle, persist evidence and reread authority. Same-chat semantic review keeps `CHAT_SELF_REVIEW`; independent claims require distinct execution evidence.
 
-## Business-state integrity
+Historical completed receipts are immutable provenance and never route selectors.
 
-Financial article identity authority is `STATE.task_id` inside `workspaces/articles/{task_id}/STATE.json`. The same domain-owned ID binds workspace paths, receipts and artifact references. `TaskContract` is intentionally identity-free and only describes business/output constraints.
-
-Material changes bind freshly read current state, use the canonical owner guard/lifecycle, persist artifacts, then reread current authority.
-
-Default formal contract remains `DUAL` + `WORD_FILE_ONLY` with `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX` unless the user explicitly narrows it.
-
-Semantic self-review must keep its actual assurance label. Independent review claims require distinct execution evidence.
-
-Historical completed article receipts are immutable provenance. Old identifiers inside those receipts are evidence only and must never select current routes.
-
-## Completion
-
-Financial Writing determines article completion from its own workflow/state/artifacts. UAOS may consume that result to update parent progress, but the parent does not duplicate the article lifecycle or maintain a second per-article task registry.
+Financial determines completion from its own state/artifacts. UAOS may consume the result for parent progress but does not duplicate the article lifecycle.

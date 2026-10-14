@@ -7,12 +7,21 @@ def _policy():
     return json.loads(open("config/policy.json", encoding="utf-8").read())
 
 
-def test_reader_funnel_does_not_require_immediate_title_payoff_or_fixed_three_sentence_formula():
+def test_reader_funnel_requires_three_opening_jobs_without_fixed_sentence_formula_or_immediate_full_payoff():
     hooks = _policy()["hooks"]
     assert hooks["title_promise_integrity_required"] is True
-    assert hooks["title_opening_payoff_required"] is False
+    # The opening must pay off enough of the title promise to orient the reader, but it
+    # does not have to exhaust the full analytical answer immediately.
+    assert hooks["title_opening_payoff_required"] is True
     assert hooks["immediate_title_payoff_is_optional"] is True
-    assert hooks["first_three_sentences_required"] is False
+    assert hooks["first_three_sentences_required"] is True
+    assert hooks["first_three_sentence_jobs"] == [
+        "hard_fact_or_anomaly",
+        "finance_wide_consequence",
+        "material_unresolved_payoff",
+    ]
+    assert hooks["first_three_sentence_order_and_syntax_flexible"] is True
+    assert hooks["first_three_sentences_need_not_exhaust_full_title_answer"] is True
     assert hooks["early_reader_orientation_required"] is True
     assert hooks["opening_strategy_flexible"] is True
     assert "delayed_nut_graf" in hooks["opening_strategy_examples"]
@@ -25,9 +34,11 @@ def test_deep_numbered_navigation_is_encouraged_generously_for_real_branches():
     assert style["deep_numbered_navigation_preference"] == "USE_GENEROUSLY_WHEN_REAL_LAYERS_OR_PARALLEL_BRANCHES_EXIST"
 
 
-def test_company_comparison_may_be_primary_focus_but_remains_non_actionable():
+def test_company_comparison_may_be_primary_focus_and_explicit_relative_judgment_but_remains_non_actionable():
     policy = _policy()
     assert policy["editorial"]["company_comparison_may_be_primary_focus"] is True
+    assert policy["editorial"]["named_company_comparative_verdict_required_when_multiple_material_companies"] is True
+    assert policy["editorial"]["relative_judgment_may_state_stronger_weaker_faster_slower_more_direct_more_certain"] is True
     assert policy["finance_compliance"]["company_comparison_may_be_primary_analytical_focus"] is True
     assert policy["finance_compliance"]["company_comparison_must_remain_non_actionable"] is True
 

@@ -9,7 +9,7 @@ from financial_writing_agent.document import ArticleDocument, Block, build_artic
 def _risk_text() -> str:
     return (
         "产业需求、订单兑现、价格、竞争格局和公司业绩均可能变化，"
-        "文中判断基于公开信息，不构成投资建议。"
+        "本文仅用于信息交流，不构成投资建议。"
     )
 
 

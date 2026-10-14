@@ -1,5 +1,5 @@
 {
-  "schema_version": "3.4",
+  "schema_version": "3.5",
   "domain_id": "financial_writing",
   "product_path": "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE",
   "authority": {
@@ -14,6 +14,7 @@
     "canonical_mutation_guard": "financial_writing_agent/owner_guard.py",
     "canonical_lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
     "maintenance_method": "references/maintenance.md",
+    "reader_value_rule": "references/reader_value.md",
     "alternate_business_state_authority_allowed": false
   },
   "hosted_governance": {
@@ -43,9 +44,23 @@
   "workflow": ["INTAKE","RESEARCH","RESEARCH_AUDIT","EDITORIAL","TITLE","DRAFT","EDITORIAL_AUDIT","DELIVERY","MECHANICAL_AUDIT","FINAL_AUDIT"],
   "task_contract": {
     "identity_free": true,
-    "default_distribution_mode": "DUAL",
+    "default_distribution_mode": "PORTFOLIO",
     "default_delivery_channel": "WORD_FILE_ONLY",
-    "default_required_outputs": ["AUDIT_DOCX","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX"]
+    "default_required_outputs": ["AUDIT_DOCX","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","PLATFORM_INTERACTION_PACK_DOCX"],
+    "legacy_compatibility": {
+      "DUAL": ["AUDIT_DOCX","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX"],
+      "FINANCE_BROAD": ["AUDIT_DOCX","FINANCE_BROAD_DOCX"]
+    },
+    "acquisition_mode_outputs": ["AUDIT_DOCX","FINANCE_BROAD_DOCX","PLATFORM_INTERACTION_PACK_DOCX"]
+  },
+  "reader_value": {
+    "publication_source_privacy": true,
+    "first_three_sentence_jobs_required": true,
+    "company_decision_map_when_multiple_material_companies": true,
+    "named_evidence_bounded_comparative_verdict": true,
+    "h1_image_safe_lead_before_lower_heading": true,
+    "broad_is_independent_acquisition_rebuild": true,
+    "interaction_pack_is_independent_rewrite": true
   },
   "execution": {
     "route_selection": "NONE",
@@ -71,6 +86,7 @@
   "historical_state": {
     "immutable_existing_receipts_may_contain_retired_identifiers": true,
     "historical_identifiers_are_route_selectors": false,
-    "historical_evidence_may_override_current_authority": false
+    "historical_evidence_may_override_current_authority": false,
+    "legacy_distribution_mode_meaning_is_immutable": true
   }
 }
