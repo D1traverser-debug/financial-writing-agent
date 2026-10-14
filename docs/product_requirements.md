@@ -1,10 +1,10 @@
 # Financial Writing Agent — Product Requirements Baseline
 
 Status: `CURRENT_DOMAIN_PRODUCT_REQUIREMENTS`
-Version: `0.8.4-candidate`
+Version: `0.8.4`
 Date: `2026-10-15`
 Owner: `DOMAIN:financial_writing`
-Parent common-governance method: `UAOS 2.4.4+`
+Parent common-governance method: `UAOS 2.4.5 / COMMON_CAPABILITIES 1.5.0`
 
 ## 1. Product outcome
 
@@ -124,7 +124,7 @@ Article-linked material feedback is tracked by `owner_lifecycle.py`. Quality-rul
 
 ## 11. Product completion criteria
 
-The product baseline is considered internally ready when:
+The product baseline is internally ready when:
 1. parent common-capability contract contains current cognition/evolution/product-review semantics;
 2. Financial declares and tests inheritance of those capabilities;
 3. direct-domain activation and identity boundaries remain intact;
@@ -132,3 +132,5 @@ The product baseline is considered internally ready when:
 5. product requirements map to executable tests/evals or explicit observable evidence;
 6. full Financial CI, contract eval, static audits, isolated-wheel smoke and DOCX render smoke pass on the final candidate;
 7. the promoted production tree is reread and CI-observed.
+
+For Financial 0.8.4 these criteria are satisfied by UAOS 2.4.5 / common contract 1.5.0 production authority, Financial candidate run `38609262769` PASS, Financial release commit `6a4d6d8a1dc95444ced2a8c42f5f00d03da0ab3c`, and Financial production run `38609447053` PASS. The closure record remains the dedicated evidence narrative.
