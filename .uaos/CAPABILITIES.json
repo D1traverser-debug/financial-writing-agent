@@ -1,8 +1,12 @@
 {
-  "schema_version": "2.0",
-  "profile_version": 12,
+  "schema_version": "2.1",
+  "profile_version": 13,
   "domain_id": "financial_writing",
   "policy": "CURRENT_SESSION_CAPABILITY_HANDSHAKE__NO_SIDE_CHANNEL__NO_SILENT_DEGRADATION",
+  "uaos_common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
+  "common_capabilities_inheritance": "UAOS_HOSTED",
+  "domain_evolution_role": "DOMAIN_EVIDENCE_EVAL_AND_BUSINESS_OWNER_PROMOTION",
+  "updated_at": "2026-10-14T08:29:12Z",
   "capabilities": [
     {"capability_id":"financial_owner_workflow","scope":"ALL_FORMAL_ARTICLE_STAGES","required":["model_runtime","GitHub_owner_read_write"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"high_judgment_generation_stages","scope":"RESEARCH,EDITORIAL,TITLE,DRAFT","required":["model_runtime"],"side_channel_allowed":false,"safe_degraded_modes":[]},
