@@ -32,6 +32,11 @@ def test_proactive_resolution_recovers_before_user_escalation():
 def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     journal = _read("evals/PROBLEM_EVOLUTION_JOURNAL.md")
     required_entries = {
+        "P-20261010-01",
+        "P-20261011-01",
+        "P-20261011-02",
+        "P-20261011-03",
+        "P-20261012-00",
         "P-20261012-01",
         "P-20261012-05",
         "P-20261013-02",
@@ -42,12 +47,16 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
         "P-20261015-09",
         "P-20261015-10",
         "P-20261015-11",
+        "P-20261015-12",
     }
     for entry in required_entries:
         assert entry in journal
+    assert "Backfill window: `2026-10-10` through `2026-10-15`" in journal
     assert "Wrong path tried" in journal
     assert "Parent Guidance Queue" in journal
     assert "PROACTIVE_RESOLUTION_GAP" in journal
+    assert "DECLARATION_TO_OPERATION_GAP" in journal
+    assert "MAINTENANCE_META_OVERPRODUCTION" in journal
     assert "VERSION_METADATA_DRIFT" in journal
     assert "INHERITANCE_BEHAVIOR_VS_DECLARATION" in journal
 
@@ -55,11 +64,14 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
 def test_machine_index_and_parent_handoff_expose_guidance_queue():
     index = _read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
     handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
+    assert '"revision": "1.2"' in index
+    assert '"from": "2026-10-10"' in index
     for signal in (
         "PROACTIVE_RESOLUTION_GAP",
         "EVOLUTION_HISTORY_INTERFACE",
         "VERSION_METADATA_DRIFT",
         "INHERITANCE_BEHAVIOR_VS_DECLARATION",
+        "DECLARATION_TO_OPERATION_GAP",
     ):
         assert signal in index
         assert signal in handoff
