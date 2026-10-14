@@ -40,26 +40,25 @@ jobs:
           /tmp/fwa-wheel/bin/pip install "$WHEEL"
           cd /tmp
           /tmp/fwa-wheel/bin/python - <<'PY'
+          import importlib.util
           from financial_writing_agent.models import DistributionMode, TaskContract
           from financial_writing_agent.resources import load_packaged_policy, read_reference
           from financial_writing_agent.document import build_article_docx, build_audit_docx
           from financial_writing_agent.checks import check_docx
           from financial_writing_agent.owner_guard import build_initial_state
           from financial_writing_agent.owner_lifecycle import resume_blocked_state
-          from financial_writing_agent.uaos_binding import expected_business_authority, validate_uaos_article_binding
 
           policy = load_packaged_policy()
+          first = TaskContract(prompt="smoke-one")
+          second = TaskContract(prompt="smoke-two")
           assert policy["defaults"]["distribution_mode"] == "DUAL"
-          assert TaskContract(prompt="smoke").distribution_mode == DistributionMode.DUAL
+          assert first.distribution_mode == DistributionMode.DUAL
+          assert first.task_id and second.task_id and first.task_id != second.task_id
+          assert importlib.util.find_spec("financial_writing_agent.uaos_binding") is None
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(check_docx)
           assert callable(build_initial_state) and callable(resume_blocked_state)
-          task_id = "financial-writing:wheel-smoke"
-          validate_uaos_article_binding(
-              {"task_id": task_id, "domain_id": "financial_writing", "task_type": "article", "domain_business_authority": expected_business_authority(task_id)},
-              {"schema_version": "1.2", "task_id": task_id, "state_ref": "main"},
-          )
-          print("PASS: clean wheel contains canonical policy/references, owner lifecycle, UAOS binding validator and stateless Word utilities")
+          print("PASS: clean wheel contains domain-owned Financial task identity, canonical policy/references, owner lifecycle and stateless Word utilities")
           PY
       - name: Install render dependencies
         run: |
