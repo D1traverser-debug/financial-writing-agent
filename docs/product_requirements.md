@@ -1,15 +1,19 @@
 # Financial Writing Agent — Product Requirements Baseline
 
 Status: `CURRENT_DOMAIN_PRODUCT_REQUIREMENTS`
-Version: `0.9.0`
+Version: `0.9.1`
 Date: `2026-10-15`
 Owner: `DOMAIN:financial_writing`
-Parent common-governance method: `UAOS 2.4.5 / COMMON_CAPABILITIES 1.5.0`
-Trigger evolution evidence: `evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_READER_VALUE_PLATFORM_PRODUCTS.md`
+Parent common-governance method: `UAOS 2.5.2 / COMMON_CAPABILITIES 1.6.0`
+Trigger evolution evidence:
+- `evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_READER_VALUE_PLATFORM_PRODUCTS.md`
+- `evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_VOICE_FIRST_ANTI_AI.md`
 
 ## 1. Product outcome
 
-Financial Writing turns a user brief, links/files/current-market evidence and scoped constraints into publication-ready Chinese A-share financial content with auditable research, explicit uncertainty, **evidence-bounded company decision utility**, non-actionable finance compliance, reader-value packaging, durable article state, review/recovery, Word delivery and evidence-bound learning.
+Financial Writing turns a user brief, links/files/current-market evidence and scoped constraints into publication-ready Chinese A-share financial content with auditable research, explicit uncertainty, evidence-bounded company decision utility, non-actionable finance compliance, reader-value packaging, durable article state, review/recovery, Word delivery and evidence-bound learning.
+
+The writing product must sound like a situated finance author making choices for a real reader, not like a generic model executing a visible checklist. “去AI味” is therefore an authorial-quality problem, not a detector-optimization or phrase-substitution problem.
 
 The product must be directly usable after the user selects/inherits Financial Writing. UAOS supplies hosted common capabilities and parent guidance; it is not a mandatory per-turn business proxy.
 
@@ -19,7 +23,7 @@ The product must be directly usable after the user selects/inherits Financial Wr
 - Financial Writing owns this product requirements baseline, architecture, article identity/state, business/output contract, workflow, research/editorial/style/platform/delivery rules, domain learning/evals and artifacts.
 - `workspaces/articles/{task_id}/STATE.json::task_id` is the Financial article identity authority.
 - A UAOS controller/router ID is never required to equal a Financial article ID.
-- `references/reader_value.md` is the current domain rule for publication-source privacy, Natural Authorial Prose hardening, reader funnel, company-decision utility, image-safe section entry and the three-product publishing portfolio.
+- `references/reader_value.md` is the current domain rule for publication-source privacy, voice/material-first Natural Authorial Prose, reader funnel, company-decision utility, image-safe section entry and the three-product publishing portfolio.
 
 ## 3. Primary user journeys
 
@@ -41,7 +45,7 @@ Given an exact Financial article reference, resume from that article's current `
 ### PR-04 Research and evidence
 Research must maximize material topic/company recall, maintain source/evidence quality, separate fact/mechanism/interpretation/unknowns, avoid evidence-stage escalation and revalidate time-sensitive claims.
 
-When two or more `MATERIAL` companies exist, Research must create a **Company Decision Map** using topic-specific dimensions. The map must state a current named relative verdict, its evidence and conditions that would change it.
+When two or more `MATERIAL` companies exist, Research must create a Company Decision Map using topic-specific dimensions. The map must state a current named relative verdict, its evidence and conditions that would change it.
 
 ### PR-05 Deep finance/review product
 `FINANCE_DEEP_DOCX` serves 韭研公社、东方财富、微信公众号 and self-review. It must preserve material-company coverage and make economically useful distinctions explicit: business/concept purity, realization stage/speed, earnings sensitivity, evidence strength, adverse variables and other topic-specific dimensions.
@@ -51,12 +55,12 @@ It may say A is currently more direct/pure, B has faster realization, C has high
 ### PR-06 Acquisition long-form product
 `FINANCE_BROAD_DOCX` serves 微信公众号、头条号、百家号、网易号、企鹅号 for qualified finance-domain acquisition.
 
-Broad is not a shortened Deep article. It selects one to three strongest finance-wide information gaps and rebuilds the title, first three sentences, H1 sequence and completion payoff around them while preserving factual/uncertainty boundaries.
+Broad is not a shortened Deep article. It selects the strongest finance-wide information gaps and rebuilds title/opening/section path around them while preserving factual and uncertainty boundaries.
 
 ### PR-07 Interaction short-form product
 `PLATFORM_INTERACTION_PACK_DOCX` serves 微信公众号贴图文字、微头条/动态、百家号动态、网易号动态.
 
-Each item must be independently rewritten from the audited evidence base, with its own first-line hook, compact fact-to-finance consequence chain and natural interaction prompt. Truncating/copying a long-form paragraph is not accepted adaptation.
+Each item must be independently rewritten from the audited evidence base. It needs a real reason for the reader to stop, a compact fact/judgment chain and context-appropriate interaction when interaction is useful. A canned question, forced口语词 or truncation of a long-form paragraph is not accepted adaptation.
 
 Financial Writing supplies text only; the user's later image creation/insertion remains outside the Financial image-generation workflow.
 
@@ -65,22 +69,30 @@ Research/audit keep full provenance. Publication copy must not expose the materi
 
 Attribution remains only when who said/announced/forecast something is itself part of the fact and removing the speaker changes the claim.
 
-### PR-09 Natural Authorial Prose / anti-template quality
-“去AI味” is defined as evidence-bounded authorial prose: varied argument roles, earned section progression, explicit selectivity, concrete actors/causality, calibrated uncertainty and control of recurring syntactic/rhetorical molds across title/H1/body.
+### PR-09 Natural Authorial Prose / anti-AI quality
+“去AI味” is not a generation style. Before drafting, the article must be grounded in a real reader job, audited material, authorial stance/selectivity and the strongest available voice evidence.
 
-Do not optimize for AI-detector evasion, slang or deliberate imperfections.
+Voice evidence priority:
+1. the user's own explicitly approved or edited writing samples;
+2. explicit style constraints and durable corrections from the user;
+3. the user's current prose signals when they materially clarify voice;
+4. target platform and finance-genre conventions;
+5. generic defaults only when stronger evidence is absent.
+
+Do not fabricate anecdotes, lived experience, emotion or slang to simulate humanity. If material is thin, research more, narrow scope or write shorter rather than stretching one idea into several paraphrases.
+
+AI-associated phrases/structures are audit signals, not generation mandates or authorship detectors. A single `不是X，而是Y`, a long sentence, a short sentence or an orderly paragraph is not a defect by itself. Revision requires a real reader/voice/information problem, typically a cluster of unearned scaffolding.
+
+For substantive long-form writing, when multiple plausible routes exist, compare at least two genuinely different opening/section strategies before finalizing. Synonym variants do not count.
+
+`DRAFT` owns writing; `EDITORIAL_AUDIT` rereads the draft through distinct Reader, Editor and Style critic passes. These same-session passes improve adversarial review but are not independent certification.
 
 ### PR-10 Reader funnel
-The selected title should normally expose a concrete change/entity plus a finance-wide stake and leave one real unresolved payoff.
+The selected title should expose enough hard information, financial stake and unresolved payoff for a cold finance reader to care. This is an outcome test, not a sentence shell.
 
-The first three complete sentences collectively must establish:
-1. a hard fact/anomaly;
-2. finance-wide consequence;
-3. material unresolved payoff.
+The first three complete sentences collectively should orient the reader to what changed, why it matters financially and what useful payoff remains. Do not map these functions mechanically to sentence 1/2/3; one sentence may perform multiple jobs and the opening strategy remains flexible.
 
-Order and syntax are flexible; the full answer need not be exhausted immediately.
-
-Every H1 must be information-bearing. When lower-level headings follow an H1, a substantive lead paragraph must appear first so it both advances the reasoning and gives the user an image-safe insertion zone.
+Every H1 must be information-bearing. When lower-level headings follow an H1, a substantive lead paragraph must appear first so it both advances the reasoning and gives the user an image-safe insertion zone. No fixed sentence count or rhetorical formula is required.
 
 ### PR-11 Review, delivery and recovery
 Default channel remains `WORD_FILE_ONLY`. Required Word artifacts must pass semantic, mechanical and render QA before current-session availability is claimed.
@@ -94,6 +106,8 @@ Every detected problem — including user correction/rejection, failed/degraded 
 3. governing-assumption challenge;
 4. relevant external research.
 
+Material problems additionally compare credible alternatives/counterexamples before promotion.
+
 ### PR-13 Domain evolution
 One article may create an evidence candidate, but domain-wide changes require scope/generalization analysis, alternative comparison and regression/eval evidence. Common/cross-domain changes go to UAOS via parent guidance/upcall.
 
@@ -101,7 +115,7 @@ One article may create an evidence candidate, but domain-wide changes require sc
 
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`
 
-The workflow remains single-owner. The three products are outputs on the same Financial article trajectory, not separate runtimes/controllers.
+The workflow remains single-owner. The three products are outputs on the same Financial article trajectory, not separate runtimes/controllers. Voice-first drafting and Reader/Editor/Style critique reuse `DRAFT -> EDITORIAL_AUDIT`; 0.9.1 adds no parallel humanizer stage or second quality controller.
 
 ## 5. Distribution modes and compatibility
 
@@ -124,7 +138,9 @@ The workflow remains single-owner. The three products are outputs on the same Fi
 | Company Decision Map / named verdict | `schemas.py`, `checks.py`, `references/reader_value.md` | company-decision regressions |
 | Publication-source privacy | `checks.py`, `references/reader_value.md` | source-leak regression |
 | Title/opening/H1 reader funnel | `references/hooks.md`, `references/reader_value.md`, policy | hook regressions + semantic audit |
-| Natural authorial prose | `references/style.md`, `references/reader_value.md`, checks | template/geometry regressions |
+| Voice/material-first authorial prose | `references/style.md`, `references/reader_value.md`, policy | voice-first policy regressions + live observation |
+| Anti-AI cluster diagnostics | `checks.py`, `references/reader_value.md` | isolated-signal negative test + cluster positive test |
+| Reader/Editor/Style critic separation | `references/reader_value.md`, audit policy | contract regression; same-model assurance remains bounded |
 | Image-safe H1 lead | `checks.py`, `references/reader_value.md` | navigation regression |
 | Three product routing | `models.py`, `routing.py`, `references/platforms.md` | routing/output-contract tests |
 | Interaction short-form pack | `schemas.py`, platform/delivery rules | schema + delivery tests |
@@ -137,6 +153,8 @@ The workflow remains single-owner. The three products are outputs on the same Fi
 ## 7. Cognition inheritance contract
 
 Financial consumes the UAOS-hosted problem-response method and does not create a second cognition controller. Every detected defect, user rejection, contradiction, degraded result or uncertain goal satisfaction activates micro diagnosis, macro goal/topology alignment, governing-assumption challenge and relevant external research. Risk may require counterexample search or stronger independent verification. Parent guidance may advise common/cross-domain scope without taking over the Financial article identity, workflow or state.
+
+The 0.9.1 correction is an explicit example: the first anti-AI solution itself became evidence against its governing assumption, so Financial challenged that assumption rather than stacking more rules.
 
 ## 8. Evolution inheritance contract
 
@@ -151,23 +169,31 @@ Financial owns promotion of Financial-specific business/writing rules; UAOS owns
 - Same-chat self-review cannot be labelled independent.
 - Material product/system changes require reproducible regression/eval evidence.
 - Reader-value rules must not become rigid fixed title/paragraph templates.
+- Anti-AI diagnostics must not be inverted into mandatory anti-AI generation quotas.
+- User-owned voice evidence outranks generic “human” style heuristics when available.
 - Historical distribution-mode meanings cannot be retroactively changed.
 
 ## 10. Failure and recovery semantics
 
 - Missing Company Decision Map for multiple material companies -> RESEARCH/EDITORIAL cannot pass.
 - Publication source leak -> DRAFT/DELIVERY revision required.
-- Weak first-three-sentence jobs or title/H1 promise -> TITLE/DRAFT revision.
+- Opening fails reader orientation/payoff -> TITLE/DRAFT revision; no fixed 1/2/3 sentence mapping is required.
 - H1 directly enters H2/H3 without substantive lead -> DRAFT revision.
 - Required interaction pack absent/copied from long-form -> DRAFT/DELIVERY revision.
+- One isolated template signal -> no automatic failure; inspect context.
+- Clustered scaffolding materially harms reader progression/voice -> targeted span/section revision.
+- “Humanizing” adds fabricated experience or canned platform slang -> revision required.
 - Review failure -> persist FAIL/REVISE target -> invalidate downstream -> repair and re-audit.
 
 ## 11. Explicit non-goals
 
 - No investment recommendation or covert actionability.
 - No fixed cross-topic stock-score formula.
-- No single mandatory title/opening sentence syntax.
-- No AI-detector optimization.
+- No single mandatory title/opening/comparative sentence syntax.
+- No anti-AI punctuation, short-sentence, colloquial-phrase or asymmetry quota.
+- No AI-detector optimization or authorship classification.
+- No generic-draft-then-humanizer stage as the primary writing architecture.
+- No fabricated personal experience for “human feel”.
 - No user-image generation inside Financial Writing.
 - No mandatory live UAOS proxy.
 - No parent/child task-ID equality.
@@ -175,13 +201,14 @@ Financial owns promotion of Financial-specific business/writing rules; UAOS owns
 
 ## 12. Product completion criteria
 
-The 0.9.0 candidate is promotion-ready only when:
-1. domain rule/product/architecture/execution-contract surfaces agree on the new portfolio and reader-value requirements;
-2. legacy `DUAL` / `FINANCE_BROAD` state contracts remain valid;
-3. regressions prove source privacy, H1 image-safe lead, Company Decision Map/named verdict, routing/output sets and interaction-pack schema;
-4. full Financial CI, contract eval, static audits, isolated-wheel smoke and DOCX render smoke pass;
-5. the candidate is promoted through the owner-appropriate GitHub path;
-6. production authority is reread and production CI observed;
-7. post-promotion live article/user observation determines KEEP / further repair / rollback.
+The 0.9.1 candidate is promotion-ready only when:
+1. domain rule/product/architecture/policy surfaces agree on voice/material-first authorial writing and diagnostic anti-AI semantics;
+2. existing source privacy, reader funnel, company decision utility, platform portfolio and legacy state contracts remain valid;
+3. regressions prove an isolated template signal does not fail while clustered scaffolding still triggers review;
+4. regressions prove voice-source priority, same-model critic assurance boundary, non-formula opening/comparison semantics and no canned platform-humanization rule;
+5. full Financial CI, contract eval, static audits, isolated-wheel smoke and DOCX render smoke pass;
+6. the candidate is promoted through the owner-appropriate GitHub path;
+7. production authority is reread and production CI observed;
+8. post-promotion live article/user observation determines KEEP / further repair / rollback.
 
-Documentation alone is not Acceptance evidence.
+Documentation alone is not acceptance evidence.

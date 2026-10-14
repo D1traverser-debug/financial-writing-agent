@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "financial-writing-agent"
-version = "0.9.0"
-description = "A-share financial-writing owner with direct domain activation, domain-owned article identity/state, UAOS-hosted cognition and governed evolution, evidence-bounded company decision utility, reader-value publishing controls, three-product platform delivery, durable recovery, and auditable Word output."
+version = "0.9.1"
+description = "A-share financial-writing owner with direct domain activation, domain-owned article identity/state, UAOS-hosted cognition and governed evolution, voice-first authorial writing, evidence-bounded company decision utility, reader-value publishing controls, three-product platform delivery, durable recovery, and auditable Word output."
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7",
