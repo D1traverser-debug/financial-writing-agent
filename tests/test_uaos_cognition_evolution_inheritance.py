@@ -20,7 +20,7 @@ def test_hosted_cognition_contract_is_current_and_explicit():
         "GOVERNING_ASSUMPTION_CHALLENGE",
         "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
     ]
-    assert "FAMILIARITY_IS_NOT_A_WAIVER" in caps["hosted_cognition_semantics"]["rule"]
+    assert caps["hosted_cognition_semantics"]["rule"].startswith("EVERY_DETECTED_PROBLEM_REQUIRES_RESEARCH_AND_REFLECTION")
     assert execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True
     assert execution["hosted_governance"]["problem_floor_activation"] == "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER"
 
