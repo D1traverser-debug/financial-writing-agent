@@ -56,7 +56,11 @@ jobs:
               source_refs=[],
               executor_identity="wheel-smoke",
           )
+          assert policy["contract_version"] == "0.9.1"
           assert policy["defaults"]["distribution_mode"] == "PORTFOLIO"
+          assert policy["style"]["voice_material_first_generation_required"] is True
+          assert policy["style"]["template_cluster_signals_are_diagnostic_not_generation_mandates"] is True
+          assert policy["style"]["voice_evidence_priority"][0] == "USER_APPROVED_OR_EDITED_SAMPLES"
           assert contract.distribution_mode == DistributionMode.PORTFOLIO
           assert contract.required_outputs == [
               ArtifactKind.AUDIT_DOCX,
@@ -70,10 +74,13 @@ jobs:
           assert state["distribution_mode"] == "PORTFOLIO"
           assert importlib.util.find_spec("financial_writing_agent.uaos_binding") is None
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
-          assert "Company Decision Map" in read_reference("reader_value.md")
+          reader_value = read_reference("reader_value.md")
+          assert "Company Decision Map" in reader_value
+          assert "voice/material first" in reader_value
+          assert "not generation mandates" in reader_value
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(build_interaction_pack_docx) and callable(check_docx)
           assert callable(build_initial_state) and callable(resume_blocked_state)
-          print("PASS: clean 0.9.0 wheel exposes PORTFOLIO output contract, reader-value authority, interaction-pack renderer, and single Financial identity path")
+          print("PASS: clean 0.9.1 wheel exposes voice-first authorial policy, diagnostic anti-AI semantics, PORTFOLIO outputs, and single Financial identity path")
           PY
       - name: Install render dependencies
         run: |
