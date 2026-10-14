@@ -5,21 +5,22 @@ description: Create and continue publishable A-share financial articles through 
 
 # Financial Writing Agent v0.8
 
-This Skill is a thin router and the single ChatGPT-facing Financial entry. Detailed business rules remain in `references/`, `config/policy.json`, the canonical workflow and executable owner guards.
+This Skill is the Financial domain entry. Cross-domain intent, task identity, continuation and capability orchestration are owned by `D1traverser-debug/universal-agent-os@main`; Financial business rules, article state and artifacts remain in this repository.
 
 ## 1. Enter the one Financial owner path
 
 Normal use has exactly one product/execution path:
 
-`ChatGPT request → current GitHub main Financial owner → main/workspaces/articles/{task_id} durable state → canonical workflow → Word delivery`.
+`ChatGPT request → UAOS intent/task routing → current GitHub main Financial owner → main/workspaces/articles/{task_id} durable business state → canonical workflow → Word delivery`.
 
 Do not ask the user to choose an execution mode. Do not choose between owner-native, GitHub-chat, Python or any other alternate business route. Model, web, deterministic/Python and document facilities are capabilities inside the same owner trajectory when actually available; they never create a second article-state authority.
 
-Before material work read `continuity/FINANCIAL_OWNER_EXECUTION.json` and `continuity/EXECUTION_CAPABILITIES.json`, then handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
+Before material work read `continuity/UAOS_ADAPTER.json`, `continuity/FINANCIAL_OWNER_EXECUTION.json` and `continuity/EXECUTION_CAPABILITIES.json`, then handshake only capabilities required by the exact next action. Repository declarations are ceilings, not current-session proof.
 
 - Durable article business state lives only at `main/workspaces/articles/{task_id}`.
+- Cross-domain task identity, continuation, requirements and action lineage live in UAOS; old v3.7 lease/resume_epoch/progress-receipt fields are legacy compatibility evidence only.
 - Create durable article state before research or drafting. Chat memory is never task authority.
-- Every material transition uses `financial_writing_agent/owner_guard.py` against freshly fetched main state, binds the prior state blob SHA, writes with compare-and-swap, then rereads authoritative state and new artifact refs.
+- Every material Financial business transition uses `financial_writing_agent/owner_guard.py` against freshly fetched main state, binds the prior state blob SHA, writes with compare-and-swap, then rereads authoritative state and new artifact refs.
 - Review FAIL/BLOCKED recovery and system-impact lifecycle use `financial_writing_agent/owner_lifecycle.py` against that same owner state; they do not create another state machine.
 - Existing schema-1.2 `execution_mode=GITHUB_CHAT` and old receipt labels are compatibility data only, not route selectors.
 - Missing hard capability blocks the affected stage. It never authorizes free-form writing or a lower business SOP.
@@ -71,7 +72,7 @@ Material user edit/feedback/rejection/acceptance that changes writing, review or
 
 Persist corrective evidence in the same main article workspace and keep systemic impact OPEN until the maintenance/evolution lifecycle has evidence-backed closure. Do not fabricate runtime receipts that were not actually produced.
 
-Systemic/non-trivial maintenance follows `references/maintenance.md` and current Universal evolution rules. Prefer consolidation/deletion over adding another execution adapter, state store or persona Agent. A superseded mechanism may remain in Git history or historical evals, but it must be removed or mechanically quarantined from current authority and hot-path routing.
+Systemic/non-trivial maintenance follows `references/maintenance.md` and current UAOS evolution rules. Prefer consolidation/deletion over adding another execution adapter, state store or persona Agent. A superseded mechanism may remain in Git history or historical evals, but it must be removed or mechanically quarantined from current authority and hot-path routing.
 
 ## 6. Completion / delivery
 
@@ -81,4 +82,4 @@ Business-state terminalization and current user-visible file availability are di
 
 If a historical canonical binary is not currently resolvable, regenerate the Word from its durable publication/audit source inside the same owner trajectory, rerun the required mechanical and render QA, and present the regenerated binary as a **new artifact instance** with its actual current SHA-256 and source identity. Never silently reuse the historical binary hash for a regenerated file. The presentation resource/receipt is delivery evidence only; it is not a second task-state authority.
 
-For an active durable task, preserve Universal lease/progress rules and emit the Universal progress receipt separately from quality/execution assurance. `COMMITTED` is valid only after authoritative reread.
+For an active durable task, preserve UAOS task/action continuity and write only the current UAOS checkpoint/action evidence appropriate to the host. Do not create or refresh old Universal v3.7 leases, resume_epoch ownership or progress receipts. Completion claims still require authoritative reread of both UAOS task state and the exact Financial business/artifact state relevant to the action.
