@@ -46,9 +46,14 @@ def test_initial_state_is_receipt_bound_self_attested_and_owner_contract_parity(
     assert state["current_stage"] == "INTAKE"
     assert state["review_assurance"] == CHAT_REVIEW_ASSURANCE
     assert state["state_ref"] == "main"
-    assert state["distribution_mode"] == "DUAL"
+    assert state["distribution_mode"] == "PORTFOLIO"
     assert state["delivery_channel"] == "WORD_FILE_ONLY"
-    assert state["required_outputs"] == ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"]
+    assert state["required_outputs"] == [
+        "AUDIT_DOCX",
+        "FINANCE_DEEP_DOCX",
+        "FINANCE_BROAD_DOCX",
+        "PLATFORM_INTERACTION_PACK_DOCX",
+    ]
     receipt = state["execution_receipts"][-1]
     assert receipt["capability_id"] == "github_chat_workflow"
     assert receipt["input_bindings"]["previous_state_blob_sha"] == "NEW_FILE"
@@ -240,7 +245,7 @@ def _advance_to_delivery():
     return advance_state(state, previous_state_blob_sha="s6", executor_identity="chat-session:test", artifact_key="EDITORIAL_AUDIT", artifact_path="workspaces/articles/guard-task/reviews/EDITORIAL_AUDIT.json", artifact_blob_sha="a6", review_status="PASS")
 
 
-def test_dual_delivery_cannot_drop_deep_or_broad_output():
+def test_portfolio_delivery_cannot_drop_required_article_output():
     state = _advance_to_delivery()
     with pytest.raises(GithubChatGuardError, match="article delivery outputs mismatch"):
         advance_state(
@@ -254,7 +259,7 @@ def test_dual_delivery_cannot_drop_deep_or_broad_output():
         )
 
 
-def test_final_chat_review_requires_three_outputs_for_default_dual_and_uses_bounded_terminal():
+def test_final_chat_review_requires_full_portfolio_and_uses_bounded_terminal():
     state = _advance_to_delivery()
     state = advance_state(
         state,
@@ -266,6 +271,7 @@ def test_final_chat_review_requires_three_outputs_for_default_dual_and_uses_boun
         delivery_artifacts=[
             _delivery("FINANCE_DEEP_DOCX", "deep.docx"),
             _delivery("FINANCE_BROAD_DOCX", "broad.docx", "b"),
+            _delivery("PLATFORM_INTERACTION_PACK_DOCX", "interaction.docx", "d"),
         ],
     )
     state = advance_state(
@@ -300,4 +306,9 @@ def test_final_chat_review_requires_three_outputs_for_default_dual_and_uses_boun
     assert state["status"] == TERMINAL_STATUS
     assert state["status"] != "COMPLETE"
     assert state["current_stage"] == "FINAL_AUDIT"
-    assert set(state["delivery_artifacts"]) == {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "AUDIT_DOCX"}
+    assert set(state["delivery_artifacts"]) == {
+        "FINANCE_DEEP_DOCX",
+        "FINANCE_BROAD_DOCX",
+        "PLATFORM_INTERACTION_PACK_DOCX",
+        "AUDIT_DOCX",
+    }
