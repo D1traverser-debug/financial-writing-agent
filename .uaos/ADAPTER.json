@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.0",
+  "schema_version": "2.1",
   "domain_id": "financial_writing",
   "controller": "D1traverser-debug/universal-agent-os@main",
   "status": "UAOS_CONTROL_PLANE_ACTIVE",
@@ -8,6 +8,9 @@
   "cross_chat_continuity_authority": "UAOS",
   "business_state_authority": "workspaces/articles/{task_id}/STATE.json",
   "business_rule_authority": "D1traverser-debug/financial-writing-agent@main",
+  "article_binding_rule": "UAOS_ARTICLE_TASK_ID_MUST_EQUAL_FINANCIAL_STATE_TASK_ID_AND_UAOS_DOMAIN_BUSINESS_AUTHORITY_MUST_POINT_TO_THE_EXACT_STATE",
+  "article_binding_validator": "financial_writing_agent.uaos_binding.validate_uaos_article_binding",
+  "historical_explicit_resume_rule": "ADOPT_OR_CREATE_EXACT_UAOS_ARTICLE_TASK_BEFORE_MATERIAL_MUTATION_WITHOUT_REWRITING_HISTORICAL_RECEIPTS",
   "material_write_rule": "FRESH_MAIN_STATE_CAS_THEN_REREAD",
   "split_brain_rule": "DOMAIN_STATE_NEVER_REPLACES_UAOS_CONTROLLER_STATE",
   "legacy_controller_compatibility": "NONE"
