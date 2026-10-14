@@ -1,6 +1,6 @@
 {
   "eval_id":"FWA-UAOS-ARTICLE-BINDING-20261014",
-  "status":"PROMOTED",
+  "status":"RESOLVED",
   "trigger":"FINANCIAL_INHERITANCE_AND_USAGE_AUDIT",
   "baseline":{
     "main_commit":"3f29a6f1713c37b86302033d153ef85a4326b0e6",
@@ -43,8 +43,16 @@
   "promotion":{
     "state":"PROMOTED_BY_OBSERVED_HEAD_CAS",
     "release_commit":"16045dcc86832eacc21a512e680e53a5e3b6d476",
-    "expected_previous_main":"3f29a6f1713c37b86302033d153ef85a4326b0e6"
+    "promotion_record_commit":"88f1b7b6c490e334908c9eddbf062bbd4648c034",
+    "previous_main":"3f29a6f1713c37b86302033d153ef85a4326b0e6"
   },
-  "post_promotion_observation":"PENDING_MAIN_CI",
-  "updated_at":"2026-10-14T11:10:00Z"
+  "post_promotion_observation":{
+    "main_commit":"88f1b7b6c490e334908c9eddbf062bbd4648c034",
+    "ci_run":38554916033,
+    "status":"PASS",
+    "recommendation":"KEEP",
+    "conclusion":"Financial inheritance/use binding is active on main with the full domain CI green."
+  },
+  "terminal_disposition":"KEEP_0_8_2__READY_FOR_NEW_OR_EXPLICIT_ARTICLE",
+  "updated_at":"2026-10-14T11:16:30Z"
 }
