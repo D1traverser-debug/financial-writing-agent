@@ -50,3 +50,18 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     assert "PROACTIVE_RESOLUTION_GAP" in journal
     assert "VERSION_METADATA_DRIFT" in journal
     assert "INHERITANCE_BEHAVIOR_VS_DECLARATION" in journal
+
+
+def test_machine_index_and_parent_handoff_expose_guidance_queue():
+    index = _read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
+    handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
+    for signal in (
+        "PROACTIVE_RESOLUTION_GAP",
+        "EVOLUTION_HISTORY_INTERFACE",
+        "VERSION_METADATA_DRIFT",
+        "INHERITANCE_BEHAVIOR_VS_DECLARATION",
+    ):
+        assert signal in index
+        assert signal in handoff
+    assert "NON_MUTATING_CHILD_UPCALL" in handoff
+    assert "Do not treat the Financial-specific repair as proof" in handoff
