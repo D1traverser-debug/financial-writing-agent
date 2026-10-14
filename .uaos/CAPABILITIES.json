@@ -1,6 +1,6 @@
 {
-  "schema_version": "2.2",
-  "profile_version": 14,
+  "schema_version": "2.3",
+  "profile_version": 15,
   "domain_id": "financial_writing",
   "policy": "CURRENT_SESSION_CAPABILITY_HANDSHAKE__NO_SIDE_CHANNEL__NO_SILENT_DEGRADATION",
   "uaos_common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
@@ -17,10 +17,10 @@
     "version_and_timestamp_provenance"
   ],
   "domain_evolution_role": "DOMAIN_EVIDENCE_EVAL_AND_BUSINESS_OWNER_PROMOTION",
-  "updated_at": "2026-10-14T11:03:00Z",
+  "updated_at": "2026-10-14T12:42:00Z",
   "capabilities": [
     {"capability_id":"financial_owner_workflow","scope":"ALL_FORMAL_ARTICLE_STAGES","required":["model_runtime","GitHub_owner_read_write"],"side_channel_allowed":false,"safe_degraded_modes":[]},
-    {"capability_id":"uaos_article_binding_validation","scope":"NEW_ARTICLE_AND_EXPLICIT_ARTICLE_RESUME","required":["financial_writing_agent.uaos_binding"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"domain_owned_article_identity_and_state","scope":"ARTICLE_CREATION_RESUME_AND_MUTATION","required":["financial_writing_agent.models.TaskContract","financial_writing_agent.owner_guard"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"high_judgment_generation_stages","scope":"RESEARCH,EDITORIAL,TITLE,DRAFT","required":["model_runtime"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"semantic_review_stages","scope":"RESEARCH_AUDIT,EDITORIAL_AUDIT,FINAL_AUDIT","assurance_ceiling":"CHAT_SELF_REVIEW_UNLESS_DISTINCT_PROVIDER_EVIDENCE","side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"delivery_and_mechanical_qa","scope":"DELIVERY,MECHANICAL_AUDIT,FINAL_OUTPUT_RECONCILIATION","required":["document_tooling","deterministic_checks"],"side_channel_allowed":false,"safe_degraded_modes":[]},
