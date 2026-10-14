@@ -1,6 +1,6 @@
 {
   "eval_id": "FWA-DOMAIN-IDENTITY-DECOUPLING-20261014",
-  "status": "PROMOTED_OBSERVING",
+  "status": "RESOLVED",
   "trigger": "USER_ARCHITECTURE_CHALLENGE_AFTER_0_8_2",
   "supersedes_assumption": "FWA-UAOS-ARTICLE-BINDING-20261014::UAOS_ARTICLE_TASK_ID_EQUALS_FINANCIAL_STATE_TASK_ID",
   "incident": {
@@ -28,20 +28,20 @@
   },
   "evaluation": {
     "candidate_head": "efe1341435b4b5f485dc655914c44e20b823a37d",
-    "ci_run": 38567735219,
-    "job_id": 115864638763,
-    "pytest": "101 passed",
-    "contract_eval": "PASS__FINANCIAL_STATE_OWNS_ARTICLE_IDENTITY__TASKCONTRACT_IDENTITY_FREE",
-    "single_owner_static_audit": "PASS",
-    "retired_runtime_audit": "PASS__17_RETIRED_PATHS_ABSENT",
-    "isolated_wheel_smoke": "PASS__NO_UAOS_BINDING_MODULE__STATE_IDENTITY_PRESERVED",
-    "docx_render_smoke": "PASS__1_PNG_PAGE",
+    "candidate_ci_run": 38567735219,
+    "candidate_job_id": 115864638763,
+    "candidate_pytest": "101 passed",
+    "candidate_result": "PASS__CONTRACT_STATIC_WHEEL_DOCX_RENDER",
+    "production_release_commit": "289e8d6fa1d27613e5fd3c5f9dceecfa9d89b954",
+    "production_main_ci_run": 38568945008,
+    "production_main_ci": "PASS",
     "result": "PASS"
   },
   "promotion": {
     "state": "PROMOTED_BY_OBSERVED_HEAD_CAS",
     "previous_main": "937cdd6b6612e3bcacaa434fdba4511071ca8064",
-    "post_promotion_observation": "PENDING_MAIN_CI"
+    "release_commit": "289e8d6fa1d27613e5fd3c5f9dceecfa9d89b954"
   },
-  "updated_at": "2026-10-14T13:07:00Z"
+  "terminal_disposition": "KEEP_0_8_3__FINANCIAL_STATE_OWNS_ARTICLE_IDENTITY__TASKCONTRACT_IDENTITY_FREE",
+  "updated_at": "2026-10-14T13:10:00Z"
 }
