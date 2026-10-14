@@ -108,6 +108,33 @@ class CompanyFinding(StrictModel):
     reversal_risks: list[str] = Field(default_factory=list)
 
 
+class CompanyDecisionDimension(StrictModel):
+    dimension: str = Field(min_length=1)
+    company_assessments: dict[str, str] = Field(min_length=2)
+    evidence_refs: list[str] = Field(min_length=1)
+    why_it_changes_judgment: str = Field(min_length=1)
+
+
+class CompanyDecisionMap(StrictModel):
+    """Evidence-bounded company differentiation, not an actionable recommendation ranking."""
+
+    material_companies: list[str] = Field(min_length=2)
+    dimensions: list[CompanyDecisionDimension] = Field(min_length=2)
+    current_comparative_verdict: str = Field(min_length=1)
+    strongest_current_evidence_for: list[str] = Field(min_length=1)
+    weaker_or_later_evidence_for: list[str] = Field(default_factory=list)
+    change_conditions: list[str] = Field(min_length=1)
+    non_actionable_boundary: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_company_accounting(self):
+        names = set(self.material_companies)
+        for dimension in self.dimensions:
+            if set(dimension.company_assessments) != names:
+                raise ValueError("each company-decision dimension must assess every material company")
+        return self
+
+
 class UniverseExclusion(StrictModel):
     name: str = Field(min_length=1)
     value_chain_class: str = Field(min_length=1)
@@ -195,6 +222,7 @@ class ResearchPackage(StrictModel):
     transmission_chain: list[str] = Field(min_length=1)
     universe: list[CompanyFinding] = Field(default_factory=list)
     universe_coverage: UniverseCoverage
+    company_decision_map: CompanyDecisionMap | None = None
     market_explanation_scope: MarketExplanationScope
     market_explanation_scope_reason: str = Field(min_length=1)
     market_explanation: MarketExplanationMap | None = None
@@ -231,6 +259,13 @@ class ResearchPackage(StrictModel):
             accounted = any(item.included_companies for item in self.universe_coverage.classes)
             if accounted:
                 raise ValueError("universe_coverage included_companies require matching universe entries")
+
+        material = [company.name for company in self.universe if company.materiality == "MATERIAL"]
+        # Historical stored packages remain parseable when this new optional field is absent;
+        # current Research/Audit admission applies the hard rule through policy/checks. When a
+        # map is supplied, its company set must be exact.
+        if self.company_decision_map is not None and set(self.company_decision_map.material_companies) != set(material):
+            raise ValueError("company_decision_map.material_companies must exactly match current MATERIAL companies")
         return self
 
 
@@ -338,8 +373,6 @@ class ArticleBlock(StrictModel):
 class ArticlePayload(StrictModel):
     title: str = Field(min_length=1)
     blocks: list[ArticleBlock] = Field(min_length=3)
-    # Risk quality is semantic: concise wording is allowed as long as the paragraph is
-    # non-empty, topic-specific and information-complete. Do not restore a character quota.
     risk_disclaimer: str = Field(min_length=1)
     stock_names: list[str] = Field(default_factory=list)
     skim_path_anchors: list[str] = Field(min_length=3)
@@ -355,9 +388,34 @@ class ArticlePayload(StrictModel):
         return self
 
 
+class InteractionPost(StrictModel):
+    platform_family: Literal["WECHAT_IMAGE_TEXT", "TOUTIAO_MICRO", "BAIJIAHAO_DYNAMIC", "NETEASE_DYNAMIC", "GENERIC_DYNAMIC"]
+    hook: str = Field(min_length=1)
+    body: str = Field(min_length=1)
+    interaction_prompt: str = Field(min_length=1)
+    stock_names: list[str] = Field(default_factory=list)
+
+
+class PlatformInteractionPack(StrictModel):
+    topic: str = Field(min_length=1)
+    posts: list[InteractionPost] = Field(min_length=3)
+    evidence_boundary: str = Field(min_length=1)
+    independent_rewrite_from_long_form: bool = True
+
+    @model_validator(mode="after")
+    def ensure_independent_rewrite(self):
+        if not self.independent_rewrite_from_long_form:
+            raise ValueError("platform interaction pack must be independently rewritten from the audited evidence base")
+        families = {post.platform_family for post in self.posts}
+        if len(families) < 3:
+            raise ValueError("platform interaction pack requires at least three platform-family adaptations")
+        return self
+
+
 class DraftPackage(StrictModel):
     finance_deep: ArticlePayload | None = None
     finance_broad: ArticlePayload | None = None
+    platform_interaction_pack: PlatformInteractionPack | None = None
 
 
 class AuthorialProseAuditRubric(StrictModel):
@@ -400,14 +458,13 @@ class HookAuditRubric(StrictModel):
     headline_curiosity_balance: Literal["PASS", "REVISE"]
     headline_strategy_diversity: Literal["PASS", "REVISE"]
     title_wechat_search_intent: Literal["PASS", "REVISE"]
-    # Compatibility field names are retained for contract stability. Their current
-    # semantics are defined by references/hooks.md: this is an opening diagnostic,
-    # not a fixed rule that the first three sentences must deliver the full answer.
+    # Compatibility field name retained. Current semantics are now a hard three-sentence
+    # opening-zone job test: the first three complete sentences collectively establish a
+    # hard fact/anomaly, finance-wide consequence, and a material unresolved payoff. The
+    # order and syntax remain flexible, and the full title answer need not be exhausted.
     opening_three_sentence_retention: Literal["PASS", "REVISE"]
     continuation_flow: Literal["PASS", "REVISE"]
     completion_payoff: Literal["PASS", "REVISE"]
-    # Compatibility field: PASS means title-promise integrity with strategy-appropriate
-    # payoff timing. It does not require immediate payoff in sentence one/the opening.
     title_opening_payoff: Literal["PASS", "REVISE"]
 
 
