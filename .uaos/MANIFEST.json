@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.2",
+  "schema_version": "2.3",
   "agent_id": "financial_writing",
   "domain_id": "financial_writing",
   "controller": "D1traverser-debug/universal-agent-os@main",
@@ -12,7 +12,8 @@
   },
   "domain_authority": {
     "execution_contract": "config/EXECUTION_CONTRACT.json",
-    "task_contract": "financial_writing_agent/models.py:TaskContract",
+    "business_contract": "financial_writing_agent/models.py:TaskContract",
+    "article_identity": "workspaces/articles/{task_id}/STATE.json::task_id",
     "business_state_root": "workspaces/articles/{task_id}/STATE.json",
     "workflow_guard": "financial_writing_agent/owner_guard.py",
     "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py"
