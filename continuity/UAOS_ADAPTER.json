@@ -1,0 +1,26 @@
+{
+  "schema_version": "1.0",
+  "controller": "D1traverser-debug/universal-agent-os@main",
+  "controller_entrypoint": "ENTRYPOINT.md",
+  "domain_id": "financial_writing",
+  "legacy_owner": "FINANCIAL_WRITING_AGENT_RUNTIME",
+  "status": "UAOS_CONTROL_PLANE_ACTIVE",
+  "new_task_mode": "UAOS_NATIVE",
+  "legacy_resume_mode": "UAOS_ROUTING_ENTRY_OR_EXPLICIT_ARTICLE_IMPORT",
+  "business_repository_role": "DOMAIN_CODE_RULES_ARTIFACTS_AND_FINE_GRAINED_ARTICLE_STATE_PROVIDER",
+  "business_state_authority": "workspaces/articles/{task_id}/STATE.json",
+  "uaos_state_role": "CROSS_DOMAIN_TASK_IDENTITY_REQUIREMENTS_CONTINUITY_AND_ACTION_LINEAGE",
+  "legacy_continuity_refs": [
+    "continuity/UNIVERSAL_PROTOCOL_ADAPTER.json",
+    "continuity/tasks/financial-writing-main/TASK_MANIFEST.json",
+    "continuity/tasks/financial-writing-main/HANDOFF.md"
+  ],
+  "legacy_continuity_status": "READ_ONLY_COMPATIBILITY_EVIDENCE",
+  "translation": {
+    "drop_controller_fields": ["resume_epoch", "active_lease", "continuity_protocol_version", "progress_receipt"],
+    "preserve": ["task_id", "business_state_ref", "current_stage", "next_action", "artifact_refs", "user_requirements", "quality_evidence"],
+    "completed_articles": "DO_NOT_AUTO_REACTIVATE",
+    "normal_article_request": "CREATE_NEW_UAOS_TASK"
+  },
+  "anti_split_brain": "UAOS controls task continuity; Financial STATE.json remains fine-grained business-state truth. Old continuity task manifests are not written after cutover."
+}
