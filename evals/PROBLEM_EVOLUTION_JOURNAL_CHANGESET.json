@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "change_id": "financial-proactive-resolution-problem-journal-20261015",
+  "branch": "evolution/2026-10-15-proactive-resolution-problem-journal",
+  "authority_owner": "DOMAIN:financial_writing",
+  "changed_surfaces": [
+    "references/proactive_resolution.md",
+    "references/maintenance.md",
+    "evals/PROBLEM_EVOLUTION_JOURNAL.md",
+    "evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json",
+    "evals/PARENT_GUIDANCE_HANDOFF.md",
+    "evals/PROACTIVE_RESOLUTION_CHANGELOG_2026-10-15.md",
+    "evals/README_PROBLEM_JOURNAL.md",
+    "evals/PROBLEM_EVOLUTION_JOURNAL_SCHEMA.md",
+    "tests/test_proactive_resolution_problem_journal_20261015.py"
+  ],
+  "intended_effect": "Recover available evidence and form provisional candidates before avoidable user escalation; retain one chronological problem/evolution ledger for later UAOS guidance.",
+  "parent_mutation": false,
+  "requires_full_financial_ci": true,
+  "requires_production_reread": true
+}
