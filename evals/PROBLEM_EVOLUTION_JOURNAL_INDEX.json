@@ -2,9 +2,9 @@
   "schema_version": "1.0",
   "journal": "evals/PROBLEM_EVOLUTION_JOURNAL.md",
   "owner": "DOMAIN:financial_writing",
-  "revision": "1.0",
+  "revision": "1.2",
   "backfill_window": {
-    "from": "2026-10-12",
+    "from": "2026-10-10",
     "through": "2026-10-15"
   },
   "current_open_items": [
@@ -17,7 +17,8 @@
     "PROACTIVE_RESOLUTION_GAP",
     "EVOLUTION_HISTORY_INTERFACE",
     "VERSION_METADATA_DRIFT",
-    "INHERITANCE_BEHAVIOR_VS_DECLARATION"
+    "INHERITANCE_BEHAVIOR_VS_DECLARATION",
+    "DECLARATION_TO_OPERATION_GAP"
   ],
   "rule_refs": [
     "references/maintenance.md",
