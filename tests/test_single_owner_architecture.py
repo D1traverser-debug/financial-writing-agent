@@ -10,104 +10,52 @@ def _json(path: str):
 
 
 def test_current_authority_has_one_financial_owner_path():
-    agent = _json("continuity/AGENT_MANIFEST.json")
-    execution = _json("continuity/FINANCIAL_OWNER_EXECUTION.json")
-    capabilities = _json("continuity/EXECUTION_CAPABILITIES.json")
-    universal = _json("continuity/UNIVERSAL_PROTOCOL_ADAPTER.json")
-    task = _json("continuity/tasks/financial-writing-main/TASK_MANIFEST.json")
-
-    assert agent["product_interface"]["entry_model"] == "SINGLE_OWNER_ENTRY"
-    assert agent["product_interface"]["execution_mode_selection"] == "NONE"
-    assert agent["runtime"]["runtime_type"] == "SINGLE_GITHUB_BACKED_OWNER"
-    assert agent["runtime"]["canonical_guard_implementation"] == "financial_writing_agent/owner_guard.py"
-    assert agent["runtime"]["canonical_lifecycle_implementation"] == "financial_writing_agent/owner_lifecycle.py"
-    assert agent["runtime"]["alternate_business_state_runtime_allowed"] is False
-
-    assert execution["product_path"] == "SINGLE_GITHUB_BACKED_FINANCIAL_OWNER"
+    manifest = _json(".uaos/MANIFEST.json")
+    adapter = _json(".uaos/ADAPTER.json")
+    capabilities = _json(".uaos/CAPABILITIES.json")
+    execution = _json("config/EXECUTION_CONTRACT.json")
+    assert manifest["controller"] == "D1traverser-debug/universal-agent-os@main"
+    assert manifest["skill"]["entrypoint"] == "UAOS_SKILL.md"
+    assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
+    assert adapter["task_identity_authority"] == "UAOS"
+    assert adapter["cross_chat_continuity_authority"] == "UAOS"
+    assert adapter["business_state_authority"] == "workspaces/articles/{task_id}/STATE.json"
+    assert adapter["legacy_controller_compatibility"] == "NONE"
+    assert execution["product_path"] == "UAOS_TO_SINGLE_GITHUB_BACKED_FINANCIAL_OWNER"
     assert execution["execution"]["route_selection"] == "NONE"
-    assert execution["authority"]["business_state_ref"] == "main"
-    assert execution["authority"]["business_state_root"] == "workspaces/articles/{task_id}"
-    assert execution["authority"]["canonical_mutation_guard_implementation"] == "financial_writing_agent/owner_guard.py"
-    assert execution["authority"]["canonical_lifecycle_implementation"] == "financial_writing_agent/owner_lifecycle.py"
-    assert execution["authority"]["alternate_runtime_state_authority_allowed"] is False
-    assert execution["execution"]["free_form_article_fallback_allowed"] is False
-
-    assert capabilities["profile_version"] == 11
+    assert execution["authority"]["alternate_business_state_authority_allowed"] is False
     assert {cap["capability_id"] for cap in capabilities["capabilities"]} >= {
-        "financial_owner_workflow",
-        "high_judgment_generation_stages",
-        "semantic_review_stages",
-        "delivery_and_mechanical_qa",
+        "financial_owner_workflow", "high_judgment_generation_stages",
+        "semantic_review_stages", "delivery_and_mechanical_qa",
         "blocked_recovery_and_system_impact_lifecycle",
     }
-    assert all(cap["side_channel_allowed"] is False for cap in capabilities["capabilities"])
-    assert all(cap["safe_degraded_modes"] == [] for cap in capabilities["capabilities"])
-
-    assert universal["execution_mode_binding"]["route_selection"] == "NONE"
-    assert universal["execution_mode_binding"]["business_state_authority"] == "main/workspaces/articles/{task_id}"
-    assert universal["legacy_quarantine"]["legacy_presence_may_activate_route"] is False
-
-    assert "PROFILE_11__SINGLE_GITHUB_BACKED_FINANCIAL_OWNER" in task["runtime_version"]
-    assert "continuity/FINANCIAL_OWNER_EXECUTION.json" in task["artifact_refs"]
-    assert "financial_writing_agent/owner_guard.py" in task["artifact_refs"]
-    assert "financial_writing_agent/owner_lifecycle.py" in task["artifact_refs"]
-    assert "continuity/GITHUB_CHAT_EXECUTION.json" not in task["artifact_refs"]
-    assert "financial_writing_agent/github_chat_guard.py" not in task["artifact_refs"]
 
 
-def test_retired_discovery_and_runtime_entrypoints_are_not_current_surface():
-    assert not (ROOT / "continuity" / "GITHUB_CHAT_EXECUTION.json").exists()
-    assert not (ROOT / "financial_writing_agent" / "github_chat_guard.py").exists()
-    assert (ROOT / "financial_writing_agent" / "owner_guard.py").is_file()
-    assert (ROOT / "financial_writing_agent" / "owner_lifecycle.py").is_file()
-    assert not (ROOT / "plugin.json").exists()
-    assert not (ROOT / "scripts" / "sdk_smoke.py").exists()
-    assert not (ROOT / "scripts" / "mcp_smoke.py").exists()
+def test_retired_control_namespace_is_physically_absent():
+    assert not (ROOT / "continuity").exists()
+    for path in (
+        "financial_writing_agent/github_chat_guard.py", "plugin.json",
+        "scripts/sdk_smoke.py", "scripts/mcp_smoke.py",
+    ):
+        assert not (ROOT / path).exists(), path
+    for path in (
+        "UAOS_SKILL.md", ".uaos/MANIFEST.json", ".uaos/ADAPTER.json",
+        ".uaos/CAPABILITIES.json", "config/EXECUTION_CONTRACT.json",
+        "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py",
+    ):
+        assert (ROOT / path).is_file(), path
 
+
+def test_discovery_skill_is_pointer_not_second_rulebook():
+    discovery = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+    assert "Discovery Pointer" in discovery
+    assert "UAOS_SKILL.md" in discovery
+    assert len(discovery.encode("utf-8")) < 4096
+    assert "continuity/" not in discovery
+
+
+def test_package_has_no_second_runtime_dependencies():
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     assert "scripts" not in pyproject["project"]
     assert not any(str(dep).lower().startswith("mcp") for dep in pyproject["project"].get("dependencies", []))
     assert "openai" not in pyproject["project"].get("optional-dependencies", {})
-
-    agent = _json("continuity/AGENT_MANIFEST.json")
-    current_refs = json.dumps(agent, ensure_ascii=False)
-    for retired in (
-        "continuity/GITHUB_CHAT_EXECUTION.json",
-        "financial_writing_agent/store.py",
-        "financial_writing_agent/runtime_service.py",
-        "financial_writing_agent/plugin_server.py",
-        "financial_writing_agent/github_chat_guard.py",
-    ):
-        assert retired not in json.dumps(agent["workflow"]["state_authority_refs"], ensure_ascii=False)
-    assert '"runtime_type": "HYBRID"' not in current_refs
-
-
-def test_legacy_execution_token_is_quarantined_not_a_route_selector():
-    execution = _json("continuity/FINANCIAL_OWNER_EXECUTION.json")
-    checkpoint = execution["checkpoint_contract"]
-    assert checkpoint["current_execution_mode_storage_token"] == "GITHUB_CHAT"
-    assert checkpoint["storage_token_status"] == "LEGACY_INTERNAL_TOKEN_ONLY__NOT_A_ROUTE_SELECTOR"
-    assert execution["execution"]["route_selection"] == "NONE"
-
-
-def test_current_docs_do_not_reintroduce_dual_adapter_operating_model():
-    current_docs = [
-        ROOT / "README.md",
-        ROOT / "docs" / "architecture.md",
-        ROOT / "skills" / "financial-writing-agent" / "SKILL.md",
-        ROOT / "continuity" / "TASK_INDEX.md",
-        ROOT / "continuity" / "tasks" / "financial-writing-main" / "HANDOFF.md",
-        ROOT / "deploy" / "chatgpt-site" / "SITE_SPEC.md",
-    ]
-    forbidden = (
-        "two execution adapters behind one business owner",
-        "two execution adapters",
-        "owner-native Python/plugin 实际可用时",
-        "choose OWNER_NATIVE",
-        "Otherwise guarded GitHub-chat execution",
-        "financial_writing_agent/github_chat_guard.py",
-    )
-    for path in current_docs:
-        text = path.read_text(encoding="utf-8")
-        for marker in forbidden:
-            assert marker not in text, f"{path.relative_to(ROOT)} contains retired marker: {marker}"
