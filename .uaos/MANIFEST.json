@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.3",
+  "schema_version": "2.4",
   "agent_id": "financial_writing",
   "domain_id": "financial_writing",
   "controller": "D1traverser-debug/universal-agent-os@main",
@@ -7,15 +7,20 @@
   "skill": {"entrypoint": "UAOS_SKILL.md"},
   "binding": {
     "controller_ref": "D1traverser-debug/universal-agent-os@main:CURRENT_SYSTEM.json",
+    "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
+    "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
     "adapter_ref": ".uaos/ADAPTER.json",
     "capability_ref": ".uaos/CAPABILITIES.json"
   },
   "domain_authority": {
+    "product_requirements": "docs/product_requirements.md",
+    "architecture": "docs/architecture.md",
     "execution_contract": "config/EXECUTION_CONTRACT.json",
     "business_contract": "financial_writing_agent/models.py:TaskContract",
     "article_identity": "workspaces/articles/{task_id}/STATE.json::task_id",
     "business_state_root": "workspaces/articles/{task_id}/STATE.json",
     "workflow_guard": "financial_writing_agent/owner_guard.py",
-    "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py"
+    "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
+    "maintenance_method": "references/maintenance.md"
   }
 }
