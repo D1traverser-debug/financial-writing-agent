@@ -28,13 +28,7 @@ def _split_bold(
     stock_names: list[str] | None = None,
     auto_bold_stock_names: bool = False,
 ) -> list[tuple[str, bool]]:
-    """Parse explicit ``**...**`` emphasis and optional A-share name emphasis.
-
-    ``ArticleDocument.stock_names`` is the deterministic A-share/company formatting
-    surface. When policy enables automatic stock-name emphasis, every exact occurrence
-    is bolded. Explicit emphasis remains independent and can therefore carry the wider
-    skim path through key facts, numbers and judgment sentences.
-    """
+    """Parse explicit ``**...**`` emphasis and optional A-share name emphasis."""
     names = sorted({name for name in (stock_names or []) if name}, key=len, reverse=True)
     name_set = set(names)
     name_pattern = None
@@ -135,7 +129,6 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
     for block in article.blocks:
         render_text = block.text
 
-        # Risk is a final inline italic paragraph, not another numbered H1.
         if block.kind == "h1" and _is_risk_heading(block.text):
             risk_mode = True
             continue
@@ -227,6 +220,60 @@ def build_audit_docx(title: str, lines: list[AuditLine], artifacts: list[str], o
         p = doc.add_paragraph(a, style="List Bullet")
         for run in p.runs:
             run.underline = False
+
+    output = Path(output)
+    output.parent.mkdir(parents=True, exist_ok=True)
+    doc.save(output)
+    return output
+
+
+def build_interaction_pack_docx(pack, output: str | Path, policy: dict) -> Path:
+    """Render the standalone platform interaction pack as a Word artifact.
+
+    The pack is intentionally not an ArticleDocument: it contains several native short-form
+    rewrites rather than one long article and therefore has no article-level risk paragraph or
+    heading hierarchy. Finance compliance/source privacy still apply in semantic/mechanical QA.
+    """
+    doc = Document()
+    styles = doc.styles
+    body_pt = float(policy["word"]["body_pt"])
+    styles["Normal"].font.size = Pt(body_pt)
+    styles["Normal"].font.name = "Microsoft YaHei"
+    styles["Normal"]._element.rPr.rFonts.set(qn("w:eastAsia"), "Microsoft YaHei")
+
+    title = doc.add_paragraph()
+    title.alignment = WD_ALIGN_PARAGRAPH.CENTER
+    run = title.add_run(f"{pack.topic}｜互动短内容包")
+    _format_run(run, bold=True, size_pt=policy["word"]["title_pt"])
+
+    auto_bold_stock_names = bool(policy.get("word", {}).get("auto_bold_company_names", False))
+
+    for index, post in enumerate(pack.posts, start=1):
+        stock_names = list(getattr(post, "stock_names", []) or [])
+
+        label = doc.add_paragraph(style="Normal")
+        run = label.add_run(f"{index}. {post.platform_family}")
+        _format_run(run, bold=True, size_pt=body_pt)
+
+        for field_name, field_value, bold_label in (
+            ("开头", post.hook, True),
+            ("正文", post.body, False),
+            ("互动", post.interaction_prompt, True),
+        ):
+            paragraph = doc.add_paragraph(style="Normal")
+            label_run = paragraph.add_run(f"{field_name}：")
+            _format_run(label_run, bold=bold_label, size_pt=body_pt)
+            for text, bold in _split_bold(
+                field_value,
+                stock_names=stock_names,
+                auto_bold_stock_names=auto_bold_stock_names,
+            ):
+                text_run = paragraph.add_run(text)
+                _format_run(text_run, bold=bool(bold), size_pt=body_pt)
+
+    boundary = doc.add_paragraph(style="Normal")
+    boundary_run = boundary.add_run(f"证据边界：{pack.evidence_boundary}")
+    _format_run(boundary_run, italic=True, size_pt=body_pt)
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
