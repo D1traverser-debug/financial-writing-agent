@@ -8,9 +8,9 @@ scope: publishable A-share financial articles
 Controller: `D1traverser-debug/universal-agent-os@main`.
 Domain repository: `D1traverser-debug/financial-writing-agent@main`.
 
-UAOS owns cross-domain routing, selected authority, parent-session continuity, common governance and controller action lineage. Financial Writing independently owns article identity, the article `TaskContract`, workflow, business rules, article state, review evidence and deliverable artifacts.
+UAOS owns cross-domain routing, selected authority, parent-session continuity, common governance and controller action lineage. Financial Writing independently owns article identity, article lifecycle, business/output contract, workflow, rules, article state, review evidence and deliverable artifacts.
 
-The two identity namespaces are deliberately distinct. A UAOS controller/router task ID is not a Financial article task ID and there is no equality requirement between them.
+The two identity namespaces are deliberately distinct. A UAOS controller/router task ID is not a Financial article ID and there is no equality requirement between them.
 
 ## Start
 
@@ -30,10 +30,10 @@ Never discover controller state from repository search, chat memory, historical 
 `financial-writing:main` is a UAOS domain router only. It never becomes an article workspace.
 
 For a new article:
-1. UAOS delegates the user brief, relevant requirements and bounded governance context to Financial Writing;
-2. Financial Writing creates its own `TaskContract.task_id` and `workspaces/articles/{task_id}/STATE.json`;
-3. Financial Writing executes and resumes the article using that domain-owned identity;
-4. UAOS may retain an opaque reference to the returned Financial state when parent continuity needs one, but it must not manufacture, rename or require equality with the Financial task ID.
+1. UAOS delegates the user brief, relevant global requirements and bounded governance context to Financial Writing;
+2. Financial Writing chooses/creates its own article `task_id`, creates the corresponding `STATE.json`, and builds an identity-free `TaskContract` for output/business constraints;
+3. Financial Writing executes and resumes the article using its own state/workspace identity;
+4. UAOS may retain an opaque reference to the returned Financial state when parent continuity needs one, but it must not manufacture, rename or require equality with the Financial article ID.
 
 For explicit continuation, resolve the exact Financial article workspace from the user-selected or previously returned domain reference. Completed historical articles are not auto-reactivated merely because the domain matches.
 
@@ -53,7 +53,9 @@ Progressively load domain references:
 
 ## Business-state integrity
 
-Financial article state authority is `main/workspaces/articles/{task_id}/STATE.json`, where `task_id` is a Financial-domain article identity. Material changes bind freshly read current state, use the canonical owner guard/lifecycle, persist artifacts, then reread current authority.
+Financial article identity authority is `STATE.task_id` inside `main/workspaces/articles/{task_id}/STATE.json`. The same domain-owned ID binds workspace paths, receipts and artifact references. `TaskContract` is intentionally identity-free and only describes business/output constraints.
+
+Material changes bind freshly read current state, use the canonical owner guard/lifecycle, persist artifacts, then reread current authority.
 
 Default formal contract remains `DUAL` + `WORD_FILE_ONLY` with `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX` unless the user explicitly narrows it.
 
