@@ -45,7 +45,7 @@ def main() -> None:
     current_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
     discovery = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     require("continuity/" not in current_skill, "current Skill references retired namespace")
-    require("UAOS_ARTICLE_TASK_ID" in current_skill, "current Skill does not expose mechanical article identity binding")
+    require("validate_uaos_article_binding" in current_skill, "current Skill does not expose mechanical article identity binding")
     require("Discovery Pointer" in discovery and "continuity/" not in discovery, "discovery Skill is not a clean pointer")
 
     reference_names = ("research.md","knowledge.md","market_explanation.md","audit.md","editorial.md","hooks.md","style.md","platforms.md","delivery.md","maintenance.md")
