@@ -1,5 +1,8 @@
 # Maintenance module
 
+Revision: `1.1`
+Updated: `2026-10-15`
+
 ## Ownership
 Maintenance governs how detected problems, user feedback, reliability incidents, external methods, code changes and quality evidence become durable Financial-domain changes. It does not own cross-domain task identity or article prose rules.
 
@@ -13,10 +16,21 @@ Cross-domain/common-capability governance belongs to `D1traverser-debug/universa
 - `financial_writing_agent/workflow_spec.py` — canonical stage/revision graph;
 - `financial_writing_agent/owner_guard.py` — state mutation/output reconciliation;
 - `financial_writing_agent/owner_lifecycle.py` — blocked recovery and system-impact lifecycle;
+- `references/proactive_resolution.md` — proactive evidence/context recovery before avoidable user escalation;
+- `evals/PROBLEM_EVOLUTION_JOURNAL.md` — durable chronological index of encountered problems, repair paths, failed alternatives and parent-guidance items;
 - `financial_writing_agent/quality_regression.py` + `evals/` — domain regression/promotion evidence;
 - `workspaces/articles/{task_id}` — durable article business truth.
 
 The repository must not contain a domain-level controller/task index/lease/resume system. `continuity/` is a retired namespace and `config/retired_runtime_paths.json` mechanically guards against its return.
+
+## Proactive resolution before user escalation
+A missing ideal input is not automatically a user blocker.
+
+Before asking the user to repeat, provide later, confirm or recover something that may already be derivable, Financial must apply `references/proactive_resolution.md` and inspect the strongest legally available evidence: exact current project/article state, existing approved/edited samples, durable corrections/rejections, accepted outputs/performance, current conversation/context, platform/genre conventions and relevant external method evidence.
+
+When the evidence is incomplete but work can continue safely, create a provisional evidence-bound candidate with scope, confidence, contradictions/unknowns and a validation plan. Ask the user only when unresolved alternatives materially change the requested result, proceeding would invent a fact/preference/approval, or the user explicitly requested confirmation.
+
+This rule does not authorize fabricated memories, personal details, user approval or unsupported facts. Its purpose is to reduce avoidable user work and make inherited cognition operational rather than merely declarative.
 
 ## Mandatory problem-response floor
 Any detected problem activates the UAOS-hosted cognition floor before a repair is selected. A problem includes a defect, failed/degraded output, user correction/rejection, contradiction, repeated repair, uncertain goal satisfaction or other evidence that current behavior is unreliable.
@@ -29,8 +43,17 @@ For every problem, retain evidence for:
 
 Familiarity is not a waiver. Small problems may use a lightweight pass; material/systemic problems require deeper research, counterexamples and stronger verification. Research must affect or validate the diagnosis/repair; ceremonial browsing does not satisfy this requirement.
 
+## Durable problem/evolution journal
+Every encountered problem must appear in `evals/PROBLEM_EVOLUTION_JOURNAL.md`.
+
+The journal is an evidence index, not a second state machine and not a replacement for detailed incident/eval files. Small/local defects may use compact entries. Material, repeated, architectural, user-rejected or cross-domain problems must preserve the full path: symptom, detection source, diagnosis, macro alignment, assumption challenged, research, alternatives/rejected paths, action, verification, result, system impact, remaining unknowns and parent-upcall status.
+
+Record failed repair attempts and brittle tests/tooling mistakes when they materially explain later design choices. Do not rewrite the journal into a success-only narrative after a repair lands.
+
+When a problem plausibly belongs to UAOS/common capability scope, keep the Financial-local evidence and add it to the journal's parent-guidance queue. Financial must not mutate parent authority directly from the child context.
+
 ## Change method
-After the mandatory problem-response floor, for a material systemic change:
+After proactive recovery and the mandatory problem-response floor, for a material systemic change:
 1. classify the user requirement/failure and its scope;
 2. locate the unique owning rule/code/state/product-requirement surface;
 3. inspect current authority and affected dependencies before editing;
