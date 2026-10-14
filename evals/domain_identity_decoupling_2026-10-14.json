@@ -1,0 +1,39 @@
+{
+  "eval_id": "FWA-DOMAIN-IDENTITY-DECOUPLING-20261014",
+  "status": "EVALUATING",
+  "trigger": "USER_ARCHITECTURE_CHALLENGE_AFTER_0_8_2",
+  "supersedes_assumption": "FWA-UAOS-ARTICLE-BINDING-20261014::UAOS_ARTICLE_TASK_ID_EQUALS_FINANCIAL_STATE_TASK_ID",
+  "incident": {
+    "failure_class": "PARENT_CHILD_IDENTITY_NAMESPACE_COLLAPSE",
+    "summary": "The 0.8.2 repair incorrectly treated parent continuity and child business-state correlation as shared identity, adding a UAOS-aware validator to the Financial business package and requiring UAOS and Financial task IDs to be equal."
+  },
+  "root_cause": "Cross-repository continuity was modeled as identity unification instead of delegation plus opaque reference. A redundant TaskContract.task_id inside Financial also obscured the actual domain aggregate identity already carried by STATE.task_id, receipts and workspace paths.",
+  "candidate": {
+    "version": "0.8.3",
+    "changes": [
+      "remove financial_writing_agent.uaos_binding and its equality tests",
+      "keep UAOS semantics in .uaos adapter metadata instead of Financial business package",
+      "declare parent and Financial identity namespaces distinct",
+      "make Financial STATE.task_id the sole article identity authority",
+      "remove duplicate identity from TaskContract so it is an identity-free business/output value object",
+      "retain the existing ten-stage writing workflow, business rules, historical article states and artifacts unchanged"
+    ],
+    "new_controller_surfaces": 0,
+    "new_persistent_state_surfaces": 0,
+    "retired_surfaces": [
+      "financial_writing_agent/uaos_binding.py",
+      "tests/test_uaos_article_binding.py",
+      "TaskContract.task_id"
+    ]
+  },
+  "acceptance": [
+    "all existing Financial unit and trajectory tests pass",
+    "TaskContract carries no task/article identity",
+    "STATE.task_id remains immutable through Financial transitions and binds receipts/artifact paths",
+    "parent-specific task-ID equality logic is absent from financial_writing_agent package",
+    "contract/static audits pass",
+    "isolated wheel smoke proves no uaos_binding module and identity-free TaskContract",
+    "DOCX render smoke remains green"
+  ],
+  "updated_at": "2026-10-14T12:49:00Z"
+}
