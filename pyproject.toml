@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "financial-writing-agent"
-version = "0.8.2"
-description = "A-share financial-writing owner for the single UAOS + GitHub main trajectory, with material-complete finance analysis, explicit-scope market explanation, durable article checkpoints, evidence-bounded review, system-impact escalation, Reader Funnel and Writing DNA controls, auditable Word delivery, and explicit UAOS article-task binding validation."
+version = "0.8.3"
+description = "A-share financial-writing owner with domain-owned article identity and state, material-complete finance analysis, explicit-scope market explanation, durable article checkpoints, evidence-bounded review, system-impact escalation, Reader Funnel and Writing DNA controls, and auditable Word delivery under optional UAOS-hosted governance."
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7",
@@ -15,9 +15,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "build>=1.2"]
 
-# No production console/MCP entrypoint is exported. The user's supported product
-# path is ChatGPT -> UAOS -> GitHub main Financial owner. Retired local/plugin modules
-# are not part of the supported execution surface and carry no install-time dependency.
+# No production console/MCP entrypoint is exported. The supported hosted path is
+# ChatGPT -> UAOS routing -> GitHub main Financial owner. UAOS integration metadata
+# does not own Financial article identity, workflow state or business rules.
 
 [tool.setuptools.packages.find]
 include = ["financial_writing_agent*"]

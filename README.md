@@ -1,21 +1,23 @@
 # Financial Writing Agent
 
-A-share publishable financial-writing domain owned by Universal Agent OS (UAOS).
+A-share publishable financial-writing domain registered under Universal Agent OS (UAOS) for cross-domain routing and governance, while retaining independent ownership of article identity, workflow, business state, writing rules and deliverables.
 
 ## Current authority
 
-Cross-domain control: `D1traverser-debug/universal-agent-os@main`.
+Cross-domain controller: `D1traverser-debug/universal-agent-os@main`.
 
-Domain entry/binding:
+Financial business authority: `D1traverser-debug/financial-writing-agent@main`.
+
+Domain entry/binding metadata:
 - `UAOS_SKILL.md`
 - `.uaos/MANIFEST.json`
 - `.uaos/ADAPTER.json`
 - `.uaos/CAPABILITIES.json`
 - `config/EXECUTION_CONTRACT.json`
 
-Article business state: `workspaces/articles/{task_id}/STATE.json`.
+Article business state: `workspaces/articles/{task_id}/STATE.json`, where `task_id` is a Financial-domain article identity, not a UAOS controller task ID.
 
-There is no domain-level cross-chat controller, task index, lease protocol, resume epoch or alternate business-state runtime. The retired `continuity/` namespace is physically absent from the current tree.
+There is no domain-level cross-chat controller, parent task index, lease protocol, resume epoch or alternate business-state runtime. The retired `continuity/` namespace is physically absent from the current tree.
 
 ## Workflow
 

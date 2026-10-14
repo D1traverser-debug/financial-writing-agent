@@ -3,45 +3,45 @@ name: financial-writing-agent-uaos
 scope: publishable A-share financial articles
 ---
 
-# Financial Writing Agent — Current UAOS Entry
+# Financial Writing Agent — UAOS Entry
 
 Controller: `D1traverser-debug/universal-agent-os@main`.
 Domain repository: `D1traverser-debug/financial-writing-agent@main`.
 
-UAOS owns intent, durable task identity, requirements, cross-chat continuation, capability orchestration and controller action lineage. This repository owns Financial business rules, the canonical article workflow, fine-grained article state, review evidence and deliverable artifacts.
+UAOS owns cross-domain routing, selected authority, parent-session continuity, common governance and controller action lineage. Financial Writing independently owns article identity, article lifecycle, business/output contract, workflow, rules, article state, review evidence and deliverable artifacts.
+
+The two identity namespaces are deliberately distinct. A UAOS controller/router task ID is not a Financial article ID and there is no equality requirement between them.
 
 ## Start
 
-After UAOS resolves the exact task, read only what the current action needs, beginning with:
+After UAOS routes the request to `DOMAIN:financial_writing`, read only what the current action needs, beginning with:
 1. `.uaos/ADAPTER.json`;
 2. `.uaos/MANIFEST.json`;
 3. `.uaos/CAPABILITIES.json`;
 4. `config/EXECUTION_CONTRACT.json`;
-5. the exact `workspaces/articles/{task_id}/STATE.json` when an article exists.
+5. the exact `workspaces/articles/{task_id}/STATE.json` only when a Financial article already exists.
 
-Before material work, confirm that every `required_uaos_common_capabilities` entry in `.uaos/CAPABILITIES.json` exists in the current UAOS `config/COMMON_CAPABILITIES.json`. Binding or capability drift blocks the affected execution; never silently substitute an older parent semantic.
+Before material work, confirm that declared UAOS-hosted common capabilities are available. Binding drift blocks only the affected hosted execution; it never transfers Financial business ownership to UAOS.
 
-Never discover controller state from repository search, chat memory, historical evals or old continuity surfaces.
+Never discover controller state from repository search, chat memory, historical evals or retired continuity surfaces.
 
-## UAOS ↔ article identity binding
+## Parent/domain handoff
 
-`financial-writing:main` is a router, not an article workspace.
+`financial-writing:main` is a UAOS domain router only. It never becomes an article workspace.
 
-For a normal new article request:
-1. UAOS creates one durable Financial `task_type=article` task;
-2. create the Financial article state using exactly the same `task_id`;
-3. the UAOS task's `domain_business_authority` must equal `D1traverser-debug/financial-writing-agent@main:workspaces/articles/{task_id}/STATE.json`;
-4. reread both authorities and apply `financial_writing_agent.uaos_binding.validate_uaos_article_binding` before material article execution.
+For a new article:
+1. UAOS delegates the user brief, relevant global requirements and bounded governance context to Financial Writing;
+2. Financial Writing chooses/creates its own article `task_id`, creates the corresponding `STATE.json`, and builds an identity-free `TaskContract` for output/business constraints;
+3. Financial Writing executes and resumes the article using its own state/workspace identity;
+4. UAOS may retain an opaque reference to the returned Financial state when parent continuity needs one, but it must not manufacture, rename or require equality with the Financial article ID.
 
-For continuation, resolve an exact current UAOS article task. The router never auto-reactivates a completed historical article merely because the domain matches. When the user explicitly names a historical article that predates a current UAOS per-article task, create/adopt the exact UAOS article task with the same historical `task_id` before any material mutation; do not rewrite historical receipts or pretend the router itself is the article task.
-
-This binding is a join between two authorities, not a second registry: UAOS remains task authority and `workspaces/articles/{task_id}/STATE.json` remains Financial business-state authority.
+For explicit continuation, resolve the exact Financial article workspace from the user-selected or previously returned domain reference. Completed historical articles are not auto-reactivated merely because the domain matches.
 
 ## Canonical workflow
 
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`
 
-Missing hard capability blocks only the affected stage. It never authorizes a weaker SOP, free-form completion or another state authority.
+Missing hard capability blocks only the affected stage. It never authorizes a weaker SOP, free-form completion or another business-state authority.
 
 Progressively load domain references:
 - research: `references/research.md`, `references/knowledge.md`;
@@ -49,11 +49,13 @@ Progressively load domain references:
 - editorial/title/draft: `references/editorial.md`, `references/hooks.md`, `references/style.md`;
 - platform adaptation: `references/platforms.md`;
 - delivery: `references/delivery.md`;
-- durable rule changes: `references/maintenance.md`.
+- durable business-rule changes: `references/maintenance.md`.
 
 ## Business-state integrity
 
-Article state authority is `main/workspaces/articles/{task_id}/STATE.json`. Material changes bind freshly read current state, use the canonical owner guard/lifecycle, persist artifacts, then reread current authority. Domain state never replaces UAOS controller state.
+Financial article identity authority is `STATE.task_id` inside `main/workspaces/articles/{task_id}/STATE.json`. The same domain-owned ID binds workspace paths, receipts and artifact references. `TaskContract` is intentionally identity-free and only describes business/output constraints.
+
+Material changes bind freshly read current state, use the canonical owner guard/lifecycle, persist artifacts, then reread current authority.
 
 Default formal contract remains `DUAL` + `WORD_FILE_ONLY` with `FINANCE_DEEP_DOCX + FINANCE_BROAD_DOCX + AUDIT_DOCX` unless the user explicitly narrows it.
 
@@ -63,4 +65,4 @@ Historical completed article receipts are immutable provenance. Old identifiers 
 
 ## Completion
 
-Completion requires both UAOS task/action satisfaction and verified current Financial business state/artifacts. Do not create a parallel controller, task registry, continuation protocol, lease or resume mechanism in this repository.
+Financial Writing determines article completion from its own workflow/state/artifacts. UAOS may consume that result to update parent progress, but the parent does not duplicate the article lifecycle or maintain a second per-article task registry.

@@ -3,30 +3,38 @@
 ## Boundary
 UAOS is the sole cross-domain controller. This repository is one Financial business domain.
 
-UAOS owns durable task identity and cross-chat continuation. Financial Writing owns business workflow/rules/state/artifacts. The integration boundary is a one-to-one binding, not a duplicated controller: a UAOS Financial `task_type=article` task and its Financial `STATE.json` share the same `task_id`, and the UAOS task points to that exact state through `domain_business_authority`.
+UAOS owns cross-domain routing, parent governance and parent-session continuity. Financial Writing independently owns article identity, article lifecycle, workflow, business/output contract, business rules, article state and artifacts.
+
+The parent/controller identity namespace and the Financial article identity namespace are distinct. They may be related by an opaque domain state reference, but their IDs are not required to match and UAOS must not manufacture or rename a Financial article ID.
 
 ## Current locations
 - Domain entry: `UAOS_SKILL.md`
-- UAOS binding: `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json`
+- UAOS adapter metadata: `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json`
 - Business execution contract: `config/EXECUTION_CONTRACT.json`
-- UAOS/article binding validator: `financial_writing_agent/uaos_binding.py`
-- Business state: `workspaces/articles/{task_id}/STATE.json`
+- Identity-free business/output contract: `financial_writing_agent/models.py::TaskContract`
+- Article identity/state: `workspaces/articles/{task_id}/STATE.json::task_id`
 - Canonical workflow: `financial_writing_agent/workflow_spec.py`
 - Mutation guard: `financial_writing_agent/owner_guard.py`
 - Recovery/system-impact lifecycle: `financial_writing_agent/owner_lifecycle.py`
 - Domain rules: `references/`, `config/policy.json`
 
 ## New article and continuation
-`financial-writing:main` is a UAOS workspace router only. It must never serve as the business identity of an article.
+`financial-writing:main` is a UAOS domain router only; it is not an article task.
 
-For a new article, UAOS creates the durable per-article task first; Financial Writing creates the article state with the same ID; then the exact controller/business-state binding is reread and validated before material execution.
+For a new article, UAOS delegates the brief and bounded governance context. Financial Writing chooses/creates its own article `task_id`, creates the matching domain workspace/state, derives an identity-free `TaskContract`, and drives the article through the canonical workflow.
 
-For continuation, an exact current UAOS article task wins. A completed historical article is never auto-resumed from domain similarity. If the user explicitly selects a historical article that predates a current UAOS per-article task, UAOS may adopt/create the exact task identity with the same historical article ID before mutation; the historical receipts remain immutable.
+For continuation, the exact Financial article state/reference wins. UAOS may remember an opaque reference returned by the domain for parent continuity, but the child state remains authoritative for article stage and next action. Completed historical articles are never auto-resumed merely because the domain matches.
 
 ## Capability compatibility
-`.uaos/CAPABILITIES.json` declares the UAOS common capabilities this domain requires. The active host must compare that list against current UAOS `config/COMMON_CAPABILITIES.json` during binding admission. A missing required common capability is binding drift, not permission to silently run older semantics.
+`.uaos/CAPABILITIES.json` describes hosted integration capabilities. These declarations do not transfer article identity, workflow or business-rule ownership to UAOS.
 
 ## Invariants
-There is one article-state authority and no route selector between multiple runtimes. Missing hard capability blocks the affected stage. Material changes bind current state and reread written authority. Historical article evidence is immutable provenance and never a current route selector.
+- one Financial business-state authority per article;
+- `STATE.task_id`, receipts, workspace paths and artifact refs form one domain-owned article identity chain;
+- `TaskContract` is an identity-free value object for business/output constraints;
+- no parent/child ID equality requirement;
+- no route selector between multiple Financial runtimes;
+- missing hard capability blocks only the affected stage;
+- historical article evidence is immutable provenance and never a current route selector.
 
-The retired domain controller/continuation namespace `continuity/` is forbidden from the current tree. Cross-chat identity/continuation exists only in UAOS.
+The retired domain controller/continuation namespace `continuity/` remains forbidden. Parent continuity belongs to UAOS; article continuation belongs to the exact Financial article state.
