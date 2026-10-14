@@ -22,9 +22,15 @@ class Stage(str, Enum):
 
 
 class DistributionMode(str, Enum):
+    # Legacy/current explicit long-form modes remain stable so historical article
+    # states keep their original output contract.
     FINANCE_DEEP = "FINANCE_DEEP"
     FINANCE_BROAD = "FINANCE_BROAD"
     DUAL = "DUAL"
+    # New portfolio modes add the standalone interaction-copy product without
+    # changing the semantics of historical FINANCE_BROAD/DUAL states.
+    ACQUISITION = "ACQUISITION"
+    PORTFOLIO = "PORTFOLIO"
 
 
 class ContentMode(str, Enum):
@@ -38,6 +44,7 @@ class DeliveryChannel(str, Enum):
 class ArtifactKind(str, Enum):
     FINANCE_DEEP_DOCX = "FINANCE_DEEP_DOCX"
     FINANCE_BROAD_DOCX = "FINANCE_BROAD_DOCX"
+    PLATFORM_INTERACTION_PACK_DOCX = "PLATFORM_INTERACTION_PACK_DOCX"
     AUDIT_DOCX = "AUDIT_DOCX"
 
 
@@ -47,12 +54,16 @@ class TaskContract(BaseModel):
     Article identity belongs to the Financial article state/workspace aggregate. Keeping
     identity out of this value object prevents a second task-id namespace inside the
     domain and keeps routing/output choices separate from lifecycle identity.
+
+    `DUAL` is intentionally retained as the historical Deep+Broad contract. New default
+    portfolio work uses `PORTFOLIO`, while broad acquisition-only work uses
+    `ACQUISITION`. This avoids retroactively changing completed article-state contracts.
     """
 
     prompt: str
     source_refs: list[str] = Field(default_factory=list)
     target_platforms: list[str] = Field(default_factory=list)
-    distribution_mode: DistributionMode = DistributionMode.DUAL
+    distribution_mode: DistributionMode = DistributionMode.PORTFOLIO
     content_mode: ContentMode = ContentMode.FORMAL_ARTICLE
     delivery_channel: DeliveryChannel = DeliveryChannel.WORD_FILE_ONLY
     required_outputs: list[ArtifactKind] = Field(default_factory=list)
@@ -61,10 +72,21 @@ class TaskContract(BaseModel):
     @model_validator(mode="after")
     def enforce_required_outputs(self):
         required = [ArtifactKind.AUDIT_DOCX]
-        if self.distribution_mode in (DistributionMode.FINANCE_DEEP, DistributionMode.DUAL):
+        if self.distribution_mode in (
+            DistributionMode.FINANCE_DEEP,
+            DistributionMode.DUAL,
+            DistributionMode.PORTFOLIO,
+        ):
             required.append(ArtifactKind.FINANCE_DEEP_DOCX)
-        if self.distribution_mode in (DistributionMode.FINANCE_BROAD, DistributionMode.DUAL):
+        if self.distribution_mode in (
+            DistributionMode.FINANCE_BROAD,
+            DistributionMode.DUAL,
+            DistributionMode.ACQUISITION,
+            DistributionMode.PORTFOLIO,
+        ):
             required.append(ArtifactKind.FINANCE_BROAD_DOCX)
+        if self.distribution_mode in (DistributionMode.ACQUISITION, DistributionMode.PORTFOLIO):
+            required.append(ArtifactKind.PLATFORM_INTERACTION_PACK_DOCX)
 
         if not self.required_outputs:
             self.required_outputs = required
