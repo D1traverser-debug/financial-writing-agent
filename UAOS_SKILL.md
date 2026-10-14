@@ -55,15 +55,17 @@ Historical compatibility is immutable: existing `DUAL` remains Deep + Broad + Au
 
 `references/reader_value.md` owns the current promoted semantics:
 - publication prose does not expose the research trail merely to prove sourcing;
-- Natural Authorial Prose controls repeated title/H1/body rhetorical/syntactic molds rather than doing surface synonym replacement;
-- title = concrete hard information + finance-wide stake + one real unresolved payoff;
-- first three complete sentences collectively establish hard fact/anomaly + finance-wide consequence + material unresolved payoff, with flexible order/syntax;
-- two or more `MATERIAL` companies require a Company Decision Map and a named evidence-bounded comparative verdict;
+- Natural Authorial Prose is **voice/material first**: bind reader, author stance, audited evidence and the strongest available user-owned voice samples before drafting;
+- AI-associated phrase/structure patterns are post-draft diagnostic signals, not mandatory generation bans or quotas; one isolated signal is not a failure by itself;
+- substantial long-form work compares genuinely different opening/section strategies when multiple routes are plausible rather than generating synonym variants;
+- `DRAFT` writes; `EDITORIAL_AUDIT` separately rereads as Reader / Editor / Style critic. Same-session critic passes are useful challenge evidence, not independent verification;
+- title/opening/H1 requirements are reader outcomes, not one-to-one sentence formulas;
+- two or more `MATERIAL` companies require a Company Decision Map and a named evidence-bounded comparative judgment, but no fixed prose order is imposed;
 - relative judgments such as more direct/pure, faster realization, harder evidence or higher-but-less-certain elasticity are legal when evidenced and paired with change conditions;
 - buy/sell, entry timing, target price, position sizing and covert equivalents remain prohibited;
 - H1 with H2/H3 children requires a substantive lead paragraph for reasoning continuity and the user's later image insertion;
 - Broad is rebuilt for acquisition rather than shortened from Deep;
-- interaction copy is independently rewritten from the audited evidence base.
+- interaction copy is independently rewritten from the audited evidence base and may not rely on canned “human-feel” slang/questions.
 
 ## Mandatory problem response
 
