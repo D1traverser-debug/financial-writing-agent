@@ -1,9 +1,11 @@
 {
-  "schema_version": "3.3",
+  "schema_version": "3.4",
   "domain_id": "financial_writing",
-  "product_path": "UAOS_TO_SINGLE_GITHUB_BACKED_FINANCIAL_OWNER",
+  "product_path": "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE",
   "authority": {
     "controller": "D1traverser-debug/universal-agent-os@main",
+    "product_requirements": "docs/product_requirements.md",
+    "architecture": "docs/architecture.md",
     "business_state_ref": "main",
     "business_state_root": "workspaces/articles/{task_id}",
     "state_file": "workspaces/articles/{task_id}/STATE.json",
@@ -11,7 +13,23 @@
     "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
     "canonical_mutation_guard": "financial_writing_agent/owner_guard.py",
     "canonical_lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
+    "maintenance_method": "references/maintenance.md",
     "alternate_business_state_authority_allowed": false
+  },
+  "hosted_governance": {
+    "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
+    "common_capabilities_contract_min": "1.5.0",
+    "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
+    "problem_response_floor": [
+      "MICRO_DIAGNOSIS",
+      "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
+      "GOVERNING_ASSUMPTION_CHALLENGE",
+      "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"
+    ],
+    "problem_floor_activation": "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER",
+    "domain_evolution_owner": "FINANCIAL_WRITING_FOR_FINANCIAL_BUSINESS_RULES",
+    "common_cross_domain_evolution_owner": "UAOS",
+    "product_review_method_owner": "UAOS_COMMON_METHOD__FINANCIAL_DOMAIN_REQUIREMENTS_AND_ARCHITECTURE_REMAIN_DOMAIN_OWNED"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -31,13 +49,24 @@
   },
   "execution": {
     "route_selection": "NONE",
+    "direct_domain_activation": true,
+    "live_parent_business_proxy_required": false,
     "free_form_article_fallback_allowed": false,
     "missing_hard_capability": "BLOCK_AFFECTED_STAGE",
     "post_write_verification": "REREAD_STATE_AND_NEW_ARTIFACTS_BEFORE_COMMIT_CLAIM"
   },
+  "problem_and_evolution": {
+    "every_problem_requires_external_research_and_reflection": true,
+    "material_negative_feedback_requires_system_impact_signal": true,
+    "one_off_observation_auto_promotes_to_global_rule": false,
+    "systemic_change_requires_regression_or_eval_evidence": true,
+    "post_promotion_observation_required_for_evolution_closure": true,
+    "common_or_cross_domain_change_uses_parent_upcall": true
+  },
   "assurance": {
     "same_chat_semantic_review": "CHAT_SELF_REVIEW",
-    "independent_claim_requires_distinct_execution_evidence": true
+    "independent_claim_requires_distinct_execution_evidence": true,
+    "product_documentation_alone_is_acceptance_evidence": false
   },
   "historical_state": {
     "immutable_existing_receipts_may_contain_retired_identifiers": true,
