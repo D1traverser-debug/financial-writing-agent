@@ -20,15 +20,27 @@ def test_current_authority_has_one_financial_owner_path():
     assert adapter["task_identity_authority"] == "UAOS"
     assert adapter["cross_chat_continuity_authority"] == "UAOS"
     assert adapter["business_state_authority"] == "workspaces/articles/{task_id}/STATE.json"
+    assert adapter["article_binding_validator"] == "financial_writing_agent.uaos_binding.validate_uaos_article_binding"
     assert adapter["legacy_controller_compatibility"] == "NONE"
     assert execution["product_path"] == "UAOS_TO_SINGLE_GITHUB_BACKED_FINANCIAL_OWNER"
     assert execution["execution"]["route_selection"] == "NONE"
     assert execution["authority"]["alternate_business_state_authority_allowed"] is False
+    assert execution["uaos_article_task_binding"]["identity_rule"] == "UAOS_ARTICLE_TASK_ID_EQUALS_FINANCIAL_STATE_TASK_ID"
     assert {cap["capability_id"] for cap in capabilities["capabilities"]} >= {
-        "financial_owner_workflow", "high_judgment_generation_stages",
-        "semantic_review_stages", "delivery_and_mechanical_qa",
-        "blocked_recovery_and_system_impact_lifecycle",
+        "financial_owner_workflow", "uaos_article_binding_validation",
+        "high_judgment_generation_stages", "semantic_review_stages",
+        "delivery_and_mechanical_qa", "blocked_recovery_and_system_impact_lifecycle",
     }
+
+
+def test_binding_is_a_join_not_a_second_controller_surface():
+    source = (ROOT / "financial_writing_agent/uaos_binding.py").read_text(encoding="utf-8")
+    assert "validate_uaos_article_binding" in source
+    assert "TaskRecord" not in source
+    assert "TaskIndex" not in source
+    assert "sqlite" not in source.lower()
+    assert "lease" not in source.lower()
+    assert not (ROOT / "state").exists()
 
 
 def test_retired_control_namespace_is_physically_absent():
@@ -42,6 +54,7 @@ def test_retired_control_namespace_is_physically_absent():
         "UAOS_SKILL.md", ".uaos/MANIFEST.json", ".uaos/ADAPTER.json",
         ".uaos/CAPABILITIES.json", "config/EXECUTION_CONTRACT.json",
         "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py",
+        "financial_writing_agent/uaos_binding.py",
     ):
         assert (ROOT / path).is_file(), path
 
