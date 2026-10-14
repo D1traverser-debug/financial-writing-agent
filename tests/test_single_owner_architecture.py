@@ -3,6 +3,7 @@ import tomllib
 from pathlib import Path
 
 from financial_writing_agent.models import TaskContract
+from financial_writing_agent.owner_guard import build_initial_state
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -19,31 +20,40 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["controller"] == "D1traverser-debug/universal-agent-os@main"
     assert manifest["skill"]["entrypoint"] == "UAOS_SKILL.md"
     assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
-    assert manifest["domain_authority"]["task_contract"] == "financial_writing_agent/models.py:TaskContract"
+    assert manifest["domain_authority"]["business_contract"] == "financial_writing_agent/models.py:TaskContract"
+    assert manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id"
     assert adapter["controller_task_identity_authority"] == "UAOS"
-    assert "financial_writing_agent.models.TaskContract.task_id" in adapter["domain_task_identity_authority"]
+    assert adapter["domain_article_identity_authority"] == "workspaces/articles/{task_id}/STATE.json::task_id"
     assert "NO_EQUALITY_REQUIREMENT" in adapter["identity_boundary"]
     assert adapter["business_state_authority"] == "workspaces/articles/{task_id}/STATE.json"
     assert adapter["legacy_controller_compatibility"] == "NONE"
     assert execution["product_path"] == "UAOS_TO_SINGLE_GITHUB_BACKED_FINANCIAL_OWNER"
     assert execution["execution"]["route_selection"] == "NONE"
     assert execution["authority"]["alternate_business_state_authority_allowed"] is False
-    assert execution["identity"]["task_id_owner"] == "FINANCIAL_WRITING"
+    assert execution["identity"]["article_id_owner"] == "FINANCIAL_WRITING"
+    assert execution["identity"]["business_contract_is_identity_free"] is True
     assert execution["identity"]["parent_child_id_equality_required"] is False
     assert {cap["capability_id"] for cap in capabilities["capabilities"]} >= {
         "financial_owner_workflow", "domain_owned_article_identity_and_state",
-        "high_judgment_generation_stages", "semantic_review_stages",
-        "delivery_and_mechanical_qa", "blocked_recovery_and_system_impact_lifecycle",
+        "identity_free_business_output_contract", "high_judgment_generation_stages",
+        "semantic_review_stages", "delivery_and_mechanical_qa",
+        "blocked_recovery_and_system_impact_lifecycle",
     }
     assert "uaos_article_binding_validation" not in {cap["capability_id"] for cap in capabilities["capabilities"]}
 
 
-def test_financial_task_identity_is_domain_owned():
-    first = TaskContract(prompt="one")
-    second = TaskContract(prompt="two")
-    assert first.task_id
-    assert second.task_id
-    assert first.task_id != second.task_id
+def test_financial_state_is_article_identity_and_task_contract_is_identity_free():
+    contract = TaskContract(prompt="one")
+    assert not hasattr(contract, "task_id")
+    state = build_initial_state(
+        task_id="financial-owned-id",
+        prompt="one",
+        source_refs=[],
+        executor_identity="chat-session:test",
+    )
+    assert state["task_id"] == "financial-owned-id"
+    assert state["execution_receipts"][0]["task_id"] == "financial-owned-id"
+    assert state["execution_receipts"][0]["output_refs"] == ["workspaces/articles/financial-owned-id/STATE.json"]
     assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
     assert not (ROOT / "tests/test_uaos_article_binding.py").exists()
     assert not (ROOT / "state").exists()
