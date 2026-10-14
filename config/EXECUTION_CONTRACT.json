@@ -1,5 +1,5 @@
 {
-  "schema_version": "3.5",
+  "schema_version": "3.6",
   "domain_id": "financial_writing",
   "product_path": "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE",
   "authority": {
@@ -21,12 +21,7 @@
     "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
     "common_capabilities_contract_min": "1.5.0",
     "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
-    "problem_response_floor": [
-      "MICRO_DIAGNOSIS",
-      "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
-      "GOVERNING_ASSUMPTION_CHALLENGE",
-      "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"
-    ],
+    "problem_response_floor": ["MICRO_DIAGNOSIS", "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT", "GOVERNING_ASSUMPTION_CHALLENGE", "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"],
     "problem_floor_activation": "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER",
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_FINANCIAL_BUSINESS_RULES",
     "common_cross_domain_evolution_owner": "UAOS",
@@ -55,12 +50,22 @@
   },
   "reader_value": {
     "publication_source_privacy": true,
-    "first_three_sentence_jobs_required": true,
+    "voice_material_first_generation": true,
+    "user_owned_voice_evidence_preferred": true,
+    "anti_ai_pattern_signals_are_post_draft_diagnostics": true,
+    "single_template_signal_is_not_automatic_failure": true,
+    "minimum_effective_revision": true,
+    "substantive_longform_compares_distinct_strategies_when_multiple_routes_exist": true,
+    "writer_reader_editor_style_roles_reuse_existing_draft_audit_workflow": true,
+    "same_session_critic_passes_are_not_independent": true,
+    "first_three_sentence_jobs_required_as_collective_reader_outcomes": true,
     "company_decision_map_when_multiple_material_companies": true,
     "named_evidence_bounded_comparative_verdict": true,
+    "comparative_verdict_has_no_mandatory_sentence_order": true,
     "h1_image_safe_lead_before_lower_heading": true,
     "broad_is_independent_acquisition_rebuild": true,
-    "interaction_pack_is_independent_rewrite": true
+    "interaction_pack_is_independent_rewrite": true,
+    "canned_platform_humanization_forbidden": true
   },
   "execution": {
     "route_selection": "NONE",
