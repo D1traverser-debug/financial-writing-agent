@@ -49,16 +49,23 @@ jobs:
           from financial_writing_agent.owner_lifecycle import resume_blocked_state
 
           policy = load_packaged_policy()
-          first = TaskContract(prompt="smoke-one")
-          second = TaskContract(prompt="smoke-two")
+          contract = TaskContract(prompt="smoke")
+          state = build_initial_state(
+              task_id="financial-wheel-smoke",
+              prompt="smoke",
+              source_refs=[],
+              executor_identity="wheel-smoke",
+          )
           assert policy["defaults"]["distribution_mode"] == "DUAL"
-          assert first.distribution_mode == DistributionMode.DUAL
-          assert first.task_id and second.task_id and first.task_id != second.task_id
+          assert contract.distribution_mode == DistributionMode.DUAL
+          assert not hasattr(contract, "task_id")
+          assert state["task_id"] == "financial-wheel-smoke"
+          assert state["execution_receipts"][0]["task_id"] == "financial-wheel-smoke"
           assert importlib.util.find_spec("financial_writing_agent.uaos_binding") is None
           assert "Research" in read_reference("research.md") or "research" in read_reference("research.md").lower()
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(check_docx)
           assert callable(build_initial_state) and callable(resume_blocked_state)
-          print("PASS: clean wheel contains domain-owned Financial task identity, canonical policy/references, owner lifecycle and stateless Word utilities")
+          print("PASS: clean wheel keeps article identity in Financial STATE, TaskContract identity-free, and parent binding logic absent")
           PY
       - name: Install render dependencies
         run: |
