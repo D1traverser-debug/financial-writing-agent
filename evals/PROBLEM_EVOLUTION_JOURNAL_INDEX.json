@@ -2,7 +2,7 @@
   "schema_version": "1.0",
   "journal": "evals/PROBLEM_EVOLUTION_JOURNAL.md",
   "owner": "DOMAIN:financial_writing",
-  "revision": "1.2",
+  "revision": "1.3",
   "backfill_window": {
     "from": "2026-10-10",
     "through": "2026-10-15"
@@ -12,6 +12,10 @@
     "P-20261015-09",
     "P-20261015-10",
     "P-20261015-11"
+  ],
+  "latest_closed_items": [
+    "P-20261015-12",
+    "P-20261015-13"
   ],
   "parent_guidance_items": [
     "PROACTIVE_RESOLUTION_GAP",
@@ -23,5 +27,11 @@
   "rule_refs": [
     "references/maintenance.md",
     "references/proactive_resolution.md"
-  ]
+  ],
+  "latest_production_receipt": {
+    "commit": "b41610b41aa6ea2e450720b0d14714f747e34100",
+    "ci_run": 1029,
+    "ci_status": "success",
+    "ci_completed_at": "2026-10-14T21:36:34Z"
+  }
 }

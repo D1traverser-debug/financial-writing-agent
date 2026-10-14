@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `CURRENT_DURABLE_PROBLEM_LEDGER`
-Journal revision: `1.2`
+Journal revision: `1.3`
 Updated: `2026-10-15`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -350,7 +350,7 @@ Evidence: `evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_VOICE_FIRST_ANTI_AI.md`.
 ---
 
 ## P-20261015-09 — Inherited cognition still externalized a recoverable dependency to the user
-Status: `REPAIR_IN_PROMOTION`
+Status: `PROMOTED__OBSERVATION_OPEN`
 Failure class: `PROACTIVE_RESOLUTION_GAP`
 
 Trigger: assistant said future approved/edited user articles would become the best voice evidence; user challenged why inherited cognition/evolution did not first recover/derive evidence itself.
@@ -365,14 +365,18 @@ Alternatives: wait for explicit sample — rejected; infer fixed personal style 
 
 Action: `references/proactive_resolution.md`; inspect project/state, approved/edited samples, durable corrections/rejections, accepted outputs/performance, current context, platform conventions and external method evidence before avoidable user escalation.
 
+Live action performed during this repair: prior explicit Financial corrections and constraints were actively recovered and distilled into a medium-confidence provisional voice candidate instead of waiting for a future sample. No recovered evidence justified claiming a user-approved positive style sample, so the candidate remains provisional and must be validated on real articles.
+
 Boundary: never fabricate approval, preference, identity, memory or fact.
+
+Promotion evidence: PR #28 exact-head candidate CI #1028 passed; production commit `b41610b41aa6ea2e450720b0d14714f747e34100`; production CI #1029 completed `success` at `2026-10-14T21:36:34Z`, including unit/trajectory tests, contract eval, static audits, isolated wheel smoke and DOCX render smoke.
 
 Cross-domain implication: parent guidance only; Financial does not directly mutate UAOS common authority.
 
 ---
 
 ## P-20261015-10 — Problem/evolution history was fragmented
-Status: `REPAIR_IN_PROMOTION`
+Status: `PROMOTED__OBSERVATION_OPEN`
 Failure class: `EVOLUTION_HISTORY_FRAGMENTATION`
 
 Trigger: user required all encountered problems and the path taken to be stored together for later total-controller guidance.
@@ -380,6 +384,8 @@ Trigger: user required all encountered problems and the path taken to be stored 
 Diagnosis: detailed evidence existed across chats/article state/many eval files; future control could repeat rejected ideas or lose causal history.
 
 Action: this journal becomes the chronological index; detailed files remain evidence, not competing histories. Maintenance now requires every future problem to be represented here.
+
+Promotion evidence: backfilled the current Financial evolution period from 2026-10-10 through 2026-10-15, created a small machine index and non-mutating parent handoff, passed candidate CI #1028 and production CI #1029 on production commit `b41610b41aa6ea2e450720b0d14714f747e34100`.
 
 ---
 
@@ -413,6 +419,26 @@ Result: the failed implementation path is preserved here instead of hidden.
 
 ---
 
+## P-20261015-13 — Candidate CI exposed incomplete consumer/mirror propagation during the journal repair
+Status: `CLOSED_WITH_PRODUCTION_VERIFICATION`
+Failure class: `CONSUMER_COMPLETE_PROPAGATION_REGRESSION`
+
+Trigger: the proactive-resolution/journal candidate failed CI even though the core rule itself was coherent.
+
+First failure, CI #1025 on head `29d0e99a75a874076eead67b431986f6ad06e9e5`: 129 tests passed and 2 failed. One new regression expected stable parent-guidance signal IDs, but the handoff text preserved only the meaning of `EVOLUTION_HISTORY_INTERFACE`, not the machine identifier. The second failure showed root `references/maintenance.md` had changed while the packaged maintenance mirror remained stale.
+
+Second failure, CI #1027 on head `185e21c0a043737130a273beb167a92cbd1f24c9`: all 131 unit tests and contract eval passed, but static audit failed with `reference mirror drift: maintenance.md`. Root + packaged mirrors matched; the controlled Skill reference mirror had not been updated.
+
+Diagnosis: this repair repeated an already known historical failure class from P-20261012-06—changing the owning rule without completing propagation to every governed consumer/mirror. The stable-ID failure was the same general issue on the machine-readable handoff surface.
+
+Action: preserve explicit signal IDs in the parent handoff; synchronize all three controlled maintenance reference trees (root, packaged resource, Skill mirror); do not weaken the tests or static audit.
+
+Verification: exact-head candidate CI #1028 on `8520fef038ff8a20b8856b0e95956edf2644e448` completed `success`. PR #28 was squash-merged as production commit `b41610b41aa6ea2e450720b0d14714f747e34100`; production CI #1029 completed `success` at `2026-10-14T21:36:34Z`, including DOCX render smoke.
+
+System impact: the incident confirms the existing consumer-complete propagation rule is still necessary. No new parallel propagation framework was added; the history is retained so future maintenance can see that the known lesson was violated again in practice.
+
+---
+
 # Parent Guidance Queue
 
 1. `PROACTIVE_RESOLUTION_GAP` — decide whether every registered child should attempt available-context/evidence recovery before externalizing a recoverable dependency to the user.
@@ -424,6 +450,7 @@ Result: the failed implementation path is preserved here instead of hidden.
 # Current open observation items
 
 - Financial 0.9.1 voice-first writing still needs real article/user observation to prove lower AI-template feel without losing factual density/company decision utility.
-- P-20261015-09/P-20261015-10 require candidate + production checks before promotion closes.
+- P-20261015-09 proactive resolution is promoted; validate its provisional voice/evidence recovery behavior on real Financial work and refine/rollback if it creates unsupported inference or unnecessary escalation.
+- P-20261015-10 consolidated history is promoted; later UAOS/总控 review should test whether its interface/generalization is useful across child Agents.
 - provider-attested independent semantic review remains unavailable; same-chat critic passes stay `CHAT_SELF_REVIEW`.
 - open-world writing quality is never globally certified by a finite regression corpus.
