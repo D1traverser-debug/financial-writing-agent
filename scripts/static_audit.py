@@ -35,14 +35,16 @@ def main() -> None:
     require(manifest["controller"] == "D1traverser-debug/universal-agent-os@main", "controller drift")
     require(manifest["skill"]["entrypoint"] == "UAOS_SKILL.md", "skill drift")
     require(adapter["controller_task_identity_authority"] == "UAOS", "controller identity authority drift")
-    require("financial_writing_agent.models.TaskContract.task_id" in adapter["domain_task_identity_authority"], "Financial task identity authority drift")
+    require(adapter["domain_article_identity_authority"] == "workspaces/articles/{task_id}/STATE.json::task_id", "Financial article identity authority drift")
     require("NO_EQUALITY_REQUIREMENT" in adapter["identity_boundary"], "parent/domain identity namespaces collapsed")
     require(adapter["legacy_controller_compatibility"] == "NONE", "legacy controller compatibility returned")
-    require(manifest["domain_authority"]["task_contract"] == "financial_writing_agent/models.py:TaskContract", "domain task contract drift")
+    require(manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id", "manifest article identity drift")
+    require(manifest["domain_authority"]["business_contract"] == "financial_writing_agent/models.py:TaskContract", "business contract drift")
     require(execution["execution"]["route_selection"] == "NONE", "route selector returned")
     require(execution["authority"]["alternate_business_state_authority_allowed"] is False, "alternate state authority enabled")
-    require(execution["identity"]["task_id_owner"] == "FINANCIAL_WRITING", "Financial identity ownership drift")
-    require(execution["identity"]["parent_child_id_equality_required"] is False, "parent/child task ID equality returned")
+    require(execution["identity"]["article_id_owner"] == "FINANCIAL_WRITING", "Financial identity ownership drift")
+    require(execution["identity"]["business_contract_is_identity_free"] is True, "TaskContract regained identity ownership")
+    require(execution["identity"]["parent_child_id_equality_required"] is False, "parent/child ID equality returned")
     require(bool(caps.get("required_uaos_common_capabilities")), "required UAOS common capabilities are undeclared")
     require(all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"]), "side channel enabled")
 
@@ -50,7 +52,11 @@ def main() -> None:
     discovery = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     require("continuity/" not in current_skill, "current Skill references retired namespace")
     require("no equality requirement" in current_skill.lower(), "current Skill does not state the identity boundary")
+    require("TaskContract` is intentionally identity-free" in current_skill, "Skill does not separate article identity from business contract")
     require("Discovery Pointer" in discovery and "continuity/" not in discovery, "discovery Skill is not a clean pointer")
+
+    models_text = (ROOT / "financial_writing_agent/models.py").read_text(encoding="utf-8")
+    require("task_id:" not in models_text, "TaskContract still carries a duplicate article identity")
 
     business_package_text = "\n".join(
         path.read_text(encoding="utf-8")
@@ -66,7 +72,7 @@ def main() -> None:
         package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
         require(source == skill == package, f"reference mirror drift: {name}")
 
-    print("PASS: Financial business package is domain-owned; UAOS remains adapter metadata only")
+    print("PASS: Financial STATE owns article identity; TaskContract is identity-free; UAOS remains adapter metadata only")
 
 
 if __name__ == "__main__":
