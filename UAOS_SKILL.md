@@ -8,7 +8,7 @@ scope: publishable A-share financial content
 Controller/common-governance authority: `D1traverser-debug/universal-agent-os@main`.
 Domain business authority: `D1traverser-debug/financial-writing-agent@main`.
 
-UAOS owns cross-domain selection/governance, parent continuity and hosted common capabilities. Financial Writing owns article identity/state, product requirements, workflow, business/output contract, domain rules, review evidence and deliverables. Parent/router IDs and Financial article IDs are distinct namespaces.
+UAOS owns cross-domain selection/governance, parent continuity and hosted common capabilities. Financial Writing owns article identity/state, product requirements, workflow, business/output contract, domain rules, review evidence and deliverables. Parent/router IDs and Financial article IDs are distinct namespaces with **no equality requirement**. `TaskContract` is intentionally identity-free.
 
 ## Start and authority
 
