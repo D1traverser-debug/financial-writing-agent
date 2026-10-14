@@ -22,12 +22,14 @@ def main() -> None:
         "adapter_ref": ".uaos/ADAPTER.json",
         "capability_ref": ".uaos/CAPABILITIES.json",
     }
+    assert manifest["domain_authority"]["task_contract"] == "financial_writing_agent/models.py:TaskContract"
+    assert adapter["controller_task_identity_authority"] == "UAOS"
+    assert "financial_writing_agent.models.TaskContract.task_id" in adapter["domain_task_identity_authority"]
+    assert "NO_EQUALITY_REQUIREMENT" in adapter["identity_boundary"]
     assert adapter["business_state_authority"] == "workspaces/articles/{task_id}/STATE.json"
-    assert adapter["article_binding_validator"] == "financial_writing_agent.uaos_binding.validate_uaos_article_binding"
     assert execution["authority"]["business_state_root"] == "workspaces/articles/{task_id}"
-    assert execution["authority"]["uaos_binding_validator"] == adapter["article_binding_validator"]
-    assert execution["uaos_article_task_binding"]["identity_rule"] == "UAOS_ARTICLE_TASK_ID_EQUALS_FINANCIAL_STATE_TASK_ID"
-    assert execution["uaos_article_task_binding"]["router_task_id"] == "financial-writing:main"
+    assert execution["identity"]["task_id_owner"] == "FINANCIAL_WRITING"
+    assert execution["identity"]["parent_child_id_equality_required"] is False
     assert execution["execution"]["free_form_article_fallback_allowed"] is False
     required = set(caps["required_uaos_common_capabilities"])
     assert {
@@ -36,10 +38,13 @@ def main() -> None:
         "adaptive_deliberation_and_parent_guidance",
         "governed_self_evolution",
     }.issubset(required)
-    assert any(cap["capability_id"] == "uaos_article_binding_validation" for cap in caps["capabilities"])
+    capability_ids = {cap["capability_id"] for cap in caps["capabilities"]}
+    assert "domain_owned_article_identity_and_state" in capability_ids
+    assert "uaos_article_binding_validation" not in capability_ids
     assert all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"])
+    assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
     assert not (ROOT / "continuity").exists()
-    print("PASS: Financial architecture/evaluation contracts match current UAOS binding")
+    print("PASS: Financial owns article identity/state; UAOS remains adapter-level controller only")
 
 
 if __name__ == "__main__":
