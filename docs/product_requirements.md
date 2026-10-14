@@ -134,7 +134,15 @@ The workflow remains single-owner. The three products are outputs on the same Fi
 | Domain learning/promotion | `quality_regression.py`, maintenance | regression tests/evals |
 | UAOS cognition/evolution inheritance | `.uaos/CAPABILITIES.json`, `UAOS_SKILL.md` | binding/architecture tests |
 
-## 7. Non-functional requirements
+## 7. Cognition inheritance contract
+
+Financial consumes the UAOS-hosted problem-response method and does not create a second cognition controller. Every detected defect, user rejection, contradiction, degraded result or uncertain goal satisfaction activates micro diagnosis, macro goal/topology alignment, governing-assumption challenge and relevant external research. Risk may require counterexample search or stronger independent verification. Parent guidance may advise common/cross-domain scope without taking over the Financial article identity, workflow or state.
+
+## 8. Evolution inheritance contract
+
+Financial owns promotion of Financial-specific business/writing rules; UAOS owns common/cross-domain evolution. User feedback first becomes evidence and a system-impact signal, then must pass root-cause/generalization analysis, alternative comparison, reproducible regression/eval evidence, owner-scoped promotion and post-promotion observation. One article or one edit never silently becomes a permanent universal rule.
+
+## 9. Non-functional requirements
 
 - Single business owner; no second Financial controller/task-index/resume plane.
 - No silent capability degradation.
@@ -145,7 +153,7 @@ The workflow remains single-owner. The three products are outputs on the same Fi
 - Reader-value rules must not become rigid fixed title/paragraph templates.
 - Historical distribution-mode meanings cannot be retroactively changed.
 
-## 8. Failure and recovery semantics
+## 10. Failure and recovery semantics
 
 - Missing Company Decision Map for multiple material companies -> RESEARCH/EDITORIAL cannot pass.
 - Publication source leak -> DRAFT/DELIVERY revision required.
@@ -154,7 +162,7 @@ The workflow remains single-owner. The three products are outputs on the same Fi
 - Required interaction pack absent/copied from long-form -> DRAFT/DELIVERY revision.
 - Review failure -> persist FAIL/REVISE target -> invalidate downstream -> repair and re-audit.
 
-## 9. Explicit non-goals
+## 11. Explicit non-goals
 
 - No investment recommendation or covert actionability.
 - No fixed cross-topic stock-score formula.
@@ -165,7 +173,7 @@ The workflow remains single-owner. The three products are outputs on the same Fi
 - No parent/child task-ID equality.
 - No automatic promotion of one article edit into a universal rule.
 
-## 10. Product completion criteria
+## 12. Product completion criteria
 
 The 0.9.0 candidate is promotion-ready only when:
 1. domain rule/product/architecture/execution-contract surfaces agree on the new portfolio and reader-value requirements;
