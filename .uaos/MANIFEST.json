@@ -1,0 +1,19 @@
+{
+  "schema_version": "2.0",
+  "agent_id": "financial_writing",
+  "domain_id": "financial_writing",
+  "controller": "D1traverser-debug/universal-agent-os@main",
+  "status": "UAOS_CONTROL_PLANE_ACTIVE",
+  "skill": {"entrypoint": "UAOS_SKILL.md"},
+  "binding": {
+    "controller_ref": "D1traverser-debug/universal-agent-os@main:CURRENT_SYSTEM.json",
+    "adapter_ref": ".uaos/ADAPTER.json",
+    "capability_ref": ".uaos/CAPABILITIES.json"
+  },
+  "domain_authority": {
+    "execution_contract": "config/EXECUTION_CONTRACT.json",
+    "business_state_root": "workspaces/articles/{task_id}/STATE.json",
+    "workflow_guard": "financial_writing_agent/owner_guard.py",
+    "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py"
+  }
+}

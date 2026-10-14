@@ -1,0 +1,37 @@
+{
+  "schema_version": "3.0",
+  "domain_id": "financial_writing",
+  "product_path": "UAOS_TO_SINGLE_GITHUB_BACKED_FINANCIAL_OWNER",
+  "authority": {
+    "controller": "D1traverser-debug/universal-agent-os@main",
+    "business_state_ref": "main",
+    "business_state_root": "workspaces/articles/{task_id}",
+    "state_file": "workspaces/articles/{task_id}/STATE.json",
+    "canonical_task_contract": "financial_writing_agent.models.TaskContract",
+    "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
+    "canonical_mutation_guard": "financial_writing_agent/owner_guard.py",
+    "canonical_lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
+    "alternate_business_state_authority_allowed": false
+  },
+  "workflow": ["INTAKE","RESEARCH","RESEARCH_AUDIT","EDITORIAL","TITLE","DRAFT","EDITORIAL_AUDIT","DELIVERY","MECHANICAL_AUDIT","FINAL_AUDIT"],
+  "task_contract": {
+    "default_distribution_mode": "DUAL",
+    "default_delivery_channel": "WORD_FILE_ONLY",
+    "default_required_outputs": ["AUDIT_DOCX","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX"]
+  },
+  "execution": {
+    "route_selection": "NONE",
+    "free_form_article_fallback_allowed": false,
+    "missing_hard_capability": "BLOCK_AFFECTED_STAGE",
+    "post_write_verification": "REREAD_STATE_AND_NEW_ARTIFACTS_BEFORE_COMMIT_CLAIM"
+  },
+  "assurance": {
+    "same_chat_semantic_review": "CHAT_SELF_REVIEW",
+    "independent_claim_requires_distinct_execution_evidence": true
+  },
+  "historical_state": {
+    "immutable_existing_receipts_may_contain_retired_identifiers": true,
+    "historical_identifiers_are_route_selectors": false,
+    "historical_evidence_may_override_current_authority": false
+  }
+}

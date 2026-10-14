@@ -1,0 +1,14 @@
+{
+  "schema_version": "2.0",
+  "profile_version": 12,
+  "domain_id": "financial_writing",
+  "policy": "CURRENT_SESSION_CAPABILITY_HANDSHAKE__NO_SIDE_CHANNEL__NO_SILENT_DEGRADATION",
+  "capabilities": [
+    {"capability_id":"financial_owner_workflow","scope":"ALL_FORMAL_ARTICLE_STAGES","required":["model_runtime","GitHub_owner_read_write"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"high_judgment_generation_stages","scope":"RESEARCH,EDITORIAL,TITLE,DRAFT","required":["model_runtime"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"semantic_review_stages","scope":"RESEARCH_AUDIT,EDITORIAL_AUDIT,FINAL_AUDIT","assurance_ceiling":"CHAT_SELF_REVIEW_UNLESS_DISTINCT_PROVIDER_EVIDENCE","side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"delivery_and_mechanical_qa","scope":"DELIVERY,MECHANICAL_AUDIT,FINAL_OUTPUT_RECONCILIATION","required":["document_tooling","deterministic_checks"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"blocked_recovery_and_system_impact_lifecycle","scope":"BLOCKED_RECOVERY_AND_MATERIAL_FEEDBACK","required":["financial_writing_agent.owner_lifecycle"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"quality_regression_promotion_gate","scope":"SYSTEMIC_WRITING_QUALITY_CHANGE","required":["regression_evidence"],"side_channel_allowed":false,"safe_degraded_modes":[]}
+  ]
+}
