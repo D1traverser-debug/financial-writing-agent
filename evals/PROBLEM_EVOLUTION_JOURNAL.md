@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `CURRENT_DURABLE_PROBLEM_LEDGER`
-Journal revision: `1.3`
+Journal revision: `1.4`
 Updated: `2026-10-15`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -436,6 +436,24 @@ Action: preserve explicit signal IDs in the parent handoff; synchronize all thre
 Verification: exact-head candidate CI #1028 on `8520fef038ff8a20b8856b0e95956edf2644e448` completed `success`. PR #28 was squash-merged as production commit `b41610b41aa6ea2e450720b0d14714f747e34100`; production CI #1029 completed `success` at `2026-10-14T21:36:34Z`, including DOCX render smoke.
 
 System impact: the incident confirms the existing consumer-complete propagation rule is still necessary. No new parallel propagation framework was added; the history is retained so future maintenance can see that the known lesson was violated again in practice.
+
+---
+
+## P-20261015-14 — Journal index used a self-invalidating `latest_production_receipt`
+Status: `CLOSED_BY_NON_SELF_REFERENTIAL_SEMANTICS`
+Failure class: `SELF_REFERENTIAL_RECEIPT_DRIFT`
+
+Trigger: after journal closure PR #29 was promoted and production CI #1031 ran on `fa5c5c5db2fb8332db5c6bf1f4ef9ea5e3d17557`, production reread showed the index still called the proactive-resolution mechanism receipt from CI #1029 `latest_production_receipt`.
+
+Diagnosis: a static metadata field named `latest` was attached to a file whose own future closure updates necessarily create newer production commits and CI runs. The field could therefore become stale by the act of updating the journal itself, even though the underlying mechanism receipt remained valid.
+
+Assumption challenged: a moving repository-head fact should be persisted as an indefinitely current static label inside the same evolving evidence index.
+
+Alternatives: continuously rewrite the index after every journal-only closure — rejected as recursive maintenance; remove production evidence entirely — rejected because promotion provenance is useful; scope the receipt to the mechanism it proves — selected.
+
+Action: rename the field to `proactive_resolution_promotion_receipt`, keep it anchored to production commit `b41610b41aa6ea2e450720b0d14714f747e34100` / CI #1029, and add explicit semantics that later journal-only closure commits do not invalidate that mechanism-promotion receipt. Regression rejects the old `latest_production_receipt` label.
+
+System impact: production/evidence metadata should encode the event it proves, not a self-invalidating global `latest` claim when the same evidence surface continues to evolve.
 
 ---
 

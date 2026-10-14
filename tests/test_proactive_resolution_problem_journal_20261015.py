@@ -49,10 +49,11 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
         "P-20261015-11",
         "P-20261015-12",
         "P-20261015-13",
+        "P-20261015-14",
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `1.3`" in journal
+    assert "Journal revision: `1.4`" in journal
     assert "Backfill window: `2026-10-10` through `2026-10-15`" in journal
     assert "Wrong path tried" in journal
     assert "CI #1025" in journal
@@ -64,6 +65,7 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     assert "DECLARATION_TO_OPERATION_GAP" in journal
     assert "MAINTENANCE_META_OVERPRODUCTION" in journal
     assert "CONSUMER_COMPLETE_PROPAGATION_REGRESSION" in journal
+    assert "SELF_REFERENTIAL_RECEIPT_DRIFT" in journal
     assert "VERSION_METADATA_DRIFT" in journal
     assert "INHERITANCE_BEHAVIOR_VS_DECLARATION" in journal
 
@@ -71,9 +73,11 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
 def test_machine_index_and_parent_handoff_expose_guidance_queue():
     index = _read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
     handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
-    assert '"revision": "1.3"' in index
+    assert '"revision": "1.4"' in index
     assert '"from": "2026-10-10"' in index
-    assert '"P-20261015-13"' in index
+    assert '"P-20261015-14"' in index
+    assert '"proactive_resolution_promotion_receipt"' in index
+    assert '"latest_production_receipt"' not in index
     assert '"ci_run": 1029' in index
     assert '"ci_status": "success"' in index
     for signal in (
