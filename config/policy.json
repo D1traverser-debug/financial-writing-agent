@@ -1,7 +1,7 @@
 {
-  "contract_version": "0.8.1",
+  "contract_version": "0.9.0",
   "defaults": {
-    "distribution_mode": "DUAL",
+    "distribution_mode": "PORTFOLIO",
     "content_mode": "FORMAL_ARTICLE",
     "delivery_channel": "WORD_FILE_ONLY",
     "language": "zh-CN",
@@ -9,12 +9,21 @@
     "draft_max_rounds": 2,
     "research_max_rounds": 2
   },
+  "publication_source_privacy": {
+    "required": true,
+    "research_and_audit_keep_full_provenance": true,
+    "publication_must_not_expose_research_trail": true,
+    "forbid_source_framing_used_only_to_signal_research": true,
+    "actor_attribution_exception_only_when_attribution_is_claim_semantics": true,
+    "deterministic_source_leak_scan_required": true
+  },
   "finance_compliance": {
     "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
     "semantic_review_terms": ["买入", "卖出"],
     "no_covert_recommendation_evasion": true,
     "company_comparison_must_remain_non_actionable": true,
-    "company_comparison_may_be_primary_analytical_focus": true
+    "company_comparison_may_be_primary_analytical_focus": true,
+    "evidence_bounded_relative_judgment_is_allowed": true
   },
   "research": {
     "universe_class_coverage_required": true,
@@ -22,6 +31,10 @@
     "silent_company_omission_forbidden": true,
     "saturation_requires_class_level_recall": true,
     "evidence_stage_non_escalation_required": true,
+    "company_decision_map_required_when_multiple_material_companies": true,
+    "company_decision_map_min_dimensions": 2,
+    "company_decision_dimensions_must_be_topic_specific": true,
+    "company_decision_map_requires_current_verdict_and_change_conditions": true,
     "evidence_stage_non_escalation_principle": "Do not infer a later business/financial realization stage from an earlier stage without supporting evidence; use topic-appropriate stages such as technology/product/capacity/order/delivery/revenue/profit/cash-flow rather than domain-specific permanent wording."
   },
   "style": {
@@ -33,6 +46,7 @@
     "deep_numbered_navigation_required_when_branching": true,
     "deep_numbered_navigation_preference": "USE_GENEROUSLY_WHEN_REAL_LAYERS_OR_PARALLEL_BRANCHES_EXIST",
     "major_section_bridge_required": true,
+    "image_safe_h1_lead_required_when_lower_headings_follow": true,
     "forbidden_heading_prefixes": ["·", "•"],
     "bold_skim_path_required": true,
     "fidelity_and_responsibility_required": true,
@@ -42,10 +56,16 @@
     "authorial_selectivity_required": true,
     "evidence_specificity_required": true,
     "structural_rhythm_naturalness_required": true,
+    "syntactic_role_variation_required": true,
+    "paragraph_role_variation_required": true,
+    "noun_heavy_abstraction_requires_rewrite_when_it_hides_actor_or_causality": true,
     "template_redundancy_control_required": true,
     "template_cluster_guard_required": true,
+    "title_h1_body_template_guard_required": true,
     "structure_geometry_guard_required": true,
     "uncertainty_rhetoric_calibration_required": true,
+    "verdict_then_boundary_preferred_when_evidence_supports_relative_judgment": true,
+    "generic_zero_information_company_conditionals_forbidden": true,
     "optimize_for_ai_detector": false,
     "writing_dna_learning": {
       "explicit_instruction_is_durable": true,
@@ -68,13 +88,18 @@
     "finance_deep_representative_stock_shortcut_forbidden": true,
     "stock_grounded_validation_sections_required": true,
     "company_comparison_decision_map_required": true,
+    "named_company_comparative_verdict_required_when_multiple_material_companies": true,
     "company_comparison_may_be_primary_focus": true,
     "company_comparison_dimensions_policy": "TOPIC_SPECIFIC_FROM_CURRENT_AUDITED_EVIDENCE",
     "fixed_cross_topic_comparison_dimension_list_forbidden": true,
-    "company_comparison_dimension_examples": ["demand_to_revenue_distance", "realization_speed", "earnings_sensitivity", "adverse_variable", "evidence_strength"],
+    "company_comparison_dimension_examples": ["business_or_concept_purity", "demand_to_revenue_distance", "realization_speed", "earnings_sensitivity", "certainty_or_evidence_strength", "adverse_variable"],
+    "relative_judgment_may_state_stronger_weaker_faster_slower_more_direct_more_certain": true,
+    "relative_judgment_requires_evidence_and_change_conditions": true,
     "finance_broad_selective_compression": true,
+    "finance_broad_is_acquisition_product_not_merely_shortened_deep": true,
     "finance_broad_core_contradictions_max": 3,
-    "macro_structural_coherence_required": true
+    "macro_structural_coherence_required": true,
+    "information_density_required": true
   },
   "market_explanation": {
     "activation_policy": "EXPLICIT_SCOPE",
@@ -93,23 +118,53 @@
     "synonym_only_headline_pool_is_fail": true,
     "qualified_click_required": true,
     "mode_specific_reader_fit_required": true,
-    "cross_finance_clickability_required": false,
+    "finance_broad_must_interest_cold_finance_reader": true,
+    "cross_finance_clickability_required": true,
     "finance_broad_non_niche_stake_required": true,
-    "finance_broad_stake_dimensions": ["profit", "orders", "cash_flow", "capital_expenditure", "asset_differentiation", "policy_transmission"],
+    "finance_broad_stake_dimensions": ["profit", "orders", "cash_flow", "capital_expenditure", "asset_differentiation", "policy_transmission", "company_divergence"],
     "headline_information_value_required": true,
     "headline_curiosity_balance_required": true,
+    "headline_target": "CONCRETE_HARD_INFORMATION_PLUS_FINANCIAL_STAKE_PLUS_ONE_REAL_UNRESOLVED_PAYOFF",
     "question_title_default": "avoid_unless_information_bearing",
     "wechat_search_intent_required": true,
-    "first_three_sentences_required": false,
+    "first_three_sentences_required": true,
+    "first_three_sentence_jobs": ["hard_fact_or_anomaly", "finance_wide_consequence", "material_unresolved_payoff"],
+    "first_three_sentence_order_and_syntax_flexible": true,
+    "first_three_sentences_need_not_exhaust_full_title_answer": true,
     "early_reader_orientation_required": true,
     "opening_strategy_flexible": true,
     "opening_strategy_examples": ["direct_fact", "contradiction", "delayed_nut_graf", "question", "scene_or_example"],
+    "h1_information_value_required": true,
+    "h1_must_create_reason_to_enter_section": true,
+    "title_h1_rhetorical_mold_repetition_is_fail_when_clustered": true,
     "continuation_flow_required": true,
     "completion_payoff_required": true,
     "title_promise_integrity_required": true,
-    "title_opening_payoff_required": false,
+    "title_opening_payoff_required": true,
     "immediate_title_payoff_is_optional": true,
     "account_performance_over_generic_demographics": true
+  },
+  "platform_products": {
+    "shared_audited_evidence_base_required": true,
+    "deep_review_long_form": {
+      "platforms": ["韭研公社", "东方财富", "微信公众号"],
+      "product": "FINANCE_DEEP_DOCX",
+      "reader_job": "complete finance review and evidence-bounded company differentiation"
+    },
+    "acquisition_long_form": {
+      "platforms": ["微信公众号", "头条号", "百家号", "网易号", "企鹅号"],
+      "product": "FINANCE_BROAD_DOCX",
+      "reader_job": "qualified finance-domain click, continuation, completion and follower acquisition"
+    },
+    "interaction_short_form": {
+      "platforms": ["微信公众号", "头条号", "百家号", "网易号"],
+      "product": "PLATFORM_INTERACTION_PACK_DOCX",
+      "formats": ["贴图文字", "微头条", "动态"],
+      "reader_job": "standalone interaction and follower acquisition",
+      "independent_rewrite_from_audited_evidence_required": true,
+      "truncated_long_form_copy_is_forbidden": true
+    },
+    "wechat_is_dual_role_long_form_surface": true
   },
   "audit": {
     "chat_self_review_can_route_pass": true,
@@ -117,7 +172,11 @@
     "chat_self_review_cannot_claim_independent_certification": true,
     "provider_attested_isolation_required_for_true_independent_claim": true,
     "bounded_terminal_remains_certification_open_without_stronger_evidence": true,
+    "publication_source_privacy_gate_required": true,
     "universe_to_deep_article_reconciliation_required": true,
+    "company_decision_map_and_named_verdict_gate_required": true,
+    "h1_image_safe_lead_gate_required": true,
+    "interaction_pack_gate_required_when_contract_requires": true,
     "template_cluster_guard_can_force_revise": true,
     "structure_geometry_guard_can_force_revise": true,
     "all_applicable_writing_requirements_default_coverage": true,
