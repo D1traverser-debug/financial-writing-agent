@@ -1,4 +1,14 @@
 {
+  "product": [
+    "product_outcome",
+    "user_journeys",
+    "functional_requirements",
+    "non_functional_requirements",
+    "acceptance_evidence_map",
+    "ownership_boundaries",
+    "explicit_non_goals",
+    "major_feature_product_review"
+  ],
   "runtime": [
     "stage_order",
     "checkpointing",
@@ -11,7 +21,8 @@
     "execution_capability_handshake",
     "single_owner_execution",
     "main_article_checkpointing",
-    "owner_lifecycle_recovery"
+    "owner_lifecycle_recovery",
+    "direct_domain_activation"
   ],
   "research": [
     "source_quality",
@@ -28,6 +39,16 @@
     "negative_evidence",
     "cognition_baseline",
     "ephemeral_market_state"
+  ],
+  "cognition": [
+    "problem_detection",
+    "micro_diagnosis",
+    "macro_goal_topology_alignment",
+    "governing_assumption_challenge",
+    "mandatory_external_research_on_problem",
+    "counterexample_escalation",
+    "independent_verification_assurance_boundary",
+    "parent_upcall_when_common_or_cross_domain"
   ],
   "market_explanation": [
     "explicit_scope_activation",
@@ -143,10 +164,15 @@
   "maintenance": [
     "change_classification",
     "single_owner_update",
+    "problem_response_research_reflection_floor",
+    "root_cause_generalization_review",
+    "alternative_comparison",
     "regression_testing",
     "version_consistency",
     "cutover_policy",
     "learning_sample_promotion",
+    "post_promotion_observation",
+    "parent_upcall_for_common_evolution",
     "retired_runtime_negative_space"
   ]
 }
