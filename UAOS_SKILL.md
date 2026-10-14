@@ -8,7 +8,7 @@ scope: publishable A-share financial articles
 Controller: `D1traverser-debug/universal-agent-os@main`.
 Domain repository: `D1traverser-debug/financial-writing-agent@main`.
 
-UAOS owns intent, task identity, requirements, cross-chat continuation, capability orchestration and controller action lineage. This repository owns Financial business rules, the canonical article workflow, fine-grained article state, review evidence and deliverable artifacts.
+UAOS owns intent, durable task identity, requirements, cross-chat continuation, capability orchestration and controller action lineage. This repository owns Financial business rules, the canonical article workflow, fine-grained article state, review evidence and deliverable artifacts.
 
 ## Start
 
@@ -19,7 +19,23 @@ After UAOS resolves the exact task, read only what the current action needs, beg
 4. `config/EXECUTION_CONTRACT.json`;
 5. the exact `workspaces/articles/{task_id}/STATE.json` when an article exists.
 
+Before material work, confirm that every `required_uaos_common_capabilities` entry in `.uaos/CAPABILITIES.json` exists in the current UAOS `config/COMMON_CAPABILITIES.json`. Binding or capability drift blocks the affected execution; never silently substitute an older parent semantic.
+
 Never discover controller state from repository search, chat memory, historical evals or old continuity surfaces.
+
+## UAOS ↔ article identity binding
+
+`financial-writing:main` is a router, not an article workspace.
+
+For a normal new article request:
+1. UAOS creates one durable Financial `task_type=article` task;
+2. create the Financial article state using exactly the same `task_id`;
+3. the UAOS task's `domain_business_authority` must equal `D1traverser-debug/financial-writing-agent@main:workspaces/articles/{task_id}/STATE.json`;
+4. reread both authorities and apply `financial_writing_agent.uaos_binding.validate_uaos_article_binding` before material article execution.
+
+For continuation, resolve an exact current UAOS article task. The router never auto-reactivates a completed historical article merely because the domain matches. When the user explicitly names a historical article that predates a current UAOS per-article task, create/adopt the exact UAOS article task with the same historical `task_id` before any material mutation; do not rewrite historical receipts or pretend the router itself is the article task.
+
+This binding is a join between two authorities, not a second registry: UAOS remains task authority and `workspaces/articles/{task_id}/STATE.json` remains Financial business-state authority.
 
 ## Canonical workflow
 
