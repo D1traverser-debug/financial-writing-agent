@@ -7,10 +7,13 @@ from financial_writing_agent.cognition_governance import (
     EvidenceKind,
     EvidenceRef,
     EvolutionDisposition,
+    HypothesisDisposition,
     KnowledgeKind,
     KnowledgeRecord,
     KnowledgeStatus,
     OperationClass,
+    ProblemLayer,
+    RootScopeHypothesis,
     SearchSaturation,
     SearchSweep,
     admission_errors,
@@ -25,6 +28,17 @@ def _alt(cid: str) -> CandidateOption:
         failure_modes=["failure"],
         fit_conditions=["fit"],
         misfit_conditions=["misfit"],
+    )
+
+
+def _root(hid: str, layer: ProblemLayer, disposition: HypothesisDisposition) -> RootScopeHypothesis:
+    return RootScopeHypothesis(
+        hypothesis_id=hid,
+        layer=layer,
+        statement=f"candidate root {hid}",
+        disposition=disposition,
+        supporting_evidence_refs=[f"support:{hid}"],
+        falsification_or_rejection_refs=[f"probe:{hid}"],
     )
 
 
@@ -195,6 +209,85 @@ def test_search_saturation_rejects_renamed_terminal_sweeps_over_same_source_mix(
         )
 
 
+def test_problem_triggered_material_decision_requires_root_scope_hypotheses():
+    with pytest.raises(ValidationError, match="root-scope hypotheses"):
+        DecisionEnvelope(
+            decision_id="ROOT-MISSING",
+            operation="repair systemic writing failure",
+            objective="fix the root cause rather than the first symptom",
+            operation_class=OperationClass.MATERIAL_JUDGMENT,
+            problem_triggered=True,
+            evidence=[
+                EvidenceRef(ref="current", kind=EvidenceKind.CURRENT_FACT, summary="repeat failure", source_family="repo"),
+                EvidenceRef(ref="method", kind=EvidenceKind.EXTERNAL_METHOD, summary="root-cause method", source_family="engineering"),
+            ],
+            alternatives=[_alt("PATCH"), _alt("REDESIGN")],
+            selected_candidate_id="PATCH",
+            selection_rationale="candidate selection is not root-scope proof",
+            assumptions_challenged=["first fix is root fix"],
+            counterexamples=["prior patches did not prevent recurrence"],
+            rejected_paths=["blind patching"],
+            saturation=_saturation(),
+            verification_plan=["replay"],
+        )
+
+
+def test_systemic_problem_requires_cross_layer_root_scope_and_rejected_upstream_alternative():
+    with pytest.raises(ValidationError, match="at least two problem layers"):
+        DecisionEnvelope(
+            decision_id="ROOT-SAME-LAYER",
+            operation="repair repeated failure",
+            objective="select actual root scope",
+            operation_class=OperationClass.MATERIAL_JUDGMENT,
+            problem_triggered=True,
+            systemic_problem_signal=True,
+            evidence=[
+                EvidenceRef(ref="current", kind=EvidenceKind.CURRENT_FACT, summary="repeat failure", source_family="repo"),
+                EvidenceRef(ref="method", kind=EvidenceKind.EXTERNAL_METHOD, summary="root cause", source_family="engineering"),
+            ],
+            root_scope_hypotheses=[
+                _root("h1", ProblemLayer.DOMAIN_WORKFLOW, HypothesisDisposition.SELECTED),
+                _root("h2", ProblemLayer.DOMAIN_WORKFLOW, HypothesisDisposition.REJECTED),
+            ],
+            selected_root_hypothesis_id="h1",
+            architecture_reassessment_refs=["audit:architecture"],
+            alternatives=[_alt("PATCH"), _alt("REDESIGN")],
+            selected_candidate_id="PATCH",
+            selection_rationale="local workflow selected after evidence",
+            assumptions_challenged=["repeat means architecture"],
+            counterexamples=["architecture can be healthy while local cursor is wrong"],
+            rejected_paths=["whole-system rebuild"],
+            saturation=_saturation(),
+            verification_plan=["replay"],
+        )
+
+
+def test_user_or_external_claim_cannot_be_promoted_directly_to_root_cause():
+    with pytest.raises(ValidationError, match="cannot promote user/external framing"):
+        DecisionEnvelope(
+            decision_id="ROOT-ANCHOR",
+            operation="accept user architecture theory",
+            objective="avoid anchoring",
+            operation_class=OperationClass.MATERIAL_JUDGMENT,
+            problem_triggered=True,
+            evidence=[
+                EvidenceRef(ref="user", kind=EvidenceKind.USER_FEEDBACK, summary="maybe architecture", source_family="user"),
+                EvidenceRef(ref="method", kind=EvidenceKind.EXTERNAL_METHOD, summary="architecture review", source_family="engineering"),
+            ],
+            root_scope_hypotheses=[_root("arch", ProblemLayer.DOMAIN_ARCHITECTURE, HypothesisDisposition.SELECTED)],
+            selected_root_hypothesis_id="arch",
+            direct_user_or_external_claim_promoted_without_test=True,
+            alternatives=[_alt("PATCH"), _alt("REDESIGN")],
+            selected_candidate_id="REDESIGN",
+            selection_rationale="invalid anchored selection",
+            assumptions_challenged=["user framing is authority"],
+            counterexamples=["same symptom can have workflow root"],
+            rejected_paths=["local patch"],
+            saturation=_saturation(),
+            verification_plan=["architecture scenario"],
+        )
+
+
 def test_valid_material_architecture_decision_and_evolution_learning_are_admitted():
     record = KnowledgeRecord(
         knowledge_id="K1",
@@ -214,6 +307,7 @@ def test_valid_material_architecture_decision_and_evolution_learning_are_admitte
         operation_class=OperationClass.MATERIAL_JUDGMENT,
         problem_triggered=True,
         architecture_or_governance_change=True,
+        systemic_problem_signal=True,
         evidence=[
             EvidenceRef(
                 ref="user-feedback",
@@ -234,6 +328,13 @@ def test_valid_material_architecture_decision_and_evolution_learning_are_admitte
                 source_family="repository",
             ),
         ],
+        root_scope_hypotheses=[
+            _root("LOCAL_AUDIT", ProblemLayer.DOMAIN_WORKFLOW, HypothesisDisposition.REJECTED),
+            _root("ARCH_TOPOLOGY", ProblemLayer.DOMAIN_ARCHITECTURE, HypothesisDisposition.SELECTED),
+        ],
+        selected_root_hypothesis_id="ARCH_TOPOLOGY",
+        architecture_reassessment_refs=["audit:current-writing-topology", "scenario:rejection-replay"],
+        problem_record_ref="references/maintenance.md#D2",
         learned_items=["pass labels are not evidence"],
         categories_or_models_used=["single-owner", "multi-pass", "multi-agent"],
         assumptions_challenged=["more rules improve prose", "same-session PASS is sufficient acceptance"],
@@ -248,6 +349,10 @@ def test_valid_material_architecture_decision_and_evolution_learning_are_admitte
         evolution_disposition=EvolutionDisposition.DOMAIN_CANDIDATE,
     )
     assert admission_errors(envelope) == []
+    root = envelope.root_scope_receipt()
+    assert root is not None
+    assert root.selected_layer == ProblemLayer.DOMAIN_ARCHITECTURE
+    assert "LOCAL_AUDIT" in root.rejected_hypothesis_ids
 
 
 def test_conflicted_knowledge_cannot_be_marked_validated():
