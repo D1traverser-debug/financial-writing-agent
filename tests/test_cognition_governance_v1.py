@@ -162,6 +162,32 @@ def test_search_saturation_rejects_repeated_identical_final_sweeps_even_if_earli
         )
 
 
+def test_search_saturation_rejects_renamed_terminal_sweeps_over_same_source_mix():
+    with pytest.raises(ValidationError):
+        SearchSaturation(
+            sweeps=[
+                SearchSweep(
+                    sweep_no=1,
+                    query_or_scope="broad discovery",
+                    source_families=["government", "company-filing"],
+                    new_material_candidates=["candidate-a"],
+                    changed_decision=True,
+                ),
+                SearchSweep(
+                    sweep_no=2,
+                    query_or_scope="counterexample angle",
+                    source_families=["industry", "company-filing"],
+                ),
+                SearchSweep(
+                    sweep_no=3,
+                    query_or_scope="renamed second angle",
+                    source_families=["company-filing", "industry"],
+                ),
+            ],
+            stop_reason="renaming the query is not source diversity",
+        )
+
+
 def test_valid_material_architecture_decision_and_evolution_learning_are_admitted():
     record = KnowledgeRecord(
         knowledge_id="K1",
