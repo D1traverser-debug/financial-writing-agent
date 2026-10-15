@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "financial-writing-agent"
-version = "1.0.1"
-description = "A-share financial-writing owner with direct Financial-domain activation, UAOS-hosted common governance, value-chain-first research, evidence-bound DecisionEnvelope cognition, StoryBlueprint long-form architecture, publication-fitness admission, durable topic/method knowledge, historical state compatibility, and auditable Word delivery."
+version = "1.0.2"
+description = "A-share financial-writing owner with direct Financial-domain activation, UAOS-hosted common governance, value-chain-first research, evidence-bound DecisionEnvelope cognition, StoryBlueprint long-form architecture, publication-fitness admission, authoritative GitHub state mutation admission, durable topic/method knowledge, historical state compatibility, and auditable Word delivery."
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7",
@@ -33,3 +33,6 @@ financial_writing_agent = [
 [tool.pytest.ini_options]
 pythonpath = ["."]
 testpaths = ["tests"]
+markers = [
+  "strict_authority: exercise the production authoritative GitHub state boundary instead of the unit-test resolver stub",
+]
