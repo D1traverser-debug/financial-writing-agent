@@ -12,23 +12,28 @@ Disposition: `DOMAIN_CANDIDATE` -> candidate hotfix branch -> PR -> CI -> contro
 
 ## Root cause
 
-The 1.0 rebuild correctly added admission-time contracts but under-specified revalidation of persisted evidence, assurance provenance, and the terminal-pair semantics of saturation. Candidate CI verified implemented invariants but did not contain adversarial regressions for these three post-admission mutation paths.
+The 1.0 rebuild correctly added admission-time contracts but under-specified revalidation of persisted evidence, assurance provenance, and the terminal-pair semantics of saturation. Candidate CI verified implemented invariants but did not contain adversarial regressions for these post-admission mutation and pseudo-diversity paths.
 
 ## Repairs
 
-- `current_admission.validate_state()` becomes stage-aware and reparses required persisted `DecisionEnvelope`, `StoryBlueprint`, and `PublicationFitness` records. Each required record must match the most recent corresponding SHA-256 binding in execution receipts.
-- Any review revision route now invalidates quality evidence according to the revision target, not only `EDITORIAL_AUDIT` revisions.
-- `PublicationFitness` binds `AuditProvenance`; `INDEPENDENT_EXECUTOR` requires explicit distinct reviewer/author identities and an execution reference. Otherwise assurance remains `CHAT_SELF_REVIEW`.
-- `SearchSaturation` requires the final two stable sweeps to differ in both normalized query/scope and source-family set. Exact repetition cannot prove saturation, and merely renaming a query while reusing the same source mix is also rejected.
+- `current_admission.validate_state()` is stage-aware and reparses required persisted `DecisionEnvelope`, `StoryBlueprint`, and `PublicationFitness` records.
+- Each persisted quality object must match the digest from its correct admitting-stage `current_admission` receipt: RESEARCH for `DecisionEnvelope`, EDITORIAL for `StoryBlueprint`, EDITORIAL_AUDIT for `PublicationFitness`. A later unrelated receipt cannot spoof the binding.
+- Any review revision route invalidates quality evidence according to the revision target, not only `EDITORIAL_AUDIT` revisions.
+- `PublicationFitness` binds `AuditProvenance`; `INDEPENDENT_EXECUTOR` requires nonblank explicit reviewer/author identities, a nonblank execution reference, and reviewer != author. Otherwise assurance remains `CHAT_SELF_REVIEW`.
+- `SearchSweep.source_families` rejects blank entries and duplicates after case/whitespace normalization.
+- `SearchSaturation` requires the final two stable sweeps to differ in both normalized query/scope and normalized source-family set. Exact repetition cannot prove saturation, and merely renaming a query while reusing the same source mix is rejected.
 
 ## Regression targets
 
 - missing persisted publication fitness fails validation;
 - semantically valid but post-admission modified publication fitness fails receipt-digest validation;
+- a later wrong-stage receipt carrying a forged matching digest cannot override the original admitting-stage digest;
 - revision to `RESEARCH` removes stale admitted quality evidence;
 - independent fitness without bound provenance fails;
 - same reviewer/author independent provenance fails;
+- blank reviewer or author identity fails independent provenance;
 - explicit distinct independent provenance passes;
+- blank or normalized-duplicate source families fail;
 - identical final no-delta search sweeps fail even when earlier source-family diversity exists;
 - differently named final sweeps over the same source-family set fail saturation.
 
@@ -39,6 +44,10 @@ The 1.0 rebuild correctly added admission-time contracts but under-specified rev
 - capability profile: remains `18` (no new UAOS capability dependency);
 - UAOS common capability minimum: remains `1.6.0`.
 
+## Assurance boundary
+
+Receipt-digest revalidation is an execution-governance consistency check, not a cryptographic security boundary. Repository commit/state provenance remains the stronger persistence boundary. Same-session semantic review remains `CHAT_SELF_REVIEW` unless distinct execution provenance is actually present.
+
 ## Closure condition
 
-Do not mark repaired until PR CI passes unit/trajectory tests, executable contract eval, static authority audits, isolated 1.0.1 wheel smoke and DOCX render smoke, followed by merge to `main`, production reread and successful `main` push CI. Live reader-value observation remains open after this mechanical/assurance hotfix.
+Do not mark repaired until the final PR head passes unit/trajectory tests, executable contract eval, static authority audits, isolated 1.0.1 wheel smoke and DOCX render smoke; the final head must also receive review with no unresolved material findings before controlled merge. After merge, reread `main` and require a successful `main` push CI. Live reader-value observation remains open after this mechanical/assurance hotfix.
