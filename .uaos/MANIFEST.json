@@ -20,7 +20,11 @@
     "business_contract": "financial_writing_agent/models.py:TaskContract",
     "article_identity": "workspaces/articles/{task_id}/STATE.json::task_id",
     "business_state_root": "workspaces/articles/{task_id}/STATE.json",
+    "current_admission_guard": "financial_writing_agent/current_admission.py",
     "workflow_guard": "financial_writing_agent/owner_guard.py",
+    "writing_kernel": "financial_writing_agent/writing_kernel.py",
+    "cognition_contract": "financial_writing_agent/cognition_governance.py:DecisionEnvelope",
+    "publication_quality_contract": "financial_writing_agent/story_quality.py:StoryBlueprint+PublicationFitness",
     "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
     "proactive_resolution_guard": "financial_writing_agent/proactive_resolution.py",
     "maintenance_method": "references/maintenance.md"
