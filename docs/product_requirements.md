@@ -34,7 +34,9 @@ The governing outcome is not "satisfy the most rules". The governing outcome is 
 9. Same-session critique is useful but remains `CHAT_SELF_REVIEW` unless distinct execution evidence exists.
 10. Historical states/contracts remain immutable provenance.
 
-## 3. Primary requirements
+## 3. Primary user journeys
+
+The following product requirements define the current user journeys and their hard acceptance properties.
 
 ### PR-01 — Direct domain operation and ownership
 
@@ -189,7 +191,7 @@ New ordinary work still defaults to `PORTFOLIO + WORD_FILE_ONLY`:
 - `FINANCE_DEEP_DOCX`
 - `FINANCE_BROAD_DOCX`
 - `PLATFORM_INTERACTION_PACK_DOCX`
-- `AUDIT_DOCX`
+- `AUDIT_DOCX`.
 
 Historical `DUAL` and `FINANCE_BROAD` meanings remain immutable.
 
@@ -208,7 +210,7 @@ One article may create a domain candidate, not universal truth. Cross-domain/com
 
 Separate agents/executors are justified only when tool access, permissions, context, output contract, independence requirement or measured parallelism benefit materially differs. Otherwise the default is one Financial owner with focused passes.
 
-## 4. Acceptance map
+## 4. Functional requirement map
 
 | Requirement | Executable/evidence surface |
 | --- | --- |
@@ -228,7 +230,7 @@ Separate agents/executors are justified only when tool access, permissions, cont
 | Word delivery | existing DOCX/render/mechanical tests |
 | Evolution | existing owner lifecycle/quality regression + new decision/eval evidence |
 
-## 5. Failure/recovery semantics
+## 5. Failure and recovery semantics
 
 - missing material value-chain coverage -> return to RESEARCH;
 - thesis selected before coverage/adversarial search -> RESEARCH;
@@ -242,7 +244,17 @@ Separate agents/executors are justified only when tool access, permissions, cont
 - mechanical Word failure -> DELIVERY;
 - any upstream material change invalidates dependent downstream PASS evidence.
 
-## 6. Explicit non-goals
+## 6. Cognition inheritance contract
+
+Financial inherits the UAOS problem-response floor and internal-orchestration method, while keeping Financial business decisions local. Every detected defect or unreliable outcome activates micro diagnosis, macro/topology alignment, governing-assumption challenge and external research. Material/systemic problems add explicit counterexample search and verification proportional to risk.
+
+The domain realizes this contract through `DecisionEnvelope`, search-saturation evidence, the focused writing-kernel passes and owner-native article/evolution evidence. Merely declaring UAOS inheritance is not operational proof.
+
+## 7. Evolution inheritance contract
+
+Financial owns Financial business/writing promotion; UAOS owns common/cross-domain promotion. User feedback first becomes evidence, then is classified and compared against alternative diagnoses/repairs. A permanent rule or architecture change requires reproducible evaluation, owner-scoped promotion and post-promotion observation. One article or one user instruction cannot silently become universal authority.
+
+## 8. Explicit non-goals
 
 - no buy/sell/timing/target/position guidance;
 - no promise that the entire internet can be exhaustively crawled;
@@ -256,7 +268,7 @@ Separate agents/executors are justified only when tool access, permissions, cont
 - no default Deep word-count ceiling;
 - no rewriting historical states/receipts to fit the new architecture.
 
-## 7. Candidate completion criteria
+## 9. Product completion criteria
 
 The rebuild is promotion-eligible only when:
 1. architecture, product requirements, execution contract, skill/reference surfaces and packaged mirrors agree;
