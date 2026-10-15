@@ -1,9 +1,9 @@
 # EDITORIAL_AUDIT — 跨境电商
 
 Task: `cross-border-ecommerce-20261015`
-Decision: `REVISE`
-Revision target: `TITLE`
+Decision: `PASS`
 Assurance: `CHAT_SELF_REVIEW`
+Revision cycle: `1`
 
 ## Reader funnel
 - Audience promise fit: PASS
@@ -14,10 +14,10 @@ Assurance: `CHAT_SELF_REVIEW`
 - Opening three-sentence retention: PASS
 - Continuation flow: PASS
 - Completion payoff: PASS
-- Title/opening payoff: REVISE
+- Title/opening payoff: PASS
 
 ## Authorial prose
-- Fidelity/responsibility: REVISE
+- Fidelity/responsibility: PASS
 - Semantic contribution: PASS
 - Argument progression: PASS
 - Reader calibration: PASS
@@ -27,23 +27,28 @@ Assurance: `CHAT_SELF_REVIEW`
 - Template redundancy control: PASS
 - Uncertainty calibration: PASS
 
-## Defect
-Deep selected title uses `美国取消小包免税` while current official U.S. wording is continuation/suspension of duty-free de minimis treatment. In business effect the treatment is unavailable, but `取消` can imply a permanence/legal form stronger than the source supports.
-
-The opening/body already uses the more calibrated formulation `继续暂停低值包裹免税`. The title should match that boundary rather than trading precision for force.
-
-## Required repair
-Change Deep selected title to:
+## Revision verification
+The prior defect is repaired. Deep title now uses:
 **美国继续暂停小包免税、欧盟加征3欧元后，跨境电商的钱流向了哪里？**
 
-Update the title package and Deep draft title together. No research or editorial-plan revision is required because the causal thesis and evidence chain are unchanged.
+This matches the current U.S. evidence boundary more closely than `取消`, while preserving the same financial question. Deep opening/body also use `继续暂停/暂停` rather than claiming permanent abolition.
 
-## Other challenge checks
-- `海外仓=最大赢家`: not present; article explicitly uses乐歌反例。
-- `Temu=平台败退`: not present; article explicitly states Temu local-seller/local-fulfilment countercase。
-- `多渠道=天然更优`: not present。
-- `品牌=无条件高利润`: not present。
-- `卖水人=确定性更高`: not present。
-- Research provenance framing in publication copy: no `研报指出/公开资料显示` style diligence scaffolding detected in the draft.
+## Adversarial content checks
+- `海外仓=最大赢家`: PASS — explicitly rejected with乐歌宏观量/公司收入反例。
+- `Temu=平台败退`: PASS — explicitly bounded by Temu local-seller/local-fulfilment countercase。
+- `多渠道=天然更优`: PASS — explicitly rejected using赛维高Amazon集中仍增长。
+- `品牌=无条件高利润`: PASS — sales expense/FX boundaries retained。
+- `卖水人=确定性更高`: PASS — business-purity/fee/competition boundaries retained。
+- Industry growth vs company divergence: PASS — causal distinction preserved。
+- Research provenance leakage: PASS — no `研报指出/公开资料显示` diligence scaffolding in publication copy。
 
-Decision: `REVISE -> TITLE`, narrow factual-calibration repair only.
+## Deep completeness
+PASS. Material seller/brand, B2B, overseas-fulfilment, payment and secondary infrastructure branches are represented without pretending every company has the same exposure. Monitoring section returns to named economic indicators rather than generic slogans.
+
+## Broad selectivity
+PASS. Broad compresses the full map into three contradictions: industry growth vs seller divergence, Temu decline vs Amazon growth, overseas-warehouse volume growth vs company revenue. It does not silently replace the broader research base.
+
+## Platform interaction pack
+PASS. Four platform-family rewrites are independently phrased and remain inside the evidence boundary; no investment-return promise or direct stock-call language.
+
+Final decision: `PASS -> DELIVERY`.
