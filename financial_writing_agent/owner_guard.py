@@ -415,6 +415,12 @@ def build_initial_state(
     distribution_mode_override_evidence: str | None = None,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
+    """Create the only supported new Financial state: schema 1.3 + writing kernel 1.0.
+
+    Historical 1.1/1.2 states remain valid inputs when already persisted on main, but
+    public task creation can no longer manufacture a fresh legacy state to opt out of
+    current quality governance.
+    """
     _require(_nonempty(task_id), "task_id is required")
     _require(_nonempty(prompt), "prompt is required")
     _require(state_ref == MAIN_STATE_REF, "new GITHUB_CHAT tasks must be created on main")
@@ -462,12 +468,16 @@ def build_initial_state(
             "distribution_mode_override_evidence": override_evidence,
             "delivery_channel": contract.delivery_channel.value,
             "required_outputs": required_outputs,
+            "writing_kernel_version": CURRENT_WRITING_KERNEL_VERSION,
+            "quality_admission_path": CURRENT_QUALITY_ADMISSION_PATH,
         },
         output_refs=[_state_path(task_id)],
         state_ref=state_ref,
     )
     state = {
-        "schema_version": CURRENT_STATE_SCHEMA_VERSION,
+        "schema_version": QUALITY_STATE_SCHEMA_VERSION,
+        "writing_kernel_version": CURRENT_WRITING_KERNEL_VERSION,
+        "quality_evidence": {},
         "task_id": task_id,
         "execution_mode": GITHUB_CHAT_EXECUTION_MODE,
         "status": "IN_PROGRESS",
@@ -547,16 +557,19 @@ def _prepare_transition_quality(
             "legacy Financial state cannot accept current quality-admission payloads",
         )
         return deepcopy(dict(state)), {}, []
-    from .current_admission import _prepare_quality_transition
+    try:
+        from .current_admission import _prepare_quality_transition
 
-    return _prepare_quality_transition(
-        state,
-        decision_envelope=decision_envelope,
-        story_blueprints=story_blueprints,
-        publication_fitnesses=publication_fitnesses,
-        review_status=review_status,
-        revision_target=revision_target,
-    )
+        return _prepare_quality_transition(
+            state,
+            decision_envelope=decision_envelope,
+            story_blueprints=story_blueprints,
+            publication_fitnesses=publication_fitnesses,
+            review_status=review_status,
+            revision_target=revision_target,
+        )
+    except ValueError as exc:
+        raise GithubChatGuardError(f"current Financial quality admission failed: {exc}") from exc
 
 
 def advance_state(
