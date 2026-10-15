@@ -20,6 +20,7 @@ def main() -> None:
     binding = manifest["binding"]
     assert binding["controller_ref"] == "D1traverser-debug/universal-agent-os@main:CURRENT_SYSTEM.json"
     assert binding["common_capabilities_ref"] == "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json"
+    assert binding["common_behavior_assurance_ref"] == "D1traverser-debug/universal-agent-os@main:config/COMMON_BEHAVIOR_ASSURANCE.json"
     assert binding["deliberation_policy_ref"] == "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json"
     assert binding["adapter_ref"] == ".uaos/ADAPTER.json"
     assert binding["capability_ref"] == ".uaos/CAPABILITIES.json"
@@ -29,6 +30,7 @@ def main() -> None:
     assert domain_authority["architecture"] == "docs/architecture.md"
     assert domain_authority["business_contract"] == "financial_writing_agent/models.py:TaskContract"
     assert domain_authority["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id"
+    assert domain_authority["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
 
     assert adapter["session_activation"] == "DIRECT_FINANCIAL_WORK_PLANE_AFTER_DOMAIN_SELECTION__NO_MANDATORY_LIVE_UAOS_BUSINESS_PROXY"
     assert adapter["controller_task_identity_authority"] == "UAOS"
@@ -48,8 +50,9 @@ def main() -> None:
     assert execution["execution"]["free_form_article_fallback_allowed"] is False
 
     required = set(caps["required_uaos_common_capabilities"])
-    assert caps["profile_version"] == 16
+    assert caps["profile_version"] == 17
     assert caps["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
         "intent_and_requirement_governance",
         "product_requirements_and_architecture_governance",
@@ -65,6 +68,8 @@ def main() -> None:
         "GOVERNING_ASSUMPTION_CHALLENGE",
         "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
     ]
+    assert caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION"
+    assert "RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
     assert execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True
     assert execution["problem_and_evolution"]["one_off_observation_auto_promotes_to_global_rule"] is False
     assert execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True
@@ -72,18 +77,21 @@ def main() -> None:
     capability_ids = {cap["capability_id"] for cap in caps["capabilities"]}
     assert "domain_owned_article_identity_and_state" in capability_ids
     assert "identity_free_business_output_contract" in capability_ids
+    assert "proactive_resolution_admission" in capability_ids
     assert "domain_product_requirements_traceability" in capability_ids
     assert "uaos_article_binding_validation" not in capability_ids
     assert all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"])
 
+    assert (ROOT / "financial_writing_agent/proactive_resolution.py").is_file()
+    assert (ROOT / "tests/test_executable_proactive_resolution_20261015.py").is_file()
     assert (ROOT / "docs/product_requirements.md").is_file()
     assert (ROOT / "docs/architecture.md").is_file()
     assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
     assert not (ROOT / "continuity").exists()
 
     print(
-        "PASS: Financial directly owns article/product authority, inherits current UAOS cognition/evolution contracts, "
-        "and keeps common/cross-domain governance at the parent boundary"
+        "PASS: Financial directly owns article/product authority, inherits current UAOS cognition/evolution/behavior contracts, "
+        "and verifies owner-native proactive-resolution admission with trajectory evidence"
     )
 
 

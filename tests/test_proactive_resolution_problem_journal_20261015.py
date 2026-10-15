@@ -9,10 +9,14 @@ def _read(path: str) -> str:
 
 def test_maintenance_routes_to_proactive_resolution_and_problem_journal():
     maintenance = _read("references/maintenance.md")
-    assert "Revision: `1.1`" in maintenance
+    assert "Revision: `1.2`" in maintenance
     assert "references/proactive_resolution.md" in maintenance
+    assert "financial_writing_agent/proactive_resolution.py" in maintenance
     assert "evals/PROBLEM_EVOLUTION_JOURNAL.md" in maintenance
     assert "A missing ideal input is not automatically a user blocker" in maintenance
+    assert "record_proactive_resolution_state" in maintenance
+    assert "require_user_escalation_admission" in maintenance
+    assert "Problem-to-action closure" in maintenance
     assert "Every encountered problem must appear" in maintenance
     assert "Do not rewrite the journal into a success-only narrative" in maintenance
 
@@ -26,7 +30,6 @@ def test_proactive_resolution_recovers_before_user_escalation():
     assert "current conversation/context signals" in rule
     assert "Ask the user only when" in rule
     assert "Do not ask merely because the best evidence is imperfect" in rule
-    assert "UPCALL_RECOMMENDED_FOR_COMMON_CAPABILITY_GENERALIZATION" in rule
 
 
 def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
@@ -50,11 +53,11 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
         "P-20261015-12",
         "P-20261015-13",
         "P-20261015-14",
+        "P-20261015-15",
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `1.4`" in journal
-    assert "Backfill window: `2026-10-10` through `2026-10-15`" in journal
+    assert "Journal revision: `1.5`" in journal
     assert "Wrong path tried" in journal
     assert "CI #1025" in journal
     assert "CI #1027" in journal
@@ -63,6 +66,7 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     assert "Parent Guidance Queue" in journal
     assert "PROACTIVE_RESOLUTION_GAP" in journal
     assert "DECLARATION_TO_OPERATION_GAP" in journal
+    assert "PROBLEM_TO_ACTION_CLOSURE_GAP" in journal
     assert "MAINTENANCE_META_OVERPRODUCTION" in journal
     assert "CONSUMER_COMPLETE_PROPAGATION_REGRESSION" in journal
     assert "SELF_REFERENTIAL_RECEIPT_DRIFT" in journal
@@ -73,9 +77,9 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
 def test_machine_index_and_parent_handoff_expose_guidance_queue():
     index = _read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
     handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
-    assert '"revision": "1.4"' in index
-    assert '"from": "2026-10-10"' in index
-    assert '"P-20261015-14"' in index
+    assert '"revision": "1.5"' in index
+    assert '"P-20261015-15"' in index
+    assert '"executable_proactive_resolution_candidate"' in index
     assert '"proactive_resolution_promotion_receipt"' in index
     assert '"latest_production_receipt"' not in index
     assert '"ci_run": 1029' in index
@@ -86,6 +90,7 @@ def test_machine_index_and_parent_handoff_expose_guidance_queue():
         "VERSION_METADATA_DRIFT",
         "INHERITANCE_BEHAVIOR_VS_DECLARATION",
         "DECLARATION_TO_OPERATION_GAP",
+        "PROBLEM_TO_ACTION_CLOSURE_GAP",
     ):
         assert signal in index
         assert signal in handoff

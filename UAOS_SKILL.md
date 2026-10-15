@@ -20,7 +20,7 @@ Load only what the action needs:
 3. `docs/product_requirements.md` / `docs/architecture.md` for product/architecture work;
 4. exact article `STATE.json` only when an article exists.
 
-Confirm the hosted UAOS common-capability contract before material work. Binding drift blocks affected capability only; it never transfers Financial ownership to UAOS.
+Confirm both the hosted UAOS common-capability contract and common behavior-assurance contract before material work. Binding drift blocks affected capability only; it never transfers Financial ownership to UAOS.
 
 `financial-writing:main` is a selector/router entry, not an article task. Financial creates/owns its own article `task_id` and `STATE.json`; UAOS may retain only an opaque returned state reference.
 
@@ -37,7 +37,7 @@ Progressive references:
 - editorial/title/draft: `references/editorial.md`, `references/hooks.md`, `references/style.md`, `references/reader_value.md`;
 - platform: `references/platforms.md`, `references/reader_value.md`;
 - delivery: `references/delivery.md`, `references/reader_value.md`;
-- maintenance: `references/maintenance.md`, product/architecture docs.
+- maintenance: `references/maintenance.md`, `references/proactive_resolution.md`, product/architecture docs.
 
 ## Current product contract
 
@@ -77,12 +77,20 @@ Financial inherits UAOS adaptive deliberation. Every detected defect, user corre
 
 Familiarity is not a waiver. Material problems require alternatives/counterexamples and stronger verification. Common/cross-domain causes upcall UAOS; Financial-local causes remain Financial-owned.
 
+After diagnosis, Financial also inherits UAOS problem-to-action closure: if an owner-authorized repair is currently available and no required user fact/approval/authorization/safety-sensitive choice blocks it, Financial must attempt the repair before ending the turn. Recommendation-only is not valid closure for a currently repairable problem.
+
+## Executable proactive resolution before user escalation
+
+`financial_writing_agent/proactive_resolution.py` owns the executable recovery receipt and escalation gate. Before externalizing a recoverable dependency, Financial must persist either a safe evidence-bound `RESOLVED/PROVISIONAL` result and continue, or an unsafe `UNRESOLVED` result with concrete blockers and pass `require_user_escalation_admission`. Explicit user confirmation remains legal.
+
+A safe provisional result is not escalation-eligible. See `references/proactive_resolution.md` for evidence order, confidence/validation semantics and assurance limits. Current assurance is executable policy + trajectory evidence until live article behavior accumulates; host-level physical interception is not claimed.
+
 ## Governed evolution
 
 Financial-owned learning follows:
 `problem/feedback -> research+reflection -> root cause/scope -> alternatives -> candidate -> regression/eval -> owner promotion -> post-promotion observation -> keep/rollback/retire`.
 
-`financial_writing_agent/owner_lifecycle.py` owns article-linked feedback/system-impact state; `references/maintenance.md` owns the maintenance method. One article can create evidence but does not silently become a universal rule. Cross-domain/common-capability evolution remains UAOS-owned.
+`financial_writing_agent/owner_lifecycle.py` owns article-linked feedback/system-impact state; `financial_writing_agent/proactive_resolution.py` owns recoverable-dependency action receipts/user-escalation admission; `references/maintenance.md` owns the maintenance method. One article can create evidence but does not silently become a universal rule. Cross-domain/common-capability evolution remains UAOS-owned.
 
 Major product changes use UAOS-hosted product-review method and persist resulting domain requirements/architecture locally. Product documentation alone is not acceptance evidence.
 
@@ -90,7 +98,7 @@ Major product changes use UAOS-hosted product-review method and persist resultin
 
 Financial article identity authority is `workspaces/articles/{task_id}/STATE.json::task_id`. `TaskContract` is intentionally identity-free and only describes business/output constraints.
 
-Material changes bind fresh owner state, use owner guard/lifecycle, persist evidence and reread authority. Same-chat semantic review keeps `CHAT_SELF_REVIEW`; independent claims require distinct execution evidence.
+Material changes bind fresh owner state, use owner guard/lifecycle/proactive-resolution admission as applicable, persist evidence and reread authority. Same-chat semantic review keeps `CHAT_SELF_REVIEW`; independent claims require distinct execution evidence.
 
 Historical completed receipts are immutable provenance and never route selectors.
 

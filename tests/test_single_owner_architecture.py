@@ -22,10 +22,12 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["skill"]["entrypoint"] == "UAOS_SKILL.md"
     assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
     assert manifest["binding"]["common_capabilities_ref"].endswith("config/COMMON_CAPABILITIES.json")
+    assert manifest["binding"]["common_behavior_assurance_ref"].endswith("config/COMMON_BEHAVIOR_ASSURANCE.json")
     assert manifest["domain_authority"]["product_requirements"] == "docs/product_requirements.md"
     assert manifest["domain_authority"]["architecture"] == "docs/architecture.md"
     assert manifest["domain_authority"]["business_contract"] == "financial_writing_agent/models.py:TaskContract"
     assert manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id"
+    assert manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
 
     assert adapter["controller_task_identity_authority"] == "UAOS"
     assert adapter["domain_article_identity_authority"] == "workspaces/articles/{task_id}/STATE.json::task_id"
@@ -46,8 +48,9 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["identity"]["parent_child_id_equality_required"] is False
 
     common_required = set(capabilities["required_uaos_common_capabilities"])
-    assert capabilities["profile_version"] == 16
+    assert capabilities["profile_version"] == 17
     assert capabilities["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
         "product_requirements_and_architecture_governance",
         "mutation_sentinel_and_host_complete_mediation",
@@ -62,6 +65,7 @@ def test_current_authority_has_one_financial_owner_path():
         "semantic_review_stages",
         "delivery_and_mechanical_qa",
         "blocked_recovery_and_system_impact_lifecycle",
+        "proactive_resolution_admission",
         "quality_regression_promotion_gate",
         "domain_product_requirements_traceability",
     }
@@ -106,6 +110,7 @@ def test_retired_control_namespace_is_physically_absent():
         "docs/architecture.md",
         "financial_writing_agent/owner_guard.py",
         "financial_writing_agent/owner_lifecycle.py",
+        "financial_writing_agent/proactive_resolution.py",
         "financial_writing_agent/models.py",
     ):
         assert (ROOT / path).is_file(), path
@@ -121,7 +126,7 @@ def test_discovery_skill_is_pointer_not_second_rulebook():
 
 def test_package_has_no_second_runtime_dependencies_or_parent_identity_logic():
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert pyproject["project"]["version"] == "0.9.1"
+    assert pyproject["project"]["version"] == "0.9.2"
     assert "scripts" not in pyproject["project"]
     assert not any(str(dep).lower().startswith("mcp") for dep in pyproject["project"].get("dependencies", []))
     assert "openai" not in pyproject["project"].get("optional-dependencies", {})

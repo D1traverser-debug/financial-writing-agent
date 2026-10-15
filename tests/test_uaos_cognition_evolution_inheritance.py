@@ -12,8 +12,10 @@ def test_hosted_cognition_contract_is_current_and_explicit():
     caps = _json(".uaos/CAPABILITIES.json")
     execution = _json("config/EXECUTION_CONTRACT.json")
 
+    assert caps["profile_version"] == 17
     assert caps["common_capabilities_inheritance"] == "UAOS_HOSTED"
     assert caps["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert caps["hosted_cognition_semantics"]["problem_response_floor"] == [
         "MICRO_DIAGNOSIS",
         "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
@@ -21,6 +23,8 @@ def test_hosted_cognition_contract_is_current_and_explicit():
         "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
     ]
     assert caps["hosted_cognition_semantics"]["rule"].startswith("EVERY_DETECTED_PROBLEM_REQUIRES_RESEARCH_AND_REFLECTION")
+    assert caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION"
+    assert "RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
     assert execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True
     assert execution["hosted_governance"]["problem_floor_activation"] == "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER"
 
@@ -49,6 +53,8 @@ def test_product_requirements_are_domain_owned_and_mapped_to_acceptance():
     architecture = (ROOT / "docs/architecture.md").read_text(encoding="utf-8")
 
     assert manifest["domain_authority"]["product_requirements"] == "docs/product_requirements.md"
+    assert manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
+    assert manifest["binding"]["common_behavior_assurance_ref"].endswith("config/COMMON_BEHAVIOR_ASSURANCE.json")
     assert adapter["domain_product_requirement_authority"].endswith("docs/product_requirements.md")
     assert "product" in ownership and "cognition" in ownership
     for phrase in (
@@ -68,11 +74,16 @@ def test_product_requirements_are_domain_owned_and_mapped_to_acceptance():
     assert "Product architecture review" in architecture
 
 
-def test_financial_maintenance_requires_problem_research_reflection_and_keeps_packaged_mirror_equal():
+def test_financial_maintenance_requires_problem_research_reflection_and_keeps_all_mirrors_equal():
     root = (ROOT / "references/maintenance.md").read_text(encoding="utf-8")
     packaged = (ROOT / "financial_writing_agent/resources/references/maintenance.md").read_text(encoding="utf-8")
-    assert root == packaged
+    skill = (ROOT / "skills/financial-writing-agent/references/maintenance.md").read_text(encoding="utf-8")
+    assert root == packaged == skill
+    assert "Revision: `1.2`" in root
     assert "Any detected problem activates the UAOS-hosted cognition floor" in root
+    assert "record_proactive_resolution_state" in root
+    assert "require_user_escalation_admission" in root
+    assert "Problem-to-action closure" in root
     assert "Familiarity is not a waiver" in root
     assert "relevant external research" in root
     assert "compare at least two credible alternatives" in root
@@ -85,6 +96,7 @@ def test_direct_activation_is_not_replaced_by_parent_business_proxy():
     execution = _json("config/EXECUTION_CONTRACT.json")
     assert "A fresh chat may select Financial Writing directly" in skill
     assert "normal article turns do **not** traverse a live UAOS business proxy" in skill
+    assert "Executable proactive resolution before user escalation" in skill
     assert execution["execution"]["direct_domain_activation"] is True
     assert execution["execution"]["live_parent_business_proxy_required"] is False
     assert execution["identity"]["parent_child_id_equality_required"] is False

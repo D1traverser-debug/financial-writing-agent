@@ -1,8 +1,8 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "journal": "evals/PROBLEM_EVOLUTION_JOURNAL.md",
   "owner": "DOMAIN:financial_writing",
-  "revision": "1.4",
+  "revision": "1.5",
   "backfill_window": {
     "from": "2026-10-10",
     "through": "2026-10-15"
@@ -11,7 +11,8 @@
     "P-20261015-08",
     "P-20261015-09",
     "P-20261015-10",
-    "P-20261015-11"
+    "P-20261015-11",
+    "P-20261015-15"
   ],
   "latest_closed_items": [
     "P-20261015-12",
@@ -23,17 +24,27 @@
     "EVOLUTION_HISTORY_INTERFACE",
     "VERSION_METADATA_DRIFT",
     "INHERITANCE_BEHAVIOR_VS_DECLARATION",
-    "DECLARATION_TO_OPERATION_GAP"
+    "DECLARATION_TO_OPERATION_GAP",
+    "PROBLEM_TO_ACTION_CLOSURE_GAP"
   ],
   "rule_refs": [
     "references/maintenance.md",
-    "references/proactive_resolution.md"
+    "references/proactive_resolution.md",
+    "financial_writing_agent/proactive_resolution.py"
   ],
   "proactive_resolution_promotion_receipt": {
     "commit": "b41610b41aa6ea2e450720b0d14714f747e34100",
     "ci_run": 1029,
     "ci_status": "success",
     "ci_completed_at": "2026-10-14T21:36:34Z",
-    "semantics": "Receipt for the proactive-resolution/problem-journal mechanism promotion; later journal-only closure commits do not invalidate this receipt."
+    "semantics": "Receipt for the original proactive-resolution/problem-journal rule promotion; later executable-admission work is tracked separately and does not rewrite this historical receipt."
+  },
+  "executable_proactive_resolution_candidate": {
+    "target_release": "0.9.2",
+    "target_profile_version": 17,
+    "parent_common_behavior_min": "1.2.0",
+    "problem_ref": "P-20261015-15",
+    "status": "CANDIDATE_PENDING_PARENT_AND_CHILD_PROMOTION",
+    "assurance_target": "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN"
   }
 }
