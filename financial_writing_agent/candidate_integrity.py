@@ -341,6 +341,7 @@ def _validate_transition_receipt_identity(
     stage: str,
     review_status: str | None,
     revision_target: str | None,
+    expected_stage_artifact: Mapping[str, Any] | None = None,
 ) -> None:
     receipt = _last_receipt(after)
     task_id = str(before.get("task_id", ""))
@@ -390,11 +391,19 @@ def _validate_transition_receipt_identity(
             isinstance(artifact_path, str) and artifact_path.startswith(f"workspaces/articles/{task_id}/"),
             "transition receipt artifact output must belong to the current article workspace",
         )
-        if review_status != "REVISE":
+        if review_status == "REVISE":
+            if expected_stage_artifact is None:
+                before_artifacts = _mapping(before.get("stage_artifacts", {}), label="before.stage_artifacts")
+                expected_stage_artifact = _mapping(
+                    before_artifacts.get(stage),
+                    label=f"before.stage_artifacts.{stage} required to corroborate public REVISE candidate",
+                )
+            stage_artifact = _mapping(expected_stage_artifact, label="expected REVISE stage artifact")
+        else:
             after_artifacts = _mapping(after.get("stage_artifacts", {}), label="after.stage_artifacts")
             stage_artifact = _mapping(after_artifacts.get(stage), label=f"after.stage_artifacts.{stage}")
-            _require(artifact_path == stage_artifact.get("path"), "transition receipt artifact output must equal admitted stage artifact path")
-            _require(bound_sha == stage_artifact.get("blob_sha"), "transition receipt artifact SHA must equal admitted stage artifact blob_sha")
+        _require(artifact_path == stage_artifact.get("path"), "transition receipt artifact output must equal admitted stage artifact path")
+        _require(bound_sha == stage_artifact.get("blob_sha"), "transition receipt artifact SHA must equal admitted stage artifact blob_sha")
 
 
 def _validate_append_one(before_value: Any, after_value: Any, *, label: str) -> Any:
@@ -405,7 +414,12 @@ def _validate_append_one(before_value: Any, after_value: Any, *, label: str) -> 
     return after[-1]
 
 
-def validate_transition_candidate_isolation(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
+def validate_transition_candidate_isolation(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    expected_stage_artifact: Mapping[str, Any] | None = None,
+) -> None:
     _validate_immutable_by_default(
         before,
         after,
@@ -459,6 +473,7 @@ def validate_transition_candidate_isolation(before: Mapping[str, Any], after: Ma
         stage=stage,
         review_status=effective_review_status,
         revision_target=revision_target,
+        expected_stage_artifact=expected_stage_artifact,
     )
 
 
@@ -495,6 +510,8 @@ def _validate_feedback_append_semantics(before: Mapping[str, Any], after: Mappin
     _validate_common_receipt_identity(receipt, task_id=task_id, action_kind="MATERIAL_FEEDBACK")
     subject = _mapping(receipt.get("subject_bindings"), label="feedback receipt subject_bindings")
     bindings = _mapping(receipt.get("input_bindings"), label="feedback receipt input_bindings")
+    _require("review_status" not in bindings, "feedback receipt cannot bind review_status")
+    _require("revision_target" not in bindings, "feedback receipt cannot bind revision_target")
     _require(subject.get("task_id") == task_id, "feedback receipt subject task_id mismatch")
     _require(subject.get("sample_type") == sample_type, "feedback receipt sample_type does not bind appended sample")
     _require(subject.get("signal_id") == signal_id, "feedback receipt signal_id does not bind appended system-impact")
