@@ -1,11 +1,5 @@
 from pathlib import Path
 
-from financial_writing_agent.proactive_resolution import (
-    record_proactive_resolution_state,
-    require_user_escalation_admission,
-)
-
-
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -13,43 +7,57 @@ def _read(path: str) -> str:
     return (ROOT / path).read_text(encoding="utf-8")
 
 
-def test_proactive_resolution_rules_exist_and_are_operationally_bound():
+def test_maintenance_routes_to_proactive_resolution_and_problem_journal():
     maintenance = _read("references/maintenance.md")
-    proactive = _read("references/proactive_resolution.md")
-    assert "Proactive resolution before user escalation" in maintenance
+    assert "Revision: `1.2`" in maintenance
+    assert "references/proactive_resolution.md" in maintenance
+    assert "financial_writing_agent/proactive_resolution.py" in maintenance
+    assert "evals/PROBLEM_EVOLUTION_JOURNAL.md" in maintenance
+    assert "A missing ideal input is not automatically a user blocker" in maintenance
     assert "record_proactive_resolution_state" in maintenance
     assert "require_user_escalation_admission" in maintenance
-    assert "recover -> infer provisionally -> test -> only then escalate" in proactive
+    assert "Problem-to-action closure" in maintenance
+    assert "Every encountered problem must appear" in maintenance
+    assert "Do not rewrite the journal into a success-only narrative" in maintenance
 
 
-def test_proactive_resolution_receipt_allows_safe_provisional_continue(tmp_path):
-    state = {
-        "task_id": "demo",
-        "current_stage": "INTAKE",
-        "status": "RUNNING",
-        "working": {},
-    }
-    path = tmp_path / "STATE.json"
-    import json
-
-    path.write_text(json.dumps(state), encoding="utf-8")
-    result = record_proactive_resolution_state(
-        path,
-        dependency="canonical_user_voice_sample",
-        attempted_sources=["durable corrections", "approved edited outputs", "current context"],
-        evidence=["negative style correction", "explicit anti-AI correction"],
-        outcome="PROVISIONAL",
-        confidence="medium",
-        unknowns=["no canonical approved full article sample"],
-        safe_to_continue=True,
-        validation_plan=["validate against next real article/user feedback"],
-    )
-    assert result["outcome"] == "PROVISIONAL"
-    assert require_user_escalation_admission(path, dependency="canonical_user_voice_sample") is False
+def test_proactive_resolution_recovers_before_user_escalation():
+    rule = _read("references/proactive_resolution.md")
+    assert "recover, infer provisionally, test, and only then escalate" in rule
+    assert "Missing highest-tier evidence is not automatically a blocker" in rule
+    assert "user-approved or user-edited writing samples" in rule
+    assert "explicit durable user corrections, rejections, constraints and accepted outcomes" in rule
+    assert "current conversation/context signals" in rule
+    assert "Ask the user only when" in rule
+    assert "Do not ask merely because the best evidence is imperfect" in rule
 
 
-def test_journal_contains_current_executable_bridge_history():
+def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     journal = _read("evals/PROBLEM_EVOLUTION_JOURNAL.md")
+    required_entries = {
+        "P-20261010-01",
+        "P-20261011-01",
+        "P-20261011-02",
+        "P-20261011-03",
+        "P-20261012-00",
+        "P-20261012-01",
+        "P-20261012-05",
+        "P-20261013-02",
+        "P-20261014-01",
+        "P-20261015-02",
+        "P-20261015-05",
+        "P-20261015-08",
+        "P-20261015-09",
+        "P-20261015-10",
+        "P-20261015-11",
+        "P-20261015-12",
+        "P-20261015-13",
+        "P-20261015-14",
+        "P-20261015-15",
+        "P-20261015-16",
+    }
+    for entry in required_entries:
+        assert entry in journal
     assert "Journal revision: `1.6`" in journal
     assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
     assert "CI #1034" in journal
@@ -64,6 +72,7 @@ def test_journal_contains_current_executable_bridge_history():
     assert "SELF_REFERENTIAL_RECEIPT_DRIFT" in journal
     assert "VERSION_METADATA_DRIFT" in journal
     assert "INHERITANCE_BEHAVIOR_VS_DECLARATION" in journal
+    assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in journal
 
 
 def test_machine_index_and_parent_handoff_expose_adjudication_and_promotion_receipt():
