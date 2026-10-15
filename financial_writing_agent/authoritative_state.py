@@ -16,6 +16,33 @@ class AuthoritativeStateError(ValueError):
     pass
 
 
+def _json_type_strict_equal(left: Any, right: Any) -> bool:
+    """Compare JSON-shaped values without Python's bool/int equality collapse."""
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        if left.keys() != right.keys():
+            return False
+        return all(_json_type_strict_equal(left[key], right[key]) for key in left)
+    if isinstance(left, list):
+        return len(left) == len(right) and all(
+            _json_type_strict_equal(a, b) for a, b in zip(left, right, strict=True)
+        )
+    return left == right
+
+
+class TypeStrictJsonDict(dict[str, Any]):
+    """Root JSON object whose equality preserves JSON scalar/container types."""
+
+    def __eq__(self, other: object) -> bool:
+        if not isinstance(other, Mapping):
+            return False
+        return _json_type_strict_equal(dict(self), dict(other))
+
+    def __ne__(self, other: object) -> bool:
+        return not self == other
+
+
 @dataclass(frozen=True)
 class AuthoritativeStateSnapshot:
     task_id: str
@@ -23,6 +50,11 @@ class AuthoritativeStateSnapshot:
     blob_sha: str
     path: str
     ref: str
+
+    def __post_init__(self) -> None:
+        # Snapshot equality is part of the owner authority boundary. Wrapping here
+        # also protects test/fake snapshots constructed outside fetch_authoritative_state.
+        object.__setattr__(self, "state", TypeStrictJsonDict(self.state))
 
 
 def _state_path(task_id: str) -> str:
