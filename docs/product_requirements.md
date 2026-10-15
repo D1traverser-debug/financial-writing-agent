@@ -25,7 +25,7 @@ The governing outcome is not "satisfy the most rules". The governing outcome is 
 
 1. User feedback is high-weight evidence, not automatic rule authority.
 2. Learned knowledge is retained with provenance, scope, fit/misfit and revalidation conditions; it does not silently mutate rules.
-3. Material judgments require deliberate comparison, counterexamples, external method evidence and a verification plan before execution.
+3. Material judgments require deliberate comparison, current evidence, counterexamples and a verification plan; problem-triggered or architecture/governance judgments additionally require relevant external method/architecture research.
 4. Research completeness and publication selectivity are separate: research may be broad; publication may select.
 5. The writer does not self-certify its own quality.
 6. Semantic review must cite text-level evidence; naked PASS labels are insufficient.
@@ -76,7 +76,7 @@ For material thematic/company work, Research must:
 
 "Complete" means evidence-bounded coverage, not a claim that the entire internet was crawled.
 
-For material method/architecture/thesis decisions, search may stop only after at least two consecutive materially different sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation.
+For material thesis decisions, search may stop only after at least two consecutive materially different sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation. Architecture/method changes use the same saturation discipline and add external method evidence.
 
 ### PR-05 — Decision Envelope for material judgments
 
@@ -210,7 +210,7 @@ One article may create a domain candidate, not universal truth. Cross-domain/com
 
 Separate agents/executors are justified only when tool access, permissions, context, output contract, independence requirement or measured parallelism benefit materially differs. Otherwise the default is one Financial owner with focused passes.
 
-## 4. Functional requirement map
+## 4. Acceptance evidence — Functional requirement map
 
 | Requirement | Executable/evidence surface |
 | --- | --- |
