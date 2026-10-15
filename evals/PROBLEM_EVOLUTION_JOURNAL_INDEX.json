@@ -27,7 +27,7 @@
     "DECLARATION_TO_OPERATION_GAP",
     "PROBLEM_TO_ACTION_CLOSURE_GAP"
   ],
-  "parent_guidance_status": "ALL_CURRENT_ITEMS_PARENT_ADJUDICATED__FINANCIAL_0_9_2_PARENT_OBSERVATION_REFRESH_PENDING",
+  "parent_guidance_status": "ALL_CURRENT_ITEMS_PARENT_ADJUDICATED__CURRENT_PARENT_OBSERVATION_IS_UAOS_OWNED_EXTERNAL_EVIDENCE",
   "rule_refs": [
     "references/maintenance.md",
     "references/proactive_resolution.md",
@@ -54,6 +54,6 @@
     "production_ci_number": 1037,
     "production_ci_status": "success",
     "assurance": "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN",
-    "semantics": "Event-specific promotion receipt for the owner-native proactive-resolution action receipt, user-escalation admission and missing-voice-sample behavior trajectory. Later journal-only closure commits do not invalidate this mechanism receipt."
+    "semantics": "Event-specific promotion receipt for the owner-native proactive-resolution action receipt, user-escalation admission and missing-voice-sample behavior trajectory. Later journal-only or parent-observation updates do not invalidate this mechanism receipt. Current parent observation is owned by UAOS, not mirrored here as a moving latest/pending fact."
   }
 }
