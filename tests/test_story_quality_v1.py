@@ -154,69 +154,35 @@ def test_originality_rewrite_blocks_pass():
         )
 
 
-def test_independent_publication_fitness_requires_distinct_bound_provenance():
-    with pytest.raises(ValidationError):
-        PublicationFitness(
-            product_mode=ProductMode.FINANCE_DEEP,
-            gates=_all_gates(),
-            originality_checks=_originality(),
-            assurance="INDEPENDENT_EXECUTOR",
-            final_status=AuditStatus.PASS,
-        )
-
-    with pytest.raises(ValidationError):
-        PublicationFitness(
-            product_mode=ProductMode.FINANCE_DEEP,
-            gates=_all_gates(),
-            originality_checks=_originality(),
-            assurance="INDEPENDENT_EXECUTOR",
-            audit_provenance={
-                "assurance": "INDEPENDENT_EXECUTOR",
-                "reviewer_identity": "reviewer-1",
-                "author_identity": "reviewer-1",
-                "execution_ref": "run://independent-1",
-            },
-            final_status=AuditStatus.PASS,
-        )
-
-    for provenance in (
+def test_independent_publication_fitness_is_fail_closed_without_trusted_execution_resolver():
+    independent_claims = [
+        None,
         {
             "assurance": "INDEPENDENT_EXECUTOR",
-            "reviewer_identity": "",
-            "author_identity": "author-1",
-            "execution_ref": "run://independent-blank-reviewer",
+            "reviewer_identity": "reviewer-1",
+            "author_identity": "reviewer-1",
+            "execution_ref": "run://same-identity",
         },
         {
             "assurance": "INDEPENDENT_EXECUTOR",
             "reviewer_identity": "reviewer-2",
-            "author_identity": "",
-            "execution_ref": "run://independent-blank-author",
+            "author_identity": "author-1",
+            "execution_ref": "run://caller-supplied-only",
         },
-    ):
+    ]
+    for provenance in independent_claims:
+        kwargs = {}
+        if provenance is not None:
+            kwargs["audit_provenance"] = provenance
         with pytest.raises(ValidationError):
             PublicationFitness(
                 product_mode=ProductMode.FINANCE_DEEP,
                 gates=_all_gates(),
                 originality_checks=_originality(),
                 assurance="INDEPENDENT_EXECUTOR",
-                audit_provenance=provenance,
                 final_status=AuditStatus.PASS,
+                **kwargs,
             )
-
-    valid = PublicationFitness(
-        product_mode=ProductMode.FINANCE_DEEP,
-        gates=_all_gates(),
-        originality_checks=_originality(),
-        assurance="INDEPENDENT_EXECUTOR",
-        audit_provenance={
-            "assurance": "INDEPENDENT_EXECUTOR",
-            "reviewer_identity": "reviewer-2",
-            "author_identity": "author-1",
-            "execution_ref": "run://independent-2",
-        },
-        final_status=AuditStatus.PASS,
-    )
-    assert valid.audit_provenance.execution_ref == "run://independent-2"
 
 
 def test_deterministic_tripwires_find_missing_sequences_and_generic_scaffolding_clusters():
