@@ -63,6 +63,33 @@ def _company(name: str = "测试股份", materiality: str = "MATERIAL"):
     )
 
 
+def _value_chain_coverage(*, late_material_class_found: bool = False, thesis_retested: bool = False):
+    return {
+        "status": "COMPLETE",
+        "classes": [
+            {
+                "class_name": "上游材料",
+                "economic_role": "决定设备成本和供给约束",
+                "relationships": ["上游材料→核心设备成本"],
+                "source_refs": ["industry-map-upstream"],
+            },
+            {
+                "class_name": "核心设备",
+                "economic_role": "把需求变化转化为设备订单",
+                "relationships": ["核心设备→下游订单兑现"],
+                "source_refs": ["industry-map-core"],
+            },
+        ],
+        "transmission_paths": ["事件→需求→设备订单→收入→利润"],
+        "excluded_or_unresolved_classes": [],
+        "recall_sources": ["industry-map", "official-company-search"],
+        "sufficiency_reason": "上游、核心设备、下游传导及主要约束已经完成覆盖，可开始竞争性选题判断",
+        "thesis_selection_started_after_preflight": True,
+        "late_material_class_found": late_material_class_found,
+        "thesis_retested_after_late_discovery": thesis_retested,
+    }
+
+
 def _universe_coverage(names=None, *, recall_sources=None):
     names = names or ["测试股份"]
     return {
@@ -90,6 +117,7 @@ def _base_research_kwargs(scope: str = "NOT_MATERIAL", *, names=None):
         "what_changed": ["预期发生变化"],
         "industry_chain": ["上游→核心设备→下游"],
         "transmission_chain": ["事件→订单→利润"],
+        "value_chain_coverage": _value_chain_coverage(),
         "universe": [_company(name) for name in names],
         "universe_coverage": _universe_coverage(names),
         "market_explanation_scope": scope,
@@ -161,6 +189,26 @@ def test_headline_candidate_requires_current_search_evidence():
             primary_gap="信息差", promised_payoff="解释差异", cognitive_load="low",
             wechat_search_terms=[], search_evidence_refs=[],
         )
+
+
+def test_value_chain_preflight_is_required_and_ordered_before_thesis():
+    kwargs = _base_research_kwargs()
+    del kwargs["value_chain_coverage"]
+    with pytest.raises(ValidationError):
+        ResearchPackage(**kwargs)
+
+    kwargs = _base_research_kwargs()
+    kwargs["value_chain_coverage"]["thesis_selection_started_after_preflight"] = False
+    with pytest.raises(ValidationError):
+        ResearchPackage(**kwargs)
+
+    kwargs = _base_research_kwargs()
+    kwargs["value_chain_coverage"] = _value_chain_coverage(late_material_class_found=True, thesis_retested=False)
+    with pytest.raises(ValidationError):
+        ResearchPackage(**kwargs)
+
+    kwargs["value_chain_coverage"] = _value_chain_coverage(late_material_class_found=True, thesis_retested=True)
+    assert ResearchPackage(**kwargs).value_chain_coverage.thesis_retested_after_late_discovery is True
 
 
 def test_universe_reconciliation_and_source_diversity_fail_closed():
