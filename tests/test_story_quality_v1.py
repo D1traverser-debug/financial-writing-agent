@@ -179,6 +179,30 @@ def test_independent_publication_fitness_requires_distinct_bound_provenance():
             final_status=AuditStatus.PASS,
         )
 
+    for provenance in (
+        {
+            "assurance": "INDEPENDENT_EXECUTOR",
+            "reviewer_identity": "",
+            "author_identity": "author-1",
+            "execution_ref": "run://independent-blank-reviewer",
+        },
+        {
+            "assurance": "INDEPENDENT_EXECUTOR",
+            "reviewer_identity": "reviewer-2",
+            "author_identity": "",
+            "execution_ref": "run://independent-blank-author",
+        },
+    ):
+        with pytest.raises(ValidationError):
+            PublicationFitness(
+                product_mode=ProductMode.FINANCE_DEEP,
+                gates=_all_gates(),
+                originality_checks=_originality(),
+                assurance="INDEPENDENT_EXECUTOR",
+                audit_provenance=provenance,
+                final_status=AuditStatus.PASS,
+            )
+
     valid = PublicationFitness(
         product_mode=ProductMode.FINANCE_DEEP,
         gates=_all_gates(),
