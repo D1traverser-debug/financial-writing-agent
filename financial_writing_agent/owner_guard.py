@@ -120,6 +120,8 @@ def _require(condition: bool, message: str) -> None:
 
 
 def _state_path(task_id: str) -> str:
+    _require(_nonempty(task_id), "task_id is required")
+    _require(task_id == task_id.strip(), "task_id must not contain leading or trailing whitespace")
     return f"workspaces/articles/{task_id}/STATE.json"
 
 
@@ -254,6 +256,7 @@ def _validate_base_state(state: Mapping[str, Any]) -> None:
     _require(not missing, f"state missing required fields: {missing}")
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
     _require(_nonempty(state.get("task_id")), "task_id is required")
+    _require(str(state.get("task_id")) == str(state.get("task_id")).strip(), "task_id must not contain leading or trailing whitespace")
     _require(state.get("current_stage") in BUSINESS_STAGE_NAMES, "current_stage is not a supported Financial stage")
     _require(state.get("status") in ALLOWED_STATUS, "status is not a supported GITHUB_CHAT status")
     if state.get("status") == TERMINAL_STATUS:
@@ -337,8 +340,10 @@ def _resolve_authoritative_state(
     *,
     expected_blob_sha: str | None = None,
 ) -> None:
-    task_id = str(state.get("task_id", "")).strip()
-    _require(bool(task_id), "task_id is required before authoritative state resolution")
+    raw_task_id = state.get("task_id")
+    _require(isinstance(raw_task_id, str) and bool(raw_task_id), "task_id is required before authoritative state resolution")
+    _require(raw_task_id == raw_task_id.strip(), "task_id must not contain leading or trailing whitespace")
+    task_id = raw_task_id
     try:
         snapshot = fetch_authoritative_state(task_id, ref=MAIN_STATE_REF)
     except AuthoritativeStateError as exc:
@@ -416,6 +421,7 @@ def build_initial_state(
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
     _require(_nonempty(task_id), "task_id is required")
+    _require(task_id == task_id.strip(), "task_id must not contain leading or trailing whitespace")
     _require(_nonempty(prompt), "prompt is required")
     _require(state_ref == MAIN_STATE_REF, "new GITHUB_CHAT tasks must be created on main")
     refs = list(source_refs or [])
@@ -767,7 +773,6 @@ def _validate_contract_immutability(before: Mapping[str, Any], after: Mapping[st
 
 
 def _validate_governance_immutability(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
-    """Prevent public candidate validators from downgrading the governing state schema."""
     before_schema = before.get("schema_version")
     after_schema = after.get("schema_version")
     if before_schema == QUALITY_STATE_SCHEMA_VERSION:
