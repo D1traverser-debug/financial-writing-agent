@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import pytest
 
 from financial_writing_agent import owner_guard
@@ -5,6 +7,7 @@ from financial_writing_agent.current_admission import (
     CurrentAdmissionError,
     advance_state,
     build_initial_state,
+    validate_state,
 )
 
 
@@ -246,6 +249,19 @@ def _advance_to_editorial_audit(state: dict) -> dict:
     return state
 
 
+def _advance_to_delivery(state: dict) -> dict:
+    task_id = state["task_id"]
+    state = _advance_to_editorial_audit(state)
+    return advance_state(
+        state,
+        previous_state_blob_sha="s6",
+        executor_identity="test",
+        review_status="PASS",
+        publication_fitnesses=[_fitness("FINANCE_DEEP"), _fitness("FINANCE_BROAD")],
+        **_artifact(task_id, "EDITORIAL_AUDIT"),
+    )
+
+
 def test_current_tasks_are_marked_v1_while_legacy_builder_remains_compatible():
     current = _new_state("current")
     legacy = owner_guard.build_initial_state(
@@ -307,3 +323,44 @@ def test_editorial_audit_pass_requires_evidence_backed_fitness_for_each_longform
         "FINANCE_DEEP",
         "FINANCE_BROAD",
     }
+
+
+def test_persisted_quality_evidence_is_revalidated_and_digest_bound_before_downstream_progress():
+    state = _advance_to_delivery(_new_state("persisted-quality"))
+    validate_state(state)
+
+    missing = deepcopy(state)
+    missing["quality_evidence"].pop("publication_fitnesses")
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(missing)
+
+    tampered = deepcopy(state)
+    tampered["quality_evidence"]["publication_fitnesses"][0]["gates"][0]["evidence"][0]["finding"] = "tampered after admission"
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(tampered)
+
+
+def test_revision_to_research_invalidates_stale_quality_evidence():
+    state = _new_state("research-revision")
+    task_id = state["task_id"]
+    state = advance_state(state, previous_state_blob_sha="r0", executor_identity="test")
+    state = advance_state(
+        state,
+        previous_state_blob_sha="r1",
+        executor_identity="test",
+        decision_envelope=_decision(),
+        **_artifact(task_id, "RESEARCH"),
+    )
+    assert "research_decision" in state["quality_evidence"]
+
+    revised = advance_state(
+        state,
+        previous_state_blob_sha="r2",
+        executor_identity="test",
+        review_status="REVISE",
+        revision_target="RESEARCH",
+        **_artifact(task_id, "RESEARCH_AUDIT"),
+    )
+    assert revised["current_stage"] == "RESEARCH"
+    assert revised["quality_evidence"] == {}
+    validate_state(revised)
