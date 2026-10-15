@@ -91,17 +91,20 @@ class SearchSaturation(StrictModel):
                 "material search may stop only after two consecutive sweeps add no decision-changing "
                 "candidate, failure mode, counterexample, or changed decision"
             )
-        final_signatures = {
-            (
-                sweep.query_or_scope.casefold().strip(),
-                tuple(sorted({family.casefold().strip() for family in sweep.source_families})),
+        final_scopes = {sweep.query_or_scope.casefold().strip() for sweep in final_pair}
+        if len(final_scopes) < 2:
+            raise ValueError(
+                "the final two stable search sweeps must use different query/scope definitions; "
+                "repeating the same search does not establish saturation"
             )
+        final_family_sets = {
+            tuple(sorted({family.casefold().strip() for family in sweep.source_families}))
             for sweep in final_pair
         }
-        if len(final_signatures) < 2:
+        if len(final_family_sets) < 2:
             raise ValueError(
-                "the final two stable search sweeps must be materially different in scope or source-family set; "
-                "repeating the same search does not establish saturation"
+                "the final two stable search sweeps must use different source-family sets; "
+                "renaming the query while repeating the same source mix does not establish saturation"
             )
         families = {family for sweep in ordered for family in sweep.source_families}
         if len(families) < 2:
