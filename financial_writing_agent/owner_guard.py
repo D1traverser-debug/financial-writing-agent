@@ -5,6 +5,7 @@ from datetime import datetime, timezone
 from typing import Any, Mapping
 from uuid import uuid4
 
+from .authoritative_state import AuthoritativeStateError, fetch_authoritative_state
 from .models import ArtifactKind, DeliveryChannel, DistributionMode, Stage, TaskContract
 from .routing import build_task_contract
 from .workflow_spec import (
@@ -21,14 +22,19 @@ TERMINAL_STATUS = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
 SELF_ATTESTED_RECEIPT = "SELF_ATTESTED_CHAT_EXECUTION_RECEIPT"
 ALLOWED_STATUS = {"IN_PROGRESS", "BLOCKED", TERMINAL_STATUS}
 CURRENT_STATE_SCHEMA_VERSION = "1.2"
+QUALITY_STATE_SCHEMA_VERSION = "1.3"
 LEGACY_STATE_SCHEMA_VERSION = "1.1"
-SUPPORTED_STATE_SCHEMA_VERSIONS = {LEGACY_STATE_SCHEMA_VERSION, CURRENT_STATE_SCHEMA_VERSION}
+SUPPORTED_STATE_SCHEMA_VERSIONS = {
+    LEGACY_STATE_SCHEMA_VERSION,
+    CURRENT_STATE_SCHEMA_VERSION,
+    QUALITY_STATE_SCHEMA_VERSION,
+}
 MAIN_STATE_REF = "main"
 MODE_SOURCE_CANONICAL = "CANONICAL_ROUTING"
 MODE_SOURCE_USER_EXPLICIT = "USER_EXPLICIT_OVERRIDE"
 MODE_SOURCE_LEGACY = "LEGACY_STATE_MIGRATION"
 CURRENT_WRITING_KERNEL_VERSION = "1.0"
-_CURRENT_ADMISSION_TOKEN = object()
+CURRENT_QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 
 # Adapter-local indexes/capabilities derive from the canonical workflow. The chat
 # adapter may be more conservative than owner-native execution, but it cannot invent
@@ -66,6 +72,10 @@ CURRENT_REQUIRED_STATE_FIELDS = BASE_REQUIRED_STATE_FIELDS | {
     "delivery_channel",
     "required_outputs",
     "delivery_artifacts",
+}
+QUALITY_REQUIRED_STATE_FIELDS = CURRENT_REQUIRED_STATE_FIELDS | {
+    "writing_kernel_version",
+    "quality_evidence",
 }
 REQUIRED_RECEIPT_FIELDS = {
     "receipt_id",
@@ -152,7 +162,12 @@ def _validate_delivery_artifact_metadata(meta: Any, *, kind: str) -> None:
     _require(meta.get("kind") == kind, f"delivery_artifacts.{kind}.kind mismatch")
     _require(_nonempty(meta.get("file_name")), f"delivery_artifacts.{kind}.file_name is required")
     sha = meta.get("sha256")
-    _require(isinstance(sha, str) and len(sha) == 64 and all(ch in "0123456789abcdefABCDEF" for ch in sha), f"delivery_artifacts.{kind}.sha256 must be a 64-character hex digest")
+    _require(
+        isinstance(sha, str)
+        and len(sha) == 64
+        and all(ch in "0123456789abcdefABCDEF" for ch in sha),
+        f"delivery_artifacts.{kind}.sha256 must be a 64-character hex digest",
+    )
 
 
 def _normalize_delivery_artifacts(items: list[Mapping[str, Any]] | None) -> dict[str, dict[str, Any]]:
@@ -196,10 +211,43 @@ def _upgrade_legacy_state(state: Mapping[str, Any], *, state_ref: str) -> dict[s
     return upgraded
 
 
+def _validate_current_provenance(state: Mapping[str, Any]) -> None:
+    _require(
+        state.get("schema_version") == QUALITY_STATE_SCHEMA_VERSION,
+        "current Financial quality state must use schema_version=1.3",
+    )
+    _require(
+        state.get("writing_kernel_version") == CURRENT_WRITING_KERNEL_VERSION,
+        "current Financial quality state must bind writing_kernel_version=1.0",
+    )
+    _require(isinstance(state.get("quality_evidence"), Mapping), "current Financial state requires quality_evidence mapping")
+    receipts = state.get("execution_receipts", [])
+    _require(isinstance(receipts, list) and bool(receipts), "current Financial state requires execution receipts")
+    first = receipts[0]
+    _require(isinstance(first, Mapping) and first.get("stage") == "INTAKE", "current Financial state requires canonical INIT receipt")
+    for index, receipt in enumerate(receipts):
+        _require(isinstance(receipt, Mapping), "current Financial receipt must be an object")
+        bindings = receipt.get("input_bindings", {})
+        _require(isinstance(bindings, Mapping), "current Financial receipt input_bindings required")
+        _require(
+            bindings.get("writing_kernel_version") == CURRENT_WRITING_KERNEL_VERSION,
+            f"current Financial receipt {index} lost writing-kernel provenance",
+        )
+        _require(
+            bindings.get("quality_admission_path") == CURRENT_QUALITY_ADMISSION_PATH,
+            f"current Financial receipt {index} lost quality-admission provenance",
+        )
+
+
 def _validate_base_state(state: Mapping[str, Any]) -> None:
     schema = state.get("schema_version")
     _require(schema in SUPPORTED_STATE_SCHEMA_VERSIONS, f"unsupported state schema_version: {schema}")
-    required_fields = CURRENT_REQUIRED_STATE_FIELDS if schema == CURRENT_STATE_SCHEMA_VERSION else BASE_REQUIRED_STATE_FIELDS
+    if schema == QUALITY_STATE_SCHEMA_VERSION:
+        required_fields = QUALITY_REQUIRED_STATE_FIELDS
+    elif schema == CURRENT_STATE_SCHEMA_VERSION:
+        required_fields = CURRENT_REQUIRED_STATE_FIELDS
+    else:
+        required_fields = BASE_REQUIRED_STATE_FIELDS
     missing = sorted(required_fields - set(state))
     _require(not missing, f"state missing required fields: {missing}")
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
@@ -214,10 +262,14 @@ def _validate_base_state(state: Mapping[str, Any]) -> None:
     _require(isinstance(state.get("review_decisions", {}), Mapping), "review_decisions must be an object")
     _require(isinstance(state.get("learning_evidence", []), list), "learning_evidence must be a list")
 
-    if schema == CURRENT_STATE_SCHEMA_VERSION:
+    if schema in {CURRENT_STATE_SCHEMA_VERSION, QUALITY_STATE_SCHEMA_VERSION}:
         _require(state.get("state_ref") == MAIN_STATE_REF, "GITHUB_CHAT business state must live on main")
         _require(isinstance(state.get("target_platforms"), list), "target_platforms must be a list")
-        _require(state.get("distribution_mode_source") in {MODE_SOURCE_CANONICAL, MODE_SOURCE_USER_EXPLICIT, MODE_SOURCE_LEGACY}, "distribution_mode_source invalid")
+        _require(
+            state.get("distribution_mode_source")
+            in {MODE_SOURCE_CANONICAL, MODE_SOURCE_USER_EXPLICIT, MODE_SOURCE_LEGACY},
+            "distribution_mode_source invalid",
+        )
         _require(state.get("delivery_channel") == DeliveryChannel.WORD_FILE_ONLY.value, "delivery_channel must remain WORD_FILE_ONLY")
         expected_outputs = _required_outputs_for_mode(str(state.get("distribution_mode")))
         _require(state.get("required_outputs") == expected_outputs, f"required_outputs drift from TaskContract: expected={expected_outputs}")
@@ -262,19 +314,49 @@ def _validate_base_state(state: Mapping[str, Any]) -> None:
         _require(receipt.get("result") == "GUARD_ACCEPTED", "chat receipt result must be GUARD_ACCEPTED")
         _require(receipt.get("verification_status") == SELF_ATTESTED_RECEIPT, "chat receipt must remain self-attested")
 
+    if schema == QUALITY_STATE_SCHEMA_VERSION:
+        _validate_current_provenance(state)
 
-def validate_state(state: Mapping[str, Any], *, _current_admission_token: object | None = None) -> None:
+
+def _validate_unpersisted_state(state: Mapping[str, Any]) -> None:
     _validate_base_state(state)
-    if state.get("writing_kernel_version") != CURRENT_WRITING_KERNEL_VERSION:
-        return
-    if _current_admission_token is _CURRENT_ADMISSION_TOKEN:
+    if state.get("schema_version") != QUALITY_STATE_SCHEMA_VERSION:
         return
     try:
-        from .current_admission import _validate_persisted_quality_evidence
+        from .current_admission import _validate_current_quality_evidence
 
-        _validate_persisted_quality_evidence(state)
+        _validate_current_quality_evidence(state)
     except ValueError as exc:
         raise GithubChatGuardError(f"current Financial quality admission failed: {exc}") from exc
+
+
+def _resolve_authoritative_state(
+    state: Mapping[str, Any],
+    *,
+    expected_blob_sha: str | None = None,
+) -> None:
+    """Bind a candidate mapping to the actual GitHub STATE.json before public validation/mutation."""
+    task_id = str(state.get("task_id", "")).strip()
+    _require(bool(task_id), "task_id is required before authoritative state resolution")
+    try:
+        snapshot = fetch_authoritative_state(task_id, ref=MAIN_STATE_REF)
+    except AuthoritativeStateError as exc:
+        raise GithubChatGuardError(str(exc)) from exc
+    _require(snapshot.state == dict(state), "candidate state differs from authoritative GitHub STATE.json")
+    if expected_blob_sha is not None:
+        clean_expected = str(expected_blob_sha).strip().lower()
+        _require(snapshot.blob_sha == clean_expected, "previous_state_blob_sha does not match authoritative GitHub STATE.json")
+
+
+def validate_state(state: Mapping[str, Any]) -> None:
+    """Validate one persisted Financial state against GitHub owner authority."""
+    _validate_unpersisted_state(state)
+    _resolve_authoritative_state(state)
+
+
+def _validate_persisted_state(state: Mapping[str, Any], *, previous_state_blob_sha: str) -> None:
+    _validate_unpersisted_state(state)
+    _resolve_authoritative_state(state, expected_blob_sha=previous_state_blob_sha)
 
 
 def _new_receipt(
@@ -309,6 +391,15 @@ def _new_receipt(
         "output_refs": list(output_refs),
         "result": "GUARD_ACCEPTED",
         "verification_status": SELF_ATTESTED_RECEIPT,
+    }
+
+
+def _current_receipt_bindings(state: Mapping[str, Any]) -> dict[str, str]:
+    if state.get("schema_version") != QUALITY_STATE_SCHEMA_VERSION:
+        return {}
+    return {
+        "writing_kernel_version": CURRENT_WRITING_KERNEL_VERSION,
+        "quality_admission_path": CURRENT_QUALITY_ADMISSION_PATH,
     }
 
 
@@ -399,7 +490,7 @@ def build_initial_state(
         "execution_receipts": [receipt],
         "updated_at": _utc_now(),
     }
-    validate_state(state)
+    _validate_unpersisted_state(state)
     return state
 
 
@@ -441,6 +532,33 @@ def _invalidate_from(state: dict[str, Any], target_stage: str) -> list[str]:
     return invalidated
 
 
+def _prepare_transition_quality(
+    state: Mapping[str, Any],
+    *,
+    decision_envelope: Mapping[str, Any] | None,
+    story_blueprints: list[Mapping[str, Any]] | None,
+    publication_fitnesses: list[Mapping[str, Any]] | None,
+    review_status: str | None,
+    revision_target: str | None,
+) -> tuple[dict[str, Any], dict[str, str], list[str]]:
+    if state.get("schema_version") != QUALITY_STATE_SCHEMA_VERSION:
+        _require(
+            decision_envelope is None and story_blueprints is None and publication_fitnesses is None,
+            "legacy Financial state cannot accept current quality-admission payloads",
+        )
+        return deepcopy(dict(state)), {}, []
+    from .current_admission import _prepare_quality_transition
+
+    return _prepare_quality_transition(
+        state,
+        decision_envelope=decision_envelope,
+        story_blueprints=story_blueprints,
+        publication_fitnesses=publication_fitnesses,
+        review_status=review_status,
+        revision_target=revision_target,
+    )
+
+
 def advance_state(
     state: Mapping[str, Any],
     *,
@@ -453,14 +571,24 @@ def advance_state(
     revision_target: str | None = None,
     delivery_artifacts: list[Mapping[str, Any]] | None = None,
     audit_artifact: Mapping[str, Any] | None = None,
+    decision_envelope: Mapping[str, Any] | None = None,
+    story_blueprints: list[Mapping[str, Any]] | None = None,
+    publication_fitnesses: list[Mapping[str, Any]] | None = None,
     state_ref: str = MAIN_STATE_REF,
-    _current_admission_token: object | None = None,
 ) -> dict[str, Any]:
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
-    validate_state(state, _current_admission_token=_current_admission_token)
+    _validate_persisted_state(state, previous_state_blob_sha=previous_state_blob_sha)
     before = _upgrade_legacy_state(state, state_ref=state_ref)
-    validate_state(before, _current_admission_token=_current_admission_token)
-    after = deepcopy(dict(before))
+    _validate_unpersisted_state(before)
+    working, quality_bindings, planned_quality_invalidations = _prepare_transition_quality(
+        before,
+        decision_envelope=decision_envelope,
+        story_blueprints=story_blueprints,
+        publication_fitnesses=publication_fitnesses,
+        review_status=review_status,
+        revision_target=revision_target,
+    )
+    after = deepcopy(working)
     stage = str(before["current_stage"])
     _require(before.get("status") != TERMINAL_STATUS, "terminal chat state cannot advance")
     _require(before.get("status") != "BLOCKED", "BLOCKED chat state must be explicitly repaired before advance")
@@ -474,7 +602,11 @@ def advance_state(
 
     required = _required_artifact(stage, after)
     output_refs = [_state_path(str(before["task_id"]))]
-    input_bindings: dict[str, Any] = {"from_stage": stage}
+    input_bindings: dict[str, Any] = {
+        "from_stage": stage,
+        **_current_receipt_bindings(before),
+        **quality_bindings,
+    }
     if required:
         key, ref = required
         input_bindings["required_artifact_key"] = key
@@ -534,6 +666,10 @@ def advance_state(
             after["next_action"] = f"revise and persist a new {revision_target} artifact before advancing"
             subject_bindings["to_stage"] = revision_target
             input_bindings["invalidated_stage_refs"] = invalidated
+            if planned_quality_invalidations:
+                still_present = [key for key in planned_quality_invalidations if key in after.get("quality_evidence", {})]
+                _require(not still_present, f"owner revision failed to invalidate quality evidence: {still_present}")
+                input_bindings["invalidated_quality_evidence"] = ",".join(planned_quality_invalidations)
         else:
             review["revision_target"] = None
             after.setdefault("review_decisions", {})[stage] = review
@@ -567,12 +703,7 @@ def advance_state(
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_transition(
-        before,
-        after,
-        previous_state_blob_sha=previous_state_blob_sha,
-        _current_admission_token=_current_admission_token,
-    )
+    _validate_transition_core(before, after, previous_state_blob_sha=previous_state_blob_sha)
     return after
 
 
@@ -584,12 +715,11 @@ def attach_material_feedback(
     sample: Mapping[str, Any],
     system_impact: Mapping[str, Any],
     state_ref: str = MAIN_STATE_REF,
-    _current_admission_token: object | None = None,
 ) -> dict[str, Any]:
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
-    validate_state(state, _current_admission_token=_current_admission_token)
+    _validate_persisted_state(state, previous_state_blob_sha=previous_state_blob_sha)
     before = _upgrade_legacy_state(state, state_ref=state_ref)
-    validate_state(before, _current_admission_token=_current_admission_token)
+    _validate_unpersisted_state(before)
     _require(sample.get("sample_type") in {"USER_EDIT", "USER_FEEDBACK", "USER_REJECTION"}, "material feedback sample_type invalid")
     _require(_nonempty(sample.get("summary")), "feedback summary required")
     _require(_nonempty(system_impact.get("signal_id")), "system-impact signal_id required")
@@ -611,18 +741,17 @@ def attach_material_feedback(
             "sample_type": sample["sample_type"],
             "signal_id": system_impact["signal_id"],
         },
-        input_bindings={"feedback_summary": sample["summary"], "signal_status": system_impact["status"]},
+        input_bindings={
+            "feedback_summary": sample["summary"],
+            "signal_status": system_impact["status"],
+            **_current_receipt_bindings(before),
+        },
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_feedback_update(
-        before,
-        after,
-        previous_state_blob_sha=previous_state_blob_sha,
-        _current_admission_token=_current_admission_token,
-    )
+    _validate_feedback_update_core(before, after, previous_state_blob_sha=previous_state_blob_sha)
     return after
 
 
@@ -631,15 +760,14 @@ def _validate_contract_immutability(before: Mapping[str, Any], after: Mapping[st
         _require(before.get(field) == after.get(field), f"task contract field cannot change during transition: {field}")
 
 
-def validate_transition(
+def _validate_transition_core(
     before: Mapping[str, Any],
     after: Mapping[str, Any],
     *,
     previous_state_blob_sha: str,
-    _current_admission_token: object | None = None,
 ) -> None:
-    validate_state(before, _current_admission_token=_current_admission_token)
-    validate_state(after, _current_admission_token=_current_admission_token)
+    _validate_unpersisted_state(before)
+    _validate_unpersisted_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
     _validate_contract_immutability(before, after)
     _require(len(after["execution_receipts"]) == len(before["execution_receipts"]) + 1, "exactly one execution receipt must be appended")
@@ -695,15 +823,24 @@ def validate_transition(
         _validate_artifact_ref(after.get("stage_artifacts", {}).get(required), label=f"stage_artifacts.{required}", task_id=str(after["task_id"]))
 
 
-def validate_feedback_update(
+def validate_transition(
     before: Mapping[str, Any],
     after: Mapping[str, Any],
     *,
     previous_state_blob_sha: str,
-    _current_admission_token: object | None = None,
 ) -> None:
-    validate_state(before, _current_admission_token=_current_admission_token)
-    validate_state(after, _current_admission_token=_current_admission_token)
+    _validate_persisted_state(before, previous_state_blob_sha=previous_state_blob_sha)
+    _validate_transition_core(before, after, previous_state_blob_sha=previous_state_blob_sha)
+
+
+def _validate_feedback_update_core(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    previous_state_blob_sha: str,
+) -> None:
+    _validate_unpersisted_state(before)
+    _validate_unpersisted_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
     _validate_contract_immutability(before, after)
     _require(before["current_stage"] == after["current_stage"], "feedback checkpoint cannot change current_stage")
@@ -715,3 +852,13 @@ def validate_feedback_update(
     _require(receipt["capability_id"] == "github_chat_learning_evidence_capture", "feedback receipt capability mismatch")
     _require(receipt["input_bindings"].get("previous_state_blob_sha") == previous_state_blob_sha, "feedback receipt must bind current state blob SHA")
     _require(receipt["input_bindings"].get("state_ref") == MAIN_STATE_REF, "feedback receipt must bind main state_ref")
+
+
+def validate_feedback_update(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    previous_state_blob_sha: str,
+) -> None:
+    _validate_persisted_state(before, previous_state_blob_sha=previous_state_blob_sha)
+    _validate_feedback_update_core(before, after, previous_state_blob_sha=previous_state_blob_sha)
