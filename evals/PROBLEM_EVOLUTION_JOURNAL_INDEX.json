@@ -1,5 +1,5 @@
 {
-  "schema_version": "1.2",
+  "schema_version": "1.3",
   "journal": "evals/PROBLEM_EVOLUTION_JOURNAL.md",
   "owner": "DOMAIN:financial_writing",
   "revision": "1.6",
@@ -11,7 +11,8 @@
     "P-20261015-08",
     "P-20261015-09",
     "P-20261015-10",
-    "P-20261015-15"
+    "P-20261015-15",
+    "P-20261015-16"
   ],
   "latest_closed_items": [
     "P-20261015-11",
@@ -25,12 +26,16 @@
     "VERSION_METADATA_DRIFT",
     "INHERITANCE_BEHAVIOR_VS_DECLARATION",
     "DECLARATION_TO_OPERATION_GAP",
-    "PROBLEM_TO_ACTION_CLOSURE_GAP"
+    "PROBLEM_TO_ACTION_CLOSURE_GAP",
+    "INHERITED_COGNITION_AUTO_ACTIVATION_GAP"
   ],
-  "parent_guidance_status": "ALL_CURRENT_ITEMS_PARENT_ADJUDICATED__CURRENT_PARENT_OBSERVATION_IS_UAOS_OWNED_EXTERNAL_EVIDENCE",
+  "parent_guidance_status": "NEW_LIVE_INHERITANCE_EVIDENCE_PENDING_PARENT_READJUDICATION",
+  "latest_open_incident_ref": "evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_INHERITED_COGNITION_AUTO_ACTIVATION_GAP.md",
   "rule_refs": [
     "references/maintenance.md",
     "references/proactive_resolution.md",
+    "references/research.md",
+    "references/knowledge.md",
     "financial_writing_agent/proactive_resolution.py"
   ],
   "proactive_resolution_promotion_receipt": {

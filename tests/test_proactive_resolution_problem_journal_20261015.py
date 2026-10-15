@@ -54,6 +54,7 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
         "P-20261015-13",
         "P-20261015-14",
         "P-20261015-15",
+        "P-20261015-16",
     }
     for entry in required_entries:
         assert entry in journal
@@ -71,6 +72,7 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     assert "SELF_REFERENTIAL_RECEIPT_DRIFT" in journal
     assert "VERSION_METADATA_DRIFT" in journal
     assert "INHERITANCE_BEHAVIOR_VS_DECLARATION" in journal
+    assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in journal
 
 
 def test_machine_index_and_parent_handoff_expose_adjudication_and_promotion_receipt():
@@ -78,6 +80,7 @@ def test_machine_index_and_parent_handoff_expose_adjudication_and_promotion_rece
     handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
     assert '"revision": "1.6"' in index
     assert '"P-20261015-15"' in index
+    assert '"P-20261015-16"' in index
     assert '"executable_proactive_resolution_promotion_receipt"' in index
     assert '"executable_proactive_resolution_candidate"' not in index
     assert '"production_ci_number": 1037' in index
@@ -93,5 +96,7 @@ def test_machine_index_and_parent_handoff_expose_adjudication_and_promotion_rece
     ):
         assert signal in index
         assert signal in handoff
-    assert "CURRENT_ITEMS_PARENT_ADJUDICATED" in handoff
+    assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in index
+    assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in handoff
+    assert "NEW_LIVE_INHERITANCE_EVIDENCE_PENDING_PARENT_ADJUDICATION" in handoff
     assert "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED" in handoff

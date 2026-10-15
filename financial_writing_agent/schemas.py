@@ -29,6 +29,7 @@ CausalConfidence = Literal[
 MarketExplanationScope = Literal["REQUIRED", "NOT_MATERIAL"]
 CompanyMateriality = Literal["MATERIAL", "SECONDARY", "REFERENCE_ONLY"]
 UniverseCoverageStatus = Literal["COMPLETE", "BOUNDED_WITH_GAPS", "NOT_APPLICABLE"]
+ValueChainCoverageStatus = Literal["COMPLETE", "BOUNDED_WITH_GAPS", "NOT_APPLICABLE"]
 AuditAssurance = Literal["INDEPENDENT_EXECUTOR", "CHAT_SELF_REVIEW"]
 HeadlineAngleFamily = Literal[
     "hard_fact",
@@ -182,6 +183,47 @@ class UniverseCoverage(StrictModel):
         return self
 
 
+class ValueChainClassCoverage(StrictModel):
+    class_name: str = Field(min_length=1)
+    economic_role: str = Field(min_length=1)
+    relationships: list[str] = Field(min_length=1)
+    source_refs: list[str] = Field(min_length=1)
+
+
+class ValueChainCoverageMap(StrictModel):
+    status: ValueChainCoverageStatus
+    classes: list[ValueChainClassCoverage] = Field(default_factory=list)
+    transmission_paths: list[str] = Field(default_factory=list)
+    excluded_or_unresolved_classes: list[str] = Field(default_factory=list)
+    recall_sources: list[str] = Field(default_factory=list)
+    sufficiency_reason: str = Field(min_length=1)
+    thesis_selection_started_after_preflight: bool
+    late_material_class_found: bool = False
+    thesis_retested_after_late_discovery: bool = False
+
+    @model_validator(mode="after")
+    def validate_preflight(self):
+        if not self.thesis_selection_started_after_preflight:
+            raise ValueError("thesis selection may start only after value-chain preflight")
+        if self.late_material_class_found and not self.thesis_retested_after_late_discovery:
+            raise ValueError("late material value-chain discovery requires thesis re-test")
+        if self.status == "NOT_APPLICABLE":
+            if self.classes or self.transmission_paths or self.recall_sources or self.excluded_or_unresolved_classes:
+                raise ValueError("NOT_APPLICABLE value-chain coverage cannot carry chain-map evidence")
+            return self
+        if not self.classes:
+            raise ValueError("value-chain preflight requires material chain classes")
+        if not self.transmission_paths:
+            raise ValueError("value-chain preflight requires economic transmission paths")
+        if len(self.recall_sources) < 2:
+            raise ValueError("value-chain preflight requires at least two materially different recall/evidence sources")
+        if self.status == "COMPLETE" and self.excluded_or_unresolved_classes:
+            raise ValueError("COMPLETE value-chain coverage cannot declare unresolved classes")
+        if self.status == "BOUNDED_WITH_GAPS" and not self.excluded_or_unresolved_classes:
+            raise ValueError("BOUNDED_WITH_GAPS value-chain coverage must declare unresolved/excluded classes")
+        return self
+
+
 class MarketExplanationMap(StrictModel):
     activation_reason: str = Field(min_length=1)
     concept_subtheme_map: list[str] = Field(min_length=1)
@@ -220,6 +262,7 @@ class ResearchPackage(StrictModel):
     what_changed: list[str] = Field(min_length=1)
     industry_chain: list[str] = Field(min_length=1)
     transmission_chain: list[str] = Field(min_length=1)
+    value_chain_coverage: ValueChainCoverageMap
     universe: list[CompanyFinding] = Field(default_factory=list)
     universe_coverage: UniverseCoverage
     company_decision_map: CompanyDecisionMap | None = None
