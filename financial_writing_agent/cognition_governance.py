@@ -48,6 +48,22 @@ class EvolutionDisposition(str, Enum):
     PARENT_UPCALL = "PARENT_UPCALL"
 
 
+class ProblemLayer(str, Enum):
+    LOCAL_IMPLEMENTATION = "LOCAL_IMPLEMENTATION"
+    DOMAIN_WORKFLOW = "DOMAIN_WORKFLOW"
+    DOMAIN_ARCHITECTURE = "DOMAIN_ARCHITECTURE"
+    COMMON_CAPABILITY = "COMMON_CAPABILITY"
+    CONTROL_PLANE = "CONTROL_PLANE"
+    HOST = "HOST"
+    REQUIREMENT_OR_GOAL = "REQUIREMENT_OR_GOAL"
+
+
+class HypothesisDisposition(str, Enum):
+    PLAUSIBLE = "PLAUSIBLE"
+    SELECTED = "SELECTED"
+    REJECTED = "REJECTED"
+
+
 class EvidenceRef(StrictModel):
     ref: str = Field(min_length=1)
     kind: EvidenceKind
@@ -130,6 +146,24 @@ class CandidateOption(StrictModel):
     misfit_conditions: list[str] = Field(min_length=1)
 
 
+class RootScopeHypothesis(StrictModel):
+    hypothesis_id: str = Field(min_length=1)
+    layer: ProblemLayer
+    statement: str = Field(min_length=1)
+    disposition: HypothesisDisposition
+    supporting_evidence_refs: list[str] = Field(min_length=1)
+    falsification_or_rejection_refs: list[str] = Field(min_length=1)
+
+
+class RootScopeReceipt(StrictModel):
+    selected_hypothesis_id: str = Field(min_length=1)
+    selected_layer: ProblemLayer
+    compared_layers: list[ProblemLayer] = Field(min_length=1)
+    rejected_hypothesis_ids: list[str] = Field(default_factory=list)
+    architecture_reassessment_refs: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(min_length=1)
+
+
 class KnowledgeRecord(StrictModel):
     knowledge_id: str = Field(min_length=1)
     kind: KnowledgeKind
@@ -157,10 +191,16 @@ class DecisionEnvelope(StrictModel):
     operation_class: OperationClass
     problem_triggered: bool = False
     architecture_or_governance_change: bool = False
+    systemic_problem_signal: bool = False
     evidence: list[EvidenceRef] = Field(min_length=1)
     learned_items: list[str] = Field(default_factory=list)
     categories_or_models_used: list[str] = Field(default_factory=list)
     assumptions_challenged: list[str] = Field(default_factory=list)
+    root_scope_hypotheses: list[RootScopeHypothesis] = Field(default_factory=list)
+    selected_root_hypothesis_id: str | None = None
+    architecture_reassessment_refs: list[str] = Field(default_factory=list)
+    direct_user_or_external_claim_promoted_without_test: bool = False
+    problem_record_ref: str | None = None
     alternatives: list[CandidateOption] = Field(default_factory=list)
     counterexamples: list[str] = Field(default_factory=list)
     rejected_paths: list[str] = Field(default_factory=list)
@@ -206,7 +246,73 @@ class DecisionEnvelope(StrictModel):
             raise ValueError("material judgment requires search saturation evidence")
         if not self.verification_plan:
             raise ValueError("material judgment requires a verification plan")
+
+        if self.problem_triggered:
+            if self.direct_user_or_external_claim_promoted_without_test:
+                raise ValueError("problem root scope cannot promote user/external framing without falsification")
+            if not self.root_scope_hypotheses or not self.selected_root_hypothesis_id:
+                raise ValueError("problem-triggered material judgment requires root-scope hypotheses and selection")
+            root_ids = [item.hypothesis_id for item in self.root_scope_hypotheses]
+            if len(root_ids) != len(set(root_ids)):
+                raise ValueError("root-scope hypothesis ids must be unique")
+            selected_roots = [
+                item for item in self.root_scope_hypotheses
+                if item.hypothesis_id == self.selected_root_hypothesis_id
+            ]
+            if len(selected_roots) != 1 or selected_roots[0].disposition != HypothesisDisposition.SELECTED:
+                raise ValueError("selected_root_hypothesis_id must identify the one SELECTED root hypothesis")
+            if sum(item.disposition == HypothesisDisposition.SELECTED for item in self.root_scope_hypotheses) != 1:
+                raise ValueError("exactly one root-scope hypothesis may be SELECTED")
+
+            systemic = self.systemic_problem_signal or self.architecture_or_governance_change
+            if systemic:
+                layers = {item.layer for item in self.root_scope_hypotheses}
+                if len(self.root_scope_hypotheses) < 2 or len(layers) < 2:
+                    raise ValueError("systemic problem requires root hypotheses across at least two problem layers")
+                if not any(item.disposition == HypothesisDisposition.REJECTED for item in self.root_scope_hypotheses):
+                    raise ValueError("systemic problem requires an evidence-rejected root hypothesis")
+                upstream = {
+                    ProblemLayer.DOMAIN_ARCHITECTURE,
+                    ProblemLayer.COMMON_CAPABILITY,
+                    ProblemLayer.CONTROL_PLANE,
+                    ProblemLayer.HOST,
+                    ProblemLayer.REQUIREMENT_OR_GOAL,
+                }
+                if not any(item.layer in upstream for item in self.root_scope_hypotheses):
+                    raise ValueError("systemic problem requires an architecture/upstream root hypothesis")
+                if not self.architecture_reassessment_refs:
+                    raise ValueError("systemic problem requires architecture reassessment evidence")
+
+            if self.evolution_disposition in {EvolutionDisposition.DOMAIN_CANDIDATE, EvolutionDisposition.PARENT_UPCALL} and not self.problem_record_ref:
+                raise ValueError("evolution-relevant problem requires a durable problem_record_ref")
         return self
+
+    def root_scope_receipt(self) -> RootScopeReceipt | None:
+        if not self.problem_triggered or not self.selected_root_hypothesis_id:
+            return None
+        selected = next(
+            item for item in self.root_scope_hypotheses
+            if item.hypothesis_id == self.selected_root_hypothesis_id
+        )
+        layers = sorted({item.layer for item in self.root_scope_hypotheses}, key=lambda item: item.value)
+        rejected = sorted(
+            item.hypothesis_id
+            for item in self.root_scope_hypotheses
+            if item.disposition == HypothesisDisposition.REJECTED
+        )
+        refs = sorted({
+            *selected.supporting_evidence_refs,
+            *selected.falsification_or_rejection_refs,
+            *self.architecture_reassessment_refs,
+        })
+        return RootScopeReceipt(
+            selected_hypothesis_id=selected.hypothesis_id,
+            selected_layer=selected.layer,
+            compared_layers=layers,
+            rejected_hypothesis_ids=rejected,
+            architecture_reassessment_refs=self.architecture_reassessment_refs,
+            evidence_refs=refs,
+        )
 
 
 def admission_errors(envelope: DecisionEnvelope) -> list[str]:
@@ -222,6 +328,8 @@ def admission_errors(envelope: DecisionEnvelope) -> list[str]:
             e.kind == EvidenceKind.EXTERNAL_METHOD for e in envelope.evidence
         ):
             errors.append("triggered problem/architecture decision lacks required external method evidence")
+        if envelope.problem_triggered and envelope.root_scope_receipt() is None:
+            errors.append("problem-triggered decision lacks an admitted root-scope receipt")
         if envelope.evolution_disposition in {
             EvolutionDisposition.DOMAIN_CANDIDATE,
             EvolutionDisposition.PARENT_UPCALL,
