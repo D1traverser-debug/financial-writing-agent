@@ -1,16 +1,18 @@
 # Proactive Resolution & Evidence Recovery
 
 Status: `CURRENT_DOMAIN_MAINTENANCE_RULE`
-Revision: `1.0`
+Revision: `1.1`
 Effective: `2026-10-15`
 Owner: `DOMAIN:financial_writing`
-Parent-review status: `UPCALL_RECOMMENDED_FOR_COMMON_CAPABILITY_GENERALIZATION`
+Parent-review status: `UAOS_COMMON_BEHAVIOR_1_2_PRODUCTION_ADJUDICATED__DOMAIN_EXECUTABLE_ADOPTION_PENDING_PROMOTION`
 
 ## Purpose
 
 Financial Writing already inherits the UAOS problem-response floor: detected problem -> micro diagnosis -> macro alignment -> governing-assumption challenge -> external research. This rule closes a separate execution gap discovered on 2026-10-15: a session may correctly notice missing evidence, preference or voice information yet still behave passively by treating the missing item as a future user dependency.
 
-The default behavior is now **recover, infer provisionally, test, and only then escalate**. Missing highest-tier evidence is not automatically a blocker.
+The default behavior is **recover, infer provisionally, test, and only then escalate**. Missing highest-tier evidence is not automatically a blocker.
+
+UAOS Common Behavior Assurance 1.2 now also requires problem-to-action closure: a confirmed repairable problem may not end as recommendation-only when a lawful authorized repair is available without a required user fact/approval/authorization/safety-sensitive choice.
 
 ## Trigger
 
@@ -37,6 +39,25 @@ Before treating the user as the next dependency, inspect the strongest legally a
 
 When prior personal/context evidence is required and available through the host, retrieve it rather than asking the user to repeat it.
 
+## Executable owner-native admission
+
+For article-linked work, reading this rule is not operational proof. Use `financial_writing_agent.proactive_resolution.record_proactive_resolution_state` to persist the actual recovery attempt into Financial owner state.
+
+The action must bind:
+- `target`;
+- `attempted_sources` actually inspected;
+- `evidence_refs`;
+- `outcome`: `RESOLVED`, `PROVISIONAL`, or `UNRESOLVED`;
+- bounded `candidate` when resolved/provisional;
+- `confidence`;
+- `contradictions_or_unknowns`;
+- `validation_plan` when provisional;
+- `safe_to_continue`.
+
+The action emits a `financial_owner_proactive_resolution_admission` execution receipt. A safe `RESOLVED` or `PROVISIONAL` result means continue with the evidence-bound result; it is not eligible to be converted into a convenience question.
+
+Before externalizing a plausibly recoverable dependency, use `require_user_escalation_admission`. Except when the user explicitly requested confirmation, escalation requires a prior `UNRESOLVED` attempt with `safe_to_continue=false` and concrete blocker/unknown evidence.
+
 ## Provisional candidate rule
 
 If the strongest evidence is incomplete but the work can continue safely, create an internal provisional candidate rather than blocking. The candidate must identify:
@@ -55,6 +76,7 @@ Ask the user only when:
 - the unresolved choice materially changes the requested outcome;
 - available evidence produces genuinely competing interpretations with no defensible default;
 - proceeding would invent a fact, approval, identity, preference or risky assumption;
+- required evidence is genuinely unavailable after proportionate recovery;
 - the user explicitly requested a choice/confirmation.
 
 Do not ask merely because the best evidence is imperfect.
@@ -64,7 +86,7 @@ Do not ask merely because the best evidence is imperfect.
 A recovered candidate does not bypass the existing UAOS cognition floor. When the underlying gap is itself a defect or repeated failure, continue through:
 `recover evidence -> micro diagnosis -> macro alignment -> challenge assumption -> external research -> alternatives -> repair -> verify -> observe`.
 
-The important change is that evidence recovery is an **active step**, not a future-user placeholder.
+The important change is that evidence recovery is an **active step**, not a future-user placeholder, and a repairable defect is not allowed to terminate at recommendation-only.
 
 ## Logging requirement
 
@@ -74,8 +96,12 @@ Small/local problems may use a compact ledger entry. Material, repeated, archite
 
 The journal is an evidence index, not a replacement for detailed incident/eval files. Link detailed evidence rather than duplicating every artifact.
 
-## Parent/common-capability upcall
+## Assurance boundary
 
-This rule is Financial-owned because the triggering incident occurred in Financial writing and directly affects Financial evidence/voice resolution. However, the underlying failure class—`inherited cognition exists but the agent externalizes a recoverable dependency to the user`—is plausibly cross-domain.
+Rule text alone is `DECLARED`. The executable owner-native gate plus passing behavior/trajectory regression may be reported as `EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED`. Do not claim `LIVE_OUTCOME_VERIFIED` until real Financial article use confirms the behavior.
 
-Record this as a parent guidance item. UAOS should decide whether a common future contract should require registered children to attempt available-context recovery before user escalation. Financial must not directly rewrite parent common authority from the child domain.
+This mechanism also does not claim host-level physical interception of every possible natural-language response; UAOS baseline explicitly does not claim physical complete mediation.
+
+## Parent/common-capability status
+
+The original cross-domain upcall has been adjudicated by UAOS Common Behavior Assurance 1.2. Parent common semantics now include recover-before-user-escalation, declaration-not-operational-proof and problem-to-action closure. Financial owns only its domain realization: action receipt, escalation admission and trajectory/live evidence.
