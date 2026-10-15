@@ -36,9 +36,6 @@ MODE_SOURCE_LEGACY = "LEGACY_STATE_MIGRATION"
 CURRENT_WRITING_KERNEL_VERSION = "1.0"
 CURRENT_QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 
-# Adapter-local indexes/capabilities derive from the canonical workflow. The chat
-# adapter may be more conservative than owner-native execution, but it cannot invent
-# a broader stage/revision graph or weaken the owner TaskContract.
 STAGE_INDEX = {stage: i for i, stage in enumerate(BUSINESS_STAGE_NAMES)}
 ARTIFACT_REQUIRED_FOR_STAGE = {stage: stage for stage in BUSINESS_STAGE_NAMES if stage != "INTAKE"}
 CAPABILITY_BY_STAGE = {
@@ -335,7 +332,6 @@ def _resolve_authoritative_state(
     *,
     expected_blob_sha: str | None = None,
 ) -> None:
-    """Bind a candidate mapping to the actual GitHub STATE.json before public validation/mutation."""
     task_id = str(state.get("task_id", "")).strip()
     _require(bool(task_id), "task_id is required before authoritative state resolution")
     try:
@@ -349,7 +345,6 @@ def _resolve_authoritative_state(
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
-    """Validate one persisted Financial state against GitHub owner authority."""
     _validate_unpersisted_state(state)
     _resolve_authoritative_state(state)
 
@@ -415,12 +410,6 @@ def build_initial_state(
     distribution_mode_override_evidence: str | None = None,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Create the only supported new Financial state: schema 1.3 + writing kernel 1.0.
-
-    Historical 1.1/1.2 states remain valid inputs when already persisted on main, but
-    public task creation can no longer manufacture a fresh legacy state to opt out of
-    current quality governance.
-    """
     _require(_nonempty(task_id), "task_id is required")
     _require(_nonempty(prompt), "prompt is required")
     _require(state_ref == MAIN_STATE_REF, "new GITHUB_CHAT tasks must be created on main")
@@ -514,7 +503,6 @@ def _required_artifact(stage: str, state: Mapping[str, Any]) -> tuple[str, Mappi
 
 
 def _invalidate_from(state: dict[str, Any], target_stage: str) -> list[str]:
-    """Invalidate target-stage and downstream derived evidence after a revision route."""
     try:
         downstream = invalidated_stage_names_from(target_stage)
     except ValueError as exc:
@@ -773,6 +761,25 @@ def _validate_contract_immutability(before: Mapping[str, Any], after: Mapping[st
         _require(before.get(field) == after.get(field), f"task contract field cannot change during transition: {field}")
 
 
+def _validate_governance_immutability(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
+    """Prevent public candidate validators from downgrading the governing state schema."""
+    before_schema = before.get("schema_version")
+    after_schema = after.get("schema_version")
+    if before_schema == QUALITY_STATE_SCHEMA_VERSION:
+        _require(after_schema == QUALITY_STATE_SCHEMA_VERSION, "schema-1.3 current state cannot downgrade governance")
+        _require(
+            after.get("writing_kernel_version") == before.get("writing_kernel_version") == CURRENT_WRITING_KERNEL_VERSION,
+            "current Financial writing-kernel provenance cannot change during mutation",
+        )
+    elif before_schema == CURRENT_STATE_SCHEMA_VERSION:
+        _require(after_schema == CURRENT_STATE_SCHEMA_VERSION, "schema-1.2 historical state cannot change schema during mutation")
+    elif before_schema == LEGACY_STATE_SCHEMA_VERSION:
+        _require(
+            after_schema in {LEGACY_STATE_SCHEMA_VERSION, CURRENT_STATE_SCHEMA_VERSION},
+            "schema-1.1 legacy state may only remain legacy or migrate to schema 1.2",
+        )
+
+
 def _validate_transition_core(
     before: Mapping[str, Any],
     after: Mapping[str, Any],
@@ -782,6 +789,7 @@ def _validate_transition_core(
     _validate_unpersisted_state(before)
     _validate_unpersisted_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
+    _validate_governance_immutability(before, after)
     _validate_contract_immutability(before, after)
     _require(len(after["execution_receipts"]) == len(before["execution_receipts"]) + 1, "exactly one execution receipt must be appended")
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
@@ -855,6 +863,7 @@ def _validate_feedback_update_core(
     _validate_unpersisted_state(before)
     _validate_unpersisted_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
+    _validate_governance_immutability(before, after)
     _validate_contract_immutability(before, after)
     _require(before["current_stage"] == after["current_stage"], "feedback checkpoint cannot change current_stage")
     _require(len(after.get("learning_evidence", [])) == len(before.get("learning_evidence", [])) + 1, "exactly one learning sample must be appended")
