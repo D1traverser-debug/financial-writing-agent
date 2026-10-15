@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `CURRENT_DURABLE_PROBLEM_LEDGER`
-Journal revision: `1.5`
+Journal revision: `1.6`
 Updated: `2026-10-15`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -116,7 +116,7 @@ Action: negative/corrective feedback created a durable impact lifecycle, require
 
 Evidence: `evals/SYSTEM_IMPACT_ESCALATION_AUDIT_2026-10-12.md`.
 
-Why it matters now: P-20261015-09 is the same broad class at a later layer—cognition was declared, but proactive recovery was not operationalized.
+Why it matters now: P-20261015-09 and P-20261015-15 are the same broad class at later layers—cognition/policy was declared, but proactive recovery/action closure was not yet operationalized.
 
 ---
 
@@ -272,7 +272,7 @@ Verification: candidate + production CI/reread passed.
 
 Evidence: `evals/FINANCIAL_UAOS_COGNITION_EVOLUTION_PRODUCT_AUDIT_2026-10-15.md`.
 
-Later finding: contract-level inheritance still did not force proactive recovery; see P-20261015-09.
+Later finding: contract-level inheritance still did not force proactive recovery; see P-20261015-09 and P-20261015-15.
 
 ---
 
@@ -350,7 +350,7 @@ Evidence: `evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_VOICE_FIRST_ANTI_AI.md`.
 ---
 
 ## P-20261015-09 — Inherited cognition still externalized a recoverable dependency to the user
-Status: `PROMOTED__OBSERVATION_OPEN`
+Status: `PROMOTED__EXECUTABLE_BRIDGE_ADDED__LIVE_OBSERVATION_OPEN`
 Failure class: `PROACTIVE_RESOLUTION_GAP`
 
 Trigger: assistant said future approved/edited user articles would become the best voice evidence; user challenged why inherited cognition/evolution did not first recover/derive evidence itself.
@@ -363,15 +363,15 @@ Assumption challenged: missing highest-tier evidence means wait for the user.
 
 Alternatives: wait for explicit sample — rejected; infer fixed personal style from thin context — rejected as fabrication/overfit; recover evidence → provisional candidate with confidence/unknowns → validate → only then escalate — selected.
 
-Action: `references/proactive_resolution.md`; inspect project/state, approved/edited samples, durable corrections/rejections, accepted outputs/performance, current context, platform conventions and external method evidence before avoidable user escalation.
+Action: the original rule promotion added `references/proactive_resolution.md`; P-20261015-15 later added the owner-native executable receipt/escalation gate that makes this rule behaviorally testable.
 
-Live action performed during this repair: prior explicit Financial corrections and constraints were actively recovered and distilled into a medium-confidence provisional voice candidate instead of waiting for a future sample. No recovered evidence justified claiming a user-approved positive style sample, so the candidate remains provisional and must be validated on real articles.
+Live action performed during the original repair: prior explicit Financial corrections and constraints were actively recovered and distilled into a medium-confidence provisional voice candidate instead of waiting for a future sample. No recovered evidence justified claiming a user-approved positive style sample, so the candidate remains provisional and must be validated on real articles.
 
 Boundary: never fabricate approval, preference, identity, memory or fact.
 
-Promotion evidence: PR #28 exact-head candidate CI #1028 passed; production commit `b41610b41aa6ea2e450720b0d14714f747e34100`; production CI #1029 completed `success` at `2026-10-14T21:36:34Z`, including unit/trajectory tests, contract eval, static audits, isolated wheel smoke and DOCX render smoke.
+Promotion evidence: original rule PR #28 candidate CI #1028 passed; production commit `b41610b41aa6ea2e450720b0d14714f747e34100`; production CI #1029 passed. Executable bridge evidence is recorded under P-20261015-15.
 
-Cross-domain implication: parent guidance only; Financial does not directly mutate UAOS common authority.
+Cross-domain implication: parent guidance was later adjudicated in UAOS Common Behavior Assurance 1.2; Financial owns only its domain realization.
 
 ---
 
@@ -390,16 +390,14 @@ Promotion evidence: backfilled the current Financial evolution period from 2026-
 ---
 
 ## P-20261015-11 — UAOS entry/version metadata drift observed
-Status: `PARENT_GUIDANCE_OPEN`
+Status: `RESOLVED_BY_PARENT_GOVERNANCE`
 Owner: `UAOS`
 
 Observed: an entry/version label was stale relative to `CURRENT_SYSTEM.json`.
 
-Financial action: record only; child does not mutate parent authority.
+Financial action: record only; child did not mutate parent authority.
 
-Requested parent outcome: scan entry/bootstrap/version surfaces after promotion and enforce release/candidate-label consistency.
-
-Current parent authority: UAOS `2.5.2`, schema `2.17`, updated `2026-10-15T04:52:00+08:00`.
+Parent resolution: UAOS added mechanical entry/current release synchronization regression coverage and later refreshed its Financial child observation from 0.8.4 to 0.9.1. The current total-controller closure for P-20261015-15 will refresh that parent observation again to Financial 0.9.2 rather than persisting a moving `latest` claim here.
 
 ---
 
@@ -458,12 +456,12 @@ System impact: production/evidence metadata should encode the event it proves, n
 ---
 
 ## P-20261015-15 — Proactive-resolution policy existed, but user escalation still lacked an executable admission bridge
-Status: `CANDIDATE__TRAJECTORY_EVIDENCE_PENDING_PROMOTION`
+Status: `PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN`
 Failure classes: `DECLARATION_TO_OPERATION_GAP`, `PROBLEM_TO_ACTION_CLOSURE_GAP`
 
 Trigger: after a total-controller audit correctly concluded that Financial had proactive-resolution rules but lacked a mechanical behavior bridge, the user challenged why the controller again stopped at a recommendation instead of executing the available repair.
 
-User/system consequence: the system could still know that it should recover evidence first yet legally end a turn by telling the user or a future maintainer what to implement. That repeats the exact declaration-to-operation pattern this maintenance period was intended to remove.
+User/system consequence: the system could still know that it should recover evidence first yet legally end a turn by telling the user or a future maintainer what to implement. That repeated the exact declaration-to-operation pattern this maintenance period was intended to remove.
 
 Micro diagnosis: `references/proactive_resolution.md`, `references/maintenance.md` and static tests encoded the desired behavior, while the executable owner lifecycle had no proactive-recovery action receipt and no user-escalation admission check. Static tests mostly proved that the rule text existed.
 
@@ -480,42 +478,45 @@ Alternatives considered:
 - automatically perform every possible repair without authority/user-choice checks — rejected because it can violate ownership, permission and safety boundaries;
 - parent repair-or-block admission plus Financial owner-native recovery receipt/user-escalation gate and trajectory regression — selected.
 
-Financial candidate action:
-- add `financial_writing_agent/proactive_resolution.py` with `record_proactive_resolution_state`, bounded `RESOLVED/PROVISIONAL/UNRESOLVED` outcomes, execution receipts and `require_user_escalation_admission`;
-- deny externalization when no recovery attempt exists or when a safe provisional/resolved path exists;
-- allow escalation only after an unresolved unsafe attempt with concrete blockers/unknowns, except an explicit user confirmation request;
-- add a trajectory regression for the exact voice case: no canonical approved full article -> recover durable corrections/edited outputs/current context -> create a medium-confidence provisional voice candidate -> continue rather than ask the user;
-- adopt parent Common Behavior Assurance 1.2 in Financial profile 17 / release 0.9.2;
-- keep live article outcome as a stronger future assurance tier rather than overstating trajectory tests.
+Implemented Financial repair:
+- `financial_writing_agent/proactive_resolution.py` now provides `record_proactive_resolution_state`, bounded `RESOLVED/PROVISIONAL/UNRESOLVED` outcomes, owner execution receipts and `require_user_escalation_admission`;
+- externalization is denied when no recovery attempt exists or when a safe provisional/resolved path exists;
+- escalation is admitted only after an unresolved unsafe attempt with concrete blockers/unknowns, except an explicit user confirmation request;
+- the behavior trajectory covers the exact voice case: no canonical approved full article -> recover durable corrections/edited outputs/current context -> create a medium-confidence provisional voice candidate -> continue rather than ask the user;
+- Financial release 0.9.2 / profile 17 adopts UAOS Common Behavior Assurance 1.2 and labels the current ceiling `EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED_UNTIL_LIVE_ARTICLE_OBSERVATION`.
 
-Parent action: UAOS candidate adds executable problem-to-action closure admission and forbids recommendation-only finalization when a current authorized repair exists without a required user fact/approval/authorization/safety-sensitive choice.
+Parent repair: UAOS Common Behavior Assurance 1.2 / Session Interaction Policy 1.7 added executable problem-to-action closure and forbids recommendation-only finalization when a current authorized repair exists without a required user fact/approval/authorization/safety-sensitive choice. Parent production commit `2948c9817809aab6cf8625933734c768aa256996`; production CI #135 / run `38671592866` passed.
 
 Repair-process evidence retained:
 - parent CI #132 failed because old Common Behavior 1.1 regression assertions were stale after the 1.2 candidate; the tests were updated rather than weakening the new contract;
-- parent CI #133 then failed because a new regression overfit exact prose (`must be attempted`) while the rule used equivalent semantics (`must attempt the repair`); the test was changed to assert behavior-bearing semantics instead of forcing production wording;
-- Financial consumer-complete precheck found both packaged and Skill `maintenance.md` mirrors still at revision 1.1 after the root moved to 1.2; all controlled mirrors were synchronized before opening the Financial PR rather than waiting for CI to rediscover P-20261012-06/P-20261015-13.
+- parent CI #133 failed because a new regression overfit exact prose (`must be attempted`) while the rule used equivalent semantics (`must attempt the repair`); the test was changed to assert behavior-bearing semantics instead of forcing production wording;
+- Financial consumer-complete precheck found both packaged and Skill `maintenance.md` mirrors still at revision 1.1 after the root moved to 1.2; all controlled mirrors were synchronized before opening the Financial PR rather than waiting for CI to rediscover P-20261012-06/P-20261015-13;
+- Financial candidate CI #1034 failed on two stale `0.9.1/Profile16` assertions plus the existing 8KB `UAOS_SKILL.md` startup budget. The assertions were advanced to 0.9.2/Profile17 and the Skill was compressed while keeping detailed semantics in the progressive reference/code surfaces; no budget was weakened;
+- Financial candidate CI #1036 / run `38671917900` passed the complete chain: unit/trajectory tests, executable contract eval, static owner/legacy audits, isolated wheel install and DOCX render smoke.
 
-Current assurance boundary: executable policy + behavior/trajectory regression can establish `EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED`; it does not prove every natural-language host response is physically intercepted and does not yet prove live article outcomes.
+Promotion evidence: PR #31 merged to Financial production commit `12c8f1cd4087641228882b5d937bd8ba80760ec3`; production CI #1037 / run `38672024075` completed `success`, including the same unit/trajectory, contract, static, wheel and render chain.
 
-Remaining observation: after production promotion, validate the recovery receipt/escalation gate on real Financial article work, especially voice inference, and refine/rollback if it encourages unsupported inference or unnecessary persistence.
+Current assurance boundary: `EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED` is justified. It does not prove every natural-language host response is physically intercepted and does not yet prove live article outcomes.
 
-Parent-upcall status: `UAOS_REPAIR_IN_PROGRESS__COMMON_BEHAVIOR_1_2_CANDIDATE`.
+Remaining observation: validate the recovery receipt/escalation gate on real Financial article work, especially voice inference, and refine/rollback if it encourages unsupported inference or unnecessary persistence.
+
+Parent-upcall status: `UAOS_COMMON_BEHAVIOR_1_2_PROMOTED__FINAL_PARENT_FINANCIAL_0_9_2_OBSERVATION_REFRESH_PENDING`.
 
 ---
 
-# Parent Guidance Queue
+# Parent Guidance Queue / adjudication state
 
-1. `PROACTIVE_RESOLUTION_GAP` — decide whether every registered child should attempt available-context/evidence recovery before externalizing a recoverable dependency to the user.
-2. `EVOLUTION_HISTORY_INTERFACE` — decide whether UAOS should define a minimal common child problem/evolution journal interface or only require one canonical evidence index per domain.
-3. `VERSION_METADATA_DRIFT` — enforce consistency between current release authority and entry/bootstrap/version labels after promotion.
-4. `INHERITANCE_BEHAVIOR_VS_DECLARATION` — consider live behavioral probes so declared inheritance is not treated as sufficient proof that cognition is actually invoked proactively.
-5. `DECLARATION_TO_OPERATION_GAP` — compare P-20261012-00 with P-20261015-09 across registered children; determine whether UAOS common governance needs a generic contract that turns declared cognitive obligations into observable action-level behavior without creating a parent microscheduler.
-6. `PROBLEM_TO_ACTION_CLOSURE_GAP` — require a detected repairable problem to cross from deliberation into current repair or a real blocker/no-change disposition; do not accept recommendation-only closure when the acting Agent already has lawful authority and tools.
+1. `PROACTIVE_RESOLUTION_GAP` — `PARENT_ADJUDICATED`: UAOS Common Behavior Assurance requires proportionate recovery before avoidable user escalation; domain recovery order remains owner-specific.
+2. `EVOLUTION_HISTORY_INTERFACE` — `PARENT_ADJUDICATED`: one discoverable owner-native evolution evidence entrypoint + causal history is required; no universal journal file/state machine.
+3. `VERSION_METADATA_DRIFT` — `PARENT_ADJUDICATED`: parent release/entry synchronization is mechanically guarded; moving child observations must be refreshed from production evidence rather than treated as timeless.
+4. `INHERITANCE_BEHAVIOR_VS_DECLARATION` — `PARENT_ADJUDICATED`: declaration alone is `DECLARED_ONLY`; operational claims require owner-appropriate execution evidence.
+5. `DECLARATION_TO_OPERATION_GAP` — `PARENT_ADJUDICATED`: promoted as an umbrella common failure class without creating a parent microscheduler.
+6. `PROBLEM_TO_ACTION_CLOSURE_GAP` — `PARENT_ADJUDICATED`: UAOS Common Behavior Assurance 1.2 / Session Interaction Policy 1.7 require repair-now, concrete blocker/user choice, or evidence-backed no-change; recommendation-only is not closure when an authorized repair is available.
 
 # Current open observation items
 
-- Financial 0.9.1/0.9.2 voice-first writing still needs real article/user observation to prove lower AI-template feel without losing factual density/company decision utility.
-- P-20261015-09 proactive resolution remains under live observation; P-20261015-15 adds executable receipt/escalation admission and trajectory evidence but still requires real-article outcome observation after promotion.
-- P-20261015-10 consolidated history is promoted; later UAOS/总控 review should continue testing whether its interface/generalization is useful across child Agents.
+- Financial 0.9.2 voice-first writing still needs real article/user observation to prove lower AI-template feel without losing factual density/company decision utility.
+- P-20261015-09/P-20261015-15 proactive resolution is now executable-policy/trajectory verified; validate the owner receipt/escalation gate on real Financial work and refine/rollback if it creates unsupported inference or unnecessary persistence.
+- P-20261015-10 consolidated history remains under usefulness observation across future domain/parent guidance cycles.
 - provider-attested independent semantic review remains unavailable; same-chat critic passes stay `CHAT_SELF_REVIEW`.
 - open-world writing quality is never globally certified by a finite regression corpus.

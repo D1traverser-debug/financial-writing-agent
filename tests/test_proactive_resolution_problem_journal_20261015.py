@@ -57,13 +57,12 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `1.5`" in journal
-    assert "Wrong path tried" in journal
-    assert "CI #1025" in journal
-    assert "CI #1027" in journal
-    assert "CI #1028" in journal
-    assert "CI #1029" in journal
-    assert "Parent Guidance Queue" in journal
+    assert "Journal revision: `1.6`" in journal
+    assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
+    assert "CI #1034" in journal
+    assert "CI #1036" in journal
+    assert "CI #1037" in journal
+    assert "Parent Guidance Queue / adjudication state" in journal
     assert "PROACTIVE_RESOLUTION_GAP" in journal
     assert "DECLARATION_TO_OPERATION_GAP" in journal
     assert "PROBLEM_TO_ACTION_CLOSURE_GAP" in journal
@@ -74,16 +73,16 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     assert "INHERITANCE_BEHAVIOR_VS_DECLARATION" in journal
 
 
-def test_machine_index_and_parent_handoff_expose_guidance_queue():
+def test_machine_index_and_parent_handoff_expose_adjudication_and_promotion_receipt():
     index = _read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
     handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
-    assert '"revision": "1.5"' in index
+    assert '"revision": "1.6"' in index
     assert '"P-20261015-15"' in index
-    assert '"executable_proactive_resolution_candidate"' in index
-    assert '"proactive_resolution_promotion_receipt"' in index
+    assert '"executable_proactive_resolution_promotion_receipt"' in index
+    assert '"executable_proactive_resolution_candidate"' not in index
+    assert '"production_ci_number": 1037' in index
+    assert '"production_ci_status": "success"' in index
     assert '"latest_production_receipt"' not in index
-    assert '"ci_run": 1029' in index
-    assert '"ci_status": "success"' in index
     for signal in (
         "PROACTIVE_RESOLUTION_GAP",
         "EVOLUTION_HISTORY_INTERFACE",
@@ -94,5 +93,5 @@ def test_machine_index_and_parent_handoff_expose_guidance_queue():
     ):
         assert signal in index
         assert signal in handoff
-    assert "NON_MUTATING_CHILD_UPCALL" in handoff
-    assert "Do not treat the Financial-specific repair as proof" in handoff
+    assert "CURRENT_ITEMS_PARENT_ADJUDICATED" in handoff
+    assert "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED" in handoff
