@@ -23,11 +23,13 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
     assert manifest["binding"]["common_capabilities_ref"].endswith("config/COMMON_CAPABILITIES.json")
     assert manifest["binding"]["common_behavior_assurance_ref"].endswith("config/COMMON_BEHAVIOR_ASSURANCE.json")
+    assert manifest["binding"]["common_behavior_assurance_min"] == "1.3.0"
     assert manifest["domain_authority"]["product_requirements"] == "docs/product_requirements.md"
     assert manifest["domain_authority"]["architecture"] == "docs/architecture.md"
     assert manifest["domain_authority"]["business_contract"] == "financial_writing_agent/models.py:TaskContract"
     assert manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id"
     assert manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
+    assert manifest["domain_authority"]["root_scope_receipt"].endswith("RootScopeReceipt")
 
     assert adapter["controller_task_identity_authority"] == "UAOS"
     assert adapter["domain_article_identity_authority"] == "workspaces/articles/{task_id}/STATE.json::task_id"
@@ -48,9 +50,9 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["identity"]["parent_child_id_equality_required"] is False
 
     common_required = set(capabilities["required_uaos_common_capabilities"])
-    assert capabilities["profile_version"] == 18
+    assert capabilities["profile_version"] >= 19
     assert capabilities["uaos_common_capabilities_contract_min"] == "1.6.0"
-    assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
+    assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.3.0"
     assert {
         "product_requirements_and_architecture_governance",
         "domain_internal_work_orchestration",
@@ -65,6 +67,7 @@ def test_current_authority_has_one_financial_owner_path():
         "high_judgment_generation_stages",
         "semantic_review_stages",
         "delivery_and_mechanical_qa",
+        "problem_cognition_root_scope_admission",
         "blocked_recovery_and_system_impact_lifecycle",
         "proactive_resolution_admission",
         "quality_regression_promotion_gate",
