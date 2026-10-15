@@ -38,21 +38,21 @@ Retention is a full-article property, not a title or first-three-sentence score.
 
 Curiosity gaps are allowed only when concrete and honestly paid off. Clicks alone do not prove satisfaction or completion. Opening jobs are collective reader outcomes; do not map these jobs mechanically to sentence 1/2/3.
 
-### Company decision utility
+### Company Decision Map and decision utility
 
-When two or more companies are material, the article should name meaningful relative distinctions — for example more direct exposure, faster realization, harder evidence, higher but less certain elasticity, heavier inventory/FX risk — when supported by evidence and change conditions.
+When two or more `MATERIAL` companies exist, build and use a **Company Decision Map** before writing the comparative verdict. The article should name meaningful relative distinctions — for example more direct exposure, faster realization, harder evidence, higher but less certain elasticity, heavier inventory/FX risk — when supported by evidence and change conditions.
 
 This utility is analytical, not actionable. Buy/sell, timing, target, position sizing and covert equivalents remain prohibited.
 
 ### Natural authorial prose
 
-Draft from audited material + author stance + StoryBlueprint + strongest user-owned voice evidence. Do not draft from a giant list of anti-AI rules.
+Generation remains **voice/material first**: draft from audited material + author stance + StoryBlueprint + strongest user-owned voice evidence. Do not draft from a giant list of anti-AI rules.
 
 “去AI味” is not a generation style. It is shorthand for diagnosing when generic scaffolding, platform caricature or model rhythm displaces material-specific writing.
 
 Voice evidence priority: user-approved or user-edited samples first, then durable explicit constraints, current prose signals, target-platform conventions and generic defaults.
 
-Generic stage language (`值得关注`, `这意味着`, `问题在于`, repeated `不是X而是Y`, etc.), syntactic variation and paragraph-role variation are post-draft diagnostics, not generation mandates. A cluster that replaces new information or creates visible model rhythm requires semantic review; an isolated legitimate signal does not automatically fail.
+Generic stage language (`值得关注`, `这意味着`, `问题在于`, repeated `不是X而是Y`, etc.), syntactic variation and paragraph-role variation are post-draft diagnostics, **not generation mandates**. A cluster that replaces new information or creates visible model rhythm requires semantic review; an isolated legitimate signal does not automatically fail.
 
 Avoid platform caricature: canned slang, fake intimacy, fake anecdotes, stock questions or superficial “human” tics are not authorial voice. Apply the minimum effective revision needed to repair the diagnosed defect rather than globally rewriting sound prose.
 
@@ -68,7 +68,7 @@ Do not expose `研报指出/据报道/公开资料显示` solely to demonstrate 
 
 ### Evidence-backed review
 
-Current publication acceptance requires text-level evidence for Fact Integrity, Retention, Company Grounding, Structure/Numbering, Originality, Authorial Style, Compliance and Payoff. A checklist of PASS words without excerpts/findings is invalid evidence.
+Current publication acceptance requires text-level evidence for Fact Integrity, Retention, Company Grounding, Structure/Numbering, Originality, Authorial Style, Compliance and Payoff. A checklist of PASS words without excerpts/findings] is invalid evidence.
 
 ### Assurance
 
