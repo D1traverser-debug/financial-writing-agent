@@ -120,6 +120,13 @@ def test_ordinary_material_thesis_decision_needs_non_user_evidence_but_not_archi
     assert admission_errors(envelope) == []
 
 
+def test_search_sweep_rejects_blank_and_normalized_duplicate_source_families():
+    with pytest.raises(ValidationError):
+        SearchSweep(sweep_no=1, query_or_scope="blank family", source_families=["industry", "   "])
+    with pytest.raises(ValidationError):
+        SearchSweep(sweep_no=1, query_or_scope="duplicate family", source_families=["Industry", " industry "])
+
+
 def test_search_saturation_needs_two_consecutive_no_delta_sweeps():
     with pytest.raises(ValidationError):
         SearchSaturation(
@@ -128,11 +135,63 @@ def test_search_saturation_needs_two_consecutive_no_delta_sweeps():
                 SearchSweep(
                     sweep_no=2,
                     query_or_scope="two",
-                    source_families=["a", "b"],
+                    source_families=["a", "c"],
                     new_failure_modes=["new issue"],
                 ),
             ],
             stop_reason="too early",
+        )
+
+
+def test_search_saturation_rejects_repeated_identical_final_sweeps_even_if_earlier_sources_are_diverse():
+    with pytest.raises(ValidationError):
+        SearchSaturation(
+            sweeps=[
+                SearchSweep(
+                    sweep_no=1,
+                    query_or_scope="broad discovery",
+                    source_families=["government", "company-filing"],
+                    new_material_candidates=["candidate-a"],
+                    changed_decision=True,
+                ),
+                SearchSweep(
+                    sweep_no=2,
+                    query_or_scope="same terminal search",
+                    source_families=["industry"],
+                ),
+                SearchSweep(
+                    sweep_no=3,
+                    query_or_scope="same terminal search",
+                    source_families=["industry"],
+                ),
+            ],
+            stop_reason="incorrect duplicate terminal sweeps",
+        )
+
+
+def test_search_saturation_rejects_renamed_terminal_sweeps_over_same_source_mix():
+    with pytest.raises(ValidationError):
+        SearchSaturation(
+            sweeps=[
+                SearchSweep(
+                    sweep_no=1,
+                    query_or_scope="broad discovery",
+                    source_families=["government", "company-filing"],
+                    new_material_candidates=["candidate-a"],
+                    changed_decision=True,
+                ),
+                SearchSweep(
+                    sweep_no=2,
+                    query_or_scope="counterexample angle",
+                    source_families=["industry", "company-filing"],
+                ),
+                SearchSweep(
+                    sweep_no=3,
+                    query_or_scope="renamed second angle",
+                    source_families=["company-filing", "industry"],
+                ),
+            ],
+            stop_reason="renaming the query is not source diversity",
         )
 
 

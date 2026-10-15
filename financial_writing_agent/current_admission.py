@@ -10,6 +10,7 @@ from .cognition_governance import DecisionEnvelope, OperationClass, admission_er
 from .story_quality import AuditStatus, ProductMode, PublicationFitness, StoryBlueprint
 
 WRITING_KERNEL_VERSION = "1.0"
+QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 
 
 class CurrentAdmissionError(ValueError):
@@ -73,6 +74,75 @@ def _parse_decision_envelope(raw: Mapping[str, Any] | None) -> DecisionEnvelope:
     return envelope
 
 
+def _latest_receipt_digest(state: Mapping[str, Any], binding_key: str, *, admitting_stage: str) -> str | None:
+    receipts = state.get("execution_receipts", [])
+    if not isinstance(receipts, list):
+        return None
+    for receipt in reversed(receipts):
+        if not isinstance(receipt, Mapping) or receipt.get("stage") != admitting_stage:
+            continue
+        bindings = receipt.get("input_bindings", {})
+        if not isinstance(bindings, Mapping):
+            continue
+        if bindings.get("quality_admission_path") != QUALITY_ADMISSION_PATH:
+            continue
+        if binding_key in bindings:
+            value = bindings.get(binding_key)
+            return str(value) if value is not None else None
+    return None
+
+
+def _require_persisted_digest(
+    state: Mapping[str, Any], *, evidence_key: str, binding_key: str, admitting_stage: str, evidence_value: Any
+) -> None:
+    expected = _latest_receipt_digest(state, binding_key, admitting_stage=admitting_stage)
+    _require(expected is not None, f"persisted {evidence_key} lacks a {admitting_stage} current-admission receipt digest")
+    actual = _canonical_digest(evidence_value)
+    _require(actual == expected, f"persisted {evidence_key} no longer matches its latest admitted receipt digest")
+
+
+def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
+    quality = state.get("quality_evidence", {})
+    _require(isinstance(quality, Mapping), "current Financial state requires quality_evidence mapping")
+    stage = str(state.get("current_stage"))
+    current_index = owner_guard.STAGE_INDEX[stage]
+
+    if current_index >= owner_guard.STAGE_INDEX["RESEARCH_AUDIT"]:
+        raw_decision = quality.get("research_decision")
+        _parse_decision_envelope(raw_decision if isinstance(raw_decision, Mapping) else None)
+        _require_persisted_digest(
+            state,
+            evidence_key="research_decision",
+            binding_key="decision_envelope_sha256",
+            admitting_stage="RESEARCH",
+            evidence_value=raw_decision,
+        )
+
+    if current_index >= owner_guard.STAGE_INDEX["TITLE"]:
+        raw_blueprints = quality.get("story_blueprints")
+        blueprints_input = raw_blueprints if isinstance(raw_blueprints, list) else None
+        _parse_story_blueprints(state, blueprints_input)
+        _require_persisted_digest(
+            state,
+            evidence_key="story_blueprints",
+            binding_key="story_blueprints_sha256",
+            admitting_stage="EDITORIAL",
+            evidence_value=raw_blueprints,
+        )
+
+    if current_index >= owner_guard.STAGE_INDEX["DELIVERY"]:
+        raw_fitnesses = quality.get("publication_fitnesses")
+        fitness_input = raw_fitnesses if isinstance(raw_fitnesses, list) else None
+        _parse_publication_fitnesses(state, fitness_input, review_status="PASS")
+        _require_persisted_digest(
+            state,
+            evidence_key="publication_fitnesses",
+            binding_key="publication_fitnesses_sha256",
+            admitting_stage="EDITORIAL_AUDIT",
+            evidence_value=raw_fitnesses,
+        )
+
+
 def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     """Create a current Financial task while delegating business identity/state semantics to owner_guard."""
     state = owner_guard.build_initial_state(**kwargs)
@@ -80,20 +150,23 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     state["quality_evidence"] = {}
     receipt = state["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = "financial_writing_agent.current_admission"
+    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     validate_state(state)
     return state
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
-    owner_guard.validate_state(state)
+    # The current layer owns quality parsing. Use the base owner-state validator here
+    # to avoid the owner's public 1.0 dispatch recursively calling back into this module.
+    owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
-    _require(isinstance(state.get("quality_evidence"), Mapping), "current Financial state requires quality_evidence mapping")
+    _validate_persisted_quality_evidence(state)
 
 
-def _invalidate_quality_evidence(state: dict[str, Any], revision_target: str | None) -> list[str]:
-    invalidated: list[str] = []
-    quality = state.setdefault("quality_evidence", {})
+def _planned_quality_invalidations(state: Mapping[str, Any], revision_target: str | None) -> list[str]:
+    quality = state.get("quality_evidence", {})
+    if not isinstance(quality, Mapping):
+        return []
     if revision_target == "RESEARCH":
         keys = tuple(quality.keys())
     elif revision_target == "EDITORIAL":
@@ -102,11 +175,7 @@ def _invalidate_quality_evidence(state: dict[str, Any], revision_target: str | N
         keys = ("publication_fitnesses",)
     else:
         keys = ()
-    for key in keys:
-        if key in quality:
-            quality.pop(key, None)
-            invalidated.append(key)
-    return invalidated
+    return sorted(key for key in keys if key in quality)
 
 
 def advance_state(
@@ -147,16 +216,31 @@ def advance_state(
         quality["publication_fitnesses"] = dumped
         evidence_bindings["publication_fitnesses_sha256"] = _canonical_digest(dumped)
 
-    after = owner_guard.advance_state(working, **kwargs)
+    revision_target = kwargs.get("revision_target")
+    planned_invalidated = (
+        _planned_quality_invalidations(working, str(revision_target))
+        if review_status == "REVISE" and revision_target
+        else []
+    )
 
-    if stage == "EDITORIAL_AUDIT" and review_status == "REVISE":
-        invalidated = _invalidate_quality_evidence(after, str(kwargs.get("revision_target")))
-        if invalidated:
-            evidence_bindings["invalidated_quality_evidence"] = ",".join(sorted(invalidated))
+    # The owner guard now enforces 1.0 quality for every public lower-level path. During
+    # this one internal sequencing window, the new receipt does not yet carry its quality
+    # digest, so defer only that owner-level callback. Full current validation runs below
+    # after the receipt is bound; the token is process-local and not a persisted credential.
+    after = owner_guard.advance_state(
+        working,
+        _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
+        **kwargs,
+    )
+
+    if planned_invalidated:
+        missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]
+        _require(not missing, f"owner revision failed to invalidate quality evidence: {missing}")
+        evidence_bindings["invalidated_quality_evidence"] = ",".join(planned_invalidated)
 
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = "financial_writing_agent.current_admission"
+    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     receipt["input_bindings"].update(evidence_bindings)
     validate_state(after)
     return after
@@ -164,9 +248,11 @@ def advance_state(
 
 def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
     validate_state(state)
+    # Feedback does not alter quality objects, so the owner guard can and should perform
+    # its normal full 1.0 validation on both sides of this mutation.
     after = owner_guard.attach_material_feedback(state, **kwargs)
-    validate_state(after)
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = "financial_writing_agent.current_admission"
+    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
+    validate_state(after)
     return after

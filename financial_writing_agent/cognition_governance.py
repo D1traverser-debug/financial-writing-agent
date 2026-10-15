@@ -65,6 +65,15 @@ class SearchSweep(StrictModel):
     new_counterexamples: list[str] = Field(default_factory=list)
     changed_decision: bool = False
 
+    @model_validator(mode="after")
+    def validate_source_families(self):
+        normalized = [family.casefold().strip() for family in self.source_families]
+        if any(not family for family in normalized):
+            raise ValueError("search source_families cannot contain blank values")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("search source_families must be unique after normalization")
+        return self
+
     @property
     def material_delta(self) -> bool:
         return bool(
@@ -85,12 +94,28 @@ class SearchSaturation(StrictModel):
         ordered = sorted(self.sweeps, key=lambda x: x.sweep_no)
         if [s.sweep_no for s in ordered] != list(range(1, len(ordered) + 1)):
             raise ValueError("search sweep numbers must be contiguous from 1")
-        if ordered[-1].material_delta or ordered[-2].material_delta:
+        final_pair = ordered[-2:]
+        if any(sweep.material_delta for sweep in final_pair):
             raise ValueError(
                 "material search may stop only after two consecutive sweeps add no decision-changing "
                 "candidate, failure mode, counterexample, or changed decision"
             )
-        families = {family for sweep in ordered for family in sweep.source_families}
+        final_scopes = {sweep.query_or_scope.casefold().strip() for sweep in final_pair}
+        if len(final_scopes) < 2:
+            raise ValueError(
+                "the final two stable search sweeps must use different query/scope definitions; "
+                "repeating the same search does not establish saturation"
+            )
+        final_family_sets = {
+            tuple(sorted({family.casefold().strip() for family in sweep.source_families}))
+            for sweep in final_pair
+        }
+        if len(final_family_sets) < 2:
+            raise ValueError(
+                "the final two stable search sweeps must use different source-family sets; "
+                "renaming the query while repeating the same source mix does not establish saturation"
+            )
+        families = {family.casefold().strip() for sweep in ordered for family in sweep.source_families}
         if len(families) < 2:
             raise ValueError("material search requires at least two materially different source families")
         return self
@@ -188,7 +213,7 @@ def admission_errors(envelope: DecisionEnvelope) -> list[str]:
     """Semantic warnings beyond shape validation; does not overstate independence."""
     errors: list[str] = []
     if envelope.operation_class == OperationClass.MATERIAL_JUDGMENT:
-        families = {e.source_family for e in envelope.evidence}
+        families = {e.source_family.casefold().strip() for e in envelope.evidence}
         if len(families) < 2:
             errors.append("material judgment evidence is single-family")
         if all(e.kind == EvidenceKind.USER_FEEDBACK for e in envelope.evidence):

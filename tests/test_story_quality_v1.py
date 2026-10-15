@@ -100,35 +100,8 @@ def _gate(name: str, status: AuditStatus = AuditStatus.PASS, severity: str = "IN
     )
 
 
-def test_publication_fitness_cannot_self_pass_without_all_text_evidence_gates():
-    gates = [
-        _gate("FACT_INTEGRITY"),
-        _gate("RETENTION"),
-        _gate("COMPANY_GROUNDING"),
-        _gate("STRUCTURE_NUMBERING"),
-        _gate("ORIGINALITY"),
-        _gate("AUTHORIAL_STYLE"),
-        _gate("COMPLIANCE"),
-    ]
-    with pytest.raises(ValidationError):
-        PublicationFitness(
-            product_mode=ProductMode.FINANCE_DEEP,
-            gates=gates,
-            originality_checks=[
-                OriginalityEvidence(
-                    compared_source_ref="source",
-                    checked_phrase_or_passage="phrase",
-                    result="NO_MATERIAL_OVERLAP",
-                    notes="checked",
-                )
-            ],
-            assurance="CHAT_SELF_REVIEW",
-            final_status=AuditStatus.PASS,
-        )
-
-
-def test_originality_rewrite_blocks_pass():
-    gates = [
+def _all_gates() -> list[GateAudit]:
+    return [
         _gate("FACT_INTEGRITY"),
         _gate("RETENTION"),
         _gate("COMPANY_GROUNDING"),
@@ -138,10 +111,36 @@ def test_originality_rewrite_blocks_pass():
         _gate("COMPLIANCE"),
         _gate("PAYOFF"),
     ]
+
+
+def _originality() -> list[OriginalityEvidence]:
+    return [
+        OriginalityEvidence(
+            compared_source_ref="source",
+            checked_phrase_or_passage="phrase",
+            result="NO_MATERIAL_OVERLAP",
+            notes="checked",
+        )
+    ]
+
+
+def test_publication_fitness_cannot_self_pass_without_all_text_evidence_gates():
+    gates = _all_gates()[:-1]
     with pytest.raises(ValidationError):
         PublicationFitness(
             product_mode=ProductMode.FINANCE_DEEP,
             gates=gates,
+            originality_checks=_originality(),
+            assurance="CHAT_SELF_REVIEW",
+            final_status=AuditStatus.PASS,
+        )
+
+
+def test_originality_rewrite_blocks_pass():
+    with pytest.raises(ValidationError):
+        PublicationFitness(
+            product_mode=ProductMode.FINANCE_DEEP,
+            gates=_all_gates(),
             originality_checks=[
                 OriginalityEvidence(
                     compared_source_ref="source",
@@ -153,6 +152,37 @@ def test_originality_rewrite_blocks_pass():
             assurance="CHAT_SELF_REVIEW",
             final_status=AuditStatus.PASS,
         )
+
+
+def test_independent_publication_fitness_is_fail_closed_without_trusted_execution_resolver():
+    independent_claims = [
+        None,
+        {
+            "assurance": "INDEPENDENT_EXECUTOR",
+            "reviewer_identity": "reviewer-1",
+            "author_identity": "reviewer-1",
+            "execution_ref": "run://same-identity",
+        },
+        {
+            "assurance": "INDEPENDENT_EXECUTOR",
+            "reviewer_identity": "reviewer-2",
+            "author_identity": "author-1",
+            "execution_ref": "run://caller-supplied-only",
+        },
+    ]
+    for provenance in independent_claims:
+        kwargs = {}
+        if provenance is not None:
+            kwargs["audit_provenance"] = provenance
+        with pytest.raises(ValidationError):
+            PublicationFitness(
+                product_mode=ProductMode.FINANCE_DEEP,
+                gates=_all_gates(),
+                originality_checks=_originality(),
+                assurance="INDEPENDENT_EXECUTOR",
+                final_status=AuditStatus.PASS,
+                **kwargs,
+            )
 
 
 def test_deterministic_tripwires_find_missing_sequences_and_generic_scaffolding_clusters():

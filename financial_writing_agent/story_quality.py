@@ -6,6 +6,8 @@ from typing import Literal
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
+from .schemas import AuditProvenance
+
 
 class StrictModel(BaseModel):
     model_config = ConfigDict(extra="forbid", str_strip_whitespace=True)
@@ -152,6 +154,7 @@ class PublicationFitness(StrictModel):
     originality_checks: list[OriginalityEvidence] = Field(min_length=1)
     deterministic_findings: list[str] = Field(default_factory=list)
     assurance: Literal["CHAT_SELF_REVIEW", "INDEPENDENT_EXECUTOR"]
+    audit_provenance: AuditProvenance = Field(default_factory=AuditProvenance)
     final_status: AuditStatus
 
     @model_validator(mode="after")
@@ -174,6 +177,13 @@ class PublicationFitness(StrictModel):
             raise ValueError(f"final_status must be {expected.value} for supplied gate decisions")
         if any(item.result == "NEEDS_REWRITE" for item in self.originality_checks) and self.final_status == AuditStatus.PASS:
             raise ValueError("originality overlap requiring rewrite blocks publication PASS")
+        if self.audit_provenance.assurance != self.assurance:
+            raise ValueError("publication fitness assurance must match audit_provenance.assurance")
+        if self.assurance == "INDEPENDENT_EXECUTOR":
+            raise ValueError(
+                "INDEPENDENT_EXECUTOR is not admissible in the current Financial chat contract because "
+                "trusted independent execution evidence cannot yet be resolved; use CHAT_SELF_REVIEW"
+            )
         return self
 
 

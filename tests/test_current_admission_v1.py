@@ -1,3 +1,7 @@
+import hashlib
+import json
+from copy import deepcopy
+
 import pytest
 
 from financial_writing_agent import owner_guard
@@ -5,7 +9,9 @@ from financial_writing_agent.current_admission import (
     CurrentAdmissionError,
     advance_state,
     build_initial_state,
+    validate_state,
 )
+from financial_writing_agent.owner_lifecycle import block_review_failure_state, resume_blocked_state
 
 
 def _artifact(task_id: str, stage: str) -> dict:
@@ -246,6 +252,32 @@ def _advance_to_editorial_audit(state: dict) -> dict:
     return state
 
 
+def _advance_to_delivery(state: dict) -> dict:
+    task_id = state["task_id"]
+    state = _advance_to_editorial_audit(state)
+    return advance_state(
+        state,
+        previous_state_blob_sha="s6",
+        executor_identity="test",
+        review_status="PASS",
+        publication_fitnesses=[_fitness("FINANCE_DEEP"), _fitness("FINANCE_BROAD")],
+        **_artifact(task_id, "EDITORIAL_AUDIT"),
+    )
+
+
+def _delivery_artifacts(state: dict) -> list[dict]:
+    return [
+        {"kind": kind, "file_name": f"{kind}.docx", "sha256": "0" * 64}
+        for kind in state["required_outputs"]
+        if kind != "AUDIT_DOCX"
+    ]
+
+
+def _digest(value: object) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def test_current_tasks_are_marked_v1_while_legacy_builder_remains_compatible():
     current = _new_state("current")
     legacy = owner_guard.build_initial_state(
@@ -266,6 +298,19 @@ def test_research_cannot_advance_on_naked_artifact_without_decision_evidence():
         advance_state(
             state,
             previous_state_blob_sha="s1",
+            executor_identity="test",
+            **_artifact(state["task_id"], "RESEARCH"),
+        )
+
+
+def test_owner_guard_direct_transition_cannot_bypass_current_research_admission():
+    state = _new_state("owner-guard-research-bypass")
+    state = advance_state(state, previous_state_blob_sha="b0", executor_identity="test")
+    assert state["current_stage"] == "RESEARCH"
+    with pytest.raises(owner_guard.GithubChatGuardError):
+        owner_guard.advance_state(
+            state,
+            previous_state_blob_sha="b1",
             executor_identity="test",
             **_artifact(state["task_id"], "RESEARCH"),
         )
@@ -307,3 +352,115 @@ def test_editorial_audit_pass_requires_evidence_backed_fitness_for_each_longform
         "FINANCE_DEEP",
         "FINANCE_BROAD",
     }
+
+
+def test_persisted_quality_evidence_is_revalidated_and_digest_bound_before_downstream_progress():
+    state = _advance_to_delivery(_new_state("persisted-quality"))
+    validate_state(state)
+
+    missing = deepcopy(state)
+    missing["quality_evidence"].pop("publication_fitnesses")
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(missing)
+
+    tampered = deepcopy(state)
+    tampered["quality_evidence"]["publication_fitnesses"][0]["gates"][0]["evidence"][0]["finding"] = "tampered after admission"
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(tampered)
+
+
+def test_owner_guard_direct_delivery_cannot_bypass_tampered_publication_fitness():
+    state = _advance_to_delivery(_new_state("owner-guard-delivery-bypass"))
+    tampered = deepcopy(state)
+    tampered["quality_evidence"].pop("publication_fitnesses")
+    with pytest.raises(owner_guard.GithubChatGuardError):
+        owner_guard.advance_state(
+            tampered,
+            previous_state_blob_sha="d7",
+            executor_identity="test",
+            delivery_artifacts=_delivery_artifacts(tampered),
+            **_artifact(tampered["task_id"], "DELIVERY"),
+        )
+
+
+def test_later_wrong_stage_receipt_cannot_spoof_quality_digest_binding():
+    state = _advance_to_delivery(_new_state("stage-bound-digest"))
+    task_id = state["task_id"]
+    state = advance_state(
+        state,
+        previous_state_blob_sha="s7",
+        executor_identity="test",
+        delivery_artifacts=_delivery_artifacts(state),
+        **_artifact(task_id, "DELIVERY"),
+    )
+    assert state["current_stage"] == "MECHANICAL_AUDIT"
+
+    tampered = deepcopy(state)
+    tampered["quality_evidence"]["publication_fitnesses"][0]["gates"][0]["evidence"][0]["finding"] = "tampered after editorial audit"
+    spoof = _digest(tampered["quality_evidence"]["publication_fitnesses"])
+    tampered["execution_receipts"][-1]["input_bindings"]["publication_fitnesses_sha256"] = spoof
+    assert tampered["execution_receipts"][-1]["stage"] == "DELIVERY"
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(tampered)
+
+
+def test_revision_to_research_invalidates_stale_quality_evidence():
+    state = _new_state("research-revision")
+    task_id = state["task_id"]
+    state = advance_state(state, previous_state_blob_sha="r0", executor_identity="test")
+    state = advance_state(
+        state,
+        previous_state_blob_sha="r1",
+        executor_identity="test",
+        decision_envelope=_decision(),
+        **_artifact(task_id, "RESEARCH"),
+    )
+    assert "research_decision" in state["quality_evidence"]
+
+    revised = advance_state(
+        state,
+        previous_state_blob_sha="r2",
+        executor_identity="test",
+        review_status="REVISE",
+        revision_target="RESEARCH",
+        **_artifact(task_id, "RESEARCH_AUDIT"),
+    )
+    assert revised["current_stage"] == "RESEARCH"
+    assert revised["quality_evidence"] == {}
+    validate_state(revised)
+
+
+def test_owner_lifecycle_blocked_recovery_uses_central_quality_invalidation():
+    state = _new_state("blocked-recovery-quality")
+    task_id = state["task_id"]
+    state = advance_state(state, previous_state_blob_sha="l0", executor_identity="test")
+    state = advance_state(
+        state,
+        previous_state_blob_sha="l1",
+        executor_identity="test",
+        decision_envelope=_decision(),
+        **_artifact(task_id, "RESEARCH"),
+    )
+    assert state["current_stage"] == "RESEARCH_AUDIT"
+    assert "research_decision" in state["quality_evidence"]
+
+    blocked = block_review_failure_state(
+        state,
+        previous_state_blob_sha="l2",
+        executor_identity="test",
+        artifact_key="RESEARCH_AUDIT",
+        artifact_path=f"workspaces/articles/{task_id}/RESEARCH_AUDIT.json",
+        artifact_blob_sha="blob-research-audit-fail",
+        revision_target="RESEARCH",
+    )
+    assert blocked["status"] == "BLOCKED"
+
+    resumed = resume_blocked_state(
+        blocked,
+        previous_state_blob_sha="l3",
+        executor_identity="test",
+        repair_evidence=["re-open research after failed audit"],
+    )
+    assert resumed["current_stage"] == "RESEARCH"
+    assert resumed["quality_evidence"] == {}
+    owner_guard.validate_state(resumed)
