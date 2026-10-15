@@ -67,7 +67,7 @@ def main() -> None:
     require(execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True, "systemic evolution lost regression/eval gate")
 
     required_common = set(caps.get("required_uaos_common_capabilities", []))
-    require(caps["profile_version"] == 17, "Financial capability profile drift")
+    require(caps["profile_version"] == 18, "Financial capability profile drift")
     require(caps["uaos_common_capabilities_contract_min"] == "1.6.0", "Financial minimum common contract drift")
     require(caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0", "Financial minimum common behavior contract drift")
     require({
@@ -128,7 +128,7 @@ def main() -> None:
         package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
         require(source == skill == package, f"reference mirror drift: {name}")
 
-    print("PASS: Financial keeps one business owner, directly activates, binds UAOS 1.6 internal orchestration, and operationalizes cognition/recovery admission with owner-native evidence")
+    print("PASS: Financial keeps one business owner, directly activates, binds capability profile 18 to UAOS 1.6 internal orchestration, and operationalizes cognition/recovery admission with owner-native evidence")
 
 
 if __name__ == "__main__":
