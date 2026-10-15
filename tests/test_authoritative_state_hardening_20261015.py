@@ -8,6 +8,7 @@ import pytest
 from financial_writing_agent import owner_guard
 from financial_writing_agent.authoritative_state import AuthoritativeStateSnapshot
 from financial_writing_agent.current_admission import advance_state, build_initial_state
+from financial_writing_agent.owner_lifecycle import review_system_impact_state
 from financial_writing_agent.proactive_resolution import record_proactive_resolution_state
 
 
@@ -132,6 +133,20 @@ def test_current_state_cannot_be_downgraded_by_deleting_kernel_marker(monkeypatc
 
 
 @pytest.mark.strict_authority
+def test_correct_state_with_wrong_previous_blob_sha_is_rejected(monkeypatch: pytest.MonkeyPatch):
+    state = _new_current("authority-blob")
+    holder = _install_authority(monkeypatch, state, "a" * 40)
+
+    with pytest.raises(owner_guard.GithubChatGuardError, match="previous_state_blob_sha"):
+        owner_guard.advance_state(
+            state,
+            previous_state_blob_sha="b" * 40,
+            executor_identity="strict-test",
+        )
+    assert holder["state"] == state
+
+
+@pytest.mark.strict_authority
 def test_recomputed_quality_digest_inside_tampered_state_is_not_authority(monkeypatch: pytest.MonkeyPatch):
     state = _new_current("authority-digest")
     holder = _install_authority(monkeypatch, state, "a" * 40)
@@ -187,6 +202,50 @@ def test_proactive_resolution_rejects_non_authoritative_candidate_state(monkeypa
             contradictions_or_unknowns=["required evidence unavailable"],
             validation_plan=[],
             safe_to_continue=False,
+        )
+
+
+@pytest.mark.strict_authority
+def test_system_impact_lifecycle_rejects_non_authoritative_candidate_state(monkeypatch: pytest.MonkeyPatch):
+    state = _new_current("authority-lifecycle")
+    holder = _install_authority(monkeypatch, state, "e" * 40)
+
+    state = owner_guard.attach_material_feedback(
+        state,
+        previous_state_blob_sha=holder["sha"],
+        executor_identity="strict-test",
+        sample={"sample_type": "USER_REJECTION", "summary": "material rejection"},
+        system_impact={
+            "signal_id": "impact-authority",
+            "status": "OPEN",
+            "trigger_sample_type": "USER_REJECTION",
+        },
+    )
+    holder["state"] = deepcopy(state)
+    holder["sha"] = "f" * 40
+    tampered = deepcopy(state)
+    tampered["prompt"] = "caller rewrote persisted task before lifecycle mutation"
+
+    with pytest.raises(owner_guard.GithubChatGuardError, match="differs from authoritative GitHub STATE.json"):
+        review_system_impact_state(
+            tampered,
+            previous_state_blob_sha=holder["sha"],
+            executor_identity="strict-test",
+            signal_id="impact-authority",
+            problem_statement="systemic problem",
+            root_cause_layer="RUNTIME_OR_SCHEMA",
+            generalization_scope="Financial owner",
+            alternatives=[
+                {"mechanism": "repair guard", "failure_mode": "implementation cost"},
+                {"mechanism": "leave open", "failure_mode": "bypass persists"},
+            ],
+            selected_mechanism="repair guard",
+            selection_rationale="authoritative mutation boundary is required",
+            authority_surface="financial_writing_agent.owner_lifecycle",
+            regression_or_eval_plan=["strict authority regression"],
+            evidence_refs=["review://p1"],
+            decision="SYSTEM_MAINTENANCE_REQUIRED",
+            decision_reason="material bypass",
         )
 
 
