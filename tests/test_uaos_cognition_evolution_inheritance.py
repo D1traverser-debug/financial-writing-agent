@@ -14,8 +14,9 @@ def test_hosted_cognition_contract_is_current_and_explicit():
 
     assert caps["profile_version"] == 17
     assert caps["common_capabilities_inheritance"] == "UAOS_HOSTED"
-    assert caps["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert caps["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
+    assert "domain_internal_work_orchestration" in caps["required_uaos_common_capabilities"]
     assert caps["hosted_cognition_semantics"]["problem_response_floor"] == [
         "MICRO_DIAGNOSIS",
         "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
