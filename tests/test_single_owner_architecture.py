@@ -83,6 +83,8 @@ def test_financial_state_is_article_identity_and_task_contract_is_identity_free(
         executor_identity="chat-session:test",
     )
     assert state["task_id"] == "financial-owned-id"
+    assert state["schema_version"] == "1.3"
+    assert state["writing_kernel_version"] == "1.0"
     assert state["execution_receipts"][0]["task_id"] == "financial-owned-id"
     assert state["execution_receipts"][0]["output_refs"] == ["workspaces/articles/financial-owned-id/STATE.json"]
     assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
@@ -127,7 +129,7 @@ def test_discovery_skill_is_pointer_not_second_rulebook():
 
 def test_package_has_no_second_runtime_dependencies_or_parent_identity_logic():
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert pyproject["project"]["version"] == "1.0.1"
+    assert pyproject["project"]["version"] == "1.0.2"
     assert "scripts" not in pyproject["project"]
     assert not any(str(dep).lower().startswith("mcp") for dep in pyproject["project"].get("dependencies", []))
     assert "openai" not in pyproject["project"].get("optional-dependencies", {})
