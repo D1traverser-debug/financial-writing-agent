@@ -120,6 +120,13 @@ def test_ordinary_material_thesis_decision_needs_non_user_evidence_but_not_archi
     assert admission_errors(envelope) == []
 
 
+def test_search_sweep_rejects_blank_and_normalized_duplicate_source_families():
+    with pytest.raises(ValidationError):
+        SearchSweep(sweep_no=1, query_or_scope="blank family", source_families=["industry", "   "])
+    with pytest.raises(ValidationError):
+        SearchSweep(sweep_no=1, query_or_scope="duplicate family", source_families=["Industry", " industry "])
+
+
 def test_search_saturation_needs_two_consecutive_no_delta_sweeps():
     with pytest.raises(ValidationError):
         SearchSaturation(
@@ -128,7 +135,7 @@ def test_search_saturation_needs_two_consecutive_no_delta_sweeps():
                 SearchSweep(
                     sweep_no=2,
                     query_or_scope="two",
-                    source_families=["a", "b"],
+                    source_families=["a", "c"],
                     new_failure_modes=["new issue"],
                 ),
             ],
