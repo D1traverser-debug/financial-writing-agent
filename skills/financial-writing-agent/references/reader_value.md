@@ -36,7 +36,7 @@ Each section must add a distinct reader job, evidence and company/case grounding
 
 Retention is a full-article property, not a title or first-three-sentence score. A reader should encounter recurring reasons to continue: new facts, company divergence, counterexamples, consequences and partial payoffs.
 
-Curiosity gaps are allowed only when concrete and honestly paid off. Clicks alone do not prove satisfaction or completion.
+Curiosity gaps are allowed only when concrete and honestly paid off. Clicks alone do not prove satisfaction or completion. Opening jobs are collective reader outcomes; do not map these jobs mechanically to sentence 1/2/3.
 
 ### Company decision utility
 
@@ -48,7 +48,15 @@ This utility is analytical, not actionable. Buy/sell, timing, target, position s
 
 Draft from audited material + author stance + StoryBlueprint + strongest user-owned voice evidence. Do not draft from a giant list of anti-AI rules.
 
-Generic stage language (`值得关注`, `这意味着`, `问题在于`, repeated `不是X而是Y`, etc.) is inspected when clustered or unearned. It is not a phrase blacklist. The real defect is when scaffolding replaces facts, company evidence or reasoning.
+“去AI味” is not a generation style. It is shorthand for diagnosing when generic scaffolding, platform caricature or model rhythm displaces material-specific writing.
+
+Voice evidence priority: user-approved or user-edited samples first, then durable explicit constraints, current prose signals, target-platform conventions and generic defaults.
+
+Generic stage language (`值得关注`, `这意味着`, `问题在于`, repeated `不是X而是Y`, etc.), syntactic variation and paragraph-role variation are post-draft diagnostics, not generation mandates. A cluster that replaces new information or creates visible model rhythm requires semantic review; an isolated legitimate signal does not automatically fail.
+
+Avoid platform caricature: canned slang, fake intimacy, fake anecdotes, stock questions or superficial “human” tics are not authorial voice. Apply the minimum effective revision needed to repair the diagnosed defect rather than globally rewriting sound prose.
+
+Same-model critic passes can challenge a draft but are not independent verification.
 
 ### Originality
 
