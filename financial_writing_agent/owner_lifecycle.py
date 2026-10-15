@@ -7,12 +7,14 @@ from .owner_guard import (
     MAIN_STATE_REF,
     SELF_ATTESTED_RECEIPT,
     GithubChatGuardError as OwnerGuardError,
+    _current_receipt_bindings,
     _invalidate_from,
     _new_receipt,
     _state_path,
     _utc_now,
+    _validate_persisted_state,
+    _validate_unpersisted_state,
     advance_state,
-    validate_state,
 )
 from .models import Stage
 from .workflow_spec import REVIEW_STAGE_NAMES, revision_targets
@@ -85,13 +87,8 @@ def block_review_failure_state(
     revision_target: str,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Persist a review FAIL together with its canonical repair target.
-
-    The base guard blocks FAIL in place. This helper makes the recovery cursor explicit
-    in the same action receipt so later recovery cannot invent a target after the fact.
-    """
+    """Persist a review FAIL together with its canonical repair target."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
-    validate_state(state)
     stage = str(state.get("current_stage", ""))
     _require(stage in REVIEW_STAGE_NAMES, "review failure blocking requires a canonical review stage")
     allowed = _allowed_revision_targets(stage)
@@ -139,7 +136,7 @@ def resume_blocked_state(
 ) -> dict[str, Any]:
     """Resume a blocked review through the target chosen when the FAIL was persisted."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
-    validate_state(state)
+    _validate_persisted_state(state, previous_state_blob_sha=previous_state_blob_sha)
     before = deepcopy(dict(state))
     _require(before.get("status") == "BLOCKED", "only BLOCKED owner state may be resumed")
     failed_stage = str(before.get("current_stage", ""))
@@ -172,13 +169,17 @@ def resume_blocked_state(
         previous_state_blob_sha=previous_state_blob_sha,
         action_kind="RESUME_BLOCKED",
         subject_bindings={"task_id": before["task_id"], "failed_stage": failed_stage, "resume_target": target},
-        input_bindings={"repair_evidence": evidence, "invalidated_stage_refs": invalidated},
+        input_bindings={
+            "repair_evidence": evidence,
+            "invalidated_stage_refs": invalidated,
+            **_current_receipt_bindings(before),
+        },
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_state(after)
+    _validate_unpersisted_state(after)
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     _require(after["current_stage"] == target, "BLOCKED recovery must use the persisted canonical target")
     return after
@@ -207,13 +208,9 @@ def review_system_impact_state(
     remaining_open: list[str] | None = None,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Classify or close one material-feedback system-impact obligation.
-
-    Closure is evidence-bound but remains self-attested at the current chat/provider
-    assurance level. It never manufactures provider-attested independence.
-    """
+    """Classify or close one material-feedback system-impact obligation."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
-    validate_state(state)
+    _validate_persisted_state(state, previous_state_blob_sha=previous_state_blob_sha)
     before = deepcopy(dict(state))
     _require(bool(str(signal_id).strip()), "signal_id is required")
     _require(decision in SYSTEM_IMPACT_DECISIONS, f"unsupported system-impact decision: {decision}")
@@ -326,12 +323,13 @@ def review_system_impact_state(
             "validation_refs": list(validation_refs or []),
             "evidence_assurance_ceiling": assurance_ceiling,
             "closure_attestation": OWNER_CLOSURE_ATTESTATION if action == "SYSTEM_IMPACT_CLOSE" else None,
+            **_current_receipt_bindings(before),
         },
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_state(after)
+    _validate_unpersisted_state(after)
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     return after
