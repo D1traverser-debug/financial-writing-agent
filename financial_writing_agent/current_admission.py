@@ -165,26 +165,33 @@ def _validate_current_quality_evidence(state: Mapping[str, Any]) -> None:
 _validate_persisted_quality_evidence = _validate_current_quality_evidence
 
 
-def build_initial_state(**kwargs: Any) -> dict[str, Any]:
-    """Create a current quality-governed Financial task.
+def _translate_owner_error(exc: owner_guard.GithubChatGuardError) -> CurrentAdmissionError:
+    return CurrentAdmissionError(str(exc))
 
-    The base owner builds the business contract. This layer upgrades the new task to
-    the dedicated quality-state schema before it is persisted for the first time.
-    """
-    state = owner_guard.build_initial_state(**kwargs)
-    state["schema_version"] = owner_guard.QUALITY_STATE_SCHEMA_VERSION
-    state["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    state["quality_evidence"] = {}
-    receipt = state["execution_receipts"][-1]
-    receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
-    owner_guard._validate_unpersisted_state(state)
+
+def build_initial_state(**kwargs: Any) -> dict[str, Any]:
+    """Create a current quality-governed Financial task through the canonical owner builder."""
+    try:
+        state = owner_guard.build_initial_state(**kwargs)
+    except owner_guard.GithubChatGuardError as exc:
+        raise _translate_owner_error(exc) from exc
+    _require(
+        state.get("schema_version") == owner_guard.QUALITY_STATE_SCHEMA_VERSION,
+        "canonical owner builder did not create a schema_version=1.3 current task",
+    )
+    _require(
+        state.get("writing_kernel_version") == WRITING_KERNEL_VERSION,
+        "canonical owner builder did not bind writing_kernel_version=1.0",
+    )
     return state
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
     """Validate current state against owner semantics and the authoritative GitHub blob."""
-    owner_guard.validate_state(state)
+    try:
+        owner_guard.validate_state(state)
+    except owner_guard.GithubChatGuardError as exc:
+        raise _translate_owner_error(exc) from exc
     _require(
         state.get("schema_version") == owner_guard.QUALITY_STATE_SCHEMA_VERSION,
         "current Financial state must use schema_version=1.3",
@@ -275,14 +282,20 @@ def advance_state(
     authenticates GitHub state, parses current quality evidence and binds its digest
     in the same transition.
     """
-    return owner_guard.advance_state(
-        state,
-        decision_envelope=decision_envelope,
-        story_blueprints=story_blueprints,
-        publication_fitnesses=publication_fitnesses,
-        **kwargs,
-    )
+    try:
+        return owner_guard.advance_state(
+            state,
+            decision_envelope=decision_envelope,
+            story_blueprints=story_blueprints,
+            publication_fitnesses=publication_fitnesses,
+            **kwargs,
+        )
+    except owner_guard.GithubChatGuardError as exc:
+        raise _translate_owner_error(exc) from exc
 
 
 def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
-    return owner_guard.attach_material_feedback(state, **kwargs)
+    try:
+        return owner_guard.attach_material_feedback(state, **kwargs)
+    except owner_guard.GithubChatGuardError as exc:
+        raise _translate_owner_error(exc) from exc
