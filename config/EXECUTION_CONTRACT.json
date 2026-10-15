@@ -181,6 +181,16 @@
     "post_promotion_observation_required_for_evolution_closure": true,
     "common_or_cross_domain_change_uses_parent_upcall": true
   },
+  "problem_and_evolution": {
+    "every_problem_requires_external_research_and_reflection": true,
+    "material_negative_feedback_requires_system_impact_signal": true,
+    "one_off_observation_auto_promotes_to_global_rule": false,
+    "systemic_change_requires_regression_or_eval_evidence": true,
+    "post_promotion_observation_required_for_evolution_closure": true,
+    "common_or_cross_domain_change_uses_parent_upcall": true,
+    "user_feedback_is_evidence_not_automatic_rule_authority": true,
+    "material_decisions_require_counterexamples_and_candidate_comparison": true
+  },
   "assurance": {
     "same_chat_semantic_review": "CHAT_SELF_REVIEW",
     "independent_claim_requires_distinct_execution_evidence": true,
