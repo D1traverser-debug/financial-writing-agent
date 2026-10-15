@@ -9,29 +9,26 @@ from financial_writing_agent.candidate_integrity import (
     validate_feedback_candidate_isolation,
     validate_transition_candidate_isolation,
 )
+from financial_writing_agent.workflow_spec import pass_target_name
 
 
 def _receipt(
     stage: str,
     *,
     task_id: str,
+    to_stage: str | None,
     review_status: str | None = None,
     revision_target: str | None = None,
 ) -> dict:
     action_id = f"{task_id}:TRANSITION:test-action"
     bindings: dict[str, object] = {"from_stage": stage}
-    subject: dict[str, object] = {"task_id": task_id, "from_stage": stage}
+    subject: dict[str, object] = {"task_id": task_id, "from_stage": stage, "to_stage": to_stage}
     if review_status is not None:
         bindings["review_status"] = review_status
     if revision_target is not None:
         bindings["revision_target"] = revision_target
-    if review_status == "REVISE":
-        subject["to_stage"] = revision_target
-    elif review_status == "FAIL":
-        subject["to_stage"] = stage
+    if review_status == "FAIL":
         subject["blocked"] = True
-    else:
-        subject["to_stage"] = stage
     output_refs = [f"workspaces/articles/{task_id}/STATE.json"]
     if stage != "INTAKE":
         output_refs.append(f"workspaces/articles/{task_id}/{stage}.json")
@@ -77,10 +74,23 @@ def _base(stage: str = "DRAFT", *, schema: str = "1.2") -> dict:
 
 def _transition_after(before: dict, *, review_status: str | None = None, revision_target: str | None = None) -> dict:
     after = deepcopy(before)
+    stage = str(before["current_stage"])
+    if review_status == "REVISE":
+        to_stage = revision_target
+    elif review_status == "FAIL":
+        to_stage = stage
+        after["status"] = "BLOCKED"
+    else:
+        to_stage = pass_target_name(stage)
+        if to_stage == "COMPLETE":
+            to_stage = stage
+            after["status"] = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
+    after["current_stage"] = to_stage
     after["execution_receipts"] = list(before["execution_receipts"]) + [
         _receipt(
-            str(before["current_stage"]),
+            stage,
             task_id=str(before["task_id"]),
+            to_stage=to_stage,
             review_status=review_status,
             revision_target=revision_target,
         )
@@ -177,7 +187,6 @@ def test_canonical_revision_may_remove_only_invalidated_nested_state():
     }
 
     after = _transition_after(before, review_status="REVISE", revision_target="EDITORIAL")
-    after["current_stage"] = "EDITORIAL"
     after["stage_artifacts"] = {
         key: value for key, value in before["stage_artifacts"].items() if key in {"RESEARCH", "RESEARCH_AUDIT"}
     }
