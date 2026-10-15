@@ -6,6 +6,11 @@ from typing import Any, Mapping
 from uuid import uuid4
 
 from .authoritative_state import AuthoritativeStateError, fetch_authoritative_state
+from .candidate_integrity import (
+    CandidateIntegrityError,
+    validate_feedback_candidate_isolation,
+    validate_transition_candidate_isolation,
+)
 from .models import ArtifactKind, DeliveryChannel, DistributionMode, Stage, TaskContract
 from .routing import build_task_contract
 from .workflow_spec import (
@@ -787,6 +792,10 @@ def _validate_transition_core(
     previous_state_blob_sha: str,
 ) -> None:
     _validate_unpersisted_state(before)
+    try:
+        validate_transition_candidate_isolation(before, after)
+    except CandidateIntegrityError as exc:
+        raise GithubChatGuardError(str(exc)) from exc
     _validate_unpersisted_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
     _validate_governance_immutability(before, after)
@@ -861,6 +870,10 @@ def _validate_feedback_update_core(
     previous_state_blob_sha: str,
 ) -> None:
     _validate_unpersisted_state(before)
+    try:
+        validate_feedback_candidate_isolation(before, after)
+    except CandidateIntegrityError as exc:
+        raise GithubChatGuardError(str(exc)) from exc
     _validate_unpersisted_state(after)
     _require(before["task_id"] == after["task_id"], "task_id cannot change")
     _validate_governance_immutability(before, after)
