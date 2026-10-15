@@ -3,7 +3,7 @@ from __future__ import annotations
 from typing import Any, Mapping
 
 from .authoritative_state import _json_type_strict_equal
-from .workflow_spec import REVIEW_STAGE_NAMES, invalidated_stage_names_from
+from .workflow_spec import REVIEW_STAGE_NAMES, invalidated_stage_names_from, pass_target_name
 
 
 class CandidateIntegrityError(ValueError):
@@ -82,18 +82,13 @@ def _validate_immutable_by_default(
     mutable_fields: frozenset[str],
     action_label: str,
 ) -> None:
-    """Require every field not owned by this action to remain type-strictly identical."""
     if before.get("schema_version") == "1.1":
         mutable_fields = mutable_fields | LEGACY_MIGRATION_MUTABLE_TOP_LEVEL
     all_fields = set(before) | set(after)
     for field in sorted(all_fields - mutable_fields):
         _require(field in before, f"{action_label} cannot inject unowned state field: {field}")
         _require(field in after, f"{action_label} cannot delete immutable state field: {field}")
-        _strict_equal(
-            before[field],
-            after[field],
-            f"{action_label} cannot mutate immutable state field: {field}",
-        )
+        _strict_equal(before[field], after[field], f"{action_label} cannot mutate immutable state field: {field}")
 
 
 def _validate_mapping_delta(
@@ -128,11 +123,7 @@ def _transition_context(before: Mapping[str, Any], after: Mapping[str, Any]) -> 
     bindings = _mapping(receipt.get("input_bindings"), label="transition receipt input_bindings")
     review_status = bindings.get("review_status")
     revision_target = bindings.get("revision_target")
-    return (
-        stage,
-        str(review_status) if review_status is not None else None,
-        str(revision_target) if revision_target is not None else None,
-    )
+    return stage, (str(review_status) if review_status is not None else None), (str(revision_target) if revision_target is not None else None)
 
 
 def _invalidated_names(revision_target: str | None) -> set[str]:
@@ -144,31 +135,68 @@ def _invalidated_names(revision_target: str | None) -> set[str]:
         raise CandidateIntegrityError(str(exc)) from exc
 
 
-def _validate_stage_artifact_delta(
-    before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None
-) -> None:
+def _effective_review_status(after: Mapping[str, Any], stage: str, receipt_status: str | None) -> str | None:
+    if receipt_status is not None:
+        return receipt_status
+    reviews = after.get("review_decisions", {})
+    if isinstance(reviews, Mapping):
+        review = reviews.get(stage)
+        if isinstance(review, Mapping) and review.get("status") is not None:
+            return str(review.get("status"))
+    return None
+
+
+def _validate_route_delta(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    stage: str,
+    review_status: str | None,
+    revision_target: str | None,
+) -> str | None:
+    if stage in REVIEW_STAGE_NAMES:
+        effective = _effective_review_status(after, stage, review_status)
+        if effective == "PASS":
+            expected = pass_target_name(stage)
+            _require(expected is not None, f"no canonical PASS route from {stage}")
+            if expected == "COMPLETE":
+                _require(after.get("status") == TERMINAL_STATUS, "FINAL_AUDIT PASS must use bounded terminal status")
+                _require(after.get("current_stage") == stage, "terminal FINAL_AUDIT state must remain on FINAL_AUDIT")
+            else:
+                _require(after.get("current_stage") == expected, f"{stage} PASS must advance to {expected}")
+        elif effective == "REVISE":
+            _require(bool(revision_target), f"{stage} REVISE requires revision_target")
+            _require(after.get("current_stage") == revision_target, f"{stage} REVISE must route to {revision_target}")
+        elif effective == "FAIL":
+            _require(after.get("status") == "BLOCKED", f"{stage} FAIL must block")
+            _require(after.get("current_stage") == stage, f"{stage} FAIL must remain on the failed stage")
+        else:
+            raise CandidateIntegrityError(f"{stage} review status invalid")
+        return effective
+    expected = pass_target_name(stage)
+    _require(expected is not None and expected != "COMPLETE", f"no forward transition from {stage}")
+    _require(after.get("current_stage") == expected, f"{stage} must advance to {expected}")
+    return None
+
+
+def _validate_stage_artifact_delta(before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None) -> None:
     before_artifacts = _mapping(before.get("stage_artifacts", {}), label="before.stage_artifacts")
     after_artifacts = _mapping(after.get("stage_artifacts", {}), label="after.stage_artifacts")
     if review_status == "REVISE" and revision_target:
-        invalidated = _invalidated_names(revision_target)
-        expected = {key: value for key, value in before_artifacts.items() if key not in invalidated}
+        expected = {key: value for key, value in before_artifacts.items() if key not in _invalidated_names(revision_target)}
         _strict_equal(expected, dict(after_artifacts), "stage_artifacts must equal the canonical revision invalidation result")
         return
-    mutable = {stage} if stage != "INTAKE" else set()
-    _validate_mapping_delta(before_artifacts, after_artifacts, mutable_keys=mutable, label="stage_artifacts")
+    _validate_mapping_delta(before_artifacts, after_artifacts, mutable_keys=({stage} if stage != "INTAKE" else set()), label="stage_artifacts")
 
 
-def _validate_review_delta(
-    before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None
-) -> None:
+def _validate_review_delta(before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None) -> None:
     before_reviews = _mapping(before.get("review_decisions", {}), label="before.review_decisions")
     after_reviews = _mapping(after.get("review_decisions", {}), label="after.review_decisions")
     if stage not in REVIEW_STAGE_NAMES:
         _strict_equal(dict(before_reviews), dict(after_reviews), "non-review transition cannot mutate review_decisions")
         return
     if review_status == "REVISE" and revision_target:
-        invalidated = _invalidated_names(revision_target)
-        expected = {key: value for key, value in before_reviews.items() if key not in invalidated}
+        expected = {key: value for key, value in before_reviews.items() if key not in _invalidated_names(revision_target)}
         _strict_equal(expected, dict(after_reviews), "review_decisions must equal the canonical revision invalidation result")
         return
     _validate_mapping_delta(before_reviews, after_reviews, mutable_keys={stage}, label="review_decisions")
@@ -186,9 +214,7 @@ def _apply_quality_invalidation(value: Mapping[str, Any], revision_target: str) 
     return expected
 
 
-def _validate_quality_delta(
-    before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None
-) -> None:
+def _validate_quality_delta(before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None) -> None:
     if before.get("schema_version") != "1.3":
         _strict_equal(before.get("quality_evidence"), after.get("quality_evidence"), "historical transition cannot mutate quality_evidence")
         return
@@ -199,8 +225,7 @@ def _validate_quality_delta(
     _require(not unknown_before, f"before.quality_evidence contains unknown keys: {sorted(unknown_before)}")
     _require(not unknown_after, f"after.quality_evidence contains unknown keys: {sorted(unknown_after)}")
     if review_status == "REVISE" and revision_target:
-        expected = _apply_quality_invalidation(before_quality, revision_target)
-        _strict_equal(expected, dict(after_quality), "quality_evidence must equal the canonical revision invalidation result")
+        _strict_equal(_apply_quality_invalidation(before_quality, revision_target), dict(after_quality), "quality_evidence must equal the canonical revision invalidation result")
         return
     mutable: set[str] = set()
     if stage == "RESEARCH":
@@ -212,16 +237,14 @@ def _validate_quality_delta(
     _validate_mapping_delta(before_quality, after_quality, mutable_keys=mutable, label="quality_evidence")
 
 
-def _validate_delivery_delta(
-    before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None
-) -> None:
+def _validate_delivery_delta(before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None) -> None:
     before_delivery = _mapping(before.get("delivery_artifacts", {}), label="before.delivery_artifacts")
     after_delivery = _mapping(after.get("delivery_artifacts", {}), label="after.delivery_artifacts")
     if review_status == "REVISE" and revision_target and "DELIVERY" in _invalidated_names(revision_target):
         _strict_equal({}, dict(after_delivery), "delivery_artifacts must clear when revision invalidates DELIVERY")
         return
     if stage == "DELIVERY":
-        return  # Owner core validates the exact required article-output contract.
+        return
     if stage == "FINAL_AUDIT" and review_status == "PASS":
         _validate_mapping_delta(before_delivery, after_delivery, mutable_keys={"AUDIT_DOCX"}, label="delivery_artifacts")
         return
@@ -236,20 +259,10 @@ def _validate_common_receipt_identity(receipt: Mapping[str, Any], *, task_id: st
     prefix = f"{task_id}:{action_kind}:"
     _require(isinstance(action_id, str) and action_id.startswith(prefix), f"action_id must bind canonical {action_kind} action")
     _require(receipt.get("task_id") == task_id, "receipt task_id must bind the current article")
-    _require(
-        receipt.get("execution_ref") == f"github-chat://{task_id}/{action_id}",
-        "execution_ref must bind the receipt action_id",
-    )
+    _require(receipt.get("execution_ref") == f"github-chat://{task_id}/{action_id}", "execution_ref must bind the receipt action_id")
 
 
-def _validate_transition_receipt_identity(
-    before: Mapping[str, Any],
-    after: Mapping[str, Any],
-    *,
-    stage: str,
-    review_status: str | None,
-    revision_target: str | None,
-) -> None:
+def _validate_transition_receipt_identity(before: Mapping[str, Any], after: Mapping[str, Any], *, stage: str, review_status: str | None, revision_target: str | None) -> None:
     receipt = _last_receipt(after)
     task_id = str(before.get("task_id", ""))
     _require(bool(task_id), "transition candidate requires task_id")
@@ -257,7 +270,6 @@ def _validate_transition_receipt_identity(
     subject = _mapping(receipt.get("subject_bindings"), label="transition receipt subject_bindings")
     _require(subject.get("task_id") == task_id, "transition receipt subject task_id mismatch")
     _require(subject.get("from_stage") == stage, "transition receipt subject from_stage mismatch")
-
     if stage in REVIEW_STAGE_NAMES:
         if review_status == "PASS":
             if after.get("status") == TERMINAL_STATUS:
@@ -272,7 +284,6 @@ def _validate_transition_receipt_identity(
             _require(subject.get("blocked") is True, "FAIL receipt must bind blocked=true")
     else:
         _require(subject.get("to_stage") == after.get("current_stage"), "transition receipt to_stage mismatch")
-
     output_refs = _list(receipt.get("output_refs"), label="transition receipt output_refs")
     expected_count = 1 if stage == "INTAKE" else 2
     _require(len(output_refs) == expected_count, "transition receipt output_refs count does not match stage output ownership")
@@ -280,55 +291,18 @@ def _validate_transition_receipt_identity(
     _require(output_refs[0] == state_path, "transition receipt must bind canonical STATE.json first")
     if expected_count == 2:
         artifact_path = output_refs[1]
-        _require(
-            isinstance(artifact_path, str) and artifact_path.startswith(f"workspaces/articles/{task_id}/"),
-            "transition receipt artifact output must belong to the current article workspace",
-        )
+        _require(isinstance(artifact_path, str) and artifact_path.startswith(f"workspaces/articles/{task_id}/"), "transition receipt artifact output must belong to the current article workspace")
 
 
 def validate_transition_candidate_isolation(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
-    _validate_immutable_by_default(
-        before,
-        after,
-        mutable_fields=TRANSITION_MUTABLE_TOP_LEVEL,
-        action_label="transition candidate",
-    )
-    stage, review_status, revision_target = _transition_context(before, after)
-    _validate_stage_artifact_delta(
-        before,
-        after,
-        stage=stage,
-        review_status=review_status,
-        revision_target=revision_target,
-    )
-    _validate_review_delta(
-        before,
-        after,
-        stage=stage,
-        review_status=review_status,
-        revision_target=revision_target,
-    )
-    _validate_quality_delta(
-        before,
-        after,
-        stage=stage,
-        review_status=review_status,
-        revision_target=revision_target,
-    )
-    _validate_delivery_delta(
-        before,
-        after,
-        stage=stage,
-        review_status=review_status,
-        revision_target=revision_target,
-    )
-    _validate_transition_receipt_identity(
-        before,
-        after,
-        stage=stage,
-        review_status=review_status,
-        revision_target=revision_target,
-    )
+    _validate_immutable_by_default(before, after, mutable_fields=TRANSITION_MUTABLE_TOP_LEVEL, action_label="transition candidate")
+    stage, receipt_review_status, revision_target = _transition_context(before, after)
+    effective_review_status = _validate_route_delta(before, after, stage=stage, review_status=receipt_review_status, revision_target=revision_target)
+    _validate_stage_artifact_delta(before, after, stage=stage, review_status=effective_review_status, revision_target=revision_target)
+    _validate_review_delta(before, after, stage=stage, review_status=effective_review_status, revision_target=revision_target)
+    _validate_quality_delta(before, after, stage=stage, review_status=effective_review_status, revision_target=revision_target)
+    _validate_delivery_delta(before, after, stage=stage, review_status=effective_review_status, revision_target=revision_target)
+    _validate_transition_receipt_identity(before, after, stage=stage, review_status=effective_review_status, revision_target=revision_target)
 
 
 def _validate_append_one(before_value: Any, after_value: Any, *, label: str) -> Any:
@@ -340,16 +314,8 @@ def _validate_append_one(before_value: Any, after_value: Any, *, label: str) -> 
 
 
 def _validate_feedback_append_semantics(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
-    sample = _validate_append_one(
-        before.get("learning_evidence", []),
-        after.get("learning_evidence", []),
-        label="learning_evidence",
-    )
-    impact = _validate_append_one(
-        before.get("open_system_impact", []),
-        after.get("open_system_impact", []),
-        label="open_system_impact",
-    )
+    sample = _validate_append_one(before.get("learning_evidence", []), after.get("learning_evidence", []), label="learning_evidence")
+    impact = _validate_append_one(before.get("open_system_impact", []), after.get("open_system_impact", []), label="open_system_impact")
     sample_map = _mapping(sample, label="appended learning_evidence")
     impact_map = _mapping(impact, label="appended open_system_impact")
     sample_type = sample_map.get("sample_type")
@@ -360,7 +326,6 @@ def _validate_feedback_append_semantics(before: Mapping[str, Any], after: Mappin
     _require(isinstance(signal_id, str) and bool(signal_id.strip()), "appended system-impact signal_id is required")
     _require(impact_map.get("status") == "OPEN", "appended system-impact status must be OPEN")
     _require(impact_map.get("trigger_sample_type") == sample_type, "appended system-impact trigger_sample_type mismatch")
-
     receipt = _last_receipt(after)
     task_id = str(before.get("task_id", ""))
     _require(bool(task_id), "feedback candidate requires task_id")
@@ -373,18 +338,9 @@ def _validate_feedback_append_semantics(before: Mapping[str, Any], after: Mappin
     _require(bindings.get("feedback_summary") == summary, "feedback receipt summary does not bind appended sample")
     _require(bindings.get("signal_status") == "OPEN", "feedback receipt signal_status does not bind appended system-impact")
     output_refs = _list(receipt.get("output_refs"), label="feedback receipt output_refs")
-    _strict_equal(
-        [f"workspaces/articles/{task_id}/STATE.json"],
-        output_refs,
-        "feedback receipt output_refs must bind only canonical STATE.json",
-    )
+    _strict_equal([f"workspaces/articles/{task_id}/STATE.json"], output_refs, "feedback receipt output_refs must bind only canonical STATE.json")
 
 
 def validate_feedback_candidate_isolation(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
-    _validate_immutable_by_default(
-        before,
-        after,
-        mutable_fields=FEEDBACK_MUTABLE_TOP_LEVEL,
-        action_label="feedback mutation",
-    )
+    _validate_immutable_by_default(before, after, mutable_fields=FEEDBACK_MUTABLE_TOP_LEVEL, action_label="feedback mutation")
     _validate_feedback_append_semantics(before, after)
