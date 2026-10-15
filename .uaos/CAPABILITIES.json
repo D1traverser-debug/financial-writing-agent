@@ -1,6 +1,6 @@
 {
   "schema_version": "2.6",
-  "profile_version": 17,
+  "profile_version": 18,
   "domain_id": "financial_writing",
   "policy": "CURRENT_SESSION_CAPABILITY_HANDSHAKE__NO_SIDE_CHANNEL__NO_SILENT_DEGRADATION",
   "uaos_common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
