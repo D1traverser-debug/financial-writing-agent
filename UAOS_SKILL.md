@@ -77,19 +77,13 @@ Financial inherits UAOS adaptive deliberation. Every detected defect, user corre
 
 Familiarity is not a waiver. Material problems require alternatives/counterexamples and stronger verification. Common/cross-domain causes upcall UAOS; Financial-local causes remain Financial-owned.
 
-After diagnosis, Financial also inherits UAOS problem-to-action closure: if an owner-authorized repair is currently available and no required user fact/approval/authorization/safety-sensitive choice blocks it, Financial must attempt the repair before ending the turn. Recommendation-only is not a valid closure for a currently repairable problem.
+After diagnosis, Financial also inherits UAOS problem-to-action closure: if an owner-authorized repair is currently available and no required user fact/approval/authorization/safety-sensitive choice blocks it, Financial must attempt the repair before ending the turn. Recommendation-only is not valid closure for a currently repairable problem.
 
 ## Executable proactive resolution before user escalation
 
-`financial_writing_agent/proactive_resolution.py` is the owner-native admission layer for plausibly recoverable dependencies.
+`financial_writing_agent/proactive_resolution.py` owns the executable recovery receipt and escalation gate. Before externalizing a recoverable dependency, Financial must persist either a safe evidence-bound `RESOLVED/PROVISIONAL` result and continue, or an unsafe `UNRESOLVED` result with concrete blockers and pass `require_user_escalation_admission`. Explicit user confirmation remains legal.
 
-Before Financial externalizes a recoverable dependency to the user, it must either:
-- persist an evidence-bound `RESOLVED` or `PROVISIONAL` recovery attempt and continue with that result; or
-- persist an `UNRESOLVED` attempt with concrete unknown/blocker evidence, then pass `require_user_escalation_admission` for a supported escalation reason.
-
-A safe provisional result is explicitly **not** escalation-eligible. The code path emits a `financial_owner_proactive_resolution_admission` execution receipt bound to the article owner state. Explicit user confirmation requests remain legal and do not require a fabricated recovery exercise.
-
-This makes the Financial rule `recover -> infer provisionally -> test -> only then escalate` executable and trajectory-testable. It does not claim host-level physical interception of every possible natural-language response; current assurance is bounded to executable policy + trajectory evidence until live article behavior accumulates.
+A safe provisional result is not escalation-eligible. See `references/proactive_resolution.md` for evidence order, confidence/validation semantics and assurance limits. Current assurance is executable policy + trajectory evidence until live article behavior accumulates; host-level physical interception is not claimed.
 
 ## Governed evolution
 
