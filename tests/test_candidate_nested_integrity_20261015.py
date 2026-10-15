@@ -11,18 +11,46 @@ from financial_writing_agent.candidate_integrity import (
 )
 
 
-def _receipt(stage: str, *, review_status: str | None = None, revision_target: str | None = None) -> dict:
+def _receipt(
+    stage: str,
+    *,
+    task_id: str,
+    review_status: str | None = None,
+    revision_target: str | None = None,
+) -> dict:
+    action_id = f"{task_id}:TRANSITION:test-action"
     bindings: dict[str, object] = {"from_stage": stage}
+    subject: dict[str, object] = {"task_id": task_id, "from_stage": stage}
     if review_status is not None:
         bindings["review_status"] = review_status
     if revision_target is not None:
         bindings["revision_target"] = revision_target
-    return {"input_bindings": bindings}
+    if review_status == "REVISE":
+        subject["to_stage"] = revision_target
+    elif review_status == "FAIL":
+        subject["to_stage"] = stage
+        subject["blocked"] = True
+    else:
+        subject["to_stage"] = stage
+    output_refs = [f"workspaces/articles/{task_id}/STATE.json"]
+    if stage != "INTAKE":
+        output_refs.append(f"workspaces/articles/{task_id}/{stage}.json")
+    return {
+        "receipt_contract_version": "1.1",
+        "receipt_id": "receipt:test",
+        "action_id": action_id,
+        "task_id": task_id,
+        "execution_ref": f"github-chat://{task_id}/{action_id}",
+        "subject_bindings": subject,
+        "input_bindings": bindings,
+        "output_refs": output_refs,
+    }
 
 
 def _base(stage: str = "DRAFT", *, schema: str = "1.2") -> dict:
     state = {
         "schema_version": schema,
+        "task_id": "candidate-nested-test",
         "prompt": "fixed",
         "source_refs": ["s1"],
         "current_stage": stage,
@@ -50,7 +78,12 @@ def _base(stage: str = "DRAFT", *, schema: str = "1.2") -> dict:
 def _transition_after(before: dict, *, review_status: str | None = None, revision_target: str | None = None) -> dict:
     after = deepcopy(before)
     after["execution_receipts"] = list(before["execution_receipts"]) + [
-        _receipt(str(before["current_stage"]), review_status=review_status, revision_target=revision_target)
+        _receipt(
+            str(before["current_stage"]),
+            task_id=str(before["task_id"]),
+            review_status=review_status,
+            revision_target=revision_target,
+        )
     ]
     after["updated_at"] = "after"
     return after
