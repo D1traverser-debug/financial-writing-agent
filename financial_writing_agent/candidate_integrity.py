@@ -53,11 +53,7 @@ KNOWN_QUALITY_KEYS = frozenset(
     }
 )
 
-QUALITY_KEY_BY_STAGE = {
-    "RESEARCH": "research_decision",
-    "EDITORIAL": "story_blueprints",
-    "EDITORIAL_AUDIT": "publication_fitnesses",
-}
+TERMINAL_STATUS = "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
 
 
 def _require(condition: bool, message: str) -> None:
@@ -122,7 +118,7 @@ def _validate_mapping_delta(
 
 def _last_receipt(after: Mapping[str, Any]) -> Mapping[str, Any]:
     receipts = _list(after.get("execution_receipts"), label="after.execution_receipts")
-    _require(bool(receipts), "transition candidate requires an execution receipt")
+    _require(bool(receipts), "candidate requires an execution receipt")
     return _mapping(receipts[-1], label="after.execution_receipts[-1]")
 
 
@@ -232,6 +228,64 @@ def _validate_delivery_delta(
     _strict_equal(dict(before_delivery), dict(after_delivery), "transition cannot mutate delivery_artifacts at this stage")
 
 
+def _validate_common_receipt_identity(receipt: Mapping[str, Any], *, task_id: str, action_kind: str) -> None:
+    _require(receipt.get("receipt_contract_version") == "1.1", "receipt_contract_version must remain 1.1")
+    receipt_id = receipt.get("receipt_id")
+    _require(isinstance(receipt_id, str) and receipt_id.startswith("receipt:"), "receipt_id must use canonical receipt identity")
+    action_id = receipt.get("action_id")
+    prefix = f"{task_id}:{action_kind}:"
+    _require(isinstance(action_id, str) and action_id.startswith(prefix), f"action_id must bind canonical {action_kind} action")
+    _require(receipt.get("task_id") == task_id, "receipt task_id must bind the current article")
+    _require(
+        receipt.get("execution_ref") == f"github-chat://{task_id}/{action_id}",
+        "execution_ref must bind the receipt action_id",
+    )
+
+
+def _validate_transition_receipt_identity(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    stage: str,
+    review_status: str | None,
+    revision_target: str | None,
+) -> None:
+    receipt = _last_receipt(after)
+    task_id = str(before.get("task_id", ""))
+    _require(bool(task_id), "transition candidate requires task_id")
+    _validate_common_receipt_identity(receipt, task_id=task_id, action_kind="TRANSITION")
+    subject = _mapping(receipt.get("subject_bindings"), label="transition receipt subject_bindings")
+    _require(subject.get("task_id") == task_id, "transition receipt subject task_id mismatch")
+    _require(subject.get("from_stage") == stage, "transition receipt subject from_stage mismatch")
+
+    if stage in REVIEW_STAGE_NAMES:
+        if review_status == "PASS":
+            if after.get("status") == TERMINAL_STATUS:
+                _require(subject.get("to_stage") is None, "terminal review receipt to_stage must be null")
+                _require(subject.get("terminal_status") == TERMINAL_STATUS, "terminal review receipt must bind terminal_status")
+            else:
+                _require(subject.get("to_stage") == after.get("current_stage"), "PASS receipt to_stage mismatch")
+        elif review_status == "REVISE":
+            _require(subject.get("to_stage") == revision_target, "REVISE receipt to_stage mismatch")
+        elif review_status == "FAIL":
+            _require(subject.get("to_stage") == stage, "FAIL receipt must remain on the failed stage")
+            _require(subject.get("blocked") is True, "FAIL receipt must bind blocked=true")
+    else:
+        _require(subject.get("to_stage") == after.get("current_stage"), "transition receipt to_stage mismatch")
+
+    output_refs = _list(receipt.get("output_refs"), label="transition receipt output_refs")
+    expected_count = 1 if stage == "INTAKE" else 2
+    _require(len(output_refs) == expected_count, "transition receipt output_refs count does not match stage output ownership")
+    state_path = f"workspaces/articles/{task_id}/STATE.json"
+    _require(output_refs[0] == state_path, "transition receipt must bind canonical STATE.json first")
+    if expected_count == 2:
+        artifact_path = output_refs[1]
+        _require(
+            isinstance(artifact_path, str) and artifact_path.startswith(f"workspaces/articles/{task_id}/"),
+            "transition receipt artifact output must belong to the current article workspace",
+        )
+
+
 def validate_transition_candidate_isolation(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
     _validate_immutable_by_default(
         before,
@@ -268,23 +322,30 @@ def validate_transition_candidate_isolation(before: Mapping[str, Any], after: Ma
         review_status=review_status,
         revision_target=revision_target,
     )
+    _validate_transition_receipt_identity(
+        before,
+        after,
+        stage=stage,
+        review_status=review_status,
+        revision_target=revision_target,
+    )
 
 
-def _validate_append_one(before_value: Any, after_value: Any, *, label: str) -> tuple[Any, Any]:
+def _validate_append_one(before_value: Any, after_value: Any, *, label: str) -> Any:
     before = _list(before_value, label=f"before.{label}")
     after = _list(after_value, label=f"after.{label}")
     _require(len(after) == len(before) + 1, f"{label} mutation must append exactly one item")
     _strict_equal(before, after[:-1], f"{label} mutation cannot rewrite prior history")
-    return after[-1], before
+    return after[-1]
 
 
 def _validate_feedback_append_semantics(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
-    sample, _ = _validate_append_one(
+    sample = _validate_append_one(
         before.get("learning_evidence", []),
         after.get("learning_evidence", []),
         label="learning_evidence",
     )
-    impact, _ = _validate_append_one(
+    impact = _validate_append_one(
         before.get("open_system_impact", []),
         after.get("open_system_impact", []),
         label="open_system_impact",
@@ -301,12 +362,22 @@ def _validate_feedback_append_semantics(before: Mapping[str, Any], after: Mappin
     _require(impact_map.get("trigger_sample_type") == sample_type, "appended system-impact trigger_sample_type mismatch")
 
     receipt = _last_receipt(after)
+    task_id = str(before.get("task_id", ""))
+    _require(bool(task_id), "feedback candidate requires task_id")
+    _validate_common_receipt_identity(receipt, task_id=task_id, action_kind="MATERIAL_FEEDBACK")
     subject = _mapping(receipt.get("subject_bindings"), label="feedback receipt subject_bindings")
     bindings = _mapping(receipt.get("input_bindings"), label="feedback receipt input_bindings")
+    _require(subject.get("task_id") == task_id, "feedback receipt subject task_id mismatch")
     _require(subject.get("sample_type") == sample_type, "feedback receipt sample_type does not bind appended sample")
     _require(subject.get("signal_id") == signal_id, "feedback receipt signal_id does not bind appended system-impact")
     _require(bindings.get("feedback_summary") == summary, "feedback receipt summary does not bind appended sample")
     _require(bindings.get("signal_status") == "OPEN", "feedback receipt signal_status does not bind appended system-impact")
+    output_refs = _list(receipt.get("output_refs"), label="feedback receipt output_refs")
+    _strict_equal(
+        [f"workspaces/articles/{task_id}/STATE.json"],
+        output_refs,
+        "feedback receipt output_refs must bind only canonical STATE.json",
+    )
 
 
 def validate_feedback_candidate_isolation(before: Mapping[str, Any], after: Mapping[str, Any]) -> None:
