@@ -1,0 +1,22 @@
+{
+  "schema_version":"1.0",
+  "owner":"DOMAIN:financial_writing",
+  "revision":"1.0-candidate",
+  "updated_at":"2026-10-16T07:13:00+08:00",
+  "common_behavior_assurance_min":"1.3.0",
+  "current_open_items":["F-20261016-COMMON-BEHAVIOR-1-3-ROOT-SCOPE-ADOPTION"],
+  "current_problem_refs":{"F-20261016-COMMON-BEHAVIOR-1-3-ROOT-SCOPE-ADOPTION":"financial_writing_agent/problem_action_admission.py"},
+  "candidate_evolution":[{
+    "problem_ref":"F-20261016-COMMON-BEHAVIOR-1-3-ROOT-SCOPE-ADOPTION",
+    "status":"CANDIDATE_IMPLEMENTED__CI_PENDING",
+    "failure_class":"FC-COMMON-BEHAVIOR-1-3-OWNER-ADOPTION-OPEN",
+    "symptom":"Financial already had strong DecisionEnvelope cognition and evolution disposition, plus recovery/lifecycle behavior, but problem action could still occur without a mechanically prior causal root-scope receipt bound to that envelope.",
+    "selected_architecture":"BRIDGE_EXISTING_DECISION_ENVELOPE_TO_ROOT_SCOPE_RECEIPT_AND_ACTION_ADMISSION__DO_NOT_DUPLICATE_COGNITION",
+    "rejected_paths":["declaration-only version bump","copy parent kernel","replace DecisionEnvelope with a second cognition engine","route all article problems through parent"],
+    "evidence_refs":["financial_writing_agent/cognition_governance.py","financial_writing_agent/problem_action_admission.py","financial_writing_agent/proactive_resolution.py","financial_writing_agent/owner_lifecycle.py","tests/test_problem_action_admission_v1.py"],
+    "open_followup":"candidate CI, controlled promotion, production reread; live article outcome observation remains open"
+  }],
+  "historical_evidence_refs":["evals/COGNITION_GOVERNANCE_AUDIT.json","evals/COGNITION_RUNTIME_RECEIPT_CONTRACT.json","evals/OWNER_SESSION_LIFECYCLE_AUDIT.json","evals/PROACTIVE_RESOLUTION_AUDIT.json","evals/PARENT_GUIDANCE_HANDOFF.md","evals/FINANCIAL_UAOS_COGNITION_EVOLUTION_PRODUCT_AUDIT_2026-10-15.md"],
+  "parent_governance_ref":"UAOS:EVO-20261016-PROBLEM-COGNITION-ACTION-TRANSACTION",
+  "assurance":"COMMON_BEHAVIOR_1_3_OWNER_NATIVE_CANDIDATE__EXISTING_FINANCIAL_COGNITION_GOVERNANCE_PRESERVED__CI_AND_LIVE_ARTICLE_OUTCOME_OPEN"
+}
