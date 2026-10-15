@@ -40,12 +40,13 @@ jobs:
           /tmp/fwa-wheel/bin/pip install "$WHEEL"
           cd /tmp
           /tmp/fwa-wheel/bin/python - <<'PY'
+          import importlib.metadata
           import importlib.util
           from financial_writing_agent.models import ArtifactKind, DistributionMode, TaskContract
           from financial_writing_agent.resources import load_packaged_policy, read_reference
           from financial_writing_agent.document import build_article_docx, build_audit_docx, build_interaction_pack_docx
           from financial_writing_agent.checks import check_docx
-          from financial_writing_agent.owner_guard import build_initial_state
+          from financial_writing_agent.current_admission import WRITING_KERNEL_VERSION, build_initial_state
           from financial_writing_agent.owner_lifecycle import resume_blocked_state
 
           policy = load_packaged_policy()
@@ -56,6 +57,8 @@ jobs:
               source_refs=[],
               executor_identity="wheel-smoke",
           )
+          assert importlib.metadata.version("financial-writing-agent") == "1.0.0"
+          assert WRITING_KERNEL_VERSION == "1.0"
           assert policy["contract_version"] == "0.9.1"
           assert policy["defaults"]["distribution_mode"] == "PORTFOLIO"
           assert policy["style"]["voice_material_first_generation_required"] is True
@@ -70,6 +73,8 @@ jobs:
           ]
           assert not hasattr(contract, "task_id")
           assert state["task_id"] == "financial-wheel-smoke"
+          assert state["writing_kernel_version"] == "1.0"
+          assert state["quality_evidence"] == {}
           assert state["execution_receipts"][0]["task_id"] == "financial-wheel-smoke"
           assert state["distribution_mode"] == "PORTFOLIO"
           assert importlib.util.find_spec("financial_writing_agent.uaos_binding") is None
@@ -80,7 +85,7 @@ jobs:
           assert "not generation mandates" in reader_value
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(build_interaction_pack_docx) and callable(check_docx)
           assert callable(build_initial_state) and callable(resume_blocked_state)
-          print("PASS: clean 0.9.1 wheel exposes voice-first authorial policy, diagnostic anti-AI semantics, PORTFOLIO outputs, and single Financial identity path")
+          print("PASS: clean Financial Writing 1.0 wheel exposes current admission, kernel 1.0, PORTFOLIO outputs, voice-first policy, and single Financial identity path")
           PY
       - name: Install render dependencies
         run: |
