@@ -50,7 +50,7 @@ def main() -> None:
     assert execution["execution"]["free_form_article_fallback_allowed"] is False
 
     required = set(caps["required_uaos_common_capabilities"])
-    assert caps["profile_version"] == 17
+    assert caps["profile_version"] == 18
     assert caps["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
@@ -94,7 +94,7 @@ def main() -> None:
     assert not (ROOT / "continuity").exists()
 
     print(
-        "PASS: Financial owns article/product authority, binds UAOS common 1.6 internal orchestration, "
+        "PASS: Financial owns article/product authority, binds capability profile 18 to UAOS common 1.6 internal orchestration, "
         "inherits current cognition/evolution/behavior contracts, and verifies owner-native admission/recovery evidence"
     )
 
