@@ -180,13 +180,16 @@ class PublicationFitness(StrictModel):
         if self.audit_provenance.assurance != self.assurance:
             raise ValueError("publication fitness assurance must match audit_provenance.assurance")
         if self.assurance == "INDEPENDENT_EXECUTOR":
-            if self.audit_provenance.reviewer_identity in {"chat-self", "unknown"}:
+            reviewer = self.audit_provenance.reviewer_identity.strip()
+            author = self.audit_provenance.author_identity.strip()
+            execution_ref = self.audit_provenance.execution_ref.strip()
+            if not reviewer or reviewer in {"chat-self", "unknown"}:
                 raise ValueError("independent publication fitness requires an explicit non-chat reviewer identity")
-            if self.audit_provenance.author_identity == "unknown":
+            if not author or author == "unknown":
                 raise ValueError("independent publication fitness requires an explicit author identity")
-            if not self.audit_provenance.execution_ref:
+            if not execution_ref:
                 raise ValueError("independent publication fitness requires an execution_ref")
-            if self.audit_provenance.reviewer_identity == self.audit_provenance.author_identity:
+            if reviewer == author:
                 raise ValueError("independent publication fitness reviewer must differ from author")
         return self
 
