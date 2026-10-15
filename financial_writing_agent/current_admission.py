@@ -9,8 +9,8 @@ from . import owner_guard
 from .cognition_governance import DecisionEnvelope, OperationClass, admission_errors
 from .story_quality import AuditStatus, ProductMode, PublicationFitness, StoryBlueprint
 
-WRITING_KERNEL_VERSION = "1.0"
-QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
+WRITING_KERNEL_VERSION = owner_guard.CURRENT_WRITING_KERNEL_VERSION
+QUALITY_ADMISSION_PATH = owner_guard.CURRENT_QUALITY_ADMISSION_PATH
 
 
 class CurrentAdmissionError(ValueError):
@@ -43,7 +43,10 @@ def _parse_story_blueprints(state: Mapping[str, Any], raw: list[Mapping[str, Any
     modes = [item.product_mode for item in parsed]
     _require(len(modes) == len(set(modes)), "story_blueprints must contain at most one blueprint per product mode")
     expected = _expected_longform_modes(state)
-    _require(set(modes) == expected, f"story blueprint modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}")
+    _require(
+        set(modes) == expected,
+        f"story blueprint modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}",
+    )
     return parsed
 
 
@@ -55,7 +58,10 @@ def _parse_publication_fitnesses(
     modes = [item.product_mode for item in parsed]
     _require(len(modes) == len(set(modes)), "publication_fitnesses must contain at most one result per product mode")
     expected = _expected_longform_modes(state)
-    _require(set(modes) == expected, f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}")
+    _require(
+        set(modes) == expected,
+        f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}",
+    )
 
     all_pass = all(item.final_status == AuditStatus.PASS for item in parsed)
     if review_status == "PASS":
@@ -68,7 +74,10 @@ def _parse_publication_fitnesses(
 def _parse_decision_envelope(raw: Mapping[str, Any] | None) -> DecisionEnvelope:
     _require(isinstance(raw, Mapping), "current RESEARCH transition requires decision_envelope")
     envelope = DecisionEnvelope.model_validate(raw)
-    _require(envelope.operation_class == OperationClass.MATERIAL_JUDGMENT, "RESEARCH decision envelope must represent a MATERIAL_JUDGMENT")
+    _require(
+        envelope.operation_class == OperationClass.MATERIAL_JUDGMENT,
+        "RESEARCH decision envelope must represent a MATERIAL_JUDGMENT",
+    )
     semantic_errors = admission_errors(envelope)
     _require(not semantic_errors, f"decision envelope admission failed: {semantic_errors}")
     return envelope
@@ -86,6 +95,8 @@ def _latest_receipt_digest(state: Mapping[str, Any], binding_key: str, *, admitt
             continue
         if bindings.get("quality_admission_path") != QUALITY_ADMISSION_PATH:
             continue
+        if bindings.get("writing_kernel_version") != WRITING_KERNEL_VERSION:
+            continue
         if binding_key in bindings:
             value = bindings.get(binding_key)
             return str(value) if value is not None else None
@@ -101,10 +112,17 @@ def _require_persisted_digest(
     _require(actual == expected, f"persisted {evidence_key} no longer matches its latest admitted receipt digest")
 
 
-def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
+def _validate_current_quality_evidence(state: Mapping[str, Any]) -> None:
+    """Validate current quality semantics after owner authority has authenticated the state blob.
+
+    Digest bindings are intentionally secondary evidence. The public owner guard first
+    resolves the entire STATE.json from GitHub and checks its blob SHA, so a caller cannot
+    repair a tampered quality object by rewriting the digest inside the same candidate state.
+    """
     quality = state.get("quality_evidence", {})
     _require(isinstance(quality, Mapping), "current Financial state requires quality_evidence mapping")
     stage = str(state.get("current_stage"))
+    _require(stage in owner_guard.STAGE_INDEX, "current Financial state has an unsupported stage")
     current_index = owner_guard.STAGE_INDEX[stage]
 
     if current_index >= owner_guard.STAGE_INDEX["RESEARCH_AUDIT"]:
@@ -143,24 +161,34 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
         )
 
 
+# Compatibility alias for callers/tests that used the 1.0.1 private name.
+_validate_persisted_quality_evidence = _validate_current_quality_evidence
+
+
 def build_initial_state(**kwargs: Any) -> dict[str, Any]:
-    """Create a current Financial task while delegating business identity/state semantics to owner_guard."""
+    """Create a current quality-governed Financial task.
+
+    The base owner builds the business contract. This layer upgrades the new task to
+    the dedicated quality-state schema before it is persisted for the first time.
+    """
     state = owner_guard.build_initial_state(**kwargs)
+    state["schema_version"] = owner_guard.QUALITY_STATE_SCHEMA_VERSION
     state["writing_kernel_version"] = WRITING_KERNEL_VERSION
     state["quality_evidence"] = {}
     receipt = state["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
-    validate_state(state)
+    owner_guard._validate_unpersisted_state(state)
     return state
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
-    # The current layer owns quality parsing. Use the base owner-state validator here
-    # to avoid the owner's public 1.0 dispatch recursively calling back into this module.
-    owner_guard._validate_base_state(state)
-    _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
-    _validate_persisted_quality_evidence(state)
+    """Validate current state against owner semantics and the authoritative GitHub blob."""
+    owner_guard.validate_state(state)
+    _require(
+        state.get("schema_version") == owner_guard.QUALITY_STATE_SCHEMA_VERSION,
+        "current Financial state must use schema_version=1.3",
+    )
 
 
 def _planned_quality_invalidations(state: Mapping[str, Any], revision_target: str | None) -> list[str]:
@@ -178,20 +206,21 @@ def _planned_quality_invalidations(state: Mapping[str, Any], revision_target: st
     return sorted(key for key in keys if key in quality)
 
 
-def advance_state(
+def _prepare_quality_transition(
     state: Mapping[str, Any],
     *,
-    decision_envelope: Mapping[str, Any] | None = None,
-    story_blueprints: list[Mapping[str, Any]] | None = None,
-    publication_fitnesses: list[Mapping[str, Any]] | None = None,
-    **kwargs: Any,
-) -> dict[str, Any]:
-    """Current admission wrapper around the one canonical owner state machine.
+    decision_envelope: Mapping[str, Any] | None,
+    story_blueprints: list[Mapping[str, Any]] | None,
+    publication_fitnesses: list[Mapping[str, Any]] | None,
+    review_status: str | None,
+    revision_target: str | None,
+) -> tuple[dict[str, Any], dict[str, str], list[str]]:
+    """Parse current quality evidence before one atomic owner transition.
 
-    Historical states continue to use owner_guard directly. New 1.0 tasks use this entrypoint so
-    research/thesis, story design and publication quality cannot be advanced by a naked PASS label.
+    This function never mutates persisted authority and never creates a receipt. The
+    owner guard owns both the state transition and receipt binding in the same call.
     """
-    validate_state(state)
+    owner_guard._validate_unpersisted_state(state)
     working = deepcopy(dict(state))
     stage = str(state["current_stage"])
     quality = working.setdefault("quality_evidence", {})
@@ -202,57 +231,58 @@ def advance_state(
         dumped = envelope.model_dump(mode="json")
         quality["research_decision"] = dumped
         evidence_bindings["decision_envelope_sha256"] = _canonical_digest(dumped)
+    else:
+        _require(decision_envelope is None, f"decision_envelope is only valid at RESEARCH, not {stage}")
 
     if stage == "EDITORIAL":
         blueprints = _parse_story_blueprints(state, story_blueprints)
         dumped = [item.model_dump(mode="json") for item in blueprints]
         quality["story_blueprints"] = dumped
         evidence_bindings["story_blueprints_sha256"] = _canonical_digest(dumped)
+    else:
+        _require(story_blueprints is None, f"story_blueprints are only valid at EDITORIAL, not {stage}")
 
-    review_status = kwargs.get("review_status")
     if stage == "EDITORIAL_AUDIT" and review_status in {"PASS", "REVISE"}:
         fitnesses = _parse_publication_fitnesses(state, publication_fitnesses, review_status=str(review_status))
         dumped = [item.model_dump(mode="json") for item in fitnesses]
         quality["publication_fitnesses"] = dumped
         evidence_bindings["publication_fitnesses_sha256"] = _canonical_digest(dumped)
+    else:
+        _require(
+            publication_fitnesses is None,
+            f"publication_fitnesses are only valid for EDITORIAL_AUDIT PASS/REVISE, not {stage}",
+        )
 
-    revision_target = kwargs.get("revision_target")
     planned_invalidated = (
         _planned_quality_invalidations(working, str(revision_target))
         if review_status == "REVISE" and revision_target
         else []
     )
+    return working, evidence_bindings, planned_invalidated
 
-    # The owner guard now enforces 1.0 quality for every public lower-level path. During
-    # this one internal sequencing window, the new receipt does not yet carry its quality
-    # digest, so defer only that owner-level callback. Full current validation runs below
-    # after the receipt is bound; the token is process-local and not a persisted credential.
-    after = owner_guard.advance_state(
-        working,
-        _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
+
+def advance_state(
+    state: Mapping[str, Any],
+    *,
+    decision_envelope: Mapping[str, Any] | None = None,
+    story_blueprints: list[Mapping[str, Any]] | None = None,
+    publication_fitnesses: list[Mapping[str, Any]] | None = None,
+    **kwargs: Any,
+) -> dict[str, Any]:
+    """Thin current entrypoint over the canonical owner transition.
+
+    There is no sequencing token and no post-hoc receipt mutation. The owner guard
+    authenticates GitHub state, parses current quality evidence and binds its digest
+    in the same transition.
+    """
+    return owner_guard.advance_state(
+        state,
+        decision_envelope=decision_envelope,
+        story_blueprints=story_blueprints,
+        publication_fitnesses=publication_fitnesses,
         **kwargs,
     )
 
-    if planned_invalidated:
-        missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]
-        _require(not missing, f"owner revision failed to invalidate quality evidence: {missing}")
-        evidence_bindings["invalidated_quality_evidence"] = ",".join(planned_invalidated)
-
-    receipt = after["execution_receipts"][-1]
-    receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
-    receipt["input_bindings"].update(evidence_bindings)
-    validate_state(after)
-    return after
-
 
 def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
-    validate_state(state)
-    # Feedback does not alter quality objects, so the owner guard can and should perform
-    # its normal full 1.0 validation on both sides of this mutation.
-    after = owner_guard.attach_material_feedback(state, **kwargs)
-    receipt = after["execution_receipts"][-1]
-    receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
-    validate_state(after)
-    return after
+    return owner_guard.attach_material_feedback(state, **kwargs)
