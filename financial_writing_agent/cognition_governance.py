@@ -85,10 +85,23 @@ class SearchSaturation(StrictModel):
         ordered = sorted(self.sweeps, key=lambda x: x.sweep_no)
         if [s.sweep_no for s in ordered] != list(range(1, len(ordered) + 1)):
             raise ValueError("search sweep numbers must be contiguous from 1")
-        if ordered[-1].material_delta or ordered[-2].material_delta:
+        final_pair = ordered[-2:]
+        if any(sweep.material_delta for sweep in final_pair):
             raise ValueError(
                 "material search may stop only after two consecutive sweeps add no decision-changing "
                 "candidate, failure mode, counterexample, or changed decision"
+            )
+        final_signatures = {
+            (
+                sweep.query_or_scope.casefold().strip(),
+                tuple(sorted({family.casefold().strip() for family in sweep.source_families})),
+            )
+            for sweep in final_pair
+        }
+        if len(final_signatures) < 2:
+            raise ValueError(
+                "the final two stable search sweeps must be materially different in scope or source-family set; "
+                "repeating the same search does not establish saturation"
             )
         families = {family for sweep in ordered for family in sweep.source_families}
         if len(families) < 2:
