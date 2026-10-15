@@ -65,6 +65,15 @@ class SearchSweep(StrictModel):
     new_counterexamples: list[str] = Field(default_factory=list)
     changed_decision: bool = False
 
+    @model_validator(mode="after")
+    def validate_source_families(self):
+        normalized = [family.casefold().strip() for family in self.source_families]
+        if any(not family for family in normalized):
+            raise ValueError("search source_families cannot contain blank values")
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("search source_families must be unique after normalization")
+        return self
+
     @property
     def material_delta(self) -> bool:
         return bool(
@@ -106,7 +115,7 @@ class SearchSaturation(StrictModel):
                 "the final two stable search sweeps must use different source-family sets; "
                 "renaming the query while repeating the same source mix does not establish saturation"
             )
-        families = {family for sweep in ordered for family in sweep.source_families}
+        families = {family.casefold().strip() for sweep in ordered for family in sweep.source_families}
         if len(families) < 2:
             raise ValueError("material search requires at least two materially different source families")
         return self
@@ -204,7 +213,7 @@ def admission_errors(envelope: DecisionEnvelope) -> list[str]:
     """Semantic warnings beyond shape validation; does not overstate independence."""
     errors: list[str] = []
     if envelope.operation_class == OperationClass.MATERIAL_JUDGMENT:
-        families = {e.source_family for e in envelope.evidence}
+        families = {e.source_family.casefold().strip() for e in envelope.evidence}
         if len(families) < 2:
             errors.append("material judgment evidence is single-family")
         if all(e.kind == EvidenceKind.USER_FEEDBACK for e in envelope.evidence):
