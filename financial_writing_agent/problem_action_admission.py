@@ -3,7 +3,13 @@ from __future__ import annotations
 from enum import Enum
 from typing import Iterable
 
-from .cognition_governance import DecisionEnvelope, EvolutionDisposition, OperationClass, admission_errors
+from .cognition_governance import (
+    DecisionEnvelope,
+    EvidenceKind,
+    EvolutionDisposition,
+    OperationClass,
+    admission_errors,
+)
 
 
 class ProblemActionAdmissionError(RuntimeError):
@@ -22,6 +28,41 @@ def _clean(values: Iterable[str] | None) -> tuple[str, ...]:
     return tuple(value.strip() for value in (values or ()) if isinstance(value, str) and value.strip())
 
 
+def _require_evidence_grounded_root_scope(envelope: DecisionEnvelope) -> None:
+    evidence_by_ref = {item.ref: item for item in envelope.evidence}
+    for hypothesis in envelope.root_scope_hypotheses:
+        declared_refs = {
+            *hypothesis.supporting_evidence_refs,
+            *hypothesis.falsification_or_rejection_refs,
+        }
+        missing = sorted(ref for ref in declared_refs if ref not in evidence_by_ref)
+        if missing:
+            raise ProblemActionAdmissionError(
+                f"problem action denied: root hypothesis {hypothesis.hypothesis_id} cites evidence absent from DecisionEnvelope: "
+                + ", ".join(missing)
+            )
+
+    selected = next(
+        item
+        for item in envelope.root_scope_hypotheses
+        if item.hypothesis_id == envelope.selected_root_hypothesis_id
+    )
+    root_proof_kinds = {
+        EvidenceKind.CURRENT_FACT,
+        EvidenceKind.PRIOR_KNOWLEDGE,
+        EvidenceKind.COUNTEREXAMPLE,
+        EvidenceKind.RUN_RESULT,
+        EvidenceKind.MECHANICAL_RESULT,
+    }
+    selected_support_kinds = {
+        evidence_by_ref[ref].kind for ref in selected.supporting_evidence_refs
+    }
+    if not selected_support_kinds.intersection(root_proof_kinds):
+        raise ProblemActionAdmissionError(
+            "problem action denied: selected root cause is supported only by user framing/external method rather than observed or testable evidence"
+        )
+
+
 def finalize_problem_action(
     envelope: DecisionEnvelope,
     *,
@@ -36,7 +77,7 @@ def finalize_problem_action(
 ) -> ProblemClosureDecision:
     """Enforce DecisionEnvelope -> RootScopeReceipt -> EvolutionDisposition -> action.
 
-    Financial keeps one causal model in ``cognition_governance``.  This module is a thin
+    Financial keeps one causal model in ``cognition_governance``. This module is a thin
     action gate only; it must not introduce a second hypothesis/root-scope representation.
     """
 
@@ -59,6 +100,7 @@ def finalize_problem_action(
     root_scope = envelope.root_scope_receipt()
     if root_scope is None:
         raise ProblemActionAdmissionError("problem action denied: root-scope receipt is missing")
+    _require_evidence_grounded_root_scope(envelope)
     if not isinstance(envelope.evolution_disposition, EvolutionDisposition):
         raise ProblemActionAdmissionError("problem action denied: typed evolution disposition is missing")
 
