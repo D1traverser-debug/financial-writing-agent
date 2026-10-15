@@ -68,14 +68,15 @@ def main() -> None:
 
     required_common = set(caps.get("required_uaos_common_capabilities", []))
     require(caps["profile_version"] == 17, "Financial capability profile drift")
-    require(caps["uaos_common_capabilities_contract_min"] == "1.5.0", "Financial minimum common contract drift")
+    require(caps["uaos_common_capabilities_contract_min"] == "1.6.0", "Financial minimum common contract drift")
     require(caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0", "Financial minimum common behavior contract drift")
     require({
         "product_requirements_and_architecture_governance",
+        "domain_internal_work_orchestration",
         "mutation_sentinel_and_host_complete_mediation",
         "adaptive_deliberation_and_parent_guidance",
         "governed_self_evolution",
-    }.issubset(required_common), "required cognition/evolution/product common capabilities missing")
+    }.issubset(required_common), "required cognition/evolution/product/orchestration common capabilities missing")
     require(caps["hosted_cognition_semantics"]["problem_response_floor"] == [
         "MICRO_DIAGNOSIS",
         "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
@@ -87,6 +88,7 @@ def main() -> None:
     proactive_caps = {cap["capability_id"]: cap for cap in caps["capabilities"]}
     require("proactive_resolution_admission" in proactive_caps, "proactive resolution capability missing")
     require("behavioral_trajectory_regression" in proactive_caps["proactive_resolution_admission"]["required"], "proactive resolution lacks trajectory evidence requirement")
+    require("UAOS:domain_internal_work_orchestration" in proactive_caps["high_judgment_generation_stages"]["required"], "writing kernel orchestration dependency missing")
     require(all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"]), "side channel enabled")
 
     current_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
@@ -126,7 +128,7 @@ def main() -> None:
         package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
         require(source == skill == package, f"reference mirror drift: {name}")
 
-    print("PASS: Financial keeps one business owner, directly activates, inherits current UAOS cognition/evolution, and operationalizes proactive recovery with owner-native admission evidence")
+    print("PASS: Financial keeps one business owner, directly activates, binds UAOS 1.6 internal orchestration, and operationalizes cognition/recovery admission with owner-native evidence")
 
 
 if __name__ == "__main__":
