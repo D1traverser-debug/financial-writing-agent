@@ -51,11 +51,12 @@ def main() -> None:
 
     required = set(caps["required_uaos_common_capabilities"])
     assert caps["profile_version"] == 17
-    assert caps["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert caps["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
         "intent_and_requirement_governance",
         "product_requirements_and_architecture_governance",
+        "domain_internal_work_orchestration",
         "cross_chat_continuity_and_recovery",
         "hierarchical_authority_governance",
         "mutation_sentinel_and_host_complete_mediation",
@@ -74,15 +75,18 @@ def main() -> None:
     assert execution["problem_and_evolution"]["one_off_observation_auto_promotes_to_global_rule"] is False
     assert execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True
 
-    capability_ids = {cap["capability_id"] for cap in caps["capabilities"]}
-    assert "domain_owned_article_identity_and_state" in capability_ids
-    assert "identity_free_business_output_contract" in capability_ids
-    assert "proactive_resolution_admission" in capability_ids
-    assert "domain_product_requirements_traceability" in capability_ids
-    assert "uaos_article_binding_validation" not in capability_ids
+    capability_map = {cap["capability_id"]: cap for cap in caps["capabilities"]}
+    assert "domain_owned_article_identity_and_state" in capability_map
+    assert "identity_free_business_output_contract" in capability_map
+    assert "proactive_resolution_admission" in capability_map
+    assert "domain_product_requirements_traceability" in capability_map
+    assert "UAOS:domain_internal_work_orchestration" in capability_map["high_judgment_generation_stages"]["required"]
+    assert "uaos_article_binding_validation" not in capability_map
     assert all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"])
 
     assert (ROOT / "financial_writing_agent/proactive_resolution.py").is_file()
+    assert (ROOT / "financial_writing_agent/current_admission.py").is_file()
+    assert (ROOT / "financial_writing_agent/writing_kernel.py").is_file()
     assert (ROOT / "tests/test_executable_proactive_resolution_20261015.py").is_file()
     assert (ROOT / "docs/product_requirements.md").is_file()
     assert (ROOT / "docs/architecture.md").is_file()
@@ -90,8 +94,8 @@ def main() -> None:
     assert not (ROOT / "continuity").exists()
 
     print(
-        "PASS: Financial directly owns article/product authority, inherits current UAOS cognition/evolution/behavior contracts, "
-        "and verifies owner-native proactive-resolution admission with trajectory evidence"
+        "PASS: Financial owns article/product authority, binds UAOS common 1.6 internal orchestration, "
+        "inherits current cognition/evolution/behavior contracts, and verifies owner-native admission/recovery evidence"
     )
 
 
