@@ -1,0 +1,159 @@
+{
+  "schema_version": "1.0",
+  "updated_at": "2026-10-15T00:00:00Z",
+  "purpose": "Durable method knowledge discovered during Financial Writing architecture/research work. Cataloging a method does not promote it into a rule; adoption requires fit/misfit analysis, counterexamples, regression/eval evidence and owner-scoped promotion.",
+  "records": [
+    {
+      "knowledge_id": "METHOD-UAOS-ADAPTIVE-DELIBERATION",
+      "category": "cognition_governance",
+      "method": "micro -> macro/topology -> assumption challenge -> external research -> counterexample/verification by risk",
+      "source_refs": ["D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json"],
+      "fit": "Direct fit for material Financial decisions and problem repair.",
+      "misfit": "Do not turn every harmless mechanical action into a heavyweight debate loop.",
+      "adoption": "ADOPT_CORE",
+      "revalidation_trigger": "UAOS deliberation contract changes"
+    },
+    {
+      "knowledge_id": "METHOD-UAOS-GOVERNED-EVOLUTION",
+      "category": "evolution_governance",
+      "method": "problem -> research/reflection -> failure class -> candidate -> reproducible eval -> owner promotion -> post-promotion observation -> keep/rollback/retire",
+      "source_refs": ["D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json"],
+      "fit": "Direct fit for Financial business-rule evolution.",
+      "misfit": "A single user suggestion cannot directly become a permanent universal rule.",
+      "adoption": "ADOPT_CORE",
+      "revalidation_trigger": "UAOS common capability contract changes"
+    },
+    {
+      "knowledge_id": "METHOD-UAOS-INTERNAL-ORCHESTRATION",
+      "category": "execution_architecture",
+      "method": "single domain owner may use serial, parallel, competitive, critique/revision and owner-adjudication workstreams without creating a second business controller",
+      "source_refs": ["D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json"],
+      "fit": "Supports focused research/writer/critic passes while retaining one Financial owner.",
+      "misfit": "Do not create cosmetic multi-agent role-play when tools, policy and output contracts do not materially differ.",
+      "adoption": "ADAPT_AS_MULTI_PASS_KERNEL",
+      "revalidation_trigger": "workflow topology or host orchestration changes"
+    },
+    {
+      "knowledge_id": "METHOD-OPENAI-EVAL-DRIVEN-AGENTS",
+      "category": "agent_engineering",
+      "method": "use evals and traces to justify architecture complexity; multi-agent adds nondeterminism and should be driven by measured need",
+      "source_refs": [
+        "https://developers.openai.com/api/docs/guides/evaluation-best-practices",
+        "https://developers.openai.com/api/docs/guides/agents/sdk"
+      ],
+      "fit": "Supports rejecting premature multi-agent decomposition and requiring observable quality evals.",
+      "misfit": "Not a substitute for domain-specific writing/evidence standards.",
+      "adoption": "ADOPT_PRINCIPLE",
+      "revalidation_trigger": "agent runtime/eval guidance changes materially"
+    },
+    {
+      "knowledge_id": "METHOD-ANTHROPIC-EVALUATOR-OPTIMIZER",
+      "category": "agent_engineering",
+      "method": "separate generation from evaluation when criteria are articulable; parallelize independent considerations",
+      "source_refs": ["https://www.anthropic.com/engineering/building-effective-agents"],
+      "fit": "Strong fit for writer -> reader/editor/style/originality/fact critique loops.",
+      "misfit": "Same-context critiques are not independent certification and unbounded loops can create cost/noise.",
+      "adoption": "ADAPT_AS_BOUNDED_REVIEW_PASSES",
+      "revalidation_trigger": "review/eval design changes"
+    },
+    {
+      "knowledge_id": "METHOD-EVOLUTIONARY-ARCHITECTURE-FITNESS",
+      "category": "architecture_governance",
+      "method": "protect important architectural characteristics with executable fitness functions rather than inspection-only governance",
+      "source_refs": [
+        "https://www.thoughtworks.com/content/dam/thoughtworks/documents/books/bk_building_evolutionary_architectures_second_edition_free_chapter.pdf",
+        "https://martinfowler.com/articles/fitness-functions-data-products.html"
+      ],
+      "fit": "Directly addresses prior soft PASS audit failure by making invariant checks executable.",
+      "misfit": "Semantic prose quality cannot be reduced entirely to deterministic metrics; human/model judgment still needs evidence-backed review.",
+      "adoption": "ADOPT_CORE",
+      "revalidation_trigger": "quality gate design changes"
+    },
+    {
+      "knowledge_id": "METHOD-ADR",
+      "category": "architecture_knowledge",
+      "method": "preserve decision context, selected option, alternatives and consequences; supersede instead of rewriting decision history",
+      "source_refs": ["https://martinfowler.com/bliki/ArchitectureDecisionRecord.html"],
+      "fit": "Useful for durable Financial architecture decisions and rejected alternatives.",
+      "misfit": "Do not create an ADR for every trivial article edit.",
+      "adoption": "ADAPT_AS_DECISION_ENVELOPE_AND_EVOLUTION_RECORD",
+      "revalidation_trigger": "decision governance changes"
+    },
+    {
+      "knowledge_id": "METHOD-WSJ-NUT-GRAF",
+      "category": "story_architecture",
+      "method": "specific/anecdotal lead -> early context/promise -> evidence/counterevidence progression; preserve enough unresolved payoff to keep reading",
+      "source_refs": ["https://www.poynter.org/archive/2003/the-nut-graf-part-i/"],
+      "fit": "Strong option for finance explanatory features and company-led openings.",
+      "misfit": "Not every article should use anecdotal lead or a fixed nut-graf template.",
+      "adoption": "CATALOG_AS_STORY_OPTION",
+      "revalidation_trigger": "reader performance contradicts the method for target platform"
+    },
+    {
+      "knowledge_id": "METHOD-FIVE-BOXES",
+      "category": "story_architecture",
+      "method": "lead -> nut/context -> renewed detail/scene -> rounding material -> kicker",
+      "source_refs": ["https://www.poynter.org/reporting-editing/2002/helping-writers-take-charge-five-tools-for-editors-5/"],
+      "fit": "Useful candidate for long explanatory pieces needing periodic interest renewal.",
+      "misfit": "Must not become a universal five-section shell.",
+      "adoption": "CATALOG_AS_STORY_OPTION",
+      "revalidation_trigger": "story candidate comparison"
+    },
+    {
+      "knowledge_id": "METHOD-HOURGLASS-FORM-FOLLOWS-CONTENT",
+      "category": "story_architecture",
+      "method": "choose structure after understanding material; form follows content rather than forcing every story into one template",
+      "source_refs": ["https://www.poynter.org/reporting-editing/2003/the-hourglass-serving-the-news-serving-the-reader/"],
+      "fit": "Core antidote to template-heavy Financial prose.",
+      "misfit": "Freedom of form does not remove numbering, evidence, or platform obligations.",
+      "adoption": "ADOPT_PRINCIPLE",
+      "revalidation_trigger": "none unless contradicted by product constraints"
+    },
+    {
+      "knowledge_id": "METHOD-CURIOSITY-INFORMATION-GAP",
+      "category": "reader_retention",
+      "method": "make a concrete, salient knowledge gap visible and progressively close it; curiosity is strongest when the gap is meaningful and tractable",
+      "source_refs": [
+        "https://pmc.ncbi.nlm.nih.gov/articles/PMC4193662/",
+        "https://doi.org/10.1002/acp.4195"
+      ],
+      "fit": "Useful for title/opening/section-level retention design.",
+      "misfit": "Clicks can rise without satisfaction; unresolved or vague clickbait gaps can backfire.",
+      "adoption": "ADAPT_WITH_PAYOFF_GATE",
+      "revalidation_trigger": "platform performance evidence"
+    },
+    {
+      "knowledge_id": "METHOD-STORY-STRUCTURE-ENGAGEMENT",
+      "category": "reader_retention",
+      "method": "storytelling structure materially affects engagement; headline strength alone cannot guarantee retention",
+      "source_refs": ["https://www.poynter.org/reporting-editing/2026/study-storytelling-reader-engagement-journalism-ai/"],
+      "fit": "Supports first-class story blueprint and reader-dropoff audit.",
+      "misfit": "One study and one audience cannot define a universal emotional arc for financial writing.",
+      "adoption": "ADOPT_PRINCIPLE_NOT_FIXED_ARC",
+      "revalidation_trigger": "stronger cross-domain reading research or platform data"
+    },
+    {
+      "knowledge_id": "METHOD-AP-ORIGINAL-WRITING",
+      "category": "originality_and_attribution",
+      "method": "use original content, language and phrasing; rewrite outside material for the target audience and retain attribution where the source itself is material",
+      "source_refs": ["https://www.ap.org/about/news-values-and-principles/telling-the-story/"],
+      "fit": "Direct fit for originality gate and source-to-note-to-prose separation.",
+      "misfit": "Financial publication-source privacy still requires separating research provenance from reader-facing attribution when source identity is not part of the claim.",
+      "adoption": "ADAPT_AS_ORIGINALITY_GATE",
+      "revalidation_trigger": "publication-source policy changes"
+    },
+    {
+      "knowledge_id": "METHOD-PURDUE-PATCHWRITING",
+      "category": "originality_and_attribution",
+      "method": "close paraphrase/patchwriting remains problematic even when wording is changed locally; understand, set source aside, then express the idea in a new form and compare back",
+      "source_refs": [
+        "https://owl.purdue.edu/owl/research_and_citation/using_research/quoting_paraphrasing_and_summarizing/paraphrasing.html",
+        "https://owl.purdue.edu/owl/resources/preventing_plagiarism/contextualizing_plagiarism/handout_comparing_policies.html"
+      ],
+      "fit": "Useful operational method for preventing source-shaped prose and suspected plagiarism.",
+      "misfit": "Academic citation conventions are not copied wholesale into public finance articles.",
+      "adoption": "ADAPT_AS_NOTE_FIRST_REWRITE_AND_OVERLAP_REVIEW",
+      "revalidation_trigger": "originality process changes"
+    }
+  ]
+}

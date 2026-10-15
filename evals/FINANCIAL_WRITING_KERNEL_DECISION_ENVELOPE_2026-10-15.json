@@ -1,0 +1,193 @@
+{
+  "decision_id": "FW-ARCH-20261015-1",
+  "operation": "rebuild Financial writing execution architecture after rejected cross-border-ecommerce output",
+  "objective": "improve evidence-bounded reader value by separating cognition, story construction and publication acceptance without creating a second business owner or state machine",
+  "operation_class": "MATERIAL_JUDGMENT",
+  "evidence": [
+    {
+      "ref": "workspaces/articles/cross-border-ecommerce-20261015/reviews/EDITORIAL_AUDIT.md",
+      "kind": "CURRENT_FACT",
+      "summary": "historical audit declared PASS -> DELIVERY but lacked current text-bound publication-fitness evidence",
+      "source_family": "repository-live-artifact",
+      "observed_at": "2026-10-15"
+    },
+    {
+      "ref": "user-rejection-2026-10-15",
+      "kind": "USER_FEEDBACK",
+      "summary": "user rejected the writing outcome and required system-level diagnosis rather than another local prose patch",
+      "source_family": "user-feedback",
+      "observed_at": "2026-10-15"
+    },
+    {
+      "ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json#domain_internal_work_orchestration",
+      "kind": "EXTERNAL_METHOD",
+      "summary": "UAOS 1.6 supports domain-owned internal work graphs with explicit dependencies, structured critique and owner adjudication while keeping one user-facing business owner",
+      "source_family": "parent-governance",
+      "observed_at": "2026-10-15"
+    },
+    {
+      "ref": "https://developers.openai.com/tracks/building-agents",
+      "kind": "EXTERNAL_METHOD",
+      "summary": "agent orchestration is management of multi-step flow, tool use, handoffs, guardrails and context; separation of concerns does not require uncontrolled role multiplication",
+      "source_family": "agent-engineering",
+      "observed_at": "2026-10-15"
+    },
+    {
+      "ref": "https://www.poynter.org/reporting-editing/2003/the-hourglass-serving-the-news-serving-the-reader/",
+      "kind": "EXTERNAL_METHOD",
+      "summary": "story form should follow content and writers should know multiple forms rather than force every story into one container",
+      "source_family": "journalism-method",
+      "observed_at": "2026-10-15"
+    },
+    {
+      "ref": "evals/FINANCIAL_WRITING_KERNEL_REBUILD_REPLAY_2026-10-15.md",
+      "kind": "RUN_RESULT",
+      "summary": "negative cross-border replay is blocked by the new admission model while a held-out ice-snow article fits a different SYSTEM_MAP story geometry",
+      "source_family": "repository-eval",
+      "observed_at": "2026-10-15"
+    }
+  ],
+  "learned_items": [
+    "PASS labels are not semantic acceptance evidence",
+    "research completeness does not guarantee publication representation without an explicit story contract",
+    "story forms are candidates selected by material rather than universal templates",
+    "one domain owner can use explicit internal orchestration without creating multiple business state machines"
+  ],
+  "categories_or_models_used": [
+    "rule-patch architecture",
+    "multi-agent specialist architecture",
+    "single-owner focused-pass architecture",
+    "fitness-function governance",
+    "form-follows-content story architecture"
+  ],
+  "assumptions_challenged": [
+    "more prose rules will automatically improve article quality",
+    "a same-session audit can safely self-certify with broad PASS labels",
+    "multi-agent role multiplication is inherently better than one owner with explicit passes",
+    "one story template can optimize all financial topics"
+  ],
+  "alternatives": [
+    {
+      "candidate_id": "PATCH_EXISTING_RULEBOOK",
+      "mechanism": "keep the prior execution topology and add more detailed writing/audit instructions",
+      "advantages": ["lowest implementation cost", "minimal code change"],
+      "failure_modes": ["increases prompt/context load", "does not remove soft self-pass", "likely repeats rule accretion"],
+      "fit_conditions": ["failure is isolated to one missing deterministic rule"],
+      "misfit_conditions": ["generation and audit share the same weak acceptance topology", "multiple defects recur despite existing rules"]
+    },
+    {
+      "candidate_id": "MULTI_AGENT_PIPELINE",
+      "mechanism": "create separate research, writer, editor, originality and fact-check agents as independent business actors",
+      "advantages": ["clear role labels", "possible parallelism where tools/context differ"],
+      "failure_modes": ["cosmetic role-play without true independence", "coordination/context cost", "risk of second business truth/state plane"],
+      "fit_conditions": ["tools, permissions, context, output contracts or independence materially differ"],
+      "misfit_conditions": ["same model/tool context can express the separation as explicit owner-controlled passes"]
+    },
+    {
+      "candidate_id": "SINGLE_OWNER_FOCUSED_PASSES",
+      "mechanism": "retain one Financial business owner/state machine, add explicit cognition/story/audit contracts, focused internal pass DAG and evidence-backed admission gates",
+      "advantages": ["preserves ownership clarity", "least-context responsibilities", "hard admission replaces naked PASS", "supports multiple story geometries", "historical state compatibility"],
+      "failure_modes": ["same-session critics remain non-independent", "more structured artifacts to maintain", "live reader-value benefit still requires post-promotion observation"],
+      "fit_conditions": ["one domain owns the full business outcome", "separation is primarily cognitive/contextual rather than permission/tool based"],
+      "misfit_conditions": ["future evidence shows materially different tools/permissions or independent certification is required"]
+    }
+  ],
+  "counterexamples": [
+    "the rule-rich historical cross-border workflow still produced a user-rejected result and an unsupported PASS",
+    "held-out ice-snow material uses SYSTEM_MAP rather than cross-border-specific structure, showing a universal story template would be a bad generalization",
+    "same-model critic passes cannot become independent merely by assigning different role names"
+  ],
+  "rejected_paths": [
+    "PATCH_EXISTING_RULEBOOK: rejected because the observed failure is admission/topology-level, not a single missing prose instruction",
+    "MULTI_AGENT_PIPELINE: rejected as default because current responsibilities do not yet justify separate business owners or independent-executor claims; retain as conditional future option"
+  ],
+  "selected_candidate_id": "SINGLE_OWNER_FOCUSED_PASSES",
+  "selection_rationale": "It repairs the demonstrated soft-self-pass failure while preserving Financial ownership and historical compatibility. DecisionEnvelope, StoryBlueprint and PublicationFitness become explicit executable contracts; UAOS 1.6 internal orchestration supplies the common method for dependency/critique/adjudication without forcing a second state machine. Story geometry remains material-specific rather than template-fixed.",
+  "saturation": {
+    "sweeps": [
+      {
+        "sweep_no": 1,
+        "query_or_scope": "repository incident and historical audit topology",
+        "source_families": ["repository-live-artifact", "user-feedback"],
+        "new_material_candidates": ["hard admission between research/editorial/audit"],
+        "new_failure_modes": ["soft self-pass", "research-to-publication representation gap"],
+        "new_counterexamples": ["existing rules did not prevent rejection"],
+        "changed_decision": true
+      },
+      {
+        "sweep_no": 2,
+        "query_or_scope": "journalism story-structure methods and retention architecture",
+        "source_families": ["journalism-method", "repository-eval"],
+        "new_material_candidates": ["StoryBlueprint with multiple narrative engines"],
+        "new_failure_modes": ["single universal story template"],
+        "new_counterexamples": ["held-out SYSTEM_MAP geometry"],
+        "changed_decision": true
+      },
+      {
+        "sweep_no": 3,
+        "query_or_scope": "agent orchestration and UAOS internal-work architecture",
+        "source_families": ["agent-engineering", "parent-governance"],
+        "new_material_candidates": ["single-owner focused internal pass DAG"],
+        "new_failure_modes": ["cosmetic multi-agent sprawl"],
+        "new_counterexamples": [],
+        "changed_decision": true
+      },
+      {
+        "sweep_no": 4,
+        "query_or_scope": "cross-border negative replay and held-out ice-snow replay",
+        "source_families": ["repository-eval", "historical-publication"],
+        "new_material_candidates": [],
+        "new_failure_modes": [],
+        "new_counterexamples": [],
+        "changed_decision": false
+      },
+      {
+        "sweep_no": 5,
+        "query_or_scope": "authority/version/mirror/common-capability contradiction scan",
+        "source_families": ["repository-static-audit", "parent-governance"],
+        "new_material_candidates": [],
+        "new_failure_modes": [],
+        "new_counterexamples": [],
+        "changed_decision": false
+      }
+    ],
+    "stop_reason": "two consecutive verification/contradiction sweeps added no decision-changing candidate, failure mode, counterexample or changed decision after the selected architecture was stress-tested",
+    "unresolved_search_gaps": [
+      "live post-promotion reader-value observation is not yet available",
+      "same-session semantic critics remain non-independent"
+    ]
+  },
+  "verification_plan": [
+    "validate this DecisionEnvelope with the executable cognition_governance model",
+    "run full candidate CI including contract/static/retired-runtime/build/render checks",
+    "negative replay the rejected cross-border-ecommerce audit",
+    "held-out replay a different long-form topic/story geometry",
+    "perform authority-wide mirror/version/capability contradiction scan",
+    "merge only after candidate checks are green and then reread production authority/checks",
+    "observe the next live 1.0 article and keep/repair/rollback according to evidence"
+  ],
+  "knowledge_writeback_candidates": [
+    {
+      "knowledge_id": "FW-METHOD-20261015-SINGLE-OWNER-PASSES",
+      "kind": "METHOD",
+      "status": "CANDIDATE",
+      "claim_or_method": "For Financial writing, prefer one business owner with focused internal passes and evidence-backed admission; split into separate agents only when tools, permissions, context, output contracts, independence or measured parallelism materially differ.",
+      "scope": "Financial writing execution architecture",
+      "evidence_refs": [
+        "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json#domain_internal_work_orchestration",
+        "https://developers.openai.com/tracks/building-agents",
+        "evals/FINANCIAL_WRITING_KERNEL_REBUILD_REPLAY_2026-10-15.md"
+      ],
+      "confidence": "high",
+      "learned_at": "2026-10-15",
+      "revalidation_trigger": "a future Financial task requires materially different tools/permissions/independence or multi-agent evals outperform the focused-pass topology",
+      "conflicts": [],
+      "supersedes": []
+    }
+  ],
+  "evolution_disposition": "DOMAIN_CANDIDATE",
+  "remaining_unknowns": [
+    "live reader-retention improvement is unverified until post-promotion article observation",
+    "independent semantic certification is unavailable in the same chat execution context"
+  ]
+}

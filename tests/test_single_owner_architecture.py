@@ -48,11 +48,12 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["identity"]["parent_child_id_equality_required"] is False
 
     common_required = set(capabilities["required_uaos_common_capabilities"])
-    assert capabilities["profile_version"] == 17
-    assert capabilities["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert capabilities["profile_version"] == 18
+    assert capabilities["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
         "product_requirements_and_architecture_governance",
+        "domain_internal_work_orchestration",
         "mutation_sentinel_and_host_complete_mediation",
         "adaptive_deliberation_and_parent_guidance",
         "governed_self_evolution",
@@ -126,7 +127,7 @@ def test_discovery_skill_is_pointer_not_second_rulebook():
 
 def test_package_has_no_second_runtime_dependencies_or_parent_identity_logic():
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert pyproject["project"]["version"] == "0.9.2"
+    assert pyproject["project"]["version"] == "1.0.0"
     assert "scripts" not in pyproject["project"]
     assert not any(str(dep).lower().startswith("mcp") for dep in pyproject["project"].get("dependencies", []))
     assert "openai" not in pyproject["project"].get("optional-dependencies", {})

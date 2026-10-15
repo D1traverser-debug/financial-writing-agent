@@ -1,107 +1,89 @@
-# Shared cognition and knowledge layer
+# Knowledge — Durable Cognition Without Stale Authority
+
+Status: `CURRENT_CANDIDATE_1.0`
+Owner: `DOMAIN:financial_writing`
 
 ## Purpose
-The long-term goal is a reusable cognition layer that can support writing and, if separately implemented later, other financial workflows. For Financial Writing today, connected knowledge stores and repository-native prior research are **recall/evidence providers inside the single owner trajectory**, not business-state authorities and not a separate workflow gate.
 
-Current durable article truth remains `main/workspaces/articles/{task_id}`. Notion, Drive, Library, StockBase, ArticleBase, prior article artifacts or another connected store never overrides current GitHub rules/state merely because information exists there.
+Financial should reuse knowledge it has already earned, but remembered knowledge is never allowed to bypass current evidence. Knowledge is a provenanced input to cognition, not business state, approval or automatic rule authority.
 
-The reuse objective is: **do not relearn stable domain structure from zero, but never let remembered facts bypass current evidence.**
+Two knowledge families are deliberately separate:
+1. **topic/domain knowledge** — industries, value chains, companies, policies, economics and evidence;
+2. **method knowledge** — research methods, story forms, agent/architecture patterns, evaluation methods and failure patterns learned from UAOS or external sources.
 
-## What a reusable knowledge layer may represent
-- Event/catalyst records and chronology.
-- Concept definitions, overlaps and competing narratives.
-- Industry/value-chain nodes, enabling layers and causal/transmission relationships.
-- Listed-company business mappings and fundamental evidence.
-- Company role history when explicitly dated and evidenced.
-- Verification/falsification conditions and unresolved questions.
-- Source-quality notes and stale/conflicting claims.
-- Prior research coverage maps that help identify what must be checked again rather than what can be assumed true.
+Cataloging knowledge does not promote it into a rule.
 
-## Knowledge classes and reuse rules
-Treat reusable cognition in three operational classes.
+## Topic/domain knowledge classes
 
-### 1. Stable structural knowledge — reuse first
-Examples:
-- industry/value-chain topology;
-- durable business-model relationships;
-- company/product/platform roles that have strong multi-period evidence;
-- concept definitions and long-lived causal mechanisms.
+### Stable structural knowledge
 
-Reuse these as the starting cognition map with source/date/confidence attached. They reduce repeated discovery work, but a material contradiction or later company/business change can invalidate them.
+Examples: durable value-chain topology, business-model relationships, concept definitions and long-lived company/product/platform roles. Reuse first, then check for material contradiction or structural change.
 
-### 2. Semi-stable operating knowledge — reuse, then refresh when material
-Examples:
-- customer/channel mix;
-- capacity footprint;
-- product portfolio;
-- geographic exposure;
-- competitive positioning;
-- cost/revenue/margin transmission relationships.
+### Semi-stable operating knowledge
 
-These may seed research, but must be rechecked when they are current, material to the thesis, old enough to have plausibly changed, or contradicted by new evidence.
+Examples: channel/customer mix, capacity, products, geography, competitive position and cost/revenue/margin transmission. Reuse as a starting map and refresh when material, stale or contradicted.
 
-### 3. Ephemeral knowledge — timestamp only, never carry forward as timeless fact
-Examples:
-- policy/tariff/tax/platform-rule state;
-- prices, orders, guidance, quarterly financials and current market share;
-- price action, 身位, 抢筹, 封单/订单簿 strength, intraday leadership, attention or crowding;
-- current management language, current market role and other state-sensitive observations.
+### Ephemeral knowledge
 
-Ephemeral items may help formulate questions, but must be revalidated for every materially affected article.
+Examples: policy/tariffs/tax/platform rules, quarterly financials, guidance, orders, market share, price/flow/attention and current management language. Timestamp only; revalidate for every materially affected article.
+
+## Method knowledge
+
+Method knowledge includes cognition/deliberation patterns, search/evidence methods, story structures, retention mechanisms, originality methods, software/agent patterns, assurance/evaluation techniques and known failure modes.
+
+Current method catalog: `knowledge/METHOD_KNOWLEDGE_CATALOG.json`.
+
+Each method record preserves source refs, category, learned property, Financial fit, misfit, adoption state and a revalidation trigger or expiry condition. A respected external method is still only a candidate until Financial-specific comparison and eval support adoption.
+
+## Knowledge lifecycle
+
+Structured records move conceptually through `RAW -> CANDIDATE -> VALIDATED -> RETIRED`, with `CONFLICTED` whenever material evidence is unresolved. A conflicted record cannot be represented as validated truth.
 
 ## Mandatory recall-before-expansion choreography
-When a new research task starts, Financial must first ask: **what relevant cognition have we already earned?**
 
-Before or alongside open-web expansion, use the strongest available recall sources in this order as applicable:
-1. exact current article/project state when continuing work;
-2. repository-native prior Financial research/artifacts under `workspaces/articles/` when semantically relevant;
-3. explicitly approved/edited user material and durable corrections;
-4. connected StockBase/IndustryBase/EventBase/ArticleBase/Notion/Drive/Library or equivalent knowledge sources when actually available;
-5. external current research to fill gaps, challenge stale assumptions and revalidate material claims.
+At the start of relevant work ask: **what cognition have we already earned?**
 
-A prior article is not authority merely because it is in the repository. It is a **provenanced recall source**. Research must record useful prior refs in the current evidence chain and distinguish reused structural knowledge from newly verified current facts.
+Recall in this order when applicable:
+1. exact current article/project state;
+2. repository-native prior Financial research/artifacts;
+3. approved/edited user material and durable corrections;
+4. connected knowledge stores when genuinely available;
+5. method catalog;
+6. current external research for gaps, challenges and revalidation.
 
-If no relevant prior knowledge exists, the absence is not a blocker; proceed with normal research. If prior knowledge exists, silently ignoring it and rebuilding the same cognition from zero is a research-efficiency defect unless freshness/risk makes clean-room reconstruction preferable.
+Ignoring relevant prior knowledge and rediscovering the same stable map from zero is an efficiency defect unless clean-room reconstruction is deliberately chosen for freshness, independence or risk.
 
-## Revalidation rule
-Treat retrieved knowledge as hypotheses/context, not verdicts. Reverify anything that is:
-- current or time-sensitive;
-- material to the selected thesis, title, H1 or company comparison;
-- disputed, contradictory or low-confidence;
-- capable of changing company materiality, value-chain placement or realization stage;
-- old enough that the underlying business/policy/market state may have changed.
+## Revalidation
 
-A stale external or repository record never outranks current first-party evidence.
+Retrieved knowledge is context/hypothesis until current use is justified. Reverify anything current/time-sensitive, material to thesis/title/H1/company comparison, disputed/low-confidence, capable of changing value-chain placement, plausibly stale or contradicted by new evidence. Current first-party evidence outranks stale memory.
 
-## Knowledge writeback — how learning survives into later tasks
-Research may identify reusable knowledge candidates. The writeback target is **stable cognition, not article prose**.
+## Writeback
 
-A writeback candidate should preserve at minimum:
-- the knowledge claim or relationship;
-- entity/topic/value-chain class;
-- source/evidence refs;
-- observed/verified date;
-- confidence;
-- knowledge class: stable / semi-stable / ephemeral;
-- revalidation trigger or expiry condition;
-- known conflicts/negative evidence;
-- originating article/task ref when applicable.
+Reusable writeback preserves at minimum claim/method, topic/entity/category/scope, evidence refs, learned/verified date, confidence/adoption state, revalidation trigger or expiry condition, conflicts/negative evidence, originating task/decision when material and superseded records when applicable.
 
-Promote only evidence-bounded knowledge. Avoid duplicates; merge or link when the same relationship is already known. Contradictions are recorded rather than silently overwritten.
+Write back stable cognition, not article rhetoric. Temporary titles, paragraph wording and unsupported inference are not knowledge-base facts. If no dedicated external destination exists, retain candidates in repository-native evidence/catalogs rather than fabricating a writeback receipt.
 
-When an appropriate connected destination is available and writeback is useful/authorized, write the reusable record there and retain its stable reference in the current article evidence. When no dedicated knowledge destination exists, preserve reusable candidates and their provenance in the article research artifacts so future Financial research can retrieve them from repository-native prior work; do not invent a connector receipt or fabricate successful external writeback.
+## Knowledge vs rule vs architecture
 
-External writeback is **not a default canonical workflow stage or completion gate**. Reuse quality is judged by whether later research retrieves relevant prior cognition, revalidates what changed and avoids both amnesia and stale-fact carryover.
+Keep the separation explicit:
 
-Article-specific rhetoric, headline wording, temporary stylistic choices and unsupported inference are not knowledge-base facts.
+`learned item -> knowledge record`
 
-## Relationship to mandatory value-chain coverage
-Prior knowledge can accelerate the Value-Chain Coverage Map, but it can never waive it. A prior chain map is a starting hypothesis: current Research must check for new/retired nodes, changed economics, regulation, platform structure and company mappings before declaring coverage COMPLETE or BOUNDED_WITH_GAPS.
+`knowledge + observed problem + alternatives + counterexamples -> DecisionEnvelope`
 
-This creates the intended loop:
+`selected candidate + regression/eval evidence -> rule/architecture candidate`
+
+`owner promotion + production observation -> current authority`
+
+Therefore user feedback can become evidence without becoming a universal rule; a web method can be retained even when rejected; rejected candidates remain useful failure-pattern knowledge; production authority should remain smaller than the accumulated cognition base.
+
+## Value-chain relationship
+
+Prior knowledge can accelerate the Value-Chain Coverage Map, but it can never waive it. Current Research must check for new/retired nodes, changed economics, regulation, platforms and company mappings before coverage can be admitted.
+
+The mandatory reuse loop is:
 `prior cognition recall -> current value-chain coverage -> current evidence expansion/revalidation -> thesis selection -> reusable knowledge candidates -> future recall`.
 
-## Cross-agent boundary
-Do not claim that Financial Writing, stock-picking, review or other agents share one executable knowledge store unless those systems actually use the same verified identity/write/readback contract.
+## Cross-domain boundary
 
-Shared methodology may propagate through Universal governance, but owner-local business facts and article state remain with the Financial owner unless separately justified.
+Do not claim a shared executable knowledge store across Financial, A-share, Video, Novel or other agents unless the same verified read/write identity contract actually exists. UAOS may share governance methods; business facts and state remain owner-local unless separately designed and verified.

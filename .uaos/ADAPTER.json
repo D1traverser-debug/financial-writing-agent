@@ -14,13 +14,16 @@
   "article_continuation_authority": "workspaces/articles/{task_id}/STATE.json",
   "business_state_authority": "workspaces/articles/{task_id}/STATE.json",
   "business_rule_authority": "D1traverser-debug/financial-writing-agent@main",
+  "current_task_admission_guard": "financial_writing_agent/current_admission.py",
+  "historical_and_low_level_state_guard": "financial_writing_agent/owner_guard.py",
+  "writing_kernel_authority": "financial_writing_agent/writing_kernel.py + financial_writing_agent/cognition_governance.py + financial_writing_agent/story_quality.py",
   "hosted_cognition_authority": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
   "hosted_common_capability_authority": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
   "domain_evolution_authority": "references/maintenance.md + financial_writing_agent/owner_lifecycle.py + domain eval/regression evidence",
   "common_or_cross_domain_evolution_authority": "UAOS",
   "identity_boundary": "PARENT_CONTROLLER_TASK_IDS_AND_FINANCIAL_ARTICLE_IDS_ARE_DISTINCT_NAMESPACES__NO_EQUALITY_REQUIREMENT",
   "parent_reference_rule": "UAOS_MAY_STORE_AN_OPAQUE_FINANCIAL_STATE_REF_RETURNED_BY_THE_DOMAIN__UAOS_MUST_NOT_SYNTHESIZE_RENAME_OR_REQUIRE_EQUALITY_WITH_FINANCIAL_ARTICLE_ID",
-  "material_write_rule": "FRESH_OWNER_STATE__OWNER_GUARD_OR_MAINTENANCE_CANDIDATE__VERIFY__REREAD",
+  "material_write_rule": "NEW_1_0_TASKS_USE_CURRENT_ADMISSION__OWNER_GUARD_REMAINS_LOW_LEVEL_AND_HISTORICAL__MAINTENANCE_USES_CANDIDATE_ISOLATION__VERIFY__REREAD",
   "split_brain_rule": "DOMAIN_BUSINESS_STATE_NEVER_REPLACES_UAOS_CONTROLLER_STATE__UAOS_CONTROLLER_STATE_NEVER_REPLACES_FINANCIAL_ARTICLE_STATE",
   "legacy_controller_compatibility": "NONE"
 }

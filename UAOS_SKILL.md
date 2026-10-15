@@ -6,9 +6,9 @@ scope: publishable A-share financial content
 # Financial Writing Agent — UAOS Entry
 
 Controller/common-governance authority: `D1traverser-debug/universal-agent-os@main`.
-Domain business authority: `D1traverser-debug/financial-writing-agent@main`.
+Domain business authority: `D1traverser-debug/financial-writing-agent@main` after controlled promotion; candidate maintenance uses the active candidate ref without transferring ownership.
 
-UAOS owns cross-domain selection/governance, parent continuity and hosted common capabilities. Financial Writing owns article identity/state, product requirements, workflow, business/output contract, domain rules, review evidence and deliverables. Parent/router IDs and Financial article IDs are distinct namespaces with **no equality requirement**. `TaskContract` is intentionally identity-free.
+UAOS owns cross-domain selection/governance and hosted common capabilities. Financial Writing owns article identity/state, product requirements, research/writing architecture, business/output contracts, domain knowledge/evolution evidence and deliverables. Parent/router IDs and Financial article IDs are distinct namespaces with **no equality requirement**. `TaskContract` is intentionally identity-free.
 
 ## Start and authority
 
@@ -17,89 +17,74 @@ A fresh chat may select Financial Writing directly. Once selected, `DOMAIN:finan
 Load only what the action needs:
 1. `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CAPABILITIES.json`;
 2. `config/EXECUTION_CONTRACT.json`;
-3. `docs/product_requirements.md` / `docs/architecture.md` for product/architecture work;
-4. exact article `STATE.json` only when an article exists.
+3. `docs/product_requirements.md` / `docs/architecture.md` for product or architecture work;
+4. exact article `STATE.json` only when an article exists;
+5. the progressive references relevant to the current stage.
 
-Confirm both the hosted UAOS common-capability contract and common behavior-assurance contract before material work. Binding drift blocks affected capability only; it never transfers Financial ownership to UAOS.
+Confirm hosted UAOS capability/behavior-assurance bindings before material work. Binding drift blocks the affected capability; it does not transfer Financial ownership to UAOS.
 
-`financial-writing:main` is a selector/router entry, not an article task. Financial creates/owns its own article `task_id` and `STATE.json`; UAOS may retain only an opaque returned state reference.
+`financial-writing:main` is a selector/router entry, not an article task. Financial creates and owns its own `task_id` and `STATE.json`.
 
-## Workflow and references
+## Workflow and current admission
 
-Canonical workflow:
+Stable external lifecycle:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`
 
-Missing hard capability blocks the affected stage; it does not authorize a weaker fallback.
+New current tasks use `financial_writing_agent.current_admission`, which binds `writing_kernel_version=1.0` and delegates state-transition semantics to `owner_guard.py` while adding fail-closed quality admission. Historical states without the marker remain readable/resumable through `owner_guard.py`; do not rewrite historical receipts to manufacture 1.0 evidence.
 
-Progressive references:
-- research: `references/research.md`, `references/knowledge.md`, `references/reader_value.md`;
-- audit: `references/audit.md`, `references/reader_value.md`;
-- editorial/title/draft: `references/editorial.md`, `references/hooks.md`, `references/style.md`, `references/reader_value.md`;
-- platform: `references/platforms.md`, `references/reader_value.md`;
-- delivery: `references/delivery.md`, `references/reader_value.md`;
-- maintenance: `references/maintenance.md`, `references/proactive_resolution.md`, product/architecture docs.
+Current hard admissions:
+- leaving `RESEARCH`: admitted material `DecisionEnvelope`;
+- leaving `EDITORIAL`: required Deep/Broad `StoryBlueprint` objects;
+- `EDITORIAL_AUDIT` PASS/REVISE: product-specific `PublicationFitness` evidence.
+
+A naked review file plus `PASS` is not current publication evidence.
+
+## Progressive references
+
+- research/cognition: `references/research.md`, `references/knowledge.md`;
+- research audit/publication acceptance: `references/audit.md`, `references/reader_value.md`;
+- editorial/title/draft: `references/editorial.md`, `references/hooks.md`, `references/style.md`;
+- market explanation when material: `references/market_explanation.md`;
+- platform routing: `references/platforms.md`;
+- Word delivery: `references/delivery.md`;
+- maintenance/evolution: `references/maintenance.md`, `references/proactive_resolution.md`, `knowledge/METHOD_KNOWLEDGE_CATALOG.json`.
+
+Do not load every reference into the writer pass. Research, story construction and audit use least-context responsibilities under the one Financial owner and `financial_writing_agent/writing_kernel.py`.
+
+## Business invariants
+
+For material thematic/company work, Research performs prior cognition recall, mandatory value-chain preflight, listed-company universe recall, current evidence expansion, adversarial/counterexample search, auditable saturation, competing-thesis adjudication and Company Decision Map when applicable. Thesis selection occurs only after value-chain coverage exists; a late material node invalidates convergence.
+
+`DecisionEnvelope` requires evidence beyond user assertion, credible alternatives, challenged assumptions, counterexamples, rejected paths, selected rationale, saturation and verification. Problem-triggered or architecture/governance decisions additionally require relevant external method/architecture research. User feedback is high-weight evidence, not automatic rule authority.
+
+Substantive long-form work uses `StoryBlueprint`. `FINANCE_DEEP` preserves material value-chain/company coverage, uses named company/case grounding where available, explicit contiguous Chinese H1 numbering and no default word ceiling. `FINANCE_BROAD` is independently rebuilt for acquisition, not shortened Deep.
+
+Current publication fitness gates are `FACT_INTEGRITY`, `RETENTION`, `COMPANY_GROUNDING`, `STRUCTURE_NUMBERING`, `ORIGINALITY`, `AUTHORIAL_STYLE`, `COMPLIANCE`, `PAYOFF`. Each semantic gate needs text-location/excerpt/finding evidence; MAJOR/CRITICAL findings cannot PASS. Same-session critics remain `CHAT_SELF_REVIEW`.
+
+Natural prose is voice/material/story first. Generic scaffolding is diagnostic when clustered/unearned, not a one-token ban. Research sources are evidence, not prose templates; close paraphrase/patchwriting requires revision.
 
 ## Current product contract
 
-For new ordinary work, default `PORTFOLIO + WORD_FILE_ONLY` produces:
-- `FINANCE_DEEP_DOCX` — deep finance/review;
-- `FINANCE_BROAD_DOCX` — acquisition long-form;
-- `PLATFORM_INTERACTION_PACK_DOCX` — independently rewritten short image-text / 微头条 / 动态 copy;
+New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`:
+- `FINANCE_DEEP_DOCX`;
+- `FINANCE_BROAD_DOCX`;
+- `PLATFORM_INTERACTION_PACK_DOCX`;
 - `AUDIT_DOCX`.
 
-Broad-feed-only targets may use `ACQUISITION` (Broad + interaction pack + audit). Finance-community-only targets may use `FINANCE_DEEP`.
-
-Historical compatibility is immutable: existing `DUAL` remains Deep + Broad + Audit and existing `FINANCE_BROAD` remains Broad + Audit. Never rewrite historical task contracts or receipts because the new default expanded.
-
-## Reader value / company decision utility
-
-`references/reader_value.md` owns the current promoted semantics:
-- publication prose does not expose the research trail merely to prove sourcing;
-- Natural Authorial Prose is **voice/material first**: bind reader, author stance, audited evidence and the strongest available user-owned voice samples before drafting;
-- AI-associated phrase/structure patterns are post-draft diagnostic signals, not mandatory generation bans or quotas; one isolated signal is not a failure by itself;
-- substantial long-form work compares genuinely different opening/section strategies when multiple routes are plausible rather than generating synonym variants;
-- `DRAFT` writes; `EDITORIAL_AUDIT` separately rereads as Reader / Editor / Style critic. Same-session critic passes are useful challenge evidence, not independent verification;
-- title/opening/H1 requirements are reader outcomes, not one-to-one sentence formulas;
-- two or more `MATERIAL` companies require a Company Decision Map and a named evidence-bounded comparative judgment, but no fixed prose order is imposed;
-- relative judgments such as more direct/pure, faster realization, harder evidence or higher-but-less-certain elasticity are legal when evidenced and paired with change conditions;
-- buy/sell, entry timing, target price, position sizing and covert equivalents remain prohibited;
-- H1 with H2/H3 children requires a substantive lead paragraph for reasoning continuity and the user's later image insertion;
-- Broad is rebuilt for acquisition rather than shortened from Deep;
-- interaction copy is independently rewritten from the audited evidence base and may not rely on canned “human-feel” slang/questions.
+Historical `DUAL` and `FINANCE_BROAD` meanings remain immutable. Buy/sell, entry timing, target price, position sizing and covert equivalents remain prohibited.
 
 ## Mandatory problem response
 
-Financial inherits UAOS adaptive deliberation. Every detected defect, user correction/rejection, degraded outcome, contradiction, repeated repair or unreliable goal satisfaction requires at least:
-1. micro diagnosis;
-2. macro goal/topology alignment;
-3. governing-assumption challenge;
-4. relevant external research.
+Every detected defect, user correction/rejection, degraded outcome, contradiction, repeated repair or unreliable goal satisfaction triggers micro diagnosis, macro goal/topology alignment, governing-assumption challenge and relevant external research. Material problems add alternatives/counterexamples and stronger verification. Familiarity is not a waiver.
 
-Familiarity is not a waiver. Material problems require alternatives/counterexamples and stronger verification. Common/cross-domain causes upcall UAOS; Financial-local causes remain Financial-owned.
-
-After diagnosis, Financial also inherits UAOS problem-to-action closure: if an owner-authorized repair is currently available and no required user fact/approval/authorization/safety-sensitive choice blocks it, Financial must attempt the repair before ending the turn. Recommendation-only is not valid closure for a currently repairable problem.
+If an owner-authorized repair is currently available and no required user fact/approval/authorization/safety choice blocks it, attempt the repair before ending the turn. Recommendation-only is not valid closure for a repairable problem.
 
 ## Executable proactive resolution before user escalation
 
-`financial_writing_agent/proactive_resolution.py` owns the executable recovery receipt and escalation gate. Before externalizing a recoverable dependency, Financial must persist either a safe evidence-bound `RESOLVED/PROVISIONAL` result and continue, or an unsafe `UNRESOLVED` result with concrete blockers and pass `require_user_escalation_admission`. Explicit user confirmation remains legal.
+`financial_writing_agent/proactive_resolution.py` owns the recovery receipt and escalation gate. Recover safely from available evidence before asking the user; unresolved escalation must pass `require_user_escalation_admission`. See `references/proactive_resolution.md` for evidence order and assurance limits.
 
-A safe provisional result is not escalation-eligible. See `references/proactive_resolution.md` for evidence order, confidence/validation semantics and assurance limits. Current assurance is executable policy + trajectory evidence until live article behavior accumulates; host-level physical interception is not claimed.
+## Governed evolution and completion
 
-## Governed evolution
+Financial retains topic cognition and method cognition. Cataloging knowledge is not rule promotion. Financial-owned evolution follows `problem/evidence -> cognition -> alternatives -> DecisionEnvelope -> candidate -> regression/eval -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`. Cross-domain/common-capability changes upcall UAOS.
 
-Financial-owned learning follows:
-`problem/feedback -> research+reflection -> root cause/scope -> alternatives -> candidate -> regression/eval -> owner promotion -> post-promotion observation -> keep/rollback/retire`.
-
-`financial_writing_agent/owner_lifecycle.py` owns article-linked feedback/system-impact state; `financial_writing_agent/proactive_resolution.py` owns recoverable-dependency action receipts/user-escalation admission; `references/maintenance.md` owns the maintenance method. One article can create evidence but does not silently become a universal rule. Cross-domain/common-capability evolution remains UAOS-owned.
-
-Major product changes use UAOS-hosted product-review method and persist resulting domain requirements/architecture locally. Product documentation alone is not acceptance evidence.
-
-## State integrity and completion
-
-Financial article identity authority is `workspaces/articles/{task_id}/STATE.json::task_id`. `TaskContract` is intentionally identity-free and only describes business/output constraints.
-
-Material changes bind fresh owner state, use owner guard/lifecycle/proactive-resolution admission as applicable, persist evidence and reread authority. Same-chat semantic review keeps `CHAT_SELF_REVIEW`; independent claims require distinct execution evidence.
-
-Historical completed receipts are immutable provenance and never route selectors.
-
-Financial determines completion from its own state/artifacts. UAOS may consume the result for parent progress but does not duplicate the article lifecycle.
+Financial article identity authority is `workspaces/articles/{task_id}/STATE.json::task_id`. Completion requires current outputs, PublicationFitness, mechanical/render QA, state/artifact reconciliation and accurate assurance. Product docs, role labels or green mechanical tests alone are not semantic publication proof. Historical receipts remain immutable provenance.
