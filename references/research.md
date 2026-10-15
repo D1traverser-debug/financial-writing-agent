@@ -50,6 +50,39 @@ If a late sweep finds a previously omitted material chain class, the selected th
 
 Thesis selection happens **after** the map exists: compare multiple plausible angles against the complete/bounded chain, then choose the angle with the strongest combination of new information, financial transmission, evidence quality, company differentiation and reader value. The final article may focus on one branch; the research cognition may not pretend the omitted branches do not exist.
 
+## Comprehensive search, falsification and layered candidate selection
+“全网遍历” is an open-world aspiration, not a claim Financial may falsely certify. No finite search can prove that every page on the public internet was inspected. The operational requirement is therefore **broad multi-source recall + adversarial/disconfirming search + auditable saturation/gap boundaries**.
+
+For material topic selection, Research must move through the following ladder instead of jumping from the first salient fact to a preferred thesis:
+
+1. **Prior-cognition recall** — retrieve relevant prior Financial/connected knowledge and list what is already believed, including stale/conflicting items.
+2. **Topology/value-chain sweep** — build the complete or bounded Value-Chain Coverage Map before thesis selection.
+3. **Change/catalyst sweep** — search current events, policy, company disclosures, demand/supply, prices, channels, technology and other material change vectors across the mapped chain.
+4. **Source-family diversification** — use materially different source families as appropriate: regulator/government/standards, exchange/company first-party disclosures, industry/association/operational data, independent research/media, and other topic-specific evidence. Repeated articles that trace back to the same original claim do not count as independent breadth.
+5. **Negative/falsification sweep** — actively search for denials, exceptions, adverse economics, failed cases, substitutes, contrary company disclosures, policy carve-outs, margin/cash-flow deterioration, implementation friction and evidence that the apparent beneficiary may not capture the economics.
+6. **Alternative-hypothesis sweep** — construct at least two materially different plausible explanations/angles for a material topic when the evidence allows. If one thesis appears overwhelmingly obvious, explicitly test a null/baseline or strongest competing explanation rather than declaring victory by default.
+7. **Cross-reference/snowball sweep** — use citations, reference lists, competitor/supplier/customer relations, adjacent concepts and newly discovered entities to find evidence that the initial query vocabulary would miss.
+8. **Saturation/gap check** — repeat targeted sweeps until the latest sweep produces no material new chain class/company/explanation/counterevidence, or explicitly declare the remaining gaps and why further search is currently disproportionate or unavailable.
+
+Every material candidate thesis must then pass a **challenge-and-eliminate** step. Steelman the strongest case against it and record what evidence would disqualify, downgrade or reverse the thesis. A candidate that survives only because contrary evidence was never searched is not admissible.
+
+### Layered selection ladder
+The selection path is:
+`prior cognition -> value-chain map -> change/catalyst universe -> competing causal hypotheses -> adversarial rejection -> thesis/angle candidates -> evidence-bounded winner -> company decision map/editorial handoff`.
+
+For the final thesis/angle decision, compare candidates on topic-specific criteria that normally include:
+- novelty/information gain;
+- economic materiality;
+- completeness of the profit/order/cash-flow transmission path;
+- first-party/current evidence strength;
+- explanatory power versus competing hypotheses;
+- company differentiation/decision utility;
+- falsifiability and explicit reversal conditions;
+- uncertainty and unresolved gaps;
+- reader value and publishable payoff.
+
+Do not select the “best” candidate by rhetorical attractiveness alone. Preserve rejected candidates and the evidence/reason for rejection when the distinction materially explains why the winner was chosen. If uncertainty reduction could plausibly change the ranking, obtain more evidence before final selection or retain a bounded provisional ranking.
+
 ## A-share Universe Coverage Ledger — mandatory for company/theme topics
 Do not start from two or three familiar listed companies and call the second search “coverage”. First enumerate the economically material value-chain classes for this topic, then recall companies class by class.
 
@@ -80,9 +113,12 @@ For company/theme research, `coverage_status = SATURATED` is illegal in spirit u
 
 A late sweep that still finds a material concept, value-chain class, company class, contradictory fact or materially different explanation is evidence to continue or explicitly preserve the gap. “全面” must be auditable rather than asserted by intuition.
 
+The stop rule is not “searched a lot”. It must state why additional search is unlikely to change the material chain map, candidate ranking or core evidence boundary. If a citation/snowball or negative-evidence sweep still produces material additions, search has not saturated.
+
 ## Required research reasoning
 - Establish the event, chronology and what changed relative to prior expectations.
 - Build the Value-Chain Coverage Map before selecting the thesis or dominant angle.
+- Run broad recall, negative/falsification search and competing-hypothesis testing before finalizing the selected angle.
 - Map the economically relevant transmission chain.
 - Build the relevant company universe class by class and classify direct earnings/business exposure, economic linkage, second-order exposure, optionality, narrative-only association or uncertainty.
 - Compare **sensitivity**, not merely concept membership.
@@ -159,6 +195,8 @@ If evidence remains unresolved, downgrade or remove the claim. Do not bridge mis
 RESEARCH is ready to enter `RESEARCH_AUDIT` only when:
 - the Value-Chain Coverage Map is COMPLETE or explicitly BOUNDED_WITH_GAPS, or is defensibly NOT_APPLICABLE;
 - no thesis/main-angle selection was finalized before that map existed, and any late-discovered material chain class has triggered thesis re-test;
+- broad multi-source recall, negative/falsification search, alternative-hypothesis testing and saturation/gap checks have been performed proportionally to topic materiality;
+- the selected thesis has survived its strongest material countercase, with rejection/reversal conditions explicit;
 - the main thesis has an evidence chain;
 - material concepts/value-chain classes and company classes are represented;
 - every universe company is reconciled to the class ledger;
