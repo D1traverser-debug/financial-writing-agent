@@ -17,6 +17,23 @@ def test_value_chain_preflight_is_hard_before_thesis_selection():
         assert marker in text
 
 
+def test_research_requires_adversarial_broad_search_and_layered_selection():
+    text = (ROOT / "references" / "research.md").read_text(encoding="utf-8")
+    required = [
+        "Comprehensive search, falsification and layered candidate selection",
+        "broad multi-source recall + adversarial/disconfirming search + auditable saturation/gap boundaries",
+        "Negative/falsification sweep",
+        "Alternative-hypothesis sweep",
+        "Cross-reference/snowball sweep",
+        "challenge-and-eliminate",
+        "strongest case against it",
+        "Layered selection ladder",
+        "If uncertainty reduction could plausibly change the ranking, obtain more evidence",
+    ]
+    for marker in required:
+        assert marker in text
+
+
 def test_knowledge_reuse_has_recall_revalidate_writeback_loop():
     text = (ROOT / "references" / "knowledge.md").read_text(encoding="utf-8")
     required = [
