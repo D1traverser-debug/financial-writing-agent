@@ -19,7 +19,8 @@ Load only what the action needs:
 2. `config/EXECUTION_CONTRACT.json`;
 3. `docs/product_requirements.md` / `docs/architecture.md` for product or architecture work;
 4. exact article `STATE.json` only when an article exists;
-5. the progressive references relevant to the current stage.
+5. the progressive references relevant to the current stage;
+6. `evals/EVOLUTION_INDEX.json` when a detected problem is material/evolution-relevant or needs parent guidance.
 
 Confirm hosted UAOS capability/behavior-assurance bindings before material work. Binding drift blocks the affected capability; it does not transfer Financial ownership to UAOS.
 
@@ -47,7 +48,7 @@ A naked review file plus `PASS` is not current publication evidence.
 - market explanation when material: `references/market_explanation.md`;
 - platform routing: `references/platforms.md`;
 - Word delivery: `references/delivery.md`;
-- maintenance/evolution: `references/maintenance.md`, `references/proactive_resolution.md`, `knowledge/METHOD_KNOWLEDGE_CATALOG.json`.
+- maintenance/evolution: `references/maintenance.md`, `references/proactive_resolution.md`, `knowledge/METHOD_KNOWLEDGE_CATALOG.json`, `evals/EVOLUTION_INDEX.json`.
 
 Do not load every reference into the writer pass. Research, story construction and audit use least-context responsibilities under the one Financial owner and `financial_writing_agent/writing_kernel.py`.
 
@@ -73,11 +74,20 @@ New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`:
 
 Historical `DUAL` and `FINANCE_BROAD` meanings remain immutable. Buy/sell, entry timing, target price, position sizing and covert equivalents remain prohibited.
 
-## Mandatory problem response
+## Mandatory problem response — Common Behavior 1.3
 
 Every detected defect, user correction/rejection, degraded outcome, contradiction, repeated repair or unreliable goal satisfaction triggers micro diagnosis, macro goal/topology alignment, governing-assumption challenge and relevant external research. Material problems add alternatives/counterexamples and stronger verification. Familiarity is not a waiver.
 
-If an owner-authorized repair is currently available and no required user fact/approval/authorization/safety choice blocks it, attempt the repair before ending the turn. Recommendation-only is not valid closure for a repairable problem.
+Financial does not replace its existing cognition system for Common Behavior 1.3. `financial_writing_agent.cognition_governance.DecisionEnvelope` remains the evidence/research/alternatives/counterexample/search-saturation authority. `financial_writing_agent.problem_action_admission` adds the missing causal bridge: an admitted DecisionEnvelope must be converted into an evidence-grounded `RootScopeReceipt` before repair or evidence-backed no-change.
+
+User framing, an external Skill/method, and the first repairable symptom are evidence, not root-cause authority. A material/systemic problem must compare hypotheses across causal layers, preserve at least one evidence-rejected alternative, test an architecture/upstream explanation and bind architecture reassessment evidence. Hypotheses must reference evidence actually present in the admitted DecisionEnvelope; invented support refs fail admission.
+
+The owner-native problem transaction is:
+`DETECT -> RECOVER WHEN APPLICABLE -> DECISION_ENVELOPE -> ROOT_SCOPE_ADMISSION -> TYPED_EVOLUTION_DISPOSITION -> REPAIR / NO_CHANGE / BLOCK / PARENT_UPCALL -> VERIFY`.
+
+Material/evolution-relevant problems require a durable causal reference discoverable through `evals/EVOLUTION_INDEX.json`; a `PARENT_UPCALL` evolution disposition additionally requires a structured parent-upcall reference. A genuine required user fact/approval/authorization/safety choice may block without fabricating root-cause certainty.
+
+If an admitted owner-authorized repair is currently available and no required user fact/approval/authorization/safety choice blocks it, attempt and verify the repair before ending the turn. Recommendation-only is not valid closure for a repairable problem.
 
 ## Executable proactive resolution before user escalation
 
@@ -85,6 +95,6 @@ If an owner-authorized repair is currently available and no required user fact/a
 
 ## Governed evolution and completion
 
-Financial retains topic cognition and method cognition. Cataloging knowledge is not rule promotion. Financial-owned evolution follows `problem/evidence -> cognition -> alternatives -> DecisionEnvelope -> candidate -> regression/eval -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`. Cross-domain/common-capability changes upcall UAOS.
+Financial retains topic cognition and method cognition. Cataloging knowledge is not rule promotion. Financial-owned evolution follows `problem/evidence -> cognition -> alternatives -> DecisionEnvelope -> root-scope -> typed evolution disposition -> candidate/action -> regression/eval -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`. Cross-domain/common-capability changes upcall UAOS.
 
 Financial article identity authority is `workspaces/articles/{task_id}/STATE.json::task_id`. Completion requires current outputs, PublicationFitness, mechanical/render QA, state/artifact reconciliation and accurate assurance. Product docs, role labels or green mechanical tests alone are not semantic publication proof. Historical receipts remain immutable provenance.
