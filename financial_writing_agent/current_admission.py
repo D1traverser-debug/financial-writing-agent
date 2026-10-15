@@ -10,6 +10,7 @@ from .cognition_governance import DecisionEnvelope, OperationClass, admission_er
 from .story_quality import AuditStatus, ProductMode, PublicationFitness, StoryBlueprint
 
 WRITING_KERNEL_VERSION = "1.0"
+QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 
 
 class CurrentAdmissionError(ValueError):
@@ -73,25 +74,29 @@ def _parse_decision_envelope(raw: Mapping[str, Any] | None) -> DecisionEnvelope:
     return envelope
 
 
-def _latest_receipt_digest(state: Mapping[str, Any], binding_key: str) -> str | None:
+def _latest_receipt_digest(state: Mapping[str, Any], binding_key: str, *, admitting_stage: str) -> str | None:
     receipts = state.get("execution_receipts", [])
     if not isinstance(receipts, list):
         return None
     for receipt in reversed(receipts):
-        if not isinstance(receipt, Mapping):
+        if not isinstance(receipt, Mapping) or receipt.get("stage") != admitting_stage:
             continue
         bindings = receipt.get("input_bindings", {})
-        if isinstance(bindings, Mapping) and binding_key in bindings:
+        if not isinstance(bindings, Mapping):
+            continue
+        if bindings.get("quality_admission_path") != QUALITY_ADMISSION_PATH:
+            continue
+        if binding_key in bindings:
             value = bindings.get(binding_key)
             return str(value) if value is not None else None
     return None
 
 
 def _require_persisted_digest(
-    state: Mapping[str, Any], *, evidence_key: str, binding_key: str, evidence_value: Any
+    state: Mapping[str, Any], *, evidence_key: str, binding_key: str, admitting_stage: str, evidence_value: Any
 ) -> None:
-    expected = _latest_receipt_digest(state, binding_key)
-    _require(expected is not None, f"persisted {evidence_key} lacks a binding receipt digest")
+    expected = _latest_receipt_digest(state, binding_key, admitting_stage=admitting_stage)
+    _require(expected is not None, f"persisted {evidence_key} lacks a {admitting_stage} current-admission receipt digest")
     actual = _canonical_digest(evidence_value)
     _require(actual == expected, f"persisted {evidence_key} no longer matches its latest admitted receipt digest")
 
@@ -109,6 +114,7 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
             state,
             evidence_key="research_decision",
             binding_key="decision_envelope_sha256",
+            admitting_stage="RESEARCH",
             evidence_value=raw_decision,
         )
 
@@ -120,6 +126,7 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
             state,
             evidence_key="story_blueprints",
             binding_key="story_blueprints_sha256",
+            admitting_stage="EDITORIAL",
             evidence_value=raw_blueprints,
         )
 
@@ -131,6 +138,7 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
             state,
             evidence_key="publication_fitnesses",
             binding_key="publication_fitnesses_sha256",
+            admitting_stage="EDITORIAL_AUDIT",
             evidence_value=raw_fitnesses,
         )
 
@@ -142,7 +150,7 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     state["quality_evidence"] = {}
     receipt = state["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = "financial_writing_agent.current_admission"
+    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     validate_state(state)
     return state
 
@@ -219,7 +227,7 @@ def advance_state(
 
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = "financial_writing_agent.current_admission"
+    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     receipt["input_bindings"].update(evidence_bindings)
     validate_state(after)
     return after
@@ -231,5 +239,5 @@ def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[st
     validate_state(after)
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    receipt["input_bindings"]["quality_admission_path"] = "financial_writing_agent.current_admission"
+    receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     return after
