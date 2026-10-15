@@ -278,17 +278,20 @@ def _digest(value: object) -> str:
     return hashlib.sha256(payload).hexdigest()
 
 
-def test_current_tasks_are_marked_v1_while_legacy_builder_remains_compatible():
+def test_all_public_new_task_builders_create_current_quality_state_while_historical_schemas_remain_supported():
     current = _new_state("current")
-    legacy = owner_guard.build_initial_state(
-        task_id="legacy",
-        prompt="legacy",
+    owner_current = owner_guard.build_initial_state(
+        task_id="owner-current",
+        prompt="current",
         source_refs=[],
         executor_identity="test",
     )
-    assert current["writing_kernel_version"] == "1.0"
-    assert current["quality_evidence"] == {}
-    assert "writing_kernel_version" not in legacy
+    for state in (current, owner_current):
+        assert state["schema_version"] == owner_guard.QUALITY_STATE_SCHEMA_VERSION
+        assert state["writing_kernel_version"] == "1.0"
+        assert state["quality_evidence"] == {}
+        assert state["execution_receipts"][0]["input_bindings"]["quality_admission_path"] == owner_guard.CURRENT_QUALITY_ADMISSION_PATH
+    assert {"1.1", "1.2", "1.3"}.issubset(owner_guard.SUPPORTED_STATE_SCHEMA_VERSIONS)
 
 
 def test_research_cannot_advance_on_naked_artifact_without_decision_evidence():
