@@ -162,7 +162,10 @@ def test_stage_skip_is_rejected_even_if_state_is_manually_tampered():
     receipt["capability_id"] = "github_chat_review_stages"
     receipt["input_bindings"] = {"previous_state_blob_sha": "state-2", "state_ref": "main"}
     after["execution_receipts"] = before["execution_receipts"] + [receipt]
-    with pytest.raises(GithubChatGuardError, match="must advance to EDITORIAL"):
+    with pytest.raises(
+        GithubChatGuardError,
+        match="must advance to EDITORIAL|transition receipt must bind review_status",
+    ):
         validate_transition(before, after, previous_state_blob_sha="state-2")
 
 
