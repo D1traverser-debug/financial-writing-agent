@@ -22,6 +22,7 @@ def main() -> None:
         ".uaos/CAPABILITIES.json", "config/EXECUTION_CONTRACT.json",
         "docs/product_requirements.md", "docs/architecture.md",
         "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py",
+        "financial_writing_agent/proactive_resolution.py",
         "financial_writing_agent/workflow_spec.py", "financial_writing_agent/models.py",
     ):
         require((ROOT / path).is_file(), f"missing current Financial authority: {path}")
@@ -38,11 +39,13 @@ def main() -> None:
     require(manifest["controller"] == "D1traverser-debug/universal-agent-os@main", "controller drift")
     require(manifest["skill"]["entrypoint"] == "UAOS_SKILL.md", "skill drift")
     require(manifest["binding"]["common_capabilities_ref"].endswith("config/COMMON_CAPABILITIES.json"), "common capability binding drift")
+    require(manifest["binding"]["common_behavior_assurance_ref"].endswith("config/COMMON_BEHAVIOR_ASSURANCE.json"), "common behavior-assurance binding drift")
     require(manifest["binding"]["deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json"), "deliberation binding drift")
     require(manifest["domain_authority"]["product_requirements"] == "docs/product_requirements.md", "domain product-requirement authority drift")
     require(manifest["domain_authority"]["architecture"] == "docs/architecture.md", "domain architecture authority drift")
     require(manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id", "manifest article identity drift")
     require(manifest["domain_authority"]["business_contract"] == "financial_writing_agent/models.py:TaskContract", "business contract drift")
+    require(manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py", "proactive-resolution guard drift")
 
     require(adapter["session_activation"] == "DIRECT_FINANCIAL_WORK_PLANE_AFTER_DOMAIN_SELECTION__NO_MANDATORY_LIVE_UAOS_BUSINESS_PROXY", "direct Financial activation drift")
     require(adapter["controller_task_identity_authority"] == "UAOS", "controller identity authority drift")
@@ -64,8 +67,9 @@ def main() -> None:
     require(execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True, "systemic evolution lost regression/eval gate")
 
     required_common = set(caps.get("required_uaos_common_capabilities", []))
-    require(caps["profile_version"] == 16, "Financial capability profile drift")
+    require(caps["profile_version"] == 17, "Financial capability profile drift")
     require(caps["uaos_common_capabilities_contract_min"] == "1.5.0", "Financial minimum common contract drift")
+    require(caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0", "Financial minimum common behavior contract drift")
     require({
         "product_requirements_and_architecture_governance",
         "mutation_sentinel_and_host_complete_mediation",
@@ -78,6 +82,11 @@ def main() -> None:
         "GOVERNING_ASSUMPTION_CHALLENGE",
         "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
     ], "hosted cognition problem-response floor drift")
+    require(caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION", "proactive resolution remained declaration-only")
+    require("RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"], "problem-to-action closure missing")
+    proactive_caps = {cap["capability_id"]: cap for cap in caps["capabilities"]}
+    require("proactive_resolution_admission" in proactive_caps, "proactive resolution capability missing")
+    require("behavioral_trajectory_regression" in proactive_caps["proactive_resolution_admission"]["required"], "proactive resolution lacks trajectory evidence requirement")
     require(all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"]), "side channel enabled")
 
     current_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
@@ -90,6 +99,7 @@ def main() -> None:
     require("TaskContract` is intentionally identity-free" in current_skill, "Skill does not separate article identity from business contract")
     require("a fresh chat may select financial writing directly" in current_skill_lower, "Skill lost direct Financial activation")
     require("mandatory problem response" in current_skill_lower, "Skill lost hosted cognition problem response")
+    require("executable proactive resolution" in current_skill_lower, "Skill does not expose executable proactive resolution")
     require("Product completion criteria" in product_requirements, "product requirements lack completion criteria")
     require("Acceptance evidence" in product_requirements, "product requirements are not linked to acceptance evidence")
     require("Hosted cognition architecture" in architecture, "architecture lacks hosted cognition boundary")
@@ -107,6 +117,7 @@ def main() -> None:
     require("validate_uaos_article_binding" not in business_package_text, "UAOS binding validator leaked into Financial package")
     require("DeliberationController" not in business_package_text, "second cognition controller leaked into Financial package")
     require("EvolutionController" not in business_package_text, "second evolution controller leaked into Financial package")
+    require("require_user_escalation_admission" in business_package_text, "executable user-escalation admission missing from Financial package")
 
     reference_names = ("research.md","knowledge.md","market_explanation.md","audit.md","editorial.md","hooks.md","style.md","platforms.md","delivery.md","maintenance.md")
     for name in reference_names:
@@ -115,7 +126,7 @@ def main() -> None:
         package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
         require(source == skill == package, f"reference mirror drift: {name}")
 
-    print("PASS: Financial keeps one business owner, directly activates, inherits current UAOS cognition/evolution, and owns its product requirements")
+    print("PASS: Financial keeps one business owner, directly activates, inherits current UAOS cognition/evolution, and operationalizes proactive recovery with owner-native admission evidence")
 
 
 if __name__ == "__main__":
