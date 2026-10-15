@@ -57,7 +57,7 @@ jobs:
               source_refs=[],
               executor_identity="wheel-smoke",
           )
-          assert importlib.metadata.version("financial-writing-agent") == "1.0.0"
+          assert importlib.metadata.version("financial-writing-agent") == "1.0.1"
           assert WRITING_KERNEL_VERSION == "1.0"
           assert policy["contract_version"] == "0.9.1"
           assert policy["defaults"]["distribution_mode"] == "PORTFOLIO"
@@ -85,7 +85,7 @@ jobs:
           assert "not generation mandates" in reader_value
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(build_interaction_pack_docx) and callable(check_docx)
           assert callable(build_initial_state) and callable(resume_blocked_state)
-          print("PASS: clean Financial Writing 1.0 wheel exposes current admission, kernel 1.0, PORTFOLIO outputs, voice-first policy, and single Financial identity path")
+          print("PASS: clean Financial Writing 1.0.1 wheel exposes current admission, kernel 1.0, PORTFOLIO outputs, voice-first policy, and single Financial identity path")
           PY
       - name: Install render dependencies
         run: |
