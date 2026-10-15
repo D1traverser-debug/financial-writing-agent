@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.4",
+  "schema_version": "2.5",
   "agent_id": "financial_writing",
   "domain_id": "financial_writing",
   "controller": "D1traverser-debug/universal-agent-os@main",
@@ -8,6 +8,7 @@
   "binding": {
     "controller_ref": "D1traverser-debug/universal-agent-os@main:CURRENT_SYSTEM.json",
     "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
+    "common_behavior_assurance_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_BEHAVIOR_ASSURANCE.json",
     "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
     "adapter_ref": ".uaos/ADAPTER.json",
     "capability_ref": ".uaos/CAPABILITIES.json"
@@ -21,6 +22,7 @@
     "business_state_root": "workspaces/articles/{task_id}/STATE.json",
     "workflow_guard": "financial_writing_agent/owner_guard.py",
     "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
+    "proactive_resolution_guard": "financial_writing_agent/proactive_resolution.py",
     "maintenance_method": "references/maintenance.md"
   }
 }
