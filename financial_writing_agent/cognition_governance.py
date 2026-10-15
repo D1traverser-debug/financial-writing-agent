@@ -130,6 +130,8 @@ class DecisionEnvelope(StrictModel):
     operation: str = Field(min_length=1)
     objective: str = Field(min_length=1)
     operation_class: OperationClass
+    problem_triggered: bool = False
+    architecture_or_governance_change: bool = False
     evidence: list[EvidenceRef] = Field(min_length=1)
     learned_items: list[str] = Field(default_factory=list)
     categories_or_models_used: list[str] = Field(default_factory=list)
@@ -155,8 +157,11 @@ class DecisionEnvelope(StrictModel):
             return self
 
         kinds = {item.kind for item in self.evidence}
-        if EvidenceKind.EXTERNAL_METHOD not in kinds:
-            raise ValueError("material judgment requires EXTERNAL_METHOD evidence")
+        non_user_kinds = kinds - {EvidenceKind.USER_FEEDBACK}
+        if not non_user_kinds:
+            raise ValueError("material judgment requires evidence beyond user feedback")
+        if (self.problem_triggered or self.architecture_or_governance_change) and EvidenceKind.EXTERNAL_METHOD not in kinds:
+            raise ValueError("problem-triggered or architecture/governance judgment requires EXTERNAL_METHOD evidence")
         if len(self.alternatives) < 2:
             raise ValueError("material judgment requires at least two credible alternatives")
         ids = [item.candidate_id for item in self.alternatives]
@@ -188,6 +193,10 @@ def admission_errors(envelope: DecisionEnvelope) -> list[str]:
             errors.append("material judgment evidence is single-family")
         if all(e.kind == EvidenceKind.USER_FEEDBACK for e in envelope.evidence):
             errors.append("user feedback cannot be the sole evidence for a material judgment")
+        if (envelope.problem_triggered or envelope.architecture_or_governance_change) and not any(
+            e.kind == EvidenceKind.EXTERNAL_METHOD for e in envelope.evidence
+        ):
+            errors.append("triggered problem/architecture decision lacks required external method evidence")
         if envelope.evolution_disposition in {
             EvolutionDisposition.DOMAIN_CANDIDATE,
             EvolutionDisposition.PARENT_UPCALL,
