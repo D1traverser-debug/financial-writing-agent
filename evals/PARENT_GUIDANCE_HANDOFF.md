@@ -1,11 +1,11 @@
 # Financial -> UAOS Parent Guidance Handoff
 
-Status: `NON_MUTATING_CHILD_UPCALL__PARENT_ADJUDICATION_IN_PROGRESS`
+Status: `NON_MUTATING_CHILD_UPCALL__CURRENT_ITEMS_PARENT_ADJUDICATED__LIVE_OBSERVATION_OPEN`
 Updated: `2026-10-15`
 Owner of this evidence: `DOMAIN:financial_writing`
 Parent authority: `D1traverser-debug/universal-agent-os@main`
 
-This file does not change UAOS. It is a compact pointer for the total-controller review requested by the user.
+This file does not change UAOS. It is a compact evidence pointer for later total-controller review and regression/generalization work.
 
 Read first:
 - `evals/PROBLEM_EVOLUTION_JOURNAL.md`
@@ -14,14 +14,16 @@ Read first:
 - `references/maintenance.md`
 - `financial_writing_agent/proactive_resolution.py`
 
-Requested parent guidance:
-1. `PROACTIVE_RESOLUTION_GAP` — decide whether registered child Agents should attempt available-context/evidence recovery before externalizing a recoverable dependency to the user.
-2. `EVOLUTION_HISTORY_INTERFACE` — decide whether UAOS should standardize a minimal child problem/evolution journal interface or only require each child to expose one canonical evidence index.
-3. `VERSION_METADATA_DRIFT` — enforce consistency between current release authority and entry/bootstrap/version labels after promotion.
-4. `INHERITANCE_BEHAVIOR_VS_DECLARATION` — add or define live behavioral probes so capability declarations are not treated as sufficient evidence that a child actually invokes cognition proactively.
-5. `DECLARATION_TO_OPERATION_GAP` — compare the 2026-10-12 system-impact incident with the 2026-10-15 proactive-resolution failure across registered children; decide whether the parent needs a generic observable-behavior contract that operationalizes inherited cognitive obligations without creating a parent microscheduler.
-6. `PROBLEM_TO_ACTION_CLOSURE_GAP` — the parent itself reproduced the same class by correctly diagnosing Financial's missing executable bridge and initially stopping at a future recommendation despite having current repair authority/tooling. Decide and enforce whether a confirmed repairable problem must end in current repair, a concrete blocker/user-choice dependency, or evidence-backed no-change rather than recommendation-only.
+Parent adjudication state:
+1. `PROACTIVE_RESOLUTION_GAP` — adjudicated in UAOS Common Behavior Assurance: proportionate recovery before avoidable user escalation; exact recovery order remains domain-owned.
+2. `EVOLUTION_HISTORY_INTERFACE` — adjudicated: one discoverable owner-native evidence entrypoint plus causal history; no universal child journal format/state machine.
+3. `VERSION_METADATA_DRIFT` — adjudicated: release/entry synchronization is mechanically guarded and parent child-observation evidence must be refreshed after child promotion.
+4. `INHERITANCE_BEHAVIOR_VS_DECLARATION` — adjudicated: declaration alone is `DECLARED_ONLY`; operational claims require owner-appropriate execution evidence.
+5. `DECLARATION_TO_OPERATION_GAP` — adjudicated as a common umbrella failure class without creating a parent microscheduler.
+6. `PROBLEM_TO_ACTION_CLOSURE_GAP` — adjudicated in UAOS Common Behavior Assurance 1.2 / Session Interaction Policy 1.7: a confirmed repairable problem must end in current repair, a concrete blocker/required user choice, or evidence-backed no-change; recommendation-only is not valid closure when lawful repair is available.
 
-Current child candidate response to item 6: Financial 0.9.2/profile17 adds owner-native proactive-resolution action receipts, a user-escalation admission gate and a behavior trajectory for the missing-canonical-voice-sample case. This is child evidence, not proof that the same implementation shape fits other domains.
+Financial owner-native realization is now production: release 0.9.2 / profile17, PR #31, production commit `12c8f1cd4087641228882b5d937bd8ba80760ec3`, production CI #1037 / run `38672024075` PASS. The implementation adds owner-state proactive-resolution action receipts, `require_user_escalation_admission`, and the missing-canonical-voice-sample behavior trajectory.
 
-Do not treat the Financial-specific repair as proof that a cross-domain rule is correct. The parent should challenge generalization scope and test counterexamples across other registered children before promotion.
+Assurance boundary: this is `EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED`, not proof that every natural-language host response is physically intercepted and not yet `LIVE_OUTCOME_VERIFIED`. Real Financial article use remains the next evidence tier.
+
+The Financial-specific implementation remains child-owned evidence. Other domains should satisfy the common outcome/assurance contract using their own execution topology rather than copying this Python/state shape mechanically.
