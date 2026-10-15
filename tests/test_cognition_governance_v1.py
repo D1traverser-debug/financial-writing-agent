@@ -54,20 +54,28 @@ def _saturation() -> SearchSaturation:
     )
 
 
-def test_material_judgment_requires_external_method_counterexample_alternatives_and_saturation():
+def test_problem_triggered_architecture_judgment_requires_external_method_evidence():
     with pytest.raises(ValidationError):
         DecisionEnvelope(
             decision_id="D1",
             operation="rebuild writing architecture",
             objective="improve reader value",
             operation_class=OperationClass.MATERIAL_JUDGMENT,
+            problem_triggered=True,
+            architecture_or_governance_change=True,
             evidence=[
                 EvidenceRef(
                     ref="user-feedback",
                     kind=EvidenceKind.USER_FEEDBACK,
                     summary="article rejected",
                     source_family="user",
-                )
+                ),
+                EvidenceRef(
+                    ref="current-audit",
+                    kind=EvidenceKind.CURRENT_FACT,
+                    summary="audit self-passed the rejected output",
+                    source_family="repository",
+                ),
             ],
             alternatives=[_alt("A"), _alt("B")],
             selected_candidate_id="A",
@@ -75,8 +83,41 @@ def test_material_judgment_requires_external_method_counterexample_alternatives_
             assumptions_challenged=["more rules fix writing"],
             counterexamples=["existing rules existed but audit still passed"],
             rejected_paths=["add more prose rules"],
+            saturation=_saturation(),
             verification_plan=["regression"],
         )
+
+
+def test_ordinary_material_thesis_decision_needs_non_user_evidence_but_not_architecture_research():
+    envelope = DecisionEnvelope(
+        decision_id="TOPIC-1",
+        operation="choose article thesis",
+        objective="select the strongest evidence-bounded explanation",
+        operation_class=OperationClass.MATERIAL_JUDGMENT,
+        evidence=[
+            EvidenceRef(
+                ref="company-report-A",
+                kind=EvidenceKind.CURRENT_FACT,
+                summary="company evidence",
+                source_family="company-filing",
+            ),
+            EvidenceRef(
+                ref="policy-source-B",
+                kind=EvidenceKind.CURRENT_FACT,
+                summary="policy evidence",
+                source_family="government",
+            ),
+        ],
+        assumptions_challenged=["largest macro growth means largest company beneficiary"],
+        alternatives=[_alt("THESIS_A"), _alt("THESIS_B")],
+        counterexamples=["company-level revenue diverges from macro volume"],
+        rejected_paths=["THESIS_A lacks company-level transmission evidence"],
+        selected_candidate_id="THESIS_B",
+        selection_rationale="THESIS_B survives the company-level counterexample",
+        saturation=_saturation(),
+        verification_plan=["research audit", "company decision map"],
+    )
+    assert admission_errors(envelope) == []
 
 
 def test_search_saturation_needs_two_consecutive_no_delta_sweeps():
@@ -95,7 +136,7 @@ def test_search_saturation_needs_two_consecutive_no_delta_sweeps():
         )
 
 
-def test_valid_material_decision_and_evolution_learning_are_admitted():
+def test_valid_material_architecture_decision_and_evolution_learning_are_admitted():
     record = KnowledgeRecord(
         knowledge_id="K1",
         kind=KnowledgeKind.METHOD,
@@ -112,6 +153,8 @@ def test_valid_material_decision_and_evolution_learning_are_admitted():
         operation="select writing execution topology",
         objective="separate cognition, writing, and verification without controller sprawl",
         operation_class=OperationClass.MATERIAL_JUDGMENT,
+        problem_triggered=True,
+        architecture_or_governance_change=True,
         evidence=[
             EvidenceRef(
                 ref="user-feedback",
