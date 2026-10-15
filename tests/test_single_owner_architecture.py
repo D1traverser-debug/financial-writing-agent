@@ -49,10 +49,11 @@ def test_current_authority_has_one_financial_owner_path():
 
     common_required = set(capabilities["required_uaos_common_capabilities"])
     assert capabilities["profile_version"] == 17
-    assert capabilities["uaos_common_capabilities_contract_min"] == "1.5.0"
+    assert capabilities["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
         "product_requirements_and_architecture_governance",
+        "domain_internal_work_orchestration",
         "mutation_sentinel_and_host_complete_mediation",
         "adaptive_deliberation_and_parent_guidance",
         "governed_self_evolution",
