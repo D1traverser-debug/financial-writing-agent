@@ -16,12 +16,21 @@ from financial_writing_agent.owner_guard import (
 
 
 def _initial():
-    return build_initial_state(
+    # Public creation is now schema 1.3. These tests intentionally exercise the
+    # historical 1.2 owner-state semantics that must remain resumable/readable.
+    state = build_initial_state(
         task_id="guard-task",
         prompt="write a test article",
         source_refs=["source://one"],
         executor_identity="chat-session:test",
     )
+    state["schema_version"] = "1.2"
+    state.pop("writing_kernel_version", None)
+    state.pop("quality_evidence", None)
+    for receipt in state["execution_receipts"]:
+        receipt["input_bindings"].pop("writing_kernel_version", None)
+        receipt["input_bindings"].pop("quality_admission_path", None)
+    return state
 
 
 def _delivery(kind: str, file_name: str, char: str = "a"):
