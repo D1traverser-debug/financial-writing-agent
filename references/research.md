@@ -20,6 +20,36 @@ Cover what is material to the topic:
 
 A company list is part of normal financial research. It does **not** automatically mean the article needs short-term price-formation analysis.
 
+## Mandatory value-chain preflight — required before thesis/angle selection
+For every industry/theme/company-topic selection task, Research must first build a bounded **Value-Chain Coverage Map** before selecting, narrowing or announcing the article's main thesis.
+
+This is a hard pre-thesis requirement, not an optional completeness enhancement. The purpose is to prevent the research process from seeing one hot catalyst first and then reverse-engineering a narrow chain around it.
+
+The preflight must identify, as material to the topic:
+- upstream inputs/suppliers/enabling resources;
+- core production/product/service/business-model layers;
+- platforms/channels/distribution/customer acquisition where economically relevant;
+- logistics/fulfilment/infrastructure/service providers where relevant;
+- payment/finance/software/data/marketing/compliance or other enabling layers where relevant;
+- downstream customers/end demand/use cases;
+- policy/regulatory/tax/standards constraints that can change economics;
+- substitutes, adjacent chains or competing routes that could change the conclusion;
+- the money/profit/cash-flow transmission between nodes rather than only concept labels.
+
+The map may be compact for a genuinely narrow topic, but it must account for every material class known or discovered. `NOT_APPLICABLE` is legal only for tasks that genuinely have no meaningful industry/value-chain question, such as a single isolated corporate disclosure where chain coverage cannot affect the financial judgment.
+
+Before thesis selection, Research must explicitly record:
+- `value_chain_coverage_status = COMPLETE / BOUNDED_WITH_GAPS / NOT_APPLICABLE`;
+- material chain classes/nodes and their economic roles;
+- important relationships/transmission paths between nodes;
+- excluded or unresolved classes and why they are currently non-material or unresolved;
+- recall/evidence sources used to construct the map;
+- the reason the map is sufficient to begin thesis competition.
+
+If a late sweep finds a previously omitted material chain class, the selected thesis is provisional and must be re-tested against the expanded map. No research package may call its thesis "主线/最强主线/核心链条" before this preflight is complete or explicitly bounded with gaps.
+
+Thesis selection happens **after** the map exists: compare multiple plausible angles against the complete/bounded chain, then choose the angle with the strongest combination of new information, financial transmission, evidence quality, company differentiation and reader value. The final article may focus on one branch; the research cognition may not pretend the omitted branches do not exist.
+
 ## A-share Universe Coverage Ledger — mandatory for company/theme topics
 Do not start from two or three familiar listed companies and call the second search “coverage”. First enumerate the economically material value-chain classes for this topic, then recall companies class by class.
 
@@ -46,12 +76,13 @@ Every `CompanyFinding` declares:
 ## Coverage and stop condition
 Run at least two materially different research sweeps using different source/query angles. Record `ResearchPackage.coverage` with concept/company/source coverage, exclusions, whether search saturated or remains bounded with gaps, material new items from the last sweep and the stop reason.
 
-For company/theme research, `coverage_status = SATURATED` is illegal in spirit unless the Universe Coverage Ledger has already tested every material value-chain class. “Second sweep found no new fact about the same two companies” is not saturation.
+For company/theme research, `coverage_status = SATURATED` is illegal in spirit unless the Value-Chain Coverage Map has accounted for every material chain class **and** the Universe Coverage Ledger has tested every material listed-company class. “Second sweep found no new fact about the same two companies” is not saturation.
 
-A late sweep that still finds a material concept, company class, contradictory fact or materially different explanation is evidence to continue or explicitly preserve the gap. “全面” must be auditable rather than asserted by intuition.
+A late sweep that still finds a material concept, value-chain class, company class, contradictory fact or materially different explanation is evidence to continue or explicitly preserve the gap. “全面” must be auditable rather than asserted by intuition.
 
 ## Required research reasoning
 - Establish the event, chronology and what changed relative to prior expectations.
+- Build the Value-Chain Coverage Map before selecting the thesis or dominant angle.
 - Map the economically relevant transmission chain.
 - Build the relevant company universe class by class and classify direct earnings/business exposure, economic linkage, second-order exposure, optionality, narrative-only association or uncertainty.
 - Compare **sensitivity**, not merely concept membership.
@@ -113,7 +144,9 @@ For `FINANCE_DEEP`, hand off every material branch that could change financial j
 For `FINANCE_BROAD`, editorial may later select one to three central information gaps, but research still starts from the broader evidence base.
 
 ## Durable knowledge discipline
-Persistent knowledge is a prior, not a verdict. StockBase/ArticleBase/Notion/Drive are recall evidence, not writing-rule authority. Record references and recency, preserve conflicts, and never let an old concept/stock label override current business facts.
+Persistent knowledge is a prior, not a verdict. StockBase/ArticleBase/Notion/Drive/repository-native prior research are recall evidence, not writing-rule authority. Record references and recency, preserve conflicts, and never let an old concept/stock label override current business facts.
+
+Research should reuse stable prior cognition instead of starting from zero when a relevant durable record exists. Reused knowledge must retain provenance/time/confidence, and any current, material, disputed or thesis-changing claim must be revalidated before publication use.
 
 Stable company/business relationships may become reusable knowledge candidates. Fast-changing price action, positioning, attention, crowding, 封单/订单簿 and market role observations are timestamped ephemeral evidence rather than timeless company identity.
 
@@ -124,6 +157,8 @@ If evidence remains unresolved, downgrade or remove the claim. Do not bridge mis
 
 ## Exit gate
 RESEARCH is ready to enter `RESEARCH_AUDIT` only when:
+- the Value-Chain Coverage Map is COMPLETE or explicitly BOUNDED_WITH_GAPS, or is defensibly NOT_APPLICABLE;
+- no thesis/main-angle selection was finalized before that map existed, and any late-discovered material chain class has triggered thesis re-test;
 - the main thesis has an evidence chain;
 - material concepts/value-chain classes and company classes are represented;
 - every universe company is reconciled to the class ledger;
