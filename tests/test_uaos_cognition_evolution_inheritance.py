@@ -12,10 +12,10 @@ def test_hosted_cognition_contract_is_current_and_explicit():
     caps = _json(".uaos/CAPABILITIES.json")
     execution = _json("config/EXECUTION_CONTRACT.json")
 
-    assert caps["profile_version"] == 18
+    assert caps["profile_version"] >= 19
     assert caps["common_capabilities_inheritance"] == "UAOS_HOSTED"
     assert caps["uaos_common_capabilities_contract_min"] == "1.6.0"
-    assert caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
+    assert caps["uaos_common_behavior_assurance_contract_min"] == "1.3.0"
     assert "domain_internal_work_orchestration" in caps["required_uaos_common_capabilities"]
     assert caps["hosted_cognition_semantics"]["problem_response_floor"] == [
         "MICRO_DIAGNOSIS",
@@ -23,9 +23,11 @@ def test_hosted_cognition_contract_is_current_and_explicit():
         "GOVERNING_ASSUMPTION_CHALLENGE",
         "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
     ]
-    assert caps["hosted_cognition_semantics"]["rule"].startswith("EVERY_DETECTED_PROBLEM_REQUIRES_RESEARCH_AND_REFLECTION")
+    assert "ROOT_SCOPE_BEFORE_ACTION" in caps["hosted_cognition_semantics"]["rule"]
+    assert "USER_OR_EXTERNAL_FRAMING_NOT_ROOT_CAUSE_AUTHORITY" in caps["hosted_cognition_semantics"]["root_scope_admission"]
     assert caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION"
-    assert "RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
+    assert "ONLY_AFTER_ROOT_SCOPE_AND_EVOLUTION_ADMISSION" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
+    assert "EVERY_ADMITTED_PROBLEM_GETS_EXPLICIT_EVOLUTION_DISPOSITION" in caps["hosted_behavior_semantics"]["evolution_before_action"]
     assert execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True
     assert execution["hosted_governance"]["problem_floor_activation"] == "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER"
 
@@ -56,6 +58,8 @@ def test_product_requirements_are_domain_owned_and_mapped_to_acceptance():
     assert manifest["domain_authority"]["product_requirements"] == "docs/product_requirements.md"
     assert manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
     assert manifest["binding"]["common_behavior_assurance_ref"].endswith("config/COMMON_BEHAVIOR_ASSURANCE.json")
+    assert manifest["binding"]["common_behavior_assurance_min"] == "1.3.0"
+    assert manifest["domain_authority"]["root_scope_receipt"].endswith("RootScopeReceipt")
     assert adapter["domain_product_requirement_authority"].endswith("docs/product_requirements.md")
     assert "product" in ownership and "cognition" in ownership
     for phrase in (
