@@ -1,3 +1,5 @@
+import hashlib
+import json
 from copy import deepcopy
 
 import pytest
@@ -262,6 +264,19 @@ def _advance_to_delivery(state: dict) -> dict:
     )
 
 
+def _delivery_artifacts(state: dict) -> list[dict]:
+    return [
+        {"kind": kind, "file_name": f"{kind}.docx", "sha256": "0" * 64}
+        for kind in state["required_outputs"]
+        if kind != "AUDIT_DOCX"
+    ]
+
+
+def _digest(value: object) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
 def test_current_tasks_are_marked_v1_while_legacy_builder_remains_compatible():
     current = _new_state("current")
     legacy = owner_guard.build_initial_state(
@@ -336,6 +351,27 @@ def test_persisted_quality_evidence_is_revalidated_and_digest_bound_before_downs
 
     tampered = deepcopy(state)
     tampered["quality_evidence"]["publication_fitnesses"][0]["gates"][0]["evidence"][0]["finding"] = "tampered after admission"
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(tampered)
+
+
+def test_later_wrong_stage_receipt_cannot_spoof_quality_digest_binding():
+    state = _advance_to_delivery(_new_state("stage-bound-digest"))
+    task_id = state["task_id"]
+    state = advance_state(
+        state,
+        previous_state_blob_sha="s7",
+        executor_identity="test",
+        delivery_artifacts=_delivery_artifacts(state),
+        **_artifact(task_id, "DELIVERY"),
+    )
+    assert state["current_stage"] == "MECHANICAL_AUDIT"
+
+    tampered = deepcopy(state)
+    tampered["quality_evidence"]["publication_fitnesses"][0]["gates"][0]["evidence"][0]["finding"] = "tampered after editorial audit"
+    spoof = _digest(tampered["quality_evidence"]["publication_fitnesses"])
+    tampered["execution_receipts"][-1]["input_bindings"]["publication_fitnesses_sha256"] = spoof
+    assert tampered["execution_receipts"][-1]["stage"] == "DELIVERY"
     with pytest.raises(CurrentAdmissionError):
         validate_state(tampered)
 
