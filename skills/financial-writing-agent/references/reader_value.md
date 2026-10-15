@@ -68,7 +68,7 @@ Do not expose `研报指出/据报道/公开资料显示` solely to demonstrate 
 
 ### Evidence-backed review
 
-Current publication acceptance requires text-level evidence for Fact Integrity, Retention, Company Grounding, Structure/Numbering, Originality, Authorial Style, Compliance and Payoff. A checklist of PASS words without excerpts/findings] is invalid evidence.
+Current publication acceptance requires text-level evidence for Fact Integrity, Retention, Company Grounding, Structure/Numbering, Originality, Authorial Style, Compliance and Payoff. A checklist of PASS words without excerpts/findings is invalid evidence.
 
 ### Assurance
 
