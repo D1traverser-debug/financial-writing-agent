@@ -73,6 +73,68 @@ def _parse_decision_envelope(raw: Mapping[str, Any] | None) -> DecisionEnvelope:
     return envelope
 
 
+def _latest_receipt_digest(state: Mapping[str, Any], binding_key: str) -> str | None:
+    receipts = state.get("execution_receipts", [])
+    if not isinstance(receipts, list):
+        return None
+    for receipt in reversed(receipts):
+        if not isinstance(receipt, Mapping):
+            continue
+        bindings = receipt.get("input_bindings", {})
+        if isinstance(bindings, Mapping) and binding_key in bindings:
+            value = bindings.get(binding_key)
+            return str(value) if value is not None else None
+    return None
+
+
+def _require_persisted_digest(
+    state: Mapping[str, Any], *, evidence_key: str, binding_key: str, evidence_value: Any
+) -> None:
+    expected = _latest_receipt_digest(state, binding_key)
+    _require(expected is not None, f"persisted {evidence_key} lacks a binding receipt digest")
+    actual = _canonical_digest(evidence_value)
+    _require(actual == expected, f"persisted {evidence_key} no longer matches its latest admitted receipt digest")
+
+
+def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
+    quality = state.get("quality_evidence", {})
+    _require(isinstance(quality, Mapping), "current Financial state requires quality_evidence mapping")
+    stage = str(state.get("current_stage"))
+    current_index = owner_guard.STAGE_INDEX[stage]
+
+    if current_index >= owner_guard.STAGE_INDEX["RESEARCH_AUDIT"]:
+        raw_decision = quality.get("research_decision")
+        _parse_decision_envelope(raw_decision if isinstance(raw_decision, Mapping) else None)
+        _require_persisted_digest(
+            state,
+            evidence_key="research_decision",
+            binding_key="decision_envelope_sha256",
+            evidence_value=raw_decision,
+        )
+
+    if current_index >= owner_guard.STAGE_INDEX["TITLE"]:
+        raw_blueprints = quality.get("story_blueprints")
+        blueprints_input = raw_blueprints if isinstance(raw_blueprints, list) else None
+        _parse_story_blueprints(state, blueprints_input)
+        _require_persisted_digest(
+            state,
+            evidence_key="story_blueprints",
+            binding_key="story_blueprints_sha256",
+            evidence_value=raw_blueprints,
+        )
+
+    if current_index >= owner_guard.STAGE_INDEX["DELIVERY"]:
+        raw_fitnesses = quality.get("publication_fitnesses")
+        fitness_input = raw_fitnesses if isinstance(raw_fitnesses, list) else None
+        _parse_publication_fitnesses(state, fitness_input, review_status="PASS")
+        _require_persisted_digest(
+            state,
+            evidence_key="publication_fitnesses",
+            binding_key="publication_fitnesses_sha256",
+            evidence_value=raw_fitnesses,
+        )
+
+
 def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     """Create a current Financial task while delegating business identity/state semantics to owner_guard."""
     state = owner_guard.build_initial_state(**kwargs)
@@ -88,7 +150,7 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
 def validate_state(state: Mapping[str, Any]) -> None:
     owner_guard.validate_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
-    _require(isinstance(state.get("quality_evidence"), Mapping), "current Financial state requires quality_evidence mapping")
+    _validate_persisted_quality_evidence(state)
 
 
 def _invalidate_quality_evidence(state: dict[str, Any], revision_target: str | None) -> list[str]:
@@ -149,8 +211,9 @@ def advance_state(
 
     after = owner_guard.advance_state(working, **kwargs)
 
-    if stage == "EDITORIAL_AUDIT" and review_status == "REVISE":
-        invalidated = _invalidate_quality_evidence(after, str(kwargs.get("revision_target")))
+    revision_target = kwargs.get("revision_target")
+    if review_status == "REVISE" and revision_target:
+        invalidated = _invalidate_quality_evidence(after, str(revision_target))
         if invalidated:
             evidence_bindings["invalidated_quality_evidence"] = ",".join(sorted(invalidated))
 
