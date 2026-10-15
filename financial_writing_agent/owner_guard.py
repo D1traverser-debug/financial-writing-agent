@@ -715,7 +715,12 @@ def advance_state(
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    _validate_transition_core(before, after, previous_state_blob_sha=previous_state_blob_sha)
+    _validate_transition_core(
+        before,
+        after,
+        previous_state_blob_sha=previous_state_blob_sha,
+        expected_stage_artifact=(required[1] if required is not None else None),
+    )
     return after
 
 
@@ -795,10 +800,15 @@ def _validate_transition_core(
     after: Mapping[str, Any],
     *,
     previous_state_blob_sha: str,
+    expected_stage_artifact: Mapping[str, Any] | None = None,
 ) -> None:
     _validate_unpersisted_state(before)
     try:
-        validate_transition_candidate_isolation(before, after)
+        validate_transition_candidate_isolation(
+            before,
+            after,
+            expected_stage_artifact=expected_stage_artifact,
+        )
     except CandidateIntegrityError as exc:
         raise GithubChatGuardError(str(exc)) from exc
     _validate_unpersisted_state(after)
