@@ -156,14 +156,17 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
-    owner_guard.validate_state(state)
+    # The current layer owns quality parsing. Use the base owner-state validator here
+    # to avoid the owner's public 1.0 dispatch recursively calling back into this module.
+    owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
     _validate_persisted_quality_evidence(state)
 
 
-def _invalidate_quality_evidence(state: dict[str, Any], revision_target: str | None) -> list[str]:
-    invalidated: list[str] = []
-    quality = state.setdefault("quality_evidence", {})
+def _planned_quality_invalidations(state: Mapping[str, Any], revision_target: str | None) -> list[str]:
+    quality = state.get("quality_evidence", {})
+    if not isinstance(quality, Mapping):
+        return []
     if revision_target == "RESEARCH":
         keys = tuple(quality.keys())
     elif revision_target == "EDITORIAL":
@@ -172,11 +175,7 @@ def _invalidate_quality_evidence(state: dict[str, Any], revision_target: str | N
         keys = ("publication_fitnesses",)
     else:
         keys = ()
-    for key in keys:
-        if key in quality:
-            quality.pop(key, None)
-            invalidated.append(key)
-    return invalidated
+    return sorted(key for key in keys if key in quality)
 
 
 def advance_state(
@@ -217,13 +216,27 @@ def advance_state(
         quality["publication_fitnesses"] = dumped
         evidence_bindings["publication_fitnesses_sha256"] = _canonical_digest(dumped)
 
-    after = owner_guard.advance_state(working, **kwargs)
-
     revision_target = kwargs.get("revision_target")
-    if review_status == "REVISE" and revision_target:
-        invalidated = _invalidate_quality_evidence(after, str(revision_target))
-        if invalidated:
-            evidence_bindings["invalidated_quality_evidence"] = ",".join(sorted(invalidated))
+    planned_invalidated = (
+        _planned_quality_invalidations(working, str(revision_target))
+        if review_status == "REVISE" and revision_target
+        else []
+    )
+
+    # The owner guard now enforces 1.0 quality for every public lower-level path. During
+    # this one internal sequencing window, the new receipt does not yet carry its quality
+    # digest, so defer only that owner-level callback. Full current validation runs below
+    # after the receipt is bound; the token is process-local and not a persisted credential.
+    after = owner_guard.advance_state(
+        working,
+        _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
+        **kwargs,
+    )
+
+    if planned_invalidated:
+        missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]
+        _require(not missing, f"owner revision failed to invalidate quality evidence: {missing}")
+        evidence_bindings["invalidated_quality_evidence"] = ",".join(planned_invalidated)
 
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
@@ -235,9 +248,11 @@ def advance_state(
 
 def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
     validate_state(state)
+    # Feedback does not alter quality objects, so the owner guard can and should perform
+    # its normal full 1.0 validation on both sides of this mutation.
     after = owner_guard.attach_material_feedback(state, **kwargs)
-    validate_state(after)
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
+    validate_state(after)
     return after
