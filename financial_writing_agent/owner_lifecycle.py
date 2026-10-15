@@ -8,6 +8,7 @@ from .owner_guard import (
     SELF_ATTESTED_RECEIPT,
     GithubChatGuardError as OwnerGuardError,
     _current_receipt_bindings,
+    _expected_capability,
     _invalidate_from,
     _new_receipt,
     _state_path,
@@ -114,16 +115,29 @@ def block_review_failure_state(
 
 def _blocking_recovery_cursor(state: Mapping[str, Any]) -> str:
     stage = str(state.get("current_stage", ""))
+    task_id = str(state.get("task_id", ""))
+    expected_capability = _expected_capability(stage)
+    transition_prefix = f"{task_id}:TRANSITION:"
     for receipt in reversed(list(state.get("execution_receipts", []))):
         if receipt.get("stage") != stage:
             continue
+        action_id = receipt.get("action_id")
+        if not isinstance(action_id, str) or not action_id.startswith(transition_prefix):
+            continue
+        if receipt.get("capability_id") != expected_capability:
+            continue
+        subject = receipt.get("subject_bindings", {})
+        if not isinstance(subject, Mapping):
+            continue
+        if subject.get("from_stage") != stage or subject.get("to_stage") != stage or subject.get("blocked") is not True:
+            continue
         bindings = receipt.get("input_bindings", {})
-        if bindings.get("review_status") != "FAIL":
+        if not isinstance(bindings, Mapping) or bindings.get("review_status") != "FAIL":
             continue
         target = str(bindings.get("revision_target", "")).strip()
         _require(target in _allowed_revision_targets(stage), "BLOCKED state has no valid persisted canonical recovery cursor")
         return target
-    raise OwnerGuardError("BLOCKED state has no persisted FAIL receipt with a recovery cursor")
+    raise OwnerGuardError("BLOCKED state has no persisted canonical FAIL transition receipt with a recovery cursor")
 
 
 def resume_blocked_state(
