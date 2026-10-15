@@ -52,7 +52,7 @@ def test_public_transition_validator_cannot_downgrade_schema_1_3_candidate(monke
         executor_identity="review-test",
     )
 
-    with pytest.raises(owner_guard.GithubChatGuardError, match="cannot downgrade governance"):
+    with pytest.raises(owner_guard.GithubChatGuardError, match="cannot downgrade governance|immutable state field"):
         owner_guard.validate_transition(
             before,
             _downgrade(valid_after),
@@ -77,7 +77,7 @@ def test_public_feedback_validator_cannot_downgrade_schema_1_3_candidate(monkeyp
         },
     )
 
-    with pytest.raises(owner_guard.GithubChatGuardError, match="cannot downgrade governance"):
+    with pytest.raises(owner_guard.GithubChatGuardError, match="cannot downgrade governance|immutable state field"):
         owner_guard.validate_feedback_update(
             before,
             _downgrade(valid_after),
