@@ -1,5 +1,5 @@
 {
-  "schema_version": "3.6",
+  "schema_version": "4.0-candidate",
   "domain_id": "financial_writing",
   "product_path": "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE",
   "authority": {
@@ -11,21 +11,32 @@
     "state_file": "workspaces/articles/{task_id}/STATE.json",
     "canonical_business_contract": "financial_writing_agent.models.TaskContract",
     "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
+    "internal_writing_kernel": "financial_writing_agent/writing_kernel.py",
+    "material_decision_contract": "financial_writing_agent/cognition_governance.py::DecisionEnvelope",
+    "story_architecture_contract": "financial_writing_agent/story_quality.py::StoryBlueprint",
+    "publication_fitness_contract": "financial_writing_agent/story_quality.py::PublicationFitness",
     "canonical_mutation_guard": "financial_writing_agent/owner_guard.py",
     "canonical_lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
     "maintenance_method": "references/maintenance.md",
-    "reader_value_rule": "references/reader_value.md",
+    "knowledge_rule": "references/knowledge.md",
+    "method_knowledge_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
     "alternate_business_state_authority_allowed": false
   },
   "hosted_governance": {
     "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
-    "common_capabilities_contract_min": "1.5.0",
+    "common_capabilities_contract_min": "1.6.0",
+    "common_behavior_assurance_contract_min": "1.2.0",
     "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
-    "problem_response_floor": ["MICRO_DIAGNOSIS", "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT", "GOVERNING_ASSUMPTION_CHALLENGE", "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"],
-    "problem_floor_activation": "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER",
+    "problem_response_floor": [
+      "MICRO_DIAGNOSIS",
+      "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
+      "GOVERNING_ASSUMPTION_CHALLENGE",
+      "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"
+    ],
+    "material_problem_escalation": ["COUNTEREXAMPLE_SEARCH", "STRONGER_VERIFICATION_AS_RISK_REQUIRES"],
+    "user_feedback_semantics": "HIGH_WEIGHT_EVIDENCE__NOT_AUTOMATIC_RULE_AUTHORITY",
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_FINANCIAL_BUSINESS_RULES",
-    "common_cross_domain_evolution_owner": "UAOS",
-    "product_review_method_owner": "UAOS_COMMON_METHOD__FINANCIAL_DOMAIN_REQUIREMENTS_AND_ARCHITECTURE_REMAIN_DOMAIN_OWNED"
+    "common_cross_domain_evolution_owner": "UAOS"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -36,36 +47,121 @@
     "parent_child_id_equality_required": false,
     "parent_reference_semantics": "OPTIONAL_OPAQUE_REFERENCE_TO_FINANCIAL_STATE_RETURNED_BY_DOMAIN"
   },
-  "workflow": ["INTAKE","RESEARCH","RESEARCH_AUDIT","EDITORIAL","TITLE","DRAFT","EDITORIAL_AUDIT","DELIVERY","MECHANICAL_AUDIT","FINAL_AUDIT"],
+  "workflow": [
+    "INTAKE",
+    "RESEARCH",
+    "RESEARCH_AUDIT",
+    "EDITORIAL",
+    "TITLE",
+    "DRAFT",
+    "EDITORIAL_AUDIT",
+    "DELIVERY",
+    "MECHANICAL_AUDIT",
+    "FINAL_AUDIT"
+  ],
+  "internal_passes": [
+    "KNOWLEDGE_RECALL",
+    "RESEARCH_DISCOVERY",
+    "RESEARCH_ADVERSARIAL",
+    "THESIS_ADJUDICATION",
+    "STORY_ARCHITECTURE",
+    "DRAFT_GENERATION",
+    "READER_RETENTION_AUDIT",
+    "EDITORIAL_TRIM",
+    "ORIGINALITY_AUDIT",
+    "FACT_INTEGRITY_AUDIT",
+    "STYLE_AUDIT",
+    "FINAL_SYNTHESIS"
+  ],
   "task_contract": {
     "identity_free": true,
     "default_distribution_mode": "PORTFOLIO",
     "default_delivery_channel": "WORD_FILE_ONLY",
-    "default_required_outputs": ["AUDIT_DOCX","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","PLATFORM_INTERACTION_PACK_DOCX"],
+    "default_required_outputs": [
+      "AUDIT_DOCX",
+      "FINANCE_DEEP_DOCX",
+      "FINANCE_BROAD_DOCX",
+      "PLATFORM_INTERACTION_PACK_DOCX"
+    ],
     "legacy_compatibility": {
-      "DUAL": ["AUDIT_DOCX","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX"],
-      "FINANCE_BROAD": ["AUDIT_DOCX","FINANCE_BROAD_DOCX"]
+      "DUAL": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+      "FINANCE_BROAD": ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"]
     },
-    "acquisition_mode_outputs": ["AUDIT_DOCX","FINANCE_BROAD_DOCX","PLATFORM_INTERACTION_PACK_DOCX"]
+    "acquisition_mode_outputs": ["AUDIT_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"]
   },
-  "reader_value": {
-    "publication_source_privacy": true,
-    "voice_material_first_generation": true,
-    "user_owned_voice_evidence_preferred": true,
-    "anti_ai_pattern_signals_are_post_draft_diagnostics": true,
-    "single_template_signal_is_not_automatic_failure": true,
-    "minimum_effective_revision": true,
-    "substantive_longform_compares_distinct_strategies_when_multiple_routes_exist": true,
-    "writer_reader_editor_style_roles_reuse_existing_draft_audit_workflow": true,
-    "same_session_critic_passes_are_not_independent": true,
-    "first_three_sentence_jobs_required_as_collective_reader_outcomes": true,
-    "company_decision_map_when_multiple_material_companies": true,
-    "named_evidence_bounded_comparative_verdict": true,
-    "comparative_verdict_has_no_mandatory_sentence_order": true,
-    "h1_image_safe_lead_before_lower_heading": true,
-    "broad_is_independent_acquisition_rebuild": true,
-    "interaction_pack_is_independent_rewrite": true,
-    "canned_platform_humanization_forbidden": true
+  "cognition_and_decision": {
+    "knowledge_recall_required_before_expansion_when_relevant": true,
+    "value_chain_preflight_required_before_thesis_selection": true,
+    "counterexample_search_required_for_material_decisions": true,
+    "material_decision_requires_external_method_evidence": true,
+    "material_decision_min_credible_alternatives": 2,
+    "search_saturation_rule": "STOP_ONLY_AFTER_TWO_CONSECUTIVE_SWEEPS_WITH_NO_DECISION_CHANGING_CANDIDATE_FAILURE_MODE_COUNTEREXAMPLE_OR_CHANGED_DECISION",
+    "late_material_discovery_invalidates_saturation": true,
+    "user_feedback_alone_can_promote_rule": false,
+    "material_judgment_contract": "DecisionEnvelope"
+  },
+  "publication_architecture": {
+    "story_blueprint_required_for_substantive_longform": true,
+    "form_follows_content": true,
+    "single_universal_story_template": false,
+    "material_explanatory_sections_require_company_or_case_anchor": true,
+    "explicit_contiguous_chinese_h1_numbering": true,
+    "retention_is_full_article_property": true,
+    "curiosity_requires_payoff": true,
+    "writer_may_self_certify_quality": false,
+    "publication_fitness_gates": [
+      "FACT_INTEGRITY",
+      "RETENTION",
+      "COMPANY_GROUNDING",
+      "STRUCTURE_NUMBERING",
+      "ORIGINALITY",
+      "AUTHORIAL_STYLE",
+      "COMPLIANCE",
+      "PAYOFF"
+    ],
+    "audit_gate_requires_text_location_excerpt_and_finding": true,
+    "major_or_critical_finding_blocks_pass": true,
+    "originality_patchwriting_requires_revision": true
+  },
+  "finance_deep": {
+    "research_material_value_chain_coverage_required": true,
+    "publication_material_value_chain_coverage_required": true,
+    "material_company_coverage_required": true,
+    "default_word_count_ceiling": null,
+    "compression_rule": "REMOVE_REDUNDANCY__DO_NOT_REMOVE_MATERIAL_COVERAGE_FOR_ARBITRARY_LENGTH"
+  },
+  "finance_broad": {
+    "independent_acquisition_rebuild": true,
+    "may_select_subset_of_audited_research": true,
+    "story_blueprint_required": true,
+    "publication_fitness_required": true
+  },
+  "originality": {
+    "draft_from_normalized_notes_and_blueprint": true,
+    "source_paragraphs_are_not_default_writer_context": true,
+    "distinctive_language_requires_quote_attribution_or_independent_rewrite": true,
+    "close_paraphrase_patchwriting_is_revision_condition": true,
+    "same_chat_zero_plagiarism_claim_allowed": false
+  },
+  "natural_authorial_prose": {
+    "voice_material_story_first": true,
+    "generic_humanizer_stage": false,
+    "ai_detector_optimization": false,
+    "generic_scaffolding_is_diagnostic_not_single_phrase_ban": true,
+    "clustered_earnedness_review_required": true,
+    "user_owned_voice_evidence_preferred": true
+  },
+  "multi_agent": {
+    "default": "SINGLE_FINANCIAL_OWNER_WITH_FOCUSED_INTERNAL_PASSES",
+    "specialist_split_requires_material_difference_in": [
+      "TOOLS_OR_DATA_ACCESS",
+      "POLICY_OR_PERMISSIONS",
+      "CONTEXT",
+      "OUTPUT_CONTRACT",
+      "INDEPENDENCE_REQUIREMENT",
+      "MEASURED_PARALLELISM_VALUE"
+    ],
+    "architecture_change_requires_eval_evidence": true
   },
   "execution": {
     "route_selection": "NONE",
@@ -73,11 +169,13 @@
     "live_parent_business_proxy_required": false,
     "free_form_article_fallback_allowed": false,
     "missing_hard_capability": "BLOCK_AFFECTED_STAGE",
-    "post_write_verification": "REREAD_STATE_AND_NEW_ARTIFACTS_BEFORE_COMMIT_CLAIM"
+    "post_write_verification": "REREAD_STATE_NEW_ARTIFACTS_AND_PUBLICATION_FITNESS_BEFORE_COMPLETION_CLAIM"
   },
-  "problem_and_evolution": {
-    "every_problem_requires_external_research_and_reflection": true,
-    "material_negative_feedback_requires_system_impact_signal": true,
+  "knowledge_and_evolution": {
+    "topic_and_method_knowledge_are_distinct": true,
+    "cataloging_knowledge_is_not_rule_promotion": true,
+    "knowledge_requires_provenance_scope_confidence_or_adoption_state_and_revalidation": true,
+    "unresolved_conflict_blocks_validated_knowledge": true,
     "one_off_observation_auto_promotes_to_global_rule": false,
     "systemic_change_requires_regression_or_eval_evidence": true,
     "post_promotion_observation_required_for_evolution_closure": true,
@@ -86,12 +184,14 @@
   "assurance": {
     "same_chat_semantic_review": "CHAT_SELF_REVIEW",
     "independent_claim_requires_distinct_execution_evidence": true,
+    "rubric_labels_without_text_evidence_are_acceptance_evidence": false,
     "product_documentation_alone_is_acceptance_evidence": false
   },
   "historical_state": {
     "immutable_existing_receipts_may_contain_retired_identifiers": true,
     "historical_identifiers_are_route_selectors": false,
     "historical_evidence_may_override_current_authority": false,
-    "legacy_distribution_mode_meaning_is_immutable": true
+    "legacy_distribution_mode_meaning_is_immutable": true,
+    "candidate_rebuild_rewrites_completed_article_state": false
   }
 }
