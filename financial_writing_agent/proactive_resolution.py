@@ -4,7 +4,16 @@ from copy import deepcopy
 from typing import Any, Mapping
 from uuid import uuid4
 
-from .owner_guard import MAIN_STATE_REF, _new_receipt, _state_path, _utc_now, validate_state
+from .owner_guard import (
+    MAIN_STATE_REF,
+    _current_receipt_bindings,
+    _new_receipt,
+    _state_path,
+    _utc_now,
+    _validate_persisted_state,
+    _validate_unpersisted_state,
+    validate_state,
+)
 
 
 class ProactiveResolutionError(ValueError):
@@ -53,16 +62,10 @@ def record_proactive_resolution_state(
     safe_to_continue: bool,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Persist one owner-native recovery attempt before a recoverable user dependency is externalized.
-
-    This is an action receipt, not a claim that the recovered candidate is true. A
-    provisional candidate remains bounded by its evidence, confidence and validation
-    plan. The function intentionally does not access external sources itself; the
-    caller records the concrete sources it actually inspected.
-    """
+    """Persist one owner-native recovery attempt before a recoverable dependency is externalized."""
 
     _require(state_ref == MAIN_STATE_REF, "Financial proactive resolution must target main owner state")
-    validate_state(state)
+    _validate_persisted_state(state, previous_state_blob_sha=previous_state_blob_sha)
     _require(_nonempty(target), "target is required")
     _require(outcome in OUTCOMES, f"unsupported outcome: {outcome}")
     _require(confidence in CONFIDENCE_LEVELS, f"unsupported confidence: {confidence}")
@@ -119,13 +122,14 @@ def record_proactive_resolution_state(
             "safe_to_continue": safe_to_continue,
             "contradictions_or_unknowns": unknowns,
             "validation_plan": plan,
+            **_current_receipt_bindings(before),
         },
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_state(after)
+    _validate_unpersisted_state(after)
     return after
 
 
