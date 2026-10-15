@@ -504,6 +504,35 @@ Parent-upcall status: `UAOS_COMMON_BEHAVIOR_1_2_PROMOTED__FINAL_PARENT_FINANCIAL
 
 ---
 
+## P-20261015-16 — Value-chain preflight omission exposed inherited cognition auto-activation gap
+Status: `CANDIDATE_DOMAIN_REPAIR__PARENT_RE_ADJUDICATION_PENDING`
+Failure classes: `RESEARCH_FRAME_PREMATURE_CONVERGENCE`, `INHERITED_COGNITION_AUTO_ACTIVATION_GAP`, `INHERITANCE_BEHAVIOR_VS_DECLARATION`
+
+Trigger: during live cross-border e-commerce topic research, Financial announced a likely strongest main line before first building the whole economically material value-chain map. The user then had to remind the Agent that value-chain coverage was mandatory, and had to remind it again that inherited UAOS cognition/evolution already required assumption challenge, adversarial/counterexample search and layered candidate selection.
+
+User/system consequence: a locally plausible thesis could be selected before omitted chain nodes, contrary evidence or better competing angles were surfaced; more importantly, a registered child could truthfully declare inherited cognition/evolution capabilities while failing to activate them in a real business action until the user named them again.
+
+Micro diagnosis: existing research rules covered universe classes and counterevidence, but the ordering constraint was not executable at the typed ResearchPackage boundary. Knowledge reuse was also loose enough to allow avoidable amnesia. The first candidate repair still left reference mirrors stale and initially left the preflight outside the schema, which review correctly rejected as declaration-only.
+
+Macro alignment: Financial must know the whole relevant economic map before selecting what to publish, reuse prior cognition without carrying stale facts forward, and operationalize inherited UAOS deliberation/evolution behavior rather than merely cite it.
+
+Assumption challenged: a strong early catalyst can safely define the research frame and the remaining chain can be filled in later; and successful capability inheritance metadata is sufficient evidence that the behavior will auto-activate in live work.
+
+Alternatives rejected: operator discipline only; publishing the whole value chain every time; creating a new parallel knowledge controller; treating same-model confidence as independent validation. Selected path: mandatory pre-thesis Value-Chain Coverage Map, broad multi-source and falsification sweeps, competing hypotheses with challenge-and-eliminate selection, provenance-aware knowledge recall/revalidation, typed schema enforcement, regression coverage, and a parent upcall for the common inheritance behavior gap.
+
+Domain repair candidate: PR #34. It updates `references/research.md` and `references/knowledge.md`, synchronizes controlled mirrors, adds an executable `ValueChainCoverageMap` to `ResearchPackage`, and adds regression coverage so missing/late-unretested preflight fails validation.
+
+Parent guidance: emit `INHERITED_COGNITION_AUTO_ACTIVATION_GAP` to UAOS for re-adjudication. Financial may repair its own business realization but cannot declare the common inheritance gap solved at parent scope.
+
+Evidence:
+- `evals/VALUE_CHAIN_PREFLIGHT_KNOWLEDGE_REUSE_2026-10-15.md`
+- `evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_INHERITED_COGNITION_AUTO_ACTIVATION_GAP.md`
+- `evals/PARENT_GUIDANCE_HANDOFF.md`
+
+Verification state: candidate CI/review remains authoritative for promotion; do not report resolved until the final candidate passes and production is reread.
+
+---
+
 # Parent Guidance Queue / adjudication state
 
 1. `PROACTIVE_RESOLUTION_GAP` — `PARENT_ADJUDICATED`: UAOS Common Behavior Assurance requires proportionate recovery before avoidable user escalation; domain recovery order remains owner-specific.
@@ -512,11 +541,13 @@ Parent-upcall status: `UAOS_COMMON_BEHAVIOR_1_2_PROMOTED__FINAL_PARENT_FINANCIAL
 4. `INHERITANCE_BEHAVIOR_VS_DECLARATION` — `PARENT_ADJUDICATED`: declaration alone is `DECLARED_ONLY`; operational claims require owner-appropriate execution evidence.
 5. `DECLARATION_TO_OPERATION_GAP` — `PARENT_ADJUDICATED`: promoted as an umbrella common failure class without creating a parent microscheduler.
 6. `PROBLEM_TO_ACTION_CLOSURE_GAP` — `PARENT_ADJUDICATED`: UAOS Common Behavior Assurance 1.2 / Session Interaction Policy 1.7 require repair-now, concrete blocker/user choice, or evidence-backed no-change; recommendation-only is not closure when an authorized repair is available.
+7. `INHERITED_COGNITION_AUTO_ACTIVATION_GAP` — `PARENT_RE_ADJUDICATION_PENDING`: live Financial work reproduced a gap between inherited capability declaration and automatic business-action activation; child evidence has been handed off without mutating UAOS.
 
 # Current open observation items
 
 - Financial 0.9.2 voice-first writing still needs real article/user observation to prove lower AI-template feel without losing factual density/company decision utility.
 - P-20261015-09/P-20261015-15 proactive resolution is now executable-policy/trajectory verified; validate the owner receipt/escalation gate on real Financial work and refine/rollback if it creates unsupported inference or unnecessary persistence.
 - P-20261015-10 consolidated history remains under usefulness observation across future domain/parent guidance cycles.
+- P-20261015-16 value-chain/adversarial-selection repair remains candidate until exact-head CI passes and production is reread; parent re-adjudication remains pending.
 - provider-attested independent semantic review remains unavailable; same-chat critic passes stay `CHAT_SELF_REVIEW`.
 - open-world writing quality is never globally certified by a finite regression corpus.
