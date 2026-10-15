@@ -128,7 +128,7 @@ def _transition_after(
             "revision_target": None,
         }
 
-    after["execution_receipts"] = list(before["execution_receipts"]) + [
+    after["execution_receipts"] = deepcopy(before["execution_receipts"]) + [
         _receipt(
             stage,
             task_id=str(before["task_id"]),
@@ -151,7 +151,7 @@ def _feedback_after(before: dict, *, signal_id: str = "new") -> dict:
         {"signal_id": signal_id, "status": "OPEN", "trigger_sample_type": "USER_FEEDBACK"}
     )
     action_id = f"{before['task_id']}:MATERIAL_FEEDBACK:test-action"
-    after["execution_receipts"] = list(before["execution_receipts"]) + [
+    after["execution_receipts"] = deepcopy(before["execution_receipts"]) + [
         {
             "receipt_contract_version": "1.1",
             "receipt_id": "receipt:feedback-test",
