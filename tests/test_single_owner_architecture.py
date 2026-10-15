@@ -48,7 +48,7 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["identity"]["parent_child_id_equality_required"] is False
 
     common_required = set(capabilities["required_uaos_common_capabilities"])
-    assert capabilities["profile_version"] == 17
+    assert capabilities["profile_version"] == 18
     assert capabilities["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.2.0"
     assert {
