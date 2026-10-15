@@ -52,9 +52,15 @@ class AuthoritativeStateSnapshot:
     ref: str
 
     def __post_init__(self) -> None:
-        # Snapshot equality is part of the owner authority boundary. Wrapping here
-        # also protects test/fake snapshots constructed outside fetch_authoritative_state.
         object.__setattr__(self, "state", TypeStrictJsonDict(self.state))
+
+
+def _canonical_task_id(task_id: Any) -> str:
+    if not isinstance(task_id, str) or not task_id:
+        raise AuthoritativeStateError("task_id is required for authoritative GitHub state resolution")
+    if task_id != task_id.strip():
+        raise AuthoritativeStateError("task_id must not contain leading or trailing whitespace")
+    return task_id
 
 
 def _state_path(task_id: str) -> str:
@@ -125,9 +131,7 @@ def fetch_authoritative_state(
     SHA through the Git Blob API and requires that response to return the same SHA.
     This preserves one authority identity across both size regimes.
     """
-    clean_task_id = str(task_id).strip()
-    if not clean_task_id:
-        raise AuthoritativeStateError("task_id is required for authoritative GitHub state resolution")
+    clean_task_id = _canonical_task_id(task_id)
     if repository != DEFAULT_REPOSITORY:
         raise AuthoritativeStateError("authoritative Financial state repository is fixed by domain ownership")
     if ref != DEFAULT_REF:
@@ -169,7 +173,7 @@ def fetch_authoritative_state(
             raise AuthoritativeStateError("authoritative GitHub blob response must provide base64 content")
         parsed = _decode_base64_json(blob_payload.get("content"), label=blob_label)
 
-    if str(parsed.get("task_id", "")).strip() != clean_task_id:
+    if parsed.get("task_id") != clean_task_id:
         raise AuthoritativeStateError("authoritative GitHub STATE.json task_id mismatch")
 
     return AuthoritativeStateSnapshot(
