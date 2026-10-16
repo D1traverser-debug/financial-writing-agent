@@ -7,6 +7,7 @@ from .owner_guard import (
     MAIN_STATE_REF,
     SELF_ATTESTED_RECEIPT,
     GithubChatGuardError as OwnerGuardError,
+    _admit_historical_material_resume,
     _invalidate_from,
     _new_receipt,
     _state_path,
@@ -83,13 +84,10 @@ def block_review_failure_state(
     artifact_path: str,
     artifact_blob_sha: str,
     revision_target: str,
+    resume_intent: str | None = None,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Persist a review FAIL together with its canonical repair target.
-
-    The base guard blocks FAIL in place. This helper makes the recovery cursor explicit
-    in the same action receipt so later recovery cannot invent a target after the fact.
-    """
+    """Persist a review FAIL together with its canonical repair target."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
     validate_state(state)
     stage = str(state.get("current_stage", ""))
@@ -106,6 +104,7 @@ def block_review_failure_state(
         artifact_blob_sha=artifact_blob_sha,
         review_status="FAIL",
         revision_target=revision_target,
+        resume_intent=resume_intent,
         state_ref=state_ref,
     )
     _require(blocked.get("status") == "BLOCKED", "review FAIL must produce BLOCKED state")
@@ -135,11 +134,13 @@ def resume_blocked_state(
     previous_state_blob_sha: str,
     executor_identity: str,
     repair_evidence: list[str],
+    resume_intent: str | None = None,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
     """Resume a blocked review through the target chosen when the FAIL was persisted."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
     validate_state(state)
+    historical_resume = _admit_historical_material_resume(state, resume_intent=resume_intent)
     before = deepcopy(dict(state))
     _require(before.get("status") == "BLOCKED", "only BLOCKED owner state may be resumed")
     failed_stage = str(before.get("current_stage", ""))
@@ -164,6 +165,11 @@ def resume_blocked_state(
         }
     )
 
+    input_bindings: dict[str, Any] = {"repair_evidence": evidence, "invalidated_stage_refs": invalidated}
+    if historical_resume is not None:
+        input_bindings["historical_resume_decision"] = historical_resume["decision"]
+        input_bindings["historical_resume_reason"] = historical_resume["reason"]
+
     receipt = _new_receipt(
         task_id=str(before["task_id"]),
         stage=failed_stage,
@@ -172,7 +178,7 @@ def resume_blocked_state(
         previous_state_blob_sha=previous_state_blob_sha,
         action_kind="RESUME_BLOCKED",
         subject_bindings={"task_id": before["task_id"], "failed_stage": failed_stage, "resume_target": target},
-        input_bindings={"repair_evidence": evidence, "invalidated_stage_refs": invalidated},
+        input_bindings=input_bindings,
         output_refs=[_state_path(str(before["task_id"]))],
         state_ref=state_ref,
     )

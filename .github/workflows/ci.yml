@@ -48,6 +48,8 @@ jobs:
           from financial_writing_agent.checks import check_docx
           from financial_writing_agent.current_admission import WRITING_KERNEL_VERSION, build_initial_state
           from financial_writing_agent.owner_lifecycle import resume_blocked_state
+          from financial_writing_agent.resume_compatibility import require_material_resume_admission
+          from financial_writing_agent.story_quality import CausalTransmission, ValueChainScopeDecision
 
           policy = load_packaged_policy()
           contract = TaskContract(prompt="smoke")
@@ -57,7 +59,7 @@ jobs:
               source_refs=[],
               executor_identity="wheel-smoke",
           )
-          assert importlib.metadata.version("financial-writing-agent") == "1.0.1"
+          assert importlib.metadata.version("financial-writing-agent") == "1.0.2"
           assert WRITING_KERNEL_VERSION == "1.0"
           assert policy["contract_version"] == "0.9.1"
           assert policy["defaults"]["distribution_mode"] == "PORTFOLIO"
@@ -84,8 +86,9 @@ jobs:
           assert "voice/material first" in reader_value
           assert "not generation mandates" in reader_value
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(build_interaction_pack_docx) and callable(check_docx)
-          assert callable(build_initial_state) and callable(resume_blocked_state)
-          print("PASS: clean Financial Writing 1.0.1 wheel exposes current admission, kernel 1.0, PORTFOLIO outputs, voice-first policy, and single Financial identity path")
+          assert callable(build_initial_state) and callable(resume_blocked_state) and callable(require_material_resume_admission)
+          assert CausalTransmission and ValueChainScopeDecision
+          print("PASS: clean Financial Writing 1.0.2 wheel exposes current admission, historical-resume compatibility, selective Deep publication architecture, event-company causal grounding, kernel 1.0, PORTFOLIO outputs, and single Financial identity path")
           PY
       - name: Install render dependencies
         run: |

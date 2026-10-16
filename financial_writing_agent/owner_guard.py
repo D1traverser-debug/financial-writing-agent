@@ -277,6 +277,17 @@ def validate_state(state: Mapping[str, Any], *, _current_admission_token: object
         raise GithubChatGuardError(f"current Financial quality admission failed: {exc}") from exc
 
 
+def _admit_historical_material_resume(state: Mapping[str, Any], *, resume_intent: str | None) -> dict[str, Any] | None:
+    if state.get("writing_kernel_version") == CURRENT_WRITING_KERNEL_VERSION:
+        return None
+    from .resume_compatibility import ResumeCompatibilityError, require_material_resume_admission
+
+    try:
+        return require_material_resume_admission(state, intent=resume_intent)
+    except ResumeCompatibilityError as exc:
+        raise GithubChatGuardError(str(exc)) from exc
+
+
 def _new_receipt(
     *,
     task_id: str,
@@ -453,11 +464,13 @@ def advance_state(
     revision_target: str | None = None,
     delivery_artifacts: list[Mapping[str, Any]] | None = None,
     audit_artifact: Mapping[str, Any] | None = None,
+    resume_intent: str | None = None,
     state_ref: str = MAIN_STATE_REF,
     _current_admission_token: object | None = None,
 ) -> dict[str, Any]:
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
     validate_state(state, _current_admission_token=_current_admission_token)
+    historical_resume = _admit_historical_material_resume(state, resume_intent=resume_intent)
     before = _upgrade_legacy_state(state, state_ref=state_ref)
     validate_state(before, _current_admission_token=_current_admission_token)
     after = deepcopy(dict(before))
@@ -475,6 +488,9 @@ def advance_state(
     required = _required_artifact(stage, after)
     output_refs = [_state_path(str(before["task_id"]))]
     input_bindings: dict[str, Any] = {"from_stage": stage}
+    if historical_resume is not None:
+        input_bindings["historical_resume_decision"] = historical_resume["decision"]
+        input_bindings["historical_resume_reason"] = historical_resume["reason"]
     if required:
         key, ref = required
         input_bindings["required_artifact_key"] = key

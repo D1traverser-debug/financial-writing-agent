@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.7",
+  "schema_version": "2.8",
   "agent_id": "financial_writing",
   "domain_id": "financial_writing",
   "controller": "D1traverser-debug/universal-agent-os@main",
@@ -22,13 +22,14 @@
     "article_identity": "workspaces/articles/{task_id}/STATE.json::task_id",
     "business_state_root": "workspaces/articles/{task_id}/STATE.json",
     "current_admission_guard": "financial_writing_agent/current_admission.py",
+    "historical_resume_compatibility_guard": "financial_writing_agent/resume_compatibility.py",
     "workflow_guard": "financial_writing_agent/owner_guard.py",
     "writing_kernel": "financial_writing_agent/writing_kernel.py",
     "cognition_contract": "financial_writing_agent/cognition_governance.py:DecisionEnvelope",
     "root_scope_receipt": "financial_writing_agent/cognition_governance.py:RootScopeReceipt",
     "problem_action_admission": "financial_writing_agent/problem_action_admission.py:finalize_problem_action",
     "canonical_evolution_evidence": "evals/EVOLUTION_INDEX.json",
-    "publication_quality_contract": "financial_writing_agent/story_quality.py:StoryBlueprint+PublicationFitness",
+    "publication_quality_contract": "financial_writing_agent/story_quality.py:StoryBlueprint+ValueChainScopeDecision+CausalTransmission+PublicationFitness",
     "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
     "proactive_resolution_guard": "financial_writing_agent/proactive_resolution.py",
     "maintenance_method": "references/maintenance.md"

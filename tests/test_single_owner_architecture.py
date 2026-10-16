@@ -30,6 +30,7 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id"
     assert manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
     assert manifest["domain_authority"]["root_scope_receipt"].endswith("RootScopeReceipt")
+    assert manifest["domain_authority"]["historical_resume_compatibility_guard"] == "financial_writing_agent/resume_compatibility.py"
 
     assert adapter["controller_task_identity_authority"] == "UAOS"
     assert adapter["domain_article_identity_authority"] == "workspaces/articles/{task_id}/STATE.json::task_id"
@@ -38,6 +39,7 @@ def test_current_authority_has_one_financial_owner_path():
     assert adapter["business_state_authority"] == "workspaces/articles/{task_id}/STATE.json"
     assert adapter["domain_product_requirement_authority"].endswith("docs/product_requirements.md")
     assert adapter["common_or_cross_domain_evolution_authority"] == "UAOS"
+    assert adapter["historical_material_resume_guard"] == "financial_writing_agent/resume_compatibility.py"
     assert adapter["legacy_controller_compatibility"] == "NONE"
 
     assert execution["product_path"] == "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE"
@@ -50,7 +52,7 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["identity"]["parent_child_id_equality_required"] is False
 
     common_required = set(capabilities["required_uaos_common_capabilities"])
-    assert capabilities["profile_version"] >= 19
+    assert capabilities["profile_version"] >= 20
     assert capabilities["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert capabilities["uaos_common_behavior_assurance_contract_min"] == "1.3.0"
     assert {
@@ -63,8 +65,11 @@ def test_current_authority_has_one_financial_owner_path():
     assert {cap["capability_id"] for cap in capabilities["capabilities"]} >= {
         "financial_owner_workflow",
         "domain_owned_article_identity_and_state",
+        "post_evolution_resume_compatibility",
         "identity_free_business_output_contract",
         "high_judgment_generation_stages",
+        "selective_deep_publication_architecture",
+        "event_to_company_causal_grounding",
         "semantic_review_stages",
         "delivery_and_mechanical_qa",
         "problem_cognition_root_scope_admission",
@@ -115,6 +120,7 @@ def test_retired_control_namespace_is_physically_absent():
         "financial_writing_agent/owner_guard.py",
         "financial_writing_agent/owner_lifecycle.py",
         "financial_writing_agent/proactive_resolution.py",
+        "financial_writing_agent/resume_compatibility.py",
         "financial_writing_agent/models.py",
     ):
         assert (ROOT / path).is_file(), path
@@ -130,7 +136,7 @@ def test_discovery_skill_is_pointer_not_second_rulebook():
 
 def test_package_has_no_second_runtime_dependencies_or_parent_identity_logic():
     pyproject = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert pyproject["project"]["version"] == "1.0.1"
+    assert pyproject["project"]["version"] == "1.0.2"
     assert "scripts" not in pyproject["project"]
     assert not any(str(dep).lower().startswith("mcp") for dep in pyproject["project"].get("dependencies", []))
     assert "openai" not in pyproject["project"].get("optional-dependencies", {})

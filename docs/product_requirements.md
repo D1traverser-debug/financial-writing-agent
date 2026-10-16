@@ -1,8 +1,8 @@
 # Financial Writing Agent — Product Requirements
 
-Status: `CANDIDATE_REBUILD`
-Version: `1.0.0-candidate`
-Date: `2026-10-15`
+Status: `1.0.2_CANDIDATE`
+Version: `1.0.2-candidate`
+Date: `2026-10-16`
 Owner: `DOMAIN:financial_writing`
 Parent governance: `D1traverser-debug/universal-agent-os@main`
 
@@ -11,7 +11,8 @@ Parent governance: `D1traverser-debug/universal-agent-os@main`
 Financial Writing turns a finance topic, user materials and current evidence into publication-ready Chinese financial content that is:
 - factually defensible and auditable;
 - complete enough at research level to avoid missing material value-chain branches;
-- company-grounded rather than detached industry exposition;
+- editorially selective rather than a dump of the research map;
+- company-grounded through causal economics rather than decorative company mentions;
 - structurally designed to earn reader continuation and completion;
 - original in wording and construction rather than source-shaped patchwriting;
 - recognizably authored rather than generic checklist prose;
@@ -19,24 +20,23 @@ Financial Writing turns a finance topic, user materials and current evidence int
 - delivered as verified Word artifacts when required;
 - able to learn from prior work without treating memory, user feedback or old facts as unquestioned truth.
 
-The governing outcome is not "satisfy the most rules". The governing outcome is **high-value, evidence-bounded writing that real readers can enter, follow, finish and use**.
+The governing outcome is not “satisfy the most rules”. It is **high-value, evidence-bounded writing that real readers can enter, follow, finish and use**.
 
 ## 2. Core design principles
 
 1. User feedback is high-weight evidence, not automatic rule authority.
-2. Learned knowledge is retained with provenance, scope, fit/misfit and revalidation conditions; it does not silently mutate rules.
-3. Material judgments require deliberate comparison, current evidence, counterexamples and a verification plan; problem-triggered or architecture/governance judgments additionally require relevant external method/architecture research.
-4. Research completeness and publication selectivity are separate: research may be broad; publication may select.
-5. The writer does not self-certify its own quality.
-6. Semantic review must cite text-level evidence; naked PASS labels are insufficient.
-7. Deterministic rules are used for invariants and tripwires, not as fake substitutes for semantic writing quality.
-8. Multi-agent complexity is introduced only when evals and materially different responsibilities justify it.
-9. Same-session critique is useful but remains `CHAT_SELF_REVIEW` unless distinct execution evidence exists.
-10. Historical states/contracts remain immutable provenance.
+2. Learned knowledge retains provenance, scope, fit/misfit and revalidation conditions; it does not silently mutate rules.
+3. Material judgments require deliberate comparison, current evidence, counterexamples and a verification plan; problem/architecture judgments additionally require relevant external method evidence.
+4. Research completeness and publication selectivity are separate: research may be broad; publication must choose what serves the thesis.
+5. Historical provenance and current-quality equivalence are separate: old state may remain readable, but semantic-generation gaps require compatibility admission before current-quality continuation.
+6. The writer does not self-certify its own quality.
+7. Semantic review cites text-level evidence; naked PASS labels are insufficient.
+8. Deterministic rules enforce invariants/tripwires, not fake semantic quality.
+9. Multi-agent complexity is introduced only when evals and materially different responsibilities justify it.
+10. Same-session critique remains `CHAT_SELF_REVIEW` unless distinct execution evidence exists.
+11. Historical states/contracts/receipts remain immutable provenance.
 
 ## 3. Primary user journeys
-
-The following product requirements define the current user journeys and their hard acceptance properties.
 
 ### PR-01 — Direct domain operation and ownership
 
@@ -44,171 +44,115 @@ A fresh session can select Financial Writing directly. Financial creates and own
 
 ### PR-02 — Feedback classification before evolution
 
-Any material user correction/rejection triggers problem cognition, but the system must distinguish:
-- factual correction;
-- user preference;
-- article-specific requirement;
-- recurring writing defect;
-- method defect;
-- architecture/control defect;
-- proposed implementation idea.
-
-The observed failure and desired outcome are evidence. A suggested fix is a candidate until compared against alternatives.
+Any material user correction/rejection triggers problem cognition, but the system must distinguish factual correction, preference, article-specific requirement, recurring writing defect, method defect, architecture/control defect and proposed implementation idea. The failed outcome is evidence; the user’s suggested fix remains a candidate until compared against alternatives.
 
 ### PR-03 — Knowledge acquisition and durable reuse
 
-Financial must retain useful learned knowledge in two families:
-- topic/domain cognition;
-- method/architecture/writing cognition.
-
-Every reusable record needs provenance, category, scope, confidence/adoption state, conflicts or misfit where known and a revalidation condition. Retrieved knowledge seeds the next task but does not bypass current evidence.
+Financial retains topic/domain cognition and method/architecture/writing cognition. Reusable records need provenance, category, scope, confidence/adoption state, known conflicts/misfit and a revalidation condition. Retrieved knowledge seeds the next task but cannot bypass current evidence.
 
 ### PR-04 — Value-chain-first research and broad search
 
 For material thematic/company work, Research must:
 1. recall prior relevant cognition;
-2. enumerate all material value-chain classes before selecting the thesis;
+2. enumerate material value-chain classes before selecting the thesis;
 3. map the relevant listed-company universe across those classes;
 4. gather current evidence and chronology;
-5. perform explicit disconfirming/counterexample search;
+5. perform disconfirming/counterexample search;
 6. compare candidate causal explanations;
 7. record unresolved gaps.
 
-"Complete" means evidence-bounded coverage, not a claim that the entire internet was crawled.
-
-For material thesis decisions, search may stop only after at least two consecutive materially different sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation. Architecture/method changes use the same saturation discipline and add external method evidence.
+“Complete” means evidence-bounded coverage, not exhaustive crawling. Material thesis search stops only after at least two consecutive materially different sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation.
 
 ### PR-05 — Decision Envelope for material judgments
 
-Before executing a material judgment, Financial must be able to represent:
-- objective;
-- evidence;
-- learned items/categories;
-- challenged assumptions;
-- at least two credible alternatives;
-- candidate advantages/failure modes/fit/misfit;
-- counterexamples;
-- rejected paths;
-- selected candidate and rationale;
-- search-saturation evidence;
-- verification plan;
-- remaining unknowns;
-- knowledge/evolution disposition.
+Before executing a material judgment, Financial must represent objective, evidence, learned items, challenged assumptions, at least two credible alternatives, fit/misfit/failure modes, counterexamples, rejected paths, selected candidate/rationale, search saturation, verification plan, remaining unknowns and evolution disposition. Mechanical actions do not require a full envelope.
 
-Mechanical actions use deterministic checks and do not require full deliberation envelopes.
-
-### PR-06 — FINANCE_DEEP is the complete finance product
+### PR-06 — FINANCE_DEEP is the complete finance product, not the complete research dump
 
 For thematic/industry Deep work:
-- declared material value-chain classes must all be represented in the publication architecture unless explicitly adjudicated non-material to publication;
-- material companies must be covered sufficiently to explain distinct economics and evidence;
-- material explanatory sections must use named company/case anchors when such evidence exists;
-- H1 sections must use explicit contiguous Chinese numbering (`一、二、三、...`);
-- mechanisms should be shown through company evidence rather than long detached scene-setting;
-- company comparisons must be evidence-bounded and non-actionable;
-- **there is no default word-count ceiling**. Remove redundancy; do not compress away material coverage merely to hit an arbitrary length.
+- Research must cover the material value-chain/company universe before thesis selection.
+- Publication must select the economically decisive path rather than mechanically mirror the research directory.
+- If every researched material class is genuinely needed by the selected story, full publication coverage is legal.
+- If any researched material class is omitted from copy, `publication_scope_decisions` must account for every researched class as `CORE`, `SUPPORT`, or `OMIT_WITH_REASON`, with evidence and rationale.
+- `OMIT_WITH_REASON` preserves research provenance but must not silently become a full publication branch.
+- Selected material explanatory sections must ground mechanisms in named company/case evidence where available.
+- H1 sections use explicit contiguous Chinese numbering (`一、二、三、...`).
+- Company comparisons remain evidence-bounded and non-actionable.
+- **There is no default word-count ceiling.** Remove redundancy; do not add or remove material merely to hit a length target.
 
 ### PR-07 — FINANCE_BROAD is selective acquisition, not shortened Deep
 
-Broad can select a subset of the audited research based on reader acquisition value, but it must have its own story blueprint, retention path and payoff. It may not be generated by mechanically shortening Deep.
+Broad selects from audited evidence based on acquisition value but has its own blueprint, retention path and payoff. It may not be created by mechanically shortening Deep.
 
 ### PR-08 — Story Blueprint before prose
 
-Substantive long-form publication requires a `StoryBlueprint` that records:
-- reader job and starting state;
-- article promise and central question;
-- author stance;
-- narrative engine selected from genuinely different candidate structures;
-- concrete opening anchor;
-- information gap, early payoff and later payoff;
-- numbered section plan;
-- per-section new information;
-- named company/case anchors for material explanatory sections;
-- value-chain classes covered;
-- evidence refs;
-- open loop/bridge and section payoff;
-- ending payoff;
-- voice evidence.
+Substantive long-form publication requires a `StoryBlueprint` recording reader job/start state, article promise/central question, author stance, narrative engine, opening anchor, information gap, early/later payoff, numbered section plan, per-section new information, company/case anchors, selected value-chain classes, evidence refs, bridges/open loops, ending payoff and voice evidence.
 
-A story structure is selected to fit the material. Nut-graf, five-box, hourglass and similar forms are candidate methods, not universal templates.
+For event-led finance stories whose explanatory burden is the transmission of an event/rule/change into listed-company economics, the `EVENT_TO_COMPANY` engine requires every material explanatory section to bind:
+`trigger/change -> mechanism -> company exposure -> operating/financial expression -> verification/reversal condition`.
+A company mention without that chain is not sufficient causal grounding.
+
+Story form follows material. Nut-graf, five-box, hourglass and similar forms are candidate methods, not universal templates.
 
 ### PR-09 — Reader-retention outcome
 
-The product must evaluate retention across the entire reader journey, not just title/opening:
-- stop reason at title/opening;
-- promise clarity without giving away all payoff;
-- new information per section;
-- cadence of concrete facts/cases/companies;
-- transitions that earn the next section;
-- absence of repetitive thesis restatement;
-- completion payoff that resolves the promised question.
-
-Curiosity is useful only when concrete and paid off. Empty curiosity gaps or clickbait that increases clicks while reducing satisfaction fail the product objective.
+The product evaluates retention across the reader journey: stop reason at title/opening, promise clarity without exhausting payoff, new information per section, cadence of concrete facts/cases/companies, transitions that earn the next section, absence of repetitive restatement, and completion payoff. Curiosity must be concrete and paid off.
 
 ### PR-10 — Originality / anti-plagiarism
 
-Financial must not reuse another source's distinctive structure or phrasing as its own.
-
-The required method is:
+Financial must not reuse another source’s distinctive structure or phrasing as its own. Required method:
 - normalize research into claims/notes/evidence before drafting;
 - draft primarily from notes + blueprint, not source paragraphs;
-- quote/attribute distinctive language only when legitimately necessary;
-- independently rewrite information from understanding;
-- compare suspicious or distinctive passages against material sources before PASS;
+- quote/attribute distinctive language when legitimately necessary;
+- independently reconstruct information from understanding;
+- compare suspicious/distinctive passages against material sources before PASS;
 - treat close paraphrase/patchwriting as REVISE;
 - never claim zero plagiarism solely from same-chat review.
 
 ### PR-11 — Natural authorial prose
 
-Natural prose is produced from material, stance, concrete evidence, story architecture and voice evidence. It is not produced by slang injection, fixed sentence-length variation, phrase substitution or a generic humanizer.
-
-Generic scaffolding (`值得关注`, `这意味着`, `问题在于`, `换句话说`, repeated `不是X而是Y`, etc.) is a diagnostic signal. A cluster that replaces new information or creates visible model rhythm requires semantic revision. Isolated legitimate use does not automatically fail.
+Natural prose comes from material, stance, concrete evidence, story architecture and voice evidence—not slang injection, fixed sentence-length variation, phrase substitution, AI-detector optimization or a generic humanizer. Generic scaffolding is a diagnostic signal only when clustered/unearned and replacing new information.
 
 ### PR-12 — Publication Fitness gate
 
-Every new-architecture publication candidate must pass exactly these evidence-backed gates:
-- `FACT_INTEGRITY`
-- `RETENTION`
-- `COMPANY_GROUNDING`
-- `STRUCTURE_NUMBERING`
-- `ORIGINALITY`
-- `AUTHORIAL_STYLE`
-- `COMPLIANCE`
-- `PAYOFF`
+Every current-architecture long-form candidate passes exactly:
+`FACT_INTEGRITY`, `RETENTION`, `COMPANY_GROUNDING`, `STRUCTURE_NUMBERING`, `ORIGINALITY`, `AUTHORIAL_STYLE`, `COMPLIANCE`, `PAYOFF`.
 
-Every gate must cite text locations/excerpts and findings. MAJOR/CRITICAL findings block PASS. REVISE requires explicit repair actions. A rubric containing only labels is not acceptance evidence.
+Each gate cites text location/excerpt/finding. MAJOR/CRITICAL findings block PASS. REVISE needs explicit repair actions. Originality requires source-compared `OriginalityEvidence`; a same-chat impression is not evidence of zero overlap.
 
 ### PR-13 — Focused internal pass architecture
 
-One Financial owner uses the internal pass DAG in `financial_writing_agent/writing_kernel.py`:
+One Financial owner uses:
 `KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
-
-Passes have least-context responsibilities and may not silently assume another pass's job. This is internal orchestration, not a second state machine.
+Passes have least-context responsibilities and are not a second business state machine.
 
 ### PR-14 — Platform/output portfolio
 
-New ordinary work still defaults to `PORTFOLIO + WORD_FILE_ONLY`:
-- `FINANCE_DEEP_DOCX`
-- `FINANCE_BROAD_DOCX`
-- `PLATFORM_INTERACTION_PACK_DOCX`
-- `AUDIT_DOCX`.
-
-Historical `DUAL` and `FINANCE_BROAD` meanings remain immutable.
+New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`, `AUDIT_DOCX`. Historical product meanings remain immutable.
 
 ### PR-15 — Delivery and mechanical QA
 
-Word outputs must pass formatting, artifact, render and availability checks. Mechanical success never substitutes for semantic publication fitness.
+Word outputs pass formatting, artifact, render and current-resource availability checks. Mechanical success never substitutes for semantic publication fitness.
 
 ### PR-16 — Evolution and promotion
 
 Financial-owned evolution follows:
-`problem/evidence -> cognition -> candidate alternatives -> DecisionEnvelope -> regression/eval -> candidate branch/PR -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
-
-One article may create a domain candidate, not universal truth. Cross-domain/common changes go to UAOS.
+`problem/evidence -> cognition -> candidate alternatives -> DecisionEnvelope/root-scope admission -> evolution disposition -> regression/eval -> candidate branch/PR -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
+One article may create a domain candidate, not universal truth. Common/cross-domain changes go to UAOS.
 
 ### PR-17 — Multi-agent is conditional, not default
 
-Separate agents/executors are justified only when tool access, permissions, context, output contract, independence requirement or measured parallelism benefit materially differs. Otherwise the default is one Financial owner with focused passes.
+Separate executors are justified only when tool access, permissions, context, output contract, independence requirement or measured parallelism benefit materially differs. Otherwise use one Financial owner with focused passes.
+
+### PR-18 — Post-evolution historical resume compatibility
+
+Before materially continuing an article state that predates the current semantic quality generation:
+- apply the owner-native resume compatibility admission;
+- ordinary continuation intended to satisfy current quality must create a current-kernel successor/replay (`CURRENT_SUCCESSOR_REQUIRED`);
+- explicit historical/provenance-only continuation may preserve historical semantics (`HISTORICAL_PROVENANCE_ONLY`) but cannot inherit current DecisionEnvelope/StoryBlueprint/PublicationFitness assurance;
+- never rewrite old receipts/state to simulate current evidence.
+
+This requirement preserves both continuity and provenance without silently equating semantic generations.
 
 ## 4. Acceptance evidence — Functional requirement map
 
@@ -217,67 +161,69 @@ Separate agents/executors are justified only when tool access, permissions, cont
 | Material decision rigor | `cognition_governance.py::DecisionEnvelope`, tests |
 | Search saturation | `SearchSaturation`, tests |
 | Knowledge conflict discipline | `KnowledgeRecord`, `knowledge/METHOD_KNOWLEDGE_CATALOG.json` |
-| Value-chain-first research | current ResearchPackage coverage map + research rules/evals |
+| Value-chain-first research | ResearchPackage coverage map + research rules/evals |
+| Historical resume compatibility | `resume_compatibility.py`, trajectory regression |
 | Story architecture | `story_quality.py::StoryBlueprint`, tests |
+| Research/publication separation | `ValueChainScopeDecision`, held-out replay |
+| Event→company transmission | `CausalTransmission`, EVENT_TO_COMPANY regression |
 | Deep no default word ceiling | StoryBlueprint validator + regression |
-| H1 numbering | StoryBlueprint + publication structure tripwire |
-| Company-grounded sections | SectionBlueprint validator + live replay |
+| H1 numbering | StoryBlueprint + structure tripwire |
+| Company-grounded sections | SectionBlueprint/CausalTransmission + live replay |
 | Retention/payoff | PublicationFitness text-evidence gates + live/user observation |
 | Originality | OriginalityEvidence + source-overlap review + replay |
-| Style/anti-AI | diagnostic scaffold tripwire + evidence-backed style critic |
+| Style/anti-AI | scaffold tripwire + evidence-backed style critic |
 | Internal pass isolation | `writing_kernel.py`, DAG tests |
-| Financial compliance | existing deterministic/semantic finance checks |
-| Word delivery | existing DOCX/render/mechanical tests |
-| Evolution | existing owner lifecycle/quality regression + new decision/eval evidence |
+| Financial compliance | deterministic/semantic finance checks |
+| Word delivery | DOCX/render/mechanical tests |
+| Evolution | owner lifecycle/problem-action admission/evolution index |
 
 ## 5. Failure and recovery semantics
 
-- missing material value-chain coverage -> return to RESEARCH;
+- historical pre-current-kernel material resume under current-quality intent -> create current-kernel successor/replay;
+- missing material research coverage -> RESEARCH;
 - thesis selected before coverage/adversarial search -> RESEARCH;
 - DecisionEnvelope admission failure -> do not execute the material decision;
-- story blueprint fails numbering/company/value-chain obligations -> EDITORIAL;
+- Deep selective omission without full scope accounting -> EDITORIAL;
+- EVENT_TO_COMPANY section without full causal transmission -> EDITORIAL;
+- story numbering/company grounding failure -> EDITORIAL;
 - hook/retention/payoff failure -> EDITORIAL/TITLE/DRAFT as narrowest repair;
 - suspicious source overlap/patchwriting -> DRAFT;
 - current fact/causal boundary failure -> RESEARCH/DRAFT depending cause;
 - generic scaffolding cluster -> semantic STYLE review, not automatic authorship verdict;
 - semantic audit without excerpt/location evidence -> audit invalid;
 - mechanical Word failure -> DELIVERY;
-- any upstream material change invalidates dependent downstream PASS evidence.
+- upstream material change invalidates dependent downstream PASS evidence.
 
 ## 6. Cognition inheritance contract
 
-Financial inherits the UAOS problem-response floor and internal-orchestration method, while keeping Financial business decisions local. Every detected defect or unreliable outcome activates micro diagnosis, macro/topology alignment, governing-assumption challenge and external research. Material/systemic problems add explicit counterexample search and verification proportional to risk.
-
-The domain realizes this contract through `DecisionEnvelope`, search-saturation evidence, the focused writing-kernel passes and owner-native article/evolution evidence. Merely declaring UAOS inheritance is not operational proof.
+Financial inherits the UAOS problem-response floor and internal-orchestration method while keeping business decisions local. Every detected defect/unreliable outcome activates micro diagnosis, macro/topology alignment, governing-assumption challenge and external research. Material/systemic problems add competing hypotheses/counterexamples and verification proportional to risk. Declaring inheritance is not operational proof.
 
 ## 7. Evolution inheritance contract
 
-Financial owns Financial business/writing promotion; UAOS owns common/cross-domain promotion. User feedback first becomes evidence, then is classified and compared against alternative diagnoses/repairs. A permanent rule or architecture change requires reproducible evaluation, owner-scoped promotion and post-promotion observation. One article or one user instruction cannot silently become universal authority.
+Financial owns Financial writing promotion; UAOS owns common/cross-domain promotion. Feedback first becomes evidence, then is classified and compared with alternative diagnoses/repairs. Permanent rule/architecture changes require reproducible evaluation, owner-scoped promotion and post-promotion observation.
 
 ## 8. Explicit non-goals
 
 - no buy/sell/timing/target/position guidance;
-- no promise that the entire internet can be exhaustively crawled;
+- no claim of exhaustive internet coverage;
 - no automatic promotion of user suggestions into rules;
-- no universal story template;
-- no universal stock-scoring formula;
-- no generic-draft-then-humanizer architecture;
-- no AI-detector optimization;
-- no claim that same-model critics are independent;
+- no universal story template or stock-scoring formula;
+- no research-directory-as-article mandate;
+- no generic-draft-then-humanizer architecture or AI-detector optimization;
+- no claim same-model critics are independent;
 - no cosmetic multi-agent role multiplication;
 - no default Deep word-count ceiling;
-- no rewriting historical states/receipts to fit the new architecture.
+- no rewriting historical state/receipts to fit the current architecture.
 
 ## 9. Product completion criteria
 
-The rebuild is promotion-eligible only when:
-1. architecture, product requirements, execution contract, skill/reference surfaces and packaged mirrors agree;
-2. cognition decision, story blueprint, pass-DAG and publication-fitness unit tests pass;
-3. existing historical compatibility, owner, routing, delivery and compliance tests remain green;
-4. the rejected cross-border-ecommerce article is replayed as a negative case and the old defects cannot receive an unqualified PASS;
-5. at least one held-out long-form case demonstrates the new design does not merely overfit cross-border ecommerce;
-6. candidate CI passes;
-7. authority-wide contradiction scan passes;
-8. controlled promotion occurs through owner-appropriate GitHub workflow;
-9. production authority and production CI are reread;
-10. subsequent live user/article observation determines KEEP / further repair / rollback.
+The 1.0.2 candidate is promotion-eligible only when:
+1. product requirements, architecture, execution contract, Skill/bindings and code agree;
+2. cognition, StoryBlueprint, selective-scope, event-company, resume-compatibility and PublicationFitness tests pass;
+3. existing owner/routing/delivery/compliance and held-out tests remain green;
+4. the rejected cross-border article remains historical negative evidence and cannot obtain current-quality status by replay-free legacy continuation;
+5. at least one held-out case shows the changes do not overfit cross-border ecommerce;
+6. candidate CI and contradiction scan pass;
+7. controlled promotion occurs and production authority/CI are reread;
+8. a fresh current-kernel cross-border successor is produced and observed to test thesis, hook, authorial style/anti-AI, originality, company causality and editorial selectivity;
+9. live observation determines KEEP / further repair / rollback.

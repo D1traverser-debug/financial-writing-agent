@@ -2,16 +2,35 @@ import pytest
 
 from financial_writing_agent.owner_guard import (
     GithubChatGuardError,
-    advance_state,
+    advance_state as _owner_advance_state,
     attach_material_feedback,
     build_initial_state,
 )
 from financial_writing_agent.owner_lifecycle import (
     OWNER_CLOSURE_ATTESTATION,
-    block_review_failure_state,
-    resume_blocked_state,
+    block_review_failure_state as _block_review_failure_state,
+    resume_blocked_state as _resume_blocked_state,
     review_system_impact_state,
 )
+from financial_writing_agent.resume_compatibility import ResumeCompatibilityDecision
+
+
+_HISTORICAL_ONLY = ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
+
+
+def advance_state(state, **kwargs):
+    kwargs.setdefault("resume_intent", _HISTORICAL_ONLY)
+    return _owner_advance_state(state, **kwargs)
+
+
+def block_review_failure_state(state, **kwargs):
+    kwargs.setdefault("resume_intent", _HISTORICAL_ONLY)
+    return _block_review_failure_state(state, **kwargs)
+
+
+def resume_blocked_state(state, **kwargs):
+    kwargs.setdefault("resume_intent", _HISTORICAL_ONLY)
+    return _resume_blocked_state(state, **kwargs)
 
 
 def _initial():
@@ -54,6 +73,7 @@ def test_review_fail_persists_canonical_recovery_cursor():
     assert blocked["current_stage"] == "RESEARCH_AUDIT"
     assert blocked["review_decisions"]["RESEARCH_AUDIT"]["status"] == "FAIL"
     assert blocked["execution_receipts"][-1]["input_bindings"]["revision_target"] == "RESEARCH"
+    assert blocked["execution_receipts"][-1]["input_bindings"]["historical_resume_decision"] == _HISTORICAL_ONLY
 
 
 def test_review_fail_rejects_noncanonical_recovery_target():
@@ -91,6 +111,7 @@ def test_blocked_recovery_uses_persisted_target_and_invalidates_downstream():
     assert resumed["review_decisions"] == {}
     assert resumed["recovery_history"][-1]["resume_target"] == "RESEARCH"
     assert resumed["execution_receipts"][-1]["capability_id"] == "financial_owner_blocked_recovery"
+    assert resumed["execution_receipts"][-1]["input_bindings"]["historical_resume_decision"] == _HISTORICAL_ONLY
 
 
 def test_blocked_recovery_rejects_missing_persisted_cursor():

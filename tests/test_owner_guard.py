@@ -7,12 +7,24 @@ from financial_writing_agent.owner_guard import (
     MODE_SOURCE_USER_EXPLICIT,
     TERMINAL_STATUS,
     GithubChatGuardError,
-    advance_state,
+    advance_state as _owner_advance_state,
     attach_material_feedback,
     build_initial_state,
     validate_state,
     validate_transition,
 )
+from financial_writing_agent.resume_compatibility import ResumeCompatibilityDecision
+
+
+def advance_state(state, **kwargs):
+    """These legacy owner-guard tests intentionally exercise historical semantics.
+
+    Current-kernel quality admission is tested separately. Making the historical intent
+    explicit ensures the old low-level guard remains testable without weakening the new
+    default fail-closed post-evolution resume boundary.
+    """
+    kwargs.setdefault("resume_intent", ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value)
+    return _owner_advance_state(state, **kwargs)
 
 
 def _initial():

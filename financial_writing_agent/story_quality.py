@@ -25,6 +25,7 @@ class NarrativeEngine(str, Enum):
     MYSTERY = "MYSTERY"
     SYSTEM_MAP = "SYSTEM_MAP"
     CONSEQUENCE_CHAIN = "CONSEQUENCE_CHAIN"
+    EVENT_TO_COMPANY = "EVENT_TO_COMPANY"
     CHARACTER_OR_CASE = "CHARACTER_OR_CASE"
     TIMELINE_ESCALATION = "TIMELINE_ESCALATION"
 
@@ -32,6 +33,12 @@ class NarrativeEngine(str, Enum):
 class AuditStatus(str, Enum):
     PASS = "PASS"
     REVISE = "REVISE"
+
+
+class PublicationScopeDisposition(str, Enum):
+    CORE = "CORE"
+    SUPPORT = "SUPPORT"
+    OMIT_WITH_REASON = "OMIT_WITH_REASON"
 
 
 class OpeningDesign(StrictModel):
@@ -49,6 +56,21 @@ class OpeningDesign(StrictModel):
         return self
 
 
+class CausalTransmission(StrictModel):
+    trigger_or_change: str = Field(min_length=1)
+    mechanism: str = Field(min_length=1)
+    company_exposure: str = Field(min_length=1)
+    operating_or_financial_expression: str = Field(min_length=1)
+    verification_or_reversal_condition: str = Field(min_length=1)
+
+
+class ValueChainScopeDecision(StrictModel):
+    value_chain_class: str = Field(min_length=1)
+    disposition: PublicationScopeDisposition
+    rationale: str = Field(min_length=1)
+    evidence_refs: list[str] = Field(min_length=1)
+
+
 class SectionBlueprint(StrictModel):
     sequence_label: str = Field(min_length=1)
     working_heading: str = Field(min_length=1)
@@ -61,6 +83,7 @@ class SectionBlueprint(StrictModel):
     section_payoff: str = Field(min_length=1)
     bridge_to_next: str = Field(min_length=1)
     is_material_explanatory_section: bool = True
+    causal_transmission: CausalTransmission | None = None
 
     @model_validator(mode="after")
     def material_sections_need_company_grounding(self):
@@ -80,6 +103,7 @@ class StoryBlueprint(StrictModel):
     opening: OpeningDesign
     sections: list[SectionBlueprint] = Field(min_length=3)
     material_value_chain_classes: list[str] = Field(default_factory=list)
+    publication_scope_decisions: list[ValueChainScopeDecision] = Field(default_factory=list)
     default_word_limit: int | None = None
     ending_payoff: str = Field(min_length=1)
     voice_evidence_refs: list[str] = Field(min_length=1)
@@ -100,11 +124,56 @@ class StoryBlueprint(StrictModel):
         if self.product_mode == ProductMode.FINANCE_DEEP:
             if self.default_word_limit is not None:
                 raise ValueError("FINANCE_DEEP has no default word-count ceiling; compress only by explicit user/product need")
-            required = set(self.material_value_chain_classes)
+
+            researched = set(self.material_value_chain_classes)
             covered = {item for section in self.sections for item in section.value_chain_classes}
-            missing = required - covered
+            decisions = self.publication_scope_decisions
+
+            # Full publication coverage remains legal when editorial judgment genuinely selects
+            # the full researched set. The old defect was *forcing* research completeness to
+            # become publication completeness. Selective publication is therefore admitted by
+            # an explicit decision map whenever any researched class is left out of the copy.
+            if not decisions:
+                missing = researched - covered
+                if missing:
+                    raise ValueError(
+                        "FINANCE_DEEP omits researched material classes without publication_scope_decisions: "
+                        f"{sorted(missing)}"
+                    )
+            else:
+                decided = [item.value_chain_class for item in decisions]
+                if len(decided) != len(set(decided)):
+                    raise ValueError("publication_scope_decisions must contain one decision per value-chain class")
+                if set(decided) != researched:
+                    missing = researched - set(decided)
+                    extra = set(decided) - researched
+                    raise ValueError(f"publication scope must account for every researched material class: missing={sorted(missing)}, extra={sorted(extra)}")
+                if not any(item.disposition == PublicationScopeDisposition.CORE for item in decisions):
+                    raise ValueError("FINANCE_DEEP requires at least one CORE publication-scope class")
+
+                required_in_copy = {
+                    item.value_chain_class
+                    for item in decisions
+                    if item.disposition in {PublicationScopeDisposition.CORE, PublicationScopeDisposition.SUPPORT}
+                }
+                missing_in_copy = required_in_copy - covered
+                if missing_in_copy:
+                    raise ValueError(f"FINANCE_DEEP blueprint omits selected publication classes: {sorted(missing_in_copy)}")
+                unselected_in_copy = (covered & researched) - required_in_copy
+                if unselected_in_copy:
+                    raise ValueError(f"FINANCE_DEEP copy includes classes explicitly omitted by scope decision: {sorted(unselected_in_copy)}")
+
+        if self.narrative_engine == NarrativeEngine.EVENT_TO_COMPANY:
+            missing = [
+                section.sequence_label
+                for section in self.sections
+                if section.is_material_explanatory_section and section.causal_transmission is None
+            ]
             if missing:
-                raise ValueError(f"FINANCE_DEEP blueprint omits material value-chain classes: {sorted(missing)}")
+                raise ValueError(
+                    "EVENT_TO_COMPANY requires trigger -> mechanism -> company exposure -> operating/financial expression -> verification/reversal for every material section; "
+                    f"missing={missing}"
+                )
         return self
 
 
@@ -117,14 +186,8 @@ class TextEvidence(StrictModel):
 
 class GateAudit(StrictModel):
     gate: Literal[
-        "FACT_INTEGRITY",
-        "RETENTION",
-        "COMPANY_GROUNDING",
-        "STRUCTURE_NUMBERING",
-        "ORIGINALITY",
-        "AUTHORIAL_STYLE",
-        "COMPLIANCE",
-        "PAYOFF",
+        "FACT_INTEGRITY", "RETENTION", "COMPANY_GROUNDING", "STRUCTURE_NUMBERING",
+        "ORIGINALITY", "AUTHORIAL_STYLE", "COMPLIANCE", "PAYOFF",
     ]
     status: AuditStatus
     evidence: list[TextEvidence] = Field(min_length=1)
@@ -160,14 +223,8 @@ class PublicationFitness(StrictModel):
     @model_validator(mode="after")
     def require_all_named_gates(self):
         required = {
-            "FACT_INTEGRITY",
-            "RETENTION",
-            "COMPANY_GROUNDING",
-            "STRUCTURE_NUMBERING",
-            "ORIGINALITY",
-            "AUTHORIAL_STYLE",
-            "COMPLIANCE",
-            "PAYOFF",
+            "FACT_INTEGRITY", "RETENTION", "COMPANY_GROUNDING", "STRUCTURE_NUMBERING",
+            "ORIGINALITY", "AUTHORIAL_STYLE", "COMPLIANCE", "PAYOFF",
         }
         names = [gate.gate for gate in self.gates]
         if set(names) != required or len(names) != len(required):
@@ -181,8 +238,7 @@ class PublicationFitness(StrictModel):
             raise ValueError("publication fitness assurance must match audit_provenance.assurance")
         if self.assurance == "INDEPENDENT_EXECUTOR":
             raise ValueError(
-                "INDEPENDENT_EXECUTOR is not admissible in the current Financial chat contract because "
-                "trusted independent execution evidence cannot yet be resolved; use CHAT_SELF_REVIEW"
+                "INDEPENDENT_EXECUTOR is not admissible in the current Financial chat contract because trusted independent execution evidence cannot yet be resolved; use CHAT_SELF_REVIEW"
             )
         return self
 
@@ -190,22 +246,14 @@ class PublicationFitness(StrictModel):
 _GENERIC_THROAT_CLEARING = [
     re.compile(pattern)
     for pattern in (
-        r"值得(?:关注|注意|一提|观察)",
-        r"需要(?:关注|注意|看到|指出)",
-        r"从这个角度(?:看|来看)",
-        r"可以(?:看到|发现|看出)",
-        r"不难发现",
-        r"这(?:也)?说明",
-        r"这意味着",
-        r"问题在于",
-        r"真正(?:值得|需要|的变化)",
-        r"换句话说",
+        r"值得(?:关注|注意|一提|观察)", r"需要(?:关注|注意|看到|指出)", r"从这个角度(?:看|来看)",
+        r"可以(?:看到|发现|看出)", r"不难发现", r"这(?:也)?说明", r"这意味着", r"问题在于",
+        r"真正(?:值得|需要|的变化)", r"换句话说",
     )
 ]
 
 
 def publication_structure_findings(headings: list[str]) -> list[str]:
-    """Deterministic structural tripwire; semantic quality remains evidence-based."""
     findings: list[str] = []
     expected = ["一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、"]
     for idx, heading in enumerate(headings):
@@ -217,8 +265,4 @@ def publication_structure_findings(headings: list[str]) -> list[str]:
 def generic_scaffolding_findings(text: str) -> dict[str, int | float | bool]:
     hits = sum(len(pattern.findall(text)) for pattern in _GENERIC_THROAT_CLEARING)
     density = round(hits * 1000 / max(len(text), 1), 2)
-    return {
-        "hits": hits,
-        "density_per_1000_chars": density,
-        "requires_semantic_style_review": hits >= 4 and density >= 1.0,
-    }
+    return {"hits": hits, "density_per_1000_chars": density, "requires_semantic_style_review": hits >= 4 and density >= 1.0}
