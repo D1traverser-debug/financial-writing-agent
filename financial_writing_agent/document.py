@@ -11,6 +11,9 @@ from docx.shared import Pt, RGBColor
 from pydantic import BaseModel, Field
 
 
+DEFAULT_COMPANY_NAME_RGB = "0070C0"
+
+
 class Block(BaseModel):
     kind: Literal["lead", "h1", "h2", "h3", "body"]
     text: str
@@ -65,6 +68,18 @@ def _format_run(run, *, size_pt: float, bold: bool = False, italic: bool = False
     if color:
         run.font.color.rgb = RGBColor.from_string(color)
     _set_cn_font(run)
+
+
+def _company_name_color(policy: dict) -> str:
+    word = policy.get("word", {}) if isinstance(policy, dict) else {}
+    value = str(word.get("company_name_rgb", DEFAULT_COMPANY_NAME_RGB)).strip().upper()
+    return value if re.fullmatch(r"[0-9A-F]{6}", value) else DEFAULT_COMPANY_NAME_RGB
+
+
+def _run_color_for_company(text: str, stock_names: list[str], policy: dict) -> str | None:
+    if text in set(stock_names):
+        return _company_name_color(policy)
+    return None
 
 
 def _chinese_number(n: int) -> str:
@@ -169,7 +184,13 @@ def build_article_docx(article: ArticleDocument, output: str | Path, policy: dic
                 auto_bold_stock_names=auto_bold_stock_names,
             ):
                 run = p.add_run(text)
-                _format_run(run, bold=bool(bold), italic=is_risk, size_pt=policy["word"]["body_pt"])
+                _format_run(
+                    run,
+                    bold=bool(bold),
+                    italic=is_risk,
+                    size_pt=policy["word"]["body_pt"],
+                    color=_run_color_for_company(text, article.stock_names, policy),
+                )
 
     output = Path(output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -269,7 +290,12 @@ def build_interaction_pack_docx(pack, output: str | Path, policy: dict) -> Path:
                 auto_bold_stock_names=auto_bold_stock_names,
             ):
                 text_run = paragraph.add_run(text)
-                _format_run(text_run, bold=bool(bold), size_pt=body_pt)
+                _format_run(
+                    text_run,
+                    bold=bool(bold),
+                    size_pt=body_pt,
+                    color=_run_color_for_company(text, stock_names, policy),
+                )
 
     boundary = doc.add_paragraph(style="Normal")
     boundary_run = boundary.add_run(f"证据边界：{pack.evidence_boundary}")
