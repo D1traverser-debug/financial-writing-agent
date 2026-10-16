@@ -66,7 +66,7 @@ Every detected defect, user correction/rejection, degraded outcome, contradictio
 
 Do not turn user rejection directly into universal rules. Persist it as evidence, compare local/workflow/architecture/common-capability hypotheses, admit root scope, then choose `LOCAL_REPAIR`, `DOMAIN_CANDIDATE`, `PARENT_UPCALL`, or evidence-backed `NO_CHANGE`. If an owner-authorized repair is available without a required user fact/approval/safety choice, attempt it before finalizing.
 
-## Executable proactive resolution
+## Executable proactive resolution before user escalation
 
 `financial_writing_agent/proactive_resolution.py` owns recovery receipts and user-escalation admission. Recover from available evidence before asking the user; unresolved escalation must pass `require_user_escalation_admission`.
 
