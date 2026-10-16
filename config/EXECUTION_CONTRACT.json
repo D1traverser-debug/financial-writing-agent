@@ -1,5 +1,5 @@
 {
-  "schema_version": "4.0-candidate",
+  "schema_version": "4.1-candidate",
   "domain_id": "financial_writing",
   "product_path": "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE",
   "authority": {
@@ -12,6 +12,7 @@
     "canonical_business_contract": "financial_writing_agent.models.TaskContract",
     "canonical_workflow_spec": "financial_writing_agent/workflow_spec.py",
     "current_admission_guard": "financial_writing_agent/current_admission.py",
+    "historical_resume_compatibility_guard": "financial_writing_agent/resume_compatibility.py",
     "legacy_and_low_level_state_guard": "financial_writing_agent/owner_guard.py",
     "internal_writing_kernel": "financial_writing_agent/writing_kernel.py",
     "material_decision_contract": "financial_writing_agent/cognition_governance.py::DecisionEnvelope",
@@ -26,14 +27,9 @@
   "hosted_governance": {
     "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
     "common_capabilities_contract_min": "1.6.0",
-    "common_behavior_assurance_contract_min": "1.2.0",
+    "common_behavior_assurance_contract_min": "1.3.0",
     "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
-    "problem_response_floor": [
-      "MICRO_DIAGNOSIS",
-      "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
-      "GOVERNING_ASSUMPTION_CHALLENGE",
-      "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"
-    ],
+    "problem_response_floor": ["MICRO_DIAGNOSIS", "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT", "GOVERNING_ASSUMPTION_CHALLENGE", "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"],
     "problem_floor_activation": "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER",
     "material_problem_escalation": ["COUNTEREXAMPLE_SEARCH", "STRONGER_VERIFICATION_AS_RISK_REQUIRES"],
     "user_feedback_semantics": "HIGH_WEIGHT_EVIDENCE__NOT_AUTOMATIC_RULE_AUTHORITY",
@@ -49,42 +45,13 @@
     "parent_child_id_equality_required": false,
     "parent_reference_semantics": "OPTIONAL_OPAQUE_REFERENCE_TO_FINANCIAL_STATE_RETURNED_BY_DOMAIN"
   },
-  "workflow": [
-    "INTAKE",
-    "RESEARCH",
-    "RESEARCH_AUDIT",
-    "EDITORIAL",
-    "TITLE",
-    "DRAFT",
-    "EDITORIAL_AUDIT",
-    "DELIVERY",
-    "MECHANICAL_AUDIT",
-    "FINAL_AUDIT"
-  ],
-  "internal_passes": [
-    "KNOWLEDGE_RECALL",
-    "RESEARCH_DISCOVERY",
-    "RESEARCH_ADVERSARIAL",
-    "THESIS_ADJUDICATION",
-    "STORY_ARCHITECTURE",
-    "DRAFT_GENERATION",
-    "READER_RETENTION_AUDIT",
-    "EDITORIAL_TRIM",
-    "ORIGINALITY_AUDIT",
-    "FACT_INTEGRITY_AUDIT",
-    "STYLE_AUDIT",
-    "FINAL_SYNTHESIS"
-  ],
+  "workflow": ["INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT", "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"],
+  "internal_passes": ["KNOWLEDGE_RECALL", "RESEARCH_DISCOVERY", "RESEARCH_ADVERSARIAL", "THESIS_ADJUDICATION", "STORY_ARCHITECTURE", "DRAFT_GENERATION", "READER_RETENTION_AUDIT", "EDITORIAL_TRIM", "ORIGINALITY_AUDIT", "FACT_INTEGRITY_AUDIT", "STYLE_AUDIT", "FINAL_SYNTHESIS"],
   "task_contract": {
     "identity_free": true,
     "default_distribution_mode": "PORTFOLIO",
     "default_delivery_channel": "WORD_FILE_ONLY",
-    "default_required_outputs": [
-      "AUDIT_DOCX",
-      "FINANCE_DEEP_DOCX",
-      "FINANCE_BROAD_DOCX",
-      "PLATFORM_INTERACTION_PACK_DOCX"
-    ],
+    "default_required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"],
     "legacy_compatibility": {
       "DUAL": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
       "FINANCE_BROAD": ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"]
@@ -95,7 +62,10 @@
     "new_task_entrypoint": "financial_writing_agent.current_admission.build_initial_state",
     "new_task_transition_entrypoint": "financial_writing_agent.current_admission.advance_state",
     "writing_kernel_version": "1.0",
-    "historical_state_without_kernel_marker_uses_legacy_owner_guard": true,
+    "historical_state_material_resume_entrypoint": "financial_writing_agent.resume_compatibility.require_material_resume_admission",
+    "historical_state_without_kernel_marker_silently_inherits_current_quality": false,
+    "ordinary_current_quality_resume_of_historical_state": "CURRENT_SUCCESSOR_REQUIRED",
+    "explicit_historical_provenance_only_resume": "HISTORICAL_PROVENANCE_ONLY",
     "historical_receipts_are_not_rewritten": true,
     "research_forward_requires_decision_envelope": true,
     "editorial_forward_requires_required_story_blueprints": true,
@@ -117,31 +87,28 @@
     "story_blueprint_required_for_substantive_longform": true,
     "form_follows_content": true,
     "single_universal_story_template": false,
+    "research_completeness_and_publication_selectivity_are_separate": true,
     "material_explanatory_sections_require_company_or_case_anchor": true,
+    "event_led_company_analysis_engine": "EVENT_TO_COMPANY",
+    "event_to_company_causal_fields": ["TRIGGER_OR_CHANGE", "MECHANISM", "COMPANY_EXPOSURE", "OPERATING_OR_FINANCIAL_EXPRESSION", "VERIFICATION_OR_REVERSAL_CONDITION"],
     "explicit_contiguous_chinese_h1_numbering": true,
     "retention_is_full_article_property": true,
     "curiosity_requires_payoff": true,
     "writer_may_self_certify_quality": false,
-    "publication_fitness_gates": [
-      "FACT_INTEGRITY",
-      "RETENTION",
-      "COMPANY_GROUNDING",
-      "STRUCTURE_NUMBERING",
-      "ORIGINALITY",
-      "AUTHORIAL_STYLE",
-      "COMPLIANCE",
-      "PAYOFF"
-    ],
+    "publication_fitness_gates": ["FACT_INTEGRITY", "RETENTION", "COMPANY_GROUNDING", "STRUCTURE_NUMBERING", "ORIGINALITY", "AUTHORIAL_STYLE", "COMPLIANCE", "PAYOFF"],
     "audit_gate_requires_text_location_excerpt_and_finding": true,
     "major_or_critical_finding_blocks_pass": true,
     "originality_patchwriting_requires_revision": true
   },
   "finance_deep": {
     "research_material_value_chain_coverage_required": true,
-    "publication_material_value_chain_coverage_required": true,
-    "material_company_coverage_required": true,
+    "publication_material_value_chain_coverage_required": false,
+    "publication_scope_accounting_required_when_research_classes_are_omitted": true,
+    "publication_scope_dispositions": ["CORE", "SUPPORT", "OMIT_WITH_REASON"],
+    "omitted_research_class_requires_evidence_and_rationale": true,
+    "material_company_grounding_required_for_selected_sections": true,
     "default_word_count_ceiling": null,
-    "compression_rule": "REMOVE_REDUNDANCY__DO_NOT_REMOVE_MATERIAL_COVERAGE_FOR_ARBITRARY_LENGTH"
+    "compression_rule": "SELECT_THE_DECISIVE_STORY_FROM_COMPLETE_RESEARCH__REMOVE_REDUNDANCY__DO_NOT_DUMP_THE_RESEARCH_MAP"
   },
   "finance_broad": {
     "independent_acquisition_rebuild": true,
@@ -154,6 +121,7 @@
     "source_paragraphs_are_not_default_writer_context": true,
     "distinctive_language_requires_quote_attribution_or_independent_rewrite": true,
     "close_paraphrase_patchwriting_is_revision_condition": true,
+    "source_compared_originality_evidence_required_for_publication_fitness": true,
     "same_chat_zero_plagiarism_claim_allowed": false
   },
   "natural_authorial_prose": {
@@ -166,14 +134,7 @@
   },
   "multi_agent": {
     "default": "SINGLE_FINANCIAL_OWNER_WITH_FOCUSED_INTERNAL_PASSES",
-    "specialist_split_requires_material_difference_in": [
-      "TOOLS_OR_DATA_ACCESS",
-      "POLICY_OR_PERMISSIONS",
-      "CONTEXT",
-      "OUTPUT_CONTRACT",
-      "INDEPENDENCE_REQUIREMENT",
-      "MEASURED_PARALLELISM_VALUE"
-    ],
+    "specialist_split_requires_material_difference_in": ["TOOLS_OR_DATA_ACCESS", "POLICY_OR_PERMISSIONS", "CONTEXT", "OUTPUT_CONTRACT", "INDEPENDENCE_REQUIREMENT", "MEASURED_PARALLELISM_VALUE"],
     "architecture_change_requires_eval_evidence": true
   },
   "execution": {
@@ -215,6 +176,8 @@
     "historical_identifiers_are_route_selectors": false,
     "historical_evidence_may_override_current_authority": false,
     "legacy_distribution_mode_meaning_is_immutable": true,
+    "material_resume_requires_compatibility_admission": true,
+    "current_quality_successor_required_after_semantic_generation_gap": true,
     "candidate_rebuild_rewrites_completed_article_state": false
   }
 }
