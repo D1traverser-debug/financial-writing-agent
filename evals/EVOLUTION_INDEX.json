@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-10-16T10:26:00+08:00",
+  "updated_at": "2026-10-16T10:54:00+08:00",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -9,7 +9,7 @@
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
-    "status": "DOMAIN_CANDIDATE__REPAIR_IN_PROGRESS",
+    "status": "DOMAIN_CANDIDATE__CI_GREEN__REVIEW_RESOLVED__READY_FOR_CONTROLLED_MERGE",
     "branch": "evolution/cross-border-post-rebuild-quality-20261016",
     "selected_root_layers": ["DOMAIN_WORKFLOW", "DOMAIN_ARCHITECTURE"],
     "selected_repairs": [
@@ -23,7 +23,11 @@
       "NEW_NUMBERING_RULES"
     ],
     "parent_upcall": "evals/PARENT_GUIDANCE_HANDOFF_20261016_CROSS_BORDER_STALE_RESUME.md",
-    "assurance": "ROOT_SCOPE_ADMITTED__CANDIDATE_NOT_PROMOTED"
+    "candidate_final_head": "bceda4f4d8ab6243187a923e8e0c74b2d7ee9f22",
+    "candidate_ci_run": 38842709598,
+    "candidate_ci_number": 1241,
+    "review_threads_resolved": true,
+    "assurance": "REGRESSION_VERIFIED__LIVE_CURRENT_KERNEL_SUCCESSOR_OBSERVATION_OPEN"
   },
   "recent_resolved_or_promoted": [
     {
