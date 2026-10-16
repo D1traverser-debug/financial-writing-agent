@@ -12,6 +12,7 @@ from financial_writing_agent.current_admission import (
     validate_state,
 )
 from financial_writing_agent.owner_lifecycle import block_review_failure_state, resume_blocked_state
+from financial_writing_agent.private_research import REQUIRED_MODULES
 
 
 def _artifact(task_id: str, stage: str) -> dict:
@@ -88,6 +89,23 @@ def _decision() -> dict:
             "stop_reason": "two consecutive sweeps produced no decision-changing delta",
         },
         "verification_plan": ["research audit", "company decision map"],
+    }
+
+
+def _private_research_brief() -> dict:
+    return {
+        "contract_version": "1.0",
+        "as_of": "2026-10-16T15:00:00+08:00",
+        "coverage_state": "COMPLETE",
+        "modules": {
+            name: {
+                "status": "APPLICABLE",
+                "summary": f"{name} completed with evidence",
+                "evidence_refs": [f"{name}-evidence"],
+            }
+            for name in REQUIRED_MODULES
+        },
+        "unresolved_gaps": [],
     }
 
 
@@ -215,6 +233,7 @@ def _advance_to_editorial(state: dict) -> dict:
         previous_state_blob_sha="s1",
         executor_identity="test",
         decision_envelope=_decision(),
+        private_research_brief=_private_research_brief(),
         **_artifact(task_id, "RESEARCH"),
     )
     state = advance_state(
@@ -287,8 +306,10 @@ def test_current_tasks_are_marked_v1_while_legacy_builder_remains_compatible():
         executor_identity="test",
     )
     assert current["writing_kernel_version"] == "1.0"
+    assert current["private_research_contract_version"] == "1.0"
     assert current["quality_evidence"] == {}
     assert "writing_kernel_version" not in legacy
+    assert "private_research_contract_version" not in legacy
 
 
 def test_research_cannot_advance_on_naked_artifact_without_decision_evidence():
@@ -301,6 +322,40 @@ def test_research_cannot_advance_on_naked_artifact_without_decision_evidence():
             executor_identity="test",
             **_artifact(state["task_id"], "RESEARCH"),
         )
+
+
+def test_research_cannot_advance_with_decision_but_without_private_research():
+    state = _new_state("missing-private-research")
+    state = advance_state(state, previous_state_blob_sha="p0", executor_identity="test")
+    with pytest.raises(CurrentAdmissionError):
+        advance_state(
+            state,
+            previous_state_blob_sha="p1",
+            executor_identity="test",
+            decision_envelope=_decision(),
+            **_artifact(state["task_id"], "RESEARCH"),
+        )
+
+
+def test_private_research_is_persisted_and_digest_bound():
+    state = _new_state("private-research-digest")
+    state = advance_state(state, previous_state_blob_sha="p0", executor_identity="test")
+    state = advance_state(
+        state,
+        previous_state_blob_sha="p1",
+        executor_identity="test",
+        decision_envelope=_decision(),
+        private_research_brief=_private_research_brief(),
+        **_artifact(state["task_id"], "RESEARCH"),
+    )
+    assert state["current_stage"] == "RESEARCH_AUDIT"
+    assert "private_research_brief" in state["quality_evidence"]
+    validate_state(state)
+
+    tampered = deepcopy(state)
+    tampered["quality_evidence"]["private_research_brief"]["modules"]["scenario_tree"]["summary"] = "tampered"
+    with pytest.raises(CurrentAdmissionError):
+        validate_state(tampered)
 
 
 def test_owner_guard_direct_transition_cannot_bypass_current_research_admission():
@@ -413,9 +468,11 @@ def test_revision_to_research_invalidates_stale_quality_evidence():
         previous_state_blob_sha="r1",
         executor_identity="test",
         decision_envelope=_decision(),
+        private_research_brief=_private_research_brief(),
         **_artifact(task_id, "RESEARCH"),
     )
     assert "research_decision" in state["quality_evidence"]
+    assert "private_research_brief" in state["quality_evidence"]
 
     revised = advance_state(
         state,
@@ -439,10 +496,12 @@ def test_owner_lifecycle_blocked_recovery_uses_central_quality_invalidation():
         previous_state_blob_sha="l1",
         executor_identity="test",
         decision_envelope=_decision(),
+        private_research_brief=_private_research_brief(),
         **_artifact(task_id, "RESEARCH"),
     )
     assert state["current_stage"] == "RESEARCH_AUDIT"
     assert "research_decision" in state["quality_evidence"]
+    assert "private_research_brief" in state["quality_evidence"]
 
     blocked = block_review_failure_state(
         state,
