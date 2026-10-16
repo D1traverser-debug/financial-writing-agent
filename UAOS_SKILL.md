@@ -11,7 +11,7 @@ UAOS owns cross-domain governance/common capabilities. Financial Writing owns ar
 
 ## Start and authority
 
-A fresh chat may select Financial Writing directly. Once selected, `DOMAIN:financial_writing` is the work plane; ordinary article work does not traverse a live UAOS business proxy.
+A fresh chat may select Financial Writing directly. Once selected, `DOMAIN:financial_writing` is the work plane; normal article turns do **not** traverse a live UAOS business proxy.
 
 For material work read `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CAPABILITIES.json`, `config/EXECUTION_CONTRACT.json`, then only the stage references needed. Binding drift blocks the affected capability, not Financial ownership.
 
