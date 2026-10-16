@@ -5,12 +5,16 @@ from financial_writing_agent.owner_guard import (
     advance_state,
     build_initial_state as build_legacy_owner_state,
 )
+from financial_writing_agent.owner_lifecycle import block_review_failure_state, resume_blocked_state
 from financial_writing_agent.resume_compatibility import (
     ResumeCompatibilityDecision,
     ResumeCompatibilityError,
     assess_resume_compatibility,
     require_material_resume_admission,
 )
+
+
+_HISTORICAL_ONLY = ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
 
 
 def _legacy_state() -> dict:
@@ -32,7 +36,7 @@ def test_legacy_state_cannot_silently_continue_as_current_quality():
 
 def test_explicit_historical_provenance_continuation_is_bounded_not_current_quality():
     result = require_material_resume_admission(
-        _legacy_state(), intent=ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
+        _legacy_state(), intent=_HISTORICAL_ONLY
     )
     assert result["decision"] == ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
 
@@ -73,9 +77,66 @@ def test_direct_owner_advance_cannot_bypass_post_evolution_resume_admission():
         state,
         previous_state_blob_sha="a" * 40,
         executor_identity="test:historical",
-        resume_intent=ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value,
+        resume_intent=_HISTORICAL_ONLY,
     )
     assert historical["current_stage"] == "RESEARCH"
     receipt = historical["execution_receipts"][-1]
-    assert receipt["input_bindings"]["historical_resume_decision"] == ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
+    assert receipt["input_bindings"]["historical_resume_decision"] == _HISTORICAL_ONLY
+    assert receipt["input_bindings"]["historical_resume_reason"]
+
+
+def _blocked_legacy_review_state():
+    state = build_legacy_owner_state(
+        task_id="legacy-blocked-bypass",
+        prompt="legacy blocked article",
+        source_refs=[],
+        executor_identity="test:legacy-init",
+    )
+    state = advance_state(
+        state,
+        previous_state_blob_sha="b0",
+        executor_identity="test:historical",
+        resume_intent=_HISTORICAL_ONLY,
+    )
+    state = advance_state(
+        state,
+        previous_state_blob_sha="b1",
+        executor_identity="test:historical",
+        artifact_key="RESEARCH",
+        artifact_path="workspaces/articles/legacy-blocked-bypass/stages/RESEARCH.json",
+        artifact_blob_sha="research-blob",
+        resume_intent=_HISTORICAL_ONLY,
+    )
+    return block_review_failure_state(
+        state,
+        previous_state_blob_sha="b2",
+        executor_identity="test:historical",
+        artifact_key="RESEARCH_AUDIT",
+        artifact_path="workspaces/articles/legacy-blocked-bypass/reviews/RESEARCH_AUDIT.json",
+        artifact_blob_sha="audit-fail",
+        revision_target="RESEARCH",
+        resume_intent=_HISTORICAL_ONLY,
+    )
+
+
+def test_direct_blocked_resume_cannot_bypass_post_evolution_resume_admission():
+    blocked = _blocked_legacy_review_state()
+    with pytest.raises(GithubChatGuardError, match="current-kernel successor"):
+        resume_blocked_state(
+            blocked,
+            previous_state_blob_sha="b3",
+            executor_identity="test:bypass",
+            repair_evidence=["repair://evidence"],
+        )
+
+    resumed = resume_blocked_state(
+        blocked,
+        previous_state_blob_sha="b3",
+        executor_identity="test:historical",
+        repair_evidence=["repair://evidence"],
+        resume_intent=_HISTORICAL_ONLY,
+    )
+    assert resumed["current_stage"] == "RESEARCH"
+    receipt = resumed["execution_receipts"][-1]
+    assert receipt["input_bindings"]["historical_resume_decision"] == _HISTORICAL_ONLY
     assert receipt["input_bindings"]["historical_resume_reason"]
