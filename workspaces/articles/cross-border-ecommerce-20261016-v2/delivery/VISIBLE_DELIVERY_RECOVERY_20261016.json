@@ -1,0 +1,29 @@
+{
+  "schema_version": "1.0",
+  "task_id": "cross-border-ecommerce-20261016-v2",
+  "evidence_role": "CHAT_VISIBLE_DELIVERY_RECOVERY_ONLY__NOT_OWNER_STATE",
+  "observed_after_connection_recovery": "2026-10-16",
+  "owner_state_observed_stage": "EDITORIAL_AUDIT",
+  "semantic_review_evidence": {
+    "publication_fitness_ref": "workspaces/articles/cross-border-ecommerce-20261016-v2/reviews/PUBLICATION_FITNESS.json@c053b815392cd2ced780a0f650002bc79d8d8f1e",
+    "editorial_audit_ref": "workspaces/articles/cross-border-ecommerce-20261016-v2/reviews/EDITORIAL_AUDIT.md@f4c35ac42a29ce60540342797ecc4e9903938352",
+    "assurance": "CHAT_SELF_REVIEW",
+    "rev1_originality_disposition": "REVISE_TO_DRAFT",
+    "rev2_final_status": "PASS"
+  },
+  "current_chat_artifacts": [
+    {"kind":"FINANCE_DEEP_DOCX","file_name":"cross_border_ecommerce_v2_FINANCE_DEEP.docx","sha256":"f9a454da379969ee94cba1a3f312bbc9179b08cbf553449aac446fb39a65b0fa","rendered_pages":6,"visual_inspection":"PASS"},
+    {"kind":"FINANCE_BROAD_DOCX","file_name":"cross_border_ecommerce_v2_FINANCE_BROAD.docx","sha256":"33da4660aa16b5d4e5e7dede974a4cb3401ce1aab176c31fbee37681123880dc","rendered_pages":2,"visual_inspection":"PASS"},
+    {"kind":"PLATFORM_INTERACTION_PACK_DOCX","file_name":"cross_border_ecommerce_v2_PLATFORM_INTERACTION_PACK.docx","sha256":"7f40201a9c8685f4596a45508d6921377230d3e1d15a545240947a2ccfadd2e8","rendered_pages":2,"visual_inspection":"PASS"},
+    {"kind":"AUDIT_DOCX","file_name":"WRITING_AUDIT_REPORT_v2.docx","sha256":"db58d9c1eb976dedaec9e29f959d33070620283803475617aff267e656571ae5","rendered_pages":3,"visual_inspection":"PASS"}
+  ],
+  "mechanical_checks": [
+    "zero publication tables",
+    "zero underlined runs",
+    "A-share company names bold at every exact occurrence",
+    "one final fully italic risk paragraph per Word payload",
+    "Noto Sans CJK SC render without missing glyphs",
+    "all rendered pages inspected after final layout revision"
+  ],
+  "authority_boundary": "This receipt proves current-chat binary identity and QA only. It does not replace or mutate STATE.json. The interrupted owner transition from EDITORIAL_AUDIT to DELIVERY remains a separate owner-state transaction and must not be claimed complete from this file."
+}
