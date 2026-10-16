@@ -39,7 +39,7 @@ Internal work remains:
 
 These are focused passes, not independent controllers. Same-model passes are structured challenge evidence, not independent certification.
 
-## 4. Hosted cognition and problem-action architecture
+## 4. Hosted cognition architecture
 
 UAOS-hosted cognition supplies the problem-response method; Financial keeps business adjudication local.
 
@@ -122,7 +122,7 @@ Financial retains topic/domain knowledge and method/failure-pattern knowledge wi
 Use flow: `recall -> revalidate -> use as evidence/candidate -> observe -> write back`.
 Promotion flow: `evidence -> DecisionEnvelope/root scope -> candidate -> regression/eval -> owner promotion -> production observation`.
 
-## 10. Governed evolution and parent upcall
+## 10. Governed evolution architecture
 
 Financial-owned evolution follows:
 `problem/feedback -> causal diagnosis -> alternatives/counterexamples -> root-scope admission -> evolution disposition -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
