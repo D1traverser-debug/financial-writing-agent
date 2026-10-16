@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from . import owner_guard
 from .cognition_governance import DecisionEnvelope, OperationClass, admission_errors
+from .private_research import PRIVATE_RESEARCH_CONTRACT_VERSION, validate_private_research_brief
 from .story_quality import AuditStatus, ProductMode, PublicationFitness, StoryBlueprint
 
 WRITING_KERNEL_VERSION = "1.0"
@@ -25,6 +26,17 @@ def _require(condition: bool, message: str) -> None:
 def _canonical_digest(value: Any) -> str:
     payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return hashlib.sha256(payload).hexdigest()
+
+
+def _private_research_required(state: Mapping[str, Any]) -> bool:
+    return state.get("private_research_contract_version") == PRIVATE_RESEARCH_CONTRACT_VERSION
+
+
+def _parse_private_research(raw: Mapping[str, Any] | None) -> dict[str, Any]:
+    try:
+        return validate_private_research_brief(raw)
+    except ValueError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
 
 
 def _expected_longform_modes(state: Mapping[str, Any]) -> set[ProductMode]:
@@ -118,6 +130,17 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
             evidence_value=raw_decision,
         )
 
+        raw_private = quality.get("private_research_brief")
+        if _private_research_required(state) or raw_private is not None:
+            admitted_private = _parse_private_research(raw_private if isinstance(raw_private, Mapping) else None)
+            _require_persisted_digest(
+                state,
+                evidence_key="private_research_brief",
+                binding_key="private_research_brief_sha256",
+                admitting_stage="RESEARCH",
+                evidence_value=admitted_private,
+            )
+
     if current_index >= owner_guard.STAGE_INDEX["TITLE"]:
         raw_blueprints = quality.get("story_blueprints")
         blueprints_input = raw_blueprints if isinstance(raw_blueprints, list) else None
@@ -147,9 +170,11 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     """Create a current Financial task while delegating business identity/state semantics to owner_guard."""
     state = owner_guard.build_initial_state(**kwargs)
     state["writing_kernel_version"] = WRITING_KERNEL_VERSION
+    state["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
     state["quality_evidence"] = {}
     receipt = state["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
+    receipt["input_bindings"]["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     validate_state(state)
     return state
@@ -160,6 +185,11 @@ def validate_state(state: Mapping[str, Any]) -> None:
     # to avoid the owner's public 1.0 dispatch recursively calling back into this module.
     owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
+    private_version = state.get("private_research_contract_version")
+    _require(
+        private_version in {None, PRIVATE_RESEARCH_CONTRACT_VERSION},
+        f"unsupported private_research_contract_version: {private_version}",
+    )
     _validate_persisted_quality_evidence(state)
 
 
@@ -182,6 +212,7 @@ def advance_state(
     state: Mapping[str, Any],
     *,
     decision_envelope: Mapping[str, Any] | None = None,
+    private_research_brief: Mapping[str, Any] | None = None,
     story_blueprints: list[Mapping[str, Any]] | None = None,
     publication_fitnesses: list[Mapping[str, Any]] | None = None,
     **kwargs: Any,
@@ -189,7 +220,8 @@ def advance_state(
     """Current admission wrapper around the one canonical owner state machine.
 
     Historical states continue to use owner_guard directly. New 1.0 tasks use this entrypoint so
-    research/thesis, story design and publication quality cannot be advanced by a naked PASS label.
+    research/thesis, private research, story design and publication quality cannot be advanced by
+    a naked PASS label or an unbound side artifact.
     """
     validate_state(state)
     working = deepcopy(dict(state))
@@ -202,6 +234,11 @@ def advance_state(
         dumped = envelope.model_dump(mode="json")
         quality["research_decision"] = dumped
         evidence_bindings["decision_envelope_sha256"] = _canonical_digest(dumped)
+
+        if _private_research_required(state) or private_research_brief is not None:
+            private_dumped = _parse_private_research(private_research_brief)
+            quality["private_research_brief"] = private_dumped
+            evidence_bindings["private_research_brief_sha256"] = _canonical_digest(private_dumped)
 
     if stage == "EDITORIAL":
         blueprints = _parse_story_blueprints(state, story_blueprints)
@@ -240,6 +277,8 @@ def advance_state(
 
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
+    if _private_research_required(after):
+        receipt["input_bindings"]["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     receipt["input_bindings"].update(evidence_bindings)
     validate_state(after)
@@ -253,6 +292,8 @@ def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[st
     after = owner_guard.attach_material_feedback(state, **kwargs)
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
+    if _private_research_required(after):
+        receipt["input_bindings"]["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     validate_state(after)
     return after
