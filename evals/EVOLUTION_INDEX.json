@@ -1,9 +1,30 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-10-16T08:47:55+08:00",
-  "current_problem_refs": [],
-  "current_candidate": null,
+  "updated_at": "2026-10-16T10:26:00+08:00",
+  "current_problem_refs": [
+    "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
+    "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
+    "evals/FINANCIAL_CROSS_BORDER_POST_REBUILD_REJECTION_20261016.md"
+  ],
+  "current_candidate": {
+    "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
+    "status": "DOMAIN_CANDIDATE__REPAIR_IN_PROGRESS",
+    "branch": "evolution/cross-border-post-rebuild-quality-20261016",
+    "selected_root_layers": ["DOMAIN_WORKFLOW", "DOMAIN_ARCHITECTURE"],
+    "selected_repairs": [
+      "POST_EVOLUTION_HISTORICAL_RESUME_COMPATIBILITY_ADMISSION",
+      "RESEARCH_COMPLETE_PUBLICATION_SELECTIVE_SCOPE_DECISIONS",
+      "EVENT_TO_COMPANY_CAUSAL_TRANSMISSION_CONTRACT"
+    ],
+    "deferred_until_live_current_kernel_replay": [
+      "FURTHER_HOOK_RULE_EVOLUTION",
+      "FURTHER_AUTHORIAL_STYLE_OR_ANTI_AI_RULE_EVOLUTION",
+      "NEW_NUMBERING_RULES"
+    ],
+    "parent_upcall": "evals/PARENT_GUIDANCE_HANDOFF_20261016_CROSS_BORDER_STALE_RESUME.md",
+    "assurance": "ROOT_SCOPE_ADMITTED__CANDIDATE_NOT_PROMOTED"
+  },
   "recent_resolved_or_promoted": [
     {
       "id": "FIN-CB13-CONSOLIDATED-20261016",
@@ -11,21 +32,9 @@
       "goal": "Adopt UAOS Common Behavior Assurance 1.3 through Financial's existing cognition system while mechanically preventing action before evidence-grounded root scope and evolution disposition.",
       "selected_architecture": "SINGLE_DECISION_ENVELOPE_CAUSAL_MODEL_PLUS_THIN_ACTION_GATE",
       "competing_candidates": [
-        {
-          "ref": "PR#38",
-          "disposition": "BASE_SELECTED_AND_ABSORBED_INTO_PR40",
-          "reason": "Root-scope hypotheses live inside the existing DecisionEnvelope, preserving one cognition model."
-        },
-        {
-          "ref": "PR#39",
-          "disposition": "SUPERSEDED_AFTER_PARTIAL_ABSORPTION",
-          "reason": "Its action-closure requirement was retained, but its duplicate ProblemLayer/RootScopeHypothesis model was rejected to avoid a second causal authority."
-        },
-        {
-          "ref": "PR#40",
-          "disposition": "SELECTED_PROMOTION_PATH",
-          "reason": "Consolidates the single DecisionEnvelope/RootScopeReceipt model with a thin evidence-grounded action gate."
-        }
+        {"ref": "PR#38", "disposition": "BASE_SELECTED_AND_ABSORBED_INTO_PR40", "reason": "Root-scope hypotheses live inside the existing DecisionEnvelope, preserving one cognition model."},
+        {"ref": "PR#39", "disposition": "SUPERSEDED_AFTER_PARTIAL_ABSORPTION", "reason": "Its action-closure requirement was retained, but its duplicate ProblemLayer/RootScopeHypothesis model was rejected to avoid a second causal authority."},
+        {"ref": "PR#40", "disposition": "SELECTED_PROMOTION_PATH", "reason": "Consolidates the single DecisionEnvelope/RootScopeReceipt model with a thin evidence-grounded action gate."}
       ],
       "required_evidence": [
         "root hypotheses compare causal layers before repair",
@@ -35,12 +44,7 @@
         "owner-authorized repair cannot terminate as recommendation-only",
         "systemic/evolution-relevant closure has durable causal evidence"
       ],
-      "acceptance_refs": [
-        "tests/test_cognition_governance_v1.py",
-        "tests/test_problem_action_admission_v1.py",
-        "scripts/eval_contracts.py",
-        "scripts/static_audit.py"
-      ],
+      "acceptance_refs": ["tests/test_cognition_governance_v1.py", "tests/test_problem_action_admission_v1.py", "scripts/eval_contracts.py", "scripts/static_audit.py"],
       "pull_request": 40,
       "candidate_final_head": "5522029a4c77d2bb57a6c064795fdb7c81f78263",
       "candidate_ci_run": 38831226757,
@@ -54,7 +58,7 @@
   ],
   "historical_notes": [
     "PR#38 and PR#39 were parallel candidates from the same production baseline; PR#40 is the explicit consolidated promotion path.",
-    "Business runtime release 1.0.1 and Financial article identity/state semantics are unchanged.",
+    "Business runtime release 1.0.1 and Financial article identity/state semantics remain current until the new candidate is promoted.",
     "Live article behavior/quality remains an observation scope and is not claimed by CI evidence."
   ]
 }
