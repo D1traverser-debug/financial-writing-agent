@@ -64,7 +64,7 @@ New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`,
 
 ## Parent cognition binding and domain problem closure
 
-Parent cognition stages and evidence/search depth are owned only by current UAOS `config/DELIBERATION_POLICY.json`. This Skill does not define a second parent problem-response floor; `.uaos/CAPABILITIES.json` declares `CURRENT_UAOS_DELIBERATION_POLICY` with no local cognition override. Financial owns only its domain-native evidence, root-scope, evolution and action-admission mechanisms below.
+Parent cognition/search depth is owned only by current UAOS `config/DELIBERATION_POLICY.json`; this Skill defines no parent cognition floor. `.uaos/CAPABILITIES.json` binds it with no local override. Financial owns only domain-native evidence/root-scope/evolution/action gates.
 
 Do not turn user rejection directly into universal rules. Persist it as evidence, compare local/workflow/architecture/common-capability hypotheses at the depth required by the current parent policy, admit root scope, then choose `LOCAL_REPAIR`, `DOMAIN_CANDIDATE`, `PARENT_UPCALL`, or evidence-backed `NO_CHANGE`. If an owner-authorized repair is available without a required user fact/approval/safety choice, attempt it before finalizing.
 
