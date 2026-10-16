@@ -13,9 +13,20 @@ from .private_research import (
     validate_private_research_brief,
 )
 from .story_quality import AuditStatus, ProductMode, PublicationFitness, StoryBlueprint
+from .task_requirements import (
+    REQUIREMENT_AUTHORITY_PATH,
+    REQUIREMENT_CONTRACT_VERSION,
+    RequirementError,
+    active_requirements_for_scope,
+    apply_requirement_changes,
+    authority_digest,
+    empty_requirement_authority,
+    validate_requirement_authority,
+)
 
 WRITING_KERNEL_VERSION = "1.0"
 QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
+REQUIREMENT_CAPABILITY_ID = "github_chat_requirement_governance"
 
 
 class CurrentAdmissionError(ValueError):
@@ -34,6 +45,10 @@ def _canonical_digest(value: Any) -> str:
 
 def _private_research_required(state: Mapping[str, Any]) -> bool:
     return state.get("private_research_contract_version") in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS
+
+
+def _requirement_authority_enabled(state: Mapping[str, Any]) -> bool:
+    return state.get("task_requirement_contract_version") == REQUIREMENT_CONTRACT_VERSION
 
 
 def _parse_private_research(
@@ -121,6 +136,39 @@ def _require_persisted_digest(
     _require(actual == expected, f"persisted {evidence_key} no longer matches its latest admitted receipt digest")
 
 
+def _bind_requirement_receipt(state: dict[str, Any]) -> None:
+    if not _requirement_authority_enabled(state):
+        return
+    authority = validate_requirement_authority(state.get("task_requirement_authority"))
+    digest = authority_digest(authority)
+    state["task_requirement_digest"] = digest
+    receipt = state["execution_receipts"][-1]
+    bindings = receipt.setdefault("input_bindings", {})
+    bindings["task_requirement_contract_version"] = REQUIREMENT_CONTRACT_VERSION
+    bindings["task_requirement_revision"] = authority["revision"]
+    bindings["task_requirement_digest"] = digest
+    bindings["task_requirement_authority_path"] = REQUIREMENT_AUTHORITY_PATH
+
+
+def _validate_requirement_binding(state: Mapping[str, Any]) -> None:
+    if not _requirement_authority_enabled(state):
+        return
+    try:
+        authority = validate_requirement_authority(state.get("task_requirement_authority"))
+        digest = authority_digest(authority)
+    except RequirementError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
+    _require(state.get("task_requirement_digest") == digest, "task requirement authority digest mismatch")
+    receipts = state.get("execution_receipts", [])
+    _require(isinstance(receipts, list) and receipts, "task requirement authority requires execution receipts")
+    latest = receipts[-1]
+    bindings = latest.get("input_bindings", {}) if isinstance(latest, Mapping) else {}
+    _require(bindings.get("task_requirement_contract_version") == REQUIREMENT_CONTRACT_VERSION, "latest state mutation did not bind task requirement contract")
+    _require(bindings.get("task_requirement_authority_path") == REQUIREMENT_AUTHORITY_PATH, "latest state mutation used a non-canonical task requirement authority")
+    _require(bindings.get("task_requirement_revision") == authority["revision"], "latest state mutation task requirement revision mismatch")
+    _require(bindings.get("task_requirement_digest") == digest, "latest state mutation task requirement digest mismatch")
+
+
 def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
     quality = state.get("quality_evidence", {})
     _require(isinstance(quality, Mapping), "current Financial state requires quality_evidence mapping")
@@ -184,17 +232,21 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     state["writing_kernel_version"] = WRITING_KERNEL_VERSION
     state["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
     state["quality_evidence"] = {}
+    state["task_requirement_contract_version"] = REQUIREMENT_CONTRACT_VERSION
+    state["task_requirement_authority"] = empty_requirement_authority()
+    state["task_requirement_digest"] = authority_digest(state["task_requirement_authority"])
     receipt = state["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
     receipt["input_bindings"]["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
+    _bind_requirement_receipt(state)
     validate_state(state)
     return state
 
 
 def validate_state(state: Mapping[str, Any]) -> None:
-    # The current layer owns quality parsing. Use the base owner-state validator here
-    # to avoid the owner's public 1.0 dispatch recursively calling back into this module.
+    # The current layer owns quality and task-requirement parsing. Use the base
+    # owner-state validator here to avoid recursive public dispatch.
     owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
     private_version = state.get("private_research_contract_version")
@@ -203,13 +255,28 @@ def validate_state(state: Mapping[str, Any]) -> None:
         f"unsupported private_research_contract_version: {private_version}",
     )
     _validate_persisted_quality_evidence(state)
+    _validate_requirement_binding(state)
+
+
+def requirement_context_for_scope(state: Mapping[str, Any], scope: str) -> dict[str, Any]:
+    """Return the exact active task requirements a stage/product must consume."""
+    validate_state(state)
+    if not _requirement_authority_enabled(state):
+        return {"contract_version": None, "revision": None, "digest": None, "requirements": []}
+    authority = validate_requirement_authority(state.get("task_requirement_authority"))
+    return {
+        "contract_version": REQUIREMENT_CONTRACT_VERSION,
+        "revision": authority["revision"],
+        "digest": state["task_requirement_digest"],
+        "requirements": active_requirements_for_scope(authority, scope),
+    }
 
 
 def _planned_quality_invalidations(state: Mapping[str, Any], revision_target: str | None) -> list[str]:
     quality = state.get("quality_evidence", {})
     if not isinstance(quality, Mapping):
         return []
-    if revision_target == "RESEARCH":
+    if revision_target in {"INTAKE", "RESEARCH"}:
         keys = tuple(quality.keys())
     elif revision_target == "EDITORIAL":
         keys = ("story_blueprints", "publication_fitnesses")
@@ -218,6 +285,94 @@ def _planned_quality_invalidations(state: Mapping[str, Any], revision_target: st
     else:
         keys = ()
     return sorted(key for key in keys if key in quality)
+
+
+def apply_task_requirement_change(
+    state: Mapping[str, Any],
+    *,
+    previous_state_blob_sha: str,
+    executor_identity: str,
+    evidence_ref: str,
+    upserts: list[Mapping[str, Any]] | None = None,
+    retire_ids: list[str] | None = None,
+) -> dict[str, Any]:
+    """Persist task-scoped requirement changes and invalidate only affected downstream work.
+
+    This transaction fixes the gap where task requirements lived only in chat/feedback
+    side files. It does not promote article-specific requirements into domain/global rules.
+    """
+    validate_state(state)
+    _require(bool(str(previous_state_blob_sha).strip()), "previous_state_blob_sha is required")
+    _require(bool(str(executor_identity).strip()), "executor_identity is required")
+    working = deepcopy(dict(state))
+    if not _requirement_authority_enabled(working):
+        working["task_requirement_contract_version"] = REQUIREMENT_CONTRACT_VERSION
+        working["task_requirement_authority"] = empty_requirement_authority()
+        working["task_requirement_digest"] = authority_digest(working["task_requirement_authority"])
+
+    try:
+        authority, changed_stages = apply_requirement_changes(
+            working["task_requirement_authority"],
+            upserts=upserts,
+            retire_ids=retire_ids,
+            evidence_ref=evidence_ref,
+        )
+    except RequirementError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
+
+    before_stage = str(working["current_stage"])
+    earliest_stage = min(changed_stages, key=lambda item: owner_guard.STAGE_INDEX[item])
+    working["task_requirement_authority"] = authority
+    working["task_requirement_digest"] = authority_digest(authority)
+
+    invalidated: list[str] = []
+    if owner_guard.STAGE_INDEX[before_stage] >= owner_guard.STAGE_INDEX[earliest_stage]:
+        invalidated = owner_guard._invalidate_from(working, earliest_stage)
+        if earliest_stage == "INTAKE":
+            quality = working.get("quality_evidence")
+            if isinstance(quality, dict):
+                quality.clear()
+        working["status"] = "IN_PROGRESS"
+        working["current_stage"] = earliest_stage
+        working["next_action"] = f"re-execute {earliest_stage} under task requirement revision {authority['revision']}"
+
+    changed_ids = sorted(
+        {
+            *[str(item.get("requirement_id", "")) for item in (upserts or []) if str(item.get("requirement_id", ""))],
+            *[str(item) for item in (retire_ids or []) if str(item)],
+        }
+    )
+    receipt = owner_guard._new_receipt(
+        task_id=str(working["task_id"]),
+        stage=before_stage,
+        capability_id=REQUIREMENT_CAPABILITY_ID,
+        executor_identity=executor_identity,
+        previous_state_blob_sha=previous_state_blob_sha,
+        action_kind="REQUIREMENT_CHANGE",
+        subject_bindings={
+            "task_id": working["task_id"],
+            "from_stage": before_stage,
+            "to_stage": working["current_stage"],
+            "requirement_revision": authority["revision"],
+        },
+        input_bindings={
+            "evidence_ref": evidence_ref,
+            "changed_requirement_ids": changed_ids,
+            "affected_from_stage": earliest_stage,
+            "invalidated_stage_refs": invalidated,
+            "task_requirement_contract_version": REQUIREMENT_CONTRACT_VERSION,
+            "task_requirement_revision": authority["revision"],
+            "task_requirement_digest": working["task_requirement_digest"],
+            "task_requirement_authority_path": REQUIREMENT_AUTHORITY_PATH,
+            "writing_kernel_version": WRITING_KERNEL_VERSION,
+            "quality_admission_path": QUALITY_ADMISSION_PATH,
+        },
+        output_refs=[f"workspaces/articles/{working['task_id']}/STATE.json"],
+    )
+    working["execution_receipts"] = list(state["execution_receipts"]) + [receipt]
+    working["updated_at"] = owner_guard._utc_now()
+    validate_state(working)
+    return working
 
 
 def advance_state(
@@ -232,14 +387,14 @@ def advance_state(
     """Current admission wrapper around the one canonical owner state machine.
 
     Historical states continue to use owner_guard directly. New current tasks use this entrypoint so
-    research/thesis, private research, story design and publication quality cannot be advanced by
-    a naked PASS label or an unbound side artifact.
+    research/thesis, private research, story design, publication quality and active task requirements
+    cannot be advanced by a naked PASS label or an unbound side artifact.
     """
     validate_state(state)
     working = deepcopy(dict(state))
     stage = str(state["current_stage"])
     quality = working.setdefault("quality_evidence", {})
-    evidence_bindings: dict[str, str] = {}
+    evidence_bindings: dict[str, Any] = {}
 
     if stage == "RESEARCH":
         envelope = _parse_decision_envelope(decision_envelope)
@@ -278,7 +433,7 @@ def advance_state(
 
     # The owner guard enforces current quality for every public lower-level path. During
     # this one internal sequencing window, the new receipt does not yet carry its quality
-    # digest, so defer only that owner-level callback. Full current validation runs below.
+    # or requirement digest, so defer only that owner-level callback. Full validation runs below.
     after = owner_guard.advance_state(
         working,
         _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
@@ -297,14 +452,15 @@ def advance_state(
         receipt["input_bindings"]["private_research_contract_version"] = str(private_version)
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     receipt["input_bindings"].update(evidence_bindings)
+    _bind_requirement_receipt(after)
     validate_state(after)
     return after
 
 
 def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
     validate_state(state)
-    # Feedback does not alter quality objects, so the owner guard can and should perform
-    # its normal full validation on both sides of this mutation.
+    # Feedback does not alter quality objects or active task requirements. Requirement
+    # changes use apply_task_requirement_change instead of being stored only as feedback.
     after = owner_guard.attach_material_feedback(state, **kwargs)
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
@@ -312,5 +468,6 @@ def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[st
     if private_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
         receipt["input_bindings"]["private_research_contract_version"] = str(private_version)
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
+    _bind_requirement_receipt(after)
     validate_state(after)
     return after
