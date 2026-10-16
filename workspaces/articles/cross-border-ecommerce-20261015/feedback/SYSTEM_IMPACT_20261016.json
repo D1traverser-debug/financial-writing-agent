@@ -1,0 +1,42 @@
+{
+  "schema_version": "1.0",
+  "signal_id": "impact-cross-border-post-rebuild-stale-resume-20261016",
+  "status": "OPEN",
+  "trigger_sample_type": "USER_REJECTION",
+  "sample_ref": "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md@2f0fbc6aaa6ee08e023c39f9a33758373fdaad9d",
+  "observed_at": "2026-10-16T02:18:50.876150+00:00",
+  "problem_statement": "A historical pre-current-kernel cross-border article that was itself used as a negative rebuild case was resumed at DELIVERY and terminalized after the Financial Writing 1.0.1 rebuild without current-kernel semantic re-adjudication. Live user rejection also exposes a likely publication-scope conflict in FINANCE_DEEP and a missing event-to-company causal transmission contract.",
+  "root_scope_status": "DELIBERATION_ACTIVE",
+  "competing_hypotheses": [
+    {
+      "layer": "LOCAL_IMPLEMENTATION",
+      "hypothesis": "The failure is only a weak historical draft and needs article-level rewrite, with no system change.",
+      "status": "WEAKENED",
+      "evidence": "The delivered state lacks writing_kernel_version=1.0/current quality_evidence and bypassed current semantic admission; the old cross-border article is explicitly a negative rebuild replay case."
+    },
+    {
+      "layer": "DOMAIN_WORKFLOW",
+      "hypothesis": "Historical continuation lacks a current-quality compatibility gate after a material writing-architecture upgrade, allowing a known negative pre-kernel state to reach delivery under legacy semantics.",
+      "status": "SUPPORTED"
+    },
+    {
+      "layer": "DOMAIN_ARCHITECTURE",
+      "hypothesis": "FINANCE_DEEP conflates research completeness with publication completeness, and company grounding is too weakly specified to require event-to-company causal transmission.",
+      "status": "SUPPORTED"
+    },
+    {
+      "layer": "COMMON_CAPABILITY",
+      "hypothesis": "UAOS cross-chat continuity should define a generic post-evolution compatibility admission before resuming stale child business states.",
+      "status": "PARENT_UPCALL_CANDIDATE",
+      "note": "Domain owns immediate repair; parent should adjudicate whether the general rule belongs in common continuity governance."
+    }
+  ],
+  "external_method_evidence": [
+    "Reynolds Center business-story guidance: change/cause/context/future and why the news matters should be explicit near the top.",
+    "Nieman structure guidance: extensive reporting should be reduced to a cohesive frame; only a fraction of gathered material belongs in the final story, and a simple frame helps carry complexity.",
+    "Patchwriting research: source-dependent surface rewriting is not a valid originality standard; independent reconstruction from understood claims is required."
+  ],
+  "evolution_disposition": "DOMAIN_CANDIDATE_PLUS_PARENT_UPCALL_CANDIDATE",
+  "repair_policy": "Do not rewrite historical receipts. Preserve the rejected delivery as negative evidence; create a current-kernel successor/replay and repair the domain workflow/architecture on an isolated candidate before promotion.",
+  "parent_upcall_status": "OPEN_NON_AUTHORITATIVE_CONTROL_SIGNAL"
+}
