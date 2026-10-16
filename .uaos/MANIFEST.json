@@ -1,5 +1,5 @@
 {
-  "schema_version": "2.6",
+  "schema_version": "2.7",
   "agent_id": "financial_writing",
   "domain_id": "financial_writing",
   "controller": "D1traverser-debug/universal-agent-os@main",
@@ -26,6 +26,8 @@
     "writing_kernel": "financial_writing_agent/writing_kernel.py",
     "cognition_contract": "financial_writing_agent/cognition_governance.py:DecisionEnvelope",
     "root_scope_receipt": "financial_writing_agent/cognition_governance.py:RootScopeReceipt",
+    "problem_action_admission": "financial_writing_agent/problem_action_admission.py:finalize_problem_action",
+    "canonical_evolution_evidence": "evals/EVOLUTION_INDEX.json",
     "publication_quality_contract": "financial_writing_agent/story_quality.py:StoryBlueprint+PublicationFitness",
     "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
     "proactive_resolution_guard": "financial_writing_agent/proactive_resolution.py",
