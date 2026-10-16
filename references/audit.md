@@ -15,6 +15,28 @@ Same-session Writer/Reader/Editor/Style or other role passes remain `CHAT_SELF_R
 
 Deterministic checks prove only their specific invariants. They do not prove semantic quality.
 
+## Research Audit — PrivateResearchBrief admission
+
+For new tasks marked with `private_research_contract_version=1.0`, RESEARCH_AUDIT must treat the admitted `quality_evidence.private_research_brief` as mandatory research evidence, not as an optional attachment.
+
+Research Audit must REVISE to RESEARCH when any material condition below is true:
+- the private brief is absent, structurally invalid or not digest-bound to the RESEARCH receipt;
+- a required module is missing;
+- a material module is marked `NOT_MATERIAL` merely to avoid doing the work;
+- the company/value-chain universe silently omits a known material branch or weak-tag/excluded names are unaccounted for;
+- company comparison stops at concept-stock enumeration rather than explaining `why A rather than B`;
+- material short-horizon candidates lack current total/float market cap and liquidity when market selection is part of the task;
+- catalyst strength/freshness is not distinguished from old news or expectation already priced;
+- short-horizon role labels such as pioneer, leader, middle-army, branch leader, card-position or catch-up are asserted without observable role logic;
+- `business strongest` is collapsed into `most likely short-horizon market core` without separate evidence;
+- negative/falsification candidates are erased rather than retained;
+- a broad scenario ladder is invented for a narrow catalyst without causal support;
+- next-window confirmation/falsification conditions are absent where market behavior is material;
+- time-sensitive fields are stale relative to the decision being made;
+- publication distillation fails to separate private analytical machinery from the reader-facing article.
+
+The audit is semantic as well as structural. A syntactically complete brief with placeholder summaries or token evidence refs is not a substantive PASS.
+
 ## Current Publication Fitness contract
 
 For each required long-form publication product, current 1.0 audit uses `financial_writing_agent.story_quality.PublicationFitness` with exactly these gates:
@@ -55,6 +77,8 @@ Do not pass merely because the opening contains a hook-shaped sentence.
 
 Check that material economic mechanisms are demonstrated with named companies/cases when evidence exists. Reject long detached industry exposition followed by a company list. For multi-company work, require meaningful distinctions rather than concept-stock enumeration.
 
+For marker-enabled tasks, compare the publication against the private brief's `publication_distillation`: the article may omit private machinery, but it must not contradict or silently discard a material causal distinction that the admitted research says is necessary to the reader payoff.
+
 ### STRUCTURE_NUMBERING
 
 Check explicit contiguous Chinese H1 numbering and story progression. Mechanical sequence is necessary but insufficient: headings must also be information-bearing and each section must add a distinct reader job/payoff.
@@ -72,6 +96,8 @@ Review suspicious/distinctive wording and source-shaped structure against materi
 
 Look for generic model scaffolding, throat-clearing, abstract claims without concrete evidence, repetitive section rhythm, over-explanation, register drift and prose that visibly narrates its own checklist. Diagnostic phrase hits are evidence to inspect, not automatic authorship judgments.
 
+Private research vocabulary such as universe bookkeeping, internal scores, ladder mechanics or audit process should not leak into the article merely because it existed upstream. It belongs in copy only when it materially improves reader understanding.
+
 ### COMPLIANCE
 
 Check finance non-actionability, uncertainty, source/privacy boundary and other publication redlines. Buy/sell, timing, target price, position sizing and covert equivalents remain prohibited.
@@ -85,6 +111,7 @@ Check whether the article actually answers the promise it makes. Title/opening q
 Use code checks for properties that can be encoded safely, including:
 - H1 sequence continuity;
 - required material-company coverage where machine-readable;
+- PrivateResearchBrief contract presence/digest binding on marker-enabled tasks;
 - Deep value-chain blueprint coverage;
 - source-provenance leakage phrases;
 - clustered generic scaffolding as a semantic-review trigger;
@@ -93,12 +120,12 @@ Use code checks for properties that can be encoded safely, including:
 - artifact/output completeness;
 - state/receipt identity and transition integrity.
 
-Do not turn semantic properties such as “interesting”, “human”, “good hook” or “original” into fake numeric guarantees.
+Do not turn semantic properties such as “interesting”, “human”, “good hook”, “true leader” or “original” into fake numeric guarantees.
 
 ## Revision routing
 
 Use the narrowest causal upstream target:
-- evidence/value-chain/thesis defect -> `RESEARCH`;
+- evidence/value-chain/private-research/thesis defect -> `RESEARCH`;
 - StoryBlueprint/company progression defect -> `EDITORIAL`;
 - title promise defect -> `TITLE`;
 - prose/retention/originality/style defect -> `DRAFT`;
@@ -108,7 +135,11 @@ When an upstream input changes materially, dependent downstream PASS evidence is
 
 ## Current admission
 
-For 1.0 tasks, `financial_writing_agent.current_admission.advance_state` validates PublicationFitness before allowing `EDITORIAL_AUDIT -> DELIVERY` on PASS. Therefore a persisted review file plus the string `PASS` is no longer enough on the current path.
+For marker-enabled new tasks, `financial_writing_agent.current_admission.advance_state` validates both the material DecisionEnvelope and PrivateResearchBrief before allowing `RESEARCH -> RESEARCH_AUDIT`, then digest-binds both to the RESEARCH receipt.
+
+For 1.0 tasks, the same admission layer validates PublicationFitness before allowing `EDITORIAL_AUDIT -> DELIVERY` on PASS. Therefore a persisted review file plus the string `PASS` is no longer enough on the current path.
+
+Historical/current states created before the private-research marker remain valid provenance and are not retroactively rewritten. New tasks created through current admission are marker-enabled by default.
 
 ## Historical audit compatibility
 
@@ -118,6 +149,7 @@ Historical HookAudit/StyleAudit/GateDecision receipts remain immutable evidence 
 
 Final Audit reconciles:
 - required outputs and delivery hashes;
+- admitted research decision and, when marker-enabled, PrivateResearchBrief;
 - PublicationFitness PASS for required long-form outputs;
 - mechanical/render QA;
 - current state/artifact identity;
