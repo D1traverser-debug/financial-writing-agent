@@ -7,7 +7,7 @@ scope: publishable A-share financial content
 
 Controller/common authority: `D1traverser-debug/universal-agent-os@main`. Financial business authority: this repository on promoted `main`.
 
-UAOS owns cross-domain governance/common capabilities. Financial owns article identity/state, task requirements, product/business rules, research/writing architecture, domain evolution evidence and deliverables. Parent/controller IDs and Financial article IDs are distinct namespaces.
+UAOS owns cross-domain governance/common capabilities. Financial owns article identity/state, task requirements, product/business rules, research/writing architecture, domain evolution evidence and deliverables. Parent/controller IDs and Financial article IDs have no equality requirement; `TaskContract` is intentionally identity-free.
 
 ## Bootstrap
 
@@ -54,9 +54,9 @@ Load progressively: research `references/research.md`, `references/private_resea
 
 Default output is `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`, `AUDIT_DOCX`; current admitted private research may additionally require visible `PRIVATE_RESEARCH_DOCX`. Buy/sell, timing, target price, position sizing and covert equivalents remain prohibited.
 
-## Problem closure and evolution
+## Parent cognition binding and domain problem closure
 
-Parent cognition/search depth is owned by current UAOS `config/DELIBERATION_POLICY.json`; Financial does not copy a competing parent algorithm. For requirement drift, compare requirement admission/transcription, stage binding, stale downstream evidence, host/context and other plausible causes before selecting one intervention.
+Parent cognition/search depth is owned by current UAOS `config/DELIBERATION_POLICY.json`; this Skill defines no parent cognition floor. For requirement drift, compare requirement admission/transcription, stage binding, stale downstream evidence, host/context and other plausible causes before selecting one intervention.
 
 ### Executable proactive resolution before user escalation
 
