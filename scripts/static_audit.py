@@ -10,6 +10,13 @@ def load(path: str):
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 
+def version_at_least(actual: str, minimum: str) -> bool:
+    def parts(value: str) -> tuple[int, ...]:
+        return tuple(int(item) for item in value.split("."))
+
+    return parts(actual) >= parts(minimum)
+
+
 def require(condition: bool, message: str) -> None:
     if not condition:
         raise SystemExit(message)
@@ -23,7 +30,9 @@ def main() -> None:
         "docs/product_requirements.md", "docs/architecture.md",
         "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py",
         "financial_writing_agent/proactive_resolution.py",
+        "financial_writing_agent/problem_action_admission.py",
         "financial_writing_agent/workflow_spec.py", "financial_writing_agent/models.py",
+        "evals/EVOLUTION_INDEX.json",
     ):
         require((ROOT / path).is_file(), f"missing current Financial authority: {path}")
 
@@ -40,12 +49,16 @@ def main() -> None:
     require(manifest["skill"]["entrypoint"] == "UAOS_SKILL.md", "skill drift")
     require(manifest["binding"]["common_capabilities_ref"].endswith("config/COMMON_CAPABILITIES.json"), "common capability binding drift")
     require(manifest["binding"]["common_behavior_assurance_ref"].endswith("config/COMMON_BEHAVIOR_ASSURANCE.json"), "common behavior-assurance binding drift")
+    require(version_at_least(manifest["binding"]["common_behavior_assurance_min"], "1.3.0"), "common behavior-assurance minimum drift")
     require(manifest["binding"]["deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json"), "deliberation binding drift")
     require(manifest["domain_authority"]["product_requirements"] == "docs/product_requirements.md", "domain product-requirement authority drift")
     require(manifest["domain_authority"]["architecture"] == "docs/architecture.md", "domain architecture authority drift")
     require(manifest["domain_authority"]["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id", "manifest article identity drift")
     require(manifest["domain_authority"]["business_contract"] == "financial_writing_agent/models.py:TaskContract", "business contract drift")
     require(manifest["domain_authority"]["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py", "proactive-resolution guard drift")
+    require(manifest["domain_authority"]["root_scope_receipt"].endswith("RootScopeReceipt"), "root-scope authority drift")
+    require(manifest["domain_authority"]["problem_action_admission"].endswith("finalize_problem_action"), "problem-action admission drift")
+    require(manifest["domain_authority"]["canonical_evolution_evidence"] == "evals/EVOLUTION_INDEX.json", "canonical evolution evidence drift")
 
     require(adapter["session_activation"] == "DIRECT_FINANCIAL_WORK_PLANE_AFTER_DOMAIN_SELECTION__NO_MANDATORY_LIVE_UAOS_BUSINESS_PROXY", "direct Financial activation drift")
     require(adapter["controller_task_identity_authority"] == "UAOS", "controller identity authority drift")
@@ -67,9 +80,10 @@ def main() -> None:
     require(execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True, "systemic evolution lost regression/eval gate")
 
     required_common = set(caps.get("required_uaos_common_capabilities", []))
-    require(caps["profile_version"] == 18, "Financial capability profile drift")
-    require(caps["uaos_common_capabilities_contract_min"] == "1.6.0", "Financial minimum common contract drift")
-    require(caps["uaos_common_behavior_assurance_contract_min"] == "1.2.0", "Financial minimum common behavior contract drift")
+    require(caps["profile_version"] >= 19, "Financial capability profile below Common Behavior 1.3 floor")
+    require(version_at_least(caps["uaos_common_capabilities_contract_min"], "1.6.0"), "Financial minimum common capability contract below required floor")
+    require(version_at_least(caps["uaos_common_behavior_assurance_contract_min"], "1.3.0"), "Financial minimum common behavior contract below required floor")
+    require(caps["canonical_evolution_evidence_ref"] == "evals/EVOLUTION_INDEX.json", "Financial evolution entrypoint drift")
     require({
         "product_requirements_and_architecture_governance",
         "domain_internal_work_orchestration",
@@ -83,12 +97,16 @@ def main() -> None:
         "GOVERNING_ASSUMPTION_CHALLENGE",
         "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
     ], "hosted cognition problem-response floor drift")
+    require("ROOT_SCOPE_BEFORE_ACTION" in caps["hosted_cognition_semantics"]["rule"], "root-scope-before-action rule missing")
     require(caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION", "proactive resolution remained declaration-only")
+    require("ROOT_HYPOTHESIS_SUPPORT" in caps["hosted_behavior_semantics"]["root_scope_action_grounding"], "root-scope action evidence grounding missing")
     require("RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"], "problem-to-action closure missing")
-    proactive_caps = {cap["capability_id"]: cap for cap in caps["capabilities"]}
-    require("proactive_resolution_admission" in proactive_caps, "proactive resolution capability missing")
-    require("behavioral_trajectory_regression" in proactive_caps["proactive_resolution_admission"]["required"], "proactive resolution lacks trajectory evidence requirement")
-    require("UAOS:domain_internal_work_orchestration" in proactive_caps["high_judgment_generation_stages"]["required"], "writing kernel orchestration dependency missing")
+    capability_map = {cap["capability_id"]: cap for cap in caps["capabilities"]}
+    require("problem_cognition_root_scope_admission" in capability_map, "problem cognition/root-scope capability missing")
+    require("problem_action_closure_admission" in capability_map, "problem action closure capability missing")
+    require("proactive_resolution_admission" in capability_map, "proactive resolution capability missing")
+    require("behavioral_trajectory_regression" in capability_map["proactive_resolution_admission"]["required"], "proactive resolution lacks trajectory evidence requirement")
+    require("UAOS:domain_internal_work_orchestration" in capability_map["high_judgment_generation_stages"]["required"], "writing kernel orchestration dependency missing")
     require(all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"]), "side channel enabled")
 
     current_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
@@ -128,7 +146,7 @@ def main() -> None:
         package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
         require(source == skill == package, f"reference mirror drift: {name}")
 
-    print("PASS: Financial keeps one business owner, directly activates, binds capability profile 18 to UAOS 1.6 internal orchestration, and operationalizes cognition/recovery admission with owner-native evidence")
+    print("PASS: Financial keeps one business owner, directly activates, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, and operationalizes one cognition/root-scope model plus owner-native action admission")
 
 
 if __name__ == "__main__":
