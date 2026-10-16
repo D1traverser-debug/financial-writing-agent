@@ -15,12 +15,21 @@ from financial_writing_agent.owner_lifecycle import (
 
 
 def _initial():
-    return build_initial_state(
+    # Lifecycle compatibility tests target already-persisted historical schema 1.2.
+    # New public task creation is independently required to use schema 1.3.
+    state = build_initial_state(
         task_id="owner-lifecycle-task",
         prompt="write a test article",
         source_refs=["source://one"],
         executor_identity="chat-session:test",
     )
+    state["schema_version"] = "1.2"
+    state.pop("writing_kernel_version", None)
+    state.pop("quality_evidence", None)
+    for receipt in state["execution_receipts"]:
+        receipt["input_bindings"].pop("writing_kernel_version", None)
+        receipt["input_bindings"].pop("quality_admission_path", None)
+    return state
 
 
 def _to_research_audit():
