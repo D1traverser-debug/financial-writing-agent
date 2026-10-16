@@ -99,8 +99,13 @@ For every Financial Writing task, “private research brief” means the complet
 
 The published article is a separate product. It should absorb the strongest comparative and causal conclusions without narrating the entire internal research process.
 
-## 8. Verification status
+## 8. Verification checkpoint
 
-System contract implementation is committed on `main`. Before treating this handoff as fully production-verified, read the latest GitHub Actions run for the handoff commit and require the full Financial Writing CI chain to pass: unit/trajectory tests, executable contract eval, static audits, isolated wheel smoke and DOCX render smoke.
+At this checkpoint:
+- package remains `1.0.3`;
+- writing kernel remains `1.0`;
+- new tasks bind private-research contract `1.1`;
+- unit/trajectory tests and executable-contract evaluation have already passed during the upgrade sequence;
+- the remaining reconciliation being finalized is mirrored-reference/static-audit consistency, followed by isolated wheel and DOCX render smoke.
 
-If that final run is not green, fix the concrete failure before claiming production verification.
+Do not claim full production verification from this checkpoint alone. In a new chat, inspect the latest `main` GitHub Actions run. If the latest full chain is green, treat this handoff as production-verified; otherwise fix the concrete failure before continuing semantic work.
