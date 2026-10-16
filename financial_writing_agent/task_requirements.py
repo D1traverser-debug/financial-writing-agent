@@ -10,17 +10,15 @@ from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 REQUIREMENT_CONTRACT_VERSION = "1.0"
 REQUIREMENT_AUTHORITY_PATH = "financial_writing_agent.task_requirements"
+# Requirement invalidation must use the existing Financial revision graph rather than
+# inventing a second rollback topology. These are exactly the canonical revision
+# invalidation targets owned by workflow_spec.py.
 VALID_AFFECTED_STAGES = {
-    "INTAKE",
     "RESEARCH",
-    "RESEARCH_AUDIT",
     "EDITORIAL",
     "TITLE",
     "DRAFT",
-    "EDITORIAL_AUDIT",
     "DELIVERY",
-    "MECHANICAL_AUDIT",
-    "FINAL_AUDIT",
 }
 VALID_SCOPES = {
     "ALL",
