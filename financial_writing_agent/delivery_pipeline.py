@@ -9,12 +9,12 @@ from typing import Any, Mapping
 from docx import Document
 
 from .checks import check_docx, sha256_file
+from .delivery_contract import CANONICAL_DELIVERY_PATH, FORBIDDEN_VISIBLE_CHARACTERS, TEXT_SUBSTITUTIONS
 from .document import ArticleDocument, Block, build_article_docx
 from .models import ArtifactKind
 from .resources import load_packaged_policy
 
 
-CANONICAL_DELIVERY_PATH = "financial_writing_agent.delivery_pipeline"
 DELIVERY_EVIDENCE_SCHEMA_VERSION = "1.0"
 
 
@@ -37,15 +37,27 @@ def _word_policy(policy: Mapping[str, Any]) -> Mapping[str, Any]:
     return word if isinstance(word, Mapping) else {}
 
 
+def _text_substitutions(policy: Mapping[str, Any]) -> dict[str, str]:
+    merged = dict(TEXT_SUBSTITUTIONS)
+    configured = _word_policy(policy).get("text_substitutions", {})
+    if isinstance(configured, Mapping):
+        merged.update({str(source): str(target) for source, target in configured.items() if str(source)})
+    return merged
+
+
+def _forbidden_characters(policy: Mapping[str, Any]) -> tuple[str, ...]:
+    values = list(FORBIDDEN_VISIBLE_CHARACTERS)
+    configured = _word_policy(policy).get("forbidden_characters", [])
+    if isinstance(configured, list):
+        values.extend(str(item) for item in configured if str(item))
+    return tuple(dict.fromkeys(values))
+
+
 def normalize_delivery_text(text: str, policy: Mapping[str, Any]) -> str:
     """Apply deterministic user-owned presentation substitutions before Word construction."""
     normalized = str(text)
-    substitutions = _word_policy(policy).get("text_substitutions", {})
-    if isinstance(substitutions, Mapping):
-        for source, target in substitutions.items():
-            source_text = str(source)
-            if source_text:
-                normalized = normalized.replace(source_text, str(target))
+    for source, target in _text_substitutions(policy).items():
+        normalized = normalized.replace(source, target)
     return normalized
 
 
@@ -72,10 +84,11 @@ def _docx_visible_text(path: str | Path) -> str:
 
 def _forbidden_character_errors(path: str | Path, policy: Mapping[str, Any]) -> list[str]:
     text = _docx_visible_text(path)
-    forbidden = _word_policy(policy).get("forbidden_characters", [])
-    if not isinstance(forbidden, list):
-        return ["word.forbidden_characters must be a list"]
-    return [f"forbidden delivery character present: {token!r}" for token in forbidden if str(token) and str(token) in text]
+    return [
+        f"forbidden delivery character present: {token!r}"
+        for token in _forbidden_characters(policy)
+        if token in text
+    ]
 
 
 def _semantic_anchor_errors(
@@ -111,11 +124,11 @@ def build_verified_article_docx(
     policy: dict[str, Any] | None = None,
     require_risk_disclaimer: bool = True,
 ) -> dict[str, Any]:
-    """The only owner-native path for a user-visible long-form/private Word build.
+    """Canonical owner-native path for a user-visible long-form/private Word build.
 
-    It normalizes task/user presentation constraints, builds through the canonical Word
-    renderer, then runs deterministic Word checks plus whole-document constraint checks.
-    A file with any mechanical/constraint error is not admitted as a delivery candidate.
+    The path normalizes durable presentation constraints, uses the Financial Word
+    renderer, then fail-closes on deterministic Word and whole-document constraint
+    checks. Ad-hoc DOCX construction cannot produce a valid canonical build receipt.
     """
     active_policy = policy or load_packaged_policy()
     normalized = normalize_article_for_delivery(article, active_policy)
@@ -162,7 +175,7 @@ def build_verified_private_research_docx(
     required_bold_anchors: list[str] | None = None,
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
-    """Render the admitted private research into the same deterministic Word surface."""
+    """Render admitted private research through the same deterministic Word surface."""
     article = ArticleDocument(title=title, blocks=blocks, stock_names=stock_names)
     return build_verified_article_docx(
         article,
@@ -182,7 +195,7 @@ def finalize_delivery_evidence(
     render_qa: str,
     visual_qa: str,
 ) -> dict[str, Any]:
-    """Bind build/check evidence to render and actual visual-inspection evidence."""
+    """Bind canonical build/check evidence to render and actual visual-inspection evidence."""
     _require(build_receipt.get("canonical_delivery_path") == CANONICAL_DELIVERY_PATH, "build receipt is not canonical")
     _require(build_receipt.get("mechanical_qa") == "PASS", "mechanical_qa must PASS")
     _require(build_receipt.get("constraint_qa") == "PASS", "constraint_qa must PASS")
