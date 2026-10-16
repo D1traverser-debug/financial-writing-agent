@@ -111,18 +111,35 @@ def main() -> None:
     assert (ROOT / "financial_writing_agent/proactive_resolution.py").is_file()
     assert (ROOT / "financial_writing_agent/problem_action_admission.py").is_file()
     assert (ROOT / "financial_writing_agent/current_admission.py").is_file()
+    assert (ROOT / "financial_writing_agent/private_research.py").is_file()
     assert (ROOT / "financial_writing_agent/writing_kernel.py").is_file()
     assert (ROOT / "tests/test_problem_action_admission_v1.py").is_file()
     assert (ROOT / "tests/test_executable_proactive_resolution_20261015.py").is_file()
+    assert (ROOT / "tests/test_private_research_contract.py").is_file()
     assert (ROOT / "evals/EVOLUTION_INDEX.json").is_file()
     assert (ROOT / "docs/product_requirements.md").is_file()
     assert (ROOT / "docs/architecture.md").is_file()
     assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
     assert not (ROOT / "continuity").exists()
 
+    private_ref = (ROOT / "references/private_research.md").read_text(encoding="utf-8")
+    packaged_private_ref = (ROOT / "financial_writing_agent/resources/references/private_research.md").read_text(encoding="utf-8")
+    skill_private_ref = (ROOT / "skills/financial-writing-agent/references/private_research.md").read_text(encoding="utf-8")
+    assert private_ref == packaged_private_ref == skill_private_ref
+    assert "PrivateResearchBrief" in private_ref
+    assert "market_cap_and_liquidity" in private_ref
+    assert "short_horizon_role_map" in private_ref
+    assert "counterfactual_company_comparison" in private_ref
+    assert "publication_distillation" in private_ref
+
+    uaos_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
+    assert "private_research_contract_version=1.0" in uaos_skill
+    assert "PrivateResearchBrief" in uaos_skill
+    assert "references/private_research.md" in uaos_skill
+
     print(
         "PASS: Financial owns article/product authority, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, "
-        "inherits current UAOS cognition by pointer only, and verifies owner-native root-scope/action closure admission"
+        "enforces the private-research admission surfaces, inherits current UAOS cognition by pointer only, and verifies owner-native root-scope/action closure admission"
     )
 
 
