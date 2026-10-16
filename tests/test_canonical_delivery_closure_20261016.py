@@ -8,8 +8,26 @@ from financial_writing_agent.delivery_pipeline import (
     finalize_delivery_evidence,
     validate_delivery_evidence,
 )
-from financial_writing_agent.document import ArticleDocument, Block
+from financial_writing_agent.document import ArticleDocument, Block, DEFAULT_COMPANY_NAME_RGB
 from financial_writing_agent.models import ArtifactKind, TaskContract
+from financial_writing_agent.private_research import REQUIRED_MODULES
+
+
+def _brief():
+    return {
+        "contract_version": "1.1",
+        "as_of": "2026-10-16T15:00:00+08:00",
+        "coverage_state": "COMPLETE",
+        "modules": {
+            name: {
+                "status": "APPLICABLE",
+                "summary": f"{name} completed with evidence",
+                "evidence_refs": [f"{name}-evidence"],
+            }
+            for name in REQUIRED_MODULES
+        },
+        "unresolved_gaps": [],
+    }
 
 
 def _is_all_occurrences_bold(path, needle):
@@ -31,6 +49,16 @@ def _is_all_occurrences_bold(path, needle):
             assert all(mask[index:index + len(needle)])
             start = index + 1
     return found
+
+
+def _company_run_colors(path, needle):
+    doc = Document(path)
+    colors = []
+    for paragraph in doc.paragraphs:
+        for run in paragraph.runs:
+            if run.text == needle:
+                colors.append(str(run.font.color.rgb) if run.font.color and run.font.color.rgb else None)
+    return colors
 
 
 def test_canonical_build_normalizes_forbidden_dot_bolds_company_and_number_and_numbers_headings(tmp_path):
@@ -61,9 +89,11 @@ def test_canonical_build_normalizes_forbidden_dot_bolds_company_and_number_and_n
     assert any(paragraph.text.startswith("（1）") for paragraph in doc.paragraphs)
     assert _is_all_occurrences_bold(output, "安克创新") == 2
     assert _is_all_occurrences_bold(output, "1.45万亿元") == 1
+    assert _company_run_colors(output, "安克创新") == [DEFAULT_COMPANY_NAME_RGB, DEFAULT_COMPANY_NAME_RGB]
     assert receipt["canonical_delivery_path"] == "financial_writing_agent.delivery_pipeline"
     assert receipt["mechanical_qa"] == "PASS"
     assert receipt["constraint_qa"] == "PASS"
+    assert len(receipt["builder_attestation"]) == 64
 
 
 def test_numeric_longform_cannot_reach_word_without_explicit_numeric_skim_anchor(tmp_path):
@@ -81,7 +111,7 @@ def test_numeric_longform_cannot_reach_word_without_explicit_numeric_skim_anchor
         )
 
 
-def test_private_research_has_structured_word_artifact_kind_but_does_not_mutate_core_task_outputs(tmp_path):
+def test_private_research_has_structured_word_artifact_kind_and_binds_admitted_brief(tmp_path):
     contract = TaskContract(prompt="test")
     assert ArtifactKind.PRIVATE_RESEARCH_DOCX not in contract.required_outputs
 
@@ -94,20 +124,46 @@ def test_private_research_has_structured_word_artifact_kind_but_does_not_mutate_
             Block(kind="body", text="安克创新·私人研究，仅供内部研究。"),
         ],
         output=output,
+        admitted_private_research_brief=_brief(),
     )
     assert receipt["artifact_kind"] == "PRIVATE_RESEARCH_DOCX"
+    assert len(receipt["source_quality_evidence_sha256"]) == 64
     assert "·" not in "\n".join(paragraph.text for paragraph in Document(output).paragraphs)
     assert _is_all_occurrences_bold(output, "安克创新") == 1
 
 
-def test_visible_evidence_binds_build_render_visual_and_rejects_tampering():
-    build = {
+def test_fabricated_build_receipt_cannot_be_finalized():
+    fake = {
+        "builder_receipt_version": "1.0",
         "canonical_delivery_path": "financial_writing_agent.delivery_pipeline",
         "artifact_kind": "FINANCE_DEEP_DOCX",
         "sha256": "a" * 64,
         "mechanical_qa": "PASS",
         "constraint_qa": "PASS",
+        "builder_attestation": "0" * 64,
     }
+    with pytest.raises(CanonicalDeliveryError, match="not issued"):
+        finalize_delivery_evidence(
+            fake,
+            source_ref="workspaces/articles/x/publication/FINANCE_DEEP.json",
+            source_identity="git-blob:source",
+            render_qa="PASS",
+            visual_qa="PASS",
+        )
+
+
+def test_visible_evidence_binds_issued_build_render_visual_and_rejects_tampering(tmp_path):
+    build = build_verified_article_docx(
+        ArticleDocument(
+            title="测试",
+            stock_names=[],
+            blocks=[Block(kind="h1", text="事实"), Block(kind="body", text="这是可见正文。")],
+        ),
+        tmp_path / "deep.docx",
+        artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
+        required_bold_anchors=["可见正文"],
+        require_risk_disclaimer=False,
+    )
     evidence = finalize_delivery_evidence(
         build,
         source_ref="workspaces/articles/x/publication/FINANCE_DEEP.json",
@@ -117,7 +173,7 @@ def test_visible_evidence_binds_build_render_visual_and_rejects_tampering():
     )
     resource = {
         "kind": "FINANCE_DEEP_DOCX",
-        "sha256": "a" * 64,
+        "sha256": build["sha256"],
         **evidence,
     }
     validate_delivery_evidence(resource)
