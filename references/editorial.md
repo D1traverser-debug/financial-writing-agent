@@ -47,7 +47,7 @@ Use the admitted PrivateResearchBrief's within-segment comparison and `cross_seg
 - economic winner vs market-recognition winner: why the strongest business and the fastest price-discovery vehicle may differ;
 - durability comparison: which logic survives after the first news impulse and what would reverse that conclusion.
 
-The prose should carry the causal reason for the ranking. Do not publish internal score tables merely to prove a comparison occurred. A sentence such as “A、B、C均受益” without explaining relative transmission is insufficient when the private research identifies a meaningful difference.
+Deep must make explicit **why A has stronger/weaker transmission** than B when that comparison is material. The prose should carry the causal reason for the ranking. Do not publish internal score tables merely to prove a comparison occurred. A sentence such as “A、B、C均受益” without explaining relative transmission is insufficient when the private research identifies a meaningful difference.
 
 When current market liquidity means only one or a few narratives can dominate, Deep may explain the cross-branch economic contest — for example why one link captures more of the policy's profit transfer than another — without narrating tactical terms such as card-position, board height or next-day trade plans.
 
