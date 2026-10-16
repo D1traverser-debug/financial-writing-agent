@@ -4,7 +4,8 @@ from copy import deepcopy
 from typing import Any, Mapping
 from uuid import uuid4
 
-from .owner_guard import MAIN_STATE_REF, _new_receipt, _state_path, _utc_now, validate_state
+from .current_admission import bind_current_governance_receipt, validate_state
+from .owner_guard import MAIN_STATE_REF, _new_receipt, _state_path, _utc_now
 
 
 class ProactiveResolutionError(ValueError):
@@ -53,12 +54,11 @@ def record_proactive_resolution_state(
     safe_to_continue: bool,
     state_ref: str = MAIN_STATE_REF,
 ) -> dict[str, Any]:
-    """Persist one owner-native recovery attempt before a recoverable user dependency is externalized.
+    """Persist one owner-native recovery attempt through the current Article Aggregate.
 
     This is an action receipt, not a claim that the recovered candidate is true. A
     provisional candidate remains bounded by its evidence, confidence and validation
-    plan. The function intentionally does not access external sources itself; the
-    caller records the concrete sources it actually inspected.
+    plan. The caller records the concrete sources it actually inspected.
     """
 
     _require(state_ref == MAIN_STATE_REF, "Financial proactive resolution must target main owner state")
@@ -125,6 +125,7 @@ def record_proactive_resolution_state(
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
+    bind_current_governance_receipt(after)
     validate_state(after)
     return after
 
