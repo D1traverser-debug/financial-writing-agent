@@ -1,0 +1,81 @@
+{
+  "schema_version": "1.0",
+  "task_id": "cross-border-ecommerce-20261016-v2",
+  "date": "2026-10-16",
+  "status": "PRIVATE_RESEARCH_AND_PUBLICATION_ARTIFACTS_COMPLETE__FINAL_QA_PASS",
+  "research_upgrade": {
+    "economic_universe": "170 Eastmoney BK1115 constituents + 4 economically material additions",
+    "company_names_checked": 174,
+    "short_term_layer": [
+      "market-label pool separated from economic-substance pool",
+      "current board-position ladder",
+      "recent limit-up / consecutive-board memory",
+      "float market cap",
+      "turnover and trading activity",
+      "theme overlap and actual current driver",
+      "cross-border-specific narrative recognition",
+      "limit-up elasticity ranking"
+    ],
+    "as_of_2026_10_16_close": {
+      "cross_border_theme_recognition_and_limit_up_elasticity_first_candidate": "跨境通",
+      "current_position_highest_but_not_cross_border_driven": "东方嘉盛",
+      "recent_stock_character_strongest": "奥佳华",
+      "cross_border_plus_ai_marketing_secondary_elasticity": "返利科技"
+    },
+    "research_ref": "research/SHORT_TERM_POSITIONING_20261016.md"
+  },
+  "publication_policy": {
+    "deep_and_broad_do_not_expose_exhaustive_research_process": true,
+    "deep_and_broad_focus_on_profit_chain_and_material_company_differences": true,
+    "short_term_positioning_stays_in_private_research_report": true
+  },
+  "docx_qa_note": "PNG files are temporary internal page renders used only for DOCX page-by-page layout inspection. They are not report illustrations and are not delivered.",
+  "artifacts": {
+    "research_report": {
+      "file_name": "CROSS_BORDER_FULL_RESEARCH_REPORT.docx",
+      "pages": 15,
+      "sha256": "df59a54138094ebdbd7c2044d9fd22e77e038db96c36b1971a35f036d07d3d86",
+      "company_occurrences_checked": 441,
+      "visual_qa": "PASS"
+    },
+    "finance_deep": {
+      "file_name": "cross_border_ecommerce_FULL_FINANCE_DEEP.docx",
+      "pages": 3,
+      "sha256": "9a350676fd7f34e5b6e5a00083600a167ccda6516e2d8bf7546793a188cd7820",
+      "company_occurrences_checked": 37,
+      "visual_qa": "PASS"
+    },
+    "finance_broad": {
+      "file_name": "cross_border_ecommerce_FULL_FINANCE_BROAD.docx",
+      "pages": 1,
+      "sha256": "f8dc72a608746249d3093e7345c3f363d22ef6c39cf05627e18b4a4fd395252d",
+      "company_occurrences_checked": 18,
+      "visual_qa": "PASS"
+    },
+    "interaction_pack": {
+      "file_name": "cross_border_ecommerce_FULL_PLATFORM_INTERACTION_PACK.docx",
+      "pages": 1,
+      "sha256": "5caa84b1c76f4818273185a13161a36dee450d8a56f78c09a7106d37568bd0f7",
+      "company_occurrences_checked": 9,
+      "visual_qa": "PASS"
+    },
+    "audit": {
+      "file_name": "WRITING_AUDIT_REPORT_FULL.docx",
+      "pages": 1,
+      "sha256": "76ed669180f67d37f80241ad3b77b92df5319a602035fc31771b5a699044bffc",
+      "visual_qa": "PASS"
+    }
+  },
+  "mechanical_qa": {
+    "total_pages": 21,
+    "tables": 0,
+    "underlined_runs": 0,
+    "company_bold_failures": 0,
+    "deep_single_final_italic_risk_paragraph": true,
+    "broad_single_final_italic_risk_paragraph": true,
+    "deep_broad_exhaustive_process_wording_absent": true,
+    "deep_broad_source_appendix_absent": true,
+    "all_pass": true
+  },
+  "authority_boundary": "This is a research/delivery QA receipt. It does not replace owner STATE.json lifecycle authority."
+}
