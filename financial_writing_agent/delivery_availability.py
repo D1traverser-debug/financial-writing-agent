@@ -2,6 +2,10 @@ from __future__ import annotations
 
 from typing import Any, Callable, Mapping
 
+from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
+from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidence
+from .models import ArtifactKind
+
 
 class DeliveryAvailabilityError(ValueError):
     pass
@@ -27,46 +31,58 @@ def _hex_sha256(value: Any) -> bool:
     )
 
 
+def _supplemental_outputs_for_state(state: Mapping[str, Any]) -> list[str]:
+    """Require private Word presentation only when current state actually owns admitted private research."""
+    quality = state.get("quality_evidence", {})
+    has_private = isinstance(quality, Mapping) and isinstance(quality.get("private_research_brief"), Mapping)
+    marker = state.get("private_research_contract_version")
+    if not has_private or not marker:
+        return []
+    return [kind.value for kind in REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS]
+
+
 def build_visible_delivery_receipt(
     state: Mapping[str, Any],
     *,
     resources: list[Mapping[str, Any]],
     resource_verifier: ResourceVerifier | None,
 ) -> dict[str, Any]:
-    """Bind current user-visible Word resources to a completed Financial article.
+    """Bind current user-visible Word resources to a reconciled Financial article.
 
-    Durable owner state proves the business/output contract and canonical binary identities.
-    It does not prove that a prior chat attachment or external-file handle is still available
-    in the current session. This presentation gate requires a fresh resource for every
-    required output before the chat may claim that the files are currently deliverable.
-
-    A current resource can be either:
-    1. the canonical binary, whose sha256 must equal owner state; or
-    2. a regenerated binary produced from durable publication/audit source. Regeneration
-       is a new binary instance and must carry source identity plus fresh mechanical and
-       render QA; its sha256 is not required to equal the historical canonical binary.
+    Owner state remains the authority for core business outputs. Current-kernel tasks
+    with admitted PrivateResearchBrief also require a supplemental private-research Word
+    resource at presentation time. Every visible resource must carry canonical Delivery
+    evidence proving builder/check/render/visual closure; hashes or old attachments alone
+    cannot bypass that gate.
     """
     _require(isinstance(state, Mapping), "state is required")
     task_id = str(state.get("task_id", "")).strip()
     _require(bool(task_id), "state.task_id is required")
-    required = state.get("required_outputs")
-    _require(isinstance(required, list) and required, "state.required_outputs is required")
+    owner_required = state.get("required_outputs")
+    _require(isinstance(owner_required, list) and owner_required, "state.required_outputs is required")
+    owner_required = [str(kind) for kind in owner_required]
     canonical = state.get("delivery_artifacts")
     _require(isinstance(canonical, Mapping), "state.delivery_artifacts is required")
-    _require(set(canonical) == set(required), "owner state must reconcile the complete required output set before visible delivery")
+    _require(set(canonical) == set(owner_required), "owner state must reconcile the complete core output set before visible delivery")
     _require(resource_verifier is not None, "current resource_verifier is required")
+
+    supplemental = _supplemental_outputs_for_state(state)
+    presentation_required = [*owner_required, *[kind for kind in supplemental if kind not in owner_required]]
 
     by_kind: dict[str, Mapping[str, Any]] = {}
     for resource in resources:
         _require(isinstance(resource, Mapping), "visible delivery resource must be an object")
         kind = str(resource.get("kind", "")).strip()
-        _require(kind in required, f"unexpected visible delivery resource kind: {kind or 'MISSING'}")
+        _require(kind in presentation_required, f"unexpected visible delivery resource kind: {kind or 'MISSING'}")
         _require(kind not in by_kind, f"duplicate visible delivery resource kind: {kind}")
         by_kind[kind] = resource
-    _require(set(by_kind) == set(required), f"visible delivery output mismatch: required={sorted(required)}, actual={sorted(by_kind)}")
+    _require(
+        set(by_kind) == set(presentation_required),
+        f"visible delivery output mismatch: required={sorted(presentation_required)}, actual={sorted(by_kind)}",
+    )
 
     presented: dict[str, dict[str, Any]] = {}
-    for kind in required:
+    for kind in presentation_required:
         resource = by_kind[kind]
         ref = str(resource.get("resource_ref", "")).strip()
         file_name = str(resource.get("file_name", "")).strip()
@@ -80,36 +96,54 @@ def build_visible_delivery_receipt(
             verified = False
         _require(verified, f"{kind}.resource_ref was not verified in the current session")
 
-        canonical_meta = canonical[kind]
-        canonical_sha = str(canonical_meta.get("sha256", "")).strip().lower()
-        _require(_hex_sha256(canonical_sha), f"canonical {kind}.sha256 is invalid")
-        regenerated = resource.get("regenerated_from_durable_source") is True
-        if regenerated:
-            _require(_nonempty(resource.get("source_ref")), f"regenerated {kind} requires source_ref")
-            _require(_nonempty(resource.get("source_identity")), f"regenerated {kind} requires source_identity")
-            _require(resource.get("mechanical_qa") == "PASS", f"regenerated {kind} requires fresh mechanical_qa=PASS")
-            _require(resource.get("render_qa") == "PASS", f"regenerated {kind} requires fresh render_qa=PASS")
-        else:
-            _require(digest == canonical_sha, f"non-regenerated {kind} binary hash must match canonical owner state")
+        try:
+            validate_delivery_evidence(resource)
+        except CanonicalDeliveryError as exc:
+            raise DeliveryAvailabilityError(f"{kind} canonical delivery evidence failed: {exc}") from exc
 
+        regenerated = resource.get("regenerated_from_durable_source") is True
+        is_supplemental = kind in supplemental
+        if is_supplemental:
+            _require(kind == ArtifactKind.PRIVATE_RESEARCH_DOCX.value, f"unsupported supplemental output: {kind}")
+            _require(regenerated, f"supplemental {kind} must be rendered from durable owner evidence")
+            _require(_nonempty(resource.get("source_ref")), f"supplemental {kind} requires source_ref")
+            _require(_nonempty(resource.get("source_identity")), f"supplemental {kind} requires source_identity")
+            canonical_sha = None
+        else:
+            canonical_meta = canonical[kind]
+            canonical_sha = str(canonical_meta.get("sha256", "")).strip().lower()
+            _require(_hex_sha256(canonical_sha), f"canonical {kind}.sha256 is invalid")
+            if regenerated:
+                _require(_nonempty(resource.get("source_ref")), f"regenerated {kind} requires source_ref")
+                _require(_nonempty(resource.get("source_identity")), f"regenerated {kind} requires source_identity")
+            else:
+                _require(digest == canonical_sha, f"non-regenerated {kind} binary hash must match canonical owner state")
+
+        evidence = resource["delivery_evidence"]
         presented[kind] = {
             "file_name": file_name,
             "sha256": digest,
             "resource_ref": ref,
+            "supplemental": is_supplemental,
             "regenerated_from_durable_source": regenerated,
             "canonical_sha256": canonical_sha,
-            "source_ref": resource.get("source_ref") if regenerated else None,
-            "source_identity": resource.get("source_identity") if regenerated else None,
-            "mechanical_qa": resource.get("mechanical_qa") if regenerated else None,
-            "render_qa": resource.get("render_qa") if regenerated else None,
+            "source_ref": evidence.get("source_ref"),
+            "source_identity": evidence.get("source_identity"),
+            "mechanical_qa": evidence.get("mechanical_qa"),
+            "constraint_qa": evidence.get("constraint_qa"),
+            "render_qa": evidence.get("render_qa"),
+            "visual_qa": evidence.get("visual_qa"),
+            "canonical_delivery_path": evidence.get("canonical_delivery_path"),
         }
 
     return {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "task_id": task_id,
         "status": "VISIBLE_DELIVERY_READY",
-        "required_outputs": list(required),
+        "owner_required_outputs": owner_required,
+        "supplemental_required_outputs": supplemental,
+        "required_outputs": presentation_required,
         "presented_artifacts": presented,
         "business_state_status": state.get("status"),
-        "assurance_boundary": "CURRENT_SESSION_RESOURCE_AVAILABILITY_ONLY__NOT_A_SECOND_TASK_STATE_AUTHORITY",
+        "assurance_boundary": "CURRENT_SESSION_CANONICAL_PRESENTATION_ONLY__NOT_A_SECOND_TASK_STATE_AUTHORITY",
     }

@@ -46,6 +46,11 @@ class ArtifactKind(str, Enum):
     FINANCE_BROAD_DOCX = "FINANCE_BROAD_DOCX"
     PLATFORM_INTERACTION_PACK_DOCX = "PLATFORM_INTERACTION_PACK_DOCX"
     AUDIT_DOCX = "AUDIT_DOCX"
+    # PrivateResearchBrief remains upstream quality evidence. When the user's
+    # presentation policy requires a readable private copy, Delivery may render it
+    # as a supplemental Word artifact without retroactively changing historical
+    # distribution-mode semantics or core owner-state required_outputs.
+    PRIVATE_RESEARCH_DOCX = "PRIVATE_RESEARCH_DOCX"
 
 
 class TaskContract(BaseModel):
@@ -58,6 +63,11 @@ class TaskContract(BaseModel):
     `DUAL` is intentionally retained as the historical Deep+Broad contract. New default
     portfolio work uses `PORTFOLIO`, while broad acquisition-only work uses
     `ACQUISITION`. This avoids retroactively changing completed article-state contracts.
+
+    `PRIVATE_RESEARCH_DOCX` is deliberately not injected into this core set. It is a
+    user-visible supplemental delivery artifact governed by the current presentation
+    policy and canonical Delivery gate, while the admitted PrivateResearchBrief itself
+    remains owner-state quality evidence.
     """
 
     prompt: str
