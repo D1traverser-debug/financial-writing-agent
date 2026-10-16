@@ -7,7 +7,11 @@ from typing import Any, Mapping
 
 from . import owner_guard
 from .cognition_governance import DecisionEnvelope, OperationClass, admission_errors
-from .private_research import PRIVATE_RESEARCH_CONTRACT_VERSION, validate_private_research_brief
+from .private_research import (
+    PRIVATE_RESEARCH_CONTRACT_VERSION,
+    SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
+    validate_private_research_brief,
+)
 from .story_quality import AuditStatus, ProductMode, PublicationFitness, StoryBlueprint
 
 WRITING_KERNEL_VERSION = "1.0"
@@ -29,12 +33,16 @@ def _canonical_digest(value: Any) -> str:
 
 
 def _private_research_required(state: Mapping[str, Any]) -> bool:
-    return state.get("private_research_contract_version") == PRIVATE_RESEARCH_CONTRACT_VERSION
+    return state.get("private_research_contract_version") in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS
 
 
-def _parse_private_research(raw: Mapping[str, Any] | None) -> dict[str, Any]:
+def _parse_private_research(
+    raw: Mapping[str, Any] | None,
+    *,
+    expected_contract_version: str | None = None,
+) -> dict[str, Any]:
     try:
-        return validate_private_research_brief(raw)
+        return validate_private_research_brief(raw, expected_contract_version=expected_contract_version)
     except ValueError as exc:
         raise CurrentAdmissionError(str(exc)) from exc
 
@@ -132,7 +140,11 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
 
         raw_private = quality.get("private_research_brief")
         if _private_research_required(state) or raw_private is not None:
-            admitted_private = _parse_private_research(raw_private if isinstance(raw_private, Mapping) else None)
+            expected_version = state.get("private_research_contract_version")
+            admitted_private = _parse_private_research(
+                raw_private if isinstance(raw_private, Mapping) else None,
+                expected_contract_version=str(expected_version) if expected_version is not None else None,
+            )
             _require_persisted_digest(
                 state,
                 evidence_key="private_research_brief",
@@ -187,7 +199,7 @@ def validate_state(state: Mapping[str, Any]) -> None:
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
     private_version = state.get("private_research_contract_version")
     _require(
-        private_version in {None, PRIVATE_RESEARCH_CONTRACT_VERSION},
+        private_version is None or private_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
         f"unsupported private_research_contract_version: {private_version}",
     )
     _validate_persisted_quality_evidence(state)
@@ -219,7 +231,7 @@ def advance_state(
 ) -> dict[str, Any]:
     """Current admission wrapper around the one canonical owner state machine.
 
-    Historical states continue to use owner_guard directly. New 1.0 tasks use this entrypoint so
+    Historical states continue to use owner_guard directly. New current tasks use this entrypoint so
     research/thesis, private research, story design and publication quality cannot be advanced by
     a naked PASS label or an unbound side artifact.
     """
@@ -236,7 +248,11 @@ def advance_state(
         evidence_bindings["decision_envelope_sha256"] = _canonical_digest(dumped)
 
         if _private_research_required(state) or private_research_brief is not None:
-            private_dumped = _parse_private_research(private_research_brief)
+            expected_version = state.get("private_research_contract_version")
+            private_dumped = _parse_private_research(
+                private_research_brief,
+                expected_contract_version=str(expected_version) if expected_version is not None else None,
+            )
             quality["private_research_brief"] = private_dumped
             evidence_bindings["private_research_brief_sha256"] = _canonical_digest(private_dumped)
 
@@ -260,10 +276,9 @@ def advance_state(
         else []
     )
 
-    # The owner guard now enforces 1.0 quality for every public lower-level path. During
+    # The owner guard enforces current quality for every public lower-level path. During
     # this one internal sequencing window, the new receipt does not yet carry its quality
-    # digest, so defer only that owner-level callback. Full current validation runs below
-    # after the receipt is bound; the token is process-local and not a persisted credential.
+    # digest, so defer only that owner-level callback. Full current validation runs below.
     after = owner_guard.advance_state(
         working,
         _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
@@ -277,8 +292,9 @@ def advance_state(
 
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    if _private_research_required(after):
-        receipt["input_bindings"]["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
+    private_version = after.get("private_research_contract_version")
+    if private_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
+        receipt["input_bindings"]["private_research_contract_version"] = str(private_version)
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     receipt["input_bindings"].update(evidence_bindings)
     validate_state(after)
@@ -288,12 +304,13 @@ def advance_state(
 def attach_material_feedback(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
     validate_state(state)
     # Feedback does not alter quality objects, so the owner guard can and should perform
-    # its normal full 1.0 validation on both sides of this mutation.
+    # its normal full validation on both sides of this mutation.
     after = owner_guard.attach_material_feedback(state, **kwargs)
     receipt = after["execution_receipts"][-1]
     receipt.setdefault("input_bindings", {})["writing_kernel_version"] = WRITING_KERNEL_VERSION
-    if _private_research_required(after):
-        receipt["input_bindings"]["private_research_contract_version"] = PRIVATE_RESEARCH_CONTRACT_VERSION
+    private_version = after.get("private_research_contract_version")
+    if private_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
+        receipt["input_bindings"]["private_research_contract_version"] = str(private_version)
     receipt["input_bindings"]["quality_admission_path"] = QUALITY_ADMISSION_PATH
     validate_state(after)
     return after
