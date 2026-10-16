@@ -2,14 +2,15 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 
-PRIVATE_RESEARCH_CONTRACT_VERSION = "1.0"
+PRIVATE_RESEARCH_CONTRACT_VERSION = "1.1"
+SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS = frozenset({"1.0", "1.1"})
 
 APPLICABLE = "APPLICABLE"
 NOT_MATERIAL = "NOT_MATERIAL"
 MODULE_STATUSES = frozenset({APPLICABLE, NOT_MATERIAL})
 COVERAGE_STATES = frozenset({"COMPLETE", "BOUNDED_WITH_GAPS"})
 
-REQUIRED_MODULES: tuple[str, ...] = (
+V1_0_REQUIRED_MODULES: tuple[str, ...] = (
     "company_universe_and_value_chain",
     "business_granularity",
     "market_cap_and_liquidity",
@@ -24,6 +25,14 @@ REQUIRED_MODULES: tuple[str, ...] = (
     "publication_distillation",
 )
 
+V1_1_ADDITIONAL_MODULES: tuple[str, ...] = (
+    "material_catalyst_and_policy_ledger",
+    "driver_sustainability_operability_and_concept_map",
+    "cross_segment_global_selection",
+)
+
+REQUIRED_MODULES: tuple[str, ...] = V1_0_REQUIRED_MODULES + V1_1_ADDITIONAL_MODULES
+
 
 class PrivateResearchAdmissionError(ValueError):
     pass
@@ -34,22 +43,50 @@ def _require(condition: bool, message: str) -> None:
         raise PrivateResearchAdmissionError(message)
 
 
-def validate_private_research_brief(raw: Mapping[str, Any] | None) -> dict[str, Any]:
-    """Validate the durable private-research evidence required by new Financial tasks.
+def required_modules_for_version(version: str) -> tuple[str, ...]:
+    _require(
+        version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
+        f"unsupported private research contract_version: {version}",
+    )
+    if version == "1.0":
+        return V1_0_REQUIRED_MODULES
+    return REQUIRED_MODULES
 
-    The contract is intentionally structural. It proves that the required research jobs were
-    represented and evidence-bound; it does not pretend that semantic quality can be reduced
-    to one numeric score. Modules that genuinely do not apply must say NOT_MATERIAL and give
-    a reason rather than fabricating market/short-horizon analysis.
+
+def validate_private_research_brief(
+    raw: Mapping[str, Any] | None,
+    *,
+    expected_contract_version: str | None = None,
+) -> dict[str, Any]:
+    """Validate the durable private-research evidence required by Financial tasks.
+
+    1.1 adds three mandatory research jobs for new tasks: a material catalyst/policy ledger,
+    driver/sustainability/market-operability/concept mapping, and a second-pass global
+    cross-segment selection after within-segment comparison. Historical 1.0 briefs remain
+    admissible only for states explicitly carrying the 1.0 marker.
+
+    The contract remains intentionally structural. It proves required research jobs were
+    represented and evidence-bound; semantic quality stays the responsibility of Research Audit.
     """
 
     _require(isinstance(raw, Mapping), "current RESEARCH transition requires private_research_brief")
     brief = dict(raw)
 
+    version = str(brief.get("contract_version", "")).strip()
     _require(
-        brief.get("contract_version") == PRIVATE_RESEARCH_CONTRACT_VERSION,
-        f"private research contract_version must be {PRIVATE_RESEARCH_CONTRACT_VERSION}",
+        version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
+        f"private research contract_version must be one of {sorted(SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS)}",
     )
+    if expected_contract_version is not None:
+        _require(
+            expected_contract_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
+            f"unsupported expected private research contract_version: {expected_contract_version}",
+        )
+        _require(
+            version == expected_contract_version,
+            f"private research brief contract_version {version} does not match state marker {expected_contract_version}",
+        )
+
     _require(str(brief.get("as_of", "")).strip(), "private research brief requires non-empty as_of")
     _require(
         brief.get("coverage_state") in COVERAGE_STATES,
@@ -58,10 +95,11 @@ def validate_private_research_brief(raw: Mapping[str, Any] | None) -> dict[str, 
 
     modules = brief.get("modules")
     _require(isinstance(modules, Mapping), "private research brief requires modules mapping")
-    missing = [name for name in REQUIRED_MODULES if name not in modules]
+    required_modules = required_modules_for_version(version)
+    missing = [name for name in required_modules if name not in modules]
     _require(not missing, f"private research brief missing required modules: {missing}")
 
-    for name in REQUIRED_MODULES:
+    for name in required_modules:
         module = modules[name]
         _require(isinstance(module, Mapping), f"private research module {name} must be a mapping")
         status = module.get("status")
