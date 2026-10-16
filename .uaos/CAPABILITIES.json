@@ -1,15 +1,16 @@
 {
-  "schema_version": "2.6",
-  "profile_version": 18,
+  "schema_version": "2.8",
+  "profile_version": 19,
   "domain_id": "financial_writing",
   "policy": "CURRENT_SESSION_CAPABILITY_HANDSHAKE__NO_SIDE_CHANNEL__NO_SILENT_DEGRADATION",
   "uaos_common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
   "uaos_common_behavior_assurance_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_BEHAVIOR_ASSURANCE.json",
   "uaos_common_capabilities_contract_min": "1.6.0",
-  "uaos_common_behavior_assurance_contract_min": "1.2.0",
+  "uaos_common_behavior_assurance_contract_min": "1.3.0",
   "uaos_deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
   "uaos_authority_policy_ref": "D1traverser-debug/universal-agent-os@main:config/AUTHORITY_WRITE_POLICY.json",
   "common_capabilities_inheritance": "UAOS_HOSTED",
+  "canonical_evolution_evidence_ref": "evals/EVOLUTION_INDEX.json",
   "required_uaos_common_capabilities": [
     "intent_and_requirement_governance",
     "product_requirements_and_architecture_governance",
@@ -31,17 +32,20 @@
       "GOVERNING_ASSUMPTION_CHALLENGE",
       "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"
     ],
-    "rule": "EVERY_DETECTED_PROBLEM_REQUIRES_RESEARCH_AND_REFLECTION__PROBLEM_SIZE_CHANGES_DEPTH_NOT_ACTIVATION",
+    "root_scope_admission": "PROBLEM_TRIGGERED_DECISION_REQUIRES_EVIDENCE_TESTED_ROOT_HYPOTHESIS__SYSTEMIC_SIGNAL_REQUIRES_CROSS_LAYER_UPSTREAM_TEST_AND_REJECTED_ALTERNATIVE__USER_OR_EXTERNAL_FRAMING_NOT_ROOT_CAUSE_AUTHORITY",
+    "rule": "EVERY_DETECTED_PROBLEM_REQUIRES_RESEARCH_AND_REFLECTION__ROOT_SCOPE_BEFORE_ACTION__PROBLEM_SIZE_CHANGES_DEPTH_NOT_ACTIVATION",
     "risk_adds": ["COUNTEREXAMPLE_SEARCH", "INDEPENDENT_VERIFICATION"]
   },
   "hosted_behavior_semantics": {
     "recover_before_user_escalation": "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION",
-    "problem_to_action_closure": "REPAIR_EXECUTED_OR_BLOCKED_WITH_REASON_OR_NO_CHANGE_WITH_EVIDENCE__RECOMMENDATION_ONLY_NOT_TERMINAL_WHEN_REPAIR_AVAILABLE",
-    "assurance_ceiling": "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED_UNTIL_LIVE_ARTICLE_OBSERVATION"
+    "evolution_before_action": "EVERY_ADMITTED_PROBLEM_GETS_EXPLICIT_EVOLUTION_DISPOSITION__DOMAIN_CANDIDATE_OR_PARENT_UPCALL_REQUIRES_DURABLE_PROBLEM_REF",
+    "root_scope_action_grounding": "ACTION_GATE_REQUIRES_ROOT_HYPOTHESIS_SUPPORT_AND_FALSIFICATION_REFS_TO_EXIST_IN_DECISION_ENVELOPE__SELECTED_ROOT_REQUIRES_NON_USER_OBSERVED_OR_TESTABLE_EVIDENCE",
+    "problem_to_action_closure": "ONLY_AFTER_ROOT_SCOPE_AND_EVOLUTION_ADMISSION__REPAIR_EXECUTED_OR_BLOCKED_WITH_REASON_OR_NO_CHANGE_WITH_EVIDENCE__RECOMMENDATION_ONLY_NOT_TERMINAL_WHEN_REPAIR_AVAILABLE",
+    "assurance_ceiling": "EXECUTABLE_COGNITION_AND_ACTION_POLICY_WITH_TRAJECTORY_REGRESSION__LIVE_ARTICLE_OBSERVATION_OPEN"
   },
   "domain_evolution_role": "DOMAIN_EVIDENCE_EVAL_AND_BUSINESS_OWNER_PROMOTION",
-  "domain_evolution_semantics": "EVERY_PROBLEM_EVALUATED_FOR_LEARNING_IMPACT__DOMAIN_RULE_PROMOTION_REQUIRES_SCOPE_AND_REGRESSION_EVIDENCE__COMMON_OR_CROSS_DOMAIN_CHANGE_UPCALLS_UAOS",
-  "updated_at": "2026-10-15T15:12:59+08:00",
+  "domain_evolution_semantics": "EVERY_PROBLEM_EVALUATED_FOR_LEARNING_IMPACT__DOMAIN_RULE_PROMOTION_REQUIRES_SCOPE_ROOT_CAUSE_AND_REGRESSION_EVIDENCE__COMMON_OR_CROSS_DOMAIN_CHANGE_UPCALLS_UAOS",
+  "updated_at": "2026-10-16T08:39:00+08:00",
   "capabilities": [
     {"capability_id":"financial_owner_workflow","scope":"ALL_FORMAL_ARTICLE_STAGES","required":["model_runtime","GitHub_owner_read_write"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"domain_owned_article_identity_and_state","scope":"ARTICLE_CREATION_RESUME_AND_MUTATION","required":["workspaces/articles/{task_id}/STATE.json","financial_writing_agent.owner_guard"],"side_channel_allowed":false,"safe_degraded_modes":[]},
@@ -49,9 +53,11 @@
     {"capability_id":"high_judgment_generation_stages","scope":"RESEARCH,EDITORIAL,TITLE,DRAFT","required":["model_runtime","UAOS:domain_internal_work_orchestration"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"semantic_review_stages","scope":"RESEARCH_AUDIT,EDITORIAL_AUDIT,FINAL_AUDIT","assurance_ceiling":"CHAT_SELF_REVIEW_UNLESS_DISTINCT_PROVIDER_EVIDENCE","side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"delivery_and_mechanical_qa","scope":"DELIVERY,MECHANICAL_AUDIT,FINAL_OUTPUT_RECONCILIATION","required":["document_tooling","deterministic_checks"],"side_channel_allowed":false,"safe_degraded_modes":[]},
-    {"capability_id":"blocked_recovery_and_system_impact_lifecycle","scope":"BLOCKED_RECOVERY_AND_MATERIAL_FEEDBACK","required":["financial_writing_agent.owner_lifecycle"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"problem_cognition_root_scope_admission","scope":"DETECTED_PROBLEM_BEFORE_REPAIR_NO_CHANGE_OR_SYSTEM_MAINTENANCE","required":["financial_writing_agent.cognition_governance.DecisionEnvelope","root_scope_hypotheses","root_scope_receipt","evolution_disposition","problem_record_ref_when_evolution_relevant"],"assurance_ceiling":"EXECUTABLE_COGNITION_CONTRACT_AND_REGRESSION_VERIFIED_UNTIL_LIVE_ARTICLE_OBSERVATION","side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"problem_action_closure_admission","scope":"DETECTED_PROBLEM_BEFORE_TERMINAL_REPAIR_BLOCKED_OR_NO_CHANGE","required":["financial_writing_agent.problem_action_admission.finalize_problem_action","evidence_grounded_root_scope","typed_evolution_disposition","owner_authorized_repair_attempt_and_verification"],"assurance_ceiling":"EXECUTABLE_ACTION_GATE_AND_ADVERSARIAL_TRAJECTORY_REGRESSION__LIVE_ARTICLE_OBSERVATION_OPEN","side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"blocked_recovery_and_system_impact_lifecycle","scope":"BLOCKED_RECOVERY_AND_MATERIAL_FEEDBACK","required":["financial_writing_agent.owner_lifecycle","financial_writing_agent.cognition_governance.DecisionEnvelope","financial_writing_agent.problem_action_admission.finalize_problem_action"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"proactive_resolution_admission","scope":"RECOVERABLE_DEPENDENCY_BEFORE_USER_ESCALATION","required":["financial_writing_agent.proactive_resolution","owner_state_execution_receipt","behavioral_trajectory_regression"],"assurance_ceiling":"EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED_UNTIL_LIVE_ARTICLE_OBSERVATION","side_channel_allowed":false,"safe_degraded_modes":[]},
-    {"capability_id":"quality_regression_promotion_gate","scope":"SYSTEMIC_WRITING_QUALITY_CHANGE","required":["regression_evidence"],"side_channel_allowed":false,"safe_degraded_modes":[]},
+    {"capability_id":"quality_regression_promotion_gate","scope":"SYSTEMIC_WRITING_QUALITY_CHANGE","required":["root_scope_evidence","regression_evidence"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"domain_product_requirements_traceability","scope":"PRODUCT_REQUIREMENTS_ARCHITECTURE_AND_ACCEPTANCE","required":["docs/product_requirements.md","docs/architecture.md","evals/FINANCIAL_UAOS_COGNITION_EVOLUTION_PRODUCT_AUDIT_2026-10-15.md"],"side_channel_allowed":false,"safe_degraded_modes":[]}
   ]
 }
