@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-10-16T10:54:00+08:00",
+  "updated_at": "2026-10-16T10:57:14+08:00",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -9,7 +9,7 @@
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
-    "status": "DOMAIN_CANDIDATE__CI_GREEN__REVIEW_RESOLVED__READY_FOR_CONTROLLED_MERGE",
+    "status": "PROMOTED__PRODUCTION_CI_VERIFIED__LIVE_CURRENT_KERNEL_SUCCESSOR_OBSERVATION_OPEN",
     "branch": "evolution/cross-border-post-rebuild-quality-20261016",
     "selected_root_layers": ["DOMAIN_WORKFLOW", "DOMAIN_ARCHITECTURE"],
     "selected_repairs": [
@@ -23,11 +23,15 @@
       "NEW_NUMBERING_RULES"
     ],
     "parent_upcall": "evals/PARENT_GUIDANCE_HANDOFF_20261016_CROSS_BORDER_STALE_RESUME.md",
-    "candidate_final_head": "bceda4f4d8ab6243187a923e8e0c74b2d7ee9f22",
-    "candidate_ci_run": 38842709598,
-    "candidate_ci_number": 1241,
+    "candidate_final_head": "cbff7aab2bcf9720d72bd7b2a23cc80d7083567b",
+    "candidate_ci_run": 38842872462,
+    "candidate_ci_number": 1242,
     "review_threads_resolved": true,
-    "assurance": "REGRESSION_VERIFIED__LIVE_CURRENT_KERNEL_SUCCESSOR_OBSERVATION_OPEN"
+    "production_commit": "3d6efedf3f60e14b81c59a5eb269e2d645b3075c",
+    "production_ci_run": 38842971917,
+    "production_ci_number": 1243,
+    "result": "PASS",
+    "assurance": "PRODUCTION_REGRESSION_VERIFIED__LIVE_CURRENT_KERNEL_SUCCESSOR_ARTICLE_QUALITY_OBSERVATION_OPEN"
   },
   "recent_resolved_or_promoted": [
     {
@@ -62,7 +66,7 @@
   ],
   "historical_notes": [
     "PR#38 and PR#39 were parallel candidates from the same production baseline; PR#40 is the explicit consolidated promotion path.",
-    "Business runtime release 1.0.1 and Financial article identity/state semantics remain current until the new candidate is promoted.",
-    "Live article behavior/quality remains an observation scope and is not claimed by CI evidence."
+    "Financial Writing 1.0.2 is the current production runtime after PR#42 promotion; historical article receipts remain immutable provenance rather than current-quality assurance.",
+    "Live current-kernel successor article behavior/quality remains the open observation scope and is not claimed by CI evidence."
   ]
 }
