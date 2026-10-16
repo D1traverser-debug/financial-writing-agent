@@ -1,8 +1,8 @@
 # Maintenance — Cognition, Decision and Governed Evolution
 
-Revision: `1.2`
+Revision: `1.3`
 Candidate extension: `2.0-candidate`
-Updated: `2026-10-15`
+Updated: `2026-10-16`
 Owner: `DOMAIN:financial_writing`
 
 ## Purpose
@@ -13,12 +13,13 @@ Maintenance governs how problems, feedback, learned methods, failed outputs and 
 
 Do not move directly from a suggested fix to production mutation.
 
-`signal -> cognition -> research/evidence -> assumption challenge -> alternatives -> counterexamples -> DecisionEnvelope -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`
+`signal -> canonical UAOS cognition -> Financial evidence/decision admission as applicable -> DecisionEnvelope -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`
 
 User-observed failure and desired outcome are high-weight evidence. A proposed mechanism remains a candidate unless it is itself an explicit requirement.
 
 ## Authority surfaces
 
+- `D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json` — canonical generic problem cognition
 - `UAOS_SKILL.md`
 - `docs/product_requirements.md`
 - `docs/architecture.md`
@@ -36,21 +37,25 @@ User-observed failure and desired outcome are high-weight evidence. A proposed m
 - `financial_writing_agent/quality_regression.py`
 - `workspaces/articles/{task_id}`
 
-No second Financial controller/state machine is allowed.
+No second Financial controller/state machine is allowed. Financial must not copy the parent cognition algorithm into a local floor or fixed activation rule.
 
-## Always-on cognition
+## Inherited problem cognition
 
-Any detected problem activates the UAOS-hosted cognition floor.
+Any detected problem activates the current UAOS canonical cognition kernel through `DELIBERATION_POLICY.json`. Research depth is risk-adaptive rather than a fixed local checklist:
 
-Every defect, correction/rejection, degraded outcome, contradiction, repeated repair or unreliable-goal signal requires micro diagnosis, macro/topology alignment, a governing-assumption challenge and relevant external research. Material/systemic problems add counterexamples, compare at least two credible alternatives and stronger verification. Familiarity is not a waiver.
+- `LIGHTWEIGHT`: may resolve from sufficient current evidence when uncertainty/risk does not justify broader search.
+- `CONTRASTIVE`: compares credible competing frames/alternatives and seeks disconfirming evidence proportionate to the decision.
+- `STRUCTURED`: uses targeted external method/architecture research, upstream/cross-layer hypotheses and stronger falsification/verification when materiality or systemic risk requires it.
 
-Ordinary material business judgments require evidence, alternatives, counterexamples, saturation and verification; heavy architecture research is additionally mandatory when the problem or architecture/governance scope calls for it.
+Financial does not locally redefine those parent stages or activation thresholds. Familiarity alone is neither a waiver nor a reason to force heavyweight research.
+
+Financial business research is separate from generic problem cognition and may be stricter. Material article judgments retain evidence, alternatives, counterexamples, saturation and verification; Financial architecture/governance changes may require external method evidence under the Financial-owned decision contract.
 
 ## Decision and search
 
-Material judgments retain objective, evidence/source families, challenged assumptions, alternatives, fit/misfit, counterexamples, rejected paths, selected rationale, saturation, verification plan, unknowns and knowledge/evolution disposition.
+Material Financial judgments retain objective, evidence/source families, challenged assumptions, alternatives, fit/misfit, counterexamples, rejected paths, selected rationale, saturation, verification plan, unknowns and knowledge/evolution disposition.
 
-Search across materially different source families. Stop only after two consecutive sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation. Never claim literal exhaustive internet coverage.
+When Financial-owned research is required, search across materially different source families. Stop only after two consecutive sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation. Never claim literal exhaustive internet coverage.
 
 ## Knowledge
 
@@ -74,7 +79,7 @@ A confirmed problem ends in repair attempted/executed, a concrete blocker/requir
 
 ## Durable problem/evolution history
 
-Every encountered problem must appear in durable history when material to system behavior or future decisions. Preserve symptom, source, diagnosis, challenged assumption, research evidence, alternatives/rejected paths, selected action, verification, result/unknowns/rollback conditions and parent-upcall status.
+Every encountered problem must appear in durable history when material to system behavior or future decisions. Preserve symptom, source, diagnosis, challenged assumption, research/evidence used when required by the selected cognition depth or Financial decision contract, alternatives/rejected paths, selected action, verification, result/unknowns/rollback conditions and parent-upcall status.
 
 Do not rewrite the journal into a success-only narrative. Failures remain visible after repair.
 
