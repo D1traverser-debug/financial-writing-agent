@@ -1,6 +1,6 @@
 {
-  "schema_version": "2.9",
-  "profile_version": 20,
+  "schema_version": "3.0",
+  "profile_version": 21,
   "domain_id": "financial_writing",
   "policy": "CURRENT_SESSION_CAPABILITY_HANDSHAKE__NO_SIDE_CHANNEL__NO_SILENT_DEGRADATION",
   "uaos_common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
@@ -26,10 +26,8 @@
     "version_and_timestamp_provenance"
   ],
   "hosted_cognition_semantics": {
-    "problem_response_floor": ["MICRO_DIAGNOSIS", "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT", "GOVERNING_ASSUMPTION_CHALLENGE", "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"],
-    "root_scope_admission": "PROBLEM_TRIGGERED_DECISION_REQUIRES_EVIDENCE_TESTED_ROOT_HYPOTHESIS__SYSTEMIC_SIGNAL_REQUIRES_CROSS_LAYER_UPSTREAM_TEST_AND_REJECTED_ALTERNATIVE__USER_OR_EXTERNAL_FRAMING_NOT_ROOT_CAUSE_AUTHORITY",
-    "rule": "EVERY_DETECTED_PROBLEM_REQUIRES_RESEARCH_AND_REFLECTION__ROOT_SCOPE_BEFORE_ACTION__PROBLEM_SIZE_CHANGES_DEPTH_NOT_ACTIVATION",
-    "risk_adds": ["COUNTEREXAMPLE_SEARCH", "INDEPENDENT_VERIFICATION"]
+    "source": "CURRENT_UAOS_DELIBERATION_POLICY",
+    "local_overrides": "NONE"
   },
   "hosted_behavior_semantics": {
     "recover_before_user_escalation": "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION",
@@ -40,7 +38,7 @@
   },
   "domain_evolution_role": "DOMAIN_EVIDENCE_EVAL_AND_BUSINESS_OWNER_PROMOTION",
   "domain_evolution_semantics": "EVERY_PROBLEM_EVALUATED_FOR_LEARNING_IMPACT__DOMAIN_RULE_PROMOTION_REQUIRES_SCOPE_ROOT_CAUSE_AND_REGRESSION_EVIDENCE__COMMON_OR_CROSS_DOMAIN_CHANGE_UPCALLS_UAOS",
-  "updated_at": "2026-10-16T10:52:42+08:00",
+  "updated_at": "2026-10-16T16:19:38+08:00",
   "capabilities": [
     {"capability_id":"financial_owner_workflow","scope":"ALL_FORMAL_ARTICLE_STAGES","required":["model_runtime","GitHub_owner_read_write"],"side_channel_allowed":false,"safe_degraded_modes":[]},
     {"capability_id":"domain_owned_article_identity_and_state","scope":"ARTICLE_CREATION_RESUME_AND_MUTATION","required":["workspaces/articles/{task_id}/STATE.json","financial_writing_agent.owner_guard"],"side_channel_allowed":false,"safe_degraded_modes":[]},
