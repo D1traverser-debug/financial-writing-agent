@@ -1,5 +1,5 @@
 {
-  "schema_version": "4.1-candidate",
+  "schema_version": "4.2-candidate",
   "domain_id": "financial_writing",
   "product_path": "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE",
   "authority": {
@@ -29,8 +29,10 @@
     "common_capabilities_contract_min": "1.6.0",
     "common_behavior_assurance_contract_min": "1.3.0",
     "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
-    "problem_response_floor": ["MICRO_DIAGNOSIS", "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT", "GOVERNING_ASSUMPTION_CHALLENGE", "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH"],
-    "problem_floor_activation": "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER",
+    "problem_cognition_owner": "CURRENT_UAOS_DELIBERATION_POLICY",
+    "problem_cognition_inheritance": "POINTER_ONLY__NO_COPIED_PARENT_ALGORITHM",
+    "problem_cognition_rule": "RISK_ADAPTIVE__LIGHTWEIGHT_MAY_USE_CURRENT_EVIDENCE__CONTRASTIVE_COMPARES_ALTERNATIVES__STRUCTURED_REQUIRES_EXTERNAL_RESEARCH_AND_UPSTREAM_FALSIFICATION",
+    "financial_business_research_is_separate_from_generic_problem_cognition": true,
     "material_problem_escalation": ["COUNTEREXAMPLE_SEARCH", "STRONGER_VERIFICATION_AS_RISK_REQUIRES"],
     "user_feedback_semantics": "HIGH_WEIGHT_EVIDENCE__NOT_AUTOMATIC_RULE_AUTHORITY",
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_FINANCIAL_BUSINESS_RULES",
@@ -156,7 +158,9 @@
     "common_or_cross_domain_change_uses_parent_upcall": true
   },
   "problem_and_evolution": {
-    "every_problem_requires_external_research_and_reflection": true,
+    "generic_problem_cognition_owner": "CURRENT_UAOS_DELIBERATION_POLICY",
+    "generic_problem_cognition_is_copied_locally": false,
+    "financial_material_judgment_may_require_stricter_domain_evidence": true,
     "material_negative_feedback_requires_system_impact_signal": true,
     "one_off_observation_auto_promotes_to_global_rule": false,
     "systemic_change_requires_regression_or_eval_evidence": true,
