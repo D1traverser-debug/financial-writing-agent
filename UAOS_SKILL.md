@@ -21,21 +21,30 @@ For material work read `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CAPAB
 Lifecycle:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`.
 
-New tasks use `financial_writing_agent.current_admission`, bind `writing_kernel_version=1.0` and `private_research_contract_version=1.0`, and require:
+New tasks use `financial_writing_agent.current_admission`, bind `writing_kernel_version=1.0` and `private_research_contract_version=1.1`, and require:
 - leaving `RESEARCH`: admitted material `DecisionEnvelope` and admitted `PrivateResearchBrief`;
 - leaving `EDITORIAL`: required Deep/Broad `StoryBlueprint`;
 - `EDITORIAL_AUDIT` PASS/REVISE: product-specific `PublicationFitness`.
 A naked review file, side research document or chat claim plus `PASS` is not current quality evidence.
 
-Historical/current states created before the private-research marker remain valid provenance and are not retroactively rewritten. Before material continuation of a state without the current writing-kernel marker, use `financial_writing_agent.resume_compatibility.require_material_resume_admission`: ordinary/current-quality continuation requires a current successor; explicit provenance-only continuation cannot inherit current semantic assurance.
+Historical/current states created with private-research contract 1.0 remain valid provenance and continue to validate against the original 1.0 module set. New tasks may not downgrade to 1.0 to bypass the 1.1 research jobs. Before material continuation of a state without the current writing-kernel marker, use `financial_writing_agent.resume_compatibility.require_material_resume_admission`: ordinary/current-quality continuation requires a current successor; explicit provenance-only continuation cannot inherit current semantic assurance.
 
 ## Business invariants
 
 For material thematic/company work, Research performs prior cognition recall, value-chain preflight, listed-company universe recall, current evidence expansion, adversarial/counterexample search, auditable saturation, private-research synthesis, competing-thesis adjudication and Company Decision Map where applicable. Thesis selection follows value-chain coverage; late material discovery invalidates convergence.
 
-`PrivateResearchBrief` is mandatory for new tasks and follows `references/private_research.md`. It is the comprehensive private analytical layer, not a public article outline. It must preserve, as applicable, full economic/market universe coverage, company-level exposure and realization, valuation/liquidity context, catalyst state, benefit tiers, short-horizon role hypotheses, market-position evidence, counterfactual company comparisons, falsification/negative cases, scenario/verification logic and publication distillation. A company list, score table or several representative names is not equivalent. `business strongest` and `most likely short-horizon market core` are separate judgments.
+`PrivateResearchBrief` is mandatory for new tasks and follows `references/private_research.md`. It is the comprehensive private analytical layer, not a public article outline. As applicable it preserves:
+- full economic/market universe coverage and company-level realization;
+- market cap/liquidity and current market-position evidence;
+- an evidence-bounded ledger of all materially relevant event/policy catalysts under the declared scope, including chronological tightening/easing/suspension/extension/retaliation/exemption phases;
+- driver, sustainability, market operability and concept/sector mapping;
+- benefit tiers and short-horizon role hypotheses;
+- within-segment counterfactual comparison followed by a second-stage cross-segment global selection under current liquidity/sentiment constraints;
+- falsification/negative cases, scenario/verification logic and publication distillation.
 
-Prefer free or already-available authoritative tools/sources when sufficient; paid/external crawling is justified only when it materially closes a coverage gap. Tool cost never authorizes invented evidence.
+A company list, score table or several representative names is not equivalent. `business strongest`, `most durable` and `most likely short-horizon market core` are separate judgments. Role vocabulary is not a quota: one company may combine roles, or constrained liquidity may support only one true core.
+
+Prefer free or already-available authoritative tools/sources when sufficient; for policy/events prefer primary government/regulator/exchange/company sources. Paid/external crawling is justified only when it materially closes a coverage gap. Tool cost never authorizes invented evidence.
 
 `DecisionEnvelope` requires evidence beyond user assertion, credible alternatives, challenged assumptions, counterexamples, rejected paths, selected rationale, saturation and verification. Problem/architecture decisions also require relevant external method evidence. User feedback is high-weight evidence, not automatic rule authority.
 
@@ -44,11 +53,12 @@ Substantive long-form work uses `StoryBlueprint`. For `FINANCE_DEEP`, research c
 - publication is not the research directory;
 - omitted researched classes require `CORE`, `SUPPORT`, or `OMIT_WITH_REASON` scope accounting;
 - Deep retains named company/case grounding, contiguous Chinese H1 numbering and no arbitrary default word ceiling;
+- when research identifies material alternatives, Deep should carry the decisive causal comparison — why A/B or one branch/another has stronger transmission, realization or durability — rather than publish parallel company mini-profiles;
 - private machinery such as universe bookkeeping, internal scores or tactical role maps stays out of copy unless it materially improves the reader product.
 
 For event-led finance stories, `EVENT_TO_COMPANY` requires each material section to bind:
 `trigger/change -> mechanism -> company exposure -> operating/financial expression -> verification/reversal condition`.
-A company name alone is not causal grounding.
+A company name alone is not causal grounding. Policy-led copy must reflect the material chronology in the admitted event/policy ledger rather than a superseded phase.
 
 `FINANCE_BROAD` is an independent acquisition rebuild, not shortened Deep.
 
