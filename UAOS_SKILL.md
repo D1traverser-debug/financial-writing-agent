@@ -11,7 +11,7 @@ UAOS owns cross-domain governance/common capabilities. Financial owns article id
 
 ## Bootstrap
 
-After selecting Financial Writing, use `DOMAIN:financial_writing` directly; normal business turns do not traverse a live UAOS proxy.
+A fresh chat may select Financial Writing directly. Once selected, use `DOMAIN:financial_writing` directly; normal business turns do not traverse a live UAOS proxy.
 
 Before material work read `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CAPABILITIES.json`, `config/EXECUTION_CONTRACT.json`, then only current-stage references. Binding drift blocks affected work.
 
