@@ -75,19 +75,27 @@ def main() -> None:
         "adaptive_deliberation_and_parent_guidance",
         "governed_self_evolution",
     }.issubset(required)
-    assert caps["hosted_cognition_semantics"]["problem_response_floor"] == [
-        "MICRO_DIAGNOSIS",
-        "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
-        "GOVERNING_ASSUMPTION_CHALLENGE",
-        "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
-    ]
-    assert "ROOT_SCOPE_BEFORE_ACTION" in caps["hosted_cognition_semantics"]["rule"]
+    assert caps["uaos_deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json")
+    cognition = caps["hosted_cognition_semantics"]
+    assert cognition == {
+        "source": "CURRENT_UAOS_DELIBERATION_POLICY",
+        "local_overrides": "NONE",
+    }
+    assert "problem_response_floor" not in cognition
+    assert "problem_response_rule" not in cognition
     assert caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION"
     assert "ROOT_HYPOTHESIS_SUPPORT" in caps["hosted_behavior_semantics"]["root_scope_action_grounding"]
     assert "RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
-    assert execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True
-    assert execution["problem_and_evolution"]["one_off_observation_auto_promotes_to_global_rule"] is False
-    assert execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True
+    hosted = execution["hosted_governance"]
+    assert hosted["problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY"
+    assert hosted["problem_cognition_inheritance"] == "POINTER_ONLY__NO_COPIED_PARENT_ALGORITHM"
+    assert hosted["financial_business_research_is_separate_from_generic_problem_cognition"] is True
+    problem = execution["problem_and_evolution"]
+    assert problem["generic_problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY"
+    assert problem["generic_problem_cognition_is_copied_locally"] is False
+    assert problem["financial_material_judgment_may_require_stricter_domain_evidence"] is True
+    assert problem["one_off_observation_auto_promotes_to_global_rule"] is False
+    assert problem["systemic_change_requires_regression_or_eval_evidence"] is True
 
     capability_map = {cap["capability_id"]: cap for cap in caps["capabilities"]}
     assert "domain_owned_article_identity_and_state" in capability_map
@@ -114,7 +122,7 @@ def main() -> None:
 
     print(
         "PASS: Financial owns article/product authority, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, "
-        "and verifies one cognition/root-scope model plus owner-native action closure admission"
+        "inherits current UAOS cognition by pointer only, and verifies owner-native root-scope/action closure admission"
     )
 
 
