@@ -7,7 +7,7 @@ scope: publishable A-share financial content
 
 Controller/common authority: `D1traverser-debug/universal-agent-os@main`. Financial business authority: this repository on `main` after controlled promotion.
 
-UAOS owns cross-domain governance/common capabilities. Financial Writing owns article identity/state, product requirements, research/writing architecture, business/output contracts, domain evolution evidence and deliverables. Parent/router IDs and Financial article IDs have no equality requirement; `TaskContract` is identity-free.
+UAOS owns cross-domain governance/common capabilities. Financial Writing owns article identity/state, product requirements, research/writing architecture, business/output contracts, domain evolution evidence and deliverables. Parent/router IDs and Financial article IDs have no equality requirement; `TaskContract` is intentionally identity-free.
 
 ## Start and authority
 
@@ -65,6 +65,10 @@ Originality is evidence-bound; close paraphrase/patchwriting requires revision. 
 Load progressively: research/cognition `references/research.md`, `references/private_research.md`, `references/knowledge.md`; audit `references/audit.md`, `references/reader_value.md`; editorial/title/draft `references/editorial.md`, `references/hooks.md`, `references/style.md`; market explanation `references/market_explanation.md`; platform `references/platforms.md`; delivery `references/delivery.md`; evolution `references/maintenance.md`, `references/proactive_resolution.md`.
 
 New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`, `AUDIT_DOCX`. Buy/sell, entry timing, target price, position sizing and covert equivalents remain prohibited.
+
+## Parent cognition binding and domain problem closure
+
+Parent cognition/search depth is owned by current UAOS `config/DELIBERATION_POLICY.json`; this Skill defines no parent cognition floor. Financial retains only domain-native evidence/root-scope/evolution/action gates.
 
 ## Executable proactive resolution before user escalation
 
