@@ -25,12 +25,17 @@ Confirm hosted UAOS capability/behavior-assurance bindings before material work.
 
 `financial-writing:main` is a selector/router entry, not an article task. Financial creates and owns its own `task_id` and `STATE.json`.
 
-## Workflow and current admission
+## Workflow, current admission and historical-resume compatibility
 
 Stable external lifecycle:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`
 
-New current tasks use `financial_writing_agent.current_admission`, which binds `writing_kernel_version=1.0` and delegates state-transition semantics to `owner_guard.py` while adding fail-closed quality admission. Historical states without the marker remain readable/resumable through `owner_guard.py`; do not rewrite historical receipts to manufacture 1.0 evidence.
+New current tasks use `financial_writing_agent.current_admission`, which binds `writing_kernel_version=1.0` and delegates state-transition semantics to `owner_guard.py` while adding fail-closed quality admission.
+
+Historical states remain immutable/readable provenance, but **historical resumability is not current-quality equivalence**. Before any material continuation of a state that lacks the current writing-kernel marker, apply `financial_writing_agent.resume_compatibility.require_material_resume_admission`:
+- ordinary/current-quality continuation => `CURRENT_SUCCESSOR_REQUIRED`; create a fresh current-kernel successor/replay instead of advancing the old semantic state;
+- explicit historical/provenance-only continuation => `HISTORICAL_PROVENANCE_ONLY`; it may use historical semantics but must not inherit current DecisionEnvelope/StoryBlueprint/PublicationFitness assurance;
+- never rewrite historical receipts to manufacture current quality evidence.
 
 Current hard admissions:
 - leaving `RESEARCH`: admitted material `DecisionEnvelope`;
@@ -57,11 +62,25 @@ For material thematic/company work, Research performs prior cognition recall, ma
 
 `DecisionEnvelope` requires evidence beyond user assertion, credible alternatives, challenged assumptions, counterexamples, rejected paths, selected rationale, saturation and verification. Problem-triggered or architecture/governance decisions additionally require relevant external method/architecture research. User feedback is high-weight evidence, not automatic rule authority.
 
-Substantive long-form work uses `StoryBlueprint`. `FINANCE_DEEP` preserves material value-chain/company coverage, uses named company/case grounding where available, explicit contiguous Chinese H1 numbering and no default word ceiling. `FINANCE_BROAD` is independently rebuilt for acquisition, not shortened Deep.
+Substantive long-form work uses `StoryBlueprint`.
+
+For `FINANCE_DEEP`, **research completeness and publication selectivity are separate contracts**:
+- Research must still map the material value chain and material company universe before thesis selection.
+- Publication is not a dump of the research map. If every researched material class is genuinely selected, full coverage is legal. If any researched material class is omitted from copy, `publication_scope_decisions` must account for every researched class as `CORE`, `SUPPORT`, or `OMIT_WITH_REASON`, with evidence and rationale.
+- A class marked `OMIT_WITH_REASON` must not silently appear as a full article branch; omission never erases the research evidence.
+- Deep retains named company/case grounding, explicit contiguous Chinese H1 numbering and no arbitrary default word ceiling.
+
+For event-led finance stories, use the `EVENT_TO_COMPANY` narrative engine when the article's explanatory burden is event transmission into listed-company economics. Every material section under that engine requires a typed causal chain:
+`trigger/change -> mechanism -> company exposure -> operating/financial expression -> verification/reversal condition`.
+A named-company mention without that transmission is not sufficient causal grounding.
+
+`FINANCE_BROAD` is independently rebuilt for acquisition, not shortened Deep.
 
 Current publication fitness gates are `FACT_INTEGRITY`, `RETENTION`, `COMPANY_GROUNDING`, `STRUCTURE_NUMBERING`, `ORIGINALITY`, `AUTHORIAL_STYLE`, `COMPLIANCE`, `PAYOFF`. Each semantic gate needs text-location/excerpt/finding evidence; MAJOR/CRITICAL findings cannot PASS. Same-session critics remain `CHAT_SELF_REVIEW`.
 
-Natural prose is voice/material/story first. Generic scaffolding is diagnostic when clustered/unearned, not a one-token ban. Research sources are evidence, not prose templates; close paraphrase/patchwriting requires revision.
+Originality is evidence-bound, not asserted. Current PublicationFitness requires source-compared `OriginalityEvidence`; close paraphrase/patchwriting requires revision. Same-chat phrase intuition or “looks original” is not proof of zero plagiarism.
+
+Natural prose is voice/material/story first. Generic scaffolding is diagnostic when clustered/unearned, not a one-token ban. Do not convert anti-AI feedback into a generation template or humanizer pass.
 
 ## Current product contract
 
@@ -78,6 +97,8 @@ Historical `DUAL` and `FINANCE_BROAD` meanings remain immutable. Buy/sell, entry
 Every detected defect, user correction/rejection, degraded outcome, contradiction, repeated repair or unreliable goal satisfaction triggers micro diagnosis, macro goal/topology alignment, governing-assumption challenge and relevant external research. Material problems add alternatives/counterexamples and stronger verification. Familiarity is not a waiver.
 
 If an owner-authorized repair is currently available and no required user fact/approval/authorization/safety choice blocks it, attempt the repair before ending the turn. Recommendation-only is not valid closure for a repairable problem.
+
+Do not translate a user rejection directly into universal rules. Persist it as evidence, compare local/workflow/architecture/common-capability hypotheses, admit root scope, then choose `LOCAL_REPAIR`, `DOMAIN_CANDIDATE`, `PARENT_UPCALL`, or evidence-backed `NO_CHANGE` before action.
 
 ## Executable proactive resolution before user escalation
 
