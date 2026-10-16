@@ -5,7 +5,7 @@ Stage: `RESEARCH`
 Successor of negative evidence: `cross-border-ecommerce-20261015`
 Writing kernel: `1.0`
 DecisionEnvelope: `research/DECISION_ENVELOPE.json`
-DecisionEnvelope SHA-256: `39d5520ab3c3be0666e8108eba8660c9c2f4863d606ccfaaa0be62f2c613ae97`
+DecisionEnvelope SHA-256: `0f56da823fb6f5f1c2d2a19bfe2d0dea226875af0314a681c94054d130a61fc5`
 Assurance: `CURRENT_PUBLIC_INFORMATION + FIRST_PARTY_GOVERNMENT/REGULATOR + COMPANY_DISCLOSURES + CHAT_SELF_REVIEW`
 
 ## 一、核心研究问题
