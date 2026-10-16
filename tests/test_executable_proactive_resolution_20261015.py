@@ -1,6 +1,6 @@
 import pytest
 
-from financial_writing_agent.owner_guard import build_initial_state
+from financial_writing_agent.current_admission import build_initial_state
 from financial_writing_agent.proactive_resolution import (
     ProactiveResolutionError,
     proactive_resolution_disposition,
@@ -54,6 +54,7 @@ def test_missing_best_voice_sample_continues_with_provisional_candidate_instead_
     latest = state["proactive_resolution_history"][-1]
     assert latest["attempted_sources"][0] == "durable_user_corrections"
     assert state["execution_receipts"][-1]["capability_id"] == "financial_owner_proactive_resolution_admission"
+    assert state["execution_receipts"][-1]["input_bindings"]["task_requirement_contract_version"] == "1.0"
 
     with pytest.raises(ProactiveResolutionError, match="continue with that evidence-bound result"):
         require_user_escalation_admission(
