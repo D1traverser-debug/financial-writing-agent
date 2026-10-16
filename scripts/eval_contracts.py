@@ -130,16 +130,31 @@ def main() -> None:
     assert "market_cap_and_liquidity" in private_ref
     assert "short_horizon_role_map" in private_ref
     assert "counterfactual_company_comparison" in private_ref
+    assert "material_catalyst_and_policy_ledger" in private_ref
+    assert "driver_sustainability_operability_and_concept_map" in private_ref
+    assert "cross_segment_global_selection" in private_ref
     assert "publication_distillation" in private_ref
+    assert "all known materially relevant events" in private_ref
+    assert "global selection conclusion" in private_ref
 
     uaos_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
-    assert "private_research_contract_version=1.0" in uaos_skill
+    assert "private_research_contract_version=1.1" in uaos_skill
     assert "PrivateResearchBrief" in uaos_skill
     assert "references/private_research.md" in uaos_skill
+    assert "cross-segment global selection" in uaos_skill
+
+    editorial = (ROOT / "references/editorial.md").read_text(encoding="utf-8")
+    assert "Comparative logic" in editorial
+    assert "why A has stronger/weaker transmission" in editorial
+
+    audit = (ROOT / "references/audit.md").read_text(encoding="utf-8")
+    assert "cross-segment global selection" in audit
+    assert "material event/policy ledger" in audit
 
     print(
         "PASS: Financial owns article/product authority, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, "
-        "enforces the private-research admission surfaces, inherits current UAOS cognition by pointer only, and verifies owner-native root-scope/action closure admission"
+        "enforces private-research contract 1.1 with material catalyst coverage and global selection, preserves 1.0 historical compatibility, "
+        "inherits current UAOS cognition by pointer only, and verifies owner-native root-scope/action closure admission"
     )
 
 
