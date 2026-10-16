@@ -7,11 +7,13 @@ Owner: `DOMAIN:financial_writing`
 
 Research exists to build the strongest evidence-bounded model of a topic before publication choices are made. It is broader than the final article. Research must not hide a material value-chain branch merely because the eventual article selects a narrower story.
 
+For new marker-enabled Financial tasks, Research also produces a durable `PrivateResearchBrief`. This is the private analytical workbench from which the public article is distilled; it is not optional supplementary prose.
+
 ## Mandatory choreography
 
 For normal thematic/company work, current Research follows:
 
-`prior cognition recall -> value-chain preflight -> company/universe recall -> current evidence expansion -> adversarial/disconfirming search -> search saturation -> thesis competition/adjudication -> company decision map -> research audit`
+`prior cognition recall -> value-chain preflight -> company/universe recall -> current evidence expansion -> adversarial/disconfirming search -> search saturation -> private research synthesis -> thesis competition/adjudication -> company decision map -> research audit`
 
 The order is semantic, not cosmetic.
 
@@ -44,6 +46,8 @@ For every material value-chain class, search for listed-company candidates rathe
 
 For material companies retain positive and negative evidence, exposure type, benefit path, sensitivity basis, realization horizon, adverse variables and why-this/why-not reasoning.
 
+When market labels materially differ from economic exposure, retain both an economic-substance universe and a market/concept-label universe. Do not silently delete weak-tag companies; classify why they are weak, indirect or excluded.
+
 ### 4. Current evidence expansion
 
 Prefer the strongest evidence available for the claim:
@@ -59,6 +63,8 @@ Separate:
 - `UNRESOLVED`.
 
 Current policy, tariffs, platform rules, financials, orders, guidance, market share, price/flow/attention and management language must be timestamped and revalidated whenever materially used.
+
+Prefer free or already-available authoritative tools/sources when they are sufficient. Paid/external crawling is a fallback for material coverage gaps, not a default substitute for public interfaces, filings or connected market-data tools.
 
 ## Comprehensive search, falsification and layered candidate selection
 
@@ -86,7 +92,29 @@ For a material thesis or method decision:
 
 A later material discovery invalidates saturation and requires re-adjudication.
 
-### 7. Layered selection ladder
+### 7. Private Research Brief — mandatory for new marker-enabled tasks
+
+Before leaving RESEARCH, produce and admit the contract defined in `references/private_research.md`.
+
+Every brief contains all required modules, with each module marked `APPLICABLE` or `NOT_MATERIAL` with a reason. For ordinary A-share thematic/company work where short-horizon market behavior matters, the market modules are normally applicable and must be evidence-backed rather than waived.
+
+The brief must cover, as applicable:
+- complete evidence-bounded company/value-chain coverage;
+- company-level business granularity and realization stage;
+- total/float market cap and liquidity for material short-horizon candidates;
+- catalyst strength, freshness and expectation/implementation state;
+- direct/first-order/second-order/weak/negative benefit tiers;
+- short-horizon role hypotheses: pioneer, sentiment high/space leader, theme leader, capacity middle-army/trend leader, branch leader, assist, card-position competitor, catch-up, follower and eliminated candidate;
+- market sentiment/height/promotion structure and stock-character evidence;
+- explicit `why A rather than B` counterfactual comparisons;
+- negative/falsification pool;
+- catalyst-specific scenario trees;
+- next-window confirmation and falsification conditions;
+- publication distillation: what must inform Deep/Broad and what should remain private.
+
+A company list, one composite score or a handful of representative names is not equivalent to this brief.
+
+### 8. Layered selection ladder
 
 Do not promote the first plausible explanation. Move candidates through a Layered selection ladder:
 1. discovered/recalled candidates;
@@ -101,11 +129,13 @@ For each credible candidate record mechanism, advantages, failure modes, fit/mis
 
 Use `financial_writing_agent.cognition_governance.DecisionEnvelope` for material judgments. User feedback may trigger or inform a candidate, but cannot be the sole evidence for a material decision. If the judgment is problem-triggered or changes architecture/governance, external method/architecture research is additionally mandatory.
 
-### 8. Company Decision Map
+### 9. Company Decision Map
 
 Two or more `MATERIAL` companies require a Company Decision Map. Dimensions are topic-specific, such as business purity, scale/mix, realization speed, margin sensitivity, evidence strength, capital intensity, inventory/FX exposure or adverse variables.
 
 The map must end in a named, evidence-bounded comparative verdict and explicit conditions that would change it. It must not become buy/sell/timing/target/position advice.
+
+The map and private brief are related but not interchangeable: the Company Decision Map adjudicates material companies; the private brief also preserves the broader universe, catalyst ladder, market roles, rejected paths and publication-distillation boundary.
 
 ## Coverage states
 
@@ -115,7 +145,7 @@ Research coverage requires at least two meaningful sweeps. A high source count i
 
 ## Market explanation
 
-When market-price/leadership/cross-sectional behavior is material to the requested article, build competing market-explanation hypotheses and distinguish evidence from narrative. When it is not material, explicitly mark the scope `NOT_MATERIAL` rather than fabricating a market explanation.
+When market-price/leadership/cross-sectional behavior is material to the requested article or private analysis, build competing market-explanation hypotheses and distinguish evidence from narrative. When it is genuinely not material, the corresponding PrivateResearchBrief market module may be `NOT_MATERIAL` only with an explicit reason; do not fabricate a market explanation.
 
 ## Output contract
 
@@ -126,10 +156,12 @@ Current Research must support:
 - company universe + coverage ledger;
 - evidence ledger;
 - counterevidence and unresolved gaps;
+- admitted `PrivateResearchBrief` for marker-enabled new tasks;
 - candidate theses + Decision Envelope;
 - Company Decision Map when applicable;
 - market cognition/explanation when applicable;
 - search saturation evidence;
+- publication-distillation decisions;
 - knowledge writeback candidates.
 
-Research is complete only when these artifacts are sufficient for an adversarial Research Audit; source volume or prose length alone is not completion evidence.
+Research is complete only when these artifacts are sufficient for an adversarial Research Audit; source volume, prose length or a concept-stock list alone is not completion evidence.
