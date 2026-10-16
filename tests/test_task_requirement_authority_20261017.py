@@ -72,7 +72,7 @@ def test_requirement_change_is_task_authority_not_feedback_and_stage_receipts_bi
     assert receipt["task_requirement_digest"] == advanced["task_requirement_digest"]
 
 
-def test_late_requirement_change_rolls_back_to_earliest_affected_stage():
+def test_late_requirement_change_reexecutes_current_affected_stage():
     state = _state()
     state = advance_state(
         state,
@@ -85,15 +85,28 @@ def test_late_requirement_change_rolls_back_to_earliest_affected_stage():
         state,
         previous_state_blob_sha="b" * 40,
         executor_identity=EXECUTOR,
-        evidence_ref="chat://user/requirement-intake",
-        upserts=[_req(requirement_id="scope-reset", stage="INTAKE", statement="任务范围发生变化")],
+        evidence_ref="chat://user/requirement-research",
+        upserts=[_req(requirement_id="scope-reset", stage="RESEARCH", statement="研究范围发生材料性变化")],
     )
-    assert changed["current_stage"] == "INTAKE"
+    assert changed["current_stage"] == "RESEARCH"
     assert changed["status"] == "IN_PROGRESS"
+    assert "re-execute RESEARCH" in changed["next_action"]
     assert "revision 1" in changed["next_action"]
     latest = changed["execution_receipts"][-1]
     assert latest["capability_id"] == "github_chat_requirement_governance"
-    assert latest["input_bindings"]["affected_from_stage"] == "INTAKE"
+    assert latest["input_bindings"]["affected_from_stage"] == "RESEARCH"
+
+
+def test_requirement_cannot_invent_noncanonical_invalidation_target():
+    state = _state()
+    with pytest.raises(CurrentAdmissionError, match="unsupported affects_from_stage"):
+        apply_task_requirement_change(
+            state,
+            previous_state_blob_sha="a" * 40,
+            executor_identity=EXECUTOR,
+            evidence_ref="chat://user/requirement-intake",
+            upserts=[_req(requirement_id="invalid-target", stage="INTAKE", statement="不能发明新的回退拓扑")],
+        )
 
 
 def test_requirement_authority_tamper_is_detected():
