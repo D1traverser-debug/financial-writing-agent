@@ -1,74 +1,91 @@
 # Financial Writing Agent — Architecture
 
-Version: `1.0.0-candidate`
-Date: `2026-10-15`
-Status: `CANDIDATE_REBUILD`
+Version: `1.0.2-candidate`
+Date: `2026-10-16`
+Status: `DOMAIN_CANDIDATE`
 
 ## 1. Product boundary
 
-Financial Writing is one domain/business owner under UAOS. UAOS owns common governance, cross-domain authority, parent continuity and the shared cognition/evolution method. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is one domain/business owner under UAOS. UAOS owns common governance, cross-domain authority, parent continuity and shared cognition/evolution methods. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
 - no parent/child task-id equality requirement;
-- historical states/receipts and legacy distribution semantics remain immutable provenance;
+- historical state/receipts and legacy product semantics remain immutable provenance;
+- historical provenance does not imply current-quality equivalence after a semantic-generation change;
 - no mandatory live UAOS business proxy for normal Financial work;
 - compliance, evidence integrity and owner-controlled mutation remain fail-closed.
 
-## 2. Why the writing kernel changes
+## 2. Why 1.0.2 changes the 1.0 architecture
 
-The prior system accumulated many useful rules but allowed the same execution context to draft and then certify itself with broad PASS labels. The cross-border-ecommerce rejection showed that rich rules without hard admission/evidence can still produce weak reader retention, incomplete company/value-chain integration, source-shaped phrasing and an audit that says PASS without proving it.
+The 1.0 rebuild added hard cognition/story/publication-fitness admission after a rejected cross-border-ecommerce article. A later live continuation exposed a second-order defect: the same pre-kernel negative article could still be resumed at `DELIVERY` and terminalized after the rebuild without current DecisionEnvelope/StoryBlueprint/PublicationFitness evidence.
 
-The rebuild therefore separates cognition, decision, story construction and publication fitness while preserving one business state machine.
+The same incident exposed a StoryBlueprint mismatch: research completeness was intended to protect thesis selection, but Deep validation could mechanically force all researched material classes into publication, encouraging a research-directory article. Named company anchors also did not guarantee event-to-company causal transmission.
+
+1.0.2 therefore adds three bounded controls without creating another state machine:
+1. post-evolution historical-resume compatibility admission;
+2. explicit separation of complete research from selective publication;
+3. event-to-company causal transmission for event-led stories.
+
+Hook/style/anti-AI/numbering policy is **not** globally expanded from this one rejection; those existing gates must first be tested on a fresh current-kernel successor.
 
 ## 3. Stable lifecycle and focused internal passes
 
 External lifecycle remains:
-`INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`
+`INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`.
 
-Internal work uses `financial_writing_agent/writing_kernel.py`:
+Internal work remains:
 `KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
 
-These are focused passes, not independent business controllers. Same-model passes are structured challenge evidence, not independent certification.
+These are focused passes, not independent controllers. Same-model passes are structured challenge evidence, not independent certification.
 
-## 4. Hosted cognition architecture
+## 4. Hosted cognition and problem-action architecture
 
 UAOS-hosted cognition supplies the problem-response method; Financial keeps business adjudication local.
 
-For ordinary material thesis/business judgments, `DecisionEnvelope` requires:
-- evidence beyond user assertion alone;
-- challenged assumptions;
-- at least two credible alternatives;
-- candidate fit/misfit and failure modes;
-- counterexamples and rejected paths;
-- selected rationale;
-- auditable search saturation;
-- verification plan and remaining unknowns.
+Material judgments use `DecisionEnvelope`: evidence beyond user assertion, challenged assumptions, credible alternatives, failure/fit/misfit conditions, counterexamples/rejected paths, selected rationale, search saturation, verification and remaining unknowns.
 
-For a detected problem, correction/rejection or architecture/governance change, the UAOS floor additionally requires relevant external method/architecture research, macro/topology alignment and stronger verification proportional to risk. This distinction avoids turning every ordinary article decision into heavyweight architecture research.
+Detected problems additionally require micro diagnosis, macro/topology alignment, governing-assumption challenge and external method/architecture research. Systemic signals compare local/workflow/domain-architecture/common-capability hypotheses before repair. Evolution disposition precedes terminal repair/no-change, and owner-authorized repair cannot end as recommendation-only when it is executable now.
 
-Search convergence is bounded rather than pretending to crawl the entire internet: stop only after two consecutive materially different sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. Any later material discovery invalidates saturation.
+User feedback is failure evidence, not root-cause authority.
 
 ## 5. Research architecture
 
 Normal thematic/company work follows:
-`prior cognition recall -> mandatory value-chain preflight -> company universe -> current evidence -> adversarial/disconfirming search -> saturation -> thesis competition -> Company Decision Map -> Research Audit`.
+`prior cognition recall -> value-chain preflight -> company universe -> current evidence -> adversarial/disconfirming search -> saturation -> thesis competition -> Company Decision Map -> Research Audit`.
 
-Thesis selection before value-chain coverage is invalid. Prior knowledge may accelerate mapping but never waive it. Research may be broader than publication; the publication may select only after the broad cognition exists.
+Thesis selection before value-chain coverage is invalid. Prior knowledge accelerates mapping but never waives it. Search saturation is bounded: at least two materially different no-delta sweeps; any later material discovery invalidates convergence.
 
-## 6. Story construction architecture
+**Research completeness is an epistemic safety property, not a publication-outline mandate.**
 
-`StoryBlueprint` bridges audited cognition to prose. It captures reader job/start state, article promise, central question, author stance, narrative engine, concrete opening anchor, information gap, early/later payoff, numbered section plan, new information per section, company/case anchors, value-chain classes, evidence refs, bridges/open loops, ending payoff and voice evidence.
+## 6. Story construction and publication-scope architecture
 
-Story form follows material. Hard anomaly, company conflict, reversal, mystery, system map, consequence chain, case lead and timeline escalation are legal engines. Nut-graf, five-box and hourglass are method knowledge, not universal templates.
+`StoryBlueprint` bridges audited cognition to prose. It captures reader job/start state, article promise, central question, author stance, narrative engine, opening anchor/gap/payoff, numbered section plan, new information, company/case anchors, selected value-chain classes, evidence refs, bridges/open loops, ending payoff and voice evidence.
 
-`FINANCE_DEEP` is the complete finance/review product: declared material value-chain classes and material companies must be represented or explicitly adjudicated out; material explanatory sections use named company/case grounding when available; H1 uses explicit contiguous Chinese numbering; there is no default word-count ceiling.
+Story form follows material. Legal engines include hard anomaly, company conflict, reversal, mystery, system map, consequence chain, event-to-company, case lead and timeline escalation.
 
-`FINANCE_BROAD` is independently rebuilt for acquisition from audited evidence, not shortened Deep.
+### FINANCE_DEEP
+
+Deep is the complete finance/review **product**, not a complete dump of research.
+
+- Research first maps the material value chain/company universe.
+- If the final story genuinely needs every researched class, full coverage is legal.
+- If any researched class is left out of copy, `ValueChainScopeDecision` must account for every researched class as `CORE`, `SUPPORT`, or `OMIT_WITH_REASON`, with evidence/rationale.
+- CORE/SUPPORT classes must appear in the blueprint; OMIT classes preserve research provenance but must not silently appear as article branches.
+- No default word ceiling exists; length follows selected material, not the size of the research map.
+
+### Event-led stories
+
+When the explanatory burden is an event/rule/change flowing into listed-company economics, `NarrativeEngine.EVENT_TO_COMPANY` requires each material section to carry `CausalTransmission`:
+`trigger/change -> mechanism -> company exposure -> operating/financial expression -> verification/reversal condition`.
+
+This avoids decorative company mentions. The engine is conditional, not a universal template.
+
+`FINANCE_BROAD` remains independently rebuilt for acquisition from audited evidence, not shortened Deep.
 
 ## 7. Publication fitness architecture
 
-Publication acceptance uses evidence-backed fitness gates rather than unsupported PASS labels. Every current long-form product must supply exactly:
+Every current long-form product supplies exactly these evidence-backed gates:
 - `FACT_INTEGRITY`
 - `RETENTION`
 - `COMPANY_GROUNDING`
@@ -78,73 +95,71 @@ Publication acceptance uses evidence-backed fitness gates rather than unsupporte
 - `COMPLIANCE`
 - `PAYOFF`
 
-Every semantic gate records text location, excerpt, finding and severity. MAJOR/CRITICAL findings block PASS; REVISE requires concrete repair actions. Deterministic checks remain tripwires for invariants, not substitutes for semantic reading.
+Each semantic gate records text location, excerpt, finding and severity. MAJOR/CRITICAL findings block PASS; REVISE requires concrete repair actions.
 
-Natural prose is generated from material, stance, story architecture and voice evidence. Generic scaffolding is diagnostic when clustered/unearned, not a phrase blacklist. Sources supply evidence rather than reusable prose; close paraphrase/patchwriting is a revision condition.
+Originality is source-compared evidence, not a self-assertion. Research is normalized to claims/notes before drafting; suspicious/distinctive passages are checked against material sources; close paraphrase/patchwriting forces revision. Same-chat review cannot claim zero plagiarism.
 
-## 8. Current admission and historical compatibility
+Natural prose is material/stance/story/voice first. Generic scaffolding is diagnostic when clustered/unearned, not a phrase blacklist or humanizer generator.
 
-New tasks use `financial_writing_agent.current_admission` and carry `writing_kernel_version=1.0` plus `quality_evidence`. The wrapper delegates identity/state semantics to `owner_guard.py` but fail-closes:
-- RESEARCH forward transition without an admitted `DecisionEnvelope`;
-- EDITORIAL forward transition without required Deep/Broad `StoryBlueprint` objects;
-- EDITORIAL_AUDIT PASS/REVISE without required `PublicationFitness` evidence.
+## 8. Current admission and post-evolution resume compatibility
 
-Historical states without the marker remain readable/resumable through the legacy/low-level owner guard. Historical receipts are not rewritten to manufacture new evidence.
+New tasks use `financial_writing_agent.current_admission` and carry `writing_kernel_version=1.0` plus `quality_evidence`. Current admission fail-closes:
+- RESEARCH forward without admitted `DecisionEnvelope`;
+- EDITORIAL forward without required StoryBlueprints;
+- EDITORIAL_AUDIT PASS/REVISE without PublicationFitness.
+
+Historical state remains readable provenance. Before **materially** continuing a state without the current kernel marker, `financial_writing_agent.resume_compatibility.require_material_resume_admission` classifies intent:
+- `CURRENT_STATE`: already current;
+- `HISTORICAL_PROVENANCE_ONLY`: explicit historical-semantics continuation, no current-quality claim;
+- `CURRENT_SUCCESSOR_REQUIRED`: ordinary/current-quality continuation must create a fresh current-kernel successor/replay.
+
+This guard does not rewrite the old state and does not transfer ownership to UAOS. It separates continuity from assurance.
 
 ## 9. Knowledge architecture
 
-Financial retains two families:
-1. topic/domain knowledge with freshness/revalidation semantics;
-2. method/failure-pattern knowledge with source, fit, misfit, adoption state and revalidation trigger.
+Financial retains topic/domain knowledge and method/failure-pattern knowledge with source, scope, fit/misfit, adoption/confidence and revalidation semantics. `knowledge/METHOD_KNOWLEDGE_CATALOG.json` is a durable catalog, not rule authority.
 
-`knowledge/METHOD_KNOWLEDGE_CATALOG.json` is a durable catalog, not rule authority. Knowledge can accumulate broadly; production authority stays small and coherent.
+Use flow: `recall -> revalidate -> use as evidence/candidate -> observe -> write back`.
+Promotion flow: `evidence -> DecisionEnvelope/root scope -> candidate -> regression/eval -> owner promotion -> production observation`.
 
-Flow:
-`recall -> revalidate -> use as evidence/candidate -> observe -> write back`.
-
-Promotion is separate:
-`evidence -> DecisionEnvelope -> candidate -> regression/eval -> owner promotion -> production observation`.
-
-## 10. Governed evolution architecture
+## 10. Governed evolution and parent upcall
 
 Financial-owned evolution follows:
-`problem/feedback -> cognition -> failure class -> alternatives/counterexamples -> candidate -> reproducible evaluation -> owner-scoped promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
+`problem/feedback -> causal diagnosis -> alternatives/counterexamples -> root-scope admission -> evolution disposition -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
 
-User feedback is high-weight evidence, not automatic rule authority. One article may create a candidate but cannot silently become universal truth. Common/cross-domain changes upcall UAOS; Financial-local business/writing rules remain Financial-owned.
+One article may create a domain candidate but cannot silently become universal truth. Financial-local business/writing rules remain Financial-owned. A credible common/cross-domain failure class is raised as a non-authoritative child upcall; UAOS decides whether a common outcome-level rule belongs in parent governance.
 
-Material repository evolution uses candidate branch -> PR -> CI/evals -> contradiction scan -> controlled merge -> production reread/checks -> live observation.
+The cross-border incident therefore creates:
+- a Financial domain candidate for resume compatibility/publication scope/event-company causality;
+- a UAOS parent-upcall candidate asking whether `cross_chat_continuity_and_recovery` should require owner-defined compatibility admission after material child semantic upgrades.
+
+UAOS must not copy Financial’s schema/markers into other domains.
 
 ## 11. Product architecture review
 
-A major architecture change is admissible only when it reconciles:
-- user/product outcome;
-- workflow and identity/state ownership;
-- functional and non-functional requirements;
-- cognition/decision/story/audit topology;
-- recovery and invalidation;
-- evidence and assurance boundaries;
-- historical compatibility/migration;
-- acceptance and held-out evals;
-- explicit non-goals.
+A major change reconciles user/product outcome, identity/state ownership, functional/non-functional requirements, cognition/story/audit topology, recovery/invalidation, evidence/assurance boundaries, historical compatibility, acceptance/held-out evals and explicit non-goals.
 
-Documentation alone is not acceptance evidence. Multi-agent complexity is introduced only when tools/data, permissions, context, output contract, independence or measured parallelism materially justify it; otherwise the one-owner focused-pass kernel is preferred.
+Documentation alone is not evidence. Multi-agent complexity is introduced only when tools/data, permissions, context, output contract, independence or measured parallelism materially justify it.
 
 ## 12. Fitness functions and recovery
 
 Executable invariants include:
 - material decisions cannot omit alternatives/counterexamples/saturation;
 - conflicted knowledge cannot be validated;
-- Deep cannot carry a default word ceiling or omit declared material value-chain classes;
-- material explanatory sections need company/case anchors;
-- H1 sequence labels must be explicit/contiguous;
-- publication PASS requires all eight gates with text evidence;
+- pre-current-kernel material resume cannot silently inherit current-quality assurance;
+- Deep has no default word ceiling;
+- selective Deep omission requires complete publication-scope accounting;
+- EVENT_TO_COMPANY material sections require full causal transmission;
+- material sections need company/case grounding;
+- H1 labels are explicit/contiguous;
+- publication PASS requires all eight evidence-backed gates;
 - MAJOR/CRITICAL or originality-rewrite findings block PASS;
 - writing-kernel dependencies remain acyclic/complete.
 
-REVISE/FAIL routes to the narrowest upstream cause: fact/coverage -> RESEARCH; story/retention -> EDITORIAL/TITLE; prose/originality/style -> DRAFT; Word/render -> DELIVERY. Material upstream changes invalidate dependent downstream PASS evidence.
+Recovery routes to the narrowest upstream cause: historical semantic generation gap -> successor/replay; fact/coverage -> RESEARCH; story/scope/company causality/retention -> EDITORIAL/TITLE; prose/originality/style -> DRAFT; Word/render -> DELIVERY. Material upstream change invalidates dependent downstream PASS evidence.
 
 ## 13. Completion and assurance
 
-A current article is complete only when research is complete or explicitly bounded, material decisions are admitted, required StoryBlueprints exist, all publication candidates pass evidence-backed fitness, delivery/mechanical/render checks pass, state/artifact identities reconcile, learning/evolution impact is classified and assurance is accurately reported.
+A current article is complete only when research is complete/bounded, material decisions are admitted, required StoryBlueprints exist, publication candidates pass evidence-backed fitness, delivery/mechanical/render checks pass, state/artifact identities reconcile, evolution impact is classified and assurance is accurate.
 
-Same-chat semantic review remains `CHAT_SELF_REVIEW`; role labels do not create independence. Green documentation or mechanical tests alone never certify semantic publication quality.
+A historical article delivered under historical semantics is not evidence that current 1.0.x semantic gates were executed. Same-chat semantic review remains `CHAT_SELF_REVIEW`; role labels do not create independence. Green CI/documentation/mechanical checks never certify live reader quality.
