@@ -1,6 +1,6 @@
 # Editorial — Story Architecture Before Prose
 
-Status: `CURRENT_CANDIDATE_1.0.2`
+Status: `CURRENT_CANDIDATE_1.0.3`
 Owner: `DOMAIN:financial_writing`
 
 ## Purpose
@@ -36,6 +36,21 @@ For `FINANCE_DEEP`:
 
 Select by thesis contribution and reader value, not by the size of the research map.
 
+## Comparative logic — Deep should explain why one path wins
+
+For material multi-company or multi-branch research, Deep should preferentially publish the decisive comparison rather than a sequence of isolated company descriptions.
+
+Use the admitted PrivateResearchBrief's within-segment comparison and `cross_segment_global_selection` to decide what comparison the reader actually needs. Typical forms include:
+- same catalyst, different business stage: why A has realized revenue/profit while B is still planning/testing;
+- same branch, different economics: why A has stronger pricing power, purity, order visibility, margin or cash conversion than B;
+- different branches under one policy: why B2B/warehouse/payment/brand receives a stronger or weaker first-order transmission;
+- economic winner vs market-recognition winner: why the strongest business and the fastest price-discovery vehicle may differ;
+- durability comparison: which logic survives after the first news impulse and what would reverse that conclusion.
+
+The prose should carry the causal reason for the ranking. Do not publish internal score tables merely to prove a comparison occurred. A sentence such as “A、B、C均受益” without explaining relative transmission is insufficient when the private research identifies a meaningful difference.
+
+When current market liquidity means only one or a few narratives can dominate, Deep may explain the cross-branch economic contest — for example why one link captures more of the policy's profit transfer than another — without narrating tactical terms such as card-position, board height or next-day trade plans.
+
 ## Event-to-company causal grounding
 
 A named company is not enough when the story is event-led. If the explanatory burden is how a rule/event/change reaches listed-company economics, use `EVENT_TO_COMPANY`.
@@ -49,9 +64,17 @@ Every material explanatory section then requires `causal_transmission` with:
 
 The prose order is flexible; the causal chain is not. This prevents abstract industry exposition followed by a decorative company list.
 
+For policy stories, the event anchor must reflect the material chronology established in the private catalyst ledger. Do not write from a superseded policy phase while omitting a later suspension, reduction, extension, exemption, retaliation or rollback that changes the causal interpretation.
+
 ## Company comparison
 
 Material companies need enough evidence to distinguish business economics, realization stage, sensitivity, evidence strength and adverse/change conditions. Comparative judgments may be explicit but remain evidence-bounded and non-actionable.
+
+Deep should answer, where material, both:
+- “why is A stronger/weaker than B inside this subsegment?”; and
+- “after the subsegment winners are known, which business model/company has the strongest overall logic under this event, and why?”
+
+If the evidence does not justify a single overall winner, preserve the competition and state the condition that would resolve it rather than manufacturing certainty.
 
 ## FINANCE_BROAD
 
