@@ -8,28 +8,40 @@ def _json(path: str):
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 
-def test_hosted_cognition_contract_is_current_and_explicit():
+def test_hosted_cognition_contract_is_current_pointer_only_and_explicit():
     caps = _json(".uaos/CAPABILITIES.json")
     execution = _json("config/EXECUTION_CONTRACT.json")
 
-    assert caps["profile_version"] >= 19
+    assert caps["profile_version"] >= 21
     assert caps["common_capabilities_inheritance"] == "UAOS_HOSTED"
     assert caps["uaos_common_capabilities_contract_min"] == "1.6.0"
     assert caps["uaos_common_behavior_assurance_contract_min"] == "1.3.0"
     assert "domain_internal_work_orchestration" in caps["required_uaos_common_capabilities"]
-    assert caps["hosted_cognition_semantics"]["problem_response_floor"] == [
-        "MICRO_DIAGNOSIS",
-        "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
-        "GOVERNING_ASSUMPTION_CHALLENGE",
-        "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
-    ]
-    assert "ROOT_SCOPE_BEFORE_ACTION" in caps["hosted_cognition_semantics"]["rule"]
-    assert "USER_OR_EXTERNAL_FRAMING_NOT_ROOT_CAUSE_AUTHORITY" in caps["hosted_cognition_semantics"]["root_scope_admission"]
+    assert caps["uaos_deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json")
+    assert caps["hosted_cognition_semantics"] == {
+        "source": "CURRENT_UAOS_DELIBERATION_POLICY",
+        "local_overrides": "NONE",
+    }
+    assert "problem_response_floor" not in caps["hosted_cognition_semantics"]
     assert caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION"
     assert "ONLY_AFTER_ROOT_SCOPE_AND_EVOLUTION_ADMISSION" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
     assert "EVERY_ADMITTED_PROBLEM_GETS_EXPLICIT_EVOLUTION_DISPOSITION" in caps["hosted_behavior_semantics"]["evolution_before_action"]
-    assert execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True
-    assert execution["hosted_governance"]["problem_floor_activation"] == "EVERY_DETECTED_PROBLEM__FAMILIARITY_IS_NOT_A_WAIVER"
+
+    hosted = execution["hosted_governance"]
+    assert hosted["deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json")
+    assert hosted["problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY"
+    assert hosted["problem_cognition_inheritance"] == "POINTER_ONLY__NO_COPIED_PARENT_ALGORITHM"
+    assert "LIGHTWEIGHT_MAY_USE_CURRENT_EVIDENCE" in hosted["problem_cognition_rule"]
+    assert hosted["financial_business_research_is_separate_from_generic_problem_cognition"] is True
+    assert "problem_response_floor" not in hosted
+    assert "problem_floor_activation" not in hosted
+
+    evolution = execution["problem_and_evolution"]
+    assert evolution["generic_problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY"
+    assert evolution["generic_problem_cognition_is_copied_locally"] is False
+    assert evolution["financial_material_judgment_may_require_stricter_domain_evidence"] is True
+    assert "every_problem_requires_external_research_and_reflection" not in evolution
+    assert execution["cognition_and_decision"]["problem_or_architecture_change_requires_external_method_evidence"] is True
 
 
 def test_domain_evolution_ownership_remains_financial_and_parent_common_scope_stays_external():
@@ -79,21 +91,23 @@ def test_product_requirements_are_domain_owned_and_mapped_to_acceptance():
     assert "Product architecture review" in architecture
 
 
-def test_financial_maintenance_requires_problem_research_reflection_and_keeps_all_mirrors_equal():
+def test_financial_maintenance_inherits_risk_adaptive_parent_cognition_and_keeps_all_mirrors_equal():
     root = (ROOT / "references/maintenance.md").read_text(encoding="utf-8")
     packaged = (ROOT / "financial_writing_agent/resources/references/maintenance.md").read_text(encoding="utf-8")
     skill = (ROOT / "skills/financial-writing-agent/references/maintenance.md").read_text(encoding="utf-8")
     assert root == packaged == skill
-    assert "Revision: `1.2`" in root
-    assert "Any detected problem activates the UAOS-hosted cognition floor" in root
+    assert "Revision: `1.3`" in root
+    assert "DELIBERATION_POLICY.json" in root
+    assert "LIGHTWEIGHT" in root and "CONTRASTIVE" in root and "STRUCTURED" in root
+    assert "must not copy the parent cognition algorithm" in root
+    assert "Financial business research is separate from generic problem cognition" in root
     assert "record_proactive_resolution_state" in root
     assert "require_user_escalation_admission" in root
     assert "Problem-to-action closure" in root
-    assert "Familiarity is not a waiver" in root
-    assert "relevant external research" in root
-    assert "compare at least two credible alternatives" in root
-    assert "observe post-promotion behavior and keep, rollback or retire" in root
+    assert "Familiarity alone is neither a waiver nor a reason to force heavyweight research" in root
+    assert "Recommendation-only is not terminal" in root
     assert "Parent upcall boundary" in root
+    assert "Every defect, correction/rejection" not in root
 
 
 def test_direct_activation_is_not_replaced_by_parent_business_proxy():
