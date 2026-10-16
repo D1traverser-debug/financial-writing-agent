@@ -106,6 +106,6 @@ At this checkpoint:
 - writing kernel remains `1.0`;
 - new tasks bind private-research contract `1.1`;
 - unit/trajectory tests and executable-contract evaluation have already passed during the upgrade sequence;
-- the remaining reconciliation being finalized is mirrored-reference/static-audit consistency, followed by isolated wheel and DOCX render smoke.
+- mirrored-reference/static-audit reconciliation has been prepared for the saved head; the final full CI run is the authority for production verification.
 
 Do not claim full production verification from this checkpoint alone. In a new chat, inspect the latest `main` GitHub Actions run. If the latest full chain is green, treat this handoff as production-verified; otherwise fix the concrete failure before continuing semantic work.
