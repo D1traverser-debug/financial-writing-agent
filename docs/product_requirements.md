@@ -1,7 +1,7 @@
 # Financial Writing Agent — Product Requirements
 
-Status: `1.0.2_CANDIDATE`
-Version: `1.0.2-candidate`
+Status: `1.0.3_CANDIDATE`
+Version: `1.0.3-candidate`
 Date: `2026-10-16`
 Owner: `DOMAIN:financial_writing`
 Parent governance: `D1traverser-debug/universal-agent-os@main`
@@ -11,6 +11,7 @@ Parent governance: `D1traverser-debug/universal-agent-os@main`
 Financial Writing turns a finance topic, user materials and current evidence into publication-ready Chinese financial content that is:
 - factually defensible and auditable;
 - complete enough at research level to avoid missing material value-chain branches;
+- supported by a comprehensive private research layer before publication planning;
 - editorially selective rather than a dump of the research map;
 - company-grounded through causal economics rather than decorative company mentions;
 - structurally designed to earn reader continuation and completion;
@@ -20,14 +21,14 @@ Financial Writing turns a finance topic, user materials and current evidence int
 - delivered as verified Word artifacts when required;
 - able to learn from prior work without treating memory, user feedback or old facts as unquestioned truth.
 
-The governing outcome is not “satisfy the most rules”. It is **high-value, evidence-bounded writing that real readers can enter, follow, finish and use**.
+The governing outcome is not “satisfy the most rules”. It is **high-value, evidence-bounded writing whose private research is deep enough to support better judgment and whose public copy is selective enough for real readers**.
 
 ## 2. Core design principles
 
 1. User feedback is high-weight evidence, not automatic rule authority.
 2. Learned knowledge retains provenance, scope, fit/misfit and revalidation conditions; it does not silently mutate rules.
 3. Material judgments require deliberate comparison, current evidence, counterexamples and a verification plan; problem/architecture judgments additionally require relevant external method evidence.
-4. Research completeness and publication selectivity are separate: research may be broad; publication must choose what serves the thesis.
+4. Research completeness and publication selectivity are separate: private research may be broad and tactical; publication must choose what serves the reader thesis.
 5. Historical provenance and current-quality equivalence are separate: old state may remain readable, but semantic-generation gaps require compatibility admission before current-quality continuation.
 6. The writer does not self-certify its own quality.
 7. Semantic review cites text-level evidence; naked PASS labels are insufficient.
@@ -35,6 +36,7 @@ The governing outcome is not “satisfy the most rules”. It is **high-value, e
 9. Multi-agent complexity is introduced only when evals and materially different responsibilities justify it.
 10. Same-session critique remains `CHAT_SELF_REVIEW` unless distinct execution evidence exists.
 11. Historical states/contracts/receipts remain immutable provenance.
+12. Free or already-available authoritative tools are preferred when sufficient; paid crawling is a fallback for real evidence gaps, not a default.
 
 ## 3. Primary user journeys
 
@@ -58,10 +60,31 @@ For material thematic/company work, Research must:
 3. map the relevant listed-company universe across those classes;
 4. gather current evidence and chronology;
 5. perform disconfirming/counterexample search;
-6. compare candidate causal explanations;
-7. record unresolved gaps.
+6. synthesize the mandatory private research brief;
+7. compare candidate causal explanations;
+8. record unresolved gaps.
 
 “Complete” means evidence-bounded coverage, not exhaustive crawling. Material thesis search stops only after at least two consecutive materially different sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation.
+
+### PR-04A — Mandatory PrivateResearchBrief before publication planning
+
+Every new Financial task created through current admission carries `private_research_contract_version=1.0`. Leaving RESEARCH requires both an admitted material `DecisionEnvelope` and a digest-bound `PrivateResearchBrief`.
+
+The brief is the private analytical workbench, not the public article. It must include every required module from `references/private_research.md`, each marked `APPLICABLE` or `NOT_MATERIAL` with explicit reasoning. For ordinary A-share thematic/company work where market behavior matters, the brief covers as applicable:
+- economic-substance and market-label company universes;
+- company-level revenue/profit/business-stage/channel/customer/order detail;
+- total market cap, float market cap, turnover, traded value and liquidity for material short-horizon candidates;
+- catalyst strength, freshness, official/rumor status and expectation/implementation/realization stage;
+- direct/first-order/second-order/weak/negative benefit tiers;
+- short-horizon role hypotheses: pioneer, sentiment high/space leader, theme leader, capacity middle-army/trend leader, branch leader, assist, card-position competitor, catch-up, follower and eliminated candidate;
+- market sentiment cycle, board-height/promotion structure and recent stock character;
+- explicit `why A rather than B` comparisons;
+- negative/falsification pool;
+- catalyst-specific scenario trees and benefit ladders;
+- next-session/next-catalyst confirmation and falsification conditions;
+- publication distillation telling Deep/Broad which conclusions to use and which internal machinery should stay private.
+
+`business strongest` and `most likely to become a short-horizon market core` are separate judgments. A company list, a few representative companies or one composite score cannot substitute for the brief.
 
 ### PR-05 — Decision Envelope for material judgments
 
@@ -70,19 +93,20 @@ Before executing a material judgment, Financial must represent objective, eviden
 ### PR-06 — FINANCE_DEEP is the complete finance product, not the complete research dump
 
 For thematic/industry Deep work:
-- Research must cover the material value-chain/company universe before thesis selection.
-- Publication must select the economically decisive path rather than mechanically mirror the research directory.
+- Research must cover the material value-chain/company universe and admitted PrivateResearchBrief before thesis selection/publication planning.
+- Publication must select the economically decisive path rather than mechanically mirror the private research directory.
 - If every researched material class is genuinely needed by the selected story, full publication coverage is legal.
 - If any researched material class is omitted from copy, `publication_scope_decisions` must account for every researched class as `CORE`, `SUPPORT`, or `OMIT_WITH_REASON`, with evidence and rationale.
 - `OMIT_WITH_REASON` preserves research provenance but must not silently become a full publication branch.
 - Selected material explanatory sections must ground mechanisms in named company/case evidence where available.
 - H1 sections use explicit contiguous Chinese numbering (`一、二、三、...`).
 - Company comparisons remain evidence-bounded and non-actionable.
+- Internal bookkeeping, tactical role maps, exhaustive-universe narration and private scores stay out of publication copy unless they materially improve the reader product.
 - **There is no default word-count ceiling.** Remove redundancy; do not add or remove material merely to hit a length target.
 
 ### PR-07 — FINANCE_BROAD is selective acquisition, not shortened Deep
 
-Broad selects from audited evidence based on acquisition value but has its own blueprint, retention path and payoff. It may not be created by mechanically shortening Deep.
+Broad selects from audited evidence and private-research conclusions based on acquisition value but has its own blueprint, retention path and payoff. It may not be created by mechanically shortening Deep.
 
 ### PR-08 — Story Blueprint before prose
 
@@ -120,15 +144,19 @@ Every current-architecture long-form candidate passes exactly:
 
 Each gate cites text location/excerpt/finding. MAJOR/CRITICAL findings block PASS. REVISE needs explicit repair actions. Originality requires source-compared `OriginalityEvidence`; a same-chat impression is not evidence of zero overlap.
 
+Research Audit separately validates the admitted private brief semantically; syntactic module completion with placeholder evidence is not enough.
+
 ### PR-13 — Focused internal pass architecture
 
 One Financial owner uses:
-`KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
+`KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> PRIVATE_RESEARCH_SYNTHESIS -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
 Passes have least-context responsibilities and are not a second business state machine.
 
 ### PR-14 — Platform/output portfolio
 
 New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`, `AUDIT_DOCX`. Historical product meanings remain immutable.
+
+The private research brief is mandatory internal quality evidence. It may also be rendered/delivered as a private document when the user requests it, but the quality contract does not depend on publication of that internal artifact.
 
 ### PR-15 — Delivery and mechanical QA
 
@@ -150,6 +178,7 @@ Before materially continuing an article state that predates the current semantic
 - apply the owner-native resume compatibility admission;
 - ordinary continuation intended to satisfy current quality must create a current-kernel successor/replay (`CURRENT_SUCCESSOR_REQUIRED`);
 - explicit historical/provenance-only continuation may preserve historical semantics (`HISTORICAL_PROVENANCE_ONLY`) but cannot inherit current DecisionEnvelope/StoryBlueprint/PublicationFitness assurance;
+- do not retroactively require the private-research marker on already-created states; new tasks receive it by default;
 - never rewrite old receipts/state to simulate current evidence.
 
 This requirement preserves both continuity and provenance without silently equating semantic generations.
@@ -159,12 +188,13 @@ This requirement preserves both continuity and provenance without silently equat
 | Requirement | Executable/evidence surface |
 | --- | --- |
 | Material decision rigor | `cognition_governance.py::DecisionEnvelope`, tests |
+| Mandatory private research | `private_research.py`, `current_admission.py`, private-research tests/reference/eval |
 | Search saturation | `SearchSaturation`, tests |
 | Knowledge conflict discipline | `KnowledgeRecord`, `knowledge/METHOD_KNOWLEDGE_CATALOG.json` |
 | Value-chain-first research | ResearchPackage coverage map + research rules/evals |
 | Historical resume compatibility | `resume_compatibility.py`, trajectory regression |
 | Story architecture | `story_quality.py::StoryBlueprint`, tests |
-| Research/publication separation | `ValueChainScopeDecision`, held-out replay |
+| Research/publication separation | `ValueChainScopeDecision`, PrivateResearchBrief publication-distillation, held-out replay |
 | Event→company transmission | `CausalTransmission`, EVENT_TO_COMPANY regression |
 | Deep no default word ceiling | StoryBlueprint validator + regression |
 | H1 numbering | StoryBlueprint + structure tripwire |
@@ -180,8 +210,10 @@ This requirement preserves both continuity and provenance without silently equat
 ## 5. Failure and recovery semantics
 
 - historical pre-current-kernel material resume under current-quality intent -> create current-kernel successor/replay;
+- missing/invalid/digest-mismatched PrivateResearchBrief on marker-enabled task -> RESEARCH cannot advance / RESEARCH_AUDIT revises;
 - missing material research coverage -> RESEARCH;
-- thesis selected before coverage/adversarial search -> RESEARCH;
+- thesis selected before coverage/adversarial/private-research synthesis -> RESEARCH;
+- stale material market-cap/role/catalyst data -> RESEARCH;
 - DecisionEnvelope admission failure -> do not execute the material decision;
 - Deep selective omission without full scope accounting -> EDITORIAL;
 - EVENT_TO_COMPANY section without full causal transmission -> EDITORIAL;
@@ -205,7 +237,7 @@ Financial owns Financial writing promotion; UAOS owns common/cross-domain promot
 ## 8. Explicit non-goals
 
 - no buy/sell/timing/target/position guidance;
-- no claim of exhaustive internet coverage;
+- no claim of literal exhaustive internet crawling;
 - no automatic promotion of user suggestions into rules;
 - no universal story template or stock-scoring formula;
 - no research-directory-as-article mandate;
@@ -217,13 +249,14 @@ Financial owns Financial writing promotion; UAOS owns common/cross-domain promot
 
 ## 9. Product completion criteria
 
-The 1.0.2 candidate is promotion-eligible only when:
+The 1.0.3 candidate is promotion-eligible only when:
 1. product requirements, architecture, execution contract, Skill/bindings and code agree;
-2. cognition, StoryBlueprint, selective-scope, event-company, resume-compatibility and PublicationFitness tests pass;
-3. existing owner/routing/delivery/compliance and held-out tests remain green;
-4. the rejected cross-border article remains historical negative evidence and cannot obtain current-quality status by replay-free legacy continuation;
-5. at least one held-out case shows the changes do not overfit cross-border ecommerce;
-6. candidate CI and contradiction scan pass;
-7. controlled promotion occurs and production authority/CI are reread;
-8. a fresh current-kernel cross-border successor is produced and observed to test thesis, hook, authorial style/anti-AI, originality, company causality and editorial selectivity;
-9. live observation determines KEEP / further repair / rollback.
+2. new tasks bind `private_research_contract_version=1.0` by default;
+3. RESEARCH cannot advance without both DecisionEnvelope and valid PrivateResearchBrief;
+4. private research is digest-bound, tamper-detected and invalidated on revision to RESEARCH;
+5. private-research structural tests cover required modules, evidence refs, NOT_MATERIAL reasoning and coverage gaps;
+6. existing cognition, StoryBlueprint, selective-scope, event-company, resume-compatibility and PublicationFitness tests remain green;
+7. wheel smoke verifies packaged private-research runtime/reference availability;
+8. existing owner/routing/delivery/compliance and held-out tests remain green;
+9. production CI and contradiction scan pass;
+10. live Financial tasks observe whether the mandatory private layer improves company coverage, catalyst/market-role reasoning and article distillation without turning the public article into a research dump.
