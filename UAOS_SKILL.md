@@ -11,7 +11,7 @@ UAOS owns cross-domain governance/common capabilities. Financial owns article id
 
 ## Bootstrap
 
-A fresh chat may select Financial Writing directly. Once selected, use `DOMAIN:financial_writing` directly; normal business turns do not traverse a live UAOS proxy.
+A fresh chat may select Financial Writing directly. Once selected, use `DOMAIN:financial_writing` directly; normal article turns do **not** traverse a live UAOS business proxy.
 
 Before material work read `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CAPABILITIES.json`, `config/EXECUTION_CONTRACT.json`, then only current-stage references. Binding drift blocks affected work.
 
@@ -57,6 +57,10 @@ Default output is `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BR
 ## Problem closure and evolution
 
 Parent cognition/search depth is owned by current UAOS `config/DELIBERATION_POLICY.json`; Financial does not copy a competing parent algorithm. For requirement drift, compare requirement admission/transcription, stage binding, stale downstream evidence, host/context and other plausible causes before selecting one intervention.
+
+### Executable proactive resolution before user escalation
+
+`financial_writing_agent/proactive_resolution.py` owns recovery receipts and `require_user_escalation_admission`. Recover from available authority/evidence before externalizing a plausibly recoverable dependency to the user.
 
 Financial-local evolution follows `problem/evidence -> causal comparison -> bounded intervention -> regression/eval -> controlled promotion -> production reread -> live observation`. Common/cross-domain findings upcall UAOS.
 
