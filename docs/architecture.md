@@ -1,6 +1,6 @@
 # Financial Writing Agent — Architecture
 
-Version: `1.0.2-candidate`
+Version: `1.0.3-candidate`
 Date: `2026-10-16`
 Status: `DOMAIN_CANDIDATE`
 
@@ -16,26 +16,28 @@ Hard invariants:
 - no mandatory live UAOS business proxy for normal Financial work;
 - compliance, evidence integrity and owner-controlled mutation remain fail-closed.
 
-## 2. Why 1.0.2 changes the 1.0 architecture
+## 2. Why 1.0.3 changes the 1.0.2 architecture
 
-The 1.0 rebuild added hard cognition/story/publication-fitness admission after a rejected cross-border-ecommerce article. A later live continuation exposed a second-order defect: the same pre-kernel negative article could still be resumed at `DELIVERY` and terminalized after the rebuild without current DecisionEnvelope/StoryBlueprint/PublicationFitness evidence.
+The 1.0 rebuild added hard cognition/story/publication-fitness admission. The 1.0.2 repair added historical-resume compatibility, research/publication separation and event-to-company causal transmission.
 
-The same incident exposed a StoryBlueprint mismatch: research completeness was intended to protect thesis selection, but Deep validation could mechanically force all researched material classes into publication, encouraging a research-directory article. Named company anchors also did not guarantee event-to-company causal transmission.
+A fresh current-kernel cross-border successor then exposed another control gap: broad research and publication selectivity existed, but the comprehensive private analytical workbench remained task-local rather than admission-bound. Repeated live refinement had to add full company-universe coverage, company-level business granularity, market-cap/liquidity, catalyst strength, benefit tiers, short-horizon market roles, counterfactual comparisons, negative pools, scenario trees and next-window falsification manually. Because none of that was a required quality object, the next article could legally leave RESEARCH with only a DecisionEnvelope and regress to a thinner research package.
 
-1.0.2 therefore adds three bounded controls without creating another state machine:
-1. post-evolution historical-resume compatibility admission;
-2. explicit separation of complete research from selective publication;
-3. event-to-company causal transmission for event-led stories.
+1.0.3 therefore adds one bounded domain control without creating another state machine:
+1. a mandatory digest-bound `PrivateResearchBrief` for new Financial tasks;
+2. explicit Research Audit semantics for that brief;
+3. publication distillation that keeps the private analytical machinery upstream while allowing Deep/Broad to remain selective reader products.
 
-Hook/style/anti-AI/numbering policy is **not** globally expanded from this one rejection; those existing gates must first be tested on a fresh current-kernel successor.
+This is Financial-domain research architecture. It is not a UAOS common-rule promotion and does not retroactively rewrite historical/current pre-marker tasks.
 
 ## 3. Stable lifecycle and focused internal passes
 
 External lifecycle remains:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`.
 
-Internal work remains:
-`KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
+No extra external stage is introduced. The private brief is an admitted quality object owned by RESEARCH.
+
+Internal work becomes:
+`KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> PRIVATE_RESEARCH_SYNTHESIS -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
 
 These are focused passes, not independent controllers. Same-model passes are structured challenge evidence, not independent certification.
 
@@ -47,16 +49,48 @@ Material judgments use `DecisionEnvelope`: evidence beyond user assertion, chall
 
 Detected problems additionally require micro diagnosis, macro/topology alignment, governing-assumption challenge and external method/architecture research. Systemic signals compare local/workflow/domain-architecture/common-capability hypotheses before repair. Evolution disposition precedes terminal repair/no-change, and owner-authorized repair cannot end as recommendation-only when it is executable now.
 
-User feedback is failure evidence, not root-cause authority.
+User feedback is failure evidence, not root-cause authority. The private-research requirement is promoted here because repeated live failures plus an observable admission gap supported a domain-workflow cause; it is not promoted solely because a user requested a preferred implementation.
 
 ## 5. Research architecture
 
 Normal thematic/company work follows:
-`prior cognition recall -> value-chain preflight -> company universe -> current evidence -> adversarial/disconfirming search -> saturation -> thesis competition -> Company Decision Map -> Research Audit`.
+`prior cognition recall -> value-chain preflight -> company universe -> current evidence -> adversarial/disconfirming search -> saturation -> private research synthesis -> thesis competition -> Company Decision Map -> Research Audit`.
 
-Thesis selection before value-chain coverage is invalid. Prior knowledge accelerates mapping but never waives it. Search saturation is bounded: at least two materially different no-delta sweeps; any later material discovery invalidates convergence.
+Thesis selection before value-chain coverage/private-research synthesis is invalid. Prior knowledge accelerates mapping but never waives current verification. Search saturation is bounded: at least two materially different no-delta sweeps; any later material discovery invalidates convergence.
 
 **Research completeness is an epistemic safety property, not a publication-outline mandate.**
+
+### 5.1 PrivateResearchBrief
+
+New states created through `financial_writing_agent.current_admission.build_initial_state` bind `private_research_contract_version=1.0`.
+
+`financial_writing_agent.private_research` defines the required modules and validates structural admission. `financial_writing_agent.current_admission.advance_state` persists the validated object under `quality_evidence.private_research_brief`, computes a canonical digest and binds it to the RESEARCH execution receipt.
+
+Required modules are:
+- `company_universe_and_value_chain`;
+- `business_granularity`;
+- `market_cap_and_liquidity`;
+- `catalyst_strength_and_freshness`;
+- `benefit_chain_tiering`;
+- `short_horizon_role_map`;
+- `market_structure_and_positioning`;
+- `counterfactual_company_comparison`;
+- `negative_and_falsification_pool`;
+- `scenario_tree`;
+- `next_window_validation`;
+- `publication_distillation`.
+
+Every module is `APPLICABLE` or `NOT_MATERIAL`; applicable modules require evidence refs and `NOT_MATERIAL` requires an explicit reason. The validator deliberately proves contract completeness, not semantic excellence. Research Audit remains responsible for detecting placeholder evidence, stale facts and unjustified role labels.
+
+For short-horizon A-share work, market roles are hypotheses, not taxonomy pasted after price moves. A high board is not automatically a theme leader; a pioneer may be replaced; a capacity middle-army validates participation rather than height; card-position requires an observable competitor/role displacement; catch-up usually depends on height/attention already created elsewhere. `Business strongest` and `most likely short-horizon market core` remain separate judgments.
+
+Time-sensitive market cap, float cap, turnover, board height, promotion rate, catalyst state and operating data require an `as_of` boundary. Private deliverables may display these fully; publication does not have to narrate them all.
+
+### 5.2 Backward compatibility
+
+The private-research requirement is marker-gated. Existing states without `private_research_contract_version` remain valid and are not retroactively invalidated. If a pre-marker task is materially replayed as a new current-quality task, normal resume-compatibility semantics determine whether a successor is required; a newly created successor receives the marker automatically.
+
+A revision to RESEARCH invalidates all quality evidence, including the admitted private brief and research decision. Editorial/Draft revisions do not erase still-valid upstream research.
 
 ## 6. Story construction and publication-scope architecture
 
@@ -68,11 +102,13 @@ Story form follows material. Legal engines include hard anomaly, company conflic
 
 Deep is the complete finance/review **product**, not a complete dump of research.
 
-- Research first maps the material value chain/company universe.
+- Research first maps the material value chain/company universe and admits the private brief.
+- `publication_distillation` records which private conclusions must inform Deep/Broad and which internal machinery should remain private.
 - If the final story genuinely needs every researched class, full coverage is legal.
 - If any researched class is left out of copy, `ValueChainScopeDecision` must account for every researched class as `CORE`, `SUPPORT`, or `OMIT_WITH_REASON`, with evidence/rationale.
 - CORE/SUPPORT classes must appear in the blueprint; OMIT classes preserve research provenance but must not silently appear as article branches.
 - No default word ceiling exists; length follows selected material, not the size of the research map.
+- Universe bookkeeping, internal scores, tactical role ladders and research-process narration do not leak into copy unless they materially improve reader understanding.
 
 ### Event-led stories
 
@@ -97,14 +133,18 @@ Every current long-form product supplies exactly these evidence-backed gates:
 
 Each semantic gate records text location, excerpt, finding and severity. MAJOR/CRITICAL findings block PASS; REVISE requires concrete repair actions.
 
+Research Audit separately checks the private brief semantically: coverage, company granularity, current market data where material, catalyst/benefit-tier logic, role semantics, counterfactual comparison, negative pool, scenario tree, next-window falsification and publication distillation.
+
 Originality is source-compared evidence, not a self-assertion. Research is normalized to claims/notes before drafting; suspicious/distinctive passages are checked against material sources; close paraphrase/patchwriting forces revision. Same-chat review cannot claim zero plagiarism.
 
 Natural prose is material/stance/story/voice first. Generic scaffolding is diagnostic when clustered/unearned, not a phrase blacklist or humanizer generator.
 
 ## 8. Current admission and post-evolution resume compatibility
 
-New tasks use `financial_writing_agent.current_admission` and carry `writing_kernel_version=1.0` plus `quality_evidence`. Current admission fail-closes:
+New tasks use `financial_writing_agent.current_admission` and carry `writing_kernel_version=1.0`, `private_research_contract_version=1.0` plus `quality_evidence`. Current admission fail-closes:
 - RESEARCH forward without admitted `DecisionEnvelope`;
+- marker-enabled RESEARCH forward without valid `PrivateResearchBrief`;
+- downstream validation when either admitted research object is missing, tampered or no longer matches its RESEARCH receipt digest;
 - EDITORIAL forward without required StoryBlueprints;
 - EDITORIAL_AUDIT PASS/REVISE without PublicationFitness.
 
@@ -112,6 +152,8 @@ Historical state remains readable provenance. Before **materially** continuing a
 - `CURRENT_STATE`: already current;
 - `HISTORICAL_PROVENANCE_ONLY`: explicit historical-semantics continuation, no current-quality claim;
 - `CURRENT_SUCCESSOR_REQUIRED`: ordinary/current-quality continuation must create a fresh current-kernel successor/replay.
+
+The private-research marker is intentionally separate from the writing-kernel marker so already-created 1.0/1.0.2 states are not silently invalidated by the 1.0.3 domain upgrade.
 
 This guard does not rewrite the old state and does not transfer ownership to UAOS. It separates continuity from assurance.
 
@@ -129,11 +171,7 @@ Financial-owned evolution follows:
 
 One article may create a domain candidate but cannot silently become universal truth. Financial-local business/writing rules remain Financial-owned. A credible common/cross-domain failure class is raised as a non-authoritative child upcall; UAOS decides whether a common outcome-level rule belongs in parent governance.
 
-The cross-border incident therefore creates:
-- a Financial domain candidate for resume compatibility/publication scope/event-company causality;
-- a UAOS parent-upcall candidate asking whether `cross_chat_continuity_and_recovery` should require owner-defined compatibility admission after material child semantic upgrades.
-
-UAOS must not copy Financial’s schema/markers into other domains.
+The 1.0.3 private-research admission is Financial-local: it governs how A-share financial writing research is represented before publication. It does not ask UAOS to copy the stock-market role vocabulary, company-market-cap requirements or private-research schema into other domains.
 
 ## 11. Product architecture review
 
@@ -145,6 +183,11 @@ Documentation alone is not evidence. Multi-agent complexity is introduced only w
 
 Executable invariants include:
 - material decisions cannot omit alternatives/counterexamples/saturation;
+- new marker-enabled research cannot advance without PrivateResearchBrief;
+- admitted private research is digest-bound and tamper-detected;
+- required private-research modules cannot be omitted;
+- APPLICABLE modules need evidence refs and NOT_MATERIAL modules need reasons;
+- COMPLETE coverage cannot retain unresolved gaps and BOUNDED_WITH_GAPS cannot hide them;
 - conflicted knowledge cannot be validated;
 - pre-current-kernel material resume cannot silently inherit current-quality assurance;
 - Deep has no default word ceiling;
@@ -156,10 +199,10 @@ Executable invariants include:
 - MAJOR/CRITICAL or originality-rewrite findings block PASS;
 - writing-kernel dependencies remain acyclic/complete.
 
-Recovery routes to the narrowest upstream cause: historical semantic generation gap -> successor/replay; fact/coverage -> RESEARCH; story/scope/company causality/retention -> EDITORIAL/TITLE; prose/originality/style -> DRAFT; Word/render -> DELIVERY. Material upstream change invalidates dependent downstream PASS evidence.
+Recovery routes to the narrowest upstream cause: historical semantic generation gap -> successor/replay; private-research/fact/coverage -> RESEARCH; story/scope/company causality/retention -> EDITORIAL/TITLE; prose/originality/style -> DRAFT; Word/render -> DELIVERY. Material upstream change invalidates dependent downstream PASS evidence.
 
 ## 13. Completion and assurance
 
-A current article is complete only when research is complete/bounded, material decisions are admitted, required StoryBlueprints exist, publication candidates pass evidence-backed fitness, delivery/mechanical/render checks pass, state/artifact identities reconcile, evolution impact is classified and assurance is accurate.
+A current 1.0.3 article is complete only when research is complete/bounded, material decisions and required PrivateResearchBrief are admitted, required StoryBlueprints exist, publication candidates pass evidence-backed fitness, delivery/mechanical/render checks pass, state/artifact identities reconcile, evolution impact is classified and assurance is accurate.
 
-A historical article delivered under historical semantics is not evidence that current 1.0.x semantic gates were executed. Same-chat semantic review remains `CHAT_SELF_REVIEW`; role labels do not create independence. Green CI/documentation/mechanical checks never certify live reader quality.
+A historical or pre-private-marker article is not evidence that 1.0.3 private-research semantics were executed. Same-chat semantic review remains `CHAT_SELF_REVIEW`; role labels do not create independence. Green CI/documentation/mechanical checks verify executable invariants but never certify live reader quality.
