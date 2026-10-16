@@ -1,10 +1,13 @@
 from __future__ import annotations
 
+import hashlib
+import json
 from typing import Any, Callable, Mapping
 
 from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
 from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidence
 from .models import ArtifactKind
+from .private_research import validate_private_research_brief
 
 
 class DeliveryAvailabilityError(ValueError):
@@ -31,10 +34,28 @@ def _hex_sha256(value: Any) -> bool:
     )
 
 
+def _canonical_digest(value: Mapping[str, Any]) -> str:
+    payload = json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    return hashlib.sha256(payload).hexdigest()
+
+
+def _private_research_digest(state: Mapping[str, Any]) -> str | None:
+    quality = state.get("quality_evidence", {})
+    if not isinstance(quality, Mapping):
+        return None
+    raw = quality.get("private_research_brief")
+    if not isinstance(raw, Mapping):
+        return None
+    try:
+        admitted = validate_private_research_brief(raw)
+    except ValueError as exc:
+        raise DeliveryAvailabilityError(f"owner private research evidence is not admitted: {exc}") from exc
+    return _canonical_digest(admitted)
+
+
 def _supplemental_outputs_for_state(state: Mapping[str, Any]) -> list[str]:
     """Require private Word presentation only when current state actually owns admitted private research."""
-    quality = state.get("quality_evidence", {})
-    has_private = isinstance(quality, Mapping) and isinstance(quality.get("private_research_brief"), Mapping)
+    has_private = _private_research_digest(state) is not None
     marker = state.get("private_research_contract_version")
     if not has_private or not marker:
         return []
@@ -51,9 +72,9 @@ def build_visible_delivery_receipt(
 
     Owner state remains the authority for core business outputs. Current-kernel tasks
     with admitted PrivateResearchBrief also require a supplemental private-research Word
-    resource at presentation time. Every visible resource must carry canonical Delivery
-    evidence proving builder/check/render/visual closure; hashes or old attachments alone
-    cannot bypass that gate.
+    resource at presentation time. Every visible resource must carry current-session
+    canonical Delivery evidence proving builder/check/render/visual closure; hashes or
+    prior-session attachments alone cannot bypass that gate.
     """
     _require(isinstance(state, Mapping), "state is required")
     task_id = str(state.get("task_id", "")).strip()
@@ -68,6 +89,7 @@ def build_visible_delivery_receipt(
 
     supplemental = _supplemental_outputs_for_state(state)
     presentation_required = [*owner_required, *[kind for kind in supplemental if kind not in owner_required]]
+    private_digest = _private_research_digest(state)
 
     by_kind: dict[str, Mapping[str, Any]] = {}
     for resource in resources:
@@ -103,11 +125,17 @@ def build_visible_delivery_receipt(
 
         regenerated = resource.get("regenerated_from_durable_source") is True
         is_supplemental = kind in supplemental
+        evidence = resource["delivery_evidence"]
         if is_supplemental:
             _require(kind == ArtifactKind.PRIVATE_RESEARCH_DOCX.value, f"unsupported supplemental output: {kind}")
             _require(regenerated, f"supplemental {kind} must be rendered from durable owner evidence")
             _require(_nonempty(resource.get("source_ref")), f"supplemental {kind} requires source_ref")
             _require(_nonempty(resource.get("source_identity")), f"supplemental {kind} requires source_identity")
+            _require(private_digest is not None, "supplemental private research requires admitted owner PrivateResearchBrief")
+            _require(
+                evidence.get("source_quality_evidence_sha256") == private_digest,
+                "supplemental PRIVATE_RESEARCH_DOCX is not bound to the admitted owner PrivateResearchBrief",
+            )
             canonical_sha = None
         else:
             canonical_meta = canonical[kind]
@@ -119,7 +147,6 @@ def build_visible_delivery_receipt(
             else:
                 _require(digest == canonical_sha, f"non-regenerated {kind} binary hash must match canonical owner state")
 
-        evidence = resource["delivery_evidence"]
         presented[kind] = {
             "file_name": file_name,
             "sha256": digest,
@@ -129,6 +156,7 @@ def build_visible_delivery_receipt(
             "canonical_sha256": canonical_sha,
             "source_ref": evidence.get("source_ref"),
             "source_identity": evidence.get("source_identity"),
+            "source_quality_evidence_sha256": evidence.get("source_quality_evidence_sha256"),
             "mechanical_qa": evidence.get("mechanical_qa"),
             "constraint_qa": evidence.get("constraint_qa"),
             "render_qa": evidence.get("render_qa"),
@@ -137,7 +165,7 @@ def build_visible_delivery_receipt(
         }
 
     return {
-        "schema_version": "1.1",
+        "schema_version": "1.2",
         "task_id": task_id,
         "status": "VISIBLE_DELIVERY_READY",
         "owner_required_outputs": owner_required,
