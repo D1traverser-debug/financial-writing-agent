@@ -75,9 +75,16 @@ def main() -> None:
     require(execution["identity"]["article_id_owner"] == "FINANCIAL_WRITING", "Financial identity ownership drift")
     require(execution["identity"]["business_contract_is_identity_free"] is True, "TaskContract regained identity ownership")
     require(execution["identity"]["parent_child_id_equality_required"] is False, "parent/child ID equality returned")
-    require(execution["problem_and_evolution"]["every_problem_requires_external_research_and_reflection"] is True, "problem research/reflection floor weakened")
-    require(execution["problem_and_evolution"]["one_off_observation_auto_promotes_to_global_rule"] is False, "one-off evidence can auto-promote")
-    require(execution["problem_and_evolution"]["systemic_change_requires_regression_or_eval_evidence"] is True, "systemic evolution lost regression/eval gate")
+    hosted = execution["hosted_governance"]
+    require(hosted["problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY", "generic problem cognition owner drift")
+    require(hosted["problem_cognition_inheritance"] == "POINTER_ONLY__NO_COPIED_PARENT_ALGORITHM", "parent cognition algorithm copied into Financial contract")
+    require(hosted["financial_business_research_is_separate_from_generic_problem_cognition"] is True, "Financial business research collapsed into parent cognition")
+    problem = execution["problem_and_evolution"]
+    require(problem["generic_problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY", "problem/evolution cognition owner drift")
+    require(problem["generic_problem_cognition_is_copied_locally"] is False, "problem/evolution copied parent cognition locally")
+    require(problem["financial_material_judgment_may_require_stricter_domain_evidence"] is True, "Financial material evidence floor weakened")
+    require(problem["one_off_observation_auto_promotes_to_global_rule"] is False, "one-off evidence can auto-promote")
+    require(problem["systemic_change_requires_regression_or_eval_evidence"] is True, "systemic evolution lost regression/eval gate")
 
     required_common = set(caps.get("required_uaos_common_capabilities", []))
     require(caps["profile_version"] >= 19, "Financial capability profile below Common Behavior 1.3 floor")
@@ -91,13 +98,13 @@ def main() -> None:
         "adaptive_deliberation_and_parent_guidance",
         "governed_self_evolution",
     }.issubset(required_common), "required cognition/evolution/product/orchestration common capabilities missing")
-    require(caps["hosted_cognition_semantics"]["problem_response_floor"] == [
-        "MICRO_DIAGNOSIS",
-        "MACRO_GOAL_AND_TOPOLOGY_ALIGNMENT",
-        "GOVERNING_ASSUMPTION_CHALLENGE",
-        "EXTERNAL_METHOD_OR_ARCHITECTURE_RESEARCH",
-    ], "hosted cognition problem-response floor drift")
-    require("ROOT_SCOPE_BEFORE_ACTION" in caps["hosted_cognition_semantics"]["rule"], "root-scope-before-action rule missing")
+    require(caps["uaos_deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json"), "Financial deliberation pointer drift")
+    cognition = caps["hosted_cognition_semantics"]
+    require(cognition == {
+        "source": "CURRENT_UAOS_DELIBERATION_POLICY",
+        "local_overrides": "NONE",
+    }, "hosted cognition pointer drift")
+    require("problem_response_floor" not in cognition and "problem_response_rule" not in cognition, "copied parent cognition semantics returned")
     require(caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION", "proactive resolution remained declaration-only")
     require("ROOT_HYPOTHESIS_SUPPORT" in caps["hosted_behavior_semantics"]["root_scope_action_grounding"], "root-scope action evidence grounding missing")
     require("RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"], "problem-to-action closure missing")
@@ -146,7 +153,7 @@ def main() -> None:
         package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
         require(source == skill == package, f"reference mirror drift: {name}")
 
-    print("PASS: Financial keeps one business owner, directly activates, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, and operationalizes one cognition/root-scope model plus owner-native action admission")
+    print("PASS: Financial keeps one business owner, directly activates, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, inherits current UAOS cognition by pointer only, and operationalizes owner-native root-scope/action admission")
 
 
 if __name__ == "__main__":
