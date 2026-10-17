@@ -198,7 +198,13 @@ def _to_editorial_audit(state: dict) -> dict:
 
 def test_new_tasks_bind_private_research_1_1_while_legacy_builder_is_unmarked():
     current = _new_state("current")
-    legacy = owner_guard.build_initial_state(task_id="legacy", prompt="legacy", source_refs=[], executor_identity="test")
+    legacy = owner_guard.build_initial_state(
+        task_id="legacy",
+        prompt="legacy",
+        source_refs=[],
+        executor_identity="test",
+        _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
+    )
     assert current["writing_kernel_version"] == "1.0"
     assert current["private_research_contract_version"] == "1.1"
     assert current["quality_evidence"] == {}
