@@ -157,7 +157,7 @@ def test_visible_evidence_binds_issued_build_render_visual_and_rejects_tampering
         ArticleDocument(
             title="测试",
             stock_names=[],
-            blocks=[Block(kind="h1", text="事实"), Block(kind="body", text="这是可见正文。")],
+            blocks=[Block(kind="h1", text="事实"), Block(kind="body", text="这是**可见正文**。")],
         ),
         tmp_path / "deep.docx",
         artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
