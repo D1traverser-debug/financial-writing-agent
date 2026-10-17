@@ -1,0 +1,137 @@
+{
+  "schema_version":"1.0",
+  "profile_version":"1.0.0",
+  "domain_id":"financial_writing",
+  "status":"CANDIDATE__DEPENDS_ON_UAOS_PERSISTENT_ASSET_POLICY_PROMOTION",
+  "updated_at":"2026-10-17T09:20:00+08:00",
+  "parent_policy_ref":"D1traverser-debug/universal-agent-os@main:config/PERSISTENT_ASSET_POLICY.json",
+  "owner_authority":"DOMAIN:financial_writing",
+  "governing_rule":"This profile declares Financial-owned asset locations/roles only. It does not copy or override UAOS persistent-asset lifecycle, CRUD, migration or authority semantics.",
+  "current_authority_assets":[
+    {
+      "asset_id":"financial-writing-github-owner",
+      "surface":"GITHUB",
+      "resource_ref":"github://D1traverser-debug/financial-writing-agent@main",
+      "role":"AUTHORITY",
+      "lifecycle":"CURRENT",
+      "canonical_authority_ref":"github://D1traverser-debug/financial-writing-agent@main",
+      "owns":["business rules","article identity","current article state","workflow receipts","domain evolution evidence","canonical source artifacts"]
+    }
+  ],
+  "non_authority_assets":[
+    {
+      "asset_id":"chat-history",
+      "surface":"CHAT",
+      "resource_ref":"chatgpt://financial-writing/conversations",
+      "role":"REFERENCE",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "allowed_use":"user interaction evidence and current-turn context only",
+      "forbidden_use":"restore durable stage/task identity or override GitHub current authority"
+    },
+    {
+      "asset_id":"chatgpt-memory",
+      "surface":"MEMORY",
+      "resource_ref":"chatgpt://memory/financial-writing",
+      "role":"REFERENCE",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "allowed_use":"relevance-selected preference/context aid",
+      "forbidden_use":"workflow/task-state authority or requirement authority"
+    },
+    {
+      "asset_id":"uaos-custom-instructions",
+      "surface":"CUSTOM_INSTRUCTIONS",
+      "resource_ref":"chatgpt://custom-instructions/uaos-bootstrap",
+      "role":"BOOTSTRAP",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "allowed_use":"bootstrap current UAOS and selected Financial authority",
+      "forbidden_use":"duplicate Financial policy or own business state"
+    },
+    {
+      "asset_id":"notion-financial-knowledge",
+      "surface":"NOTION",
+      "resource_ref":"notion://FinancialWriting/ArticleBase+IndustryBase",
+      "role":"SHARED_RESOURCE",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "allowed_use":"research/reference evidence subject to freshness and provenance checks",
+      "forbidden_use":"current controller/workflow/task authority"
+    },
+    {
+      "asset_id":"notion-financial-migrated-control",
+      "surface":"NOTION",
+      "resource_ref":"notion://FinancialWriting/MigratedControlHistory",
+      "role":"MIGRATED_HISTORY",
+      "lifecycle":"DECOMMISSIONED",
+      "observed_examples":["CURRENT_CHAT_HANDOFF old writing cache","PENDING_REVIEWQUEUE","migrated regression/problem pages"],
+      "allowed_use":"historical evidence only"
+    },
+    {
+      "asset_id":"drive-financial-legacy-continuity",
+      "surface":"GOOGLE_DRIVE",
+      "resource_ref":"gdrive://ChatGPT/90_LEGACY_CONTINUITY_ARCHIVE_20261009",
+      "role":"MIGRATED_HISTORY",
+      "lifecycle":"DECOMMISSIONED",
+      "allowed_use":"migration/history evidence only",
+      "cleanup_evidence":"legacy Router/State/System Policy/Handoff/Conflicts documents renamed [DECOMMISSIONED][LEGACY]"
+    },
+    {
+      "asset_id":"library-financial-migrated-history",
+      "surface":"LIBRARY",
+      "resource_ref":"library:/Financial_Writing_Migrated_History",
+      "role":"MIGRATED_HISTORY",
+      "lifecycle":"DECOMMISSIONED",
+      "allowed_use":"historical evidence only",
+      "cleanup_evidence":"old Financial ACTIVE_POINTER replaced by tombstone body with authority NONE; casebook renamed MIGRATED_HISTORY"
+    },
+    {
+      "asset_id":"library-financial-deliveries",
+      "surface":"LIBRARY",
+      "resource_ref":"library://FinancialWriting/deliveries",
+      "role":"DELIVERY_HISTORY",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "allowed_use":"user-visible prior deliverables and evidence",
+      "forbidden_use":"resume owner state or infer current PASS/stage from file existence"
+    },
+    {
+      "asset_id":"uaos-capability-evolution-watch",
+      "surface":"AUTOMATION",
+      "resource_ref":"automation://UAOS/uaos-capability-evolution-watch",
+      "role":"AUTOMATION",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "owner":"UAOS",
+      "allowed_use":"parent capability/evolution observation only",
+      "forbidden_use":"Financial business-state authority"
+    },
+    {
+      "asset_id":"gmail-financial-notification-traces",
+      "surface":"GMAIL",
+      "resource_ref":"gmail://notifications/financial-writing",
+      "role":"EXTERNAL_RECORD",
+      "lifecycle":"ACTIVE_NON_AUTHORITY",
+      "allowed_use":"notification/audit traces when relevant",
+      "forbidden_use":"Financial business state, requirement authority, or task identity"
+    },
+    {
+      "asset_id":"sandbox-working-files",
+      "surface":"TEMP_SANDBOX",
+      "resource_ref":"sandbox:/mnt/data/financial-writing",
+      "role":"REFERENCE",
+      "lifecycle":"TEMPORARY",
+      "allowed_use":"temporary generation/render/analysis only",
+      "forbidden_use":"durable current authority or completion without admitted persistent promotion/delivery"
+    }
+  ],
+  "known_absent_or_unmanaged":[
+    {"surface":"GOOGLE_CALENDAR","status":"NO_FINANCIAL_MANAGED_ASSET_OBSERVED"},
+    {"surface":"AUTOMATION","status":"NO_FINANCIAL_BUSINESS_STATE_AUTOMATION_OBSERVED"}
+  ],
+  "crud_and_output_rules":[
+    "All current business-state CREATE/UPDATE/DELETE operations target the GitHub owner path and must use current owner admission/CAS/provenance rules.",
+    "Notion/Drive/Library/Chat/Memory/Custom Instructions cannot be used as fallback current state when GitHub authority is unavailable; block or recover current authority instead.",
+    "Research may READ active shared/reference assets but must preserve source/freshness/provenance and may not copy their lifecycle role into current authority.",
+    "User-visible Word/PDF/etc outputs are DELIVERY or DELIVERY_HISTORY, never owner task state merely because they are durable/searchable.",
+    "Migration is not closed until GitHub target authority is verified and old control surfaces are decommissioned/archived; searchable residuals remain non-authoritative.",
+    "Temporary sandbox work must either become an admitted canonical GitHub artifact/delivery or be discarded before durable completion."
+  ],
+  "authority_cardinality":"EXACTLY_ONE_CURRENT_FINANCIAL_BUSINESS_AUTHORITY__GITHUB_MAIN",
+  "native_chatgpt_boundary":"CHAT_MEMORY_CUSTOM_INSTRUCTIONS_ARE_BEHAVIORALLY_CLASSIFIED__NO_CHILD_REPOSITORY_PHYSICAL_INTERCEPTION_OF_PRODUCT_INTERNAL_STORAGE"
+}
