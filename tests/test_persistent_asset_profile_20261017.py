@@ -38,13 +38,24 @@ def test_migrated_control_surfaces_are_decommissioned_but_knowledge_and_deliveri
     assert assets["library-financial-deliveries"]["role"] == "DELIVERY_HISTORY"
 
 
-def test_capability_profile_points_to_parent_policy_and_domain_profile_without_copying_parent_semantics():
+def test_profile_is_register_only_and_parent_owns_crud_migration_and_delivery_semantics():
     capability = load(".uaos/CAPABILITIES.json")
     profile = load("config/PERSISTENT_ASSET_PROFILE.json")
     assert capability["uaos_persistent_asset_policy_ref"] == profile["parent_policy_ref"]
     assert capability["domain_persistent_asset_profile_ref"] == "config/PERSISTENT_ASSET_PROFILE.json"
-    assert capability["hosted_behavior_semantics"]["persistent_asset_governance"].startswith("CURRENT_UAOS_PERSISTENT_ASSET_POLICY")
-    assert "does not copy or override UAOS" in profile["governing_rule"]
+    assert "crud_and_output_rules" not in profile
+    assert "inherited exclusively from parent_policy_ref" in profile["governing_rule"]
+
+
+def test_parent_persistent_asset_capability_is_not_advertised_current_before_dependency_promotion():
+    capability = load(".uaos/CAPABILITIES.json")
+    profile = load("config/PERSISTENT_ASSET_PROFILE.json")
+    status = capability["hosted_behavior_semantics"]["persistent_asset_governance"]
+    if profile["status"].startswith("CANDIDATE"):
+        assert status.startswith("CANDIDATE_PENDING_PARENT_PROMOTION")
+    else:
+        assert profile["status"].startswith("ACTIVE")
+        assert status.startswith("CURRENT_UAOS_PERSISTENT_ASSET_POLICY")
 
 
 def test_no_financial_calendar_or_business_state_automation_is_invented():
