@@ -1,0 +1,29 @@
+{
+  "schema_version":"1.0",
+  "audit_id":"FINANCIAL-PERSISTENT-ASSET-GOVERNANCE-20261017",
+  "status":"CANDIDATE__PARENT_PROMOTION_DEPENDENCY_OPEN",
+  "updated_at":"2026-10-17T10:18:00+08:00",
+  "governing_outcome":"Financial Writing has exactly one current business authority while every other persistent surface is typed as bootstrap, reference, shared resource, delivery/history, migrated history, automation, external record, absent, or temporary.",
+  "authority":"github://D1traverser-debug/financial-writing-agent@main",
+  "profile_ref":"config/PERSISTENT_ASSET_PROFILE.json",
+  "parent_policy_ref":"D1traverser-debug/universal-agent-os@main:config/PERSISTENT_ASSET_POLICY.json",
+  "observed_cleanup":[
+    "Library Financial ACTIVE_POINTER decommissioned and replaced by authority-NONE tombstone.",
+    "Library Financial casebook marked MIGRATED_HISTORY.",
+    "Notion legacy Review Queue and old current handoff explicitly downgraded to migrated/decommissioned history.",
+    "Drive legacy continuity control docs explicitly marked DECOMMISSIONED LEGACY.",
+    "Scheduled parent UAOS capability-evolution watch classified as non-authority automation; no Financial business-state automation observed.",
+    "Gmail notification traces classified as external records; no Financial-created email/draft authority observed.",
+    "Google Calendar has no Financial managed asset observed.",
+    "Chat/Memory/Custom Instructions remain non-authority context/bootstrap surfaces; native product-internal physical mediation is not claimed."
+  ],
+  "acceptance":[
+    "exactly one current Financial authority",
+    "GitHub main is that authority",
+    "Notion knowledge may be shared-resource evidence but never current workflow authority",
+    "Drive/Library migrated control surfaces are decommissioned",
+    "deliverables are delivery history, not owner state",
+    "temporary sandbox cannot become durable authority",
+    "domain profile references parent policy rather than copying it"
+  ]
+}

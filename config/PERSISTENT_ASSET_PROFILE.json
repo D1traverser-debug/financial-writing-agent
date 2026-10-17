@@ -1,0 +1,40 @@
+{
+  "schema_version":"1.1",
+  "profile_version":"1.1.0",
+  "domain_id":"financial_writing",
+  "status":"CANDIDATE__DEPENDS_ON_UAOS_PERSISTENT_ASSET_POLICY_PROMOTION",
+  "updated_at":"2026-10-17T10:18:00+08:00",
+  "parent_policy_ref":"D1traverser-debug/universal-agent-os@main:config/PERSISTENT_ASSET_POLICY.json",
+  "owner_authority":"DOMAIN:financial_writing",
+  "governing_rule":"This profile is a Financial-owned asset register only. All CRUD, migration, promotion, reconciliation, delivery and temporary-surface semantics are inherited exclusively from parent_policy_ref; this profile does not copy or override them.",
+  "current_authority_assets":[
+    {
+      "asset_id":"financial-writing-github-owner",
+      "surface":"GITHUB",
+      "resource_ref":"github://D1traverser-debug/financial-writing-agent@main",
+      "role":"AUTHORITY",
+      "lifecycle":"CURRENT",
+      "canonical_authority_ref":"github://D1traverser-debug/financial-writing-agent@main",
+      "owns":["business rules","article identity","current article state","workflow receipts","domain evolution evidence","canonical source artifacts"]
+    }
+  ],
+  "non_authority_assets":[
+    {"asset_id":"chat-history","surface":"CHAT","resource_ref":"chatgpt://financial-writing/conversations","role":"REFERENCE","lifecycle":"ACTIVE_NON_AUTHORITY"},
+    {"asset_id":"chatgpt-memory","surface":"MEMORY","resource_ref":"chatgpt://memory/financial-writing","role":"REFERENCE","lifecycle":"ACTIVE_NON_AUTHORITY"},
+    {"asset_id":"uaos-custom-instructions","surface":"CUSTOM_INSTRUCTIONS","resource_ref":"chatgpt://custom-instructions/uaos-bootstrap","role":"BOOTSTRAP","lifecycle":"ACTIVE_NON_AUTHORITY","owner":"UAOS"},
+    {"asset_id":"notion-financial-knowledge","surface":"NOTION","resource_ref":"notion://FinancialWriting/ArticleBase+IndustryBase","role":"SHARED_RESOURCE","lifecycle":"ACTIVE_NON_AUTHORITY","content_scope":["ArticleBase","IndustryBase"]},
+    {"asset_id":"notion-financial-migrated-control","surface":"NOTION","resource_ref":"notion://FinancialWriting/MigratedControlHistory","role":"MIGRATED_HISTORY","lifecycle":"DECOMMISSIONED","observed_examples":["CURRENT_CHAT_HANDOFF old writing cache","PENDING_REVIEWQUEUE","migrated regression/problem pages"]},
+    {"asset_id":"drive-financial-legacy-continuity","surface":"GOOGLE_DRIVE","resource_ref":"gdrive://ChatGPT/90_LEGACY_CONTINUITY_ARCHIVE_20261009","role":"MIGRATED_HISTORY","lifecycle":"DECOMMISSIONED","cleanup_evidence":"legacy Router/State/System Policy/Handoff/Conflicts documents renamed [DECOMMISSIONED][LEGACY]"},
+    {"asset_id":"library-financial-migrated-history","surface":"LIBRARY","resource_ref":"library:/Financial_Writing_Migrated_History","role":"MIGRATED_HISTORY","lifecycle":"DECOMMISSIONED","cleanup_evidence":"old Financial ACTIVE_POINTER replaced by tombstone body with authority NONE; casebook renamed MIGRATED_HISTORY"},
+    {"asset_id":"library-financial-deliveries","surface":"LIBRARY","resource_ref":"library://FinancialWriting/deliveries","role":"DELIVERY_HISTORY","lifecycle":"ACTIVE_NON_AUTHORITY"},
+    {"asset_id":"uaos-capability-evolution-watch","surface":"AUTOMATION","resource_ref":"automation://UAOS/uaos-capability-evolution-watch","role":"AUTOMATION","lifecycle":"ACTIVE_NON_AUTHORITY","owner":"UAOS"},
+    {"asset_id":"gmail-financial-notification-traces","surface":"GMAIL","resource_ref":"gmail://notifications/financial-writing","role":"EXTERNAL_RECORD","lifecycle":"ACTIVE_NON_AUTHORITY","observed_scope":"related notification traces only; no Financial-created mail/draft asset observed"},
+    {"asset_id":"sandbox-working-files","surface":"TEMP_SANDBOX","resource_ref":"sandbox:/mnt/data/financial-writing","role":"REFERENCE","lifecycle":"TEMPORARY"}
+  ],
+  "known_absent_or_unmanaged":[
+    {"surface":"GOOGLE_CALENDAR","status":"NO_FINANCIAL_MANAGED_ASSET_OBSERVED"},
+    {"surface":"AUTOMATION","status":"NO_FINANCIAL_BUSINESS_STATE_AUTOMATION_OBSERVED"}
+  ],
+  "authority_cardinality":"EXACTLY_ONE_CURRENT_FINANCIAL_BUSINESS_AUTHORITY__GITHUB_MAIN",
+  "native_chatgpt_boundary":"CHAT_MEMORY_CUSTOM_INSTRUCTIONS_ARE_REGISTERED_AS_NON_AUTHORITY_SURFACES__NO_CHILD_REPOSITORY_PHYSICAL_INTERCEPTION_OF_PRODUCT_INTERNAL_STORAGE"
+}
