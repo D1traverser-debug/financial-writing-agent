@@ -18,6 +18,12 @@ Before material work read `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CA
 Lifecycle:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`.
 
+## Persistent asset boundary
+
+Cross-surface CRUD/output/migration semantics are owned by current UAOS `config/PERSISTENT_ASSET_POLICY.json`; Financial does not duplicate that policy. Financial's surface classification is `config/PERSISTENT_ASSET_PROFILE.json`.
+
+The only current Financial business authority is this GitHub repository on promoted `main`. Chat/history and Memory are reference/context; Custom Instructions are bootstrap; Notion ArticleBase/IndustryBase are shared research resources; migrated Notion/Drive/Library control artifacts are non-authoritative history; Library Word/PDF outputs are delivery history; `/mnt/data` is temporary. Search presence or durable file existence never restores article identity, stage, PASS, requirement authority or current workflow state.
+
 ## Current admission and task requirements
 
 Current tasks use `financial_writing_agent.current_admission`, bind `writing_kernel_version=1.0`, `private_research_contract_version=1.1`, and for post-promotion tasks `task_requirement_contract_version=1.0`.
