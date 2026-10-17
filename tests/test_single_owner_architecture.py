@@ -2,8 +2,8 @@ import json
 import tomllib
 from pathlib import Path
 
+from financial_writing_agent.current_admission import build_initial_state
 from financial_writing_agent.models import TaskContract
-from financial_writing_agent.owner_guard import build_initial_state
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -91,6 +91,8 @@ def test_financial_state_is_article_identity_and_task_contract_is_identity_free(
         executor_identity="chat-session:test",
     )
     assert state["task_id"] == "financial-owned-id"
+    assert state["writing_kernel_version"] == "1.0"
+    assert state["task_requirement_contract_version"] == "1.0"
     assert state["execution_receipts"][0]["task_id"] == "financial-owned-id"
     assert state["execution_receipts"][0]["output_refs"] == ["workspaces/articles/financial-owned-id/STATE.json"]
     assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
@@ -118,6 +120,7 @@ def test_retired_control_namespace_is_physically_absent():
         "docs/product_requirements.md",
         "docs/architecture.md",
         "financial_writing_agent/owner_guard.py",
+        "financial_writing_agent/current_admission.py",
         "financial_writing_agent/owner_lifecycle.py",
         "financial_writing_agent/proactive_resolution.py",
         "financial_writing_agent/resume_compatibility.py",

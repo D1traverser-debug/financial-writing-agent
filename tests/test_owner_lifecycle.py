@@ -1,10 +1,10 @@
 import pytest
 
+from financial_writing_agent import owner_guard as owner_guard_module
 from financial_writing_agent.owner_guard import (
     GithubChatGuardError,
     advance_state as _owner_advance_state,
     attach_material_feedback,
-    build_initial_state,
 )
 from financial_writing_agent.owner_lifecycle import (
     OWNER_CLOSURE_ATTESTATION,
@@ -16,6 +16,13 @@ from financial_writing_agent.resume_compatibility import ResumeCompatibilityDeci
 
 
 _HISTORICAL_ONLY = ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
+
+
+def build_initial_state(**kwargs):
+    return owner_guard_module.build_initial_state(
+        _current_admission_token=owner_guard_module._CURRENT_ADMISSION_TOKEN,
+        **kwargs,
+    )
 
 
 def advance_state(state, **kwargs):

@@ -263,22 +263,34 @@ def _validate_base_state(state: Mapping[str, Any]) -> None:
         _require(receipt.get("verification_status") == SELF_ATTESTED_RECEIPT, "chat receipt must remain self-attested")
 
 
+def _is_current_task(state: Mapping[str, Any]) -> bool:
+    return state.get("writing_kernel_version") == CURRENT_WRITING_KERNEL_VERSION
+
+
+def _require_current_internal(state: Mapping[str, Any], token: object | None, *, operation: str) -> None:
+    if _is_current_task(state) and token is not _CURRENT_ADMISSION_TOKEN:
+        raise GithubChatGuardError(
+            f"current Financial tasks must use financial_writing_agent.current_admission for {operation}; "
+            "owner_guard is a legacy/internal compatibility surface"
+        )
+
+
 def validate_state(state: Mapping[str, Any], *, _current_admission_token: object | None = None) -> None:
     _validate_base_state(state)
-    if state.get("writing_kernel_version") != CURRENT_WRITING_KERNEL_VERSION:
+    if not _is_current_task(state):
         return
     if _current_admission_token is _CURRENT_ADMISSION_TOKEN:
         return
     try:
-        from .current_admission import _validate_persisted_quality_evidence
+        from .current_admission import validate_state as validate_current_state
 
-        _validate_persisted_quality_evidence(state)
+        validate_current_state(state)
     except ValueError as exc:
-        raise GithubChatGuardError(f"current Financial quality admission failed: {exc}") from exc
+        raise GithubChatGuardError(f"current Financial aggregate admission failed: {exc}") from exc
 
 
 def _admit_historical_material_resume(state: Mapping[str, Any], *, resume_intent: str | None) -> dict[str, Any] | None:
-    if state.get("writing_kernel_version") == CURRENT_WRITING_KERNEL_VERSION:
+    if _is_current_task(state):
         return None
     from .resume_compatibility import ResumeCompatibilityError, require_material_resume_admission
 
@@ -334,7 +346,12 @@ def build_initial_state(
     distribution_mode_source: str | None = None,
     distribution_mode_override_evidence: str | None = None,
     state_ref: str = MAIN_STATE_REF,
+    _current_admission_token: object | None = None,
 ) -> dict[str, Any]:
+    _require(
+        _current_admission_token is _CURRENT_ADMISSION_TOKEN,
+        "new Financial tasks must be created through financial_writing_agent.current_admission.build_initial_state",
+    )
     _require(_nonempty(task_id), "task_id is required")
     _require(_nonempty(prompt), "prompt is required")
     _require(state_ref == MAIN_STATE_REF, "new GITHUB_CHAT tasks must be created on main")
@@ -410,7 +427,7 @@ def build_initial_state(
         "execution_receipts": [receipt],
         "updated_at": _utc_now(),
     }
-    validate_state(state)
+    _validate_base_state(state)
     return state
 
 
@@ -469,6 +486,7 @@ def advance_state(
     _current_admission_token: object | None = None,
 ) -> dict[str, Any]:
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
+    _require_current_internal(state, _current_admission_token, operation="stage transitions")
     validate_state(state, _current_admission_token=_current_admission_token)
     historical_resume = _admit_historical_material_resume(state, resume_intent=resume_intent)
     before = _upgrade_legacy_state(state, state_ref=state_ref)
@@ -603,6 +621,7 @@ def attach_material_feedback(
     _current_admission_token: object | None = None,
 ) -> dict[str, Any]:
     _require(state_ref == MAIN_STATE_REF, "GITHUB_CHAT material mutations must target main")
+    _require_current_internal(state, _current_admission_token, operation="material feedback")
     validate_state(state, _current_admission_token=_current_admission_token)
     before = _upgrade_legacy_state(state, state_ref=state_ref)
     validate_state(before, _current_admission_token=_current_admission_token)

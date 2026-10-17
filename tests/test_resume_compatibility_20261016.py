@@ -1,10 +1,7 @@
 import pytest
 
-from financial_writing_agent.owner_guard import (
-    GithubChatGuardError,
-    advance_state,
-    build_initial_state as build_legacy_owner_state,
-)
+from financial_writing_agent import owner_guard
+from financial_writing_agent.owner_guard import GithubChatGuardError, advance_state
 from financial_writing_agent.owner_lifecycle import block_review_failure_state, resume_blocked_state
 from financial_writing_agent.resume_compatibility import (
     ResumeCompatibilityDecision,
@@ -15,6 +12,13 @@ from financial_writing_agent.resume_compatibility import (
 
 
 _HISTORICAL_ONLY = ResumeCompatibilityDecision.HISTORICAL_PROVENANCE_ONLY.value
+
+
+def build_legacy_owner_state(**kwargs):
+    return owner_guard.build_initial_state(
+        _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
+        **kwargs,
+    )
 
 
 def _legacy_state() -> dict:

@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
+from . import current_admission, owner_guard
+from .models import Stage
 from .owner_guard import (
     MAIN_STATE_REF,
     SELF_ATTESTED_RECEIPT,
@@ -12,10 +14,7 @@ from .owner_guard import (
     _new_receipt,
     _state_path,
     _utc_now,
-    advance_state,
-    validate_state,
 )
-from .models import Stage
 from .workflow_spec import REVIEW_STAGE_NAMES, revision_targets
 
 MATERIAL_FEEDBACK_TYPES = {"USER_EDIT", "USER_FEEDBACK", "USER_REJECTION"}
@@ -75,6 +74,28 @@ def _normalize_alternatives(alternatives: list[Mapping[str, Any]]) -> list[dict[
     return normalized
 
 
+def _is_current(state: Mapping[str, Any]) -> bool:
+    return state.get("writing_kernel_version") == current_admission.WRITING_KERNEL_VERSION
+
+
+def _validate_owner_state(state: Mapping[str, Any]) -> None:
+    if _is_current(state):
+        current_admission.validate_state(state)
+    else:
+        owner_guard.validate_state(state)
+
+
+def _bind_current_after_mutation(state: dict[str, Any]) -> None:
+    if _is_current(state):
+        current_admission.bind_current_governance_receipt(state)
+
+
+def _advance_owner_state(state: Mapping[str, Any], **kwargs: Any) -> dict[str, Any]:
+    if _is_current(state):
+        return current_admission.advance_state(state, **kwargs)
+    return owner_guard.advance_state(state, **kwargs)
+
+
 def block_review_failure_state(
     state: Mapping[str, Any],
     *,
@@ -89,13 +110,13 @@ def block_review_failure_state(
 ) -> dict[str, Any]:
     """Persist a review FAIL together with its canonical repair target."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
-    validate_state(state)
+    _validate_owner_state(state)
     stage = str(state.get("current_stage", ""))
     _require(stage in REVIEW_STAGE_NAMES, "review failure blocking requires a canonical review stage")
     allowed = _allowed_revision_targets(stage)
     _require(revision_target in allowed, f"{stage} FAIL revision_target must be one of {sorted(allowed)}")
 
-    blocked = advance_state(
+    blocked = _advance_owner_state(
         state,
         previous_state_blob_sha=previous_state_blob_sha,
         executor_identity=executor_identity,
@@ -139,7 +160,7 @@ def resume_blocked_state(
 ) -> dict[str, Any]:
     """Resume a blocked review through the target chosen when the FAIL was persisted."""
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
-    validate_state(state)
+    _validate_owner_state(state)
     historical_resume = _admit_historical_material_resume(state, resume_intent=resume_intent)
     before = deepcopy(dict(state))
     _require(before.get("status") == "BLOCKED", "only BLOCKED owner state may be resumed")
@@ -184,7 +205,8 @@ def resume_blocked_state(
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_state(after)
+    _bind_current_after_mutation(after)
+    _validate_owner_state(after)
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     _require(after["current_stage"] == target, "BLOCKED recovery must use the persisted canonical target")
     return after
@@ -219,7 +241,7 @@ def review_system_impact_state(
     assurance level. It never manufactures provider-attested independence.
     """
     _require(state_ref == MAIN_STATE_REF, "Financial owner material mutations must target main")
-    validate_state(state)
+    _validate_owner_state(state)
     before = deepcopy(dict(state))
     _require(bool(str(signal_id).strip()), "signal_id is required")
     _require(decision in SYSTEM_IMPACT_DECISIONS, f"unsupported system-impact decision: {decision}")
@@ -338,6 +360,7 @@ def review_system_impact_state(
     )
     after["execution_receipts"] = list(before["execution_receipts"]) + [receipt]
     after["updated_at"] = _utc_now()
-    validate_state(after)
+    _bind_current_after_mutation(after)
+    _validate_owner_state(after)
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
     return after

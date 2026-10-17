@@ -1,14 +1,16 @@
 import pytest
 
-from financial_writing_agent.owner_guard import GithubChatGuardError, build_initial_state, validate_state
+from financial_writing_agent import owner_guard
+from financial_writing_agent.owner_guard import GithubChatGuardError, validate_state
 
 
 def _state():
-    return build_initial_state(
+    return owner_guard.build_initial_state(
         task_id="pollution-task",
         prompt="test",
         source_refs=[],
         executor_identity="chat-session:test",
+        _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
     )
 
 

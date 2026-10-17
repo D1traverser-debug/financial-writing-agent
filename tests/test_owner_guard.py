@@ -2,6 +2,7 @@ from copy import deepcopy
 
 import pytest
 
+from financial_writing_agent import owner_guard as owner_guard_module
 from financial_writing_agent.owner_guard import (
     CHAT_REVIEW_ASSURANCE,
     MODE_SOURCE_USER_EXPLICIT,
@@ -9,11 +10,18 @@ from financial_writing_agent.owner_guard import (
     GithubChatGuardError,
     advance_state as _owner_advance_state,
     attach_material_feedback,
-    build_initial_state,
     validate_state,
     validate_transition,
 )
 from financial_writing_agent.resume_compatibility import ResumeCompatibilityDecision
+
+
+def build_initial_state(**kwargs):
+    """Low-level legacy/base-state fixture; not a production current-task entrypoint."""
+    return owner_guard_module.build_initial_state(
+        _current_admission_token=owner_guard_module._CURRENT_ADMISSION_TOKEN,
+        **kwargs,
+    )
 
 
 def advance_state(state, **kwargs):

@@ -1,0 +1,16 @@
+{
+  "schema_version": "1.0",
+  "task_id": "cross-border-ecommerce-20261016-v3",
+  "workspace_lifecycle": "CURRENT",
+  "current_authority": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
+  "rule": "Only the explicitly KEEP_CURRENT authority is current task state. Prior-task evidence is consumed through source_refs and never promoted by filename/search presence.",
+  "statuses": {
+    "STATE.json": "KEEP_CURRENT"
+  },
+  "allowed_statuses": [
+    "KEEP_CURRENT",
+    "KEEP_FIXTURE",
+    "ARCHIVE_PROVENANCE",
+    "DELETE_UNREFERENCED"
+  ]
+}
