@@ -20,9 +20,9 @@ Lifecycle:
 
 ## Persistent asset boundary
 
-Cross-surface CRUD/output/migration semantics are owned by current UAOS `config/PERSISTENT_ASSET_POLICY.json`; Financial does not duplicate that policy. Financial's surface classification is `config/PERSISTENT_ASSET_PROFILE.json`.
+Financial's asset-location/role register is `config/PERSISTENT_ASSET_PROFILE.json`. The parent persistent-asset semantics are referenced at `D1traverser-debug/universal-agent-os@main:config/PERSISTENT_ASSET_POLICY.json`, but this child bootstrap does **not** activate, restate, or locally source those CRUD/migration/promotion/reconciliation semantics while `.uaos/CAPABILITIES.json` marks the dependency pending parent production promotion. After verified parent production activation, the capability handshake may be promoted through the child owner workflow; until then, only this domain's surface/role declarations apply.
 
-The only current Financial business authority is this GitHub repository on promoted `main`. Chat/history and Memory are reference/context; Custom Instructions are bootstrap; Notion ArticleBase/IndustryBase are shared research resources; migrated Notion/Drive/Library control artifacts are non-authoritative history; Library Word/PDF outputs are delivery history; `/mnt/data` is temporary. Search presence or durable file existence never restores article identity, stage, PASS, requirement authority or current workflow state.
+The only current Financial business authority is this GitHub repository on promoted `main`. Chat/history and Memory are reference/context; Custom Instructions are bootstrap; Notion ArticleBase/IndustryBase are shared research resources; migrated Notion/Drive/Library control artifacts are non-authoritative history; Library Word/PDF outputs are delivery history; `/mnt/data` is temporary. These are Financial asset-role declarations only, not a copied parent lifecycle/CRUD policy.
 
 ## Current admission and task requirements
 
