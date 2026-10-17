@@ -2,6 +2,7 @@ import hashlib
 import json
 from pathlib import Path
 
+from financial_writing_agent.artifact_hygiene import validate_artifact_status_manifest
 from financial_writing_agent.current_admission import validate_state
 
 
@@ -34,16 +35,22 @@ def test_current_successor_is_owner_native_and_requirement_bound():
     assert latest["task_requirement_digest"] == state["task_requirement_digest"]
     assert latest["task_requirement_authority_path"] == "financial_writing_agent.task_requirements"
 
+    manifest = validate_artifact_status_manifest(
+        json.loads((V3 / "ARTIFACT_STATUS.json").read_text(encoding="utf-8"))
+    )
+    assert manifest["workspace_lifecycle"] == "CURRENT"
+    assert manifest["statuses"] == {"STATE.json": "KEEP_CURRENT"}
+
 
 def test_v2_namespace_is_explicitly_migrated_history_with_no_current_artifacts():
-    manifest = json.loads((V2 / "ARTIFACT_STATUS.json").read_text(encoding="utf-8"))
+    manifest = validate_artifact_status_manifest(
+        json.loads((V2 / "ARTIFACT_STATUS.json").read_text(encoding="utf-8"))
+    )
     assert manifest["workspace_lifecycle"] == "MIGRATED_HISTORY"
     assert manifest["successor_task_id"] == "cross-border-ecommerce-20261016-v3"
     assert manifest["current_authority"] == "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json"
     statuses = manifest["statuses"]
-    assert statuses
     assert "KEEP_CURRENT" not in statuses.values()
-    assert all(status in set(manifest["allowed_statuses"]) for status in statuses.values())
     for relative_path in statuses:
         assert (V2 / relative_path).exists(), relative_path
 
