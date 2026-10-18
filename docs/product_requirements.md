@@ -68,7 +68,7 @@ For material thematic/company work, Research must:
 
 ### PR-04A — Mandatory PrivateResearchBrief before publication planning
 
-Every new Financial task created through current admission carries `private_research_contract_version=1.0`. Leaving RESEARCH requires both an admitted material `DecisionEnvelope` and a digest-bound `PrivateResearchBrief`.
+Every new Financial task created through current admission carries `private_research_contract_version=1.1`. Leaving RESEARCH requires both an admitted material `DecisionEnvelope` and a digest-bound `PrivateResearchBrief`.
 
 The brief is the private analytical workbench, not the public article. It must include every required module from `references/private_research.md`, each marked `APPLICABLE` or `NOT_MATERIAL` with explicit reasoning. For ordinary A-share thematic/company work where market behavior matters, the brief covers as applicable:
 - economic-substance and market-label company universes;
@@ -247,11 +247,17 @@ Financial owns Financial writing promotion; UAOS owns common/cross-domain promot
 - no default Deep word-count ceiling;
 - no rewriting historical state/receipts to fit the current architecture.
 
+## Current authoritative runtime vs quality evidence (2026-10-18 review)
+
+Current `main` contains the Financial Writing 1.0.3 business implementation and CI #1414 succeeded at `f261367eb480c884880890513752afc77d1ef916`. Historical research briefs explicitly bound to contract 1.0 remain valid under their own task markers; every **new** current-admission task uses PrivateResearchBrief 1.1.
+
+This is a source/contract implementation fact, **not** a general editorial-quality or audience-value certification. `evals/quality_regression.json` currently marks GENERAL_EDITORIAL_QUALITY as `NOT_READY__HELDOUT_DIVERSITY_INSUFFICIENT` and PERSONALIZED_WRITING_DNA as `NOT_READY`; the v3 cross-border successor remains at RESEARCH. The full product-quality assurance level is tracked in `evals/FINANCIAL_WHOLE_SYSTEM_OWNER_REVIEW_20261018.md` and will advance only with actual heldout/current article evidence.
+
 ## 9. Product completion criteria
 
 The 1.0.3 candidate is promotion-eligible only when:
 1. product requirements, architecture, execution contract, Skill/bindings and code agree;
-2. new tasks bind `private_research_contract_version=1.0` by default;
+2. new tasks bind `private_research_contract_version=1.1` by default;
 3. RESEARCH cannot advance without both DecisionEnvelope and valid PrivateResearchBrief;
 4. private research is digest-bound, tamper-detected and invalidated on revision to RESEARCH;
 5. private-research structural tests cover required modules, evidence refs, NOT_MATERIAL reasoning and coverage gaps;
