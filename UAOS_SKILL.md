@@ -33,6 +33,10 @@ Before material work for a scope, call `current_admission.requirement_context_fo
 
 User feedback is high-weight evidence, not automatic domain/global rule authority. Requirement admission and evolution promotion are separate decisions.
 
+## Explicit Financial system-wide review / reconstruction
+
+When selected for **财经写作自身的全系统评估、架构重审、系统修复或继续系统审查** rather than an article, consult the existing Financial evolution index `evals/EVOLUTION_INDEX.json#active_system_assessment`, then its current review ref and exact `main` source before deciding the next authorized action. The current 2026-10-18 review covers requirement ownership, source/fact research, writing kernel, reader-facing Deep/Broad products, independent semantic evidence, DOCX delivery, recovery, method learning and real article outcomes. Resume the open phase; do not substitute a historical article's DELIVERED status, a green repository CI or an old review document for current end-to-end reader-value proof. Do not open a second domain task index or second evolution owner. Ordinary article selection still resolves only its exact `workspaces/articles/<task_id>/STATE.json` and relevant stage references.
+
 ## Research
 
 Research follows `prior cognition -> value-chain preflight -> company universe -> current evidence -> adversarial/counterexample search -> saturation -> private-research synthesis -> thesis adjudication -> company comparison -> Research Audit`.
