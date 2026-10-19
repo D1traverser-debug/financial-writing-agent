@@ -18,6 +18,12 @@ Before material work read `.uaos/ADAPTER.json`, `.uaos/MANIFEST.json`, `.uaos/CA
 Lifecycle:
 `INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`.
 
+## Persistent asset boundary
+
+Financial's asset-location/role register is `config/PERSISTENT_ASSET_PROFILE.json`. The parent persistent-asset semantics are referenced at `D1traverser-debug/universal-agent-os@main:config/PERSISTENT_ASSET_POLICY.json`, but this child bootstrap does **not** activate, restate, or locally source those CRUD/migration/promotion/reconciliation semantics while `.uaos/CAPABILITIES.json` marks the dependency pending parent production promotion. After verified parent production activation, the capability handshake may be promoted through the child owner workflow; until then, only this domain's surface/role declarations apply.
+
+The only current Financial business authority is this GitHub repository on promoted `main`. Chat/history and Memory are reference/context; Custom Instructions are bootstrap; Notion ArticleBase/IndustryBase are shared research resources; migrated Notion/Drive/Library control artifacts are non-authoritative history; Library Word/PDF outputs are delivery history; `/mnt/data` is temporary. These are Financial asset-role declarations only, not a copied parent lifecycle/CRUD policy.
+
 ## Current admission and task requirements
 
 Current tasks use `financial_writing_agent.current_admission`, bind `writing_kernel_version=1.0`, `private_research_contract_version=1.1`, and for post-promotion tasks `task_requirement_contract_version=1.0`.
