@@ -46,3 +46,12 @@ D. Complete genuine current article source checking, editorial and user/reader a
 E. Measure actual improvement on negative cross-border and legitimate-neighbor content, rather than counting prohibitions/tests as an article.
 
 Candidate result: **standalone architecture implemented on Financial branch; independent real publishing acceptance OPEN** until the above evidence arrives. This report is neither 'entire repository semantically reviewed line by line' nor 'the user has approved the writing product'.
+
+
+## Exact production engineering verification (after candidate promotion)
+
+- Financial PR #60 was squashed to **main@8efe50c8151613e587c204967b65b68666caf0ad**. Candidate exact head d2459912b337d492b40cfff235a40ca1931f238e passed GitHub Actions **#43002119554**. The actual merged production head passed **#43002323750**. No parent clone occurred in CI.
+- Test output: **309 tests passed**, source-line coverage **86%** (4151 statements, 598 missed). The exact-head repository audit enumerated **291 tracked files**, parsed **84 Python** and **55 JSON** files, and decoded **32,166 lines** with no machine parse errors. These are machine and executable coverage, not semantic sentence-by-sentence independent QA.
+- The wheel installed as **financial-writing-agent 1.1.0** in isolation; direct Financial imports, standalone manifest/capability admission, one owner and true LibreOffice Word→rendered PNG smoke passed.
+- Read-only GitHub observation confirmed CAOS main at **9686cedeb3fd8171ecf70eab33aaea641217b04a**, unchanged from the audited baseline. No CAOS PR, code, test, configuration, installation or release was touched.
+- Real authenticated standalone Financial plugin installation/provider mutation remains unverified. The active current cross-border article is still RESEARCH and the original writing-quality/reader acceptance goals remain NOT_READY. No false "done" promotion of those outcome gates is authorized.
