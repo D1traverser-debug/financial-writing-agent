@@ -5,7 +5,9 @@ import sys
 import tempfile
 from pathlib import Path
 
-from financial_writing_agent.document import build_interaction_pack_docx
+from financial_writing_agent.delivery_pipeline import (
+    build_verified_interaction_pack_docx, render_word_and_review_pages,
+)
 from financial_writing_agent.resources import load_packaged_policy
 from financial_writing_agent.schemas import InteractionPost, PlatformInteractionPack
 
@@ -56,8 +58,22 @@ def main() -> None:
                 ),
             ],
         )
-        build_interaction_pack_docx(interaction, interaction_path, policy)
-        interaction_pages = _render(root, interaction_path, tmp / "rendered_interaction")
+        interaction_build = build_verified_interaction_pack_docx(
+            interaction, interaction_path, policy=policy,
+        )
+        inspected = render_word_and_review_pages(
+            interaction_build, docx_path=interaction_path,
+            render_dir=tmp / "rendered_interaction",
+            visual_reviewer=lambda event: {
+                # CI does not possess independent editorial/visual judgment.
+                # This callback proves exact page bytes were actually presented.
+                "status": "PASS",
+                "review_ref": f"ci:render-bytes-check/page-{event['page_index']}",
+            },
+        )
+        interaction_pages = inspected["pages"]
+        assert inspected["artifact_sha256"] == interaction_build["sha256"]
+        assert inspected["review_assurance"] == "CALLER_SUPPLIED_REVIEW__INDEPENDENCE_NOT_ESTABLISHED"
 
         # Also retain one minimal generic DOCX to prove the rendering pipeline itself is
         # not coupled only to the interaction-pack builder.
@@ -72,7 +88,8 @@ def main() -> None:
 
         print(
             "PASS: DOCX render pipeline produced "
-            f"{len(generic_pages)} generic + {len(interaction_pages)} interaction-pack PNG page(s)"
+            f"{len(generic_pages)} generic + {len(interaction_pages)} interaction-pack PNG page(s); "
+            "actual rendered file/page byte integrity checked, independent aesthetics not claimed"
         )
 
 
