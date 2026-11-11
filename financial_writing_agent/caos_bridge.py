@@ -15,7 +15,7 @@ import re
 from typing import Any, Callable, Mapping
 
 from . import current_admission
-from .path_identity import require_task_id
+from .path_identity import require_article_path, require_task_id
 
 PARENT_REPOSITORY = "D1traverser-debug/cognition-agent-os"
 BRIDGE_SCHEMA_VERSION = "1.0"
@@ -47,6 +47,7 @@ class CAOSChildEffectUnverified(RuntimeError):
 StateReader = Callable[[str], Mapping[str, Any] | None]
 CASWriter = Callable[[str, str | None, str], Mapping[str, Any]]
 GrantVerifier = Callable[[Mapping[str, Any]], bool]
+ArtifactReader = Callable[[str], Mapping[str, Any] | None]
 
 
 def _require(ok: bool, message: str) -> None:
@@ -103,6 +104,56 @@ def _canonical_payload(state: Mapping[str, Any]) -> str:
 def _blob_sha(payload: str) -> str:
     data = payload.encode("utf-8")
     return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\x00" + data).hexdigest()
+
+
+def _verify_required_stage_artifact(
+    candidate: Mapping[str, Any],
+    *,
+    artifact_reader: ArtifactReader | None,
+) -> dict[str, str] | None:
+    """Independently fetch the actual referenced stage bytes before parent CAS.
+
+    Article state ownership stays with current_admission. This verifier does
+    not create the document, approve its contents or change CAOS permissions;
+    it prevents a forged name/SHA in the Financial state receipt from passing.
+    """
+    receipts = candidate.get("execution_receipts")
+    _require(isinstance(receipts, list) and bool(receipts), "CHILD_EXECUTION_RECEIPT_REQUIRED")
+    last = receipts[-1]
+    bindings = last.get("input_bindings", {}) if isinstance(last, Mapping) else {}
+    _require(isinstance(bindings, Mapping), "CHILD_STAGE_BINDINGS_INVALID")
+    artifact_key = bindings.get("required_artifact_key")
+    if artifact_key is None:
+        return None
+    _require(isinstance(artifact_key, str) and bool(artifact_key), "CHILD_REQUIRED_ARTIFACT_KEY_INVALID")
+    _require(artifact_reader is not None, "CHILD_STAGE_ARTIFACT_REQUIRES_TRUSTED_READER")
+    refs = candidate.get("stage_artifacts", {})
+    ref = refs.get(artifact_key) if isinstance(refs, Mapping) else None
+    _require(isinstance(ref, Mapping), "CHILD_REQUIRED_STAGE_ARTIFACT_NOT_FOUND")
+    task_id = candidate.get("task_id")
+    path = ref.get("path")
+    try:
+        require_article_path(path, task_id)
+    except ValueError as exc:
+        raise CAOSChildAdmissionError("CHILD_REQUIRED_STAGE_ARTIFACT_PATH_INVALID") from exc
+    claimed_sha = ref.get("blob_sha")
+    _require(_valid_sha(claimed_sha), "CHILD_REQUIRED_STAGE_ARTIFACT_SHA_INVALID")
+    _require(bindings.get("required_artifact_blob_sha") == claimed_sha, "CHILD_RECEIPT_STAGE_SHA_MISMATCH")
+    try:
+        result = artifact_reader(path)
+    except Exception as exc:
+        raise CAOSChildAdmissionError("CHILD_STAGE_ARTIFACT_PROVIDER_READ_FAILED") from exc
+    _require(isinstance(result, Mapping), "CHILD_STAGE_ARTIFACT_PROVIDER_RESULT_MISSING")
+    content = result.get("content")
+    observed_sha = result.get("blob_sha")
+    _require(isinstance(content, (str, bytes)) and _valid_sha(observed_sha), "CHILD_STAGE_ARTIFACT_PROVIDER_CONTENT_INVALID")
+    if isinstance(content, str):
+        content = content.encode("utf-8")
+    computed = hashlib.sha1(
+        b"blob " + str(len(content)).encode("ascii") + b"\x00" + content
+    ).hexdigest()
+    _require(computed == observed_sha == claimed_sha, "CHILD_STAGE_ARTIFACT_CONTENT_SHA_MISMATCH")
+    return {"artifact_key": artifact_key, "path": path, "verified_blob_sha": computed}
 
 
 def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
@@ -170,6 +221,7 @@ def admit_parent_article_action(
     state_reader: StateReader,
     cas_writer: CASWriter | None,
     grant_verifier: GrantVerifier | None,
+    artifact_reader: ArtifactReader | None = None,
 ) -> dict[str, Any]:
     """Perform an action only through current_admission and provider CAS.
 
@@ -220,6 +272,10 @@ def admit_parent_article_action(
             )
 
     current_admission.validate_state(candidate)
+    verified_stage_artifact = (
+        _verify_required_stage_artifact(candidate, artifact_reader=artifact_reader)
+        if operation == "ADVANCE_STAGE" else None
+    )
     payload = _canonical_payload(candidate)
     expected_new_sha = _blob_sha(payload)
     try:
@@ -249,6 +305,7 @@ def admit_parent_article_action(
         "resulting_business_status": after[0]["status"],
         "provider_commit_ref": issued.get("commit_ref"),
         "child_state_cas_verified": True,
+        "required_stage_artifact_verified": verified_stage_artifact,
         "parent_business_acceptance": False,
         "independent_editorial_quality_verified": False,
     }
