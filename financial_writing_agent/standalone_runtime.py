@@ -91,6 +91,7 @@ def _strict_json_equal(left: Any, right: Any) -> bool:
 
 
 def _read(reader: StateReader, path: str) -> tuple[dict[str, Any], str] | None:
+    """Verify provider's actual Git bytes, not caller-asserted metadata."""
     try:
         raw = reader(path)
     except Exception as exc:
@@ -98,13 +99,17 @@ def _read(reader: StateReader, path: str) -> tuple[dict[str, Any], str] | None:
     if raw is None:
         return None
     _require(isinstance(raw, Mapping), "INVALID_PROVIDER_STATE_RESPONSE")
-    state, sha = raw.get("state"), raw.get("blob_sha")
-    _require(isinstance(state, Mapping) and _valid_sha(sha), "INVALID_PROVIDER_STATE_RESPONSE")
+    state, sha, content = raw.get("state"), raw.get("blob_sha"), raw.get("content")
+    _require(isinstance(state, Mapping) and _valid_sha(sha) and isinstance(content, (str, bytes)),
+             "INVALID_PROVIDER_STATE_RESPONSE")
+    _require(_blob_sha(content) == sha, "PROVIDER_STATE_BLOB_SHA_MISMATCH")
+    try:
+        parsed = json.loads(content)
+    except (ValueError, TypeError) as exc:
+        raise FinancialAdmissionError("PROVIDER_STATE_JSON_INVALID") from exc
     candidate = deepcopy(dict(state))
-    _require(_blob_sha(_canonical_payload(candidate)) == sha or raw.get("provider_exact_blob_verified") is True,
-             "PROVIDER_STATE_BLOB_SHA_MISMATCH")
+    _require(_strict_json_equal(candidate, parsed), "PROVIDER_STATE_CONTENT_MISMATCH")
     return candidate, sha
-
 
 def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | None) -> dict[str, Any] | None:
     receipts = candidate["execution_receipts"]
