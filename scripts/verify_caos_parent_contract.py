@@ -11,7 +11,7 @@ import os
 from pathlib import Path
 import re
 
-from cognition_agent_os.domain_contract import FILES, _native_contract
+from cognition_agent_os.domain_contract import FILES, _native_contract, observe_native_domain
 
 ROOT = Path(__file__).resolve().parents[1]
 PARENT = "D1traverser-debug/cognition-agent-os@main"
@@ -22,9 +22,9 @@ def main() -> None:
     assert manifest["controller"] == PARENT
     entrypoint = manifest["skill"]["entrypoint"]
     files = {path: (ROOT / path).read_bytes() for path in (*FILES, entrypoint)}
-    sha = os.environ.get("GITHUB_SHA", "a" * 40)
+    sha = os.environ.get("FWA_SOURCE_SHA", "")
     if not re.fullmatch(r"[a-f0-9]{40}", sha):
-        sha = "a" * 40
+        raise SystemExit("FWA_SOURCE_SHA exact GitHub commit required for parent-to-child remote observation")
     observation = _native_contract(
         files,
         {
@@ -48,7 +48,16 @@ def main() -> None:
     assert "financial_owner_workflow" in observation["advertised_capability_ids"]
     assert "high_judgment_generation_stages" in observation["advertised_capability_ids"]
     assert all(path in observation["source_sha256"] for path in files)
-    print("PASS: real pinned CAOS native domain_contract independently accepts Financial "
+    # Genuine read-only parent code fetches the remotely committed child files,
+    # verifies GitHub's content hashes, then constructs the same observation.
+    remote = observe_native_domain({
+        "kind": "domain_contract",
+        "repo": "D1traverser-debug/financial-writing-agent",
+        "ref": sha,
+        "domain_id": "financial_writing",
+    })
+    assert remote == observation, "parent remote source disagrees with local checkout"
+    print("PASS: real pinned CAOS native domain_contract and remote GitHub immutable child snapshot accept Financial "
           "child contract and detects no residual legacy-parent binding; execution "
           "grants and business outcome remain child-native and unclaimed.")
 
