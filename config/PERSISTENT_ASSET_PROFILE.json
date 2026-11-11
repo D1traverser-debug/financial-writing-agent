@@ -2,12 +2,10 @@
   "schema_version": "2.0",
   "profile_version": "2.0.0",
   "domain_id": "financial_writing",
-  "status": "ACTIVE_FINANCIAL_CHILD_ASSET_REGISTER__NOT_ANOTHER_CONTROL_PLANE",
+  "status": "ACTIVE_STANDALONE_FINANCIAL_ASSET_REGISTER__NOT_ANOTHER_CONTROL_PLANE",
   "observed_at": "2026-11-11",
-  "parent_method_ref": "D1traverser-debug/cognition-agent-os@main:docs/02-AUTHORITY-AND-INTERFACES.md",
-  "parent_operation_claim": "CAOS_DOMAIN_CONTRACT_IS_READ_ONLY__NO_REMOTE_ASSET_AUTHORITY_IMPLIED",
   "owner_authority": "DOMAIN:financial_writing",
-  "governing_rule": "Asset roles and scope are Financial-owned business metadata only. Neither this register nor parent discovery performs app CRUD, native Memory interception, tool grants, business-state writes, or user consent. Actual operations require owner authorization, app-specific verified tool capability and readback. Do not copy retired UAOS policy.",
+  "governing_rule": "Exactly one Financial business authority (this GitHub repository). External Chat, Memory, Notion, Drive and tools are evidence or delivery only, never article controllers. Writes require user-granted tool capability and readback; no parent/CAOS host or repository is involved.",
   "authority_cardinality": "EXACTLY_ONE_CURRENT_FINANCIAL_BUSINESS_AUTHORITY__GITHUB_MAIN",
   "current_authority_assets": [
     {
@@ -131,6 +129,8 @@
       "status": "NO_CURRENT_FINANCIAL_BUSINESS_STATE_AUTOMATION_VERIFIED"
     }
   ],
-  "storage_reconciliation_rule": "For each new chat/Work session, load Financial GitHub main current authority and target article STATE first. Cross-check external source timestamps/IDs if used. Never allow an external historical title or a stale Memory entry to supersede current owner state.",
-  "independent_acceptance_boundary": "NATIVE_CHAT_MEMORY_CUSTOM_INSTRUCTIONS_NOT_PHYSICALLY_INTERCEPTED_BY_CHILD_REPO__EXTERNAL_APP_WRITES_REQUIRE_EXPLICIT_AUTH_AND_SOURCE_READBACK"
+  "storage_reconciliation_rule": "For each new chat/Work session, load Financial GitHub main authority and the current article STATE first. Cross-check dates, sources and real user corrections. Do not let stale memory, historic docs or a parent-systems label override Financial state.",
+  "independent_acceptance_boundary": "NATIVE_CHAT_MEMORY_CUSTOM_INSTRUCTIONS_NOT_PHYSICALLY_INTERCEPTED_BY_CHILD_REPO__EXTERNAL_APP_WRITES_REQUIRE_EXPLICIT_AUTH_AND_SOURCE_READBACK",
+  "method_provenance": "Historical external governance methods adopted into Financial; no current external runtime dependency",
+  "standalone_runtime": "financial_writing_agent.standalone_runtime"
 }
