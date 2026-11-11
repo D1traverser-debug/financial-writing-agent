@@ -31,6 +31,12 @@ PrivateResearchBrief 1.1 with 15 modules is research evidence, not a publishable
 
 The separate Word builder, source readback, actual LibreOffice PDF/PNG rendering, page review receipt and user-visible file accessibility are mandatory when that deliverable is requested. A typed PASS field alone proves none of those steps.
 
+## Native recovery and complete failure journal
+
+references/proactive_resolution.md and financial_writing_agent/proactive_resolution.py are the Financial recovery tools. **A missing ideal input is not automatically a user blocker**: recover, infer provisionally, test, and only then escalate; call record_proactive_resolution_state and require_user_escalation_admission. **Problem-to-action closure** means that an authorized repair that can be performed may not be replaced with advice alone.
+
+The historical evals/PROBLEM_EVOLUTION_JOURNAL.md is retained as provenance and explicit negative cases. **Every encountered problem must appear** there when it materially changes system behavior, alongside selected and rejected roots, counterevidence, action, verification, uncertainty and follow-up conditions. **Do not rewrite the journal into a success-only narrative**. New Financial system-status authority remains evals/EVOLUTION_INDEX.json, not a new parent queue.
+
 ## Domain product evolution
 
 Signal → original user/source evidence → competing root/falsifier → bounded Financial-only candidate branch → negative+legitimate-neighbor tests → exact-head CI and controlled merge → production-state reread → actual article/user outcome → KEEP / REPAIR / ROLLBACK / RETIRE.
