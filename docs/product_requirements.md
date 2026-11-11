@@ -1,6 +1,6 @@
 # Financial Writing Agent — Product Requirements
 
-Status: `1.0.3_STANDALONE_FINANCIAL__EDITORIAL_NOT_READY`
+Status: `1.1.0_STANDALONE_FINANCIAL__EDITORIAL_NOT_READY`
 Version: `1.0.3-candidate`
 Review date: `2026-11-11`
 Owner: `DOMAIN:financial_writing`
