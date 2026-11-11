@@ -7,6 +7,7 @@ from typing import Any, Callable, Mapping
 from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
 from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidence
 from .models import ArtifactKind
+from .path_identity import require_basename, require_task_id
 from .private_research import validate_private_research_brief
 
 
@@ -79,6 +80,10 @@ def build_visible_delivery_receipt(
     _require(isinstance(state, Mapping), "state is required")
     task_id = str(state.get("task_id", "")).strip()
     _require(bool(task_id), "state.task_id is required")
+    try:
+        require_task_id(task_id)
+    except ValueError as exc:
+        raise DeliveryAvailabilityError("state.task_id is not a canonical article identity") from exc
     owner_required = state.get("required_outputs")
     _require(isinstance(owner_required, list) and owner_required, "state.required_outputs is required")
     owner_required = [str(kind) for kind in owner_required]
@@ -111,6 +116,10 @@ def build_visible_delivery_receipt(
         digest = str(resource.get("sha256", "")).strip().lower()
         _require(bool(ref), f"{kind}.resource_ref is required for current visible delivery")
         _require(bool(file_name), f"{kind}.file_name is required")
+        try:
+            require_basename(file_name)
+        except ValueError as exc:
+            raise DeliveryAvailabilityError(f"{kind}.file_name must be a canonical basename") from exc
         _require(_hex_sha256(digest), f"{kind}.sha256 must be a 64-character hex digest")
         try:
             verified = bool(resource_verifier(resource))
