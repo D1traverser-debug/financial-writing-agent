@@ -43,3 +43,11 @@ def require_basename(value: Any) -> str:
     if "/" in path or path in (".", ".."):
         raise ValueError("file name must be a canonical basename")
     return path
+
+
+def require_word_basename(value: Any) -> str:
+    """Enforce the actual Word-only filename contract at every delivery boundary."""
+    name = require_basename(value)
+    if not name.lower().endswith(".docx") or not name[:-5].strip():
+        raise ValueError("Word delivery file name must have a nonempty .docx stem")
+    return name
