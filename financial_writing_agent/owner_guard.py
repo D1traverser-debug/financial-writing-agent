@@ -6,6 +6,7 @@ from typing import Any, Mapping
 from uuid import uuid4
 
 from .models import ArtifactKind, DeliveryChannel, DistributionMode, Stage, TaskContract
+from .path_identity import require_article_path, require_basename, require_task_id
 from .routing import build_task_contract
 from .workflow_spec import (
     BUSINESS_STAGE_NAMES,
@@ -108,7 +109,7 @@ def _require(condition: bool, message: str) -> None:
 
 
 def _state_path(task_id: str) -> str:
-    return f"workspaces/articles/{task_id}/STATE.json"
+    return f"workspaces/articles/{require_task_id(task_id)}/STATE.json"
 
 
 def _expected_capability(stage: str) -> str:
@@ -141,16 +142,20 @@ def _validate_artifact_ref(ref: Any, *, label: str, task_id: str) -> None:
     path = ref.get("path")
     _require(_nonempty(path), f"{label}.path is required")
     _require(_nonempty(ref.get("blob_sha")), f"{label}.blob_sha is required")
-    _require(
-        str(path).startswith(f"workspaces/articles/{task_id}/"),
-        f"{label}.path must belong to the current article workspace",
-    )
+    try:
+        require_article_path(path, task_id)
+    except ValueError as exc:
+        raise GithubChatGuardError(f"{label}.path must be canonical inside the current article workspace") from exc
 
 
 def _validate_delivery_artifact_metadata(meta: Any, *, kind: str) -> None:
     _require(isinstance(meta, Mapping), f"delivery_artifacts.{kind} must be an object")
     _require(meta.get("kind") == kind, f"delivery_artifacts.{kind}.kind mismatch")
     _require(_nonempty(meta.get("file_name")), f"delivery_artifacts.{kind}.file_name is required")
+    try:
+        require_basename(meta.get("file_name"))
+    except ValueError as exc:
+        raise GithubChatGuardError(f"delivery_artifacts.{kind}.file_name must be a canonical basename") from exc
     sha = meta.get("sha256")
     _require(isinstance(sha, str) and len(sha) == 64 and all(ch in "0123456789abcdefABCDEF" for ch in sha), f"delivery_artifacts.{kind}.sha256 must be a 64-character hex digest")
 
@@ -204,6 +209,10 @@ def _validate_base_state(state: Mapping[str, Any]) -> None:
     _require(not missing, f"state missing required fields: {missing}")
     _require(state.get("execution_mode") == GITHUB_CHAT_EXECUTION_MODE, "execution_mode must be GITHUB_CHAT")
     _require(_nonempty(state.get("task_id")), "task_id is required")
+    try:
+        require_task_id(state.get("task_id"))
+    except ValueError as exc:
+        raise GithubChatGuardError("task_id must be a canonical article identity") from exc
     _require(state.get("current_stage") in BUSINESS_STAGE_NAMES, "current_stage is not a supported Financial stage")
     _require(state.get("status") in ALLOWED_STATUS, "status is not a supported GITHUB_CHAT status")
     if state.get("status") == TERMINAL_STATUS:
@@ -353,6 +362,10 @@ def build_initial_state(
         "new Financial tasks must be created through financial_writing_agent.current_admission.build_initial_state",
     )
     _require(_nonempty(task_id), "task_id is required")
+    try:
+        require_task_id(task_id)
+    except ValueError as exc:
+        raise GithubChatGuardError("task_id must be a canonical article identity") from exc
     _require(_nonempty(prompt), "prompt is required")
     _require(state_ref == MAIN_STATE_REF, "new GITHUB_CHAT tasks must be created on main")
     refs = list(source_refs or [])
