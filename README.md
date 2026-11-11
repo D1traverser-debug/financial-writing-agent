@@ -2,7 +2,7 @@
 
 **Business authority:** `D1traverser-debug/financial-writing-agent@main`.
 **Cognition parent:** `D1traverser-debug/cognition-agent-os@main`.
-**Current status:** CAOS child-interface redevelopment candidate in PR #52; independent end-to-end editorial quality is **NOT_READY**. The former Universal Agent OS is not the parent.
+**Current status:** CAOS child interface with guarded, child-owned state effects; independent end-to-end editorial quality is **NOT_READY**. The former Universal Agent OS is not the parent.
 
 ## Entry and identity
 
