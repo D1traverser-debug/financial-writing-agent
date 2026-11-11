@@ -150,7 +150,8 @@
       "independent_plugin_activation_verified": false,
       "live_user_article_product_verified": false,
       "editorial_acceptance": "NOT_READY",
-      "production_merge_verified": false
+      "production_merge_verified": false,
+      "review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md"
     }
   }
 }
