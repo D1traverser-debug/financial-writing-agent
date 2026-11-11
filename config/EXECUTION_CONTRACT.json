@@ -208,7 +208,8 @@
     "one_off_observation_auto_promotes_to_global_rule": false,
     "systemic_change_requires_regression_or_eval_evidence": true,
     "post_promotion_observation_required_for_evolution_closure": true,
-    "common_or_cross_domain_change_uses_parent_upcall": true
+    "common_or_cross_domain_change_uses_parent_upcall": false,
+    "shared_method_adaptation_rule": "FINANCIAL_LOCAL_SCOPE_AND_EVIDENCE__NO_PARENT_UPCALL"
   },
   "problem_and_evolution": {
     "generic_problem_cognition_owner": "FINANCIAL_WRITING_OWNER",
