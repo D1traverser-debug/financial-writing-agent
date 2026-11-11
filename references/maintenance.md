@@ -21,6 +21,12 @@ For Financial local improvements: `signal → evidence/ref → competing cause �
 
 Material requirement corrections enter **`current_admission.apply_task_requirement_change`**, not a side-file or method-catalog overwrite. Earlier stage and dependent quality evidence must invalidate. One-off user rejection is high-weight evidence, not a universal rule. The old rejected Word package cannot validate a newer writing-kernel version by retroactive relabeling.
 
+## Native recovery and legacy problem-history preservation
+
+The `references/proactive_resolution.md` procedure and `financial_writing_agent/proactive_resolution.py` remain Financial-owned. **A missing ideal input is not automatically a user blocker**: recover, infer provisionally and validate before escalating. **Problem-to-action closure** means a repairable authorized defect may not terminate as a recommendation.
+
+The existing `evals/PROBLEM_EVOLUTION_JOURNAL.md` remains immutable chronology rather than a fresh CAOS task index. **Every encountered problem must appear** there when consequential to system behavior; keep rejected causes, original negative outcome, method applicability, verification and unknowns. **Do not rewrite the journal into a success-only narrative**. Historical UAOS labels are evidence of prior decisions, never present CAOS authority.
+
 ## Domain action, learning, recovery
 
 An owner-authorized repair that can be performed now cannot stop at a recommendation without an actual bounded attempt. For unavailable data, use `proactive_resolution.record_proactive_resolution_state` and `require_user_escalation_admission`; do not solicit a source the environment can lawfully recover. A provisional conclusion must retain its validation plan, date and uncertainty.
