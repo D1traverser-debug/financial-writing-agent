@@ -22,7 +22,7 @@ def main() -> None:
     paths = (
         "CAOS_SKILL.md", "UAOS_SKILL.md", ".uaos/MANIFEST.json",
         ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json",
-        "config/EXECUTION_CONTRACT.json", "docs/product_requirements.md",
+        "config/EXECUTION_CONTRACT.json", "config/PERSISTENT_ASSET_PROFILE.json", "docs/product_requirements.md",
         "docs/architecture.md", "docs/CAOS_CHILD_INTERFACE.md",
         "financial_writing_agent/caos_bridge.py", "financial_writing_agent/path_identity.py",
         "financial_writing_agent/owner_guard.py",
@@ -39,6 +39,18 @@ def main() -> None:
     for retired in ("continuity", "state", "financial_writing_agent/uaos_binding.py",
                     "financial_writing_agent/github_chat_guard.py", "tests/test_uaos_article_binding.py"):
         require(not (ROOT / retired).exists(), f"retired control authority returned: {retired}")
+
+    register = load("config/PERSISTENT_ASSET_PROFILE.json")
+    current_assets = register["current_authority_assets"]
+    require(len(current_assets) == 1, "Financial asset register must declare exactly one business authority")
+    require(current_assets[0]["resource_ref"]
+            == "github://D1traverser-debug/financial-writing-agent@main",
+            "Financial asset register authority is not current GitHub main")
+    require(register["parent_method_ref"].startswith("D1traverser-debug/cognition-agent-os@main:"),
+            "Financial persistent-asset register still points to old parent")
+    require(all(item["role"] != "AUTHORITY" and item["lifecycle"] != "CURRENT"
+                for item in register["non_authority_assets"]),
+            "non-GitHub asset was silently promoted into current Financial authority")
 
     m, a, c, e = (load(path) for path in (
         ".uaos/MANIFEST.json", ".uaos/ADAPTER.json",
