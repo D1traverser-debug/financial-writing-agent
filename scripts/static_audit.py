@@ -92,7 +92,7 @@ def main():
                 f"old entry still looks active: {path}")
     skill = (ROOT / manifest["skill_entrypoint"]).read_text(encoding="utf-8")
     for marker in ("Independent Operating Skill", "Decision", "Execution", "PrivateResearchBrief",
-                   "Deep", "source", "DOCX", "standalone_runtime.py", "no parent",
+                   "Deep", "source", "DOCX", "standalone_runtime.py", "No local CAOS",
                    "article", "originality"):
         require(marker.lower() in skill.lower(), f"operating Skill lacks Financial duty: {marker}")
     from financial_writing_agent.standalone_runtime import DOMAIN_ID, OPERATIONS
