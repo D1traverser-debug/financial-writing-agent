@@ -3,12 +3,14 @@
 Synthetic page fixtures exercise receipt integrity. A separate CI render smoke
 must still execute LibreOffice and pdftoppm on real Word output.
 """
+import hashlib
 import struct
 import zlib
 from pathlib import Path
 
 import pytest
 
+from financial_writing_agent.claim_trace import verify_publication_source_trace
 from financial_writing_agent.delivery_pipeline import (
     CanonicalDeliveryError, _issue_build_receipt,
     build_verified_article_docx, finalize_delivery_evidence,
@@ -79,6 +81,29 @@ def _task_bound_receipt(original):
         "observed_stage": "DELIVERY",
         "assurance": "STRUCTURAL_TASK_SCOPE_ONLY__FACTS_AND_EDITORIAL_NOT_INDEPENDENTLY_VERIFIED",
     }
+    # Synthetic reviewer-independent source binding. This fixture exercises
+    # signed wiring; it is not an externally verified financial article.
+    source_text = "这是一段包含可检查语义锚点的审稿文本，供渲染联调。"
+    article = ArticleDocument(
+        title="测试", stock_names=[],
+        blocks=[
+            Block(kind="h1", text="事实比较"),
+            Block(kind="body", text="这是一段包含**可检查语义锚点**的审稿文本。"),
+        ],
+    )
+    body["claim_trace_binding"] = verify_publication_source_trace(
+        article, [{
+            "claim_id": "fixture-anchor",
+            "block_index": 1,
+            "claim_excerpt": "这是一段包含**可检查语义锚点**的审稿文本",
+            "source_ref": "test://synthetic/anchor",
+            "source_excerpt": source_text,
+        }],
+        source_reader=lambda _: {
+            "text": source_text, "sha256": hashlib.sha256(source_text.encode()).hexdigest(),
+        },
+        article_task_id="article-render-test",
+    )
     return _issue_build_receipt(body)
 
 
