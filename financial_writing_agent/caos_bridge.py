@@ -150,7 +150,7 @@ def _verify_required_stage_artifact(
     if isinstance(content, str):
         content = content.encode("utf-8")
     computed = hashlib.sha1(
-        b"blob " + str(len(content)).encode("ascii") + b"\\x00" + content
+        b"blob " + str(len(content)).encode("ascii") + b"\x00" + content
     ).hexdigest()
     _require(computed == observed_sha == claimed_sha, "CHILD_STAGE_ARTIFACT_CONTENT_SHA_MISMATCH")
     return {"artifact_key": artifact_key, "path": path, "verified_blob_sha": computed}
