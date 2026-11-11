@@ -9,7 +9,7 @@ def _read(path: str) -> str:
 
 def test_maintenance_routes_to_proactive_resolution_and_problem_journal():
     maintenance = _read("references/maintenance.md")
-    assert "Revision: `2.0-CAOS`" in maintenance
+    assert "Revision: 3.0-STANDALONE" in maintenance
     assert "references/proactive_resolution.md" in maintenance
     assert "financial_writing_agent/proactive_resolution.py" in maintenance
     assert "evals/PROBLEM_EVOLUTION_JOURNAL.md" in maintenance
