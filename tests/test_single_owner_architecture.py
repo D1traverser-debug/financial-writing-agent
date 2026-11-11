@@ -76,7 +76,7 @@ def test_discovery_skill_is_real_operating_entry_not_second_parent_pointer():
 
 def test_installed_package_has_no_caos_required_dependencies():
     project = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
-    assert project["project"]["version"] == "1.0.3"
+    assert project["project"]["version"] == "1.1.0"
     assert "scripts" not in project["project"]
     deps = project["project"].get("dependencies", [])
     assert not any("caos" in d.lower() or "uaos" in d.lower() for d in deps)
