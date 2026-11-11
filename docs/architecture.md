@@ -1,12 +1,12 @@
 # Financial Writing Agent — Architecture
 
-Version: `1.0.3 / CAOS adapter candidate`
+Version: `1.0.3 / standalone Financial operating domain`
 Reviewed: `2026-11-11`
-Status: `DOMAIN_CANDIDATE`
+Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
 
-Financial Writing is one business owner under the opt-in CAOS cognition parent. CAOS provides goal/decision methods and a currently read-only native domain-contract observer; no connected CAOS Host or universal write mediation is assumed. Financial alone owns business state, task requirements and result acceptance. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no parent/CAOS runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
@@ -16,11 +16,11 @@ Hard invariants:
 - no mandatory live CAOS business proxy for normal Financial work;
 - compliance, evidence integrity and owner-controlled mutation remain fail-closed.
 
-## 1A. 2026-11-11 CAOS child integration boundary
+## 1A. Current standalone deployment and capability boundary
 
-Current CAOS `src/cognition_agent_os/domain_contract.py` accepts three historical `.uaos` file paths for read-only discovery, but does not delegate an executable article task. Their contents now bind the actual CAOS parent and point to `CAOS_SKILL.md`. `financial_writing_agent/caos_bridge.py` is an optional guarded child adapter: it requires an externally validated parent-goal grant, the exact current child blob SHA, provider CAS and independent readback for each owner-native state mutation; it adds no controller or second business state. The old `UAOS_SKILL.md` is only a legacy pointer. A missing actual parent connection cannot be filled by a manifest assertion.
+Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import CAOS, and no local CAOS Host is required. Historical `.uaos/*` and `CAOS_SKILL.md` are inactive compatibility artifacts.
 
-Source-to-claim checks, actual semantic review and the Word/reader outcome remain separate, stronger proof obligations. Existing v3 research stage and historical article receipts are not rewritten by this migration. Full scope and evidence are tracked in `evals/EVOLUTION_INDEX.json#active_system_assessment` and `evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md`.
+Model/web/data retrieval and document tools must actually be connected in the Financial environment; an installed Python wheel by itself does not execute LLM research or prove any native plugin connection. The real cross-border v3 task and all historic receipts remain unchanged. Full product readiness still requires independently observed financial facts, useful narrative and actual accessible Word results.
 
 ## 2. Why 1.0.3 changes the 1.0.2 architecture
 
@@ -47,9 +47,9 @@ Internal work becomes:
 
 These are focused passes, not independent controllers. Same-model passes are structured challenge evidence, not independent certification.
 
-## 4. Hosted cognition architecture
+## 4. Financial-owned cognition and decision architecture
 
-CAOS-hosted cognition supplies the problem-response method; Financial keeps business adjudication local.
+Financial natively applies its decision and execution methods. DecisionEnvelope and evidence-grounded causal challenges are Financial-owned, with no external controller or parent authorization.
 
 Material judgments use `DecisionEnvelope`: evidence beyond user assertion, challenged assumptions, credible alternatives, failure/fit/misfit conditions, counterexamples/rejected paths, selected rationale, search saturation, verification and remaining unknowns.
 
@@ -68,7 +68,7 @@ Thesis selection before value-chain coverage/private-research synthesis is inval
 
 ### 5.1 PrivateResearchBrief
 
-New states created through `financial_writing_agent.current_admission.build_initial_state` bind `private_research_contract_version=1.0`.
+New states created through `financial_writing_agent.current_admission.build_initial_state` bind `private_research_contract_version=1.1` with fifteen required modules; historical 1.0 evidence remains parseable only where explicitly marked.
 
 `financial_writing_agent.private_research` defines the required modules and validates structural admission. `financial_writing_agent.current_admission.advance_state` persists the validated object under `quality_evidence.private_research_brief`, computes a canonical digest and binds it to the RESEARCH execution receipt.
 
@@ -147,7 +147,7 @@ Natural prose is material/stance/story/voice first. Generic scaffolding is diagn
 
 ## 8. Current admission and post-evolution resume compatibility
 
-New tasks use `financial_writing_agent.current_admission` and carry `writing_kernel_version=1.0`, `private_research_contract_version=1.0` plus `quality_evidence`. Current admission fail-closes:
+New tasks use `financial_writing_agent.current_admission` and carry `writing_kernel_version=1.0`, `private_research_contract_version=1.1` plus `quality_evidence`. Current admission fail-closes:
 - RESEARCH forward without admitted `DecisionEnvelope`;
 - marker-enabled RESEARCH forward without valid `PrivateResearchBrief`;
 - downstream validation when either admitted research object is missing, tampered or no longer matches its RESEARCH receipt digest;
@@ -161,7 +161,7 @@ Historical state remains readable provenance. Before **materially** continuing a
 
 The private-research marker is intentionally separate from the writing-kernel marker so already-created 1.0/1.0.2 states are not silently invalidated by the 1.0.3 domain upgrade.
 
-This guard does not rewrite the old state and does not transfer ownership to CAOS. It separates continuity from assurance.
+This guard does not rewrite the old state or transfer ownership outside Financial. It separates continuity from assurance.
 
 ## 9. Knowledge architecture
 
