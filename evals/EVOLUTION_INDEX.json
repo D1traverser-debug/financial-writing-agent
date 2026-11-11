@@ -91,7 +91,7 @@
   ],
   "active_system_assessment": {
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
-    "status": "RUNNING__CAOS_FINANCIAL_CHILD_PRODUCTION_CODE_VERIFIED__EDITORIAL_PRODUCT_NOT_READY",
+    "status": "RUNNING__FINANCIAL_STANDALONE_RUNTIME_CANDIDATE__EDITORIAL_PRODUCT_NOT_READY",
     "owner": "DOMAIN:financial_writing",
     "review_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
@@ -101,14 +101,14 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "CAOS child-native production verified for R1; continue R2 actual current-kernel article, primary-source/independent editor, actual full Word/user-readback, R3 heldout and R4-R6 measured improvement. CAOS parent repo unchanged.",
+    "next_legal_phase": "Standalone Financial primary Skill, manifest and native action adapter under candidate review; finish exact-head CI, then independent standalone production and live real article/reader evidence (R2-R6). No CAOS repository modification, invocation or dependency.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "NONE",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
-      "No actual ChatGPT native CAOS Skill invocation or live parent Host child effect observed.",
-      "Parent domain_contract is read-only; bridge callback tests are not provider production executions.",
+      "No real authenticated user-facing standalone Financial plugin action observed (candidate only).",
+      "Standalone Git provider-adapter behavior is exercised with mocked callbacks in CI; a real user-authenticated plugin CAS effect remains unverified.",
       "No verified real external reader outcome; current cross-border v3 remains RESEARCH."
     ],
     "boundary": "ONE_FINANCIAL_EVOLUTION_OWNER__NO_NEW_TASK_INDEX_OR_PARALLEL_ARTICLE_STATE",
@@ -137,6 +137,20 @@
       "parent_repo_unchanged_main_sha": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
       "semantic_readiness": "NOT_READY",
       "source_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md"
+    },
+    "standalone_reconstruction": {
+      "user_goal": "CAOS method study informs Financial redevelopment; user connects ONLY Financial and it works independently",
+      "financial_only_candidate_pr": 60,
+      "candidate_branch": "rebuild/standalone-financial-operating-system-20261111",
+      "single_owner": "FINANCIAL_WRITING_OWNER",
+      "primary_skill": "skills/financial-writing-agent/SKILL.md",
+      "provider_entry": "financial_writing_agent/standalone_runtime.py",
+      "active_parent_dependency": false,
+      "prior_caos_child_contract": "RETIRED_TO_HISTORICAL_PROVENANCE",
+      "independent_plugin_activation_verified": false,
+      "live_user_article_product_verified": false,
+      "editorial_acceptance": "NOT_READY",
+      "production_merge_verified": false
     }
   }
 }
