@@ -9,7 +9,7 @@ Financial should reuse knowledge it has already earned, but remembered knowledge
 
 Two knowledge families are deliberately separate:
 1. **topic/domain knowledge** — industries, value chains, companies, policies, economics and evidence;
-2. **method knowledge** — research methods, story forms, agent/architecture patterns, evaluation methods and failure patterns learned from UAOS or external sources.
+2. **method knowledge** — research methods, story forms, agent/architecture patterns, evaluation methods and failure patterns learned from CAOS or external sources.
 
 Cataloging knowledge does not promote it into a rule.
 
@@ -86,4 +86,4 @@ The mandatory reuse loop is:
 
 ## Cross-domain boundary
 
-Do not claim a shared executable knowledge store across Financial, A-share, Video, Novel or other agents unless the same verified read/write identity contract actually exists. UAOS may share governance methods; business facts and state remain owner-local unless separately designed and verified.
+Do not claim a shared executable knowledge store across Financial, A-share, Video, Novel or other agents unless the same verified read/write identity contract actually exists. CAOS may share goal/decision methods; business facts and state remain owner-local unless separately designed and verified.
