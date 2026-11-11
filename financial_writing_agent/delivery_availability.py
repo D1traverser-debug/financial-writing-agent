@@ -205,6 +205,7 @@ def build_visible_delivery_receipt(
             "source_identity": evidence.get("source_identity"),
             "source_quality_evidence_sha256": evidence.get("source_quality_evidence_sha256"),
             "task_scope_binding": evidence.get("task_scope_binding"),
+            "claim_trace_binding": evidence.get("claim_trace_binding"),
             "mechanical_qa": evidence.get("mechanical_qa"),
             "constraint_qa": evidence.get("constraint_qa"),
             "render_qa": evidence.get("render_qa"),
