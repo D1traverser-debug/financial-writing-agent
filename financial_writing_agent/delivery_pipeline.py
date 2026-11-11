@@ -21,7 +21,7 @@ from .document import (
     build_interaction_pack_docx,
 )
 from .models import ArtifactKind
-from .path_identity import require_word_basename
+from .path_identity import require_article_path, require_word_basename
 from .private_research import validate_private_research_brief
 from .resources import load_packaged_policy
 
@@ -189,13 +189,34 @@ def build_verified_article_docx(
     policy: dict[str, Any] | None = None,
     require_risk_disclaimer: bool = True,
     source_quality_evidence_sha256: str | None = None,
+    task_state: Mapping[str, Any] | None = None,
+    research: Any | None = None,
 ) -> dict[str, Any]:
-    """Canonical owner-native path for a user-visible long-form/private Word build."""
+    """Build mechanically checked Word; optional state makes task-specific rules binding.
+
+    Without task_state this receipt certifies *only* deterministic Word checks,
+    never that the owner's article requirements or facts were verified.
+    """
     _require_docx_output(output)
     active_policy = policy or load_packaged_policy()
     normalized = normalize_article_for_delivery(article, active_policy)
     anchor_errors = _semantic_anchor_errors(normalized, required_bold_anchors, active_policy, artifact_kind=artifact_kind)
     _require(not anchor_errors, f"delivery semantic-anchor admission failed: {anchor_errors}")
+
+    task_scope_binding = None
+    if task_state is None:
+        _require(research is None, "research without task_state cannot certify publication scope")
+    else:
+        from .task_publication import TaskPublicationError, verify_task_publication_scope
+
+        mode = artifact_kind.value.removesuffix("_DOCX")
+        _require(mode in {"FINANCE_DEEP", "FINANCE_BROAD"}, "task-bound article builder requires Deep or Broad mode")
+        try:
+            task_scope_binding = verify_task_publication_scope(
+                task_state, normalized, research, product_mode=mode,
+            )
+        except ValueError as exc:
+            raise CanonicalDeliveryError(f"current task publication scope failed: {exc}") from exc
 
     path = build_article_docx(normalized, output, active_policy)
     report = check_docx(
@@ -218,11 +239,14 @@ def build_verified_article_docx(
         "mechanical_qa": "PASS",
         "constraint_qa": "PASS",
         "required_bold_anchor_count": len(required_bold_anchors),
+        "task_scope_assurance": "STRUCTURAL_TASK_SCOPE_ONLY" if task_scope_binding is not None else "NOT_CHECKED",
         "paragraphs": report.get("paragraphs"),
         "tables": report.get("tables"),
     }
     if source_quality_evidence_sha256 is not None:
         payload["source_quality_evidence_sha256"] = source_quality_evidence_sha256
+    if task_scope_binding is not None:
+        payload["task_scope_binding"] = task_scope_binding
     return _issue_build_receipt(payload)
 
 
@@ -296,6 +320,17 @@ def finalize_delivery_evidence(
     _require(visual_qa == "PASS", "visual_qa must PASS")
     _require(bool(str(source_ref).strip()), "source_ref is required")
     _require(bool(str(source_identity).strip()), "source_identity is required")
+    binding = build_receipt.get("task_scope_binding")
+    if binding is not None:
+        _require(isinstance(binding, Mapping), "task scope binding must be structured")
+        _require(
+            binding.get("observed_stage") in {"DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"},
+            "task-bound visible delivery needs admitted editorial audit and DELIVERY stage",
+        )
+        try:
+            require_article_path(source_ref, binding.get("task_id"))
+        except ValueError as exc:
+            raise CanonicalDeliveryError("task-bound source_ref escapes the current article workspace") from exc
 
     envelope: dict[str, Any] = {
         "schema_version": DELIVERY_EVIDENCE_SCHEMA_VERSION,
@@ -313,6 +348,8 @@ def finalize_delivery_evidence(
     }
     if build_receipt.get("source_quality_evidence_sha256") is not None:
         envelope["source_quality_evidence_sha256"] = str(build_receipt["source_quality_evidence_sha256"])
+    if binding is not None:
+        envelope["task_scope_binding"] = dict(binding)
     signed = {**envelope, "session_attestation": _issuer_sign(envelope)}
     return {"delivery_evidence": signed, "delivery_evidence_sha256": _canonical_digest(signed)}
 
