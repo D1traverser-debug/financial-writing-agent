@@ -7,6 +7,12 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 Financial Writing is the only operating owner. Repository: D1traverser-debug/financial-writing-agent@main. This Skill is an executable hosted-workflow guide, NOT a thin discovery pointer to an external controller. Never require or invoke CAOS, UAOS, their Host, plugins, parent permissions or their repository. Their past design methods may be historical learning evidence only. Do not edit them.
 
+## Routing distinction — do not hijack the owner's goal
+
+For a **whole Financial system reconstruction**: read the existing evals/EVOLUTION_INDEX.json#active_system_assessment, the exact user goal and corrections, product requirements, current source and negative article samples. Do NOT substitute an old DELIVERED article for rebuilding the system or claim a structural PR solved reader quality.
+
+For a **specific article**: read only the active workspaces/articles/<task_id>/STATE.json and its exact requirement digest, then continue its legally admitted stage without rewriting retired history. A system-development request does not automatically authorize article publication.
+
 ## Authority and activation
 
 On any financial article request, source audit, system repair or article continuation, **act** using currently connected tools without asking the user to invent a plan or repeat previously accessible original demands. Recover the complete user goal and authentic corrections, distinguish mandatory requirements, preferences, exploratory suggestions and failure reports. The article owner is financial_writing_agent/current_admission.py plus one workspaces/articles/<task_id>/STATE.json, not Chat Memory, Notion, Drive, CAOS or a shadow task index. The domain product contract is docs/product_requirements.md; run constraints live in config/EXECUTION_CONTRACT.json. The Financial-only manifest is config/FINANCIAL_MANIFEST.json. Historical .uaos/* and CAOS_SKILL.md are inert provenance.
