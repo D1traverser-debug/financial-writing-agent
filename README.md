@@ -1,65 +1,38 @@
-# Financial Writing Agent
+# Financial Writing Agent — CAOS child
 
-A-share publishable financial-writing domain registered under Universal Agent OS (UAOS), while retaining ownership of product requirements, article identity/state, research/writing architecture, domain learning/evals and deliverables.
+**Business authority:** `D1traverser-debug/financial-writing-agent@main`.
+**Cognition parent:** `D1traverser-debug/cognition-agent-os@main`.
+**Current status:** CAOS child-interface redevelopment candidate in PR #52; independent end-to-end editorial quality is **NOT_READY**. The former Universal Agent OS is not the parent.
 
-## Current authority
+## Entry and identity
 
-Parent/common governance: `D1traverser-debug/universal-agent-os@main`.
-Financial business authority: `D1traverser-debug/financial-writing-agent@main` after controlled promotion; candidate work remains on its candidate ref.
+- [CAOS_SKILL.md](CAOS_SKILL.md) — canonical opt-in ChatGPT/domain routing and workflow; direct Financial activation is allowed without a CAOS local Host.
+- [docs/CAOS_CHILD_INTERFACE.md](docs/CAOS_CHILD_INTERFACE.md) — actual source-pinned parent boundary, supported bridge calls, grants, CAS/readback and limitations.
+- `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json` — legacy **filenames only** retained because present CAOS `domain_contract.py` reads them; contents declare CAOS and one Financial business owner.
+- `financial_writing_agent/caos_bridge.py` — child-native guarded write/readback API, not a second task state machine or deployed CAOS Host.
+- `financial_writing_agent/current_admission.py` — **only** current-article mutation authority; one task per `workspaces/articles/{task_id}/STATE.json`. Current task requirements and evolution live in their existing canonical locations.
 
-A fresh chat may select Financial Writing directly; normal article turns run under `DOMAIN:financial_writing` without a live UAOS business proxy.
+## Financial product
 
-Binding/authority surfaces: `UAOS_SKILL.md`, `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json`, `config/EXECUTION_CONTRACT.json`, `docs/product_requirements.md`, `docs/architecture.md`.
+Research goes from verified primary-source chronology and complete material economic company pool through adversarial evidence and PrivateResearchBrief 1.1 to DecisionEnvelope. Deep and Broad are independently designed articles, with story blueprints, company-specific financial transmission and source-compared originality. Same-chat checks remain non-independent.
 
-Article identity authority is `workspaces/articles/{task_id}/STATE.json::task_id`. There is no second Financial controller/task index/lease/resume runtime.
+External workflow:
+`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
 
-## Financial Writing 1.0 kernel / 1.0.2 domain candidate
+Default user-facing deliverables: Deep DOCX, Broad DOCX, platform interaction DOCX and audit DOCX. A current admitted private research brief may require an additional private DOCX on presentation. Actual binary existence, correct hashes, render/visual evidence and available user links are a separate acceptance level.
 
-External lifecycle remains:
-`INTAKE -> RESEARCH -> RESEARCH_AUDIT -> EDITORIAL -> TITLE -> DRAFT -> EDITORIAL_AUDIT -> DELIVERY -> MECHANICAL_AUDIT -> FINAL_AUDIT`.
-
-New tasks use `financial_writing_agent.current_admission`, bind `writing_kernel_version=1.0`, and require DecisionEnvelope at RESEARCH, StoryBlueprint at EDITORIAL, and product-specific PublicationFitness at EDITORIAL_AUDIT.
-
-The 1.0.2 candidate adds `financial_writing_agent.resume_compatibility`: a historical pre-current-kernel state remains immutable/readable provenance but cannot silently inherit current semantic quality. Ordinary current-quality continuation requires a current-kernel successor/replay; explicit historical/provenance-only continuation remains bounded to historical semantics.
-
-## Research, story construction and acceptance
-
-Research is value-chain first: prior cognition recall -> material-chain preflight -> company universe -> current evidence -> adversarial/counterexample search -> saturation -> thesis competition -> Company Decision Map where applicable.
-
-`FINANCE_DEEP` separates research completeness from publication selectivity. Complete research does not force the article to reproduce the entire research map. Selective publication accounts for researched material classes as CORE / SUPPORT / OMIT_WITH_REASON when any class is omitted. Deep retains company grounding, explicit Chinese H1 numbering and no arbitrary default word ceiling.
-
-For event-led finance stories, `EVENT_TO_COMPANY` requires each material section to bind event/change -> mechanism -> company exposure -> operating/financial expression -> verification/reversal condition. A company name alone is not causal grounding.
-
-`FINANCE_BROAD` remains a separate acquisition rebuild rather than shortened Deep.
-
-Current publication acceptance requires evidence-backed Fact Integrity, Retention, Company Grounding, Structure/Numbering, Originality, Authorial Style, Compliance and Payoff. Originality uses source-compared evidence; close paraphrase/patchwriting requires revision and same-chat review cannot prove zero plagiarism.
-
-Natural prose is material/story/voice first. Generic scaffolding is a diagnostic, not a phrase blacklist or humanizer stage.
-
-## Knowledge and evolution
-
-Financial retains topic cognition and method/failure-pattern cognition. Cataloging knowledge does not automatically promote a rule.
-
-Every detected problem activates the UAOS-hosted cognition floor. Financial-owned evolution uses evidence -> competing hypotheses -> root-scope admission -> evolution disposition -> candidate branch/PR -> reproducible eval -> controlled promotion -> production reread -> live observation. Common/cross-domain changes are raised to UAOS as parent upcalls without transferring Financial business ownership.
-
-## Product/output contract
-
-New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`:
-- `FINANCE_DEEP_DOCX`
-- `FINANCE_BROAD_DOCX`
-- `PLATFORM_INTERACTION_PACK_DOCX`
-- `AUDIT_DOCX`
-
-Historical `DUAL` and historical `FINANCE_BROAD` semantics remain immutable.
+`workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json` remains an **IN_PROGRESS / RESEARCH** task with two admitted user requirements. Neither historical v2 Word receipts nor this repository's green CI certifies the v3 product.
 
 ## Verification
 
-Run:
 ```bash
+python -m pip install -e '.[dev]'
 pytest -q
 python scripts/eval_contracts.py
 python scripts/static_audit.py
 python scripts/retired_runtime_static_audit.py
 ```
 
-CI also builds/installs the wheel and runs DOCX render smoke. Same-chat semantic review remains `CHAT_SELF_REVIEW`; stronger independence claims require distinct execution evidence.
+GitHub CI also tests isolated wheel installation and DOCX render. The exact-head CI is engineering evidence only. Genuine CAOS Host attachment, parent Skill invocation, independent source adjudication, publication quality and audience outcomes need their respective actual observations. Do not claim a remote bridge grant or editorial PASS from fixture callbacks.
+
+One codebase may be routed by CAOS but parent source code remains outside the child; no CAOS source, grant or runtime state is modified by this repository.
