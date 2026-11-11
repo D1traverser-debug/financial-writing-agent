@@ -38,6 +38,7 @@ _PUBLICATION_SOURCE_PATTERNS: dict[str, re.Pattern[str]] = {
 
 _GENERIC_DECISION_CONDITIONAL = re.compile(r"谁(?:能|先|可以)[^。！？\n]{0,28}(?:就|才)[^。！？\n]{0,36}")
 _COMPARISON_SIGNAL = re.compile(r"更|高于|低于|快于|慢于|领先|落后|直接|确定|兑现|纯度|弹性|优势|弱于|强于|反例|当前证据")
+_ECONOMIC_MECHANISM_SIGNAL = re.compile(r"收入|营收|利润|毛利|净利|成本|费用|订单|合同|现金|回款|周转|产能|售价|销量|客户|渠道|库存|关税|运费|履约|结算|税费|销售|定价|业务|采购|供给|需求|负债|盈利|资产|项目|产值|财务")
 _MONITOR_HEADING = re.compile(r"验证|兑现|观察|跟踪|后续|下一步|看什么|信号|阶段|判断|检查")
 _SOURCE_SECTION_HEADING = re.compile(r"^(?:资料来源|参考资料|参考来源|来源汇总)(?:[：:]|$)")
 
@@ -161,7 +162,9 @@ def check_company_decision_utility(payload: Any, research: Any) -> list[str]:
     comparative = [
         paragraph
         for paragraph in paragraphs
-        if sum(name in paragraph for name in material_names) >= 2 and _COMPARISON_SIGNAL.search(paragraph)
+        if (sum(name in paragraph for name in material_names) >= 2
+            and _COMPARISON_SIGNAL.search(paragraph)
+            and _ECONOMIC_MECHANISM_SIGNAL.search(paragraph))
     ]
     if not comparative:
         errors.append("multi-company article lacks a named evidence-bounded comparative verdict paragraph")
