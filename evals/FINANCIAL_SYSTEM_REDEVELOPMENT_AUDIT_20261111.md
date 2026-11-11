@@ -1,6 +1,6 @@
 # Financial Writing — owner-wide reconstruction audit, 2026-11-11
 
-**Status:** R1 security/identity repair candidate; **whole-system product NOT_READY**. This is a source-based engineering and product audit, *not* an independent certification of 317 Git tree entries, model cognition, live publication, or readership. No files or configuration in `cognition-agent-os` have been changed.
+**Status:** CAOS child-contract R1 implementation and source/identity hardening candidate; **whole-system editorial product NOT_READY**. This is a source-based engineering and product audit, *not* an independent certification of 317 Git tree entries, model cognition, live publication, or readership. No files or configuration in `cognition-agent-os` have been changed.
 
 ## Authority and pinned evidence
 
@@ -9,7 +9,7 @@
 - Current source/contract authority: `docs/product_requirements.md`, `docs/architecture.md`, `config/EXECUTION_CONTRACT.json`, `financial_writing_agent/current_admission.py`, and real current article state.
 - `workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json` is **IN_PROGRESS / RESEARCH**, with two admitted source-bound user requirements, no stage artifacts and no admitted quality evidence. Its v2 predecessor is marked `MIGRATED_HISTORY`. The 2026-10-16 rejection remains negative evidence, not confirmation that newer semantic gates have passed.
 - `evals/quality_regression.json`: `GENERAL_EDITORIAL_QUALITY=NOT_READY__HELDOUT_DIVERSITY_INSUFFICIENT`, `PERSONALIZED_WRITING_DNA=NOT_READY`; only the named negative Deep and a separate held-out Deep baseline are recorded. No Broad editorial-quality or current-kernel reader-success claim is authorized.
-- Current `.uaos` manifests and assertions still refer to the legacy UAOS; **this is NOT verified native CAOS integration**. CAOS remains a separate experimental parent, with no confirmed universal child tool boundary. This effort applies its evidence/decision/independent-outcome principles *without altering CAOS* or inventing a second Financial parent or state authority.
+- The original baseline `.uaos` manifests pointed to legacy UAOS; the current candidate now replaces the operative declarations with CAOS, assigns `CAOS_SKILL.md` as canonical child entry, and adds an owner-native `caos_bridge.py` for guarded write/CAS/readback. The **real pinned CAOS `domain_contract._native_contract`** has passed cross-repository CI conformance and sees no legacy-parent declaration. This verifies static read-only parent discovery, **not** live ChatGPT invocation or installed CAOS Host action. CAOS source/config is unchanged.
 
 ## Audit matrix and observed assurance limits
 
@@ -57,7 +57,7 @@ These are **identity and provenance boundary defects**. They may allow aliasing 
 
 ## Remaining product acceptance (not claimed complete)
 
-- **R1 structural:** exact-head CI, current/legacy and path-adversarial tests, actual new-task and delivery state readback; inspect all public entrypoints and grant/authority routing.
+- **R1 structural:** exact-head CI for the final candidate, current/legacy and path-adversarial tests, actual new-task and delivery-state readback; ensure real CAOS parent `domain_contract` sees zero legacy binding. The pinned-parent native test passed in CI #42981344176 at `56553f3`, but new commits need a new exact-head CI and real native provider permissions remain separately gated.
 - **R2 real owner outcome:** independently verify current cross-border sources and the user's preserved full-universe/Deep requirement, create admitted current DecisionEnvelope and private research 1.1, independently assess distinct Deep/Broad, build/render/re-read DOCX, and get owner/product acceptance. Preserve v3 RESEARCH without fake advancement.
 - **R3 editorial eval:** real negative and diverse unseen heldout cases for each requested mode, evidence-bound candidate-vs-baseline and position swaps, positive audience/user case when available; do not manufacture grading events or claim DNA ready.
 - **R4 source-to-paragraph:** verify claims, original timestamps and company financial mechanisms against primary documents, bind significant requirements to actual output paragraphs with negative source-drift tests.
@@ -65,3 +65,11 @@ These are **identity and provenance boundary defects**. They may allow aliasing 
 - **R6 production:** scoped review, exact-head CI, authorized merge/readback and real native fresh-session delivery. No deploy/account/plugin actions without authorization.
 
 No fixed percentage is warranted. Stopping at this source/CI level yields **R1 candidate only, product still NOT_READY**.
+
+## 2026-11-11 implementation reconciliation
+
+Read-only CAOS parent implementation examined: `cognition-agent-os@9686ced:src/cognition_agent_os/domain_contract.py`, including its hardcoded `.uaos` protocol paths, `_native_contract` cross-file identity/legacy-parent checks, `CHILD_CONTRACT_OBSERVATION_V1` and explicit no-business-approval flags. Child response is not a parent grant. This report's initial pre-migration risk description is historical baseline evidence and is superseded by the current branch readback.
+
+Current candidate modifies only the Financial child: (1) CAOS Manifest, Adapter, Capabilities, `config/EXECUTION_CONTRACT.json`, canonical `CAOS_SKILL.md`, legacy pointer/discovery references; (2) owner-native `caos_bridge.py` with mandatory external grant, single current aggregate, CAS and independent readback; (3) shared article/path/Word output identity checks and adversarial tests; (4) mirrored knowledge/maintenance references, audit scripts and existing regression assertions; (5) CI's actual pinned CAOS parent code conformance, wheel and DOCX smoke; (6) this report and existing `EVOLUTION_INDEX.json` under a single Financial evolution owner.
+
+**Important residual distinction:** even perfect code/CI cannot establish the article's narrative/retention quality, real company-source correctness, the user's later private-report vs Deep-appendix wording conflict, an installed native ChatGPT CAOS Skill, or a real external grant. The v3 cross-border task remains RESEARCH, its historical explicit requirement identifiers are not deleted or quietly replaced, and any later correction must enter owner-native requirement admission with versioned evidence instead of rewriting history.
