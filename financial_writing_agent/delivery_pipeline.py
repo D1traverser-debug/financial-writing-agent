@@ -193,6 +193,8 @@ def build_verified_article_docx(
     source_quality_evidence_sha256: str | None = None,
     task_state: Mapping[str, Any] | None = None,
     research: Any | None = None,
+    claim_bindings: list[Mapping[str, Any]] | None = None,
+    source_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Build mechanically checked Word; optional state makes task-specific rules binding.
 
@@ -206,8 +208,10 @@ def build_verified_article_docx(
     _require(not anchor_errors, f"delivery semantic-anchor admission failed: {anchor_errors}")
 
     task_scope_binding = None
+    claim_trace_binding = None
     if task_state is None:
         _require(research is None, "research without task_state cannot certify publication scope")
+        _require(claim_bindings is None and source_reader is None, "source trace without task state cannot certify current factual scope")
     else:
         from .task_publication import TaskPublicationError, verify_task_publication_scope
 
@@ -219,6 +223,16 @@ def build_verified_article_docx(
             )
         except ValueError as exc:
             raise CanonicalDeliveryError(f"current task publication scope failed: {exc}") from exc
+        if claim_bindings is not None:
+            from .claim_trace import verify_publication_source_trace
+
+            try:
+                claim_trace_binding = verify_publication_source_trace(
+                    normalized, claim_bindings, source_reader=source_reader,
+                    article_task_id=str(task_state["task_id"]),
+                )
+            except ValueError as exc:
+                raise CanonicalDeliveryError(f"current source-to-paragraph trace failed: {exc}") from exc
 
     path = build_article_docx(normalized, output, active_policy)
     report = check_docx(
@@ -242,6 +256,9 @@ def build_verified_article_docx(
         "constraint_qa": "PASS",
         "required_bold_anchor_count": len(required_bold_anchors),
         "task_scope_assurance": "STRUCTURAL_TASK_SCOPE_ONLY" if task_scope_binding is not None else "NOT_CHECKED",
+        "source_trace_assurance": (
+            claim_trace_binding["assurance"] if claim_trace_binding is not None else "NOT_CHECKED"
+        ),
         "paragraphs": report.get("paragraphs"),
         "tables": report.get("tables"),
     }
@@ -249,6 +266,8 @@ def build_verified_article_docx(
         payload["source_quality_evidence_sha256"] = source_quality_evidence_sha256
     if task_scope_binding is not None:
         payload["task_scope_binding"] = task_scope_binding
+    if claim_trace_binding is not None:
+        payload["claim_trace_binding"] = claim_trace_binding
     return _issue_build_receipt(payload)
 
 
@@ -434,6 +453,17 @@ def finalize_delivery_evidence(
         verified_render_inspection = _verify_render_inspection_receipt(
             render_inspection_receipt, build_receipt.get("sha256"),
         )
+        from .claim_trace import SOURCE_TRACE_ASSURANCE
+
+        traced = build_receipt.get("claim_trace_binding")
+        _require(isinstance(traced, Mapping), "CURRENT_WORD_SOURCE_TRACE_REQUIRED")
+        _require(traced.get("task_id") == binding.get("task_id"), "CURRENT_WORD_SOURCE_TRACE_TASK_MISMATCH")
+        _require(traced.get("assurance") == SOURCE_TRACE_ASSURANCE,
+                 "CURRENT_WORD_SOURCE_TRACE_ASSURANCE_INVALID")
+        _require(type(traced.get("traced_block_count")) is int and traced["traced_block_count"] >= 1,
+                 "CURRENT_WORD_SOURCE_TRACE_COVERAGE_MISSING")
+        _require(type(traced.get("read_source_snapshot_count")) is int and traced["read_source_snapshot_count"] >= 1,
+                 "CURRENT_WORD_SOURCE_SNAPSHOTS_NOT_OBSERVED")
 
     envelope: dict[str, Any] = {
         "schema_version": DELIVERY_EVIDENCE_SCHEMA_VERSION,
@@ -454,6 +484,7 @@ def finalize_delivery_evidence(
     if binding is not None:
         envelope["task_scope_binding"] = dict(binding)
         envelope["render_inspection_receipt"] = verified_render_inspection
+        envelope["claim_trace_binding"] = dict(traced)
     signed = {**envelope, "session_attestation": _issuer_sign(envelope)}
     return {"delivery_evidence": signed, "delivery_evidence_sha256": _canonical_digest(signed)}
 
@@ -475,6 +506,14 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
         _verify_render_inspection_receipt(
             evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
         )
+        trace = evidence.get("claim_trace_binding")
+        from .claim_trace import SOURCE_TRACE_ASSURANCE
+
+        _require(isinstance(trace, Mapping), "CURRENT_WORD_SOURCE_TRACE_REQUIRED")
+        _require(trace.get("assurance") == SOURCE_TRACE_ASSURANCE,
+                 "CURRENT_WORD_SOURCE_TRACE_ASSURANCE_INVALID")
+        _require(trace.get("task_id") == evidence["task_scope_binding"].get("task_id"),
+                 "CURRENT_WORD_SOURCE_TRACE_TASK_MISMATCH")
     for gate in ("mechanical_qa", "constraint_qa", "render_qa", "visual_qa"):
         _require(evidence.get(gate) == "PASS", f"delivery evidence requires {gate}=PASS")
     _require(bool(str(evidence.get("source_ref", "")).strip()), "delivery evidence source_ref is required")
