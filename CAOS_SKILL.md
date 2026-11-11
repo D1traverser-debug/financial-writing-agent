@@ -11,9 +11,9 @@ The parent MAY observe the child; parent thought, a Manifest, a GitHub success c
 
 ## Startup / intentional routing
 
-When the user explicitly selects CAOS→财经写作, 财经写作, a named article or an unambiguous in-scope continuation:
+A fresh chat may select Financial Writing directly; direct Financial activation does not require a local CAOS Host. When the user explicitly selects CAOS→财经写作, 财经写作, a named article or an unambiguous in-scope continuation:
 1. Recover the original owner request and latest corrections from actually accessible private sources, not a lossy summary. Separate accepted requirements from user-proposed mechanisms and historical feedback. Unknown clauses remain UNKNOWN.
-2. Read **current** GitHub child `main`, active proposal PR(s), exact-head CI, `.uaos/{MANIFEST,ADAPTER,CAPABILITIES}.json`, `config/EXECUTION_CONTRACT.json`, then only the relevant child paths. For parent interfaces read the current CAOS `src/cognition_agent_os/domain_contract.py`, `AGENTS.md`, `docs/PRODUCT-READINESS-GATE.md`; do not assume a CAOS Host or ChatGPT Skill was invoked unless observed.
+2. Read **current** GitHub child `main`, active proposal PR(s), exact-head CI, `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json`, `config/EXECUTION_CONTRACT.json`, then only the relevant child paths. For parent interfaces read the current CAOS `src/cognition_agent_os/domain_contract.py`, `AGENTS.md`, `docs/PRODUCT-READINESS-GATE.md`; do not assume a CAOS Host or ChatGPT Skill was invoked unless observed.
 3. For a **whole Financial system reconstruction** resume `evals/EVOLUTION_INDEX.json#active_system_assessment` and `evals/FINANCIAL_WHOLE_SYSTEM_OWNER_REVIEW_20261018.md`; do not start a second Business owner/index or substitute an old DELIVERED article.
 4. For a **specific article** locate only `workspaces/articles/<task_id>/STATE.json` and its current authority/revision. Historical files with `MIGRATED_HISTORY` are evidence, not active state. If a former quality generation is resumed, use `resume_compatibility.py`.
 
