@@ -200,3 +200,36 @@ def test_caos_parent_manifest_matches_real_parent_read_only_contract_shape():
     active = "\n".join(json.dumps(x) for x in (manifest, adapter, caps))
     assert "D1traverser-debug/universal-agent-os" not in active
     assert caps["hosted_cognition_semantics"]["implementation_evidence"] == "NOT_EQUIVALENT_TO_NATIVE_HOST_ACTIVATION"
+
+
+def test_provider_readback_rejects_bool_integer_type_confusion_despite_claimed_blob_sha():
+    """A malicious or buggy state decoder cannot turn 0 into False and be admitted."""
+    provider = SimulatedExactCAS()
+
+    def wrong_typed_reader(path):
+        observed = provider.read(path)
+        if observed:
+            observed["state"]["execution_receipts"][-1]["input_bindings"]["task_requirement_revision"] = False
+        return observed
+
+    with pytest.raises(CAOSChildEffectUnverified, match="CHILD_PROVIDER_READBACK_MISMATCH"):
+        admit_parent_article_action(
+            _request("CREATE_ARTICLE", params={"prompt": "财经写作"}),
+            state_reader=wrong_typed_reader,
+            cas_writer=provider.write,
+            grant_verifier=lambda _: True,
+        )
+
+
+def test_unhashable_child_operation_fails_closed_as_admission_error():
+    provider = SimulatedExactCAS()
+    proposal = _request("CREATE_ARTICLE", params={"prompt": "财经写作"})
+    proposal["operation"] = ["CREATE_ARTICLE"]
+    with pytest.raises(CAOSChildAdmissionError, match="UNSUPPORTED_CHILD_MUTATION"):
+        admit_parent_article_action(
+            proposal,
+            state_reader=provider.read,
+            cas_writer=provider.write,
+            grant_verifier=lambda _: True,
+        )
+    assert provider.files == {}

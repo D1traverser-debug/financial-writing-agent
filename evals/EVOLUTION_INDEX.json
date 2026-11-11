@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-11-11T07:41:34Z",
+  "updated_at": "2026-11-11T07:58:49Z",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -91,7 +91,7 @@
   ],
   "active_system_assessment": {
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
-    "status": "RUNNING__CAOS_NATIVE_CHILD_DISCOVERY_AND_GUARDED_EFFECT_CONTRACT_CANDIDATE__EDITORIAL_PRODUCT_NOT_READY",
+    "status": "RUNNING__CAOS_FINANCIAL_CHILD_PRODUCTION_CODE_VERIFIED__EDITORIAL_PRODUCT_NOT_READY",
     "owner": "DOMAIN:financial_writing",
     "review_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
@@ -101,7 +101,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "R1 candidate exact-head CI + reviewed promotion; then R2 current Financial article research-to-reader-to-Word independent outcome, keep CAOS and domain states separate",
+    "next_legal_phase": "CAOS child-native production verified for R1; continue R2 actual current-kernel article, primary-source/independent editor, actual full Word/user-readback, R3 heldout and R4-R6 measured improvement. CAOS parent repo unchanged.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "NONE",
     "not_completion_evidence": [
@@ -119,12 +119,24 @@
     "r1_scoped_evidence": {
       "current_candidate_ci_run": 42981344176,
       "tested_head": "56553f3ceae7b8a5df451a5b89d2922070a54294",
-      "result": "PASS_AT_TESTED_HEAD__NEW_INDEX_COMMIT_REQUIRES_EXACT_HEAD_CI",
+      "result": "CANDIDATE_AND_INITIAL_PRODUCTION_CI_VERIFIED__R1_PRODUCTION_RECEIPT_ABOVE",
       "actual_caos_parent_module": "src/cognition_agent_os/domain_contract.py",
       "parent_observed_sha": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
       "parent_observation_protocol": "CHILD_CONTRACT_OBSERVATION_V1",
       "native_child_effect_interface": "financial_writing_agent/caos_bridge.py",
       "independent_editorial_result": "NOT_READY"
+    },
+    "r1_production": {
+      "pr": 52,
+      "candidate_head": "03fa630747225e867d593b03e2ce496551a362c5",
+      "merged_main_sha": "9bf0cc4e90b124eb0b730c255722354dbd2dea1f",
+      "candidate_ci_run": 42983168142,
+      "production_ci_run": 42983349995,
+      "engineering_result": "PASS",
+      "source_level_parent_observation": "REAL_PINNED_CAOS_DOMAIN_CONTRACT_AND_REMOTE_GITHUB_FINANCIAL_BYTES",
+      "parent_repo_unchanged_main_sha": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
+      "semantic_readiness": "NOT_READY",
+      "source_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md"
     }
   }
 }

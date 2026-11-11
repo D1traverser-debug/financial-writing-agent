@@ -76,6 +76,26 @@ def _reader_result(reader: StateReader, path: str) -> tuple[dict[str, Any], str]
     return deepcopy(dict(state)), sha
 
 
+def _json_type_strict_equal(left: Any, right: Any) -> bool:
+    """Compare provider JSON without Python's bool==int equivalence.
+
+    An untrusted readback that swaps 0 for false must never be treated as
+    confirming the exact child aggregate, even if caller-supplied blob metadata
+    claims the same SHA. No second state authority is introduced.
+    """
+    if type(left) is not type(right):
+        return False
+    if isinstance(left, dict):
+        if left.keys() != right.keys():
+            return False
+        return all(_json_type_strict_equal(left[key], right[key]) for key in left)
+    if isinstance(left, list):
+        return len(left) == len(right) and all(
+            _json_type_strict_equal(a, b) for a, b in zip(left, right)
+        )
+    return left == right
+
+
 def _canonical_payload(state: Mapping[str, Any]) -> str:
     return json.dumps(state, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
 
@@ -131,7 +151,7 @@ def _validate_request(raw: Mapping[str, Any]) -> dict[str, Any]:
     _require(isinstance(req["action_id"], str) and bool(_ACTION_ID.fullmatch(req["action_id"])), "CAOS_ACTION_ID_INVALID")
     _article_path(req["task_id"])
     operation = req["operation"]
-    _require(operation in OPERATIONS, "UNSUPPORTED_CHILD_MUTATION")
+    _require(isinstance(operation, str) and operation in OPERATIONS, "UNSUPPORTED_CHILD_MUTATION")
     sha = req["expected_state_blob_sha"]
     _require(sha is None if operation == "CREATE_ARTICLE" else _valid_sha(sha), "CHILD_EXPECTED_BLOB_SHA_REQUIRED")
     _require(isinstance(req["parameters"], Mapping), "CHILD_PARAMETERS_INVALID")
@@ -210,7 +230,7 @@ def admit_parent_article_action(
         raise CAOSChildEffectUnverified("PROVIDER_RETURNED_UNVERIFIED_BLOB")
 
     after = _reader_result(state_reader, path)
-    if after is None or after[1] != expected_new_sha or after[0] != candidate:
+    if after is None or after[1] != expected_new_sha or not _json_type_strict_equal(after[0], candidate):
         raise CAOSChildEffectUnverified("CHILD_PROVIDER_READBACK_MISMATCH")
     current_admission.validate_state(after[0])
     return {
