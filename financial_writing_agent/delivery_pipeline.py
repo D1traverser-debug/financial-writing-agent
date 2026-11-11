@@ -340,7 +340,7 @@ def render_word_and_review_pages(
     for index, page_path in enumerate(pages, start=1):
         png = Path(page_path).read_bytes()
         _require(
-            len(png) >= 24 and png[:8] == b"\\x89PNG\\r\\n\\x1a\\n" and png[12:16] == b"IHDR",
+            len(png) >= 24 and png[:8] == b"\x89PNG\r\n\x1a\n" and png[12:16] == b"IHDR",
             f"CURRENT_WORD_PAGE_{index}_NOT_PNG",
         )
         width, height = struct.unpack(">II", png[16:24])
