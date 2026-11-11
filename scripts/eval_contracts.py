@@ -1,161 +1,105 @@
+"""Executable Financial product boundary checks under the CAOS cognition parent.
+
+Neither a valid contract nor this script is an independent reader-quality eval.
+"""
 from __future__ import annotations
 
 import json
 from pathlib import Path
 
+from financial_writing_agent.artifact_hygiene import validate_artifact_status_manifest
+from financial_writing_agent.caos_bridge import PARENT_REPOSITORY
+from financial_writing_agent.current_admission import (
+    WRITING_KERNEL_VERSION,
+    build_initial_state,
+    validate_state,
+)
+from financial_writing_agent.models import ArtifactKind, DistributionMode, TaskContract
+from financial_writing_agent.private_research import PRIVATE_RESEARCH_CONTRACT_VERSION, REQUIRED_MODULES
+from financial_writing_agent.writing_kernel import validate_kernel
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def load(path: str):
+def load(path):
     return json.loads((ROOT / path).read_text(encoding="utf-8"))
 
 
-def version_at_least(actual: str, minimum: str) -> bool:
-    def parts(value: str) -> tuple[int, ...]:
-        return tuple(int(item) for item in value.split("."))
-
-    return parts(actual) >= parts(minimum)
-
-
 def main() -> None:
-    manifest = load(".uaos/MANIFEST.json")
-    adapter = load(".uaos/ADAPTER.json")
-    caps = load(".uaos/CAPABILITIES.json")
+    manifest, adapter, caps = [load(path) for path in (
+        ".uaos/MANIFEST.json", ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json")]
     execution = load("config/EXECUTION_CONTRACT.json")
-
-    assert manifest["status"] == "UAOS_CONTROL_PLANE_ACTIVE"
-    binding = manifest["binding"]
-    assert binding["controller_ref"] == "D1traverser-debug/universal-agent-os@main:CURRENT_SYSTEM.json"
-    assert binding["common_capabilities_ref"] == "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json"
-    assert binding["common_behavior_assurance_ref"] == "D1traverser-debug/universal-agent-os@main:config/COMMON_BEHAVIOR_ASSURANCE.json"
-    assert version_at_least(binding["common_behavior_assurance_min"], "1.3.0")
-    assert binding["deliberation_policy_ref"] == "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json"
-    assert binding["adapter_ref"] == ".uaos/ADAPTER.json"
-    assert binding["capability_ref"] == ".uaos/CAPABILITIES.json"
-
-    domain_authority = manifest["domain_authority"]
-    assert domain_authority["product_requirements"] == "docs/product_requirements.md"
-    assert domain_authority["architecture"] == "docs/architecture.md"
-    assert domain_authority["business_contract"] == "financial_writing_agent/models.py:TaskContract"
-    assert domain_authority["article_identity"] == "workspaces/articles/{task_id}/STATE.json::task_id"
-    assert domain_authority["proactive_resolution_guard"] == "financial_writing_agent/proactive_resolution.py"
-    assert domain_authority["root_scope_receipt"].endswith("RootScopeReceipt")
-    assert domain_authority["problem_action_admission"].endswith("finalize_problem_action")
-    assert domain_authority["canonical_evolution_evidence"] == "evals/EVOLUTION_INDEX.json"
-
-    assert adapter["session_activation"] == "DIRECT_FINANCIAL_WORK_PLANE_AFTER_DOMAIN_SELECTION__NO_MANDATORY_LIVE_UAOS_BUSINESS_PROXY"
-    assert adapter["controller_task_identity_authority"] == "UAOS"
-    assert adapter["domain_article_identity_authority"] == "workspaces/articles/{task_id}/STATE.json::task_id"
-    assert "NO_EQUALITY_REQUIREMENT" in adapter["identity_boundary"]
-    assert adapter["business_state_authority"] == "workspaces/articles/{task_id}/STATE.json"
-    assert adapter["common_or_cross_domain_evolution_authority"] == "UAOS"
-
-    assert execution["product_path"] == "DIRECT_FINANCIAL_WORK_PLANE_WITH_UAOS_HOSTED_COMMON_GOVERNANCE"
-    assert execution["authority"]["business_state_root"] == "workspaces/articles/{task_id}"
-    assert execution["identity"]["article_id_owner"] == "FINANCIAL_WRITING"
-    assert execution["identity"]["business_contract_is_identity_free"] is True
+    assert manifest["controller"] == adapter["controller"] == PARENT_REPOSITORY + "@main"
+    assert manifest["binding"]["controller_ref"] == PARENT_REPOSITORY + "@main:src/cognition_agent_os/domain_contract.py"
+    assert manifest["skill"]["entrypoint"] == "CAOS_SKILL.md"
+    assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
+    assert manifest["binding"]["capability_ref"] == ".uaos/CAPABILITIES.json"
+    assert caps["caos_domain_contract_ref"] == manifest["binding"]["controller_ref"]
+    assert caps["hosted_cognition_semantics"]["implementation_evidence"] == "NOT_EQUIVALENT_TO_NATIVE_HOST_ACTIVATION"
+    assert execution["hosted_governance"]["child_business_action_requires_owner_native_gate"] is True
+    assert execution["hosted_governance"]["parent_read_only_observation"] is True
     assert execution["identity"]["parent_child_id_equality_required"] is False
-    assert execution["task_contract"]["identity_free"] is True
-    assert execution["execution"]["direct_domain_activation"] is True
-    assert execution["execution"]["live_parent_business_proxy_required"] is False
-    assert execution["execution"]["free_form_article_fallback_allowed"] is False
+    assert execution["authority"]["alternate_business_state_authority_allowed"] is False
 
-    required = set(caps["required_uaos_common_capabilities"])
-    assert caps["profile_version"] >= 19
-    assert version_at_least(caps["uaos_common_capabilities_contract_min"], "1.6.0")
-    assert version_at_least(caps["uaos_common_behavior_assurance_contract_min"], "1.3.0")
-    assert caps["canonical_evolution_evidence_ref"] == "evals/EVOLUTION_INDEX.json"
-    assert {
-        "intent_and_requirement_governance",
-        "product_requirements_and_architecture_governance",
-        "domain_internal_work_orchestration",
-        "cross_chat_continuity_and_recovery",
-        "hierarchical_authority_governance",
-        "mutation_sentinel_and_host_complete_mediation",
-        "adaptive_deliberation_and_parent_guidance",
-        "governed_self_evolution",
-    }.issubset(required)
-    assert caps["uaos_deliberation_policy_ref"].endswith("config/DELIBERATION_POLICY.json")
-    cognition = caps["hosted_cognition_semantics"]
-    assert cognition == {
-        "source": "CURRENT_UAOS_DELIBERATION_POLICY",
-        "local_overrides": "NONE",
-    }
-    assert "problem_response_floor" not in cognition
-    assert "problem_response_rule" not in cognition
-    assert caps["hosted_behavior_semantics"]["recover_before_user_escalation"] == "OWNER_NATIVE_EXECUTABLE_RECEIPT_AND_ESCALATION_ADMISSION"
-    assert "ROOT_HYPOTHESIS_SUPPORT" in caps["hosted_behavior_semantics"]["root_scope_action_grounding"]
-    assert "RECOMMENDATION_ONLY_NOT_TERMINAL" in caps["hosted_behavior_semantics"]["problem_to_action_closure"]
-    hosted = execution["hosted_governance"]
-    assert hosted["problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY"
-    assert hosted["problem_cognition_inheritance"] == "POINTER_ONLY__NO_COPIED_PARENT_ALGORITHM"
-    assert hosted["financial_business_research_is_separate_from_generic_problem_cognition"] is True
-    problem = execution["problem_and_evolution"]
-    assert problem["generic_problem_cognition_owner"] == "CURRENT_UAOS_DELIBERATION_POLICY"
-    assert problem["generic_problem_cognition_is_copied_locally"] is False
-    assert problem["financial_material_judgment_may_require_stricter_domain_evidence"] is True
-    assert problem["one_off_observation_auto_promotes_to_global_rule"] is False
-    assert problem["systemic_change_requires_regression_or_eval_evidence"] is True
-
-    capability_map = {cap["capability_id"]: cap for cap in caps["capabilities"]}
-    assert "domain_owned_article_identity_and_state" in capability_map
-    assert "identity_free_business_output_contract" in capability_map
-    assert "problem_cognition_root_scope_admission" in capability_map
-    assert "problem_action_closure_admission" in capability_map
-    assert "proactive_resolution_admission" in capability_map
-    assert "domain_product_requirements_traceability" in capability_map
-    assert "UAOS:domain_internal_work_orchestration" in capability_map["high_judgment_generation_stages"]["required"]
-    assert "uaos_article_binding_validation" not in capability_map
-    assert all(cap.get("side_channel_allowed") is False for cap in caps["capabilities"])
-
-    assert (ROOT / "financial_writing_agent/proactive_resolution.py").is_file()
-    assert (ROOT / "financial_writing_agent/problem_action_admission.py").is_file()
-    assert (ROOT / "financial_writing_agent/current_admission.py").is_file()
-    assert (ROOT / "financial_writing_agent/private_research.py").is_file()
-    assert (ROOT / "financial_writing_agent/writing_kernel.py").is_file()
-    assert (ROOT / "tests/test_problem_action_admission_v1.py").is_file()
-    assert (ROOT / "tests/test_executable_proactive_resolution_20261015.py").is_file()
-    assert (ROOT / "tests/test_private_research_contract.py").is_file()
-    assert (ROOT / "evals/EVOLUTION_INDEX.json").is_file()
-    assert (ROOT / "docs/product_requirements.md").is_file()
-    assert (ROOT / "docs/architecture.md").is_file()
-    assert not (ROOT / "financial_writing_agent/uaos_binding.py").exists()
-    assert not (ROOT / "continuity").exists()
-
-    private_ref = (ROOT / "references/private_research.md").read_text(encoding="utf-8")
-    packaged_private_ref = (ROOT / "financial_writing_agent/resources/references/private_research.md").read_text(encoding="utf-8")
-    skill_private_ref = (ROOT / "skills/financial-writing-agent/references/private_research.md").read_text(encoding="utf-8")
-    assert private_ref == packaged_private_ref == skill_private_ref
-    assert "PrivateResearchBrief" in private_ref
-    assert "market_cap_and_liquidity" in private_ref
-    assert "short_horizon_role_map" in private_ref
-    assert "counterfactual_company_comparison" in private_ref
-    assert "material_catalyst_and_policy_ledger" in private_ref
-    assert "driver_sustainability_operability_and_concept_map" in private_ref
-    assert "cross_segment_global_selection" in private_ref
-    assert "publication_distillation" in private_ref
-    assert "all known materially relevant events" in private_ref
-    assert "global selection conclusion" in private_ref
-
-    uaos_skill = (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
-    assert "private_research_contract_version=1.1" in uaos_skill
-    assert "PrivateResearchBrief" in uaos_skill
-    assert "references/private_research.md" in uaos_skill
-    assert "cross-segment global selection" in uaos_skill
-
-    editorial = (ROOT / "references/editorial.md").read_text(encoding="utf-8")
-    assert "Comparative logic" in editorial
-    assert "why A has stronger/weaker transmission" in editorial
-
-    audit = (ROOT / "references/audit.md").read_text(encoding="utf-8")
-    assert "cross-segment global selection" in audit
-    assert "material event/policy ledger" in audit
-
-    print(
-        "PASS: Financial owns article/product authority, binds capability profile >=19 to UAOS common capabilities >=1.6 and behavior >=1.3, "
-        "enforces private-research contract 1.1 with material catalyst coverage and global selection, preserves 1.0 historical compatibility, "
-        "inherits current UAOS cognition by pointer only, and verifies owner-native root-scope/action closure admission"
+    contract = TaskContract(prompt="finance test")
+    assert not hasattr(contract, "task_id")
+    assert contract.distribution_mode == DistributionMode.PORTFOLIO
+    assert contract.required_outputs == [
+        ArtifactKind.AUDIT_DOCX,
+        ArtifactKind.FINANCE_DEEP_DOCX,
+        ArtifactKind.FINANCE_BROAD_DOCX,
+        ArtifactKind.PLATFORM_INTERACTION_PACK_DOCX,
+    ]
+    state = build_initial_state(
+        task_id="caos-financial-contract-smoke",
+        prompt="基于材料撰写可核验的A股财经报道",
+        source_refs=[],
+        executor_identity="ci:caos-contract",
     )
+    validate_state(state)
+    assert state["writing_kernel_version"] == WRITING_KERNEL_VERSION == "1.0"
+    assert state["private_research_contract_version"] == PRIVATE_RESEARCH_CONTRACT_VERSION == "1.1"
+    assert state["task_requirement_contract_version"] == "1.0"
+    assert state["task_requirement_authority"]["revision"] == 0
+    assert state["quality_evidence"] == {}
+    assert state["execution_receipts"][0]["task_id"] == state["task_id"]
+    assert len(REQUIRED_MODULES) == 15
+    assert not validate_kernel()
+
+    # A genuine current task is still unfinished. Test its actual child state
+    # and preservation of admitted task requirements; do not self-complete it.
+    v3 = ROOT / "workspaces/articles/cross-border-ecommerce-20261016-v3"
+    current = load(str((v3 / "STATE.json").relative_to(ROOT)))
+    validate_state(current)
+    assert current["current_stage"] == "RESEARCH"
+    assert current["status"] == "IN_PROGRESS"
+    assert current["quality_evidence"] == {}
+    assert {x["requirement_id"] for x in current["task_requirement_authority"]["active_requirements"]} == {
+        "full_universe_research_pool", "deep_complete_retained_universe",
+    }
+    current_manifest = validate_artifact_status_manifest(
+        load(str((v3 / "ARTIFACT_STATUS.json").relative_to(ROOT))))
+    assert current_manifest["workspace_lifecycle"] == "CURRENT"
+    assert current_manifest["statuses"] == {"STATE.json": "KEEP_CURRENT"}
+
+    v2 = ROOT / "workspaces/articles/cross-border-ecommerce-20261016-v2"
+    legacy = validate_artifact_status_manifest(
+        load(str((v2 / "ARTIFACT_STATUS.json").relative_to(ROOT))))
+    assert legacy["workspace_lifecycle"] == "MIGRATED_HISTORY"
+    assert legacy["current_authority"] == str((v3 / "STATE.json").relative_to(ROOT))
+    assert "KEEP_CURRENT" not in legacy["statuses"].values()
+
+    quality = load("evals/quality_regression.json")
+    assert "GENERAL_EDITORIAL_QUALITY" in quality["current_readiness"]
+    assert "PERSONALIZED_WRITING_DNA" in quality["current_readiness"]
+    idx = load("evals/EVOLUTION_INDEX.json")["active_system_assessment"]
+    assert idx["owner"] == "DOMAIN:financial_writing"
+    assert "NO_NEW_TASK_INDEX" in idx["boundary"]
+    assert (ROOT / idx["review_ref"]).is_file()
+
+    print("PASS: CAOS read-only child contract and Financial canonical task, "
+          "private research, product modes, ten-stage kernel, historical provenance, "
+          "owner-scoped requirements and explicit outcome-certification limits")
 
 
 if __name__ == "__main__":
