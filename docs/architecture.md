@@ -10,10 +10,10 @@ Financial Writing is an independent business owner. It performs its own goal int
 
 Hard invariants:
 - one Financial business owner and one article state authority;
-- no parent/child task-id equality requirement;
+- one article identity namespace owned by Financial (no parent task ID);
 - historical state/receipts and legacy product semantics remain immutable provenance;
 - historical provenance does not imply current-quality equivalence after a semantic-generation change;
-- no mandatory live CAOS business proxy for normal Financial work;
+- no external parent/Host runtime dependency for any Financial work;
 - compliance, evidence integrity and owner-controlled mutation remain fail-closed.
 
 ## 1A. Current standalone deployment and capability boundary
@@ -175,9 +175,9 @@ Promotion flow: `evidence -> DecisionEnvelope/root scope -> candidate -> regress
 Financial-owned evolution follows:
 `problem/feedback -> causal diagnosis -> alternatives/counterexamples -> root-scope admission -> evolution disposition -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
 
-One article may create a domain candidate but cannot silently become universal truth. Financial-local business/writing rules remain Financial-owned. A credible common/cross-domain failure class is raised as a non-authoritative child upcall; CAOS decides whether a common outcome-level rule belongs in parent governance.
+One article may create a domain candidate but cannot silently become universal truth. Financial-specific business/writing rules and generalizable methods used inside Financial remain Financial-owned. Reusable methods are evaluated and promoted only with Financial-local negative/positive evidence, never via a mandatory parent upcall.
 
-The 1.0.3 private-research admission is Financial-local: it governs how A-share financial writing research is represented before publication. It does not ask CAOS to copy the stock-market role vocabulary, company-market-cap requirements or private-research schema into other domains.
+The 1.0.3 private-research admission is Financial-local. It governs how A-share financial writing research is represented before publication and never requires another agent to adopt its domain-specific taxonomy.
 
 ## 11. Product architecture review
 
