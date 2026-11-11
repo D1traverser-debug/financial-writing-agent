@@ -118,3 +118,51 @@ def test_migrated_manifest_successor_authority_must_match_declared_successor():
 def test_valid_canonical_manifest_and_current_state_remain_supported():
     assert validate_artifact_status_manifest(_manifest())["statuses"]["STATE.json"] == "KEEP_CURRENT"
     current_admission.validate_state(_state())
+
+
+@pytest.mark.parametrize("file_name", ["audit.pdf", "deep.png", "deep.docx.exe", "deep", ".docx"])
+def test_current_article_delivery_requires_actual_word_filename(file_name):
+    state = _state()
+    tampered = deepcopy(state)
+    tampered["delivery_artifacts"]["FINANCE_DEEP_DOCX"] = {
+        "kind": "FINANCE_DEEP_DOCX",
+        "file_name": file_name,
+        "sha256": "c" * 64,
+    }
+    with pytest.raises(ValueError):
+        current_admission.validate_state(tampered)
+
+
+def test_canonical_docx_builder_refuses_wrong_extension_before_creating_binary(tmp_path):
+    from financial_writing_agent.delivery_pipeline import (
+        CanonicalDeliveryError,
+        build_verified_article_docx,
+        build_verified_audit_docx,
+    )
+    from financial_writing_agent.document import ArticleDocument, Block
+    from financial_writing_agent.models import ArtifactKind
+
+    bad_article = tmp_path / "article.pdf"
+    article = ArticleDocument(
+        title="测试稿",
+        blocks=[Block(kind="h1", text="现金流对比"), Block(kind="body", text="测试文本。")],
+    )
+    with pytest.raises(CanonicalDeliveryError, match="docx"):
+        build_verified_article_docx(
+            article,
+            bad_article,
+            artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
+            required_bold_anchors=[],
+            require_risk_disclaimer=False,
+        )
+    assert not bad_article.exists()
+
+    bad_audit = tmp_path / "audit.txt"
+    with pytest.raises(CanonicalDeliveryError, match="docx"):
+        build_verified_audit_docx(
+            title="审计",
+            lines=[],
+            artifacts=[],
+            output=bad_audit,
+        )
+    assert not bad_audit.exists()
