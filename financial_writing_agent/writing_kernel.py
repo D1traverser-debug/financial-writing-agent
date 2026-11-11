@@ -8,6 +8,7 @@ class WritingPass(str, Enum):
     KNOWLEDGE_RECALL = "KNOWLEDGE_RECALL"
     RESEARCH_DISCOVERY = "RESEARCH_DISCOVERY"
     RESEARCH_ADVERSARIAL = "RESEARCH_ADVERSARIAL"
+    PRIVATE_RESEARCH_SYNTHESIS = "PRIVATE_RESEARCH_SYNTHESIS"
     THESIS_ADJUDICATION = "THESIS_ADJUDICATION"
     STORY_ARCHITECTURE = "STORY_ARCHITECTURE"
     DRAFT_GENERATION = "DRAFT_GENERATION"
@@ -46,9 +47,15 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         forbidden_jobs=("protect preferred thesis", "publication prose"),
         outputs=("counterevidence", "rejected_hypotheses", "search_saturation_evidence"),
     ),
+    WritingPass.PRIVATE_RESEARCH_SYNTHESIS: PassContract(
+        purpose="assemble all required evidence-bound PrivateResearchBrief 1.1 modules from full discovery and disconfirming research before selecting a publishable thesis",
+        required_inputs=("discovery_package", "adversarial_package", "source_evidence_ledger", "research_requirements"),
+        forbidden_jobs=("publish private research scores", "draft publication prose", "hide unresolved material evidence gaps", "select final thesis before module synthesis"),
+        outputs=("private_research_brief", "unresolved_research_gaps", "publication_distillation"),
+    ),
     WritingPass.THESIS_ADJUDICATION: PassContract(
         purpose="compare credible candidate explanations and select or merge the best evidence-bounded thesis",
-        required_inputs=("discovery_package", "adversarial_package", "decision_envelope"),
+        required_inputs=("discovery_package", "adversarial_package", "private_research_brief", "decision_envelope"),
         forbidden_jobs=("invent evidence", "draft paragraphs"),
         outputs=("selected_thesis", "company_decision_map", "change_conditions"),
     ),
@@ -107,7 +114,8 @@ PASS_DEPENDENCIES: dict[WritingPass, tuple[WritingPass, ...]] = {
     WritingPass.KNOWLEDGE_RECALL: (),
     WritingPass.RESEARCH_DISCOVERY: (WritingPass.KNOWLEDGE_RECALL,),
     WritingPass.RESEARCH_ADVERSARIAL: (WritingPass.RESEARCH_DISCOVERY,),
-    WritingPass.THESIS_ADJUDICATION: (WritingPass.RESEARCH_DISCOVERY, WritingPass.RESEARCH_ADVERSARIAL),
+    WritingPass.PRIVATE_RESEARCH_SYNTHESIS: (WritingPass.RESEARCH_DISCOVERY, WritingPass.RESEARCH_ADVERSARIAL),
+    WritingPass.THESIS_ADJUDICATION: (WritingPass.RESEARCH_ADVERSARIAL, WritingPass.PRIVATE_RESEARCH_SYNTHESIS),
     WritingPass.STORY_ARCHITECTURE: (WritingPass.THESIS_ADJUDICATION,),
     WritingPass.DRAFT_GENERATION: (WritingPass.STORY_ARCHITECTURE,),
     WritingPass.READER_RETENTION_AUDIT: (WritingPass.DRAFT_GENERATION,),
