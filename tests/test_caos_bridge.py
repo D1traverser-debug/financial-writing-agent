@@ -184,22 +184,19 @@ def test_dropped_or_failed_readback_never_becomes_verified_delivery():
         )
 
 
-def test_caos_parent_manifest_matches_real_parent_read_only_contract_shape():
+def test_legacy_caos_bridge_is_not_current_financial_manifest_or_runtime():
+    """Historical bridge regression remains readable; standalone entry owns operation."""
     root = Path(__file__).resolve().parents[1]
-    manifest = json.loads((root / ".uaos/MANIFEST.json").read_text(encoding="utf-8"))
-    adapter = json.loads((root / ".uaos/ADAPTER.json").read_text(encoding="utf-8"))
-    caps = json.loads((root / ".uaos/CAPABILITIES.json").read_text(encoding="utf-8"))
-    assert manifest["controller"] == adapter["controller"] == PARENT_REPOSITORY + "@main"
-    assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
-    assert manifest["binding"]["capability_ref"] == ".uaos/CAPABILITIES.json"
-    skill = manifest["skill"]["entrypoint"]
-    assert skill == "CAOS_SKILL.md" and (root / skill).is_file()
-    assert caps["domain_id"] == manifest["domain_id"] == adapter["domain_id"] == "financial_writing"
-    ids = [x["capability_id"] for x in caps["capabilities"]]
-    assert len(ids) == len(set(ids)) and all(x.isidentifier() for x in ids)
-    active = "\n".join(json.dumps(x) for x in (manifest, adapter, caps))
-    assert "D1traverser-debug/universal-agent-os" not in active
-    assert caps["hosted_cognition_semantics"]["implementation_evidence"] == "NOT_EQUIVALENT_TO_NATIVE_HOST_ACTIVATION"
+    manifest = json.loads((root / "config/FINANCIAL_MANIFEST.json").read_text(encoding="utf-8"))
+    capabilities = json.loads((root / "config/FINANCIAL_CAPABILITIES.json").read_text(encoding="utf-8"))
+    assert manifest["controller"] == "FINANCIAL_WRITING_OWNER"
+    assert manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime"
+    assert manifest["external_parent_required"] is False
+    assert capabilities["independent_parent_free"] is True
+    for name in ("MANIFEST", "ADAPTER", "CAPABILITIES"):
+        historic = json.loads((root / ".uaos" / f"{name}.json").read_text(encoding="utf-8"))
+        assert historic["active"] is False
+        assert historic["authority"] is False
 
 
 def test_provider_readback_rejects_bool_integer_type_confusion_despite_claimed_blob_sha():
