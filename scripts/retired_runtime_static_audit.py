@@ -19,7 +19,9 @@ def main() -> None:
         raise SystemExit(f"retired Financial controller/runtime paths returned: {offenders}")
     required = [
         ".uaos/MANIFEST.json", ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json",
-        "config/EXECUTION_CONTRACT.json", "CAOS_SKILL.md", "UAOS_SKILL.md",
+        "config/EXECUTION_CONTRACT.json", "FINANCIAL_SKILL.md",
+        "skills/financial-writing-agent/SKILL.md", "config/FINANCIAL_MANIFEST.json",
+        "financial_writing_agent/standalone_runtime.py",
         "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py",
         "financial_writing_agent/workflow_spec.py", "financial_writing_agent/models.py",
     ]
