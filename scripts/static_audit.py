@@ -69,6 +69,15 @@ def main():
             "standalone mode assumes a live Host")
     require(contract["authority"]["alternate_business_state_authority_allowed"] is False,
             "second owner slipped into execution config")
+    idx = load("evals/EVOLUTION_INDEX.json")["active_system_assessment"]
+    require(idx.get("review_ref") == "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
+            "current Financial system owner still points at a retired integration audit")
+    require(idx.get("current_method_owner") == PRIMARY
+            and idx.get("current_runtime_authority") == "config/FINANCIAL_MANIFEST.json",
+            "current domain method/runtime authority drift")
+    require("parent_governance_ref" not in idx,
+            "current Financial evolution authority still advertises a parent controller")
+
     require(contract["problem_and_evolution"]["generic_problem_cognition_owner"] == PRIMARY,
             "decision loop outsourced")
     require(contract["problem_and_evolution"]["common_or_cross_domain_change_uses_parent_upcall"] is False,
