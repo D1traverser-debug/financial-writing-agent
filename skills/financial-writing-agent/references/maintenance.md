@@ -1,96 +1,32 @@
-# Maintenance — Cognition, Decision and Governed Evolution
+# Financial domain maintenance — CAOS-owned cognition, child-owned evolution
 
-Revision: `1.3`
-Candidate extension: `2.0-candidate`
-Updated: `2026-10-16`
-Owner: `DOMAIN:financial_writing`
+Revision: `2.0-CAOS` · 2026-11-11
 
-## Purpose
+**Single owner boundary:** `D1traverser-debug/cognition-agent-os@main` supplies opt-in goal/decision/recovery method; Financial Writing alone owns domain requirements, article state, business methods, tests, publication quality, evidence and scoped promotion. The parent `domain_contract.py` is **read-only**. Do not pretend `CAOS_SKILL.md` or a passed mock test is native Host execution.
 
-Maintenance governs how problems, feedback, learned methods, failed outputs and quality evidence become durable Financial changes. UAOS owns common/cross-domain governance; Financial owns Financial business/product/writing promotion.
+## Actual entry and reference authority
 
-## Core path
+- Parent method: `cognition-agent-os/AGENTS.md`, `docs/PRODUCT-READINESS-GATE.md`, `integrations/chatgpt/cognition-agent-os-chatgpt/skills/cognition-parent-chatgpt-intake/SKILL.md`.
+- Child route: `CAOS_SKILL.md`, `.uaos/{MANIFEST,ADAPTER,CAPABILITIES}.json` (compatibility filenames with **CAOS content**), `config/EXECUTION_CONTRACT.json`.
+- Child business/code: `docs/product_requirements.md`, `financial_writing_agent/current_admission.py`, `writing_kernel.py`, `story_quality.py`, `quality_regression.py`.
+- Durable **existing** Financial evolution owner: `evals/EVOLUTION_INDEX.json`; original feedback/artifact bytes remain immutable historical evidence. Do not create a second domain task or controller.
 
-Do not move directly from a suggested fix to production mutation.
+## Problem-to-action loop
 
-`signal -> canonical UAOS cognition -> Financial evidence/decision admission as applicable -> DecisionEnvelope -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`
+A change request, repeated bad draft, user rejection, missing evidence, uncertainty or system audit begins with the **complete owner goal and latest authentic corrections**. Classify failure/symptom separately from a suggested implementation. Inspect current provider source/actual article state and the relevant negative example. Compare plausible roots at least among entry/routing, requirements, source freshness, cognition/selection, workflow state, writing, review, delivery, external tool/grants and false success attribution as dictated by evidence. Supply a separating counterexample; pursue the hypothesis if an important discriminator remains unresolved.
 
-User-observed failure and desired outcome are high-weight evidence. A proposed mechanism remains a candidate unless it is itself an explicit requirement.
+Compare reuse, adapt, replace, remove and build when each is genuinely applicable, considering real reader/owner outcome, compatibility, verification, cost, time, irreversibility and permission. Challenge the preferred method and test it on both negative and legitimate neighbor cases before mutation. The model must not declare a synthetic `PASS`/confidence claim as independent verification.
 
-## Authority surfaces
+For Financial local improvements: `signal → evidence/ref → competing cause → DecisionEnvelope / admitted root scope → bounded candidate + falsifier → tests and real article comparisons → reviewed PR → exact-head CI → authorized production readback → measured user/reader outcome → KEEP/REPAIR/ROLLBACK/RETIRE`.
 
-- `D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json` — canonical generic problem cognition
-- `UAOS_SKILL.md`
-- `docs/product_requirements.md`
-- `docs/architecture.md`
-- `config/EXECUTION_CONTRACT.json`
-- `financial_writing_agent/writing_kernel.py`
-- `financial_writing_agent/cognition_governance.py`
-- `financial_writing_agent/story_quality.py`
-- `financial_writing_agent/current_admission.py`
-- `financial_writing_agent/owner_guard.py`
-- `financial_writing_agent/owner_lifecycle.py`
-- `financial_writing_agent/proactive_resolution.py`
-- `references/proactive_resolution.md`
-- `knowledge/METHOD_KNOWLEDGE_CATALOG.json`
-- `evals/PROBLEM_EVOLUTION_JOURNAL.md`
-- `financial_writing_agent/quality_regression.py`
-- `workspaces/articles/{task_id}`
+Material requirement corrections enter **`current_admission.apply_task_requirement_change`**, not a side-file or method-catalog overwrite. Earlier stage and dependent quality evidence must invalidate. One-off user rejection is high-weight evidence, not a universal rule. The old rejected Word package cannot validate a newer writing-kernel version by retroactive relabeling.
 
-No second Financial controller/state machine is allowed. Financial must not copy the parent cognition algorithm into a local floor or fixed activation rule.
+## Domain action, learning, recovery
 
-## Inherited problem cognition
+An owner-authorized repair that can be performed now cannot stop at a recommendation without an actual bounded attempt. For unavailable data, use `proactive_resolution.record_proactive_resolution_state` and `require_user_escalation_admission`; do not solicit a source the environment can lawfully recover. A provisional conclusion must retain its validation plan, date and uncertainty.
 
-Any detected problem activates the current UAOS canonical cognition kernel through `DELIBERATION_POLICY.json`. Research depth is risk-adaptive rather than a fixed local checklist:
+Method knowledge needs original source/hash/version, scope, positive and negative cases, selection condition, failure mode, supersession and a next-task verification. It is NOT a new instruction unless approved by domain promotion. Financial research facts must be refreshed for every consequential new article. Common/cross-domain discoveries are **CAOS upcalls only**, not child-originated writes to the parent repo.
 
-- `LIGHTWEIGHT`: may resolve from sufficient current evidence when uncertainty/risk does not justify broader search.
-- `CONTRASTIVE`: compares credible competing frames/alternatives and seeks disconfirming evidence proportionate to the decision.
-- `STRUCTURED`: uses targeted external method/architecture research, upstream/cross-layer hypotheses and stronger falsification/verification when materiality or systemic risk requires it.
+## Independent acceptance and stop
 
-Financial does not locally redefine those parent stages or activation thresholds. Familiarity alone is neither a waiver nor a reason to force heavyweight research.
-
-Financial business research is separate from generic problem cognition and may be stricter. Material article judgments retain evidence, alternatives, counterexamples, saturation and verification; Financial architecture/governance changes may require external method evidence under the Financial-owned decision contract.
-
-## Decision and search
-
-Material Financial judgments retain objective, evidence/source families, challenged assumptions, alternatives, fit/misfit, counterexamples, rejected paths, selected rationale, saturation, verification plan, unknowns and knowledge/evolution disposition.
-
-When Financial-owned research is required, search across materially different source families. Stop only after two consecutive sweeps add no decision-changing candidate, failure mode, counterexample or changed decision. A later material discovery invalidates saturation. Never claim literal exhaustive internet coverage.
-
-## Knowledge
-
-Retain useful facts/relationships with freshness semantics, external methods with fit/misfit, rejected candidates, recurring failure patterns and eval methods. Cataloging is not promotion; unresolved conflicts block validated status.
-
-## Candidate implementation
-
-Material repo changes use `candidate branch -> PR -> CI/evals -> contradiction scan -> controlled merge -> production reread/checks -> live observation`.
-
-Do not weaken an old invariant merely because a candidate fails it. Preserve valid compatibility; retire an invariant only with coherent authority, migration and eval evidence.
-
-## Proactive resolution before asking the user
-
-A missing ideal input is not automatically a user blocker. Recover from current state, durable context, approved samples, connected sources or public evidence when safe.
-
-Use `record_proactive_resolution_state` to persist an evidence-bound recovery result and `require_user_escalation_admission` before escalating when applicable. Ask only when a required fact, preference, approval, authorization, safety choice or genuinely unavailable capability/evidence cannot be safely resolved.
-
-## Problem-to-action closure
-
-A confirmed problem ends in repair attempted/executed, a concrete blocker/required choice, or evidence-backed no-change. Recommendation-only is not terminal when an authorized repair path exists.
-
-## Durable problem/evolution history
-
-Every encountered problem must appear in durable history when material to system behavior or future decisions. Preserve symptom, source, diagnosis, challenged assumption, research/evidence used when required by the selected cognition depth or Financial decision contract, alternatives/rejected paths, selected action, verification, result/unknowns/rollback conditions and parent-upcall status.
-
-Do not rewrite the journal into a success-only narrative. Failures remain visible after repair.
-
-## Promotion and Parent upcall boundary
-
-One article or feedback event creates evidence/candidates, never silent universal authority. Domain-wide promotion needs justified scope, counterexamples, reproducible evals, no unresolved authority contradiction and owner-scoped controlled promotion. Then observe post-promotion behavior and keep, rollback or retire.
-
-Cross-domain/common-capability changes upcall UAOS. Financial does not directly mutate parent authority from child scope.
-
-## Assurance and anti-bloat
-
-Configured rules are `DECLARED`; executable gates plus passing behavior tests are trajectory evidence; same-chat semantic review is `CHAT_SELF_REVIEW`; only distinct execution evidence may support independence. Green deterministic tests do not certify semantic writing quality.
-
-Before adding a subsystem, ask whether existing owner/control/context/assurance/evolution mechanisms can be extended, what the new mechanism replaces, whether it creates a second truth source and whether benefit is measurable. The 1.0 rebuild keeps one Financial owner/state machine and adds focused passes plus admission/fitness contracts.
+Check separately (1) code invariant regressions; (2) genuine provider GitHub SHA/CAS after write; (3) private research source and point-in-time financial evidence; (4) independent reader-facing draft assessment and source overlap; (5) actual Word bytes, pages, QA/link availability; (6) owner acceptance or observable reader response. Same-chat review remains `CHAT_SELF_REVIEW`. Where external graders, approved samples, native Skill or parent Host are absent, record precisely what is NOT_VERIFIED; keep unrelated legal work moving and do not close the full-system goal.
