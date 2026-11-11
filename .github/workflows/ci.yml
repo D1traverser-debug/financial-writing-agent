@@ -32,6 +32,11 @@ jobs:
         run: python scripts/static_audit.py
       - name: Static retired-runtime absence audit
         run: python scripts/retired_runtime_static_audit.py
+      - name: Real CAOS parent read-only domain contract conformance
+        run: |
+          git clone --quiet https://github.com/D1traverser-debug/cognition-agent-os.git /tmp/financial-caos-parent
+          git -C /tmp/financial-caos-parent checkout --detach --quiet 9686cedeb3fd8171ecf70eab33aaea641217b04a
+          PYTHONPATH="/tmp/financial-caos-parent/src:${PYTHONPATH:-}" python scripts/verify_caos_parent_contract.py
       - name: Build wheel and isolated install smoke
         run: |
           python -m build --wheel
