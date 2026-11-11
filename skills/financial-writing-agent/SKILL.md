@@ -1,12 +1,12 @@
 ---
 name: financial-writing-agent
-description: Publishable A-share financial article workflow. Current authority is the repository root UAOS_SKILL.md after UAOS routing.
+description: CAOS-governed Chinese A-share financial research, narrative writing, publication audit and Word delivery.
 ---
 
 # Financial Writing Agent — Discovery Pointer
 
-This file exists only for Skill discovery compatibility.
+Current operational entry is repository root `CAOS_SKILL.md`. Parent cognition lives in `D1traverser-debug/cognition-agent-os@main`; Financial Writing owns article IDs, source/factual judgments, business state, user requirements and DOCX results.
 
-Current executable/domain instructions are `../../UAOS_SKILL.md` (repository root `UAOS_SKILL.md`). Cross-domain routing and continuation are owned by `D1traverser-debug/universal-agent-os@main`.
+The three `.uaos/*.json` filenames exist only because the current CAOS read-only `domain_contract.py` expects those paths. Their **content** declares CAOS. `UAOS_SKILL.md` is a non-authoritative legacy pointer; never use it as a fallback business controller.
 
-Do not treat this file as a second rulebook, controller, task index or continuity authority. After discovery, load root `UAOS_SKILL.md` and follow its progressive references.
+Do not create a second task index, alter CAOS, presume a connected local Host, or infer business acceptance from a model PASS. Read `CAOS_SKILL.md` and its progressive references.
