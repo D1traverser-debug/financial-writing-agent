@@ -1,9 +1,9 @@
 {
-  "schema_version": "5.0-candidate",
+  "schema_version": "5.1-standalone",
   "domain_id": "financial_writing",
-  "product_path": "CAOS_OPT_IN_PARENT_METHOD__DIRECT_FINANCIAL_BUSINESS_OWNER",
+  "product_path": "DIRECT_FINANCIAL_STANDALONE",
   "authority": {
-    "controller": "D1traverser-debug/cognition-agent-os@main",
+    "controller": "FINANCIAL_WRITING_OWNER",
     "product_requirements": "docs/product_requirements.md",
     "architecture": "docs/architecture.md",
     "business_state_ref": "main",
@@ -24,34 +24,14 @@
     "method_knowledge_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
     "alternate_business_state_authority_allowed": false
   },
-  "hosted_governance": {
-    "parent_domain_contract_ref": "D1traverser-debug/cognition-agent-os@main:src/cognition_agent_os/domain_contract.py",
-    "parent_read_only_observation": true,
-    "child_business_action_requires_owner_native_gate": true,
-    "parent_host_or_plugin_assumed_connected": false,
-    "parent_method_ref": "D1traverser-debug/cognition-agent-os@main:integrations/chatgpt/cognition-agent-os-chatgpt/skills/cognition-parent-chatgpt-intake/SKILL.md",
-    "owner_goal_source": "USER_ORIGINAL_PLUS_AUTHENTIC_CORRECTIONS",
-    "problem_cognition_owner": "CAOS_OPT_IN_COGNITION_PARENT",
-    "problem_cognition_inheritance": "REFERENCED_METHOD__NO_DUPLICATE_CHILD_CONTROL_PLANE",
-    "financial_business_research_is_separate_from_generic_problem_cognition": true,
-    "material_problem_escalation": [
-      "RETRIEVE_COMPETING_ROOT_CAUSES",
-      "SEARCH_FOR_COUNTEREXAMPLES",
-      "REQUIRE_PROPORTIONAL_INDEPENDENT_OUTCOME"
-    ],
-    "user_feedback_semantics": "HIGH_WEIGHT_EVIDENCE__NOT_AUTOMATIC_RULE_AUTHORITY",
-    "domain_evolution_owner": "FINANCIAL_WRITING_FOR_FINANCIAL_BUSINESS_RULES",
-    "common_cross_domain_evolution_owner": "CAOS",
-    "assurance_limit": "NO_IMPLIED_CHATGPT_NATIVE_SKILL_INVOCATION_OR_LOCAL_HOST_CONNECTION"
-  },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
     "article_id_owner": "FINANCIAL_WRITING",
     "article_id_authority": "workspaces/articles/{task_id}/STATE.json::task_id",
     "business_contract_is_identity_free": true,
-    "parent_controller_identity_namespace": "EXTERNAL_AND_DISTINCT",
+    "parent_controller_identity_namespace": "NOT_APPLICABLE",
     "parent_child_id_equality_required": false,
-    "parent_reference_semantics": "OPTIONAL_OPAQUE_REFERENCE_TO_FINANCIAL_STATE_RETURNED_BY_DOMAIN"
+    "parent_reference_semantics": "HISTORICAL_ONLY_NO_RUNTIME_REFERENCE"
   },
   "workflow": [
     "INTAKE",
@@ -213,7 +193,7 @@
     "architecture_change_requires_eval_evidence": true
   },
   "execution": {
-    "route_selection": "OPT_IN_CAOS_PARENT_OR_DIRECT_FINANCIAL",
+    "route_selection": "DIRECT_FINANCIAL_ONLY",
     "direct_domain_activation": true,
     "live_parent_business_proxy_required": false,
     "free_form_article_fallback_allowed": false,
@@ -228,19 +208,21 @@
     "one_off_observation_auto_promotes_to_global_rule": false,
     "systemic_change_requires_regression_or_eval_evidence": true,
     "post_promotion_observation_required_for_evolution_closure": true,
-    "common_or_cross_domain_change_uses_parent_upcall": true
+    "common_or_cross_domain_change_uses_parent_upcall": false,
+    "shared_method_adaptation_rule": "FINANCIAL_LOCAL_SCOPE_AND_EVIDENCE__NO_PARENT_UPCALL"
   },
   "problem_and_evolution": {
-    "generic_problem_cognition_owner": "CAOS_OPT_IN_COGNITION_PARENT",
+    "generic_problem_cognition_owner": "FINANCIAL_WRITING_OWNER",
     "generic_problem_cognition_is_copied_locally": false,
     "financial_material_judgment_may_require_stricter_domain_evidence": true,
     "material_negative_feedback_requires_system_impact_signal": true,
     "one_off_observation_auto_promotes_to_global_rule": false,
     "systemic_change_requires_regression_or_eval_evidence": true,
     "post_promotion_observation_required_for_evolution_closure": true,
-    "common_or_cross_domain_change_uses_parent_upcall": true,
+    "common_or_cross_domain_change_uses_parent_upcall": false,
     "user_feedback_is_evidence_not_automatic_rule_authority": true,
-    "material_decisions_require_counterexamples_and_candidate_comparison": true
+    "material_decisions_require_counterexamples_and_candidate_comparison": true,
+    "common_method_change_owner": "FINANCIAL_LOCAL_ADAPTATION_WITH_EVIDENCE"
   },
   "assurance": {
     "same_chat_semantic_review": "CHAT_SELF_REVIEW",
@@ -256,5 +238,18 @@
     "material_resume_requires_compatibility_admission": true,
     "current_quality_successor_required_after_semantic_generation_gap": true,
     "candidate_rebuild_rewrites_completed_article_state": false
+  },
+  "standalone_governance": {
+    "source": "FINANCIAL_OWNER_NATIVELY_ADOPTED_METHODS",
+    "external_parent_required": false,
+    "parent_host_or_plugin_assumed_connected": false,
+    "decision_and_execution_loops_owner": "FINANCIAL_WRITING_OWNER",
+    "current_article_action": "financial_writing_agent.standalone_runtime.admit_article_action",
+    "real_write_requirement": "EXTERNAL_USER_PERMISSION_AND_AUTHENTICATED_PROVIDER_CAS_AND_REREAD",
+    "current_requirement_authority": "financial_writing_agent.task_requirements",
+    "financial_research_distinct_from_cognition": true,
+    "domain_evolution_owner": "FINANCIAL_WRITING_FOR_ALL_FINANCIAL_BUSINESS_RULES",
+    "shared_method_proposals": "DOCUMENT_WITH_SCOPE_IN_FINANCIAL_HISTORY__NO_PARENT_UPCALL",
+    "independent_qa_not_inferred_from_ci": true
   }
 }

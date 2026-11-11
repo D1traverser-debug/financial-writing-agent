@@ -38,11 +38,8 @@ jobs:
         run: python scripts/static_audit.py
       - name: Static retired-runtime absence audit
         run: python scripts/retired_runtime_static_audit.py
-      - name: Real CAOS parent read-only domain contract conformance
-        run: |
-          git clone --quiet https://github.com/D1traverser-debug/cognition-agent-os.git /tmp/financial-caos-parent
-          git -C /tmp/financial-caos-parent checkout --detach --quiet 9686cedeb3fd8171ecf70eab33aaea641217b04a
-          FWA_SOURCE_SHA="${{ github.event.pull_request.head.sha || github.sha }}" PYTHONPATH="/tmp/financial-caos-parent/src:${PYTHONPATH:-}" python scripts/verify_caos_parent_contract.py
+      - name: Standalone Financial-only runtime and independent capability manifest
+        run: python scripts/verify_standalone_contract.py
       - name: Build wheel and isolated install smoke
         run: |
           python -m build --wheel
@@ -71,7 +68,7 @@ jobs:
               source_refs=[],
               executor_identity="wheel-smoke",
           )
-          assert importlib.metadata.version("financial-writing-agent") == "1.0.3"
+          assert importlib.metadata.version("financial-writing-agent") == "1.1.0"
           assert WRITING_KERNEL_VERSION == "1.0"
           assert PRIVATE_RESEARCH_CONTRACT_VERSION == "1.1"
           assert len(REQUIRED_MODULES) == 15
@@ -111,7 +108,7 @@ jobs:
           assert callable(build_article_docx) and callable(build_audit_docx) and callable(build_interaction_pack_docx) and callable(check_docx)
           assert callable(build_initial_state) and callable(resume_blocked_state) and callable(require_material_resume_admission)
           assert CausalTransmission and ValueChainScopeDecision
-          print("PASS: clean Financial Writing 1.0.3 wheel exposes mandatory private-research 1.1 admission, complete catalyst/policy coverage, global selection, current admission, historical 1.0 compatibility, selective comparative Deep publication architecture, event-company causal grounding, kernel 1.0, PORTFOLIO outputs, and single Financial identity path")
+          print("PASS: clean Financial Writing 1.1.0 standalone wheel exposes mandatory private-research 1.1 admission, complete catalyst/policy coverage, global selection, current admission, historical 1.0 compatibility, selective comparative Deep publication architecture, event-company causal grounding, kernel 1.0, PORTFOLIO outputs, and single Financial identity path")
           PY
       - name: Install render dependencies
         run: |

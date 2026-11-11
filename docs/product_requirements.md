@@ -1,10 +1,10 @@
 # Financial Writing Agent — Product Requirements
 
-Status: `1.0.3_CAOS_CHILD_CANDIDATE__EDITORIAL_NOT_READY`
+Status: `1.0.3_STANDALONE_FINANCIAL__EDITORIAL_NOT_READY`
 Version: `1.0.3-candidate`
 Review date: `2026-11-11`
 Owner: `DOMAIN:financial_writing`
-Parent governance: `D1traverser-debug/cognition-agent-os@main`
+Operating governance: Financial Writing's own Skill, DecisionEnvelope, owner state and independent QA; NO external parent.
 
 ## 1. Product outcome
 
@@ -42,7 +42,7 @@ The governing outcome is not “satisfy the most rules”. It is **high-value, e
 
 ### PR-01 — Direct domain operation and ownership
 
-A fresh session can select Financial Writing directly. Financial creates and owns article identity/state. CAOS supplies hosted common governance but is not a mandatory business proxy.
+A fresh session selects Financial Writing directly. Financial independently owns its goal/decision/execution loops, article state, user corrections, source and writing quality, evidence and delivery. No external CAOS/UAOS invocation or parent runtime may be required.
 
 ### PR-02 — Feedback classification before evolution
 
@@ -166,7 +166,7 @@ Word outputs pass formatting, artifact, render and current-resource availability
 
 Financial-owned evolution follows:
 `problem/evidence -> cognition -> candidate alternatives -> DecisionEnvelope/root-scope admission -> evolution disposition -> regression/eval -> candidate branch/PR -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
-One article may create a domain candidate, not universal truth. Common/cross-domain changes go to CAOS.
+One article may create a domain candidate, not universal truth. Cross-topic reusable method changes are evaluated and versioned within Financial's existing maintenance authority; no upstream parent action is required.
 
 ### PR-17 — Multi-agent is conditional, not default
 
@@ -226,13 +226,13 @@ This requirement preserves both continuity and provenance without silently equat
 - mechanical Word failure -> DELIVERY;
 - upstream material change invalidates dependent downstream PASS evidence.
 
-## 6. Cognition inheritance contract
+## 6. Financial-native cognition and decision contract
 
-Financial may use CAOS's opt-in cognition parent method while keeping business decisions local. CAOS's current native domain observer is read-only; actual Skill selection, grants and Host execution require separate runtime evidence. Every detected defect/unreliable outcome activates micro diagnosis, macro/topology alignment, governing-assumption challenge and external research. Material/systemic problems add competing hypotheses/counterexamples and verification proportional to risk. Declaring inheritance is not operational proof.
+Financial owns and executes the complete goal-recovery, decision, failure-diagnosis, counterexample, method-comparison, execution and verification procedure itself. No CAOS or UAOS Host is invoked or consulted for operating authority. Material problems require micro diagnosis, macro goal/topology alignment, governing-assumption challenge and external research proportional to risk. Systemic problems compare root layers and falsifiers before a lawful repair. Same-model decisions are not independent product proof.
 
-## 7. Evolution inheritance contract
+## 7. Financial-owned evolution contract
 
-Financial owns Financial writing promotion; CAOS owns common/cross-domain promotion. Feedback first becomes evidence, then is classified and compared with alternative diagnoses/repairs. Permanent rule/architecture changes require reproducible evaluation, owner-scoped promotion and post-promotion observation.
+Financial owns finance-specific and reusable method promotion for its own system. A correction is evidence, not authority to copy the proposed fix. Reusable changes require causal comparison, negative tests, exact-head candidate validation and production/product readback. No external parent upcall is required.
 
 ## 8. Explicit non-goals
 
@@ -267,8 +267,8 @@ The 1.0.3 candidate is promotion-eligible only when:
 9. production CI and contradiction scan pass;
 10. live Financial tasks observe whether the mandatory private layer improves company coverage, catalyst/market-role reasoning and article distillation without turning the public article into a research dump.
 
-## 10. CAOS interface and independent acceptance (2026-11-11)
+## 10. Standalone Financial connection and independent acceptance (2026-11-11)
 
-The former UAOS control plane is decommissioned as current parent authority. The three historical `.uaos` paths are read-only parent-discovery compatibility filenames, **not** a second parent or current UAOS grant. `CAOS_SKILL.md` is canonical, and `financial_writing_agent/caos_bridge.py` is the child-native guarded adapter for exact article identity, externally verified authorization, owner-only transitions, provider compare-and-swap and independent reread. Neither declaring a parent pointer nor a mocked bridge callback proves live ChatGPT-native CAOS invocation.
+Current operating Skill: `skills/financial-writing-agent/SKILL.md`; manifest `config/FINANCIAL_MANIFEST.json`; Financial-only provider entry `financial_writing_agent/standalone_runtime.py`. It requires externally verified user authorization, actual Git state and artifact bytes, provider CAS and second readback. This is an adapter, not an assertion that a native ChatGPT plugin is installed. Historical `.uaos/*`, `CAOS_SKILL.md` and `UAOS_SKILL.md` are inactive provenance only.
 
-Full product readiness requires actual source-to-claim and requirement-to-paragraph evidence, a complete current-kernel Deep/Broad/interaction/audit trajectory, real DOCX presence+render+link readback, diverse held-out comparison and reader/owner acceptance evidence. The recorded `GENERAL_EDITORIAL_QUALITY` and `PERSONALIZED_WRITING_DNA` remain NOT_READY until these facts are observed, independently of unit and CI success.
+Full product readiness still needs genuine source-to-claim and requirement-to-paragraph evidence, a current article's PrivateResearchBrief, separate Deep/Broad/interaction/audit production, live DOCX readback and independently assessed reader/owner result. `GENERAL_EDITORIAL_QUALITY` and `PERSONALIZED_WRITING_DNA` remain NOT_READY until observed, regardless of CI.

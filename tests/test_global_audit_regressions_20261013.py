@@ -25,7 +25,7 @@ def test_visible_delivery_is_not_proven_by_filename_and_hash():
     assert visible["fresh_current_session_resource_required"] is True
     assert visible["filename_and_hash_alone_are_availability_proof"] is False
     assert visible["regenerated_binary_is_new_instance"] is True
-    skill = (ROOT / "CAOS_SKILL.md").read_text(encoding="utf-8")
+    skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     assert "current" in skill.lower()
     assert "deliver" in skill.lower() or "Completion" in skill
 

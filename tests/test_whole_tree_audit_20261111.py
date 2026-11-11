@@ -33,7 +33,7 @@ def test_active_modules_and_all_current_text_have_nonempty_machine_inspection():
     for name in (
         "financial_writing_agent/owner_guard.py",
         "financial_writing_agent/current_admission.py",
-        "financial_writing_agent/caos_bridge.py",
+        "financial_writing_agent/standalone_runtime.py",
         "financial_writing_agent/task_publication.py",
         "financial_writing_agent/delivery_pipeline.py",
         "financial_writing_agent/writing_kernel.py",

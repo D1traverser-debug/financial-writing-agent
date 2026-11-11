@@ -4,8 +4,8 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "financial-writing-agent"
-version = "1.0.3"
-description = "A-share financial-writing owner with direct Financial-domain activation, CAOS-governed opt-in cognition and child-native business authority, mandatory digest-bound private research before publication planning, complete material catalyst/policy chronology, driver/sustainability/operability mapping, within-segment and cross-segment global selection, post-evolution resume compatibility, value-chain-first research, evidence-bound DecisionEnvelope cognition, selective comparative StoryBlueprint publication architecture, event-to-company causal grounding, publication-fitness admission, durable topic/method knowledge, historical provenance compatibility, and auditable Word delivery."
+version = "1.1.0"
+description = "Standalone Chinese financial research and publishing system with Financial-owned user-goal recovery, source and company research, evidence-bound decision loop, Deep/Broad stories, task-scoped requirements, original prose, Word delivery, independently checkable evidence and direct authorized Git state operations."
 requires-python = ">=3.11"
 dependencies = [
   "pydantic>=2.7",
@@ -15,10 +15,9 @@ dependencies = [
 [project.optional-dependencies]
 dev = ["pytest>=8", "build>=1.2", "coverage>=7.6"]
 
-# No production console/MCP entrypoint is exported. The supported hosted path is
-# a directly selected Financial work plane with UAOS-hosted common governance.
-# CAOS parent discovery metadata does not own Financial article identity, workflow state,
-# product requirements or business rules.
+# The primary deployment is the directly selected standalone Financial Skill.
+# The optional provider-neutral action adapter exposes authorized state operations,
+# but is not a deployed app server or an external parent-dependent runtime.
 
 [tool.setuptools.packages.find]
 include = ["financial_writing_agent*"]

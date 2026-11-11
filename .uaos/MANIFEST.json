@@ -1,46 +1,11 @@
 {
-  "schema_version": "3.0",
-  "agent_id": "financial_writing",
+  "schema_version": "1.0",
   "domain_id": "financial_writing",
-  "controller": "D1traverser-debug/cognition-agent-os@main",
-  "status": "CAOS_CHILD_CONTRACT_OBSERVABLE__BUSINESS_EXECUTION_OWNER_NATIVE",
-  "skill": {
-    "entrypoint": "CAOS_SKILL.md"
-  },
-  "binding": {
-    "controller_ref": "D1traverser-debug/cognition-agent-os@main:src/cognition_agent_os/domain_contract.py",
-    "common_capabilities_ref": "D1traverser-debug/cognition-agent-os@main:src/cognition_agent_os/capability_dispatch.py",
-    "common_behavior_assurance_ref": "D1traverser-debug/cognition-agent-os@main:docs/PRODUCT-READINESS-GATE.md",
-    "deliberation_policy_ref": "D1traverser-debug/cognition-agent-os@main:integrations/chatgpt/cognition-agent-os-chatgpt/skills/cognition-parent-chatgpt-intake/SKILL.md",
-    "parent_interface_ref": "D1traverser-debug/cognition-agent-os@main:docs/02-AUTHORITY-AND-INTERFACES.md",
-    "adapter_ref": ".uaos/ADAPTER.json",
-    "capability_ref": ".uaos/CAPABILITIES.json",
-    "protocol": "CHILD_CONTRACT_OBSERVATION_V1",
-    "client_mode": "OPT_IN_CHATGPT_OR_CREDENTIALLED_LOCAL_HOST_WHEN_ACTUALLY_CONNECTED",
-    "code_snapshot_observed": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
-    "policy": "NO_IMPLICIT_PARENT_GRANT__NO_PARENT_BUSINESS_STATE_MUTATION"
-  },
-  "domain_authority": {
-    "product_requirements": "docs/product_requirements.md",
-    "architecture": "docs/architecture.md",
-    "execution_contract": "config/EXECUTION_CONTRACT.json",
-    "business_contract": "financial_writing_agent/models.py:TaskContract",
-    "article_identity": "workspaces/articles/{task_id}/STATE.json::task_id",
-    "business_state_root": "workspaces/articles/{task_id}/STATE.json",
-    "current_admission_guard": "financial_writing_agent/current_admission.py",
-    "historical_resume_compatibility_guard": "financial_writing_agent/resume_compatibility.py",
-    "workflow_guard": "financial_writing_agent/owner_guard.py",
-    "writing_kernel": "financial_writing_agent/writing_kernel.py",
-    "cognition_contract": "financial_writing_agent/cognition_governance.py:DecisionEnvelope",
-    "root_scope_receipt": "financial_writing_agent/cognition_governance.py:RootScopeReceipt",
-    "problem_action_admission": "financial_writing_agent/problem_action_admission.py:finalize_problem_action",
-    "canonical_evolution_evidence": "evals/EVOLUTION_INDEX.json",
-    "publication_quality_contract": "financial_writing_agent/story_quality.py:StoryBlueprint+ValueChainScopeDecision+CausalTransmission+PublicationFitness",
-    "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
-    "proactive_resolution_guard": "financial_writing_agent/proactive_resolution.py",
-    "maintenance_method": "references/maintenance.md",
-    "caos_child_adapter": "financial_writing_agent/caos_bridge.py",
-    "caos_business_observation": "financial_writing_agent/caos_bridge.py:observe_article",
-    "caos_task_admission": "financial_writing_agent/caos_bridge.py:admit_parent_article_action"
-  }
+  "lifecycle": "RETIRED_HISTORICAL_COMPATIBILITY_ONLY",
+  "active": false,
+  "authority": false,
+  "runtime_required": false,
+  "current_manifest": "config/FINANCIAL_MANIFEST.json",
+  "current_skill": "skills/financial-writing-agent/SKILL.md",
+  "note": "Old discovery wire retained only for repository history; not connected, consulted or called by standalone Financial."
 }

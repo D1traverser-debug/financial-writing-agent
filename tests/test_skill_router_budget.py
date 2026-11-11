@@ -1,26 +1,24 @@
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
-CURRENT = ROOT / "CAOS_SKILL.md"
-DISCOVERY = ROOT / "skills/financial-writing-agent/SKILL.md"
+PRIMARY = ROOT / "skills/financial-writing-agent/SKILL.md"
+ROOT_POINTER = ROOT / "FINANCIAL_SKILL.md"
 
 
-def test_current_skill_is_thin_current_entry_not_domain_rulebook_dump():
-    text = CURRENT.read_text(encoding="utf-8")
-    assert len(text.encode("utf-8")) <= 8192
-    for ref in (
-        ".uaos/ADAPTER.json", ".uaos/MANIFEST.json", ".uaos/CAPABILITIES.json",
-        "config/EXECUTION_CONTRACT.json", "references/research.md", "references/audit.md",
-        "references/editorial.md", "references/hooks.md", "references/style.md",
-        "references/delivery.md", "references/maintenance.md",
+def test_financial_skill_is_self_sufficient_domain_workflow():
+    text = PRIMARY.read_text(encoding="utf-8")
+    assert 1000 < len(text.encode("utf-8")) < 12000
+    for keyword in (
+        "Financial Writing", "Independent Operating Skill", "Decision", "Execution",
+        "PrivateResearchBrief", "Deep", "Broad", "DOCX",
+        "standalone_runtime.py", "current_admission", "requirements",
+        "source", "originality", "quality",
     ):
-        assert ref in text
+        assert keyword.lower() in text.lower(), keyword
     assert "continuity/" not in text
 
 
-def test_packaged_skill_is_discovery_pointer_only():
-    text = DISCOVERY.read_text(encoding="utf-8")
-    assert "Discovery Pointer" in text
-    assert "CAOS_SKILL.md" in text
-    assert len(text.encode("utf-8")) < 4096
-    assert "continuity/" not in text
+def test_root_pointer_and_old_paths_have_no_active_control():
+    assert "skills/financial-writing-agent/SKILL.md" in ROOT_POINTER.read_text(encoding="utf-8")
+    assert "non-authoritative" in (ROOT / "CAOS_SKILL.md").read_text(encoding="utf-8")
+    assert "non-authoritative" in (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")

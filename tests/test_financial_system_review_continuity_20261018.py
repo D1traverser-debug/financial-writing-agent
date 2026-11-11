@@ -23,7 +23,7 @@ def test_explicit_financial_system_review_has_durable_current_owner_ref():
 
 
 def test_named_system_request_does_not_route_into_a_historical_article():
-    entry = (ROOT / "CAOS_SKILL.md").read_text(encoding="utf-8")
+    entry = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     assert "For a **whole Financial system reconstruction**" in entry
     assert "evals/EVOLUTION_INDEX.json#active_system_assessment" in entry
     assert "substitute an old DELIVERED article" in entry

@@ -1,0 +1,21 @@
+{
+  "schema_version": "1.0",
+  "domain_id": "financial_writing",
+  "runtime_mode": "STANDALONE_FINANCIAL_DOMAIN",
+  "controller": "FINANCIAL_WRITING_OWNER",
+  "skill_entrypoint": "skills/financial-writing-agent/SKILL.md",
+  "repository": "D1traverser-debug/financial-writing-agent@main",
+  "direct_activation": true,
+  "external_parent_required": false,
+  "external_host_required": false,
+  "product_requirements": "docs/product_requirements.md",
+  "architecture": "docs/architecture.md",
+  "execution_contract": "config/EXECUTION_CONTRACT.json",
+  "capability_manifest": "config/FINANCIAL_CAPABILITIES.json",
+  "state_authority": "workspaces/articles/{task_id}/STATE.json",
+  "current_admission": "financial_writing_agent.current_admission",
+  "provider_adapter": "financial_writing_agent.standalone_runtime",
+  "method_evolution_authority": "evals/EVOLUTION_INDEX.json",
+  "permission_policy": "PER_ACTION_EXTERNAL_USER_AUTHORIZATION_AND_PROVIDER_CAS",
+  "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE"
+}

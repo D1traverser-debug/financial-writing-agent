@@ -1,0 +1,64 @@
+{
+  "schema_version": "1.0",
+  "domain_id": "financial_writing",
+  "scope": "STANDALONE",
+  "independent_parent_free": true,
+  "source_of_cognition": "FINANCIAL_OWN_DECISION_ENVELOPE_AND_METHODS",
+  "entrypoint": "skills/financial-writing-agent/SKILL.md",
+  "owner": "FINANCIAL_WRITING_OWNER",
+  "capabilities": [
+    {
+      "id": "goal_recovery_and_requirements",
+      "source": "financial_writing_agent.task_requirements",
+      "assurance": "TASK_REVISION_DIGEST"
+    },
+    {
+      "id": "article_state_and_revision",
+      "source": "financial_writing_agent.current_admission",
+      "assurance": "OWNER_NATIVE_STATE"
+    },
+    {
+      "id": "standalone_provider_action",
+      "source": "financial_writing_agent.standalone_runtime",
+      "assurance": "EXTERNAL_AUTH_AND_PROVIDER_CAS"
+    },
+    {
+      "id": "source_research_and_company_universe",
+      "source": "financial_writing_agent.private_research",
+      "assurance": "STRUCTURAL_WITH_EXTERNAL_SOURCE_AUDIT"
+    },
+    {
+      "id": "financial_cognition_and_counterexamples",
+      "source": "financial_writing_agent.cognition_governance",
+      "assurance": "DECISION_ENVELOPE_NOT_EDITORIAL_ACCEPTANCE"
+    },
+    {
+      "id": "story_and_content_quality",
+      "source": "financial_writing_agent.story_quality",
+      "assurance": "SAME_CHAT_NOT_INDEPENDENT"
+    },
+    {
+      "id": "claim_source_readback",
+      "source": "financial_writing_agent.claim_trace",
+      "assurance": "SOURCE_TEXT_AND_NUMERAL_ONLY"
+    },
+    {
+      "id": "word_build_render_and_readback",
+      "source": "financial_writing_agent.delivery_pipeline",
+      "assurance": "BINARY_AND_PAGES_NOT_READER_ACCEPTANCE"
+    },
+    {
+      "id": "owner_learning_and_evolution",
+      "source": "financial_writing_agent.owner_lifecycle",
+      "assurance": "DOMAIN_OWNED_CANDIDATE_EVAL"
+    }
+  ],
+  "required_external_capabilities_at_execution": [
+    "MODEL_OR_CHAT_EXECUTOR_FOR_SEMANTIC_WORK",
+    "RESEARCH_SOURCE_ACCESS_FOR_CURRENT_FACTS",
+    "USER_AUTHORIZED_GIT_PROVIDER_FOR_PERSISTENT_WRITES",
+    "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF"
+  ],
+  "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS",
+  "independence_clause": "NO_CAOS_UAOS_PARENT_REPOSITORY_OR_HOST_INVOCATION"
+}

@@ -1,39 +1,36 @@
-# Financial Writing Agent — CAOS child
+# Financial Writing Agent — standalone
 
-**Business authority:** `D1traverser-debug/financial-writing-agent@main`.
-**Cognition parent:** `D1traverser-debug/cognition-agent-os@main`.
-**Current status:** CAOS child interface with guarded, child-owned state effects; independent end-to-end editorial quality is **NOT_READY**. The former Universal Agent OS is not the parent.
+**Operating owner:** this repository, D1traverser-debug/financial-writing-agent@main. **Runtime:** direct Financial Writing Skill and owner-native article state. **External parent required:** NO.
 
-## Entry and identity
+This system independently owns the full Chinese/A-share financial content lifecycle: source discovery and evidence, economic company-universe research, private analytical briefs, competing thesis decisions, two independently designed Deep/Broad articles, platform posts, originality and fact review, actual Word creation, render/visual inspection, user-visible delivery and feedback-driven improvement.
 
-- [CAOS_SKILL.md](CAOS_SKILL.md) — canonical opt-in ChatGPT/domain routing and workflow; direct Financial activation is allowed without a CAOS local Host.
-- [docs/CAOS_CHILD_INTERFACE.md](docs/CAOS_CHILD_INTERFACE.md) — actual source-pinned parent boundary, supported bridge calls, grants, CAS/readback and limitations.
-- `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json` — legacy **filenames only** retained because present CAOS `domain_contract.py` reads them; contents declare CAOS and one Financial business owner.
-- `financial_writing_agent/caos_bridge.py` — child-native guarded write/readback API, not a second task state machine or deployed CAOS Host.
-- `config/PERSISTENT_ASSET_PROFILE.json` — Financial-owned register of GitHub authority versus Notion/Drive/Library/Chat/Memory research/history/delivery surfaces; no old UAOS parent policy or second task controller.
-- `financial_writing_agent/current_admission.py` — **only** current-article mutation authority; one task per `workspaces/articles/{task_id}/STATE.json`. Current task requirements and evolution live in their existing canonical locations.
+## Entry for a connected ChatGPT/Work session
 
-## Financial product
+1. Connect/select **Financial Writing** itself, not CAOS, UAOS or their Host. The live operating skill is [skills/financial-writing-agent/SKILL.md](skills/financial-writing-agent/SKILL.md); [FINANCIAL_SKILL.md](FINANCIAL_SKILL.md) is its root discovery index.
+2. The native independent manifest is [config/FINANCIAL_MANIFEST.json](config/FINANCIAL_MANIFEST.json) and capability declaration is [config/FINANCIAL_CAPABILITIES.json](config/FINANCIAL_CAPABILITIES.json). The only business state is per-article [workspaces/articles](workspaces/articles) STATE.json, validated by [current_admission.py](financial_writing_agent/current_admission.py).
+3. For actual authorized GitHub state writes, a connected implementation can call [standalone_runtime.py](financial_writing_agent/standalone_runtime.py): user-scoped permission verifier, exact source-byte read, compare-and-swap Git write, and second readback. The caller must genuinely connect these capabilities; this repository is **not itself a deployed app server**.
+4. The old .uaos/*, CAOS_SKILL.md, UAOS_SKILL.md, the historical CAOS child interface and previous governance experiments are **inactive history**, not required for direct operation.
 
-Research goes from verified primary-source chronology and complete material economic company pool through adversarial evidence and PrivateResearchBrief 1.1 to DecisionEnvelope. Deep and Broad are independently designed articles, with story blueprints, company-specific financial transmission and source-compared originality. Same-chat checks remain non-independent.
+No CAOS repository modification, clone or runtime dependency is needed. No subscription to another provider is implied. A live language model/web source and user-authorized Git connection are required for corresponding live tasks, and a DOCX renderer for page QA.
 
-External workflow:
-`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
+## Financial business workflow
 
-Default user-facing deliverables: Deep DOCX, Broad DOCX, platform interaction DOCX and audit DOCX. A current admitted private research brief may require an additional private DOCX on presentation. Actual binary existence, correct hashes, render/visual evidence and available user links are a separate acceptance level.
+INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT.
 
-`workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json` remains an **IN_PROGRESS / RESEARCH** task with two admitted user requirements. Neither historical v2 Word receipts nor this repository's green CI certifies the v3 product.
+Financial's own decision loop recovers the owner's actual goal, compares evidence and falsifiers, chooses the best suited method. Its execution loop performs the work, verifies exact effects, repairs the shared cause and checks meaningful output. The internal [writing kernel](financial_writing_agent/writing_kernel.py) and [decision envelope](financial_writing_agent/cognition_governance.py) specialize those methods for finance; they are NOT an external parent controller.
 
-## Verification
+For a normal portfolio, target deliverables are actual **FINANCE_DEEP_DOCX, FINANCE_BROAD_DOCX, PLATFORM_INTERACTION_PACK_DOCX and AUDIT_DOCX**. PrivateResearchBrief 1.1 with 15 modules is admitted prior to thesis. Deep usually selects useful arguments from comprehensive private work; the active cross-border article has an explicit **full retained company universe in Deep** exception. Keep current task requirements, company comparisons and source/Word receipts bound to the article revision. Broad must be independently planned rather than a shortened Deep.
+
+## Run the engineering checks
 
 ```bash
 python -m pip install -e '.[dev]'
-pytest -q
+coverage run --source=financial_writing_agent -m pytest -q
+coverage report -m
 python scripts/eval_contracts.py
 python scripts/static_audit.py
 python scripts/retired_runtime_static_audit.py
+python scripts/whole_tree_audit.py
 ```
 
-GitHub CI also tests isolated wheel installation and DOCX render. The exact-head CI is engineering evidence only. Genuine CAOS Host attachment, parent Skill invocation, independent source adjudication, publication quality and audience outcomes need their respective actual observations. Do not claim a remote bridge grant or editorial PASS from fixture callbacks.
-
-One codebase may be routed by CAOS but parent source code remains outside the child; no CAOS source, grant or runtime state is modified by this repository.
+CI additionally builds an isolated wheel and actually renders Word pages. **Engineering PASS is not factual, editorial or reader acceptance.** See [evals/EVOLUTION_INDEX.json](evals/EVOLUTION_INDEX.json) for domain-system readiness. The current cross-border v3 remains RESEARCH until a genuine current source-verified trajectory advances it. Financial works without CAOS, but no live independent end-to-end editorial success is claimed from unit tests.

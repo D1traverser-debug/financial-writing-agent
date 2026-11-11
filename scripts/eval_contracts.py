@@ -1,4 +1,4 @@
-"""Executable Financial product boundary checks under the CAOS cognition parent.
+"""Executable Financial product boundary checks for a standalone business owner.
 
 Neither a valid contract nor this script is an independent reader-quality eval.
 """
@@ -8,7 +8,7 @@ import json
 from pathlib import Path
 
 from financial_writing_agent.artifact_hygiene import validate_artifact_status_manifest
-from financial_writing_agent.caos_bridge import PARENT_REPOSITORY
+from financial_writing_agent.standalone_runtime import DOMAIN_ID, OPERATIONS
 from financial_writing_agent.current_admission import (
     WRITING_KERNEL_VERSION,
     build_initial_state,
@@ -26,19 +26,18 @@ def load(path):
 
 
 def main() -> None:
-    manifest, adapter, caps = [load(path) for path in (
-        ".uaos/MANIFEST.json", ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json")]
+    manifest = load("config/FINANCIAL_MANIFEST.json")
+    caps = load("config/FINANCIAL_CAPABILITIES.json")
     execution = load("config/EXECUTION_CONTRACT.json")
-    assert manifest["controller"] == adapter["controller"] == PARENT_REPOSITORY + "@main"
-    assert manifest["binding"]["controller_ref"] == PARENT_REPOSITORY + "@main:src/cognition_agent_os/domain_contract.py"
-    assert manifest["skill"]["entrypoint"] == "CAOS_SKILL.md"
-    assert manifest["binding"]["adapter_ref"] == ".uaos/ADAPTER.json"
-    assert manifest["binding"]["capability_ref"] == ".uaos/CAPABILITIES.json"
-    assert caps["caos_domain_contract_ref"] == manifest["binding"]["controller_ref"]
-    assert caps["hosted_cognition_semantics"]["implementation_evidence"] == "NOT_EQUIVALENT_TO_NATIVE_HOST_ACTIVATION"
-    assert execution["hosted_governance"]["child_business_action_requires_owner_native_gate"] is True
-    assert execution["hosted_governance"]["parent_read_only_observation"] is True
-    assert execution["identity"]["parent_child_id_equality_required"] is False
+    assert DOMAIN_ID == manifest["domain_id"] == caps["domain_id"] == "financial_writing"
+    assert manifest["controller"] == caps["owner"] == execution["authority"]["controller"] == "FINANCIAL_WRITING_OWNER"
+    assert manifest["external_parent_required"] is False
+    assert manifest["external_host_required"] is False
+    assert manifest["skill_entrypoint"] == "skills/financial-writing-agent/SKILL.md"
+    assert manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime"
+    assert {"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"} <= OPERATIONS
+    assert execution["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
+    assert execution["execution"]["live_parent_business_proxy_required"] is False
     assert execution["authority"]["alternate_business_state_authority_allowed"] is False
 
     contract = TaskContract(prompt="finance test")
@@ -51,10 +50,10 @@ def main() -> None:
         ArtifactKind.PLATFORM_INTERACTION_PACK_DOCX,
     ]
     state = build_initial_state(
-        task_id="caos-financial-contract-smoke",
+        task_id="standalone-financial-contract-smoke",
         prompt="基于材料撰写可核验的A股财经报道",
         source_refs=[],
-        executor_identity="ci:caos-contract",
+        executor_identity="ci:standalone-financial",
     )
     validate_state(state)
     assert state["writing_kernel_version"] == WRITING_KERNEL_VERSION == "1.0"
@@ -97,7 +96,7 @@ def main() -> None:
     assert "NO_NEW_TASK_INDEX" in idx["boundary"]
     assert (ROOT / idx["review_ref"]).is_file()
 
-    print("PASS: CAOS read-only child contract and Financial canonical task, "
+    print("PASS: standalone Financial manifest, owner action port and canonical task, "
           "private research, product modes, ten-stage kernel, historical provenance, "
           "owner-scoped requirements and explicit outcome-certification limits")
 
