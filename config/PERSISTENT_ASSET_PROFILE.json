@@ -1,0 +1,136 @@
+{
+  "schema_version": "2.0",
+  "profile_version": "2.0.0",
+  "domain_id": "financial_writing",
+  "status": "ACTIVE_FINANCIAL_CHILD_ASSET_REGISTER__NOT_ANOTHER_CONTROL_PLANE",
+  "observed_at": "2026-11-11",
+  "parent_method_ref": "D1traverser-debug/cognition-agent-os@main:docs/02-AUTHORITY-AND-INTERFACES.md",
+  "parent_operation_claim": "CAOS_DOMAIN_CONTRACT_IS_READ_ONLY__NO_REMOTE_ASSET_AUTHORITY_IMPLIED",
+  "owner_authority": "DOMAIN:financial_writing",
+  "governing_rule": "Asset roles and scope are Financial-owned business metadata only. Neither this register nor parent discovery performs app CRUD, native Memory interception, tool grants, business-state writes, or user consent. Actual operations require owner authorization, app-specific verified tool capability and readback. Do not copy retired UAOS policy.",
+  "authority_cardinality": "EXACTLY_ONE_CURRENT_FINANCIAL_BUSINESS_AUTHORITY__GITHUB_MAIN",
+  "current_authority_assets": [
+    {
+      "asset_id": "financial-writing-github-owner",
+      "surface": "GITHUB",
+      "resource_ref": "github://D1traverser-debug/financial-writing-agent@main",
+      "role": "AUTHORITY",
+      "lifecycle": "CURRENT",
+      "canonical_authority_ref": "github://D1traverser-debug/financial-writing-agent@main",
+      "owns": [
+        "product requirements and domain policies",
+        "article identity",
+        "one current article STATE.json per task",
+        "receipts and task requirement digest",
+        "Financial evolution index and method knowledge catalog",
+        "canonical research/eval provenance"
+      ]
+    }
+  ],
+  "non_authority_assets": [
+    {
+      "asset_id": "chat-conversation-context",
+      "surface": "CHAT",
+      "resource_ref": "chatgpt://financial-writing/conversations",
+      "role": "REFERENCE",
+      "lifecycle": "EXTERNAL_DYNAMIC",
+      "note": "Chat context can supply user instructions/corrections but is not the persisted Financial business state."
+    },
+    {
+      "asset_id": "chatgpt-memory",
+      "surface": "MEMORY",
+      "resource_ref": "chatgpt://memory/financial-writing",
+      "role": "REFERENCE",
+      "lifecycle": "EXTERNAL_DYNAMIC",
+      "note": "Memory summary is an auxiliary signal, never a replacement for current article task requirements."
+    },
+    {
+      "asset_id": "account-custom-instructions",
+      "surface": "CUSTOM_INSTRUCTIONS",
+      "resource_ref": "chatgpt://account/custom-instructions",
+      "role": "BOOTSTRAP_ONLY_IF_PRESENT",
+      "lifecycle": "EXTERNAL_DYNAMIC",
+      "note": "Presence or content are not assumed; no old UAOS instruction may assert Financial article authority."
+    },
+    {
+      "asset_id": "notion-financial-research-resources",
+      "surface": "NOTION",
+      "resource_ref": "notion://FinancialWriting/ArticleBase+IndustryBase",
+      "role": "SHARED_RESEARCH_RESOURCE",
+      "lifecycle": "OBSERVED_NON_AUTHORITY",
+      "content_scope": [
+        "ArticleBase",
+        "IndustryBase"
+      ],
+      "note": "Candidate knowledge only; source dates and companies must be reverified for new publication."
+    },
+    {
+      "asset_id": "notion-migrated-control-pages",
+      "surface": "NOTION",
+      "resource_ref": "notion://FinancialWriting/MigratedControlHistory",
+      "role": "MIGRATED_HISTORY",
+      "lifecycle": "OBSERVED_DECOMMISSIONED",
+      "note": "Prior Notion handoffs, review queues and governance pages are history, never current controller."
+    },
+    {
+      "asset_id": "gdrive-migrated-financial-continuity",
+      "surface": "GOOGLE_DRIVE",
+      "resource_ref": "gdrive://FinancialWriting/LegacyContinuity",
+      "role": "MIGRATED_HISTORY",
+      "lifecycle": "OBSERVED_DECOMMISSIONED",
+      "note": "Legacy Router/State/System Policy/Handoff documents are not live CAOS or Financial task-state authorities."
+    },
+    {
+      "asset_id": "library-historical-financial-files",
+      "surface": "LIBRARY",
+      "resource_ref": "library://FinancialWriting/HistoricalResearchAndAudits",
+      "role": "HISTORICAL_EVIDENCE",
+      "lifecycle": "OBSERVED_NON_AUTHORITY",
+      "note": "User-owned prior Word and research bytes may be reference/eval fixtures; no automatic promotion of historical PASS."
+    },
+    {
+      "asset_id": "library-financial-outputs",
+      "surface": "LIBRARY",
+      "resource_ref": "library://FinancialWriting/deliveries",
+      "role": "DELIVERY_HISTORY",
+      "lifecycle": "EXTERNAL_DYNAMIC",
+      "note": "Presentation/download history not proof of current-session binary availability."
+    },
+    {
+      "asset_id": "external-email-notifications",
+      "surface": "GMAIL",
+      "resource_ref": "gmail://FinancialWriting/notifications",
+      "role": "EXTERNAL_RECORD",
+      "lifecycle": "UNVERIFIED_CURRENT",
+      "note": "No assumption that emails contain current Financial business-state instructions."
+    },
+    {
+      "asset_id": "old-parent-watch",
+      "surface": "AUTOMATION",
+      "resource_ref": "automation://historical-uaos-watch",
+      "role": "HISTORICAL_REFERENCE",
+      "lifecycle": "UNVERIFIED_CURRENT",
+      "note": "Older audit observed a UAOS watch. Do not assume it remains active or has authority."
+    },
+    {
+      "asset_id": "temporary-working-files",
+      "surface": "TEMP_SANDBOX",
+      "resource_ref": "sandbox:/mnt/data",
+      "role": "TEMPORARY_WORK_PRODUCT",
+      "lifecycle": "EPHEMERAL",
+      "note": "File existence must be verified in the actual runtime; never treat path text as durable authority."
+    }
+  ],
+  "known_absent_or_unmanaged": [
+    {
+      "surface": "GOOGLE_CALENDAR",
+      "status": "NO_FINANCIAL_MANAGED_ASSET_OBSERVED_IN_PRIOR_AUDIT__RECHECK_IF_NEEDED"
+    },
+    {
+      "surface": "AUTOMATION",
+      "status": "NO_CURRENT_FINANCIAL_BUSINESS_STATE_AUTOMATION_VERIFIED"
+    }
+  ],
+  "storage_reconciliation_rule": "For each new chat/Work session, load Financial GitHub main current authority and target article STATE first. Cross-check external source timestamps/IDs if used. Never allow an external historical title or a stale Memory entry to supersede current owner state.",
+  "independent_acceptance_boundary": "NATIVE_CHAT_MEMORY_CUSTOM_INSTRUCTIONS_NOT_PHYSICALLY_INTERCEPTED_BY_CHILD_REPO__EXTERNAL_APP_WRITES_REQUIRE_EXPLICIT_AUTH_AND_SOURCE_READBACK"
+}
