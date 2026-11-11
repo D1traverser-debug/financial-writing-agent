@@ -24,8 +24,14 @@ jobs:
           cache: pip
       - name: Install Python dependencies
         run: python -m pip install -e '.[dev]'
-      - name: Unit and trajectory tests
-        run: pytest -q
+      - name: Unit and trajectory tests with full Financial source-line coverage
+        run: |
+          mkdir -p audit
+          coverage run --source=financial_writing_agent -m pytest -q
+          coverage json -o audit/test_line_coverage.json
+          coverage report -m
+      - name: Every-tracked-file byte and parse inventory (no semantic completion claim)
+        run: python scripts/whole_tree_audit.py --output audit/whole_tree.json
       - name: Executable contract eval baseline
         run: python scripts/eval_contracts.py
       - name: Static single-owner and legacy-quarantine audit
@@ -113,3 +119,10 @@ jobs:
           sudo apt-get install -y libreoffice-writer poppler-utils
       - name: DOCX render smoke
         run: python scripts/render_smoke.py
+      - name: Preserve the current exact-head audit and line-coverage evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: financial-whole-tree-assurance-${{ github.sha }}
+          path: audit/*.json
+          if-no-files-found: warn
