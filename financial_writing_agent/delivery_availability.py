@@ -7,7 +7,7 @@ from typing import Any, Callable, Mapping
 from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
 from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidence
 from .models import ArtifactKind
-from .path_identity import require_basename, require_task_id
+from .path_identity import require_task_id, require_word_basename
 from .private_research import validate_private_research_brief
 
 
@@ -117,7 +117,7 @@ def build_visible_delivery_receipt(
         _require(bool(ref), f"{kind}.resource_ref is required for current visible delivery")
         _require(bool(file_name), f"{kind}.file_name is required")
         try:
-            require_basename(file_name)
+            require_word_basename(file_name)
         except ValueError as exc:
             raise DeliveryAvailabilityError(f"{kind}.file_name must be a canonical basename") from exc
         _require(_hex_sha256(digest), f"{kind}.sha256 must be a 64-character hex digest")
