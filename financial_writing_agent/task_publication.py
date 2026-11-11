@@ -9,7 +9,7 @@ from __future__ import annotations
 import re
 from typing import Any, Mapping
 
-from .checks import check_deep_company_grounding, payload_text
+from .checks import check_deep_company_grounding, paragraph_has_named_economic_comparison, payload_text
 from .current_admission import requirement_context_for_scope
 
 # This is a supported *specific task invariant*, not a vocabulary of arbitrary
@@ -20,8 +20,6 @@ _WEAK_ROLE_EXPLANATION = re.compile(
     r"弱相关|弱关联|非核心|间接|概念标签|标签性|主营占比|证据有限|"
     r"兑现不足|尚未兑现|缺乏直接|暂无直接|关联较弱|缺少直接|被排除|不构成核心"
 )
-_COMPARISON = re.compile(r"更|高于|低于|快于|慢于|强于|弱于|差异|领先|落后|兑现|纯度|直接")
-_ECONOMICS = re.compile(r"收入|营收|净利|毛利|利润|现金|订单|回款|库存|关税|运费|履约|业务|成本|客户|费用|结算|渠道")
 
 
 class TaskPublicationError(ValueError):
@@ -131,9 +129,7 @@ def verify_task_publication_scope(
             if len(set(names)) < 2:
                 continue
             if not any(
-                sum(name in passage for name in set(names)) >= 2
-                and _COMPARISON.search(passage)
-                and _ECONOMICS.search(passage)
+                paragraph_has_named_economic_comparison(passage, names)
                 for passage in passages
             ):
                 findings.append(
