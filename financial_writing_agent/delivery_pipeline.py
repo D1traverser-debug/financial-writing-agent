@@ -21,6 +21,7 @@ from .document import (
     build_interaction_pack_docx,
 )
 from .models import ArtifactKind
+from .path_identity import require_word_basename
 from .private_research import validate_private_research_brief
 from .resources import load_packaged_policy
 
@@ -40,6 +41,13 @@ class CanonicalDeliveryError(ValueError):
 def _require(condition: bool, message: str) -> None:
     if not condition:
         raise CanonicalDeliveryError(message)
+
+
+def _require_docx_output(output: str | Path) -> None:
+    try:
+        require_word_basename(Path(output).name)
+    except ValueError as exc:
+        raise CanonicalDeliveryError("Word output must be a canonical .docx file name") from exc
 
 
 def _canonical_json(value: Mapping[str, Any]) -> bytes:
@@ -183,6 +191,7 @@ def build_verified_article_docx(
     source_quality_evidence_sha256: str | None = None,
 ) -> dict[str, Any]:
     """Canonical owner-native path for a user-visible long-form/private Word build."""
+    _require_docx_output(output)
     active_policy = policy or load_packaged_policy()
     normalized = normalize_article_for_delivery(article, active_policy)
     anchor_errors = _semantic_anchor_errors(normalized, required_bold_anchors, active_policy, artifact_kind=artifact_kind)
@@ -252,6 +261,7 @@ def build_verified_audit_docx(
     summary_lines: list[str] | None = None,
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    _require_docx_output(output)
     active_policy = policy or load_packaged_policy()
     path = build_audit_docx(title, lines, artifacts, output, summary_lines=summary_lines)
     return _generic_build_receipt(path, artifact_kind=ArtifactKind.AUDIT_DOCX, policy=active_policy)
@@ -263,6 +273,7 @@ def build_verified_interaction_pack_docx(
     *,
     policy: dict[str, Any] | None = None,
 ) -> dict[str, Any]:
+    _require_docx_output(output)
     active_policy = policy or load_packaged_policy()
     path = build_interaction_pack_docx(pack, output, active_policy)
     return _generic_build_receipt(path, artifact_kind=ArtifactKind.PLATFORM_INTERACTION_PACK_DOCX, policy=active_policy)
