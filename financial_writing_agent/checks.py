@@ -142,6 +142,16 @@ def check_payload_navigation(payload: Any, *, deep: bool) -> list[str]:
     return errors
 
 
+def paragraph_has_named_economic_comparison(paragraph: str, company_names: Iterable[str]) -> bool:
+    """Shared minimal mechanical check, not proof that the claim is true."""
+    names = set(company_names)
+    return (
+        sum(name in paragraph for name in names) >= 2
+        and bool(_COMPARISON_SIGNAL.search(paragraph))
+        and bool(_ECONOMIC_MECHANISM_SIGNAL.search(paragraph))
+    )
+
+
 def check_company_decision_utility(payload: Any, research: Any) -> list[str]:
     """Require a named comparative verdict when at least two MATERIAL companies exist."""
     if payload is None or research is None:
@@ -162,9 +172,7 @@ def check_company_decision_utility(payload: Any, research: Any) -> list[str]:
     comparative = [
         paragraph
         for paragraph in paragraphs
-        if (sum(name in paragraph for name in material_names) >= 2
-            and _COMPARISON_SIGNAL.search(paragraph)
-            and _ECONOMIC_MECHANISM_SIGNAL.search(paragraph))
+        if paragraph_has_named_economic_comparison(paragraph, material_names)
     ]
     if not comparative:
         errors.append("multi-company article lacks a named evidence-bounded comparative verdict paragraph")

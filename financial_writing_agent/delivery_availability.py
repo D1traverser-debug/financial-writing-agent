@@ -9,6 +9,11 @@ from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidenc
 from .models import ArtifactKind
 from .path_identity import require_task_id, require_word_basename
 from .private_research import validate_private_research_brief
+from .task_requirements import (
+    REQUIREMENT_CONTRACT_VERSION, RequirementError,
+    active_requirements_for_scope, authority_digest, validate_requirement_authority,
+)
+from .task_publication import FULL_UNIVERSE_REQUIREMENT, SCOPE_ASSURANCE
 
 
 class DeliveryAvailabilityError(ValueError):
@@ -63,6 +68,24 @@ def _supplemental_outputs_for_state(state: Mapping[str, Any]) -> list[str]:
     return [kind.value for kind in REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS]
 
 
+def _current_deep_task_requirement_ids(state: Mapping[str, Any]) -> list[str]:
+    """The exact child-owned Deep obligations that the visible Word must have checked."""
+    if state.get("task_requirement_contract_version") != REQUIREMENT_CONTRACT_VERSION:
+        return []
+    try:
+        authority = validate_requirement_authority(state.get("task_requirement_authority"))
+        _require(
+            state.get("task_requirement_digest") == authority_digest(authority),
+            "current task requirement digest changed before visible delivery",
+        )
+        return sorted(
+            item["requirement_id"]
+            for item in active_requirements_for_scope(authority, "FINANCE_DEEP")
+        )
+    except RequirementError as exc:
+        raise DeliveryAvailabilityError(f"current task requirement authority invalid: {exc}") from exc
+
+
 def build_visible_delivery_receipt(
     state: Mapping[str, Any],
     *,
@@ -95,6 +118,7 @@ def build_visible_delivery_receipt(
     supplemental = _supplemental_outputs_for_state(state)
     presentation_required = [*owner_required, *[kind for kind in supplemental if kind not in owner_required]]
     private_digest = _private_research_digest(state)
+    current_deep_requirement_ids = _current_deep_task_requirement_ids(state)
 
     by_kind: dict[str, Mapping[str, Any]] = {}
     for resource in resources:
@@ -135,6 +159,20 @@ def build_visible_delivery_receipt(
         regenerated = resource.get("regenerated_from_durable_source") is True
         is_supplemental = kind in supplemental
         evidence = resource["delivery_evidence"]
+        if kind == ArtifactKind.FINANCE_DEEP_DOCX.value and current_deep_requirement_ids:
+            binding = evidence.get("task_scope_binding")
+            _require(isinstance(binding, Mapping), "FINANCE_DEEP current task requirements have no signed publication-scope evidence")
+            _require(binding.get("task_id") == task_id, "FINANCE_DEEP scope bound to another article")
+            _require(binding.get("requirement_digest") == state["task_requirement_digest"], "FINANCE_DEEP scope bound to stale task revision")
+            _require(binding.get("requirement_revision") == state["task_requirement_authority"]["revision"], "FINANCE_DEEP requirement revision mismatch")
+            _require(binding.get("mode") == "FINANCE_DEEP", "FINANCE_DEEP publication-scope mode mismatch")
+            _require(binding.get("validated_requirement_ids") == current_deep_requirement_ids, "FINANCE_DEEP did not check every active task requirement")
+            _require(binding.get("assurance") == SCOPE_ASSURANCE, "FINANCE_DEEP task-scope assurance is not the supported structural gate")
+            _require(
+                binding.get("strict_universe_visibility") is (FULL_UNIVERSE_REQUIREMENT in current_deep_requirement_ids),
+                "FINANCE_DEEP full-universe visibility requirement was not enforced",
+            )
+            _require(binding.get("observed_stage") in {"DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"}, "FINANCE_DEEP was built before editorial-admitted DELIVERY stage")
         if is_supplemental:
             _require(kind == ArtifactKind.PRIVATE_RESEARCH_DOCX.value, f"unsupported supplemental output: {kind}")
             _require(regenerated, f"supplemental {kind} must be rendered from durable owner evidence")
@@ -166,6 +204,7 @@ def build_visible_delivery_receipt(
             "source_ref": evidence.get("source_ref"),
             "source_identity": evidence.get("source_identity"),
             "source_quality_evidence_sha256": evidence.get("source_quality_evidence_sha256"),
+            "task_scope_binding": evidence.get("task_scope_binding"),
             "mechanical_qa": evidence.get("mechanical_qa"),
             "constraint_qa": evidence.get("constraint_qa"),
             "render_qa": evidence.get("render_qa"),
