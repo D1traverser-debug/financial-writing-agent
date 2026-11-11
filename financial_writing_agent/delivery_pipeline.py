@@ -5,8 +5,9 @@ import hmac
 import json
 import re
 import secrets
+import struct
 from pathlib import Path
-from typing import Any, Mapping
+from typing import Any, Callable, Mapping
 
 from docx import Document
 
@@ -28,6 +29,7 @@ from .resources import load_packaged_policy
 
 DELIVERY_EVIDENCE_SCHEMA_VERSION = "1.1"
 BUILDER_RECEIPT_VERSION = "1.0"
+RENDER_INSPECTION_RECEIPT_VERSION = "1.0"
 # Process-local issuer key: visible delivery is intentionally current-session only.
 # This is provenance/anti-bypass assurance, not a cryptographic trust boundary against
 # a malicious caller with arbitrary in-process Python introspection.
@@ -303,6 +305,102 @@ def build_verified_interaction_pack_docx(
     return _generic_build_receipt(path, artifact_kind=ArtifactKind.PLATFORM_INTERACTION_PACK_DOCX, policy=active_policy)
 
 
+def render_word_and_review_pages(
+    build_receipt: Mapping[str, Any],
+    *,
+    docx_path: str | Path,
+    render_dir: str | Path,
+    visual_reviewer: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None,
+) -> dict[str, Any]:
+    """Actually render the exact issued Word bytes and inspect each produced page.
+
+    The verifier is an externally supplied reviewer: this receipt proves a
+    reviewer callback saw exact page PNG bytes; it does NOT certify that the
+    reviewer is independent or that the report's editorial facts are correct.
+    If no reviewer is supplied, no current-task render/visual PASS is issued.
+    """
+    from .rendering import render_docx_pages
+
+    _verify_build_receipt(build_receipt)
+    _require(visual_reviewer is not None, "CURRENT_WORD_VISUAL_REVIEWER_REQUIRED")
+    path = Path(docx_path)
+    _require(path.is_file(), "CURRENT_WORD_BINARY_NOT_FOUND")
+    _require(path.name == build_receipt.get("file_name"), "CURRENT_WORD_FILE_NAME_MISMATCH")
+    binary = path.read_bytes()
+    actual_sha = hashlib.sha256(binary).hexdigest()
+    _require(actual_sha == build_receipt.get("sha256"), "CURRENT_WORD_BINARY_HASH_MISMATCH")
+    try:
+        pages = render_docx_pages(path, render_dir)
+    except Exception as exc:
+        raise CanonicalDeliveryError("CURRENT_WORD_RENDER_EXECUTION_FAILED") from exc
+    _require(isinstance(pages, list) and bool(pages), "CURRENT_WORD_RENDER_HAS_NO_PAGES")
+    pdf_path = Path(render_dir).resolve() / f"{path.stem}.pdf"
+    _require(pdf_path.is_file() and pdf_path.stat().st_size > 0, "CURRENT_WORD_RENDER_PDF_MISSING")
+    rendered: list[dict[str, Any]] = []
+    for index, page_path in enumerate(pages, start=1):
+        png = Path(page_path).read_bytes()
+        _require(
+            len(png) >= 24 and png[:8] == b"\\x89PNG\\r\\n\\x1a\\n" and png[12:16] == b"IHDR",
+            f"CURRENT_WORD_PAGE_{index}_NOT_PNG",
+        )
+        width, height = struct.unpack(">II", png[16:24])
+        _require(0 < width <= 30000 and 0 < height <= 30000, f"CURRENT_WORD_PAGE_{index}_INVALID_DIMENSIONS")
+        page_sha = hashlib.sha256(png).hexdigest()
+        try:
+            result = visual_reviewer({
+                "page_index": index, "page_count": len(pages),
+                "artifact_sha256": actual_sha, "page_png_bytes": png,
+                "page_sha256": page_sha, "width": width, "height": height,
+            })
+        except Exception as exc:
+            raise CanonicalDeliveryError(f"CURRENT_WORD_PAGE_{index}_VISUAL_REVIEW_FAILED") from exc
+        _require(
+            isinstance(result, Mapping) and result.get("status") == "PASS"
+            and isinstance(result.get("review_ref"), str) and bool(result["review_ref"].strip()),
+            f"CURRENT_WORD_PAGE_{index}_VISUAL_REVIEW_NOT_ACCEPTED",
+        )
+        rendered.append({
+            "page_index": index, "page_sha256": page_sha,
+            "pixel_width": width, "pixel_height": height,
+            "review_status": "PASS", "review_ref": result["review_ref"],
+        })
+    body = {
+        "render_receipt_version": RENDER_INSPECTION_RECEIPT_VERSION,
+        "artifact_sha256": actual_sha,
+        "rendered_pdf_sha256": hashlib.sha256(pdf_path.read_bytes()).hexdigest(),
+        "rendered_page_count": len(rendered),
+        "pages": rendered,
+        "review_assurance": "CALLER_SUPPLIED_REVIEW__INDEPENDENCE_NOT_ESTABLISHED",
+    }
+    return {**body, "session_attestation": _issuer_sign(body)}
+
+
+def _verify_render_inspection_receipt(raw: Any, expected_artifact_sha256: Any) -> dict[str, Any]:
+    _require(isinstance(raw, Mapping), "CURRENT_WORD_RENDER_RECEIPT_REQUIRED")
+    _require(raw.get("render_receipt_version") == RENDER_INSPECTION_RECEIPT_VERSION,
+             "CURRENT_WORD_RENDER_RECEIPT_VERSION_INVALID")
+    signature = raw.get("session_attestation")
+    _require(isinstance(signature, str) and len(signature) == 64,
+             "CURRENT_WORD_RENDER_RECEIPT_UNSIGNED")
+    body = {k: v for k, v in raw.items() if k != "session_attestation"}
+    _require(hmac.compare_digest(signature, _issuer_sign(body)),
+             "CURRENT_WORD_RENDER_RECEIPT_NOT_ISSUED_THIS_SESSION")
+    _require(raw.get("artifact_sha256") == expected_artifact_sha256,
+             "CURRENT_WORD_RENDER_ARTIFACT_HASH_MISMATCH")
+    count, pages = raw.get("rendered_page_count"), raw.get("pages")
+    _require(type(count) is int and count > 0 and isinstance(pages, list) and len(pages) == count,
+             "CURRENT_WORD_RENDER_PAGE_COUNT_INVALID")
+    _require([item.get("page_index") for item in pages if isinstance(item, Mapping)] == list(range(1, count + 1)),
+             "CURRENT_WORD_RENDER_PAGE_SEQUENCE_INVALID")
+    _require(all(
+        isinstance(item, Mapping) and item.get("review_status") == "PASS"
+        and isinstance(item.get("review_ref"), str) and bool(item["review_ref"].strip())
+        and isinstance(item.get("page_sha256"), str) and len(item["page_sha256"]) == 64
+        for item in pages
+    ), "CURRENT_WORD_RENDER_PAGE_INSPECTION_INVALID")
+    return dict(raw)
+
+
 def finalize_delivery_evidence(
     build_receipt: Mapping[str, Any],
     *,
@@ -310,6 +408,7 @@ def finalize_delivery_evidence(
     source_identity: str,
     render_qa: str,
     visual_qa: str,
+    render_inspection_receipt: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Bind an issuer-attested canonical build to current render/visual evidence."""
     unsigned_receipt = _verify_build_receipt(build_receipt)
@@ -321,6 +420,7 @@ def finalize_delivery_evidence(
     _require(bool(str(source_ref).strip()), "source_ref is required")
     _require(bool(str(source_identity).strip()), "source_identity is required")
     binding = build_receipt.get("task_scope_binding")
+    verified_render_inspection = None
     if binding is not None:
         _require(isinstance(binding, Mapping), "task scope binding must be structured")
         _require(
@@ -331,6 +431,9 @@ def finalize_delivery_evidence(
             require_article_path(source_ref, binding.get("task_id"))
         except ValueError as exc:
             raise CanonicalDeliveryError("task-bound source_ref escapes the current article workspace") from exc
+        verified_render_inspection = _verify_render_inspection_receipt(
+            render_inspection_receipt, build_receipt.get("sha256"),
+        )
 
     envelope: dict[str, Any] = {
         "schema_version": DELIVERY_EVIDENCE_SCHEMA_VERSION,
@@ -350,6 +453,7 @@ def finalize_delivery_evidence(
         envelope["source_quality_evidence_sha256"] = str(build_receipt["source_quality_evidence_sha256"])
     if binding is not None:
         envelope["task_scope_binding"] = dict(binding)
+        envelope["render_inspection_receipt"] = verified_render_inspection
     signed = {**envelope, "session_attestation": _issuer_sign(envelope)}
     return {"delivery_evidence": signed, "delivery_evidence_sha256": _canonical_digest(signed)}
 
@@ -367,6 +471,10 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
     _require(evidence.get("canonical_delivery_path") == CANONICAL_DELIVERY_PATH, "visible artifact bypassed canonical Delivery")
     _require(evidence.get("artifact_kind") == resource.get("kind"), "delivery evidence artifact kind mismatch")
     _require(str(evidence.get("artifact_sha256", "")).lower() == str(resource.get("sha256", "")).lower(), "delivery evidence artifact hash mismatch")
+    if evidence.get("task_scope_binding") is not None:
+        _verify_render_inspection_receipt(
+            evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
+        )
     for gate in ("mechanical_qa", "constraint_qa", "render_qa", "visual_qa"):
         _require(evidence.get(gate) == "PASS", f"delivery evidence requires {gate}=PASS")
     _require(bool(str(evidence.get("source_ref", "")).strip()), "delivery evidence source_ref is required")
