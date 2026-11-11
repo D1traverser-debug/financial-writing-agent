@@ -10,6 +10,7 @@
 - [docs/CAOS_CHILD_INTERFACE.md](docs/CAOS_CHILD_INTERFACE.md) — actual source-pinned parent boundary, supported bridge calls, grants, CAS/readback and limitations.
 - `.uaos/MANIFEST.json`, `.uaos/ADAPTER.json`, `.uaos/CAPABILITIES.json` — legacy **filenames only** retained because present CAOS `domain_contract.py` reads them; contents declare CAOS and one Financial business owner.
 - `financial_writing_agent/caos_bridge.py` — child-native guarded write/readback API, not a second task state machine or deployed CAOS Host.
+- `config/PERSISTENT_ASSET_PROFILE.json` — Financial-owned register of GitHub authority versus Notion/Drive/Library/Chat/Memory research/history/delivery surfaces; no old UAOS parent policy or second task controller.
 - `financial_writing_agent/current_admission.py` — **only** current-article mutation authority; one task per `workspaces/articles/{task_id}/STATE.json`. Current task requirements and evolution live in their existing canonical locations.
 
 ## Financial product
