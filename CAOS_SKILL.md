@@ -24,7 +24,7 @@ At each material choice, use the CAOS method: restore whole goal → retrieve pr
 Financial owns one ten-stage workflow:
 `INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT`.
 
-Use `financial_writing_agent.current_admission` for all current task creation, requirement changes and stage progress. `owner_guard` is historical/low-level, not a parallel current writer. For parent-originated writes use `caos_bridge.admit_parent_article_action` only through a trusted live `grant_verifier`, `state_reader` and provider CAS; passing goal_id as text is not permission. Every child step is still admitted against the exact prior Git blob and current requirement digest.
+Use `financial_writing_agent.current_admission` for all current task creation, requirement changes and stage progress; task-specific corrections enter `current_admission.apply_task_requirement_change` and never bypass the child owner. `owner_guard` is historical/low-level, not a parallel current writer. For parent-originated writes use `caos_bridge.admit_parent_article_action` only through a trusted live `grant_verifier`, `state_reader` and provider CAS; passing goal_id as text is not permission. Every child step is still admitted against the exact prior Git blob and current requirement digest.
 
 Task requirements: consult `current_admission.requirement_context_for_scope` for `RESEARCH`, `PRIVATE_RESEARCH`, `FINANCE_DEEP`, `FINANCE_BROAD`, `PLATFORM_INTERACTION`, `DELIVERY`. Late changes invalidate downstream evidence from their earliest affected stage. Do not silently overwrite the v3 cross-border `full_universe_research_pool` or `deep_complete_retained_universe` requirement with generic Deep selectivity.
 
