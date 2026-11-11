@@ -13,7 +13,7 @@ dependencies = [
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=8", "build>=1.2"]
+dev = ["pytest>=8", "build>=1.2", "coverage>=7.6"]
 
 # No production console/MCP entrypoint is exported. The supported hosted path is
 # a directly selected Financial work plane with UAOS-hosted common governance.
