@@ -1,8 +1,8 @@
 ---
-name: financial-writing-agent-legacy-pointer
-description: Historical pathname preserved for discoverability; not the controller.
+name: financial-writing-historical-uaos-pointer
+description: Retired historical entrypath, not executable authority.
 ---
 
 # Legacy entrypath (non-authoritative)
 
-The former UAOS parent is retired for current operations. The **only current entry** is [CAOS_SKILL.md](CAOS_SKILL.md), which binds cognition-agent-os as parent and retains one Financial business owner. This file carries no active governance rules, task authority, or fallback route.
+Only [skills/financial-writing-agent/SKILL.md](skills/financial-writing-agent/SKILL.md) is operational. No UAOS or CAOS parent controls Financial Writing.
