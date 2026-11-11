@@ -20,8 +20,8 @@ from .path_identity import require_task_id
 PARENT_REPOSITORY = "D1traverser-debug/cognition-agent-os"
 BRIDGE_SCHEMA_VERSION = "1.0"
 ARTICLE_STATE_ROOT = "workspaces/articles"
-_SHA = re.compile(r"[0-9a-f]{40}\\Z")
-_ACTION_ID = re.compile(r"[A-Za-z0-9_.:-]{1,180}\\Z")
+_SHA = re.compile(r"[0-9a-f]{40}\Z")
+_ACTION_ID = re.compile(r"[A-Za-z0-9_.:-]{1,180}\Z")
 OPERATIONS = frozenset({"CREATE_ARTICLE", "ADVANCE_STAGE", "CHANGE_REQUIREMENTS"})
 ADVANCE_PARAMETER_KEYS = frozenset({
     "artifact_key", "artifact_path", "artifact_blob_sha", "review_status",
@@ -82,7 +82,7 @@ def _canonical_payload(state: Mapping[str, Any]) -> str:
 
 def _blob_sha(payload: str) -> str:
     data = payload.encode("utf-8")
-    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\\x00" + data).hexdigest()
+    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\x00" + data).hexdigest()
 
 
 def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
@@ -172,6 +172,7 @@ def admit_parent_article_action(
     operation, params = req["operation"], deepcopy(dict(req["parameters"]))
     if operation == "CREATE_ARTICLE":
         _require(observed is None, "CHILD_ARTICLE_ALREADY_EXISTS")
+        params.setdefault("source_refs", [])
         _require(isinstance(params.get("prompt"), str) and bool(params["prompt"].strip()), "CHILD_PROMPT_REQUIRED")
         candidate = current_admission.build_initial_state(
             task_id=task_id,
