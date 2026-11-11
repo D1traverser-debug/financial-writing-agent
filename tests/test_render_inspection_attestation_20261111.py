@@ -182,3 +182,22 @@ def test_corrupt_page_magic_cannot_become_visual_pass(monkeypatch, tmp_path):
         render_word_and_review_pages(
             built, docx_path=path, render_dir=tmp_path / "render", visual_reviewer=_reviewer,
         )
+
+
+def test_current_word_with_real_render_but_no_source_snapshot_is_not_deliverable(monkeypatch, tmp_path):
+    _fake_renderer(monkeypatch, page_count=2)
+    path, built = _build(tmp_path)
+    bound = _task_bound_receipt(built)
+    unsigned = {k: v for k, v in bound.items() if k not in ("builder_attestation", "builder_receipt_version")}
+    unsigned.pop("claim_trace_binding")
+    no_source = _issue_build_receipt(unsigned)
+    proof = render_word_and_review_pages(
+        no_source, docx_path=path, render_dir=tmp_path / "render",
+        visual_reviewer=_reviewer,
+    )
+    with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_SOURCE_TRACE_REQUIRED"):
+        finalize_delivery_evidence(
+            no_source, source_ref="workspaces/articles/article-render-test/publication/DEEP.json",
+            source_identity="git-blob:synthetic", render_qa="PASS", visual_qa="PASS",
+            render_inspection_receipt=proof,
+        )
