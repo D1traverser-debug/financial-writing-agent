@@ -1,20 +1,26 @@
 # Financial Writing Agent — Architecture
 
-Version: `1.0.3-candidate`
-Date: `2026-10-16`
+Version: `1.0.3 / CAOS adapter candidate`
+Reviewed: `2026-11-11`
 Status: `DOMAIN_CANDIDATE`
 
 ## 1. Product boundary
 
-Financial Writing is one domain/business owner under UAOS. UAOS owns common governance, cross-domain authority, parent continuity and shared cognition/evolution methods. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is one business owner under the opt-in CAOS cognition parent. CAOS provides goal/decision methods and a currently read-only native domain-contract observer; no connected CAOS Host or universal write mediation is assumed. Financial alone owns business state, task requirements and result acceptance. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
 - no parent/child task-id equality requirement;
 - historical state/receipts and legacy product semantics remain immutable provenance;
 - historical provenance does not imply current-quality equivalence after a semantic-generation change;
-- no mandatory live UAOS business proxy for normal Financial work;
+- no mandatory live CAOS business proxy for normal Financial work;
 - compliance, evidence integrity and owner-controlled mutation remain fail-closed.
+
+## 1A. 2026-11-11 CAOS child integration boundary
+
+Current CAOS `src/cognition_agent_os/domain_contract.py` accepts three historical `.uaos` file paths for read-only discovery, but does not delegate an executable article task. Their contents now bind the actual CAOS parent and point to `CAOS_SKILL.md`. `financial_writing_agent/caos_bridge.py` is an optional guarded child adapter: it requires an externally validated parent-goal grant, the exact current child blob SHA, provider CAS and independent readback for each owner-native state mutation; it adds no controller or second business state. The old `UAOS_SKILL.md` is only a legacy pointer. A missing actual parent connection cannot be filled by a manifest assertion.
+
+Source-to-claim checks, actual semantic review and the Word/reader outcome remain separate, stronger proof obligations. Existing v3 research stage and historical article receipts are not rewritten by this migration. Full scope and evidence are tracked in `evals/EVOLUTION_INDEX.json#active_system_assessment` and `evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md`.
 
 ## 2. Why 1.0.3 changes the 1.0.2 architecture
 
@@ -27,7 +33,7 @@ A fresh current-kernel cross-border successor then exposed another control gap: 
 2. explicit Research Audit semantics for that brief;
 3. publication distillation that keeps the private analytical machinery upstream while allowing Deep/Broad to remain selective reader products.
 
-This is Financial-domain research architecture. It is not a UAOS common-rule promotion and does not retroactively rewrite historical/current pre-marker tasks.
+This is Financial-domain research architecture. It is not a CAOS common-rule promotion and does not retroactively rewrite historical/current pre-marker tasks.
 
 ## 3. Stable lifecycle and focused internal passes
 
@@ -43,7 +49,7 @@ These are focused passes, not independent controllers. Same-model passes are str
 
 ## 4. Hosted cognition architecture
 
-UAOS-hosted cognition supplies the problem-response method; Financial keeps business adjudication local.
+CAOS-hosted cognition supplies the problem-response method; Financial keeps business adjudication local.
 
 Material judgments use `DecisionEnvelope`: evidence beyond user assertion, challenged assumptions, credible alternatives, failure/fit/misfit conditions, counterexamples/rejected paths, selected rationale, search saturation, verification and remaining unknowns.
 
@@ -155,7 +161,7 @@ Historical state remains readable provenance. Before **materially** continuing a
 
 The private-research marker is intentionally separate from the writing-kernel marker so already-created 1.0/1.0.2 states are not silently invalidated by the 1.0.3 domain upgrade.
 
-This guard does not rewrite the old state and does not transfer ownership to UAOS. It separates continuity from assurance.
+This guard does not rewrite the old state and does not transfer ownership to CAOS. It separates continuity from assurance.
 
 ## 9. Knowledge architecture
 
@@ -169,9 +175,9 @@ Promotion flow: `evidence -> DecisionEnvelope/root scope -> candidate -> regress
 Financial-owned evolution follows:
 `problem/feedback -> causal diagnosis -> alternatives/counterexamples -> root-scope admission -> evolution disposition -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
 
-One article may create a domain candidate but cannot silently become universal truth. Financial-local business/writing rules remain Financial-owned. A credible common/cross-domain failure class is raised as a non-authoritative child upcall; UAOS decides whether a common outcome-level rule belongs in parent governance.
+One article may create a domain candidate but cannot silently become universal truth. Financial-local business/writing rules remain Financial-owned. A credible common/cross-domain failure class is raised as a non-authoritative child upcall; CAOS decides whether a common outcome-level rule belongs in parent governance.
 
-The 1.0.3 private-research admission is Financial-local: it governs how A-share financial writing research is represented before publication. It does not ask UAOS to copy the stock-market role vocabulary, company-market-cap requirements or private-research schema into other domains.
+The 1.0.3 private-research admission is Financial-local: it governs how A-share financial writing research is represented before publication. It does not ask CAOS to copy the stock-market role vocabulary, company-market-cap requirements or private-research schema into other domains.
 
 ## 11. Product architecture review
 

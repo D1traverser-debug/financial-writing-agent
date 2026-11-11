@@ -1,18 +1,24 @@
 {
-  "schema_version": "2.8",
+  "schema_version": "3.0",
   "agent_id": "financial_writing",
   "domain_id": "financial_writing",
-  "controller": "D1traverser-debug/universal-agent-os@main",
-  "status": "UAOS_CONTROL_PLANE_ACTIVE",
-  "skill": {"entrypoint": "UAOS_SKILL.md"},
+  "controller": "D1traverser-debug/cognition-agent-os@main",
+  "status": "CAOS_CHILD_CONTRACT_OBSERVABLE__BUSINESS_EXECUTION_OWNER_NATIVE",
+  "skill": {
+    "entrypoint": "CAOS_SKILL.md"
+  },
   "binding": {
-    "controller_ref": "D1traverser-debug/universal-agent-os@main:CURRENT_SYSTEM.json",
-    "common_capabilities_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_CAPABILITIES.json",
-    "common_behavior_assurance_ref": "D1traverser-debug/universal-agent-os@main:config/COMMON_BEHAVIOR_ASSURANCE.json",
-    "common_behavior_assurance_min": "1.3.0",
-    "deliberation_policy_ref": "D1traverser-debug/universal-agent-os@main:config/DELIBERATION_POLICY.json",
+    "controller_ref": "D1traverser-debug/cognition-agent-os@main:src/cognition_agent_os/domain_contract.py",
+    "common_capabilities_ref": "D1traverser-debug/cognition-agent-os@main:src/cognition_agent_os/capability_dispatch.py",
+    "common_behavior_assurance_ref": "D1traverser-debug/cognition-agent-os@main:docs/PRODUCT-READINESS-GATE.md",
+    "deliberation_policy_ref": "D1traverser-debug/cognition-agent-os@main:integrations/chatgpt/cognition-agent-os-chatgpt/skills/cognition-parent-chatgpt-intake/SKILL.md",
+    "parent_interface_ref": "D1traverser-debug/cognition-agent-os@main:docs/02-AUTHORITY-AND-INTERFACES.md",
     "adapter_ref": ".uaos/ADAPTER.json",
-    "capability_ref": ".uaos/CAPABILITIES.json"
+    "capability_ref": ".uaos/CAPABILITIES.json",
+    "protocol": "CHILD_CONTRACT_OBSERVATION_V1",
+    "client_mode": "OPT_IN_CHATGPT_OR_CREDENTIALLED_LOCAL_HOST_WHEN_ACTUALLY_CONNECTED",
+    "code_snapshot_observed": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
+    "policy": "NO_IMPLICIT_PARENT_GRANT__NO_PARENT_BUSINESS_STATE_MUTATION"
   },
   "domain_authority": {
     "product_requirements": "docs/product_requirements.md",
@@ -32,6 +38,9 @@
     "publication_quality_contract": "financial_writing_agent/story_quality.py:StoryBlueprint+ValueChainScopeDecision+CausalTransmission+PublicationFitness",
     "lifecycle_guard": "financial_writing_agent/owner_lifecycle.py",
     "proactive_resolution_guard": "financial_writing_agent/proactive_resolution.py",
-    "maintenance_method": "references/maintenance.md"
+    "maintenance_method": "references/maintenance.md",
+    "caos_child_adapter": "financial_writing_agent/caos_bridge.py",
+    "caos_business_observation": "financial_writing_agent/caos_bridge.py:observe_article",
+    "caos_task_admission": "financial_writing_agent/caos_bridge.py:admit_parent_article_action"
   }
 }

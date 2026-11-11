@@ -1,10 +1,10 @@
 # Financial Writing Agent — Product Requirements
 
-Status: `1.0.3_CANDIDATE`
+Status: `1.0.3_CAOS_CHILD_CANDIDATE__EDITORIAL_NOT_READY`
 Version: `1.0.3-candidate`
-Date: `2026-10-16`
+Review date: `2026-11-11`
 Owner: `DOMAIN:financial_writing`
-Parent governance: `D1traverser-debug/universal-agent-os@main`
+Parent governance: `D1traverser-debug/cognition-agent-os@main`
 
 ## 1. Product outcome
 
@@ -42,7 +42,7 @@ The governing outcome is not “satisfy the most rules”. It is **high-value, e
 
 ### PR-01 — Direct domain operation and ownership
 
-A fresh session can select Financial Writing directly. Financial creates and owns article identity/state. UAOS supplies hosted common governance but is not a mandatory business proxy.
+A fresh session can select Financial Writing directly. Financial creates and owns article identity/state. CAOS supplies hosted common governance but is not a mandatory business proxy.
 
 ### PR-02 — Feedback classification before evolution
 
@@ -166,7 +166,7 @@ Word outputs pass formatting, artifact, render and current-resource availability
 
 Financial-owned evolution follows:
 `problem/evidence -> cognition -> candidate alternatives -> DecisionEnvelope/root-scope admission -> evolution disposition -> regression/eval -> candidate branch/PR -> controlled promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
-One article may create a domain candidate, not universal truth. Common/cross-domain changes go to UAOS.
+One article may create a domain candidate, not universal truth. Common/cross-domain changes go to CAOS.
 
 ### PR-17 — Multi-agent is conditional, not default
 
@@ -228,11 +228,11 @@ This requirement preserves both continuity and provenance without silently equat
 
 ## 6. Cognition inheritance contract
 
-Financial inherits the UAOS problem-response floor and internal-orchestration method while keeping business decisions local. Every detected defect/unreliable outcome activates micro diagnosis, macro/topology alignment, governing-assumption challenge and external research. Material/systemic problems add competing hypotheses/counterexamples and verification proportional to risk. Declaring inheritance is not operational proof.
+Financial may use CAOS's opt-in cognition parent method while keeping business decisions local. CAOS's current native domain observer is read-only; actual Skill selection, grants and Host execution require separate runtime evidence. Every detected defect/unreliable outcome activates micro diagnosis, macro/topology alignment, governing-assumption challenge and external research. Material/systemic problems add competing hypotheses/counterexamples and verification proportional to risk. Declaring inheritance is not operational proof.
 
 ## 7. Evolution inheritance contract
 
-Financial owns Financial writing promotion; UAOS owns common/cross-domain promotion. Feedback first becomes evidence, then is classified and compared with alternative diagnoses/repairs. Permanent rule/architecture changes require reproducible evaluation, owner-scoped promotion and post-promotion observation.
+Financial owns Financial writing promotion; CAOS owns common/cross-domain promotion. Feedback first becomes evidence, then is classified and compared with alternative diagnoses/repairs. Permanent rule/architecture changes require reproducible evaluation, owner-scoped promotion and post-promotion observation.
 
 ## 8. Explicit non-goals
 
@@ -266,3 +266,9 @@ The 1.0.3 candidate is promotion-eligible only when:
 8. existing owner/routing/delivery/compliance and held-out tests remain green;
 9. production CI and contradiction scan pass;
 10. live Financial tasks observe whether the mandatory private layer improves company coverage, catalyst/market-role reasoning and article distillation without turning the public article into a research dump.
+
+## 10. CAOS interface and independent acceptance (2026-11-11)
+
+The former UAOS control plane is decommissioned as current parent authority. The three historical `.uaos` paths are read-only parent-discovery compatibility filenames, **not** a second parent or current UAOS grant. `CAOS_SKILL.md` is canonical, and `financial_writing_agent/caos_bridge.py` is the child-native guarded adapter for exact article identity, externally verified authorization, owner-only transitions, provider compare-and-swap and independent reread. Neither declaring a parent pointer nor a mocked bridge callback proves live ChatGPT-native CAOS invocation.
+
+Full product readiness requires actual source-to-claim and requirement-to-paragraph evidence, a complete current-kernel Deep/Broad/interaction/audit trajectory, real DOCX presence+render+link readback, diverse held-out comparison and reader/owner acceptance evidence. The recorded `GENERAL_EDITORIAL_QUALITY` and `PERSONALIZED_WRITING_DNA` remain NOT_READY until these facts are observed, independently of unit and CI success.

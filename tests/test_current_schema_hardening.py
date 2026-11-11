@@ -225,7 +225,11 @@ def test_universe_reconciliation_and_source_diversity_fail_closed():
 
 def test_deep_company_and_navigation_guards_reject_silent_omission():
     research = ResearchPackage(**_base_research_kwargs(names=["测试股份", "另一股份"]))
-    errors = check_deep_company_grounding(_deep_payload(include_second=False, monitoring_has_stock=False), research)
+    errors = check_deep_company_grounding(
+        _deep_payload(include_second=False, monitoring_has_stock=False),
+        research,
+        require_complete_material_universe=True,
+    )
     assert any("另一股份" in error for error in errors)
     assert check_payload_navigation(_deep_payload(numbered=False), deep=True)
 

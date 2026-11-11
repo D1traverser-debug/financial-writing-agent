@@ -28,7 +28,7 @@ def test_clustered_scaffolding_still_triggers_review():
 def test_policy_is_voice_first_not_anti_ai_generation_template():
     policy = _policy()
     style = policy["style"]
-    assert policy["contract_version"] == "0.9.1"
+    assert policy["contract_version"] == "0.9.2"
     assert style["voice_material_first_generation_required"] is True
     assert style["voice_evidence_priority"][0] == "USER_APPROVED_OR_EDITED_SAMPLES"
     assert style["template_cluster_signals_are_diagnostic_not_generation_mandates"] is True

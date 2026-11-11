@@ -21,7 +21,7 @@ def test_retired_controller_and_second_runtime_cannot_reenter_current_tree():
 def test_current_owner_components_exist():
     required = (
         ".uaos/MANIFEST.json", ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json",
-        "config/EXECUTION_CONTRACT.json", "UAOS_SKILL.md",
+        "config/EXECUTION_CONTRACT.json", "CAOS_SKILL.md", "UAOS_SKILL.md",
         "financial_writing_agent/owner_guard.py", "financial_writing_agent/owner_lifecycle.py",
         "financial_writing_agent/workflow_spec.py", "financial_writing_agent/models.py",
     )

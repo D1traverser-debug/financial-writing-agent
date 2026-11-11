@@ -1,5 +1,5 @@
 {
-  "contract_version": "0.9.1",
+  "contract_version": "0.9.2",
   "defaults": {
     "distribution_mode": "PORTFOLIO",
     "content_mode": "FORMAL_ARTICLE",
@@ -18,8 +18,25 @@
     "deterministic_source_leak_scan_required": true
   },
   "finance_compliance": {
-    "hard_fail_phrases": ["加仓", "减仓", "低吸", "追涨", "抄底", "止盈", "止损", "目标价", "仓位", "买卖点", "介入时点", "核心推荐", "最值得买"],
-    "semantic_review_terms": ["买入", "卖出"],
+    "hard_fail_phrases": [
+      "加仓",
+      "减仓",
+      "低吸",
+      "追涨",
+      "抄底",
+      "止盈",
+      "止损",
+      "目标价",
+      "仓位",
+      "买卖点",
+      "介入时点",
+      "核心推荐",
+      "最值得买"
+    ],
+    "semantic_review_terms": [
+      "买入",
+      "卖出"
+    ],
     "no_covert_recommendation_evasion": true,
     "company_comparison_must_remain_non_actionable": true,
     "company_comparison_may_be_primary_analytical_focus": true,
@@ -42,18 +59,31 @@
     "conclusion_first_preferred": false,
     "authorial_prose_semantic_audit": true,
     "voice_material_first_generation_required": true,
-    "voice_evidence_priority": ["USER_APPROVED_OR_EDITED_SAMPLES", "EXPLICIT_USER_STYLE_CONSTRAINTS_AND_DURABLE_CORRECTIONS", "CURRENT_USER_PROSE_SIGNALS_WHEN_MATERIAL", "TARGET_PLATFORM_AND_FINANCE_GENRE", "GENERIC_DEFAULTS"],
+    "voice_evidence_priority": [
+      "USER_APPROVED_OR_EDITED_SAMPLES",
+      "EXPLICIT_USER_STYLE_CONSTRAINTS_AND_DURABLE_CORRECTIONS",
+      "CURRENT_USER_PROSE_SIGNALS_WHEN_MATERIAL",
+      "TARGET_PLATFORM_AND_FINANCE_GENRE",
+      "GENERIC_DEFAULTS"
+    ],
     "fabricated_human_detail_forbidden": true,
     "material_threshold_before_longform_expansion_required": true,
     "substantive_longform_strategy_candidates_min": 2,
     "strategy_candidates_must_be_structurally_distinct_when_multiple_routes_exist": true,
-    "heading_hierarchy": ["一、", "（1）", "①"],
+    "heading_hierarchy": [
+      "一、",
+      "（1）",
+      "①"
+    ],
     "numbering_encouraged": true,
     "deep_numbered_navigation_required_when_branching": true,
     "deep_numbered_navigation_preference": "USE_GENEROUSLY_WHEN_REAL_LAYERS_OR_PARALLEL_BRANCHES_EXIST",
     "major_section_bridge_required": true,
     "image_safe_h1_lead_required_when_lower_headings_follow": true,
-    "forbidden_heading_prefixes": ["·", "•"],
+    "forbidden_heading_prefixes": [
+      "·",
+      "•"
+    ],
     "bold_skim_path_required": true,
     "fidelity_and_responsibility_required": true,
     "semantic_contribution_required": true,
@@ -88,23 +118,49 @@
       "material_negative_feedback_requires_system_impact_signal": true,
       "system_impact_review_required_before_completion": true,
       "system_impact_review_requires_alternative_comparison": true,
-      "distill_dimensions": ["language", "structure", "topic_framing", "evidence_strategy", "cognitive_moves", "reader_relationship", "anti_patterns"]
+      "distill_dimensions": [
+        "language",
+        "structure",
+        "topic_framing",
+        "evidence_strategy",
+        "cognitive_moves",
+        "reader_relationship",
+        "anti_patterns"
+      ]
     },
-    "hard_fail_extreme_phrases": ["注定暴涨", "必然上涨", "唯一机会"],
-    "semantic_review_extreme_terms": ["最强", "最牛", "最值得", "顶级", "史诗级", "彻底颠覆"],
+    "hard_fail_extreme_phrases": [
+      "注定暴涨",
+      "必然上涨",
+      "唯一机会"
+    ],
+    "semantic_review_extreme_terms": [
+      "最强",
+      "最牛",
+      "最值得",
+      "顶级",
+      "史诗级",
+      "彻底颠覆"
+    ],
     "review_generic_superlatives_semantically": true
   },
   "editorial": {
-    "finance_deep_material_complete": true,
-    "finance_deep_material_company_mentions_required": true,
-    "finance_deep_representative_stock_shortcut_forbidden": true,
+    "finance_deep_material_complete": false,
+    "finance_deep_material_company_mentions_required": false,
+    "finance_deep_representative_stock_shortcut_forbidden": false,
     "stock_grounded_validation_sections_required": true,
     "company_comparison_decision_map_required": true,
     "named_company_comparative_verdict_required_when_multiple_material_companies": true,
     "company_comparison_may_be_primary_focus": true,
     "company_comparison_dimensions_policy": "TOPIC_SPECIFIC_FROM_CURRENT_AUDITED_EVIDENCE",
     "fixed_cross_topic_comparison_dimension_list_forbidden": true,
-    "company_comparison_dimension_examples": ["business_or_concept_purity", "demand_to_revenue_distance", "realization_speed", "earnings_sensitivity", "certainty_or_evidence_strength", "adverse_variable"],
+    "company_comparison_dimension_examples": [
+      "business_or_concept_purity",
+      "demand_to_revenue_distance",
+      "realization_speed",
+      "earnings_sensitivity",
+      "certainty_or_evidence_strength",
+      "adverse_variable"
+    ],
     "relative_judgment_may_state_stronger_weaker_faster_slower_more_direct_more_certain": true,
     "relative_judgment_requires_evidence_and_change_conditions": true,
     "relative_judgment_sentence_formula_forbidden": true,
@@ -112,7 +168,12 @@
     "finance_broad_is_acquisition_product_not_merely_shortened_deep": true,
     "finance_broad_core_contradictions_max": 3,
     "macro_structural_coherence_required": true,
-    "information_density_required": true
+    "information_density_required": true,
+    "finance_deep_material_research_complete_required": true,
+    "finance_deep_publication_scope_decisions_required_for_omitted_material_classes": true,
+    "finance_deep_selected_company_economic_comparison_required": true,
+    "finance_deep_complete_company_visibility_only_for_admitted_task_requirement": true,
+    "finance_deep_default_mode": "RESEARCH_COMPLETE__PUBLICATION_SELECTIVE__SOURCE_BOUND"
   },
   "market_explanation": {
     "activation_policy": "EXPLICIT_SCOPE",
@@ -122,7 +183,12 @@
     "separate_economic_benefit_from_market_selection": true,
     "why_this_why_not_required": true,
     "continuation_and_reversal_conditions_required": true,
-    "causal_confidence_ladder": ["VERIFIED_FACT", "SUPPORTED_MECHANISM", "PLAUSIBLE_INTERPRETATION", "UNRESOLVED"]
+    "causal_confidence_ladder": [
+      "VERIFIED_FACT",
+      "SUPPORTED_MECHANISM",
+      "PLAUSIBLE_INTERPRETATION",
+      "UNRESOLVED"
+    ]
   },
   "hooks": {
     "formal_headline_candidates_min": 8,
@@ -134,7 +200,15 @@
     "finance_broad_must_interest_cold_finance_reader": true,
     "cross_finance_clickability_required": true,
     "finance_broad_non_niche_stake_required": true,
-    "finance_broad_stake_dimensions": ["profit", "orders", "cash_flow", "capital_expenditure", "asset_differentiation", "policy_transmission", "company_divergence"],
+    "finance_broad_stake_dimensions": [
+      "profit",
+      "orders",
+      "cash_flow",
+      "capital_expenditure",
+      "asset_differentiation",
+      "policy_transmission",
+      "company_divergence"
+    ],
     "headline_information_value_required": true,
     "headline_curiosity_balance_required": true,
     "headline_target": "CONCRETE_HARD_INFORMATION_PLUS_FINANCIAL_STAKE_PLUS_ONE_REAL_UNRESOLVED_PAYOFF",
@@ -142,13 +216,23 @@
     "question_title_default": "avoid_unless_information_bearing",
     "wechat_search_intent_required": true,
     "first_three_sentences_required": true,
-    "first_three_sentence_jobs": ["hard_fact_or_anomaly", "finance_wide_consequence", "material_unresolved_payoff"],
+    "first_three_sentence_jobs": [
+      "hard_fact_or_anomaly",
+      "finance_wide_consequence",
+      "material_unresolved_payoff"
+    ],
     "first_three_sentence_jobs_are_collective_outcomes_not_one_to_one_slots": true,
     "first_three_sentence_order_and_syntax_flexible": true,
     "first_three_sentences_need_not_exhaust_full_title_answer": true,
     "early_reader_orientation_required": true,
     "opening_strategy_flexible": true,
-    "opening_strategy_examples": ["direct_fact", "contradiction", "delayed_nut_graf", "question", "scene_or_example"],
+    "opening_strategy_examples": [
+      "direct_fact",
+      "contradiction",
+      "delayed_nut_graf",
+      "question",
+      "scene_or_example"
+    ],
     "h1_information_value_required": true,
     "h1_must_create_reason_to_enter_section": true,
     "title_h1_rhetorical_mold_repetition_is_fail_when_clustered": true,
@@ -161,9 +245,44 @@
   },
   "platform_products": {
     "shared_audited_evidence_base_required": true,
-    "deep_review_long_form": {"platforms": ["韭研公社", "东方财富", "微信公众号"], "product": "FINANCE_DEEP_DOCX", "reader_job": "complete finance review and evidence-bounded company differentiation"},
-    "acquisition_long_form": {"platforms": ["微信公众号", "头条号", "百家号", "网易号", "企鹅号"], "product": "FINANCE_BROAD_DOCX", "reader_job": "qualified finance-domain click, continuation, completion and follower acquisition"},
-    "interaction_short_form": {"platforms": ["微信公众号", "头条号", "百家号", "网易号"], "product": "PLATFORM_INTERACTION_PACK_DOCX", "formats": ["贴图文字", "微头条", "动态"], "reader_job": "standalone interaction and follower acquisition", "independent_rewrite_from_audited_evidence_required": true, "truncated_long_form_copy_is_forbidden": true, "canned_interaction_prompt_is_forbidden": true},
+    "deep_review_long_form": {
+      "platforms": [
+        "韭研公社",
+        "东方财富",
+        "微信公众号"
+      ],
+      "product": "FINANCE_DEEP_DOCX",
+      "reader_job": "complete finance review and evidence-bounded company differentiation"
+    },
+    "acquisition_long_form": {
+      "platforms": [
+        "微信公众号",
+        "头条号",
+        "百家号",
+        "网易号",
+        "企鹅号"
+      ],
+      "product": "FINANCE_BROAD_DOCX",
+      "reader_job": "qualified finance-domain click, continuation, completion and follower acquisition"
+    },
+    "interaction_short_form": {
+      "platforms": [
+        "微信公众号",
+        "头条号",
+        "百家号",
+        "网易号"
+      ],
+      "product": "PLATFORM_INTERACTION_PACK_DOCX",
+      "formats": [
+        "贴图文字",
+        "微头条",
+        "动态"
+      ],
+      "reader_job": "standalone interaction and follower acquisition",
+      "independent_rewrite_from_audited_evidence_required": true,
+      "truncated_long_form_copy_is_forbidden": true,
+      "canned_interaction_prompt_is_forbidden": true
+    },
     "wechat_is_dual_role_long_form_surface": true
   },
   "audit": {
@@ -185,7 +304,42 @@
     "all_applicable_writing_requirements_default_coverage": true,
     "special_surface_or_mode_na_must_be_explicit": true
   },
-  "risk_disclaimer": {"required": true, "min_body_chars": 0, "recommended_max_chars": 220, "topic_specific_required": true, "concise_complete_preferred": true, "semantic_completeness_required": true, "italic": true, "inline_paragraph": true, "visible_heading": false},
-  "word": {"title_pt": 20, "h1_px": 24, "h1_pt": 18, "h2_px": 20, "h2_pt": 15, "h3_pt": 12, "body_px": 18, "body_pt": 13.5, "h1_rgb": "FF0000", "allow_tables": false, "tables_are_hard_fail": true, "auto_bold_company_names": true, "auto_bold_scope": "A_SHARE_NAMES_SUPPLIED_BY_ARTICLE_DOCUMENT", "allow_underline": false, "end_source_section_allowed": false},
-  "visible_delivery": {"fresh_current_session_resource_required": true, "filename_and_hash_alone_are_availability_proof": false, "prior_session_local_path_is_durable_resource_ref": false, "regeneration_from_durable_source_allowed": true, "regenerated_binary_is_new_instance": true, "regenerated_binary_requires_fresh_mechanical_qa": true, "regenerated_binary_requires_fresh_render_qa": true, "presentation_gate": "financial_writing_agent.delivery_availability.build_visible_delivery_receipt"}
+  "risk_disclaimer": {
+    "required": true,
+    "min_body_chars": 0,
+    "recommended_max_chars": 220,
+    "topic_specific_required": true,
+    "concise_complete_preferred": true,
+    "semantic_completeness_required": true,
+    "italic": true,
+    "inline_paragraph": true,
+    "visible_heading": false
+  },
+  "word": {
+    "title_pt": 20,
+    "h1_px": 24,
+    "h1_pt": 18,
+    "h2_px": 20,
+    "h2_pt": 15,
+    "h3_pt": 12,
+    "body_px": 18,
+    "body_pt": 13.5,
+    "h1_rgb": "FF0000",
+    "allow_tables": false,
+    "tables_are_hard_fail": true,
+    "auto_bold_company_names": true,
+    "auto_bold_scope": "A_SHARE_NAMES_SUPPLIED_BY_ARTICLE_DOCUMENT",
+    "allow_underline": false,
+    "end_source_section_allowed": false
+  },
+  "visible_delivery": {
+    "fresh_current_session_resource_required": true,
+    "filename_and_hash_alone_are_availability_proof": false,
+    "prior_session_local_path_is_durable_resource_ref": false,
+    "regeneration_from_durable_source_allowed": true,
+    "regenerated_binary_is_new_instance": true,
+    "regenerated_binary_requires_fresh_mechanical_qa": true,
+    "regenerated_binary_requires_fresh_render_qa": true,
+    "presentation_gate": "financial_writing_agent.delivery_availability.build_visible_delivery_receipt"
+  }
 }

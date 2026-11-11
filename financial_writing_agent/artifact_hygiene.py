@@ -3,6 +3,8 @@ from __future__ import annotations
 from copy import deepcopy
 from typing import Any, Mapping
 
+from .path_identity import require_relative_path, require_task_id
+
 
 ARTIFACT_STATUS_CONTRACT_VERSION = "1.0"
 ALLOWED_WORKSPACE_LIFECYCLES = {"CURRENT", "MIGRATED_HISTORY", "ARCHIVE"}
@@ -42,12 +44,20 @@ def validate_artifact_status_manifest(raw: Mapping[str, Any]) -> dict[str, Any]:
     _require(lifecycle in ALLOWED_WORKSPACE_LIFECYCLES, f"unsupported workspace_lifecycle: {lifecycle}")
     task_id = manifest.get("task_id")
     _require(isinstance(task_id, str) and bool(task_id.strip()), "artifact status manifest requires task_id")
+    try:
+        require_task_id(task_id)
+    except ValueError as exc:
+        raise ArtifactHygieneError("artifact status task_id is not canonical") from exc
     statuses = manifest.get("statuses")
     _require(isinstance(statuses, Mapping) and bool(statuses), "artifact status manifest requires statuses")
 
     normalized_statuses: dict[str, str] = {}
     for path, status in statuses.items():
         _require(isinstance(path, str) and bool(path.strip()), "artifact status path must be non-empty")
+        try:
+            require_relative_path(path)
+        except ValueError as exc:
+            raise ArtifactHygieneError(f"artifact status path is not canonical: {path!r}") from exc
         _require(status in ALLOWED_ARTIFACT_STATUSES, f"unsupported artifact status for {path}: {status}")
         normalized_statuses[path] = str(status)
     manifest["statuses"] = normalized_statuses
@@ -60,6 +70,11 @@ def validate_artifact_status_manifest(raw: Mapping[str, Any]) -> dict[str, Any]:
         prefix = f"workspaces/articles/{task_id}/"
         if relative_authority.startswith(prefix):
             relative_authority = relative_authority[len(prefix):]
+        try:
+            require_relative_path(relative_authority)
+        except ValueError as exc:
+            raise ArtifactHygieneError("CURRENT authority path is not canonical") from exc
+        _require(relative_authority == "STATE.json", "CURRENT authority must be the unique article STATE.json")
         _require(current_paths == [relative_authority], "CURRENT workspace must have exactly one KEEP_CURRENT artifact matching current_authority")
     elif lifecycle == "MIGRATED_HISTORY":
         _require(not current_paths, "MIGRATED_HISTORY workspace cannot contain KEEP_CURRENT artifacts")
@@ -68,6 +83,14 @@ def validate_artifact_status_manifest(raw: Mapping[str, Any]) -> dict[str, Any]:
         _require(isinstance(successor_task_id, str) and bool(successor_task_id.strip()), "MIGRATED_HISTORY workspace requires successor_task_id")
         _require(isinstance(current_authority, str) and bool(current_authority.strip()), "MIGRATED_HISTORY workspace requires successor current_authority")
         _require(successor_task_id != task_id, "successor_task_id must differ from migrated task_id")
+        try:
+            require_task_id(successor_task_id)
+        except ValueError as exc:
+            raise ArtifactHygieneError("successor_task_id is not canonical") from exc
+        _require(
+            current_authority == f"workspaces/articles/{successor_task_id}/STATE.json",
+            "MIGRATED_HISTORY authority must point to the declared successor STATE.json",
+        )
     else:
         _require(not current_paths, "ARCHIVE workspace cannot contain KEEP_CURRENT artifacts")
 

@@ -4,15 +4,15 @@ Status: `CURRENT_DOMAIN_MAINTENANCE_RULE`
 Revision: `1.1`
 Effective: `2026-10-15`
 Owner: `DOMAIN:financial_writing`
-Parent-review status: `UAOS_COMMON_BEHAVIOR_1_2_PRODUCTION_ADJUDICATED__DOMAIN_EXECUTABLE_ADOPTION_PENDING_PROMOTION`
+Historical parent-review status (pre-CAOS): `UAOS_COMMON_BEHAVIOR_1_2_PRODUCTION_ADJUDICATED__DOMAIN_EXECUTABLE_ADOPTION_PENDING_PROMOTION`; **not current parent authority**.
 
 ## Purpose
 
-Financial Writing already inherits the UAOS problem-response floor: detected problem -> micro diagnosis -> macro alignment -> governing-assumption challenge -> external research. This rule closes a separate execution gap discovered on 2026-10-15: a session may correctly notice missing evidence, preference or voice information yet still behave passively by treating the missing item as a future user dependency.
+Financial Writing already uses the current CAOS evidence-first opt-in problem method: detected problem -> micro diagnosis -> macro alignment -> governing-assumption challenge -> external research. This rule closes a separate execution gap discovered on 2026-10-15: a session may correctly notice missing evidence, preference or voice information yet still behave passively by treating the missing item as a future user dependency.
 
 The default behavior is **recover, infer provisionally, test, and only then escalate**. Missing highest-tier evidence is not automatically a blocker.
 
-UAOS Common Behavior Assurance 1.2 now also requires problem-to-action closure: a confirmed repairable problem may not end as recommendation-only when a lawful authorized repair is available without a required user fact/approval/authorization/safety-sensitive choice.
+Financial's retained native contract already requires problem-to-action closure: a confirmed repairable problem may not end as recommendation-only when a lawful authorized repair is available without a required user fact/approval/authorization/safety-sensitive choice.
 
 ## Trigger
 
@@ -83,7 +83,7 @@ Do not ask merely because the best evidence is imperfect.
 
 ## Problem-response integration
 
-A recovered candidate does not bypass the existing UAOS cognition floor. When the underlying gap is itself a defect or repeated failure, continue through:
+A recovered candidate does not bypass the current CAOS decision and independent-effect checks. When the underlying gap is itself a defect or repeated failure, continue through:
 `recover evidence -> micro diagnosis -> macro alignment -> challenge assumption -> external research -> alternatives -> repair -> verify -> observe`.
 
 The important change is that evidence recovery is an **active step**, not a future-user placeholder, and a repairable defect is not allowed to terminate at recommendation-only.
@@ -100,8 +100,8 @@ The journal is an evidence index, not a replacement for detailed incident/eval f
 
 Rule text alone is `DECLARED`. The executable owner-native gate plus passing behavior/trajectory regression may be reported as `EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED`. Do not claim `LIVE_OUTCOME_VERIFIED` until real Financial article use confirms the behavior.
 
-This mechanism also does not claim host-level physical interception of every possible natural-language response; UAOS baseline explicitly does not claim physical complete mediation.
+This mechanism also does not claim host-level physical interception of every possible natural-language response; the CAOS parent likewise does not claim physical complete mediation.
 
 ## Parent/common-capability status
 
-The original cross-domain upcall has been adjudicated by UAOS Common Behavior Assurance 1.2. Parent common semantics now include recover-before-user-escalation, declaration-not-operational-proof and problem-to-action closure. Financial owns only its domain realization: action receipt, escalation admission and trajectory/live evidence.
+The pre-CAOS cross-domain upcall was historically adjudicated by UAOS. The current CAOS method separately requires independently verified outcomes, not inherited historical credentials; the Financial native domain contract retains recover-before-user-escalation and problem-to-action closure. Financial owns only its domain realization: action receipt, escalation admission and trajectory/live evidence.
