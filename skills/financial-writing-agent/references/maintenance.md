@@ -1,38 +1,42 @@
-# Financial domain maintenance — CAOS-owned cognition, child-owned evolution
+# Financial Writing — standalone method evolution and operating maintenance
 
-Revision: `2.0-CAOS` · 2026-11-11
+Revision: 3.0-STANDALONE · 2026-11-11
 
-**Single owner boundary:** `D1traverser-debug/cognition-agent-os@main` supplies opt-in goal/decision/recovery method; Financial Writing alone owns domain requirements, article state, business methods, tests, publication quality, evidence and scoped promotion. The parent `domain_contract.py` is **read-only**. Do not pretend `CAOS_SKILL.md` or a passed mock test is native Host execution.
+**One Financial owner, no parent runtime.** This repository's Financial Writing system owns complete goal recovery, decision and execution loops, source/business research, writing, user requirements, issue analysis, authorization boundaries, maintenance and independent acceptance. Historical CAOS/UAOS trials are useful method provenance but have no live authority, upcall requirement, code dependency or deployment prerequisite.
 
-## Actual entry and reference authority
+## Canonical entries
 
-- Parent method: `cognition-agent-os/AGENTS.md`, `docs/PRODUCT-READINESS-GATE.md`, `integrations/chatgpt/cognition-agent-os-chatgpt/skills/cognition-parent-chatgpt-intake/SKILL.md`.
-- Child route: `CAOS_SKILL.md`, `.uaos/{MANIFEST,ADAPTER,CAPABILITIES}.json` (compatibility filenames with **CAOS content**), `config/EXECUTION_CONTRACT.json`.
-- Child business/code: `docs/product_requirements.md`, `financial_writing_agent/current_admission.py`, `writing_kernel.py`, `story_quality.py`, `quality_regression.py`.
-- Durable **existing** Financial evolution owner: `evals/EVOLUTION_INDEX.json`; original feedback/artifact bytes remain immutable historical evidence. Do not create a second domain task or controller.
+Current operating Skill: skills/financial-writing-agent/SKILL.md.
+Current manifests: config/FINANCIAL_MANIFEST.json and config/FINANCIAL_CAPABILITIES.json.
+Current business state: workspaces/articles/<task_id>/STATE.json, changed only through financial_writing_agent/current_admission.py.
+Authorized provider action transport: financial_writing_agent/standalone_runtime.py, only with a genuinely authenticated user grant, exact Git content/SHA, conditional commit and independent readback.
+Current Financial system evolution authority: evals/EVOLUTION_INDEX.json; do not create a second task index or policy owner.
+Current business references: product_requirements, research, private_research, market_explanation, editorial, style, audit, delivery, reader_value and proactive_resolution.
 
-## Problem-to-action loop
+## Complete owner-goal restoration
 
-A change request, repeated bad draft, user rejection, missing evidence, uncertainty or system audit begins with the **complete owner goal and latest authentic corrections**. Classify failure/symptom separately from a suggested implementation. Inspect current provider source/actual article state and the relevant negative example. Compare plausible roots at least among entry/routing, requirements, source freshness, cognition/selection, workflow state, writing, review, delivery, external tool/grants and false success attribution as dictated by evidence. Supply a separating counterexample; pursue the hypothesis if an important discriminator remains unresolved.
+Before an article continuation or systemic change, recover authentic original user instructions and latest corrections from actually accessible chat/source references, then compare with the current per-task requirement authority, stage and receipts. Classify an observation as requirement, user preference, corrected fact, proposed mechanism, system fault, uncertain hypothesis or historical/obsolete note. Do not replace an earlier hard requirement because later wording is vague. Where ambiguity is consequential, infer from available evidence and record uncertainty; ask the user only for irreplaceable permissions/input.
 
-Compare reuse, adapt, replace, remove and build when each is genuinely applicable, considering real reader/owner outcome, compatibility, verification, cost, time, irreversibility and permission. Challenge the preferred method and test it on both negative and legitimate neighbor cases before mutation. The model must not declare a synthetic `PASS`/confidence claim as independent verification.
+## Decision loop: why and what
 
-For Financial local improvements: `signal → evidence/ref → competing cause → DecisionEnvelope / admitted root scope → bounded candidate + falsifier → tests and real article comparisons → reviewed PR → exact-head CI → authorized production readback → measured user/reader outcome → KEEP/REPAIR/ROLLBACK/RETIRE`.
+Start from the **specific user/reader/business outcome**, not a preconceived tool or extra architecture. Inspect actual failure, negative example, current code and live source dates; propose root causes at relevant levels (goal/requirements, source, Financial research, writing/story, state graph, permission/tool, output/render, independent outcome). Challenge the favored cause with at least one separating counterexample; compare reuse, adapt, remove, replace and novel build by quality, risk, cost, reversibility, user burden and historical migration. For consequential research/system judgments use the existing DecisionEnvelope, grounded evidence, alternatives, fit/misfit, rejected paths and falsification. Two stable search sweeps establish only bounded decision stability, not proof that every source worldwide was read.
 
-Material requirement corrections enter **`current_admission.apply_task_requirement_change`**, not a side-file or method-catalog overwrite. Earlier stage and dependent quality evidence must invalidate. One-off user rejection is high-weight evidence, not a universal rule. The old rejected Word package cannot validate a newer writing-kernel version by retroactive relabeling.
+## Execution loop: do, check, repair
 
-## Native recovery and legacy problem-history preservation
+Use the existing Financial 10-stage Article Graph. Perform actual source retrieval, company comparison, evidence audit, separate Deep/Broad story design, original prose, fact/originality/reader review and verified Word. Every owner-state write must bind the current requirement digest and previous Git blob SHA. If a stage artifact is referenced, verify real bytes and Git Blob identity. When a result misses a hard gate, invalidate downstream work and repair at the earliest relevant stage. User-authorized executable repairs cannot stop at a recommendation-only conclusion; use proactive_resolution.record_proactive_resolution_state and require_user_escalation_admission when a real missing permission/data blocks a step.
 
-The `references/proactive_resolution.md` procedure and `financial_writing_agent/proactive_resolution.py` remain Financial-owned. **A missing ideal input is not automatically a user blocker**: recover, infer provisionally and validate before escalating. **Problem-to-action closure** means a repairable authorized defect may not terminate as a recommendation.
+## Financial-specific non-negotiables
 
-The existing `evals/PROBLEM_EVOLUTION_JOURNAL.md` remains immutable chronology rather than a fresh CAOS task index. **Every encountered problem must appear** there when consequential to system behavior; keep rejected causes, original negative outcome, method applicability, verification and unknowns. **Do not rewrite the journal into a success-only narrative**. Historical UAOS labels are evidence of prior decisions, never present CAOS authority.
+PrivateResearchBrief 1.1 with 15 modules is research evidence, not a publishable word dump. All source figures and material economic/causal claims require correct period, exact source and contradiction review. Company concept tags do not establish profit exposure. A task-level full-universe requirement (notably cross-border v3) overrides generic Deep selectivity; require complete retained list, segment comparisons and explicit weak-candidate reasoning. Broad is an independent acquisition story, interaction copy another independent product. Reader attention, authorial prose, original phrasing and source-traceable numerical facts must be independently evaluated, not self-awarded via a checkbox.
 
-## Domain action, learning, recovery
+The separate Word builder, source readback, actual LibreOffice PDF/PNG rendering, page review receipt and user-visible file accessibility are mandatory when that deliverable is requested. A typed PASS field alone proves none of those steps.
 
-An owner-authorized repair that can be performed now cannot stop at a recommendation without an actual bounded attempt. For unavailable data, use `proactive_resolution.record_proactive_resolution_state` and `require_user_escalation_admission`; do not solicit a source the environment can lawfully recover. A provisional conclusion must retain its validation plan, date and uncertainty.
+## Domain product evolution
 
-Method knowledge needs original source/hash/version, scope, positive and negative cases, selection condition, failure mode, supersession and a next-task verification. It is NOT a new instruction unless approved by domain promotion. Financial research facts must be refreshed for every consequential new article. Common/cross-domain discoveries are **CAOS upcalls only**, not child-originated writes to the parent repo.
+Signal → original user/source evidence → competing root/falsifier → bounded Financial-only candidate branch → negative+legitimate-neighbor tests → exact-head CI and controlled merge → production-state reread → actual article/user outcome → KEEP / REPAIR / ROLLBACK / RETIRE.
 
-## Independent acceptance and stop
+Consolidate repeated rules and avoid permanent prohibitions based on one case. Use knowledge/METHOD_KNOWLEDGE_CATALOG.json for scope/fit/misfit and revalidation triggers. Original rejected or historical artifacts stay as provenance; do not rewrite them into accepted examples. Common/cross-domain analogies can be researched for Financial applicability, but **no parent upcall or CAOS write is required**. Never claim whole-system readiness solely from machine-code coverage or an article's same-chat editorial PASS.
 
-Check separately (1) code invariant regressions; (2) genuine provider GitHub SHA/CAS after write; (3) private research source and point-in-time financial evidence; (4) independent reader-facing draft assessment and source overlap; (5) actual Word bytes, pages, QA/link availability; (6) owner acceptance or observable reader response. Same-chat review remains `CHAT_SELF_REVIEW`. Where external graders, approved samples, native Skill or parent Host are absent, record precisely what is NOT_VERIFIED; keep unrelated legal work moving and do not close the full-system goal.
+## Independent quality boundary
+
+Verify separately: (1) source and authority integrity, (2) real provider writes, (3) genuine financial evidence and company economics, (4) independently assessed narrative/originality/reader payoff, (5) actual Word bytes, pages and accessible links, (6) user/reader acceptance and transfer to an unseen topic. Where any is unavailable, mark that specific outcome OPEN and continue the other authorized work. This maintenance procedure is Financial's own operating policy.
