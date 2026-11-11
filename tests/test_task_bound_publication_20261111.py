@@ -138,7 +138,7 @@ def test_signed_word_receipt_has_actual_v3_digest_but_pre_audit_cannot_be_releas
     build = build_verified_article_docx(
         _article(), tmp_path / "cross-border-scope-test.docx",
         artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
-        required_bold_anchors=[],
+        required_bold_anchors=["甲公司"],
         require_risk_disclaimer=False,
         task_state=state, research=_research(),
     )
@@ -157,7 +157,7 @@ def test_generic_builder_never_claims_task_scope_when_not_given_state(tmp_path):
     build = build_verified_article_docx(
         _article(), tmp_path / "generic.docx",
         artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
-        required_bold_anchors=[], require_risk_disclaimer=False,
+        required_bold_anchors=["甲公司"], require_risk_disclaimer=False,
     )
     assert build["task_scope_assurance"] == "NOT_CHECKED"
     assert "task_scope_binding" not in build
@@ -168,6 +168,6 @@ def test_builder_cannot_accept_research_without_authoritative_task_state(tmp_pat
         build_verified_article_docx(
             _article(), tmp_path / "bad.docx",
             artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
-            required_bold_anchors=[], require_risk_disclaimer=False,
+            required_bold_anchors=["甲公司"], require_risk_disclaimer=False,
             research=_research(),
         )
