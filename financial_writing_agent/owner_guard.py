@@ -6,7 +6,7 @@ from typing import Any, Mapping
 from uuid import uuid4
 
 from .models import ArtifactKind, DeliveryChannel, DistributionMode, Stage, TaskContract
-from .path_identity import require_article_path, require_basename, require_task_id
+from .path_identity import require_article_path, require_task_id, require_word_basename
 from .routing import build_task_contract
 from .workflow_spec import (
     BUSINESS_STAGE_NAMES,
@@ -153,7 +153,7 @@ def _validate_delivery_artifact_metadata(meta: Any, *, kind: str) -> None:
     _require(meta.get("kind") == kind, f"delivery_artifacts.{kind}.kind mismatch")
     _require(_nonempty(meta.get("file_name")), f"delivery_artifacts.{kind}.file_name is required")
     try:
-        require_basename(meta.get("file_name"))
+        require_word_basename(meta.get("file_name"))
     except ValueError as exc:
         raise GithubChatGuardError(f"delivery_artifacts.{kind}.file_name must be a canonical basename") from exc
     sha = meta.get("sha256")
