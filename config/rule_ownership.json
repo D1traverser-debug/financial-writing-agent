@@ -53,7 +53,7 @@
     "mandatory_external_research_on_problem",
     "counterexample_escalation",
     "independent_verification_assurance_boundary",
-    "parent_upcall_when_common_or_cross_domain"
+    "financial_local_cross_domain_method_adaptation"
   ],
   "market_explanation": [
     "explicit_scope_activation",
@@ -195,7 +195,7 @@
     "cutover_policy",
     "learning_sample_promotion",
     "post_promotion_observation",
-    "parent_upcall_for_common_evolution",
+    "financial_only_method_adaptation_and_revalidation",
     "retired_runtime_negative_space"
   ]
 }
