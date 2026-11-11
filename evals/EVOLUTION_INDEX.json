@@ -93,7 +93,7 @@
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
     "status": "RUNNING__FINANCIAL_STANDALONE_PRODUCTION_ENGINEERING_VERIFIED__EDITORIAL_PRODUCT_NOT_READY",
     "owner": "DOMAIN:financial_writing",
-    "review_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md",
+    "review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
     "r0_production": {
       "pr": 50,
@@ -112,8 +112,7 @@
       "No verified real external reader outcome; current cross-border v3 remains RESEARCH."
     ],
     "boundary": "ONE_FINANCIAL_EVOLUTION_OWNER__NO_NEW_TASK_INDEX_OR_PARALLEL_ARTICLE_STATE",
-    "previous_review_ref": "evals/FINANCIAL_WHOLE_SYSTEM_OWNER_REVIEW_20261018.md",
-    "parent_governance_ref": "D1traverser-debug/cognition-agent-os@main",
+    "previous_review_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md",
     "r1_base_main_sha": "e580cd4dfda8db47674803451c9adfff9e3cf975",
     "r1_candidate_branch": "rebuild/financial-integrity-r1-20261111",
     "r1_scoped_evidence": {
@@ -161,6 +160,9 @@
       "native_parent_dependency": false,
       "complete_financial_product_verified": false,
       "user_action_now": "NONE_TO_VERIFY_CODE__CONNECT_FINANCIAL_SKILL_FOR_LIVE_HOST_EFFECT_IF_DESIRED"
-    }
+    },
+    "current_method_owner": "FINANCIAL_WRITING_OWNER",
+    "current_runtime_authority": "config/FINANCIAL_MANIFEST.json",
+    "current_operating_skill": "skills/financial-writing-agent/SKILL.md"
   }
 }
