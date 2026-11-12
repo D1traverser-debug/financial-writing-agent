@@ -122,7 +122,7 @@ class GitHubAPI:
 
 def run(api: GitHubAPI, *, apply: bool, out_path: Path) -> dict[str, Any]:
     branches = api.paginate("branches")
-    open_prs = api.paginate("pulls?state=open") if False else []
+    open_prs: list[dict[str, Any]] = []
     # The collection uses a fixed query string; keep pagination explicit.
     for page in range(1, 20):
         values = api.call(
