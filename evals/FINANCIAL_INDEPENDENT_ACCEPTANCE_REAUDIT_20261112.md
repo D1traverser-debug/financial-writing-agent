@@ -44,3 +44,13 @@
 - 用户现有独立私人 Financial 插件可打开 `https://chatgpt.com/plugins/plugins_6af591b19a708191a3879e94a7ce8742`，**但安装需要用户明确操作**；不虚构安装成功。
 - 不使用 CAOS PR、文件或 Plugin Creator 项目条目来交叉编辑 Financial。
 - GitHub 仓库管理员的 branch protection settings 与真正的 ChatGPT user-message provider/host API 不在 GitHub 源代码修复权限内，必须明确标记为外部权限边界。
+
+## Candidate CI and repository hygiene update (latest exact PR head)
+
+Candidate PR #67 head `c72b45fa37922d3af9228125001755644064731e` ran the full CI successfully: **393 passed**, source-line coverage **87%** (5,049 statements, 673 missed). The job explicitly checked out and verified `git rev-parse HEAD == PR head SHA`, ran whole-tree byte/parse inventory, wheel/install, DOCX renders, real negative business replay, the system acceptance report, and a **read-only** live GitHub branch cleanup dry-run. The machine report remained `NOT_READY__REQUIRES_EXTERNAL_EVIDENCE` with all seven external gates open.
+
+The dry-run read **99 branch refs**, found one open PR, and classified 44 exact-head branches as having a merged-to-main PR eligible for archival *only after explicit authorization*. No branch was archived or deleted. All branches without an exact merged PR-to-main head SHA, protected branches, main, and open-PR heads are preserved. Historical PR records remain untouched.
+
+The real connected GitHub CAS probe succeeded on the candidate branch: valid write/readback, deliberately stale blob SHA rejected with HTTP 409, exact updated blob readback, and temporary file deletion verified by 404. This is evidence of repository file CAS only, not proof of authenticated original user-message access, real article-state provider, access revocation or native plugin activation.
+
+A prior intermediate candidate CI run exposed two errors in the new branch-archive regression tests; these were fixed before the current 393-pass exact-head CI. Do not quote the earlier cancelled/failing runs as passing.
