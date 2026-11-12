@@ -144,9 +144,14 @@ def check_payload_navigation(payload: Any, *, deep: bool) -> list[str]:
 
 def paragraph_has_named_economic_comparison(paragraph: str, company_names: Iterable[str]) -> bool:
     """Shared minimal mechanical check, not proof that the claim is true."""
-    names = set(company_names)
+    from .company_identity import canonical_company_name
+
+    # Source-vendor artifacts may spell the same issuer as 生 意 宝 / 生意宝.
+    # Name cleanup is for identity matching, not economic fact verification.
+    names = {canonical_company_name(name) for name in company_names}
+    clean_paragraph = canonical_company_name(paragraph)
     return (
-        sum(name in paragraph for name in names) >= 2
+        sum(name in clean_paragraph for name in names if name) >= 2
         and bool(_COMPARISON_SIGNAL.search(paragraph))
         and bool(_ECONOMIC_MECHANISM_SIGNAL.search(paragraph))
     )
