@@ -14,6 +14,9 @@ from financial_writing_agent.standalone_runtime import (
     FinancialAdmissionError, FinancialEffectUnverified, _blob_sha,
     admit_method_action, observe_method_catalog,
 )
+from trusted_provider_testkit import (
+    signed_method_action_authorization, signed_method_impact, signed_method_promotion,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 CATALOG_PATH = "knowledge/METHOD_KNOWLEDGE_CATALOG.json"
@@ -102,12 +105,7 @@ def test_unreviewed_method_promotion_is_fail_closed_even_with_self_attested_pass
 
 
 def promotion_verifier(request):
-    return {
-        "verified": True,
-        "reviewed_record_sha256": request["record_sha256"],
-        "reviewer_principal": "synthetic-external-test-reviewer",
-        "validation_refs": ["synthetic-ci://exact-change-test"],
-    }
+    return signed_method_promotion(request)
 
 
 def test_verified_promotion_then_challenge_then_retire_is_append_only():
@@ -177,7 +175,7 @@ def test_financial_method_cas_port_reads_real_catalog_and_never_writes_caos_or_a
     before = p.read(CATALOG_PATH)["blob_sha"]
     r = admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: True)
+                            authorization_verifier=signed_method_action_authorization)
     assert r["method_catalog_cas_verified"] is True
     assert r["previous_catalog_blob_sha"] == before
     assert len(observe_method_catalog(catalog_reader=p.read)["records"]) == len(original()["records"]) + 1
@@ -195,7 +193,7 @@ def test_financial_method_mutation_denies_stale_sha_auth_and_unverified_readback
     with pytest.raises(FinancialAdmissionError, match="CHANGED_CONCURRENTLY"):
         admit_method_action(p.request("CREATE", expected="f"*40, proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: True)
+                            authorization_verifier=signed_method_action_authorization)
     assert p.store == before
     p.tamper = True
     with pytest.raises(FinancialEffectUnverified):
@@ -232,13 +230,7 @@ def test_method_impact_closure_requires_exact_original_event_and_stage_evidence(
 
     def trusted_impact_verifier(request):
         challenge_seen.append(request)
-        return {
-            "verified": True,
-            "target_change_revision": request["target_change_revision"],
-            "reviewed_event_sha256": request["event_sha256"],
-            "verified_stages": list(request["stage_evidence_refs"]),
-            "reviewer_principal": "synthetic-independent-method-reviewer",
-        }
+        return signed_method_impact(request)
 
     closed, receipt = mutate_method_catalog(
         cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
