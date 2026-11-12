@@ -16,9 +16,13 @@ def test_main_protected_open_pr_excluded_and_archive_candidates_keep_heads():
         {"name":"release/protected","commit":{"sha":A},"protected":True},
     ]
     prs=[{"head":{"ref":"article/in-progress","repo":{"full_name":REPO}}}]
-    candidates, skipped = branch_candidates(branches, prs)
+    candidates, skipped = branch_candidates(branches, prs, [
+        {"merged_at":"2026-11-12T00:00:00Z","base":{"ref":"main"},
+         "head":{"ref":"repair/merged","sha":C}}
+    ])
     assert candidates == [{"branch":"repair/merged","head_sha":C}]
     assert len(skipped) == 3
+    assert any(x["reason"].startswith("NO_EXACT_MERGED_PR") for x in skipped)
 
 
 def test_duplicate_or_untrustworthy_branch_metadata_fails_closed():
