@@ -26,6 +26,7 @@ exclude = ["tests*", "evals*", "config*", "references*", "scripts*"]
 [tool.setuptools.package-data]
 financial_writing_agent = [
   "resources/policy.json",
+  "resources/task_universe_baselines.json",
   "resources/references/*.md",
 ]
 

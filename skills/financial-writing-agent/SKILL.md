@@ -40,6 +40,18 @@ Choose a legal next stage; do actual source retrieval, research, writing, indepe
 
 The owner-neutral Financial interface is financial_writing_agent/standalone_runtime.py, not any parent/CAOS bridge. It supports read-only observe_article and CREATE_ARTICLE, CHANGE_REQUIREMENTS, ADVANCE_STAGE and ATTACH_FEEDBACK. A live client must supply real authenticated Git provider reads, an external user-authorization verifier, conditional Git Blob compare-and-swap writer, and an independent second readback. For required stages it must also read exact artifact bytes. Never treat mock callbacks, an AI decision, or a requested action flag as permission. Without connected write capability, continue source/reader work, keep state mutation OPEN and report accurately.
 
+## Non-negotiable current provider-admission evidence
+
+A Financial-only real action `ADVANCE_STAGE` leaving RESEARCH must provide **actual external source snapshot reads**, not model-written source labels. The `source_snapshot_reader(ref)` provider returns exact UTF-8 `text`, its SHA-256, ISO-8601 `retrieved_at` and `source_family`. A current as-of brief and retrieved snapshots expire after seven days, and sources must span at least two source families; old dated materials remain historical until actively reverified. The real cross-border v3 full-pool requirement has a packaged, dated 174-ticker **historical retained baseline**, independently checked against structured RESEARCH artifact bytes and Deep publication coverage. This is a floor, not proof of today's market universe.
+
+A publication trace with the same number but opposite growth/decline, unit/period or explicit metric direction is blocked. Passing this redline is **not semantic claim entailment**. Actual financial causal claims, issuer/regulator authority, derived calculations and originality still require editorial challenge and real primary evidence.
+
+If a publication fitness claims `INDEPENDENT_EXECUTOR`, the host MUST provide `independent_editorial_verifier` backed by real authenticated actor identity and external attestation. The exact DRAFT bytes must be read back and bound to `reviewed_article_sha256`. A claimed reviewer name or fake third-party PASS alone never constitutes an independent acceptance. Missing external provider evidence means leave `EDITORIAL_ACCEPTANCE=OPEN`.
+
+For the current live article's Word presentation, `resource_binary_reader` must return the actual DOCX bytes for each requested output; the receipt validates real SHA, ZIP/Word XML integrity and signed per-page PNG render evidence. `resource_verifier=lambda _: True`, a docx filename or a CI synthetic portfolio is not user-visible fulfillment. Never misrepresent a partial automation test as a complete current market article.
+
+The exact Financial-only action/QA boundary is documented at `docs/FINANCIAL_MAIN_ONLY_REPAIR_AND_RUNTIME_20261112.md`. Do not update CAOS. Continue source/editor/reader work until real independent evidence exists rather than forcing terminal PASS.
+
 ## Domain method evolution, QA and stopping
 
 Use Financial's evals/EVOLUTION_INDEX.json, tests, knowledge catalog and maintenance procedures for business defects; never write to a parent. Every repair: recover full goal → competing shared causes → counterexamples → compare architectures → implement a bounded candidate → exact-head CI and negative tests → merge/readback → validate on a real article and reader outcome → retain, revise or rollback. Green tests establish engineering only. Actual owner acceptance, original sources, independent reading and verified user-accessible files remain distinct gates. Do not claim completion while a required real article is unaccepted.

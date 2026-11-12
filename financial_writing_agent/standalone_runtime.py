@@ -18,6 +18,10 @@ from typing import Any, Callable, Mapping
 
 from . import current_admission
 from .path_identity import require_article_path, require_task_id
+from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
+from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
+from .editorial_review_authority import (IndependentEditorialEvidenceError,
+                                         verify_external_editorial_review)
 
 DOMAIN_ID = "financial_writing"
 CONTRACT_VERSION = "1.0"
@@ -137,7 +141,23 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
              "FINANCIAL_STAGE_ARTIFACT_BYTES_INVALID")
     _require(_blob_sha(content) == claimed_sha == expected,
              "FINANCIAL_STAGE_ARTIFACT_BYTES_SHA_MISMATCH")
-    return {"artifact_key": key, "path": path, "verified_blob_sha": expected}
+    reconciliation = None
+    active_ids = {
+        item.get("requirement_id")
+        for item in candidate.get("task_requirement_authority", {}).get("active_requirements", [])
+        if isinstance(item, Mapping)
+    }
+    if key == "RESEARCH" and "full_universe_research_pool" in active_ids:
+        from .schemas import ResearchPackage
+        try:
+            parsed = json.loads(content)
+            research = ResearchPackage.model_validate(parsed)
+            reconciliation = require_retained_universe_reconciliation(candidate["task_id"], research)
+        except (ValueError, TypeError, CompanyIdentityError) as exc:
+            raise FinancialAdmissionError("FINANCIAL_RESEARCH_UNIVERSE_NOT_RECONCILED") from exc
+        _require(reconciliation is not None, "FINANCIAL_TASK_RESEARCH_BASELINE_NOT_CONFIGURED")
+    return {"artifact_key": key, "path": path, "verified_blob_sha": expected,
+            "retained_universe_reconciliation": reconciliation}
 
 
 def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
@@ -196,6 +216,8 @@ def admit_article_action(
     cas_writer: CASWriter | None,
     authorization_verifier: AuthorizationVerifier | None,
     artifact_reader: ArtifactReader | None = None,
+    source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
+    independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Use existing Financial admissions and genuine provider CAS/readback.
 
@@ -245,6 +267,37 @@ def admit_article_action(
 
     current_admission.validate_state(candidate)
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    research_sources = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "RESEARCH":
+        try:
+            research_sources = verify_current_research_sources(
+                candidate["quality_evidence"]["private_research_brief"],
+                source_reader=source_snapshot_reader,
+            )
+        except CurrentResearchEvidenceError as exc:
+            raise FinancialAdmissionError(str(exc)) from exc
+        known = {item["source_ref_sha256"] for item in research_sources["snapshots"]}
+        if stage_bytes is not None:
+            known.add(hashlib.sha256(stage_bytes["path"].encode("utf-8")).hexdigest())
+        for item in candidate["execution_receipts"][-1]["input_bindings"].get("task_requirement_satisfaction", []):
+            for ref in item["evidence_refs"]:
+                _require(
+                    hashlib.sha256(ref.encode("utf-8")).hexdigest() in known,
+                    "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
+                )
+    independent_editorial_proof = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "EDITORIAL_AUDIT":
+        try:
+            independent_editorial_proof = verify_external_editorial_review(
+                candidate, candidate["quality_evidence"].get("publication_fitnesses", []),
+                draft_reader=artifact_reader,
+                provider_verifier=independent_editorial_verifier,
+            )
+        except IndependentEditorialEvidenceError as exc:
+            raise FinancialAdmissionError(str(exc)) from exc
+        if independent_editorial_proof is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["independent_editorial_proof"] = independent_editorial_proof
+            current_admission.validate_state(candidate)
     payload = _canonical_payload(candidate)
     expected_new_sha = _blob_sha(payload)
     try:
@@ -265,6 +318,8 @@ def admit_article_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
+        "research_source_readback": research_sources,
+        "independent_editorial_review_readback": independent_editorial_proof,
         "child_state_cas_verified": True,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,

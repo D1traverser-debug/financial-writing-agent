@@ -2,6 +2,8 @@
 from copy import deepcopy
 import json
 from pathlib import Path
+from datetime import datetime, timezone
+import hashlib
 
 import pytest
 
@@ -19,6 +21,7 @@ class Provider:
     def __init__(self):
         self.store = {}
         self.artifacts = {}
+        self.sources = {}
         self.bad_readback = False
         self.fake_write = False
 
@@ -45,6 +48,9 @@ class Provider:
         raw = self.artifacts[path]
         return {"content": raw, "blob_sha": _blob_sha(raw)}
 
+    def source(self, ref):
+        return self.sources.get(ref)
+
 
 def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=None):
     return {
@@ -61,6 +67,7 @@ def run(p, request, auth=lambda _: True):
     return admit_article_action(
         request, state_reader=p.read, cas_writer=p.write,
         authorization_verifier=auth, artifact_reader=p.artifact,
+        source_snapshot_reader=p.source,
     )
 
 
@@ -141,14 +148,24 @@ def _decision():
 
 def _brief():
     return {
-        "contract_version": "1.1", "as_of": "2026-11-11T18:00:00+08:00",
+        "contract_version": "1.1", "as_of": datetime.now(timezone.utc).isoformat(),
         "coverage_state": "COMPLETE", "unresolved_gaps": [],
         "modules": {
             name: {"status": "APPLICABLE", "summary": "synthetic test body; not factual market evidence",
-                   "evidence_refs": ["synthetic:test"]}
-            for name in REQUIRED_MODULES
+                   "evidence_refs": [f"synthetic:source:{i}"]}
+            for i, name in enumerate(REQUIRED_MODULES)
         },
     }
+
+
+def _prepare_sources(p):
+    for i, _ in enumerate(REQUIRED_MODULES):
+        body = f"本条测试源 {i} 是模拟的公司业务和经济传导原始文本，仅用于检验快照字节和哈希。"
+        p.sources[f"synthetic:source:{i}"] = {
+            "text": body, "sha256": hashlib.sha256(body.encode()).hexdigest(),
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+            "source_family": "ISSUER_RECORD" if i % 2 else "REGULATOR_RECORD",
+        }
 
 
 def research_proposal(p, artifact_path=None, fake_sha=None):
@@ -156,6 +173,7 @@ def research_proposal(p, artifact_path=None, fake_sha=None):
     artifact = artifact_path or "workspaces/articles/solo-article-01/stages/RESEARCH.json"
     content = b'{"synthetic":"source"}\n'
     p.artifacts[artifact] = content
+    _prepare_sources(p)
     return proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"], params={
         "decision_envelope": _decision(), "private_research_brief": _brief(),
         "artifact_key": "RESEARCH", "artifact_path": artifact,

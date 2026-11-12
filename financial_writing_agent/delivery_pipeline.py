@@ -465,6 +465,11 @@ def finalize_delivery_evidence(
         _require(type(traced.get("read_source_snapshot_count")) is int and traced["read_source_snapshot_count"] >= 1,
                  "CURRENT_WORD_SOURCE_SNAPSHOTS_NOT_OBSERVED")
 
+    if binding is None and render_inspection_receipt is not None:
+        verified_render_inspection = _verify_render_inspection_receipt(
+            render_inspection_receipt, build_receipt.get("sha256"),
+        )
+
     envelope: dict[str, Any] = {
         "schema_version": DELIVERY_EVIDENCE_SCHEMA_VERSION,
         "canonical_delivery_path": CANONICAL_DELIVERY_PATH,
@@ -481,9 +486,10 @@ def finalize_delivery_evidence(
     }
     if build_receipt.get("source_quality_evidence_sha256") is not None:
         envelope["source_quality_evidence_sha256"] = str(build_receipt["source_quality_evidence_sha256"])
+    if verified_render_inspection is not None:
+        envelope["render_inspection_receipt"] = verified_render_inspection
     if binding is not None:
         envelope["task_scope_binding"] = dict(binding)
-        envelope["render_inspection_receipt"] = verified_render_inspection
         envelope["claim_trace_binding"] = dict(traced)
     signed = {**envelope, "session_attestation": _issuer_sign(envelope)}
     return {"delivery_evidence": signed, "delivery_evidence_sha256": _canonical_digest(signed)}
@@ -502,10 +508,12 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
     _require(evidence.get("canonical_delivery_path") == CANONICAL_DELIVERY_PATH, "visible artifact bypassed canonical Delivery")
     _require(evidence.get("artifact_kind") == resource.get("kind"), "delivery evidence artifact kind mismatch")
     _require(str(evidence.get("artifact_sha256", "")).lower() == str(resource.get("sha256", "")).lower(), "delivery evidence artifact hash mismatch")
-    if evidence.get("task_scope_binding") is not None:
+    if (evidence.get("task_scope_binding") is not None
+            or evidence.get("render_inspection_receipt") is not None):
         _verify_render_inspection_receipt(
             evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
         )
+    if evidence.get("task_scope_binding") is not None:
         trace = evidence.get("claim_trace_binding")
         from .claim_trace import SOURCE_TRACE_ASSURANCE
 

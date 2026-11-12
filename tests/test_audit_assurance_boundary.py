@@ -47,7 +47,12 @@ def test_independent_executor_claim_is_valid_with_distinct_evidenced_provenance(
         reviewer_identity="reviewer-2",
         author_identity="author-1",
         execution_ref="trace://review/123",
+        reviewed_article_sha256="b" * 64,
+        provider_attestation_sha256="c" * 64,
     )
 
     assert provenance.assurance == "INDEPENDENT_EXECUTOR"
     assert provenance.execution_ref == "trace://review/123"
+    assert provenance.reviewed_article_sha256 == "b" * 64
+    # A valid model is not itself an externally authenticated review.
+    assert provenance.provider_attestation_sha256 == "c" * 64

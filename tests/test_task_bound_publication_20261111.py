@@ -69,12 +69,10 @@ def _article(*, include_weak=True, weak_reason=True):
 def test_actual_v3_task_requires_full_visible_retained_universe():
     state = _v3()
     assert _current_deep_task_requirement_ids(state) == [FULL_UNIVERSE_REQUIREMENT]
-    result = verify_task_publication_scope(state, _article(), _research())
-    assert result["task_id"] == state["task_id"]
-    assert result["strict_universe_visibility"] is True
-    assert result["company_names_checked"] == 3
-    assert result["validated_requirement_ids"] == [FULL_UNIVERSE_REQUIREMENT]
-    assert "STRUCTURAL" in result["assurance"]
+    # The historical fixture was never a complete live universe. The former
+    # test was asserting a business false pass; keep the case as a regression.
+    with pytest.raises(TaskPublicationError, match="COMPANY_TICKER_REQUIRED|TASK_RETAINED_UNIVERSE_TRUNCATED"):
+        verify_task_publication_scope(state, _article(), _research())
 
 
 def test_weak_retained_company_cannot_silently_disappear_from_full_universe_deep():
@@ -128,29 +126,24 @@ def test_unknown_task_scope_cannot_be_autocertified_as_met():
 
 
 def test_same_state_structural_success_not_proof_of_editorial_or_fact_verification():
-    result = verify_task_publication_scope(_v3(), _article(), _research())
-    assert result["observed_stage"] == "RESEARCH"
-    assert "NOT_INDEPENDENTLY_VERIFIED" in result["assurance"]
+    # A self-declared complete 3-company list cannot be treated as coverage
+    # of the currently admitted 174-company user obligation.
+    with pytest.raises(TaskPublicationError):
+        verify_task_publication_scope(_v3(), _article(), _research())
 
 
-def test_signed_word_receipt_has_actual_v3_digest_but_pre_audit_cannot_be_released(tmp_path):
+def test_signed_word_builder_refuses_false_v3_completeness_before_making_file(tmp_path):
     state = _v3()
-    build = build_verified_article_docx(
-        _article(), tmp_path / "cross-border-scope-test.docx",
-        artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
-        required_bold_anchors=["甲公司"],
-        require_risk_disclaimer=False,
-        task_state=state, research=_research(),
-    )
-    assert build["task_scope_binding"]["requirement_digest"] == state["task_requirement_digest"]
-    assert build["task_scope_binding"]["company_names_checked"] == 3
-    with pytest.raises(CanonicalDeliveryError, match="admitted editorial audit and DELIVERY stage"):
-        finalize_delivery_evidence(
-            build,
-            source_ref=f"workspaces/articles/{state['task_id']}/publication/FINANCE_DEEP.json",
-            source_identity="git-blob:synthetic",
-            render_qa="PASS", visual_qa="PASS",
+    target = tmp_path / "cross-border-scope-test.docx"
+    with pytest.raises(CanonicalDeliveryError, match="current task publication scope failed"):
+        build_verified_article_docx(
+            _article(), target,
+            artifact_kind=ArtifactKind.FINANCE_DEEP_DOCX,
+            required_bold_anchors=["甲公司"],
+            require_risk_disclaimer=False,
+            task_state=state, research=_research(),
         )
+    assert not target.exists()
 
 
 def test_generic_builder_never_claims_task_scope_when_not_given_state(tmp_path):
