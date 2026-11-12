@@ -17,7 +17,7 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
         with:
           ref: ${{ github.event.pull_request.head.sha || github.sha }}
       - name: Verify exact checked-out source HEAD, not GitHub's synthetic PR merge SHA
@@ -27,7 +27,7 @@ jobs:
           ACTUAL=$(git rev-parse HEAD)
           test "$ACTUAL" = "$FINANCIAL_SOURCE_HEAD_SHA"
           echo "PASS: exact Financial source HEAD $ACTUAL"
-      - uses: actions/setup-python@v7
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: "3.11"
           cache: pip
@@ -140,7 +140,7 @@ jobs:
         run: python scripts/real_financial_workflow_redteam.py | tee audit/financial_business_redteam.json
       - name: Preserve the current exact-head audit and line-coverage evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: financial-whole-tree-assurance-${{ github.sha }}
           path: audit/*.json
