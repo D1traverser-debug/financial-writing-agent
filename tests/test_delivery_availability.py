@@ -200,3 +200,46 @@ def test_historical_state_without_private_marker_does_not_retroactively_require_
         resource_verifier=lambda _: True,
     )
     assert receipt["supplemental_required_outputs"] == []
+
+
+def test_current_visible_delivery_requires_genuine_provider_docx_bytes_not_boolean_ack():
+    from io import BytesIO
+    from docx import Document
+
+    state = _state(with_private=False)
+    state["writing_kernel_version"] = "1.0"
+    resources = _canonical_resources()
+    with pytest.raises(DeliveryAvailabilityError, match="CURRENT_FINANCIAL_BINARY_READER_REQUIRED"):
+        build_visible_delivery_receipt(state, resources=resources, resource_verifier=lambda _: True)
+
+    with pytest.raises(DeliveryAvailabilityError, match="current DOCX bytes not available"):
+        build_visible_delivery_receipt(
+            state, resources=resources, resource_verifier=lambda _: True,
+            resource_binary_reader=lambda _: None,
+        )
+
+    stream = BytesIO()
+    d = Document()
+    d.add_paragraph("当前财经文章 Word 页面必须可真实读取。")
+    d.save(stream)
+    blob = stream.getvalue()
+    with pytest.raises(DeliveryAvailabilityError, match="actual DOCX bytes differ from declared hash"):
+        build_visible_delivery_receipt(
+            state, resources=resources, resource_verifier=lambda _: True,
+            resource_binary_reader=lambda _: {"content": blob},
+        )
+
+    # A correct real DOCX and hash can get through *binary* verification.
+    # Other independent editorial and source gates remain separate.
+    digest = hashlib.sha256(blob).hexdigest()
+    for kind in state["delivery_artifacts"]:
+        state["delivery_artifacts"][kind]["sha256"] = digest
+    resources = [
+        _resource(kind, item["file_name"], digest)
+        for kind, item in state["delivery_artifacts"].items()
+    ]
+    outcome = build_visible_delivery_receipt(
+        state, resources=resources, resource_verifier=lambda _: True,
+        resource_binary_reader=lambda _: {"content": blob},
+    )
+    assert outcome["status"] == "VISIBLE_DELIVERY_READY"
