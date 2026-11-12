@@ -17,20 +17,19 @@ def test_main_protected_open_pr_excluded_and_archive_candidates_keep_heads():
         {"name":"tmp/orphan","commit":{"sha":"e"*40},"protected":False},
     ]
     prs=[{"head":{"ref":"article/in-progress","repo":{"full_name":REPO}}}]
-    candidates, skipped = branch_candidates(branches, prs, [
-        {"merged_at":"2026-11-12T00:00:00Z","base":{"ref":"main"},
-         "head":{"ref":"repair/merged","sha":C}}
-    ])
-    assert candidates == [{"branch":"repair/merged","head_sha":C}]
-    assert len(skipped) == 4
-    assert any(x["reason"].startswith("NO_EXACT_MERGED_PR") for x in skipped)
+    candidates, skipped = branch_candidates(branches, prs)
+    assert candidates == [
+        {"branch":"repair/merged","head_sha":C},
+        {"branch":"tmp/orphan","head_sha":"e"*40},
+    ]
+    assert len(skipped) == 3
 
 
 def test_duplicate_or_untrustworthy_branch_metadata_fails_closed():
     with pytest.raises(ValueError):
-        branch_candidates([{"name":"main","commit":{"sha":"bad"},"protected":False}], [], [])
+        branch_candidates([{"name":"main","commit":{"sha":"bad"},"protected":False}], [])
     with pytest.raises(ValueError):
-        branch_candidates([{"name":"main","commit":{"sha":A}},{"name":"main","commit":{"sha":A}}], [], [])
+        branch_candidates([{"name":"main","commit":{"sha":A}},{"name":"main","commit":{"sha":A}}], [])
 
 
 def test_cross_repository_request_rejected():
@@ -51,9 +50,6 @@ class SimulatedAPI:
     def call(self,method,path,payload=None):
         if method=="GET" and path.endswith("pulls?state=open&per_page=100&page=1"):
             return [{"head":{"ref":"article/active","repo":{"full_name":REPO}}}]
-        if method=="GET" and path.endswith("pulls?state=closed&per_page=100&page=1"):
-            return [{"merged_at":"2026-11-12T00:00:00Z","base":{"ref":"main"},
-                     "head":{"ref":"test/old","sha":B}}]
         raise RuntimeError(path)
     def exact_branch_head(self,name):
         return ("f"*40 if self.changed and name=="test/old"
