@@ -70,7 +70,7 @@ def mutate(cat, operation, *, proposed=None, method_id=METHOD_ID,
     raw = json.dumps(cat, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
     action_request = {
         "schema_version": "1.0", "domain_id": "financial_writing",
-        "action_id": f"synthetic-method-{operation.lower()}-{cat['governance_revision'] + 1}",
+        "action_id": f"synthetic-method-{operation.lower()}-{cat.get('governance_revision', 0) + 1}",
         "operation": operation, "expected_catalog_blob_sha": _blob_sha(raw),
         "parameters": params,
     }
