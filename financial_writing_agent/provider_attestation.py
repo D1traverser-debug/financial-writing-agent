@@ -43,9 +43,11 @@ def expected_owner_principal() -> str:
     return value
 
 
-def _key_and_provider() -> tuple[bytes, str]:
-    key = os.environ.get(KEY_ENV, "")
-    provider = os.environ.get(PROVIDER_ENV, "").strip()
+def _key_and_provider(
+    key_env: str = KEY_ENV, provider_env: str = PROVIDER_ENV,
+) -> tuple[bytes, str]:
+    key = os.environ.get(key_env, "")
+    provider = os.environ.get(provider_env, "").strip()
     if len(key.encode("utf-8")) < 32 or not provider:
         raise FinancialProviderAttestationError("FINANCIAL_TRUSTED_PROVIDER_KEY_NOT_CONFIGURED")
     return key.encode("utf-8"), provider
@@ -59,6 +61,8 @@ def verify_provider_attestation(
     expected_actor: str | None = None,
     now: int | None = None,
     max_age_seconds: int = MAX_AGE_SECONDS,
+    key_env: str = KEY_ENV,
+    provider_env: str = PROVIDER_ENV,
 ) -> dict[str, Any]:
     """Verify a signed, fresh, audience-bound provider receipt.
 
@@ -70,7 +74,7 @@ def verify_provider_attestation(
     if not isinstance(raw, Mapping):
         raise FinancialProviderAttestationError("FINANCIAL_PROVIDER_ATTESTATION_MISSING")
     record = deepcopy(dict(raw))
-    key, provider_id = _key_and_provider()
+    key, provider_id = _key_and_provider(key_env, provider_env)
     required = {
         "attestation_type", "provider_id", "audience", "authenticated_actor",
         "issued_at", "nonce", "signature",
