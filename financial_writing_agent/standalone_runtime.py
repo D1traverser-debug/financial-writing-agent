@@ -282,6 +282,47 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
             "retained_universe_reconciliation": reconciliation}
 
 
+def _verify_requirement_satisfaction_sources(
+    satisfaction: list[Mapping[str, Any]],
+    research_sources: Mapping[str, Any],
+    *,
+    stage_artifact_path: str | None = None,
+) -> dict[str, Any]:
+    """Verify evidence refs resolve to bytes read in this admission.
+
+    This proves source availability and byte identity only; it does not certify
+    that the source semantically supports the requirement.
+    """
+    snapshots = research_sources.get("snapshots")
+    _require(isinstance(snapshots, list), "FINANCIAL_RESEARCH_SOURCE_READBACK_MISSING")
+    known = {
+        item.get("source_ref_sha256")
+        for item in snapshots if isinstance(item, Mapping)
+    }
+    if stage_artifact_path:
+        known.add(hashlib.sha256(stage_artifact_path.encode("utf-8")).hexdigest())
+    checked = 0
+    for item in satisfaction:
+        _require(isinstance(item, Mapping),
+                 "FINANCIAL_REQUIREMENT_SATISFACTION_RECORD_INVALID")
+        refs = item.get("evidence_refs")
+        _require(isinstance(refs, list) and bool(refs),
+                 "FINANCIAL_REQUIREMENT_SATISFACTION_EVIDENCE_REFS_MISSING")
+        for ref in refs:
+            _require(isinstance(ref, str) and bool(ref.strip()),
+                     "FINANCIAL_REQUIREMENT_SATISFACTION_SOURCE_REF_INVALID")
+            _require(
+                hashlib.sha256(ref.encode("utf-8")).hexdigest() in known,
+                "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
+            )
+            checked += 1
+    return {
+        "checked_evidence_ref_count": checked,
+        "assurance": "SOURCE_BYTE_READBACK_ONLY__SEMANTIC_SUPPORT_NOT_CERTIFIED",
+        "semantic_support_verified": False,
+    }
+
+
 def _verify_product_word_bytes(
     candidate: Mapping[str, Any], reader: ArtifactReader | None,
 ) -> dict[str, Any]:
@@ -625,15 +666,16 @@ def admit_article_action(
             )
         except CurrentResearchEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
-        known = {item["source_ref_sha256"] for item in research_sources["snapshots"]}
-        if stage_bytes is not None:
-            known.add(hashlib.sha256(stage_bytes["path"].encode("utf-8")).hexdigest())
-        for item in candidate["execution_receipts"][-1]["input_bindings"].get("task_requirement_satisfaction", []):
-            for ref in item["evidence_refs"]:
-                _require(
-                    hashlib.sha256(ref.encode("utf-8")).hexdigest() in known,
-                    "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
-                )
+        satisfaction = candidate["execution_receipts"][-1]["input_bindings"].get(
+            "task_requirement_satisfaction", []
+        )
+        satisfaction_readback = _verify_requirement_satisfaction_sources(
+            satisfaction, research_sources,
+            stage_artifact_path=stage_bytes["path"] if stage_bytes is not None else None,
+        )
+        candidate["execution_receipts"][-1]["input_bindings"]["research_source_readback"] = research_sources
+        candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
+        current_admission.validate_state(candidate)
     independent_editorial_proof = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "EDITORIAL_AUDIT":
         try:
