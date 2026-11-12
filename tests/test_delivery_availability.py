@@ -255,9 +255,20 @@ def test_current_visible_delivery_requires_genuine_provider_docx_bytes_not_boole
         _resource(kind, item["file_name"], digest)
         for kind, item in state["delivery_artifacts"].items()
     ]
-    # Correct binary alone is not an accepted current deliverable: page
-    # screenshots and their review receipts are also mandatory.
-    with pytest.raises(DeliveryAvailabilityError, match="per-page render evidence"):
+    # Correct binary alone is not an accepted current deliverable. Remove
+    # the page receipt and re-sign the envelope to model an otherwise valid
+    # same-session build with no render/readback evidence.
+    for resource in resources:
+        evidence = resource["delivery_evidence"]
+        unsigned = {key: value for key, value in evidence.items() if key != "session_attestation"}
+        unsigned.pop("render_inspection_receipt", None)
+        signed = {
+            **unsigned,
+            "session_attestation": delivery_pipeline._issuer_sign(unsigned),
+        }
+        resource["delivery_evidence"] = signed
+        resource["delivery_evidence_sha256"] = delivery_pipeline._canonical_digest(signed)
+    with pytest.raises(DeliveryAvailabilityError, match="CURRENT_WORD_RENDER_RECEIPT_REQUIRED"):
         build_visible_delivery_receipt(
             state, resources=resources, resource_verifier=lambda _: True,
             resource_binary_reader=lambda _: {"content": blob},
