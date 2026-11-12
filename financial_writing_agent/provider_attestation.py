@@ -166,3 +166,70 @@ def verify_action_authorization(
         },
         expected_actor=expected_owner_principal(),
     )
+
+
+def verify_method_action_authorization(
+    raw: Mapping[str, Any] | None, *, request: Mapping[str, Any],
+) -> dict[str, Any]:
+    return verify_provider_attestation(
+        raw, expected_type="method_action_authorization",
+        expected_claims={
+            "approved": True,
+            "action_id": request["action_id"],
+            "domain_id": request["domain_id"],
+            "operation": request["operation"],
+            "expected_catalog_blob_sha": request["expected_catalog_blob_sha"],
+            "request_sha256": request_sha256(request),
+        },
+        expected_actor=expected_owner_principal(),
+    )
+
+
+def _verify_independent_method_review(
+    raw: Mapping[str, Any] | None, *, expected_type: str,
+    expected_claims: Mapping[str, Any],
+) -> dict[str, Any]:
+    record = verify_provider_attestation(
+        raw, expected_type=expected_type,
+        expected_claims=expected_claims,
+        key_env="FINANCIAL_METHOD_REVIEW_KEY",
+        provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+    )
+    owner = expected_owner_principal()
+    if record["authenticated_actor"] == owner:
+        raise FinancialProviderAttestationError("FINANCIAL_METHOD_REVIEWER_MUST_DIFFER_FROM_OWNER")
+    if record["provider_id"] == os.environ.get(PROVIDER_ENV):
+        raise FinancialProviderAttestationError("FINANCIAL_METHOD_REVIEW_PROVIDER_MUST_BE_SEPARATE")
+    return record
+
+
+def verify_method_promotion_attestation(
+    raw: Mapping[str, Any] | None, *, challenge: Mapping[str, Any],
+) -> dict[str, Any]:
+    return _verify_independent_method_review(
+        raw, expected_type="method_promotion_review",
+        expected_claims={
+            "approved": True,
+            "knowledge_id": challenge["knowledge_id"],
+            "record_sha256": challenge["record_sha256"],
+            "decision_sha256": challenge["decision_sha256"],
+            "validation_refs": challenge["validation_refs"],
+            "review_ref": challenge["review_ref"],
+        },
+    )
+
+
+def verify_method_impact_attestation(
+    raw: Mapping[str, Any] | None, *, challenge: Mapping[str, Any],
+) -> dict[str, Any]:
+    return _verify_independent_method_review(
+        raw, expected_type="method_impact_review",
+        expected_claims={
+            "approved": True,
+            "knowledge_id": challenge["knowledge_id"],
+            "target_change_revision": challenge["target_change_revision"],
+            "event_sha256": challenge["event_sha256"],
+            "stage_evidence_refs": challenge["stage_evidence_refs"],
+            "verified_stages": list(challenge["stage_evidence_refs"]),
+        },
+    )
