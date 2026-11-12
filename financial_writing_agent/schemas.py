@@ -51,14 +51,22 @@ class AuditProvenance(StrictModel):
     reviewer_identity: str = "chat-self"
     author_identity: str = "unknown"
     execution_ref: str = ""
+    reviewed_article_sha256: str | None = None
+    provider_attestation_sha256: str | None = None
 
     @model_validator(mode="after")
     def validate_independence(self):
         if self.assurance == "INDEPENDENT_EXECUTOR":
+            import re
+
             if not self.execution_ref:
                 raise ValueError("independent audit requires execution_ref")
             if self.reviewer_identity == self.author_identity:
                 raise ValueError("independent audit reviewer_identity must differ from author_identity")
+            for key in ("reviewed_article_sha256", "provider_attestation_sha256"):
+                value = getattr(self, key)
+                if not isinstance(value, str) or re.fullmatch(r"[a-f0-9]{64}", value) is None:
+                    raise ValueError(f"independent audit requires {key}")
         return self
 
 
