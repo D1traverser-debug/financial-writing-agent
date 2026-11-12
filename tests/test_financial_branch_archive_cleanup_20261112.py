@@ -50,6 +50,9 @@ class SimulatedAPI:
     def call(self,method,path,payload=None):
         if method=="GET" and path.endswith("pulls?state=open&per_page=100&page=1"):
             return [{"head":{"ref":"article/active","repo":{"full_name":REPO}}}]
+        if method=="GET" and path.endswith("pulls?state=closed&per_page=100&page=1"):
+            return [{"merged_at":"2026-11-12T00:00:00Z","base":{"ref":"main"},
+                     "head":{"ref":"test/old","sha":B}}]
         raise RuntimeError(path)
     def exact_branch_head(self,name):
         return ("f"*40 if self.changed and name=="test/old"
