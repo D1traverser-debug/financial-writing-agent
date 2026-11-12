@@ -20,6 +20,8 @@ from . import current_admission
 from .path_identity import require_article_path, require_task_id
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
+from .editorial_review_authority import (IndependentEditorialEvidenceError,
+                                         verify_external_editorial_review)
 
 DOMAIN_ID = "financial_writing"
 CONTRACT_VERSION = "1.0"
@@ -215,6 +217,7 @@ def admit_article_action(
     authorization_verifier: AuthorizationVerifier | None,
     artifact_reader: ArtifactReader | None = None,
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
+    independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Use existing Financial admissions and genuine provider CAS/readback.
 
@@ -282,6 +285,19 @@ def admit_article_action(
                     hashlib.sha256(ref.encode("utf-8")).hexdigest() in known,
                     "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
                 )
+    independent_editorial_proof = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "EDITORIAL_AUDIT":
+        try:
+            independent_editorial_proof = verify_external_editorial_review(
+                candidate, candidate["quality_evidence"].get("publication_fitnesses", []),
+                draft_reader=artifact_reader,
+                provider_verifier=independent_editorial_verifier,
+            )
+        except IndependentEditorialEvidenceError as exc:
+            raise FinancialAdmissionError(str(exc)) from exc
+        if independent_editorial_proof is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["independent_editorial_proof"] = independent_editorial_proof
+            current_admission.validate_state(candidate)
     payload = _canonical_payload(candidate)
     expected_new_sha = _blob_sha(payload)
     try:
@@ -303,6 +319,7 @@ def admit_article_action(
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
         "research_source_readback": research_sources,
+        "independent_editorial_review_readback": independent_editorial_proof,
         "child_state_cas_verified": True,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
