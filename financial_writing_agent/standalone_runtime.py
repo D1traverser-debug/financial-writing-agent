@@ -20,6 +20,10 @@ from typing import Any, Callable, Mapping
 
 from . import current_admission, owner_lifecycle, proactive_resolution
 from .intent_governance import FinancialIntentEvidenceError, verify_requirement_change_intent
+from .method_governance import (
+    CATALOG_PATH, METHOD_ACTIONS, MethodGovernanceError,
+    mutate_method_catalog, query_methods, validate_method_catalog,
+)
 from .path_identity import require_article_path, require_task_id
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
@@ -450,4 +454,125 @@ def admit_article_action(
         "child_state_cas_verified": True,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
+    }
+
+
+def observe_method_catalog(
+    *, catalog_reader: StateReader, knowledge_id: str | None = None,
+    operational_only: bool = False,
+) -> dict[str, Any]:
+    """Read the single existing Financial method catalog; no new task ledger."""
+    record = _read(catalog_reader, CATALOG_PATH)
+    _require(record is not None, "FINANCIAL_METHOD_CATALOG_UNAVAILABLE")
+    raw, sha = record
+    try:
+        catalog = validate_method_catalog(raw)
+        methods = query_methods(catalog, knowledge_id=knowledge_id,
+                                operational_only=operational_only)
+    except MethodGovernanceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+    return {
+        "domain_id": DOMAIN_ID, "catalog_ref": CATALOG_PATH,
+        "catalog_blob_sha": sha,
+        "governance_revision": catalog.get("governance_revision", 0),
+        "records": methods,
+        "open_revalidation": [
+            {
+                "change_revision": event["revision"],
+                "knowledge_id": event["knowledge_id"],
+                "affected_stages": event["affected_stages"],
+            }
+            for event in catalog.get("change_history", [])
+            if event.get("impact_review_state")
+            == "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED"
+        ],
+        "live_article_effect_verified": False,
+    }
+
+
+def admit_method_action(
+    request: Mapping[str, Any],
+    *,
+    catalog_reader: StateReader,
+    catalog_cas_writer: CASWriter | None,
+    authorization_verifier: AuthorizationVerifier | None,
+    promotion_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+) -> dict[str, Any]:
+    """Independent Financial-domain method CRUD via existing catalog Git CAS.
+
+    This separate *action scope* writes only knowledge/METHOD_KNOWLEDGE_CATALOG,
+    not an independent business state controller or a method Task Index.
+    It can be served by the same Financial Skill/client and trusted Git provider.
+    """
+    _require(isinstance(request, Mapping), "FINANCIAL_METHOD_ACTION_INVALID")
+    required = {"schema_version", "domain_id", "action_id", "operation",
+                "expected_catalog_blob_sha", "parameters"}
+    _require(set(request) == required, "FINANCIAL_METHOD_ACTION_FIELDS_INVALID")
+    _require(request.get("schema_version") == CONTRACT_VERSION
+             and request.get("domain_id") == DOMAIN_ID,
+             "FINANCIAL_METHOD_ACTION_DOMAIN_INVALID")
+    _require(isinstance(request.get("action_id"), str)
+             and _ACTION_ID.fullmatch(request["action_id"]) is not None,
+             "FINANCIAL_METHOD_ACTION_ID_INVALID")
+    operation = request.get("operation")
+    _require(operation in METHOD_ACTIONS, "FINANCIAL_METHOD_ACTION_NOT_SUPPORTED")
+    _require(_valid_sha(request.get("expected_catalog_blob_sha")),
+             "FINANCIAL_METHOD_EXPECTED_SHA_REQUIRED")
+    params = request.get("parameters")
+    _require(isinstance(params, Mapping), "FINANCIAL_METHOD_ACTION_PARAMS_INVALID")
+    allowed = {
+        "knowledge_id", "proposed_record", "decision_envelope", "evidence_refs",
+        "affected_stages", "promotion_evidence",
+    }
+    _require(set(params).issubset(allowed), "FINANCIAL_METHOD_ACTION_PARAMS_EXCEEDED")
+    _require(callable(authorization_verifier) and callable(catalog_cas_writer),
+             "FINANCIAL_METHOD_TRUSTED_AUTH_AND_CAS_REQUIRED")
+    try:
+        approved = authorization_verifier(deepcopy(dict(request)))
+    except Exception as exc:
+        raise FinancialAdmissionError("FINANCIAL_METHOD_AUTHORIZATION_NOT_VERIFIED") from exc
+    _require(approved is True, "FINANCIAL_METHOD_AUTHORIZATION_NOT_VERIFIED")
+
+    observed = _read(catalog_reader, CATALOG_PATH)
+    _require(observed is not None, "FINANCIAL_METHOD_CATALOG_UNAVAILABLE")
+    before, previous_sha = observed
+    _require(previous_sha == request["expected_catalog_blob_sha"],
+             "FINANCIAL_METHOD_CATALOG_CHANGED_CONCURRENTLY")
+    try:
+        candidate, receipt = mutate_method_catalog(
+            before, operation=operation,
+            knowledge_id=params.get("knowledge_id"),
+            proposed_record=params.get("proposed_record"),
+            decision_envelope=params.get("decision_envelope"),
+            evidence_refs=params.get("evidence_refs"),
+            affected_stages=params.get("affected_stages"),
+            promotion_evidence=params.get("promotion_evidence"),
+            promotion_verifier=promotion_verifier,
+        )
+    except MethodGovernanceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+    payload = _canonical_payload(candidate)
+    expected_new_sha = _blob_sha(payload)
+    try:
+        issued = catalog_cas_writer(CATALOG_PATH, previous_sha, payload)
+    except Exception as exc:
+        raise FinancialEffectUnverified("FINANCIAL_METHOD_WRITE_OUTCOME_UNKNOWN") from exc
+    if not isinstance(issued, Mapping) or issued.get("blob_sha") != expected_new_sha:
+        raise FinancialEffectUnverified("FINANCIAL_METHOD_WRITE_SHA_MISMATCH")
+    verified = _read(catalog_reader, CATALOG_PATH)
+    if (verified is None or verified[1] != expected_new_sha
+            or not _strict_json_equal(verified[0], candidate)):
+        raise FinancialEffectUnverified("FINANCIAL_METHOD_CATALOG_READBACK_MISMATCH")
+    validate_method_catalog(verified[0])
+    return {
+        "contract_version": CONTRACT_VERSION, "domain_id": DOMAIN_ID,
+        "catalog_ref": CATALOG_PATH, "action_id": request["action_id"],
+        "operation": operation, "knowledge_id": params.get("knowledge_id"),
+        "previous_catalog_blob_sha": previous_sha,
+        "observed_catalog_blob_sha": expected_new_sha,
+        "provider_commit_ref": issued.get("commit_ref"),
+        "governance_revision": candidate["governance_revision"],
+        "method_change_receipt": receipt,
+        "method_catalog_cas_verified": True,
+        "live_article_effect_verified": False,
     }
