@@ -1,7 +1,7 @@
 # Financial Writing Agent — Architecture
 
 Version: `1.1.0 / standalone Financial operating domain`
-Reviewed: `2026-11-11`
+Reviewed: `2026-11-12`
 Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
