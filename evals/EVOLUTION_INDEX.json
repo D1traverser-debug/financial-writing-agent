@@ -180,12 +180,15 @@
       "method_crud_scope": "CANDIDATE_REVISE_PROMOTE_CHALLENGE_RETIRE_RESTORE_VERIFY_IMPACT",
       "owner_intent_ingress": "READ_VERIFIED_USER_SOURCE_BEFORE_MUTATING_REQUIREMENTS",
       "implementation_ref": "repair/financial-goal-method-governance-20261112",
-      "engineering_status": "CANDIDATE__VERIFY_EXACT_HEAD_CI_BEFORE_PRODUCTION",
+      "engineering_status": "CANDIDATE__EXACT_MAIN_READBACK_REQUIRED",
       "client_native_activation": "NOT_TESTED",
       "actual_live_method_effect": "NOT_TESTED",
       "actual_real_user_source_readback": "NOT_TESTED",
       "real_article_production": "OUT_OF_SCOPE_OF_CURRENT_OWNER_ENGINEERING_REQUEST",
-      "parent_repo_mutation": "FORBIDDEN_NONE"
+      "parent_repo_mutation": "FORBIDDEN_NONE",
+      "method_article_dependency": "EXPLICIT_METHOD_ID__ACTIVE_VERSION_DIGEST__CANONICAL_STAGE_REOPEN_WITH_CAS",
+      "method_article_dependency_test": "tests/test_financial_method_article_dependency_20261112.py",
+      "test_scope": "SYNTHETIC_AUTHENTICATED_USER_MESSAGE_AND_METHOD_PROVIDER__NOT_NATIVE_CLIENT_ACTIVATION"
     }
   },
   "system_engineering_simulation_20261112": {
