@@ -133,6 +133,18 @@ def test_observation_reverifies_persisted_provider_signature_and_rejects_tamperi
         observe_article("solo-article-01", state_reader=p.read)
 
 
+def test_persisted_article_action_history_rejects_replayed_action_id_and_nonce():
+    from financial_writing_agent.standalone_runtime import (
+        _verify_persisted_action_authorization_history,
+    )
+    p = Provider()
+    create(p)
+    state = p.read("workspaces/articles/solo-article-01/STATE.json")["state"]
+    state["execution_receipts"].append(deepcopy(state["execution_receipts"][-1]))
+    with pytest.raises(FinancialAdmissionError, match="ACTION_ID_REPLAYED"):
+        _verify_persisted_action_authorization_history(state)
+
+
 def test_legacy_self_attested_receipts_are_reported_as_legacy_not_signed():
     p = Provider()
     create(p)
