@@ -239,7 +239,7 @@ def verify_persisted_method_action_authorization(
             "request_sha256": request_sha256(request),
         },
         expected_actor=expected_owner_principal(),
-        now=issued_at,
+        max_age_seconds=None,
     )
 
 
@@ -247,19 +247,17 @@ def _verify_independent_method_review(
     raw: Mapping[str, Any] | None, *, expected_type: str,
     expected_claims: Mapping[str, Any], historical: bool = False,
 ) -> dict[str, Any]:
-    now = None
     if historical:
         if not isinstance(raw, Mapping):
             raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_METHOD_REVIEW_MISSING")
-        now = raw.get("issued_at")
-        if not isinstance(now, int) or isinstance(now, bool):
+        issued_at = raw.get("issued_at")
+        if not isinstance(issued_at, int) or isinstance(issued_at, bool):
             raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_METHOD_REVIEW_TIMESTAMP_INVALID")
     record = verify_provider_attestation(
         raw, expected_type=expected_type,
         expected_claims=expected_claims,
         key_env="FINANCIAL_METHOD_REVIEW_KEY",
         provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
-        now=now,
         max_age_seconds=None if historical else MAX_AGE_SECONDS,
     )
     owner = expected_owner_principal()
