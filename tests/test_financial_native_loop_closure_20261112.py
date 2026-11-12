@@ -19,6 +19,7 @@ from financial_writing_agent.standalone_runtime import (
     admit_article_action, observe_article,
 )
 from trusted_provider_testkit import signed_action_authorization
+from test_current_admission_v1 import EDITORIAL_ATTESTATIONS
 
 FIXTURE = Path(__file__).resolve().parents[1] / "evals/FINANCIAL_WRITING_KERNEL_DECISION_ENVELOPE_2026-10-15.json"
 TASK = "synthetic-financial-loop"
@@ -57,6 +58,8 @@ class Provider:
 
 def act(p, operation, params=None, *, auth=None, sha=None):
     expected = p.read(STATE_PATH)["blob_sha"] if sha is None and p.read(STATE_PATH) else sha
+    def editorial_verifier(request):
+        return EDITORIAL_ATTESTATIONS[request["execution_ref"]]
     return admit_article_action({
         "schema_version": "1.0", "domain_id": DOMAIN_ID,
         "action_id": f"synthetic-{operation.lower()}-{len(p.states.get(STATE_PATH, ''))}",
@@ -65,7 +68,8 @@ def act(p, operation, params=None, *, auth=None, sha=None):
         "parameters": params or {},
     }, state_reader=p.read, cas_writer=p.write,
        authorization_verifier=auth or signed_action_authorization,
-       artifact_reader=p.artifact, source_snapshot_reader=p.source)
+       artifact_reader=p.artifact, source_snapshot_reader=p.source,
+       independent_editorial_verifier=editorial_verifier)
 
 
 def make():
