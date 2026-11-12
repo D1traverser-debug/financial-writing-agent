@@ -1,4 +1,5 @@
 """Signed external proof, not callback or Boolean self-certification."""
+import copy
 import pytest
 
 from financial_writing_agent.acceptance_gates import (
@@ -132,6 +133,44 @@ def test_signed_synthetic_gate_and_ci_receipts_exercise_verifier_but_are_not_liv
     assert result["open_gates"] == []
     # The signature key is installed by pytest conftest only; this is a test of
     # signature verification, never a production acceptance record.
+
+
+@pytest.mark.parametrize("nested_field", ["promotion_attestation", "impact_attestation"])
+def test_method_gate_rejects_tampered_independent_review_even_with_valid_outer_receipt(nested_field):
+    proofs = _proofs()
+    gate = "METHOD_KNOWLEDGE_CRUD_AND_IMPACT"
+    outer = proofs[gate]
+    evidence = copy.deepcopy(outer["evidence"])
+    evidence[nested_field]["signature"] = "0" * 64
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-financial-owner",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "METHOD_INDEPENDENT_REVIEW_ATTESTATION_INVALID" in result["gates"][gate]["reason"]
+
+
+def test_method_gate_malformed_signed_challenge_fails_closed_without_crashing():
+    proofs = _proofs()
+    gate = "METHOD_KNOWLEDGE_CRUD_AND_IMPACT"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence["promotion_challenge"].pop("record_sha256")
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-financial-owner",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "METHOD_INDEPENDENT_REVIEW_ATTESTATION_INVALID" in result["gates"][gate]["reason"]
 
 
 def test_owner_cannot_attest_the_independent_external_review_gate():
