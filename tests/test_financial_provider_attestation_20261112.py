@@ -1,4 +1,6 @@
 """Cryptographic provider trust boundaries; all signing keys here are synthetic pytest-only."""
+import time
+
 import pytest
 
 from financial_writing_agent.provider_attestation import (
@@ -10,6 +12,10 @@ from financial_writing_agent.provider_attestation import (
     verify_method_action_authorization,
     verify_method_promotion_attestation,
     verify_method_impact_attestation,
+    verify_persisted_action_authorization,
+    verify_persisted_method_action_authorization,
+    verify_persisted_method_promotion_attestation,
+    verify_persisted_method_impact_attestation,
     request_sha256,
 )
 from trusted_provider_testkit import (
@@ -151,3 +157,103 @@ def test_method_impact_requires_separate_signed_reviewer_and_exact_stage_set():
     altered = {**challenge, "stage_evidence_refs":{"RESEARCH":"evidence://other"}}
     with pytest.raises(FinancialProviderAttestationError):
         verify_method_impact_attestation(signed, challenge=altered)
+
+def test_historical_action_authorization_accepts_expired_receipt_but_rejects_future_dated_receipt():
+    claims = {
+        "approved": True, "action_id": "historical-a1", "task_id": "task-1",
+        "operation": "ADVANCE_STAGE", "expected_state_blob_sha": "a" * 40,
+        "request_sha256": "b" * 64,
+    }
+    old = signed_attestation(
+        "action_authorization", issued_at=int(time.time()) - 86400, **claims,
+    )
+    assert verify_persisted_action_authorization(
+        old, expected_claims=claims,
+    )["approved"] is True
+    future = signed_attestation(
+        "action_authorization", issued_at=int(time.time()) + 120, **claims,
+    )
+    with pytest.raises(FinancialProviderAttestationError, match="FUTURE_DATED"):
+        verify_persisted_action_authorization(future, expected_claims=claims)
+
+
+def test_historical_method_action_authorization_keeps_future_skew_check():
+    request = {
+        "schema_version": "1.0", "domain_id": "financial_writing",
+        "action_id": "historical-method-a1", "operation": "REVISE",
+        "expected_catalog_blob_sha": "a" * 40,
+        "parameters": {"knowledge_id": "METHOD-ONE"},
+    }
+    claims = {
+        "approved": True, "action_id": request["action_id"],
+        "domain_id": request["domain_id"], "operation": request["operation"],
+        "knowledge_id": request["parameters"]["knowledge_id"],
+        "expected_catalog_blob_sha": request["expected_catalog_blob_sha"],
+        "request_sha256": request_sha256(request),
+    }
+    old = signed_attestation(
+        "method_action_authorization", issued_at=int(time.time()) - 86400, **claims,
+    )
+    assert verify_persisted_method_action_authorization(
+        old, request=request,
+    )["approved"] is True
+    future = signed_attestation(
+        "method_action_authorization", issued_at=int(time.time()) + 120, **claims,
+    )
+    with pytest.raises(FinancialProviderAttestationError, match="FUTURE_DATED"):
+        verify_persisted_method_action_authorization(future, request=request)
+
+
+@pytest.mark.parametrize("kind", ["method_promotion_review", "method_impact_review"])
+def test_historical_independent_method_reviews_accept_expired_but_reject_future_dated_receipts(kind):
+    challenge = (
+        {
+            "knowledge_id": "METHOD-ONE", "record_sha256": "a" * 64,
+            "decision_sha256": "b" * 64, "validation_refs": ["ci://exact"],
+            "review_ref": "review://exact",
+        }
+        if kind == "method_promotion_review" else
+        {
+            "knowledge_id": "METHOD-ONE", "target_change_revision": 3,
+            "event_sha256": "c" * 64,
+            "stage_evidence_refs": {"RESEARCH": "evidence://research"},
+        }
+    )
+    claims = (
+        {
+            "approved": True, "knowledge_id": challenge["knowledge_id"],
+            "record_sha256": challenge["record_sha256"],
+            "decision_sha256": challenge["decision_sha256"],
+            "validation_refs": challenge["validation_refs"],
+            "review_ref": challenge["review_ref"],
+        }
+        if kind == "method_promotion_review" else
+        {
+            "approved": True, "knowledge_id": challenge["knowledge_id"],
+            "target_change_revision": challenge["target_change_revision"],
+            "event_sha256": challenge["event_sha256"],
+            "stage_evidence_refs": challenge["stage_evidence_refs"],
+            "verified_stages": list(challenge["stage_evidence_refs"]),
+        }
+    )
+    verifier = (
+        verify_persisted_method_promotion_attestation
+        if kind == "method_promotion_review"
+        else verify_persisted_method_impact_attestation
+    )
+    old = signed_attestation(
+        kind, actor="synthetic-method-reviewer",
+        key_env="FINANCIAL_METHOD_REVIEW_KEY",
+        provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+        issued_at=int(time.time()) - 86400, **claims,
+    )
+    assert verifier(old, challenge=challenge)["approved"] is True
+    future = signed_attestation(
+        kind, actor="synthetic-method-reviewer",
+        key_env="FINANCIAL_METHOD_REVIEW_KEY",
+        provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+        issued_at=int(time.time()) + 120, **claims,
+    )
+    with pytest.raises(FinancialProviderAttestationError, match="FUTURE_DATED"):
+        verifier(future, challenge=challenge)
+
