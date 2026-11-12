@@ -445,3 +445,86 @@ def record_nonbinding_intent_state(
     _require(after["task_requirement_digest"] == original["task_requirement_digest"],
              "nonbinding proposal must not change requirement digest")
     return after
+
+
+def reopen_method_dependent_article_state(
+    state: Mapping[str, Any],
+    *,
+    previous_state_blob_sha: str,
+    executor_identity: str,
+    method_dependency_changes: list[Mapping[str, Any]],
+    verified_catalog_blob_sha: str,
+    state_ref: str = MAIN_STATE_REF,
+) -> dict[str, Any]:
+    """Reopen earliest affected owner stage after provider-verified method drift.
+
+    This is not a second business graph. The Financial method catalog supplies
+    the change-event evidence, and the existing owner graph invalidates only
+    descendants of the earliest affected stage, preserving all prior receipts.
+    """
+    from . import current_admission as admission
+
+    _require(state_ref == MAIN_STATE_REF, "method dependency reopens only Financial main state")
+    admission.validate_state(state)
+    _require(bool(previous_state_blob_sha and executor_identity),
+             "method reopen needs prior state and authorized executor")
+    _require(isinstance(verified_catalog_blob_sha, str)
+             and len(verified_catalog_blob_sha) == 40,
+             "method reopen requires verified Git catalog Blob SHA")
+    _require(isinstance(method_dependency_changes, list)
+             and bool(method_dependency_changes), "no actual method dependency drift")
+    earliest = min(
+        (str(item["earliest_affected_stage"]) for item in method_dependency_changes),
+        key=lambda name: owner_guard.STAGE_INDEX[name],
+    )
+    _require(earliest in owner_guard.STAGE_INDEX, "method affected stage is noncanonical")
+    old_stage = str(state["current_stage"])
+    _require(owner_guard.STAGE_INDEX[old_stage] >= owner_guard.STAGE_INDEX[earliest],
+             "method change affects a future stage, no current rollback required")
+    working = deepcopy(dict(state))
+    admission._archive_invalidated_quality(
+        working, reason="METHOD_CATALOG_DEPENDENCY_CHANGE",
+        earliest_stage=earliest,
+    )
+    invalidated = owner_guard._invalidate_from(working, earliest)
+    working["status"] = "IN_PROGRESS"
+    working["current_stage"] = earliest
+    working["next_action"] = (
+        f"re-evaluate {earliest} with current verified Financial method catalog "
+        "and new method candidate/alternatives"
+    )
+    working.setdefault("method_dependency_reopen_history", []).append({
+        "from_stage": old_stage,
+        "to_stage": earliest,
+        "changed_methods": deepcopy(method_dependency_changes),
+        "catalog_blob_sha": verified_catalog_blob_sha,
+        "invalidated_stage_refs": invalidated,
+        "reopened_at": _utc_now(),
+    })
+    receipt = _new_receipt(
+        task_id=str(working["task_id"]),
+        stage=old_stage,
+        capability_id="financial_method_dependency_revalidation",
+        executor_identity=executor_identity,
+        previous_state_blob_sha=previous_state_blob_sha,
+        action_kind="REOPEN_METHOD_DEPENDENCY",
+        subject_bindings={
+            "task_id": working["task_id"],
+            "from_stage": old_stage, "to_stage": earliest,
+            "knowledge_ids": [item["knowledge_id"] for item in method_dependency_changes],
+        },
+        input_bindings={
+            "verified_method_catalog_blob_sha": verified_catalog_blob_sha,
+            "changed_methods": deepcopy(method_dependency_changes),
+            "invalidated_stage_refs": invalidated,
+        },
+        output_refs=[_state_path(str(working["task_id"]))],
+        state_ref=state_ref,
+    )
+    working["execution_receipts"] = list(state["execution_receipts"]) + [receipt]
+    working["updated_at"] = _utc_now()
+    admission.bind_current_governance_receipt(working)
+    admission.validate_state(working)
+    _require(working["execution_receipts"][:-1] == state["execution_receipts"],
+             "method reopen must not rewrite old execution receipts")
+    return working
