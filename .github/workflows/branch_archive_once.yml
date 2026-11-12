@@ -8,6 +8,11 @@ on:
         required: true
         type: boolean
         default: false
+      confirm_unverified_branch_archive:
+        description: "After inspecting the manifest, explicitly authorize pruning archived non-main refs without an exact merged-to-main PR head."
+        required: true
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -101,7 +106,7 @@ jobs:
 
   prune:
     needs: [plan, archive]
-    if: ${{ needs.plan.result == 'success' && needs.archive.result == 'success' }}
+    if: ${{ needs.plan.result == 'success' && needs.archive.result == 'success' && inputs.confirm_unverified_branch_archive == true }}
     runs-on: ubuntu-latest
     timeout-minutes: 30
     environment:
@@ -140,6 +145,7 @@ jobs:
           python scripts/branch_archive_cleanup.py --prune-only
           --manifest audit/financial_branch_plan.json
           --approved-manifest-sha256 ${{ needs.plan.outputs.manifest_sha256 }}
+          --confirm-unverified-branch-archive
           --out audit/financial_branch_prune.json
       - name: Preserve final full inventory and tag readback
         if: always()
