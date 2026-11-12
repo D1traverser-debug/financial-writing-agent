@@ -380,6 +380,28 @@ def run() -> dict:
         "semantic_company_identity_same": True,
     }
 
+    reproduced_gaps = []
+    for key, label, expected in (
+        ("05_fabricated_brief_schema", "RESEARCH_FAKE_SOURCE_REFS", "STRUCTURAL_ACCEPTANCE"),
+        ("06_opposite_direction_source_claim", "CONTRADICTORY_FINANCIAL_CLAIM", "STRUCTURAL_TRACE_ACCEPTED"),
+        ("09_generic_word_without_binary", "GENERIC_WORD_RECEIPT_WITHOUT_BINARY", "INTERNAL_GENERIC_RECEIPT_ACCEPTED"),
+        ("10_three_company_universe_as_complete", "UNIVERSE_TRUNCATION_3_VS_174", "STRUCTURAL_SCOPE_ACCEPTED"),
+        ("11_unsupported_task_satisfaction", "UNREAD_REQUIREMENT_EVIDENCE", "STRUCTURAL_SATISFACTION_ACCEPTED"),
+    ):
+        value = observations.get(key, {})
+        if isinstance(value, dict) and value.get("result") == expected:
+            reproduced_gaps.append(label)
+    if observations["07_self_scored_editorial_fitness"]["self_pass_admitted"]:
+        reproduced_gaps.append("SELF_REVIEW_PASS_WITHOUT_INDEPENDENT_JUDGMENT")
+    if observations["12_real_csv_to_draft_name_identity"]["raw_name_mismatch_count"]:
+        reproduced_gaps.append("CSV_NAME_CANONICALIZATION")
+    observations["00_business_assurance_conclusion"] = {
+        "product_readiness": "NOT_READY",
+        "reason": "LIVE_V3_0_OF_4_DELIVERABLES__INDEPENDENT_EDITORIAL_NOT_VERIFIED",
+        "reproduced_weak_assurance_paths": sorted(reproduced_gaps),
+        "successful_safety_controls": ["UNAUTHENTICATED_STATE_CHANGE_DENIED", "READ_ONLY_OBSERVATION_NO_INDEPENDENT_CERTIFICATION"],
+        "ci_success_means": "NEGATIVE_REPLAY_EXECUTED__NOT_PUBLICATION_ACCEPTANCE",
+    }
     return observations
 
 
