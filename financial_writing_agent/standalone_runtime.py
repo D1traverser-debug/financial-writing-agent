@@ -28,7 +28,10 @@ from .method_governance import (
     admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
-from .provider_attestation import verify_action_authorization, FinancialProviderAttestationError
+from .provider_attestation import (
+    verify_action_authorization, verify_method_action_authorization,
+    FinancialProviderAttestationError,
+)
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (IndependentEditorialEvidenceError,
@@ -681,10 +684,21 @@ def admit_method_action(
     _require(callable(authorization_verifier) and callable(catalog_cas_writer),
              "FINANCIAL_METHOD_TRUSTED_AUTH_AND_CAS_REQUIRED")
     try:
-        approved = authorization_verifier(deepcopy(dict(request)))
+        authorization_attestation = verify_method_action_authorization(
+            authorization_verifier(deepcopy(dict(request))), request=request,
+        )
     except Exception as exc:
-        raise FinancialAdmissionError("FINANCIAL_METHOD_AUTHORIZATION_NOT_VERIFIED") from exc
-    _require(approved is True, "FINANCIAL_METHOD_AUTHORIZATION_NOT_VERIFIED")
+        raise FinancialAdmissionError(
+            "FINANCIAL_METHOD_AUTHORIZATION_ATTESTATION_NOT_VERIFIED"
+        ) from exc
+    authorization_evidence = {
+        "provider_id": authorization_attestation["provider_id"],
+        "authenticated_actor": authorization_attestation["authenticated_actor"],
+        "issued_at": authorization_attestation["issued_at"],
+        "nonce": authorization_attestation["nonce"],
+        "signature": authorization_attestation["signature"],
+        "request_sha256": authorization_attestation["request_sha256"],
+    }
 
     observed = _read(catalog_reader, CATALOG_PATH)
     _require(observed is not None, "FINANCIAL_METHOD_CATALOG_UNAVAILABLE")
@@ -704,6 +718,7 @@ def admit_method_action(
             impact_target_revision=params.get("impact_target_revision"),
             impact_evidence=params.get("impact_evidence"),
             impact_verifier=impact_verifier,
+            authorization_evidence=authorization_evidence,
         )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
@@ -729,6 +744,7 @@ def admit_method_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "governance_revision": candidate["governance_revision"],
         "method_change_receipt": receipt,
+        "authorization_verification": authorization_evidence,
         "method_catalog_cas_verified": True,
         "live_article_effect_verified": False,
     }
