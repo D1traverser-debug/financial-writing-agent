@@ -104,11 +104,38 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
              "CATALOG_HISTORY_REVISION_MISMATCH")
     seen_action_ids: set[str] = set()
     seen_attestation_nonces: set[tuple[str, str]] = set()
+    previous_results: dict[str, str] = {}
+    closed_targets: set[int] = set()
     for index, item in enumerate(history, 1):
         _require(isinstance(item, Mapping) and item.get("revision") == index,
                  "CATALOG_HISTORY_SEQUENCE_INVALID")
-        _require(item.get("knowledge_id") in seen and item.get("operation") in METHOD_ACTIONS,
+        ident = item.get("knowledge_id")
+        operation = item.get("operation")
+        _require(ident in seen and operation in METHOD_ACTIONS,
                  "CATALOG_HISTORY_EVENT_INVALID")
+        prior_record_sha = item.get("prior_record_sha256")
+        if ident in previous_results:
+            _require(prior_record_sha == previous_results[ident],
+                     "CATALOG_RECORD_HISTORY_CHAIN_BROKEN:" + ident)
+        elif operation == "CREATE":
+            _require(prior_record_sha is None,
+                     "CATALOG_CREATE_HAS_PRIOR_RECORD:" + ident)
+        else:
+            _require(isinstance(prior_record_sha, str)
+                     and re.fullmatch(r"[a-f0-9]{64}", prior_record_sha) is not None,
+                     "CATALOG_INITIAL_PRIOR_RECORD_SHA_INVALID:" + ident)
+        result_record_sha = item.get("result_record_sha256")
+        _require(isinstance(result_record_sha, str)
+                 and re.fullmatch(r"[a-f0-9]{64}", result_record_sha) is not None,
+                 "CATALOG_RESULT_RECORD_SHA_INVALID:" + ident)
+        previous_results[ident] = result_record_sha
+        expected_impact_state = (
+            "CLOSED__EXTERNAL_STAGE_EVIDENCE_READBACK"
+            if operation == "VERIFY_IMPACT"
+            else "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED"
+        )
+        _require(item.get("impact_review_state") == expected_impact_state,
+                 "CATALOG_IMPACT_REVIEW_STATE_INVALID:" + ident)
         auth = item.get("authorization_evidence")
         action_request = item.get("authorization_request")
         _require(isinstance(auth, Mapping), "CATALOG_ACTION_ATTESTATION_MISSING")
@@ -126,12 +153,24 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
             verified_auth = verify_persisted_method_action_authorization(auth, request=action_request)
         except Exception as exc:
             raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_ACTION_ATTESTATION_INVALID") from exc
-        _require(action_request.get("operation") == item.get("operation")
-                 and action_request.get("parameters", {}).get("knowledge_id") == item.get("knowledge_id")
+        params = action_request.get("parameters")
+        _require(isinstance(params, Mapping)
+                 and action_request.get("operation") == operation
+                 and params.get("knowledge_id") == ident
                  and action_request.get("action_id") == item.get("authorization_action_id")
                  and action_request.get("expected_catalog_blob_sha") == item.get("authorization_expected_catalog_blob_sha"),
                  "CATALOG_ACTION_REQUEST_EVENT_BINDING_MISMATCH")
-        if item.get("operation") == "PROMOTE":
+        try:
+            expected_decision = DecisionEnvelope.model_validate(
+                params.get("decision_envelope")
+            ).model_dump(mode="json")
+        except Exception as exc:
+            raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_DECISION_BINDING_INVALID") from exc
+        _require(item.get("decision_sha256") == _digest(expected_decision)
+                 and item.get("evidence_refs") == params.get("evidence_refs")
+                 and item.get("affected_stages") == params.get("affected_stages"),
+                 "CATALOG_DECISION_OR_SCOPE_EVENT_BINDING_MISMATCH")
+        if operation == "PROMOTE":
             promoted = item.get("promoted_proof")
             _require(isinstance(promoted, Mapping)
                      and isinstance(promoted.get("attestation"), Mapping),
@@ -149,22 +188,41 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                 )
             except Exception as exc:
                 raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_PROMOTION_ATTESTATION_INVALID") from exc
-            _require(verified_promotion["authenticated_actor"] == promoted.get("reviewer_principal"),
-                     "CATALOG_PROMOTION_REVIEWER_MISMATCH")
+            _require(verified_promotion["authenticated_actor"] == promoted.get("reviewer_principal")
+                     and verified_promotion["provider_id"] == promoted.get("provider_id")
+                     and promoted.get("attestation_signature") == promoted["attestation"].get("signature"),
+                     "CATALOG_PROMOTION_REVIEWER_OR_RECEIPT_BINDING_MISMATCH")
             review_nonce = (verified_promotion["provider_id"], verified_promotion["nonce"])
             _require(review_nonce not in seen_attestation_nonces,
                      "CATALOG_REVIEW_ATTESTATION_NONCE_REPLAYED")
             seen_attestation_nonces.add(review_nonce)
-        if item.get("operation") == "VERIFY_IMPACT":
+        if operation == "VERIFY_IMPACT":
             impact = item.get("impact_verification")
             _require(isinstance(impact, Mapping)
                      and isinstance(impact.get("attestation"), Mapping),
                      "CATALOG_IMPACT_ATTESTATION_MISSING")
+            target_revision = item.get("target_change_revision")
+            _require(type(target_revision) is int and 0 < target_revision < index
+                     and target_revision not in closed_targets,
+                     "CATALOG_IMPACT_TARGET_INVALID_OR_REPLAYED")
+            target = history[target_revision - 1]
+            _require(target.get("knowledge_id") == ident
+                     and target.get("operation") != "VERIFY_IMPACT"
+                     and target.get("impact_review_state")
+                     == "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED",
+                     "CATALOG_IMPACT_TARGET_NOT_OPEN")
+            stage_refs = impact.get("stage_evidence_refs")
+            _require(isinstance(stage_refs, Mapping)
+                     and set(stage_refs) == set(target.get("affected_stages", []))
+                     and impact.get("target_change_revision") == target_revision
+                     and impact.get("reviewed_event_sha256") == _digest(target)
+                     and impact.get("verified_stages") == list(stage_refs),
+                     "CATALOG_IMPACT_EVENT_BINDING_MISMATCH")
             challenge = {
-                "knowledge_id": item["knowledge_id"],
-                "target_change_revision": item.get("target_change_revision"),
-                "event_sha256": impact.get("reviewed_event_sha256"),
-                "stage_evidence_refs": impact.get("stage_evidence_refs"),
+                "knowledge_id": ident,
+                "target_change_revision": target_revision,
+                "event_sha256": _digest(target),
+                "stage_evidence_refs": dict(stage_refs),
             }
             try:
                 verified_impact = verify_persisted_method_impact_attestation(
@@ -172,12 +230,26 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                 )
             except Exception as exc:
                 raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_IMPACT_ATTESTATION_INVALID") from exc
-            _require(verified_impact["authenticated_actor"] == impact.get("reviewer_principal"),
-                     "CATALOG_IMPACT_REVIEWER_MISMATCH")
+            _require(verified_impact["authenticated_actor"] == impact.get("reviewer_principal")
+                     and verified_impact["provider_id"] == impact.get("provider_id")
+                     and impact.get("attestation_signature") == impact["attestation"].get("signature"),
+                     "CATALOG_IMPACT_REVIEWER_OR_RECEIPT_BINDING_MISMATCH")
             review_nonce = (verified_impact["provider_id"], verified_impact["nonce"])
             _require(review_nonce not in seen_attestation_nonces,
                      "CATALOG_REVIEW_ATTESTATION_NONCE_REPLAYED")
             seen_attestation_nonces.add(review_nonce)
+            closed_targets.add(target_revision)
+        else:
+            _require(item.get("target_change_revision") is None
+                     and item.get("impact_verification") is None,
+                     "CATALOG_NON_IMPACT_EVENT_HAS_IMPACT_PROOF")
+        if operation != "PROMOTE":
+            _require(item.get("promoted_proof") is None,
+                     "CATALOG_NON_PROMOTION_EVENT_HAS_PROMOTION_PROOF")
+    record_map = {record["knowledge_id"]: record for record in catalog["records"]}
+    for ident, expected_sha in previous_results.items():
+        _require(ident in record_map and _digest(record_map[ident]) == expected_sha,
+                 "CATALOG_FINAL_RECORD_DOES_NOT_MATCH_HISTORY:" + ident)
     for record in catalog["records"]:
         if record.get("lifecycle_status", "LEGACY_DECLARED") != "ACTIVE":
             continue
