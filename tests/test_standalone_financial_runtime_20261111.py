@@ -68,6 +68,13 @@ def run(p, request, auth=lambda _: True, owner_reader=None):
         request, state_reader=p.read, cas_writer=p.write,
         authorization_verifier=auth, artifact_reader=p.artifact,
         source_snapshot_reader=p.source, owner_instruction_reader=owner_reader,
+        owner_semantic_verifier=lambda request: {
+            "approved": True,
+            "source_sha256": request["source_sha256"],
+            "change_sha256": request["change_sha256"],
+            "reviewer_principal": "synthetic-trusted-owner-review",
+            "assurance": "OWNER_EXPLICITLY_CONFIRMED_EXACT_CHANGE",
+        },
     )
 
 
