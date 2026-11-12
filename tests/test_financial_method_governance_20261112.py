@@ -203,3 +203,64 @@ def test_financial_method_mutation_denies_stale_sha_auth_and_unverified_readback
                             catalog_reader=p.read, catalog_cas_writer=p.write,
                             authorization_verifier=lambda _: True)
     assert p.store == before
+
+
+def test_method_revalidation_obligation_cannot_be_silently_closed_by_self_pass():
+    cat, _ = mutate(original(), "CREATE", proposed=method())
+    target = cat["change_history"][-1]
+    assert target["impact_review_state"].startswith("OPEN")
+    before = deepcopy(cat)
+    with pytest.raises(MethodGovernanceError, match="IMPACT"):
+        mutate_method_catalog(
+            cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
+            decision_envelope=decision(), evidence_refs=["method-source://primary"],
+            affected_stages=["RESEARCH", "EDITORIAL"],
+            impact_target_revision=1,
+            impact_evidence={
+                "stage_evidence_refs": {
+                    "RESEARCH": "simulation://source-and-company-research-test",
+                    "EDITORIAL": "simulation://story-selection-test",
+                },
+            },
+        )
+    assert cat == before
+
+
+def test_method_impact_closure_requires_exact_original_event_and_stage_evidence():
+    cat, _ = mutate(original(), "CREATE", proposed=method())
+    challenge_seen = []
+
+    def trusted_impact_verifier(request):
+        challenge_seen.append(request)
+        return {
+            "verified": True,
+            "target_change_revision": request["target_change_revision"],
+            "reviewed_event_sha256": request["event_sha256"],
+            "verified_stages": list(request["stage_evidence_refs"]),
+            "reviewer_principal": "synthetic-independent-method-reviewer",
+        }
+
+    closed, receipt = mutate_method_catalog(
+        cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
+        decision_envelope=decision(), evidence_refs=["method-source://primary"],
+        affected_stages=["RESEARCH", "EDITORIAL"],
+        impact_target_revision=1,
+        impact_evidence={
+            "stage_evidence_refs": {
+                "RESEARCH": "simulation://source-and-company-research-test",
+                "EDITORIAL": "simulation://story-selection-test",
+            },
+        },
+        impact_verifier=trusted_impact_verifier,
+    )
+    assert challenge_seen
+    assert closed["change_history"][0]["impact_review_state"].startswith("OPEN")
+    assert closed["change_history"][-1]["operation"] == "VERIFY_IMPACT"
+    assert closed["change_history"][-1]["target_change_revision"] == 1
+    assert receipt["impact_review_state"].startswith("CLOSED")
+    assert query_methods(closed, knowledge_id=METHOD_ID)[0]["lifecycle_status"] == "CANDIDATE"
+    p = Provider()
+    p.store[CATALOG_PATH] = json.dumps(closed, ensure_ascii=False)
+    observed = observe_method_catalog(catalog_reader=p.read)
+    assert observed["open_revalidation"] == []
+    assert observed["live_article_effect_verified"] is False
