@@ -1,5 +1,6 @@
 """Signed external proof, not callback or Boolean self-certification."""
 import copy
+import time
 import pytest
 
 from financial_writing_agent.acceptance_gates import (
@@ -171,6 +172,47 @@ def test_method_gate_malformed_signed_challenge_fails_closed_without_crashing():
     )
     assert gate in result["open_gates"]
     assert "METHOD_PROMOTION_DIGEST_INVALID" in result["gates"][gate]["reason"]
+
+
+def test_system_method_gate_accepts_durable_historical_nested_review_receipts():
+    proofs = _proofs()
+    gate = "METHOD_KNOWLEDGE_CRUD_AND_IMPACT"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    old_issued_at = int(time.time()) - 86400
+    promotion = evidence["promotion_challenge"]
+    evidence["promotion_attestation"] = signed_attestation(
+        "method_promotion_review", actor="synthetic-method-reviewer",
+        key_env="FINANCIAL_METHOD_REVIEW_KEY",
+        provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+        issued_at=old_issued_at, approved=True,
+        knowledge_id=promotion["knowledge_id"],
+        record_sha256=promotion["record_sha256"],
+        decision_sha256=promotion["decision_sha256"],
+        validation_refs=promotion["validation_refs"],
+        review_ref=promotion["review_ref"],
+    )
+    impact = evidence["impact_challenge"]
+    evidence["impact_attestation"] = signed_attestation(
+        "method_impact_review", actor="synthetic-method-reviewer",
+        key_env="FINANCIAL_METHOD_REVIEW_KEY",
+        provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+        issued_at=old_issued_at, approved=True,
+        knowledge_id=impact["knowledge_id"],
+        target_change_revision=impact["target_change_revision"],
+        event_sha256=impact["event_sha256"],
+        stage_evidence_refs=impact["stage_evidence_refs"],
+        verified_stages=list(impact["stage_evidence_refs"]),
+    )
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-financial-owner",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate not in result["open_gates"]
 
 
 def test_owner_cannot_attest_the_independent_external_review_gate():
