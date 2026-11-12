@@ -13,6 +13,8 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from io import BytesIO
+from zipfile import BadZipFile, ZipFile
 from copy import deepcopy
 from typing import Any, Callable, Mapping
 
@@ -184,6 +186,64 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
             "retained_universe_reconciliation": reconciliation}
 
 
+def _verify_product_word_bytes(
+    candidate: Mapping[str, Any], reader: ArtifactReader | None,
+) -> dict[str, Any]:
+    """Read current-article DOCX bytes before DELIVERY and FINAL_AUDIT state writes.
+
+    This does not certify independent editorial judgment or replace the
+    separately required per-page visible delivery inspection.
+    """
+    _require(callable(reader), "FINANCIAL_WORD_BINARY_READER_REQUIRED")
+    outputs = candidate.get("delivery_artifacts", {})
+    _require(isinstance(outputs, Mapping) and bool(outputs),
+             "FINANCIAL_WORD_OUTPUT_MANIFEST_MISSING")
+    verified: list[dict[str, str]] = []
+    seen_refs: set[str] = set()
+    from docx import Document
+
+    for kind, meta in sorted(outputs.items()):
+        _require(isinstance(meta, Mapping), f"FINANCIAL_WORD_METADATA_INVALID:{kind}")
+        ref = meta.get("resource_ref")
+        try:
+            path = require_article_path(ref, candidate["task_id"])
+        except ValueError as exc:
+            raise FinancialAdmissionError(f"FINANCIAL_WORD_RESOURCE_REF_INVALID:{kind}") from exc
+        _require(path.rsplit("/", 1)[-1] == meta["file_name"],
+                 f"FINANCIAL_WORD_FILE_NAME_MISMATCH:{kind}")
+        _require(path not in seen_refs, f"FINANCIAL_WORD_RESOURCE_REUSED:{kind}")
+        seen_refs.add(path)
+        try:
+            observed = reader(path)
+        except Exception as exc:
+            raise FinancialEffectUnverified("FINANCIAL_WORD_PROVIDER_READ_FAILED") from exc
+        _require(isinstance(observed, Mapping), f"FINANCIAL_WORD_BINARY_MISSING:{kind}")
+        binary, claimed_sha = observed.get("content"), observed.get("blob_sha")
+        _require(isinstance(binary, bytes) and binary[:2] == b"PK",
+                 f"FINANCIAL_WORD_DOCX_BYTES_INVALID:{kind}")
+        _require(_blob_sha(binary) == claimed_sha,
+                 f"FINANCIAL_WORD_PROVIDER_BLOB_MISMATCH:{kind}")
+        _require(hashlib.sha256(binary).hexdigest() == str(meta["sha256"]).lower(),
+                 f"FINANCIAL_WORD_BINARY_SHA256_MISMATCH:{kind}")
+        try:
+            with ZipFile(BytesIO(binary)) as archive:
+                names = set(archive.namelist())
+                _require("word/document.xml" in names and "[Content_Types].xml" in names,
+                         f"FINANCIAL_WORD_DOCX_STRUCTURE_INVALID:{kind}")
+                _require(archive.testzip() is None, f"FINANCIAL_WORD_DOCX_CORRUPT:{kind}")
+            Document(BytesIO(binary))
+        except (BadZipFile, KeyError, ValueError, OSError) as exc:
+            raise FinancialAdmissionError(f"FINANCIAL_WORD_DOCX_OPEN_FAILED:{kind}") from exc
+        verified.append({
+            "kind": kind, "resource_ref": path,
+            "blob_sha": claimed_sha, "sha256": hashlib.sha256(binary).hexdigest(),
+        })
+    return {
+        "assurance": "CURRENT_ARTICLE_EXACT_DOCX_BYTES_ONLY__PAGE_AND_EDITORIAL_OPEN",
+        "verified_count": len(verified), "files": verified,
+    }
+
+
 def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
     """Read actual child-owned business state; never imply editorial acceptance."""
     path = _state_path(task_id)
@@ -296,6 +356,13 @@ def admit_article_action(
 
     current_admission.validate_state(candidate)
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    word_bytes = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
+        "DELIVERY", "FINAL_AUDIT",
+    }:
+        word_bytes = _verify_product_word_bytes(candidate, artifact_reader)
+        candidate["execution_receipts"][-1]["input_bindings"]["product_word_binary_readback"] = word_bytes
+        current_admission.validate_state(candidate)
     research_sources = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "RESEARCH":
         try:
@@ -347,6 +414,7 @@ def admit_article_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
+        "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
         "independent_editorial_review_readback": independent_editorial_proof,
         "child_state_cas_verified": True,
