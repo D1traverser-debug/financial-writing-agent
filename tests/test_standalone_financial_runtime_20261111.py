@@ -13,6 +13,9 @@ from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, FinancialEffectUnverified,
     _blob_sha, admit_article_action, observe_article,
 )
+from trusted_provider_testkit import (
+    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
+)
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -63,18 +66,13 @@ def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=Non
     }
 
 
-def run(p, request, auth=lambda _: True, owner_reader=None):
+def run(p, request, auth=None, owner_reader=None):
     return admit_article_action(
         request, state_reader=p.read, cas_writer=p.write,
-        authorization_verifier=auth, artifact_reader=p.artifact,
+        authorization_verifier=auth or signed_action_authorization,
+        artifact_reader=p.artifact,
         source_snapshot_reader=p.source, owner_instruction_reader=owner_reader,
-        owner_semantic_verifier=lambda request: {
-            "approved": True,
-            "source_sha256": request["source_sha256"],
-            "change_sha256": request["change_sha256"],
-            "reviewer_principal": "synthetic-trusted-owner-review",
-            "assurance": "OWNER_EXPLICITLY_CONFIRMED_EXACT_CHANGE",
-        },
+        owner_semantic_verifier=signed_owner_change_approval,
     )
 
 
@@ -121,11 +119,9 @@ def test_direct_financial_routing_and_requirement_change_revises_article_only():
             "source_kind": "USER_EXPLICIT",
             "evidence_ref": "chat://owner/explicit-scoped-instruction",
         }],
-    }), owner_reader=lambda ref: {
-        "source_ref": ref, "source_role": "user", "authenticated_actor": "synthetic-owner",
-        "text": "在财经Deep中完整保留本次经济相关公司池",
-        "sha256": hashlib.sha256("在财经Deep中完整保留本次经济相关公司池".encode("utf-8")).hexdigest(),
-    })
+    }), owner_reader=lambda ref: signed_owner_message(
+        ref, "在财经Deep中完整保留本次经济相关公司池",
+    ))
     assert result["stage"] == "INTAKE"
     assert p.read(path)["state"]["task_requirement_authority"]["revision"] == 1
     assert observe_article("solo-article-01", state_reader=p.read)["requirement_revision"] == 1
@@ -274,7 +270,7 @@ def test_provider_must_return_exact_state_content_not_claimed_sha_only():
     with pytest.raises(FinancialAdmissionError, match="PROVIDER_STATE_BLOB_SHA_MISMATCH"):
         admit_article_action(
             proposal("ADVANCE_STAGE", sha=p.read("workspaces/articles/solo-article-01/STATE.json")["blob_sha"]),
-            state_reader=tampered, cas_writer=p.write, authorization_verifier=lambda _: True,
+            state_reader=tampered, cas_writer=p.write, authorization_verifier=signed_action_authorization,
         )
 
 
