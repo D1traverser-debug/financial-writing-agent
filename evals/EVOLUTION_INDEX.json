@@ -101,7 +101,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Financial standalone code is production merged and production CI verified; now complete real authenticated Financial-only plugin action and current source-verified article, independent editorial/reader and Word availability outcomes. No CAOS parent required or modified.",
+    "next_legal_phase": "Repair Financial-only source freshness / primary-evidence and fact-direction assurance, independently admitted editor review, complete research pool and Word real-user delivery; replay on current cross-border v3. Do not modify CAOS.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "NONE",
     "not_completion_evidence": [
@@ -163,6 +163,9 @@
     },
     "current_method_owner": "FINANCIAL_WRITING_OWNER",
     "current_runtime_authority": "config/FINANCIAL_MANIFEST.json",
-    "current_operating_skill": "skills/financial-writing-agent/SKILL.md"
+    "current_operating_skill": "skills/financial-writing-agent/SKILL.md",
+    "latest_business_adversarial_audit": "evals/FINANCIAL_REAL_WORKFLOW_AND_BUSINESS_REDTEAM_AUDIT_20261112.md",
+    "latest_business_adversarial_replay": "scripts/real_financial_workflow_redteam.py",
+    "latest_business_adversarial_status": "REAL_PRODUCTION_FUNCTION_REPLAYED__STRUCTURAL_FALSE_ACCEPTANCE_CASES_REPRODUCED__LIVE_ARTICLE_AND_EDITORIAL_NOT_READY"
   }
 }
