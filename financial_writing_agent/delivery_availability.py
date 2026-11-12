@@ -190,6 +190,11 @@ def build_visible_delivery_receipt(
         regenerated = resource.get("regenerated_from_durable_source") is True
         is_supplemental = kind in supplemental
         evidence = resource["delivery_evidence"]
+        if state.get("writing_kernel_version") == "1.0":
+            _require(
+                isinstance(evidence.get("render_inspection_receipt"), Mapping),
+                f"{kind} current visible Word requires actual per-page render evidence",
+            )
         if kind == ArtifactKind.FINANCE_DEEP_DOCX.value and current_deep_requirement_ids:
             binding = evidence.get("task_scope_binding")
             _require(isinstance(binding, Mapping), "FINANCE_DEEP current task requirements have no signed publication-scope evidence")
