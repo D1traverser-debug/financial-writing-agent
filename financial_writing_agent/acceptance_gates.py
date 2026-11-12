@@ -10,8 +10,8 @@ from .provider_attestation import (
     expected_owner_principal,
     payload_sha256,
     verify_provider_attestation,
-    verify_method_promotion_attestation,
-    verify_method_impact_attestation,
+    verify_persisted_method_promotion_attestation,
+    verify_persisted_method_impact_attestation,
 )
 
 SYSTEM_GATES = (
@@ -141,10 +141,10 @@ def _validate_gate_evidence(
                         for key, value in stage_evidence.items()),
                 "METHOD_IMPACT_STAGE_EVIDENCE_INVALID")
         try:
-            verify_method_promotion_attestation(
+            verify_persisted_method_promotion_attestation(
                 evidence.get("promotion_attestation"), challenge=promotion_challenge,
             )
-            verify_method_impact_attestation(
+            verify_persisted_method_impact_attestation(
                 evidence.get("impact_attestation"), challenge=impact_challenge,
             )
         except (FinancialProviderAttestationError, KeyError, TypeError, ValueError) as exc:
