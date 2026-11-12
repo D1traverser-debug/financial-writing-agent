@@ -49,8 +49,8 @@ def test_tampered_identity_scope_freshness_or_source_invalidates_signature(mutat
 
 
 def test_missing_deployment_key_fails_closed(monkeypatch):
-    monkeypatch.delenv("FINANCIAL_PROVIDER_ATTESTATION_KEY")
     raw = signed_owner_message("message://1", "完整原始消息")
+    monkeypatch.delenv("FINANCIAL_PROVIDER_ATTESTATION_KEY")
     with pytest.raises(FinancialProviderAttestationError, match="KEY_NOT_CONFIGURED"):
         verify_owner_message(raw, source_ref="message://1")
 
