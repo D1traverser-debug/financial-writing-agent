@@ -103,16 +103,43 @@ def _validate_gate_evidence(
                 "RESULT_STATE_READBACK_MISMATCH")
     elif gate == "METHOD_KNOWLEDGE_CRUD_AND_IMPACT":
         require(isinstance(evidence.get("catalog_revision"), int)
+                and not isinstance(evidence.get("catalog_revision"), bool)
                 and evidence["catalog_revision"] > 0,
                 "METHOD_CATALOG_REVISION_INVALID")
-        require(isinstance(evidence.get("affected_task_ids"), list)
-                and bool(evidence["affected_task_ids"]),
-                "METHOD_IMPACT_CLOSURE_EMPTY")
-    elif gate == "METHOD_KNOWLEDGE_CRUD_AND_IMPACT":
+        affected = evidence.get("affected_task_ids")
+        require(isinstance(affected, list) and bool(affected)
+                and all(isinstance(item, str) and item.strip() for item in affected)
+                and len(affected) == len(set(affected)),
+                "METHOD_IMPACT_CLOSURE_INVALID")
         promotion_challenge = evidence.get("promotion_challenge")
         impact_challenge = evidence.get("impact_challenge")
         require(isinstance(promotion_challenge, Mapping), "METHOD_PROMOTION_CHALLENGE_MISSING")
         require(isinstance(impact_challenge, Mapping), "METHOD_IMPACT_CHALLENGE_MISSING")
+        require(isinstance(promotion_challenge.get("knowledge_id"), str)
+                and bool(promotion_challenge["knowledge_id"].strip()),
+                "METHOD_PROMOTION_KNOWLEDGE_ID_INVALID")
+        require(re.fullmatch(r"[a-f0-9]{64}", str(promotion_challenge.get("record_sha256", ""))) is not None
+                and re.fullmatch(r"[a-f0-9]{64}", str(promotion_challenge.get("decision_sha256", ""))) is not None,
+                "METHOD_PROMOTION_DIGEST_INVALID")
+        require(isinstance(promotion_challenge.get("validation_refs"), list)
+                and bool(promotion_challenge["validation_refs"])
+                and all(isinstance(item, str) and item.strip() for item in promotion_challenge["validation_refs"])
+                and isinstance(promotion_challenge.get("review_ref"), str)
+                and bool(promotion_challenge["review_ref"].strip()),
+                "METHOD_PROMOTION_REVIEW_SCOPE_INVALID")
+        require(isinstance(impact_challenge.get("knowledge_id"), str)
+                and bool(impact_challenge["knowledge_id"].strip())
+                and isinstance(impact_challenge.get("target_change_revision"), int)
+                and not isinstance(impact_challenge.get("target_change_revision"), bool)
+                and impact_challenge["target_change_revision"] > 0
+                and re.fullmatch(r"[a-f0-9]{64}", str(impact_challenge.get("event_sha256", ""))) is not None,
+                "METHOD_IMPACT_CHALLENGE_INVALID")
+        stage_evidence = impact_challenge.get("stage_evidence_refs")
+        require(isinstance(stage_evidence, Mapping) and bool(stage_evidence)
+                and all(isinstance(key, str) and key.strip()
+                        and isinstance(value, str) and value.strip()
+                        for key, value in stage_evidence.items()),
+                "METHOD_IMPACT_STAGE_EVIDENCE_INVALID")
         try:
             verify_method_promotion_attestation(
                 evidence.get("promotion_attestation"), challenge=promotion_challenge,
@@ -120,7 +147,7 @@ def _validate_gate_evidence(
             verify_method_impact_attestation(
                 evidence.get("impact_attestation"), challenge=impact_challenge,
             )
-        except FinancialProviderAttestationError as exc:
+        except (FinancialProviderAttestationError, KeyError, TypeError, ValueError) as exc:
             raise FinancialProviderAttestationError(
                 "METHOD_INDEPENDENT_REVIEW_ATTESTATION_INVALID:" + str(exc)
             ) from exc
