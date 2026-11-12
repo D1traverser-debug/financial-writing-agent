@@ -15,7 +15,6 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Mapping
 
 from .provider_attestation import (
-    expected_owner_principal,
     verify_method_action_authorization,
     verify_method_impact_attestation,
     verify_method_promotion_attestation,
