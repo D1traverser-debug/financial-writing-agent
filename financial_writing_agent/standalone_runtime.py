@@ -691,14 +691,8 @@ def admit_method_action(
         raise FinancialAdmissionError(
             "FINANCIAL_METHOD_AUTHORIZATION_ATTESTATION_NOT_VERIFIED"
         ) from exc
-    authorization_evidence = {
-        "provider_id": authorization_attestation["provider_id"],
-        "authenticated_actor": authorization_attestation["authenticated_actor"],
-        "issued_at": authorization_attestation["issued_at"],
-        "nonce": authorization_attestation["nonce"],
-        "signature": authorization_attestation["signature"],
-        "request_sha256": authorization_attestation["request_sha256"],
-    }
+    # Preserve the complete signed receipt for later append-only catalog verification.
+    authorization_evidence = deepcopy(authorization_attestation)
 
     observed = _read(catalog_reader, CATALOG_PATH)
     _require(observed is not None, "FINANCIAL_METHOD_CATALOG_UNAVAILABLE")
