@@ -15,6 +15,9 @@ from datetime import datetime, timezone
 from typing import Any, Callable, Mapping
 
 from .provider_attestation import (
+    expected_owner_principal,
+    verify_provider_attestation,
+    verify_method_action_authorization,
     verify_method_impact_attestation,
     verify_method_promotion_attestation,
 )
@@ -243,6 +246,7 @@ def mutate_method_catalog(
                 "validation_refs": refs,
                 "review_ref": challenge["review_ref"],
                 "attestation_signature": proof["signature"],
+                "attestation": deepcopy(dict(proof)),
                 "assurance": "HMAC_SIGNED_EXTERNAL_METHOD_PROMOTION_REVIEW__OUTCOME_REVALIDATION_OPEN",
             }
             after = {**proposed, "lifecycle_status": "ACTIVE",
@@ -309,6 +313,7 @@ def mutate_method_catalog(
                 "reviewer_principal": proof["authenticated_actor"],
                 "provider_id": proof["provider_id"],
                 "attestation_signature": proof["signature"],
+                "attestation": deepcopy(dict(proof)),
                 "assurance": "HMAC_SIGNED_EXTERNAL_METHOD_STAGE_REVALIDATION__LIVE_READER_OUTCOME_OPEN",
             }
         if operation != "VERIFY_IMPACT":
@@ -328,6 +333,8 @@ def mutate_method_catalog(
         "promoted_proof": promoted_proof,
         "impact_verification": impact_proof,
         "authorization_evidence": deepcopy(dict(authorization_evidence)) if isinstance(authorization_evidence, Mapping) else None,
+        "authorization_action_id": authorization_evidence.get("action_id") if isinstance(authorization_evidence, Mapping) else None,
+        "authorization_expected_catalog_blob_sha": authorization_evidence.get("expected_catalog_blob_sha") if isinstance(authorization_evidence, Mapping) else None,
         "target_change_revision": impact_target_revision if operation == "VERIFY_IMPACT" else None,
         "impact_review_state": (
             "CLOSED__EXTERNAL_STAGE_EVIDENCE_READBACK"
