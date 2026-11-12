@@ -13,14 +13,23 @@ SHA = "d" * 40
 def _proofs(*, reviewer="synthetic-independent-reviewer"):
     proofs = {}
     for gate in SYSTEM_GATES:
-        evidence = {
-            field: (
-                ["synthetic-task"] if field == "affected_task_ids"
-                else ["main"] if field == "after_branch_names"
-                else "synthetic-evidence"
-            )
-            for field in REQUIRED_GATE_EVIDENCE[gate]
-        }
+        evidence = {field: "synthetic-evidence" for field in REQUIRED_GATE_EVIDENCE[gate]}
+        evidence.update({
+            "owner_principal": "synthetic-financial-owner",
+            "source_sha256": "a"*64,
+            "previous_state_blob_sha": "b"*40,
+            "resulting_state_blob_sha": "c"*40,
+            "state_readback_sha": "c"*40,
+            "catalog_revision": 2,
+            "affected_task_ids": ["synthetic-task"],
+            "write_blob_sha": "d"*40,
+            "readback_blob_sha": "d"*40,
+            "stale_conflict_status": 409,
+            "plugin_id": "plugins_synthetic_financial",
+            "after_branch_names": ["main"],
+            "before_branch_count": 99,
+            "archive_tag_count": 98,
+        })
         if gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW":
             evidence.update({
                 "reviewer_principal": reviewer,
