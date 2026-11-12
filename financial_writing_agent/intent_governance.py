@@ -12,6 +12,8 @@ import json
 from copy import deepcopy
 from typing import Any, Callable, Mapping
 
+from .provider_attestation import verify_owner_message, verify_owner_change_approval
+
 OWNER_REQUIREMENT_KINDS = {
     "USER_REQUIREMENT": "USER_EXPLICIT",
     "USER_CORRECTION": "USER_CORRECTION",
@@ -39,18 +41,13 @@ def _read_verified_user_message(
 ) -> tuple[dict[str, str], str]:
     _require(callable(owner_instruction_reader), "AUTHENTICATED_MESSAGE_READER_REQUIRED")
     try:
-        message = owner_instruction_reader(source_ref)
+        message = verify_owner_message(
+            owner_instruction_reader(source_ref), source_ref=source_ref,
+        )
     except Exception as exc:
-        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_SOURCE_READ_FAILED") from exc
-    _require(isinstance(message, Mapping), "SOURCE_UNAVAILABLE")
-    _require(message.get("source_ref") == source_ref, "SOURCE_IDENTITY_MISMATCH")
-    _require(message.get("source_role") == "user", "SOURCE_NOT_USER")
-    _require(isinstance(message.get("authenticated_actor"), str)
-             and bool(message["authenticated_actor"].strip()), "ACTOR_UNAUTHENTICATED")
-    content = message.get("text")
-    _require(isinstance(content, str) and bool(content), "SOURCE_TEXT_UNAVAILABLE")
+        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_SOURCE_ATTESTATION_FAILED") from exc
+    content = message["text"]
     sha = hashlib.sha256(content.encode("utf-8")).hexdigest()
-    _require(sha == message.get("sha256"), "SOURCE_HASH_MISMATCH")
     # Do not accept selective quotations: a substring can silently drop
     # negation, scope, exceptions or a later correction. The only admissible
     # source excerpt is the complete authenticated user message.
@@ -59,6 +56,8 @@ def _read_verified_user_message(
         "source_ref": source_ref,
         "source_sha256": sha,
         "excerpt_sha256": hashlib.sha256(excerpt.encode("utf-8")).hexdigest(),
+        "authenticated_actor": message["authenticated_actor"],
+        "provider_id": message["provider_id"],
     }, content
 
 
@@ -110,6 +109,7 @@ def verify_requirement_change_intent(
     owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None,
     owner_semantic_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     existing_requirements: list[Mapping[str, Any]] | None = None,
+    expected_state_blob_sha: str | None = None,
 ) -> dict[str, Any]:
     """Prove provenance, not semantic infallibility of the model's classification.
 
@@ -161,6 +161,7 @@ def verify_requirement_change_intent(
     _require(callable(owner_semantic_verifier), "SEMANTIC_VERIFIER_REQUIRED")
     identity = {
         "source_ref": source_ref,
+        "expected_state_blob_sha": expected_state_blob_sha,
         "source_sha256": evidence["source_sha256"],
         "excerpt_sha256": evidence["excerpt_sha256"],
         "intent": kind,
@@ -175,21 +176,16 @@ def verify_requirement_change_intent(
         "verbatim_excerpt": excerpt,
     }
     try:
-        answer = owner_semantic_verifier(deepcopy(challenge))
+        answer = verify_owner_change_approval(
+            owner_semantic_verifier(deepcopy(challenge)),
+            source_sha256=evidence["source_sha256"],
+            change_sha256=challenge["change_sha256"],
+        )
     except Exception as exc:
-        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_SEMANTIC_PROVIDER_FAILED") from exc
-    _require(isinstance(answer, Mapping) and answer.get("approved") is True,
-             "SEMANTIC_APPROVAL_NOT_VERIFIED")
-    _require(answer.get("source_sha256") == evidence["source_sha256"]
-             and answer.get("change_sha256") == challenge["change_sha256"],
-             "SEMANTIC_PROOF_WRONG_SOURCE_OR_CHANGE")
-    _require(isinstance(answer.get("reviewer_principal"), str)
-             and bool(answer["reviewer_principal"].strip())
-             and answer["reviewer_principal"] not in {
-                 "financial-agent", "FINANCIAL_WRITING_OWNER", "unverified-model"
-             }, "SEMANTIC_INDEPENDENT_REVIEWER_REQUIRED")
-    _require(answer.get("assurance") == "OWNER_EXPLICITLY_CONFIRMED_EXACT_CHANGE",
-             "SEMANTIC_EXPLICIT_OWNER_CONFIRMATION_REQUIRED")
+        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_OWNER_APPROVAL_ATTESTATION_FAILED") from exc
+    _require(isinstance(answer.get("approval_record_ref"), str)
+             and bool(answer["approval_record_ref"].strip()),
+             "SEMANTIC_OWNER_APPROVAL_RECORD_REQUIRED")
     return {
         **evidence,
         "verified": True,
@@ -198,8 +194,10 @@ def verify_requirement_change_intent(
             "approved": True,
             "source_sha256": evidence["source_sha256"],
             "change_sha256": challenge["change_sha256"],
-            "reviewer_principal": answer["reviewer_principal"],
-            "assurance": answer["assurance"],
+            "authenticated_actor": answer["authenticated_actor"],
+            "provider_id": answer["provider_id"],
+            "approval_record_ref": answer["approval_record_ref"],
+            "assurance": "PROVIDER_SIGNED_EXPLICIT_OWNER_CONFIRMATION",
         },
-        "assurance": "PROVIDER_AUTHENTICATED_USER_MESSAGE_AND_EXPLICIT_OWNER_CHANGE_APPROVAL",
+        "assurance": "HMAC_PROVIDER_AUTHENTICATED_OWNER_MESSAGE_AND_EXACT_OWNER_CHANGE_APPROVAL",
     }
