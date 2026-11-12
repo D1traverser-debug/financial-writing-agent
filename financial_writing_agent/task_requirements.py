@@ -45,13 +45,17 @@ class TaskRequirement(StrictModel):
     scopes: list[str] = Field(min_length=1)
     affects_from_stage: str
     evidence_ref: str = Field(min_length=1)
-    source_kind: str = "USER_EXPLICIT"
+    # No model/default path may fabricate the user's authority for inferred text.
+    source_kind: str
+
 
     @model_validator(mode="after")
     def validate_requirement(self):
         unknown_scopes = sorted(set(self.scopes) - VALID_SCOPES)
         if unknown_scopes:
             raise ValueError(f"unsupported requirement scopes: {unknown_scopes}")
+        if self.source_kind not in {"USER_EXPLICIT", "USER_CORRECTION", "USER_PREFERENCE"}:
+            raise ValueError("non-authoritative suggestion, hypothesis or issue cannot enter active TaskRequirement")
         if self.affects_from_stage not in VALID_AFFECTED_STAGES:
             raise ValueError(f"unsupported affects_from_stage: {self.affects_from_stage}")
         return self
@@ -140,6 +144,11 @@ def apply_requirement_changes(
     next_revision = authority.revision + 1
 
     retire_set = {str(item).strip() for item in (retire_ids or []) if str(item).strip()}
+    upsert_ids = [str(item.get("requirement_id", "")).strip() for item in (upserts or [])
+                  if isinstance(item, Mapping)]
+    if retire_set.intersection(upsert_ids):
+        raise RequirementError("cannot simultaneously retire and upsert the same active requirement")
+
     for requirement_id in sorted(retire_set):
         previous = active.pop(requirement_id, None)
         if previous is None:
