@@ -212,15 +212,48 @@ def verify_method_action_authorization(
     )
 
 
+def verify_persisted_method_action_authorization(
+    raw: Mapping[str, Any] | None, *, request: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Recheck immutable method-action signatures after their admission window."""
+    if not isinstance(raw, Mapping):
+        raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_METHOD_ACTION_ATTESTATION_MISSING")
+    issued_at = raw.get("issued_at")
+    if not isinstance(issued_at, int) or isinstance(issued_at, bool):
+        raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_METHOD_ACTION_TIMESTAMP_INVALID")
+    return verify_provider_attestation(
+        raw, expected_type="method_action_authorization",
+        expected_claims={
+            "approved": True,
+            "action_id": request["action_id"],
+            "domain_id": request["domain_id"],
+            "operation": request["operation"],
+            "knowledge_id": request["parameters"]["knowledge_id"],
+            "expected_catalog_blob_sha": request["expected_catalog_blob_sha"],
+            "request_sha256": request_sha256(request),
+        },
+        expected_actor=expected_owner_principal(),
+        now=issued_at,
+    )
+
+
 def _verify_independent_method_review(
     raw: Mapping[str, Any] | None, *, expected_type: str,
-    expected_claims: Mapping[str, Any],
+    expected_claims: Mapping[str, Any], historical: bool = False,
 ) -> dict[str, Any]:
+    now = None
+    if historical:
+        if not isinstance(raw, Mapping):
+            raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_METHOD_REVIEW_MISSING")
+        now = raw.get("issued_at")
+        if not isinstance(now, int) or isinstance(now, bool):
+            raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_METHOD_REVIEW_TIMESTAMP_INVALID")
     record = verify_provider_attestation(
         raw, expected_type=expected_type,
         expected_claims=expected_claims,
         key_env="FINANCIAL_METHOD_REVIEW_KEY",
         provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+        now=now,
     )
     owner = expected_owner_principal()
     if record["authenticated_actor"] == owner:
@@ -251,6 +284,39 @@ def verify_method_impact_attestation(
 ) -> dict[str, Any]:
     return _verify_independent_method_review(
         raw, expected_type="method_impact_review",
+        expected_claims={
+            "approved": True,
+            "knowledge_id": challenge["knowledge_id"],
+            "target_change_revision": challenge["target_change_revision"],
+            "event_sha256": challenge["event_sha256"],
+            "stage_evidence_refs": challenge["stage_evidence_refs"],
+            "verified_stages": list(challenge["stage_evidence_refs"]),
+        },
+    )
+
+
+
+def verify_persisted_method_promotion_attestation(
+    raw: Mapping[str, Any] | None, *, challenge: Mapping[str, Any],
+) -> dict[str, Any]:
+    return _verify_independent_method_review(
+        raw, expected_type="method_promotion_review", historical=True,
+        expected_claims={
+            "approved": True,
+            "knowledge_id": challenge["knowledge_id"],
+            "record_sha256": challenge["record_sha256"],
+            "decision_sha256": challenge["decision_sha256"],
+            "validation_refs": challenge["validation_refs"],
+            "review_ref": challenge["review_ref"],
+        },
+    )
+
+
+def verify_persisted_method_impact_attestation(
+    raw: Mapping[str, Any] | None, *, challenge: Mapping[str, Any],
+) -> dict[str, Any]:
+    return _verify_independent_method_review(
+        raw, expected_type="method_impact_review", historical=True,
         expected_claims={
             "approved": True,
             "knowledge_id": challenge["knowledge_id"],
