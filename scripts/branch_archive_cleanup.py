@@ -260,8 +260,24 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ValueError("MANIFEST_IDENTITY_MISMATCH")
     if manifest.get("schema_version") != "4.0":
         raise ValueError("MANIFEST_SCHEMA_VERSION_MISMATCH")
-    branches = branch_rows(manifest.get("branches"))
-    if branches != manifest.get("branches"):
+    raw_branches = manifest.get("branches")
+    if not isinstance(raw_branches, list):
+        raise ValueError("MANIFEST_BRANCH_INVENTORY_INVALID")
+    branches = []
+    seen_names = set()
+    for item in raw_branches:
+        if (not isinstance(item, dict)
+            or not isinstance(item.get("name"), str) or not item["name"]
+            or item["name"] in seen_names
+            or not isinstance(item.get("sha"), str) or len(item["sha"]) != 40
+            or type(item.get("protected")) is not bool):
+            raise ValueError("MANIFEST_BRANCH_INVENTORY_INVALID_OR_DUPLICATED")
+        seen_names.add(item["name"])
+        branches.append({
+            "name": item["name"], "sha": item["sha"],
+            "protected": item["protected"],
+        })
+    if branches != sorted(branches, key=lambda x: x["name"]):
         raise ValueError("MANIFEST_BRANCH_INVENTORY_NOT_CANONICAL")
     main = next((item for item in branches if item["name"] == "main"), None)
     if (main is None or main["protected"] is not True
