@@ -3,6 +3,7 @@ from __future__ import annotations
 
 from typing import Any, Mapping
 import os
+import re
 
 from .provider_attestation import (
     FinancialProviderAttestationError,
@@ -74,6 +75,64 @@ def _valid_ci_attestation(raw: Mapping[str, Any] | None, head_sha: str) -> bool:
     )
 
 
+def _validate_gate_evidence(
+    gate: str, evidence: Mapping[str, Any], *, head_sha: str,
+    authenticated_actor: str, owner_principal: str | None,
+) -> None:
+    def require(ok: bool, code: str):
+        if not ok:
+            raise FinancialProviderAttestationError("GATE_EVIDENCE_INVALID:" + code)
+
+    if gate == "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION":
+        require(owner_principal is not None
+                and evidence.get("owner_principal") == owner_principal,
+                "OWNER_PRINCIPAL_MISMATCH")
+        require(isinstance(evidence.get("source_sha256"), str)
+                and re.fullmatch(r"[a-f0-9]{64}", evidence["source_sha256"]) is not None,
+                "OWNER_SOURCE_SHA_INVALID")
+    elif gate == "LEGAL_ARTICLE_GRAPH_AND_RECOVERY":
+        previous = evidence.get("previous_state_blob_sha")
+        resulting = evidence.get("resulting_state_blob_sha")
+        require(isinstance(previous, str) and re.fullmatch(r"[a-f0-9]{40}", previous) is not None,
+                "PREVIOUS_STATE_SHA_INVALID")
+        require(isinstance(resulting, str) and re.fullmatch(r"[a-f0-9]{40}", resulting) is not None
+                and evidence.get("state_readback_sha") == resulting,
+                "RESULT_STATE_READBACK_MISMATCH")
+    elif gate == "METHOD_KNOWLEDGE_CRUD_AND_IMPACT":
+        require(isinstance(evidence.get("catalog_revision"), int)
+                and evidence["catalog_revision"] > 0,
+                "METHOD_CATALOG_REVISION_INVALID")
+        require(isinstance(evidence.get("affected_task_ids"), list)
+                and bool(evidence["affected_task_ids"]),
+                "METHOD_IMPACT_CLOSURE_EMPTY")
+    elif gate == "PROVIDER_AUTHENTICATED_RUNTIME_CAS":
+        require(evidence.get("write_blob_sha") == evidence.get("readback_blob_sha"),
+                "CAS_WRITE_READBACK_MISMATCH")
+        require(evidence.get("stale_conflict_status") == 409,
+                "CAS_STALE_WRITE_NOT_REJECTED")
+    elif gate == "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION":
+        require(str(evidence.get("plugin_id", "")).startswith("plugins_")
+                and bool(evidence.get("release_id")),
+                "NATIVE_PLUGIN_RELEASE_IDENTITY_MISSING")
+    elif gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW":
+        require(authenticated_actor != owner_principal
+                and evidence.get("reviewer_principal") == authenticated_actor,
+                "INDEPENDENT_REVIEWER_NOT_SEPARATE")
+        require(evidence.get("reviewed_head_sha") == head_sha,
+                "INDEPENDENT_REVIEW_HEAD_MISMATCH")
+        require(evidence.get("findings_status") in {
+            "PASS", "PASS_WITH_NONBLOCKING_FINDINGS",
+        }, "INDEPENDENT_REVIEW_HAS_BLOCKING_FINDINGS")
+    elif gate == "FINANCIAL_MAIN_BRANCH_HYGIENE":
+        names = evidence.get("after_branch_names")
+        require(names == ["main"], "REMOTE_REPOSITORY_NOT_SINGLE_MAIN")
+        before = evidence.get("before_branch_count")
+        archived = evidence.get("archive_tag_count")
+        require(isinstance(before, int) and before >= 1
+                and isinstance(archived, int) and archived >= before - 1,
+                "HISTORICAL_BRANCH_HEADS_NOT_FULLY_ARCHIVED")
+
+
 def evaluate_system_acceptance(
     *,
     head_sha: str,
@@ -132,14 +191,15 @@ def evaluate_system_acceptance(
                     raise FinancialProviderAttestationError(
                         "GATE_EVIDENCE_FIELDS_MISSING:" + ",".join(missing)
                     )
-                if gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW":
-                    reviewer = evidence.get("reviewer_principal")
-                    if (
-                        owner is None or reviewer != record["authenticated_actor"]
-                        or reviewer == owner or evidence.get("reviewed_head_sha") != head_sha
-                        or record["provider_id"] == os.environ.get("FINANCIAL_TRUSTED_PROVIDER_ID")
-                    ):
-                        raise FinancialProviderAttestationError("INDEPENDENT_REVIEWER_IDENTITY_OR_HEAD_INVALID")
+                if gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW" and (
+                    record["provider_id"] == os.environ.get("FINANCIAL_TRUSTED_PROVIDER_ID")
+                ):
+                    raise FinancialProviderAttestationError("INDEPENDENT_REVIEW_PROVIDER_NOT_SEPARATE")
+                _validate_gate_evidence(
+                    gate, evidence, head_sha=head_sha,
+                    authenticated_actor=record["authenticated_actor"],
+                    owner_principal=owner,
+                )
                 status, reason = "VERIFIED_BY_SIGNED_PROVIDER_ATTESTATION", "SIGNED_EXACT_HEAD_EVIDENCE"
             except FinancialProviderAttestationError as exc:
                 reason = str(exc)
