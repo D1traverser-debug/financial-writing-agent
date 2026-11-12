@@ -229,6 +229,7 @@ def mutate_method_catalog(
     impact_evidence: Mapping[str, Any] | None = None,
     impact_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     authorization_evidence: Mapping[str, Any] | None = None,
+    action_request: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     checked = validate_method_catalog(raw)
     _require(operation in METHOD_ACTIONS, "ACTION_UNSUPPORTED")
@@ -236,6 +237,41 @@ def mutate_method_catalog(
              "ID_INVALID")
     evidence = list(evidence_refs or [])
     stages = list(affected_stages or [])
+    _require(isinstance(action_request, Mapping)
+             and set(action_request) == {
+                 "schema_version", "domain_id", "action_id", "operation",
+                 "expected_catalog_blob_sha", "parameters",
+             }, "ACTION_REQUEST_REQUIRED")
+    _require(action_request.get("schema_version") == "1.0"
+             and action_request.get("domain_id") == "financial_writing"
+             and action_request.get("operation") == operation
+             and action_request.get("parameters", {}).get("knowledge_id") == knowledge_id,
+             "ACTION_REQUEST_SCOPE_MISMATCH")
+    _require(isinstance(action_request.get("expected_catalog_blob_sha"), str)
+             and re.fullmatch(r"[a-f0-9]{40}", action_request["expected_catalog_blob_sha"]) is not None,
+             "ACTION_REQUEST_CATALOG_SHA_INVALID")
+    _require(isinstance(authorization_evidence, Mapping), "ACTION_AUTHORIZATION_ATTESTATION_REQUIRED")
+    try:
+        verify_method_action_authorization(authorization_evidence, request=action_request)
+    except Exception as exc:
+        raise MethodGovernanceError("FINANCIAL_METHOD_ACTION_AUTHORIZATION_ATTESTATION_INVALID") from exc
+    request_params = action_request["parameters"]
+    expected_params = {
+        "knowledge_id": knowledge_id,
+        "proposed_record": proposed_record,
+        "decision_envelope": decision_envelope,
+        "evidence_refs": evidence,
+        "affected_stages": stages,
+        "promotion_evidence": promotion_evidence,
+        "impact_target_revision": impact_target_revision,
+        "impact_evidence": impact_evidence,
+    }
+    _require(set(request_params).issubset(expected_params), "ACTION_REQUEST_PARAMETERS_EXCEEDED")
+    for key, value in request_params.items():
+        _require(_digest(value) == _digest(expected_params[key]),
+                 "ACTION_REQUEST_ARGUMENT_MISMATCH:" + key)
+    for key in ("knowledge_id", "decision_envelope", "evidence_refs", "affected_stages"):
+        _require(key in request_params, "ACTION_REQUEST_PARAMETER_MISSING:" + key)
     decision = _validate_method_decision(decision_envelope, evidence, stages)
 
     catalog = deepcopy(checked)
