@@ -60,7 +60,7 @@ def verify_provider_attestation(
     expected_claims: Mapping[str, Any] | None = None,
     expected_actor: str | None = None,
     now: int | None = None,
-    max_age_seconds: int = MAX_AGE_SECONDS,
+    max_age_seconds: int | None = MAX_AGE_SECONDS,
     key_env: str = KEY_ENV,
     provider_env: str = PROVIDER_ENV,
 ) -> dict[str, Any]:
@@ -94,7 +94,13 @@ def verify_provider_attestation(
     if not isinstance(issued_at, int) or isinstance(issued_at, bool):
         raise FinancialProviderAttestationError("FINANCIAL_PROVIDER_TIMESTAMP_INVALID")
     current = int(time.time()) if now is None else now
-    if issued_at > current + MAX_FUTURE_SKEW_SECONDS or current - issued_at > max_age_seconds:
+    if (max_age_seconds is not None
+        and (not isinstance(max_age_seconds, int) or isinstance(max_age_seconds, bool)
+             or max_age_seconds <= 0)):
+        raise FinancialProviderAttestationError("FINANCIAL_PROVIDER_MAX_AGE_INVALID")
+    if issued_at > current + MAX_FUTURE_SKEW_SECONDS:
+        raise FinancialProviderAttestationError("FINANCIAL_PROVIDER_ATTESTATION_FUTURE_DATED")
+    if max_age_seconds is not None and current - issued_at > max_age_seconds:
         raise FinancialProviderAttestationError("FINANCIAL_PROVIDER_ATTESTATION_EXPIRED")
     nonce = record.get("nonce")
     if not isinstance(nonce, str) or len(nonce) < 16:
@@ -190,7 +196,7 @@ def verify_persisted_action_authorization(
         raw, expected_type="action_authorization",
         expected_claims=expected_claims,
         expected_actor=expected_owner_principal(),
-        now=issued_at,
+        max_age_seconds=None,
     )
 
 
@@ -254,6 +260,7 @@ def _verify_independent_method_review(
         key_env="FINANCIAL_METHOD_REVIEW_KEY",
         provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
         now=now,
+        max_age_seconds=None if historical else MAX_AGE_SECONDS,
     )
     owner = expected_owner_principal()
     if record["authenticated_actor"] == owner:
