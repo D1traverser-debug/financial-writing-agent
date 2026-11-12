@@ -1,139 +1,264 @@
-"""Branch compression must preserve every head and fail closed on unsafe state."""
+"""Adversarial tests for manifest-bound, two-phase branch archive/prune."""
+import json
 from pathlib import Path
 import pytest
-from scripts.branch_archive_cleanup import branch_candidates, run, GitHubAPI, REPO
 
-A = "a"*40
-B = "b"*40
-C = "c"*40
+from scripts.branch_archive_cleanup import (
+    GitHubAPI, REPO, archive_only, branch_rows, create_plan, prune_only, sha256,
+)
 
-
-def test_main_protected_open_pr_excluded_and_archive_candidates_keep_heads():
-    branches = [
-        {"name":"main","commit":{"sha":A},"protected":True},
-        {"name":"article/in-progress","commit":{"sha":B},"protected":False},
-        {"name":"repair/merged","commit":{"sha":C},"protected":False},
-        {"name":"release/protected","commit":{"sha":A},"protected":True},
-        {"name":"tmp/orphan","commit":{"sha":"e"*40},"protected":False},
-    ]
-    prs=[{"head":{"ref":"article/in-progress","repo":{"full_name":REPO}}}]
-    candidates, skipped = branch_candidates(branches, prs)
-    assert candidates == [
-        {"branch":"repair/merged","head_sha":C},
-        {"branch":"tmp/orphan","head_sha":"e"*40},
-    ]
-    assert len(skipped) == 3
+A, B, C, D = "a"*40, "b"*40, "c"*40, "d"*40
 
 
-def test_duplicate_or_untrustworthy_branch_metadata_fails_closed():
-    with pytest.raises(ValueError):
-        branch_candidates([{"name":"main","commit":{"sha":"bad"},"protected":False}], [])
-    with pytest.raises(ValueError):
-        branch_candidates([{"name":"main","commit":{"sha":A}},{"name":"main","commit":{"sha":A}}], [])
+class FakeAPI:
+    def __init__(self, *, deletion_frozen=True, open_prs=None):
+        self.branches = {
+            "main": {"sha": A, "protected": True},
+            "old/one": {"sha": B, "protected": False},
+            "old/two": {"sha": C, "protected": False},
+        }
+        self.tags = {}
+        self.open_prs = list(open_prs or [])
+        self.deletion_frozen = deletion_frozen
+        self.calls = []
+        self.open_pr_reads = 0
+        self.add_pr_on_read = None
+        self.move_main_on_read = None
+        self.main_reads = 0
+        self.ambiguous_delete = set()
 
+    def verify_controls(self, phase):
+        self.calls.append("controls:" + phase)
+        return {
+            "branch_ruleset_id": 11,
+            "tag_ruleset_id": 22,
+            "branch_rule_types": (
+                ["creation", "update", "deletion"] if self.deletion_frozen
+                else ["creation", "update"]
+            ),
+            "tag_rule_types": ["update", "deletion"],
+        }
 
-def test_cross_repository_request_rejected():
-    with pytest.raises(ValueError):
-        GitHubAPI("D1traverser-debug/cognition-agent-os", "fake")
-
-
-class SimulatedAPI:
-    def __init__(self, changed=False, fail=False, open_prs=None, deleted_before_tag=False):
-        self.branches={"main":A,"test/old":B,"article/active":C}
-        self.tags={}
-        self.changed=changed
-        self.fail=fail
-        self.open_prs = open_prs or []
-        self.deleted_before_tag = deleted_before_tag
-        self.mutation_order = []
-    def paginate(self,suffix):
+    def paginate(self, suffix):
         if suffix == "branches":
-            return [{"name":k,"commit":{"sha":v},
-                     "protected": k == "main"}
-                    for k,v in self.branches.items()]
+            return [
+                {"name": name, "commit": {"sha": data["sha"]},
+                 "protected": data["protected"]}
+                for name, data in sorted(self.branches.items())
+            ]
         if suffix == "pulls?state=open":
+            self.open_pr_reads += 1
+            if self.add_pr_on_read == self.open_pr_reads:
+                self.open_prs = [{
+                    "head": {"ref": "old/two", "repo": {"full_name": REPO}}
+                }]
             return list(self.open_prs)
-        raise AssertionError("unexpected collection: " + suffix)
-    def exact_branch_head(self,name):
-        if self.deleted_before_tag and name=="test/old":
-            return None
-        return ("f"*40 if self.changed and name=="test/old"
-                else self.branches.get(name))
-    def archived_tag_head(self,name):
+        raise AssertionError("unexpected collection " + suffix)
+
+    def branch_head(self, name):
+        if name == "main":
+            self.main_reads += 1
+            if self.move_main_on_read == self.main_reads:
+                self.branches["main"]["sha"] = D
+        data = self.branches.get(name)
+        return data["sha"] if data else None
+
+    def tag_head(self, name):
         return self.tags.get(name)
-    def verify_archive_controls(self):
-        self.mutation_order.append("verify_controls")
-        return {"branch_updates_and_creations_frozen": True,
-                "archive_tags_update_and_delete_blocked": True}
-    def tag_archive(self,name,sha):
-        self.tags[name]=sha
-        self.mutation_order.append("tag:" + name)
-    def prune_branch(self,name,sha):
-        assert name!="main"
-        assert self.tags.get(name)==sha
-        if self.fail: raise RuntimeError("permission denied")
-        self.mutation_order.append("delete:" + name)
+
+    def tag_branch_head(self, name, sha):
+        self.calls.append("tag:" + name)
+        old = self.tags.get(name)
+        if old is not None and old != sha:
+            raise ValueError("tag conflict")
+        self.tags[name] = sha
+
+    def delete_branch(self, name, sha):
+        self.calls.append("delete:" + name)
+        assert self.branch_head(name) == sha
+        assert self.tag_head(name) == sha
         del self.branches[name]
+        if name in self.ambiguous_delete:
+            return {"branch": name, "status": "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"}
+        return {"branch": name, "status": "DELETE_AND_READBACK_VERIFIED"}
 
 
-def test_dry_run_retains_all_branches_and_no_tags(tmp_path):
-    api=SimulatedAPI()
-    outcome=run(api,apply=False,out_path=tmp_path/"audit.json")
-    assert outcome["complete"] is False
-    assert outcome["mode"] == "DRY_RUN"
-    assert outcome["candidates"] == 2
-    assert outcome["tagged"] == [] and outcome["deleted"] == []
-    assert len(api.branches)==3 and api.tags=={}
-    assert outcome["after_branch_names"] == ["main","test/old","article/active"]
+class RulesetAPI(GitHubAPI):
+    def __init__(self, *, omit_bypass=False, bypass=None, phase_deletion=True):
+        self.token = "synthetic-test-token"
+        self.omit_bypass = omit_bypass
+        self.bypass = bypass or []
+        self.phase_deletion = phase_deletion
+
+    def paginate(self, suffix):
+        assert suffix == "rulesets?includes_parents=true"
+        return [{"id": 11, "name": "Financial archive write freeze"},
+                {"id": 22, "name": "Financial archive tag lock"}]
+
+    def call(self, method, path, payload=None, *, allow_404=False):
+        if "/environments/" in path:
+            return {"protection_rules": [{"type": "required_reviewers", "reviewers": [{"type":"User","id":1}]}]}
+        if "/rulesets/11?" in path:
+            result = {
+                "id": 11, "target": "branch", "enforcement": "active",
+                "conditions": {"ref_name": {"include": ["~ALL"], "exclude": ["refs/heads/main"]}},
+                "rules": [{"type":"creation"},{"type":"update"}] +
+                         ([{"type":"deletion"}] if self.phase_deletion else []),
+            }
+            if not self.omit_bypass:
+                result["bypass_actors"] = self.bypass
+            return result
+        if "/rulesets/22?" in path:
+            return {
+                "id": 22, "target": "tag", "enforcement": "active",
+                "conditions": {"ref_name": {"include": ["refs/tags/archive/financial-20261112/**"]}},
+                "rules": [{"type":"update"},{"type":"deletion"}],
+                "bypass_actors": [],
+            }
+        raise AssertionError(path)
 
 
-def test_apply_tags_every_exact_head_before_deleting_and_finishes_single_main(tmp_path, monkeypatch):
-    monkeypatch.setenv("FINANCIAL_REVIEWED_MAIN_SHA", A)
-    api=SimulatedAPI()
-    outcome=run(api,apply=True,out_path=tmp_path/"audit.json")
-    assert outcome["complete"] is True
-    assert outcome["after_branch_names"] == ["main"]
-    assert outcome["tagged"] == [
-        {"branch":"test/old","head_sha":B,"tag":"archive/financial-20261112/test/old"},
-        {"branch":"article/active","head_sha":C,"tag":"archive/financial-20261112/article/active"},
+def make_plan(tmp_path):
+    api = FakeAPI()
+    path = tmp_path / "plan.json"
+    plan = create_plan(api, out=path)
+    return api, path, plan
+
+
+def test_branch_inventory_rejects_duplicate_or_invalid_metadata():
+    with pytest.raises(ValueError):
+        branch_rows([{"name":"main","commit":{"sha":"bad"}}])
+    with pytest.raises(ValueError):
+        branch_rows([
+            {"name":"main","commit":{"sha":A}},
+            {"name":"main","commit":{"sha":A}},
+        ])
+
+
+def test_plan_is_stable_exact_head_manifest_and_has_no_mutation(tmp_path):
+    api, path, plan = make_plan(tmp_path)
+    assert plan["manifest"]["main_sha"] == A
+    assert plan["manifest"]["candidate_heads"] == [
+        {"branch":"old/one","head_sha":B},
+        {"branch":"old/two","head_sha":C},
     ]
-    assert api.tags == {"test/old":B,"article/active":C}
-    assert api.mutation_order.index("tag:article/active") < api.mutation_order.index("delete:test/old")
-    assert api.mutation_order.index("tag:test/old") < api.mutation_order.index("delete:test/old")
+    assert plan["manifest_sha256"] == sha256(plan["manifest"])
+    assert plan["plan_status"] == "READY_FOR_REVIEW__NO_MUTATION"
+    assert not api.tags
+    assert not any(x.startswith("delete:") for x in api.calls)
+    assert json.loads(path.read_text())["manifest_sha256"] == plan["manifest_sha256"]
 
 
-def test_open_pull_request_blocks_all_deletion_and_preserves_every_branch(tmp_path, monkeypatch):
-    monkeypatch.setenv("FINANCIAL_REVIEWED_MAIN_SHA", A)
-    prs=[{"head":{"ref":"article/active","repo":{"full_name":REPO}}}]
-    api=SimulatedAPI(open_prs=prs)
-    result=run(api,apply=True,out_path=tmp_path/"audit.json")
-    assert result["complete"] is False
-    assert result["preflight_error"] == "OPEN_PULL_REQUESTS_MUST_BE_CLOSED_BEFORE_SINGLE_MAIN_ARCHIVE"
-    assert set(api.branches) == {"main","test/old","article/active"}
-    assert api.tags == {} and api.mutation_order == []
+def test_archive_phase_tags_all_exact_heads_and_deletes_nothing(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    report = archive_only(
+        api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+        out=tmp_path / "archive.json",
+    )
+    assert report["archive_status"] == "ALL_TAGS_VERIFIED__NO_BRANCHES_DELETED"
+    assert api.tags == {"old/one":B, "old/two":C}
+    assert set(api.branches) == {"main","old/one","old/two"}
+    assert not any(x.startswith("delete:") for x in api.calls)
 
 
+def test_archive_phase_rejects_manifest_change_before_any_tag(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    api.branches["old/one"]["sha"] = D
+    with pytest.raises(ValueError, match="CURRENT_INVENTORY_DIFFERS"):
+        archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                     out=tmp_path / "archive.json")
+    assert api.tags == {}
+    assert set(api.branches) == {"main","old/one","old/two"}
 
-def test_concurrent_external_delete_after_inventory_still_preserves_observed_commit(tmp_path, monkeypatch):
-    monkeypatch.setenv("FINANCIAL_REVIEWED_MAIN_SHA", A)
-    api=SimulatedAPI(deleted_before_tag=True)
-    res=run(api,apply=True,out_path=tmp_path/"audit.json")
-    assert res["complete"] is False
-    assert api.tags["test/old"] == B
-    assert "test/old" in api.branches  # simulation leaves the ref for a deterministic assertion
-    assert not res["deleted"]
-    assert res["unresolved_failures"][0]["stage"] == "PRE_DELETE_READBACK"
 
-def test_moved_head_or_delete_failure_keeps_unarchived_branch(tmp_path, monkeypatch):
-    monkeypatch.setenv("FINANCIAL_REVIEWED_MAIN_SHA", A)
-    api=SimulatedAPI(changed=True)
-    res=run(api,apply=True,out_path=tmp_path/"audit.json")
-    assert res["complete"] is False
-    assert "test/old" in api.branches
-    assert api.tags["test/old"] == B
-    assert not res["deleted"]
-    api=SimulatedAPI(fail=True)
-    res=run(api,apply=True,out_path=tmp_path/"audit2.json")
-    assert res["complete"] is False
-    assert "test/old" in api.branches and api.tags["test/old"]==B
-    assert not res["deleted"]
+def test_archive_phase_rejects_wrong_approved_digest(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    with pytest.raises(ValueError, match="APPROVED_MANIFEST_SHA256_MISMATCH"):
+        archive_only(api, manifest_path=plan_path, approved="0"*64,
+                     out=tmp_path / "archive.json")
+    assert api.tags == {}
+
+
+def test_prune_refuses_while_deletion_rule_is_still_frozen(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    with pytest.raises(ValueError, match="REMOVE_ONLY_DELETION_RULE"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json")
+    assert set(api.branches) == {"main","old/one","old/two"}
+
+
+def test_prune_after_deletion_rule_removed_keeps_tags_and_leaves_only_main(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json")
+    assert report["complete"] is True
+    assert report["after_branch_names"] == ["main"]
+    assert api.tags == {"old/one":B, "old/two":C}
+    assert [x for x in api.calls if x.startswith("delete:")] == ["delete:old/one","delete:old/two"]
+
+
+def test_prune_refuses_a_moved_branch_even_when_old_tag_is_preserved(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.branches["old/two"]["sha"] = D
+    with pytest.raises(ValueError, match="UNPLANNED_OR_MOVED_BRANCH"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json")
+    assert set(api.branches) == {"main","old/one","old/two"}
+
+
+def test_open_pr_appearing_during_prune_stops_next_delete(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.add_pr_on_read = api.open_pr_reads + 3
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json")
+    assert report["complete"] is False
+    assert "old/two" in api.branches
+    assert api.tags["old/two"] == C
+
+
+def test_main_moving_during_prune_prevents_false_completion(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.move_main_on_read = api.main_reads + 2
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json")
+    assert report["complete"] is False
+    assert report["main_sha_after"] == D
+
+
+def test_ambiguous_delete_response_is_accepted_only_after_absence_and_tag_readback(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.ambiguous_delete.add("old/one")
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json")
+    assert report["complete"] is True
+    assert report["deleted"][0]["status"] == "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"
+
+
+def test_ruleset_bypass_actors_must_be_visible_and_empty():
+    with pytest.raises(ValueError, match="BYPASS_ACTORS_NOT_VISIBLE"):
+        RulesetAPI(omit_bypass=True).verify_controls("PLAN")
+    with pytest.raises(ValueError, match="BYPASS_ACTORS_MUST_BE_EMPTY"):
+        RulesetAPI(bypass=[{"actor_type":"Integration","actor_id":7,"bypass_mode":"always"}]).verify_controls("PLAN")
+
+
+def test_ruleset_deletion_rule_is_required_for_plan_but_forbidden_for_prune():
+    with pytest.raises(ValueError, match="DELETION_MUST_BE_FROZEN"):
+        RulesetAPI(phase_deletion=False).verify_controls("PLAN")
+    RulesetAPI(phase_deletion=False).verify_controls("PRUNE")
