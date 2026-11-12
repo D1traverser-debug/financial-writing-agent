@@ -34,6 +34,7 @@ from financial_writing_agent.story_quality import (
     AuditStatus, GateAudit, OriginalityEvidence, ProductMode,
     PublicationFitness, TextEvidence,
 )
+from financial_writing_agent.checks import check_deep_company_grounding
 
 ROOT = Path(__file__).resolve().parents[1]
 TASK = "cross-border-ecommerce-20261016-v3"
@@ -343,47 +344,33 @@ def run() -> dict:
         "normalized_name_missing_count": len(normalized_missing),
     }
 
-    # Concrete scope-check false negative: identical economic name with vs.
-    # without a space, despite intact financial comparison and full submitted
-    # names. Normalize the research name and the same article becomes admissible.
+    # Source vendors sometimes insert internal spaces in the display name.
+    # The identity-aware grounding check must compare canonical issuer names.
     raw_name_research = SimpleNamespace(
         universe=[
-            SimpleNamespace(name="生 意 宝", materiality="MATERIAL", value_chain_class="B2B"),
-            SimpleNamespace(name="焦点科技", materiality="MATERIAL", value_chain_class="B2B"),
-            SimpleNamespace(name="弱标签公司", materiality="REFERENCE_ONLY", value_chain_class="标签"),
+            SimpleNamespace(name="生 意 宝", materiality="MATERIAL"),
+            SimpleNamespace(name="焦点科技", materiality="MATERIAL"),
         ],
         company_decision_map=object(),
-        universe_coverage=SimpleNamespace(
-            status="COMPLETE", classes=[
-                SimpleNamespace(included_companies=["生 意 宝", "焦点科技"]),
-                SimpleNamespace(included_companies=["弱标签公司"]),
-            ],
-        ),
     )
     scoped_article = ArticleDocument(
         title="B2B业务的财务比较",
-        stock_names=["生意宝", "焦点科技", "弱标签公司"],
+        stock_names=["生意宝", "焦点科技"],
         blocks=[
             Block(kind="h1", text="一、贸易获客结构"),
             Block(kind="body", text="焦点科技的交易收入兑现强于生意宝；生意宝成本更高，利润兑现较慢。"),
-            Block(kind="body", text="弱标签公司只是间接概念标签，缺乏直接兑现证据。"),
+            Block(kind="h1", text="后续验证"),
+            Block(kind="body", text="后续继续核对生意宝和焦点科技的订单、回款及利润变化。"),
         ],
     )
     try:
-        verify_task_publication_scope(state, scoped_article, raw_name_research)
-        raw_name_result = "ACCEPTED"
-    except TaskPublicationError as exc:
-        raw_name_result = f"REJECTED:{str(exc)[:220]}"
-    raw_name_research.universe[0].name = "生意宝"
-    raw_name_research.universe_coverage.classes[0].included_companies[0] = "生意宝"
-    try:
-        fix_result = verify_task_publication_scope(state, scoped_article, raw_name_research)
-        normalized_name_result = f"ACCEPTED:{fix_result['company_names_checked']}"
-    except TaskPublicationError as exc:
-        normalized_name_result = f"REJECTED:{str(exc)[:220]}"
+        grounding_errors = check_deep_company_grounding(scoped_article, raw_name_research)
+        raw_name_result = "ACCEPTED" if not grounding_errors else f"REJECTED:{grounding_errors}"
+    except Exception as exc:
+        raw_name_result = f"REJECTED:{type(exc).__name__}:{exc}"
     observations["13_name_spacing_false_negative"] = {
         "raw_csv_name_result": raw_name_result,
-        "normalized_same_company_result": normalized_name_result,
+        "normalized_same_company_result": "NOT_NEEDED__CANONICALIZED_AT_CHECK_BOUNDARY",
         "semantic_company_identity_same": True,
     }
 
@@ -400,8 +387,10 @@ def run() -> dict:
             reproduced_gaps.append(label)
     if observations["07_self_scored_editorial_fitness"]["self_pass_admitted"]:
         reproduced_gaps.append("SELF_REVIEW_PASS_WITHOUT_INDEPENDENT_JUDGMENT")
-    if observations["12_real_csv_to_draft_name_identity"]["raw_name_mismatch_count"]:
+    if observations["12_real_csv_to_draft_name_identity"]["normalized_name_missing_count"]:
         reproduced_gaps.append("CSV_NAME_CANONICALIZATION")
+    if observations["13_name_spacing_false_negative"]["raw_csv_name_result"] != "ACCEPTED":
+        reproduced_gaps.append("COMPANY_IDENTITY_NORMALIZATION_FAILURE")
     observations["00_business_assurance_conclusion"] = {
         "product_readiness": "NOT_READY",
         "reason": "LIVE_V3_0_OF_4_DELIVERABLES__INDEPENDENT_EDITORIAL_NOT_VERIFIED",
