@@ -72,6 +72,33 @@ def act(p, operation, params=None, *, auth=None, sha=None):
        independent_editorial_verifier=editorial_verifier)
 
 
+def test_requirement_satisfaction_source_refs_require_actual_readback_and_do_not_claim_semantic_support():
+    from financial_writing_agent.standalone_runtime import _verify_requirement_satisfaction_sources
+
+    satisfaction = [{
+        "requirement_id": "full_universe_research_pool",
+        "result": "SATISFIED",
+        "evidence_refs": ["source://issuer-universe"],
+        "notes": "synthetic only",
+    }]
+    with pytest.raises(FinancialAdmissionError, match="SATISFACTION_UNREAD_SOURCE"):
+        _verify_requirement_satisfaction_sources(satisfaction, {"snapshots": []})
+    readback = _verify_requirement_satisfaction_sources(
+        satisfaction,
+        {"snapshots": [{
+            "source_ref_sha256": hashlib.sha256(
+                b"source://issuer-universe"
+            ).hexdigest(),
+            "body_sha256": "a" * 64,
+            "source_family": "issuer-filing",
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        }]},
+    )
+    assert readback["checked_evidence_ref_count"] == 1
+    assert readback["semantic_support_verified"] is False
+    assert readback["assurance"] == "SOURCE_BYTE_READBACK_ONLY__SEMANTIC_SUPPORT_NOT_CERTIFIED"
+
+
 def make():
     p = Provider()
     act(p, "CREATE_ARTICLE", {"prompt": "Synthetic financial systems transition replay"})
