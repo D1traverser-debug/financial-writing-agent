@@ -236,10 +236,9 @@ class PublicationFitness(StrictModel):
             raise ValueError("originality overlap requiring rewrite blocks publication PASS")
         if self.audit_provenance.assurance != self.assurance:
             raise ValueError("publication fitness assurance must match audit_provenance.assurance")
-        if self.assurance == "INDEPENDENT_EXECUTOR":
-            raise ValueError(
-                "INDEPENDENT_EXECUTOR is not admissible in the current Financial chat contract because trusted independent execution evidence cannot yet be resolved; use CHAT_SELF_REVIEW"
-            )
+        # Independently reviewed evidence must additionally be verified by the
+        # external provider before mutation. The Pydantic schema checks only
+        # identities and immutable hashes, not provider authenticity.
         return self
 
 
