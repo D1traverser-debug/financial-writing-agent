@@ -27,9 +27,17 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
                 "reviewed_head_sha": SHA,
                 "findings_status": "NO_UNRESOLVED_CRITICAL_FINDINGS",
             })
+        independent = gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW"
         proofs[gate] = signed_attestation(
-            "system_gate", actor=reviewer if gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW"
-            else "synthetic-financial-owner",
+            "system_gate", actor=reviewer if independent else "synthetic-financial-owner",
+            key_env=(
+                "FINANCIAL_INDEPENDENT_REVIEW_KEY" if independent
+                else "FINANCIAL_PROVIDER_ATTESTATION_KEY"
+            ),
+            provider_env=(
+                "FINANCIAL_INDEPENDENT_REVIEW_PROVIDER_ID" if independent
+                else "FINANCIAL_TRUSTED_PROVIDER_ID"
+            ),
             gate=gate, target_head_sha=SHA, evidence=evidence,
             evidence_sha256=payload_sha256(evidence),
         )
@@ -39,6 +47,8 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
 def _ci():
     return signed_attestation(
         "ci_run", actor="github-actions[bot]",
+        key_env="FINANCIAL_CI_ATTESTATION_KEY",
+        provider_env="FINANCIAL_CI_PROVIDER_ID",
         target_head_sha=SHA, conclusion="success",
         run_id="43212206584", workflow="financial-writing-agent-ci",
         test_count=397, coverage_percent=87,
