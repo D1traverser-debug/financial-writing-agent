@@ -40,6 +40,8 @@ jobs:
           coverage json -o audit/test_line_coverage.json
           coverage report -m --fail-under=85
       - name: Machine-readable independent system acceptance (may remain NOT_READY)
+        env:
+          FINANCIAL_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           python scripts/system_acceptance_report.py --assert-not-prematurely-certified --out audit/financial_system_acceptance.json
       - name: Live branch inventory and zero-mutation archive dry-run
