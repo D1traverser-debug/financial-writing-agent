@@ -354,6 +354,8 @@ def _verify_persisted_action_authorization_history(
              "FINANCIAL_ACTION_RECEIPT_HISTORY_MISSING")
     verified = 0
     legacy = 0
+    seen_action_ids: set[str] = set()
+    seen_nonces: set[tuple[str, str]] = set()
     for receipt in receipts:
         bindings = receipt.get("input_bindings", {})
         if bindings.get("authorization_contract_version") is None:
@@ -368,8 +370,20 @@ def _verify_persisted_action_authorization_history(
                  "FINANCIAL_ACTION_RECEIPT_EXECUTOR_SCOPE_INVALID")
         action_id = executor[len("financial:"):]
         _require(bool(action_id), "FINANCIAL_ACTION_RECEIPT_ACTION_ID_MISSING")
+        _require(action_id not in seen_action_ids,
+                 "FINANCIAL_ACTION_RECEIPT_ACTION_ID_REPLAYED")
+        seen_action_ids.add(action_id)
+        _require(isinstance(proof, Mapping),
+                 "FINANCIAL_ACTION_RECEIPT_ATTESTATION_MISSING")
+        nonce = proof.get("nonce")
+        provider_id = proof.get("provider_id")
+        _require(isinstance(provider_id, str) and isinstance(nonce, str)
+                 and len(nonce) >= 16
+                 and (provider_id, nonce) not in seen_nonces,
+                 "FINANCIAL_ACTION_RECEIPT_NONCE_MISSING_OR_REPLAYED")
+        seen_nonces.add((provider_id, nonce))
         expected_previous = None if previous_sha == "NEW_FILE" else previous_sha
-        operation = proof.get("operation") if isinstance(proof, Mapping) else None
+        operation = proof.get("operation")
         _require(operation in OPERATIONS,
                  "FINANCIAL_ACTION_RECEIPT_OPERATION_INVALID")
         try:
