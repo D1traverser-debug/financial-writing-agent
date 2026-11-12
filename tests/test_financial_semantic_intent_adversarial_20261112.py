@@ -8,7 +8,10 @@ from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, admit_article_action,
 )
 from test_financial_goal_intent_governance_20261112 import (
-    Provider, SOURCE, TASK, _reader, action as original_action, create, requirement, _proof,
+    Provider, SOURCE, TASK, _reader, create, requirement, _proof,
+)
+from trusted_provider_testkit import (
+    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
 )
 
 WRONG = "财经Deep只能保留3家公司。"
@@ -36,7 +39,7 @@ def _submit(provider, statement, *, semantic_verifier=None,
     }
     return admit_article_action(
         proposal, state_reader=provider.read, cas_writer=provider.write,
-        authorization_verifier=lambda _: True,
+        authorization_verifier=signed_action_authorization,
         artifact_reader=provider.artifact,
         source_snapshot_reader=provider.source,
         owner_instruction_reader=_reader(source),
@@ -45,13 +48,7 @@ def _submit(provider, statement, *, semantic_verifier=None,
 
 
 def accepted_owner_approval(request):
-    return {
-        "approved": True,
-        "source_sha256": request["source_sha256"],
-        "change_sha256": request["change_sha256"],
-        "reviewer_principal": "trusted-independent-owner-confirmation-provider",
-        "assurance": "OWNER_EXPLICITLY_CONFIRMED_EXACT_CHANGE",
-    }
+    return signed_owner_change_approval(request)
 
 
 def test_red_source_hash_and_user_role_are_not_enough_for_semantically_inverted_requirements():
@@ -89,7 +86,7 @@ def test_red_nonbinding_intent_cannot_quote_a_selective_substring():
             },
             state_reader=p.read, cas_writer=p.write,
             authorization_verifier=lambda _: True, artifact_reader=p.artifact,
-            owner_instruction_reader=_reader(original),
+            owner_instruction_reader=lambda ref: signed_owner_message(ref, original),
         )
     assert p.states == frozen
 
