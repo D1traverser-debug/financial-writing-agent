@@ -84,7 +84,10 @@ Required modules are:
 - `negative_and_falsification_pool`;
 - `scenario_tree`;
 - `next_window_validation`;
-- `publication_distillation`.
+- `publication_distillation`;
+- `material_catalyst_and_policy_ledger` (contract 1.1): all materially relevant events and policy phases, including changes, suspensions, reductions, exemptions, retaliation, expiry and rollback;
+- `driver_sustainability_operability_and_concept_map` (contract 1.1): independently evidence the immediate driver, durability, market operability and concept/sector identity;
+- `cross_segment_global_selection` (contract 1.1): compare segment winners and role candidates again across the whole market under current catalyst, liquidity and sentiment constraints.
 
 Every module is `APPLICABLE` or `NOT_MATERIAL`; applicable modules require evidence refs and `NOT_MATERIAL` requires an explicit reason. The validator deliberately proves contract completeness, not semantic excellence. Research Audit remains responsible for detecting placeholder evidence, stale facts and unjustified role labels.
 
