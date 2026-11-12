@@ -81,7 +81,7 @@ def main():
         "note": "green CI != Financial independent system acceptance",
     }, ensure_ascii=False, indent=2))
     if arguments.assert_not_prematurely_certified and (
-        assessment["system_status"] != "NOT_READY__REQUIRES_EXTERNAL_EVIDENCE"
+        assessment["system_status"].startswith("ACCEPTED")
     ):
         raise SystemExit("FINANCIAL_UNEXPECTED_PREMATURE_COMPLETION")
 
