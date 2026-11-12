@@ -101,14 +101,27 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
     _require(type(rev) is int and rev >= 0, "CATALOG_REVISION_INVALID")
     _require(isinstance(history, list) and len(history) == rev,
              "CATALOG_HISTORY_REVISION_MISMATCH")
+    seen_action_ids: set[str] = set()
+    seen_attestation_nonces: set[tuple[str, str]] = set()
     for index, item in enumerate(history, 1):
         _require(isinstance(item, Mapping) and item.get("revision") == index,
                  "CATALOG_HISTORY_SEQUENCE_INVALID")
         _require(item.get("knowledge_id") in seen and item.get("operation") in METHOD_ACTIONS,
                  "CATALOG_HISTORY_EVENT_INVALID")
         auth = item.get("authorization_evidence")
-        if auth is not None:
-            _require(isinstance(auth, Mapping), "CATALOG_ACTION_ATTESTATION_INVALID")
+        _require(isinstance(auth, Mapping), "CATALOG_ACTION_ATTESTATION_MISSING")
+        _require(isinstance(auth.get("action_id"), str)
+                 and auth["action_id"] not in seen_action_ids,
+                 "CATALOG_ACTION_ID_MISSING_OR_REPLAYED")
+        seen_action_ids.add(auth["action_id"])
+        action_nonce = auth.get("nonce")
+        _require(isinstance(action_nonce, str)
+                 and (auth.get("provider_id"), action_nonce) not in seen_attestation_nonces,
+                 "CATALOG_ACTION_NONCE_MISSING_OR_REPLAYED")
+        seen_attestation_nonces.add((auth.get("provider_id"), action_nonce))
+        _require(isinstance(auth.get("request_sha256"), str)
+                 and re.fullmatch(r"[a-f0-9]{64}", auth["request_sha256"]) is not None,
+                 "CATALOG_ACTION_REQUEST_DIGEST_INVALID")
             try:
                 verified_auth = verify_provider_attestation(
                     auth, expected_type="method_action_authorization",
@@ -146,6 +159,10 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                 raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_PROMOTION_ATTESTATION_INVALID") from exc
             _require(verified_promotion["authenticated_actor"] == promoted.get("reviewer_principal"),
                      "CATALOG_PROMOTION_REVIEWER_MISMATCH")
+            review_nonce = (verified_promotion["provider_id"], verified_promotion["nonce"])
+            _require(review_nonce not in seen_attestation_nonces,
+                     "CATALOG_REVIEW_ATTESTATION_NONCE_REPLAYED")
+            seen_attestation_nonces.add(review_nonce)
         if item.get("operation") == "VERIFY_IMPACT":
             impact = item.get("impact_verification")
             _require(isinstance(impact, Mapping)
@@ -165,6 +182,10 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                 raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_IMPACT_ATTESTATION_INVALID") from exc
             _require(verified_impact["authenticated_actor"] == impact.get("reviewer_principal"),
                      "CATALOG_IMPACT_REVIEWER_MISMATCH")
+            review_nonce = (verified_impact["provider_id"], verified_impact["nonce"])
+            _require(review_nonce not in seen_attestation_nonces,
+                     "CATALOG_REVIEW_ATTESTATION_NONCE_REPLAYED")
+            seen_attestation_nonces.add(review_nonce)
     return catalog
 
 
