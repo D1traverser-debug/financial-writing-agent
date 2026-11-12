@@ -116,6 +116,8 @@ jobs:
           sudo apt-get install -y libreoffice-writer poppler-utils
       - name: DOCX render smoke
         run: python scripts/render_smoke.py
+      - name: Financial real-task and negative-case business replay (not editorial acceptance)
+        run: python scripts/real_financial_workflow_redteam.py | tee audit/financial_business_redteam.json
       - name: Preserve the current exact-head audit and line-coverage evidence
         if: always()
         uses: actions/upload-artifact@v4
