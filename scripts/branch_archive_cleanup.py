@@ -247,8 +247,11 @@ def run(api: GitHubAPI, *, apply: bool, out_path: Path) -> dict[str, Any]:
             for item in candidates:
                 try:
                     name, sha = item["branch"], item["head_sha"]
-                    if api.exact_branch_head(name) != sha:
-                        raise ValueError("BRANCH_HEAD_MOVED_DURING_FROZEN_INVENTORY")
+                    # Pin the exact head captured by the complete inventory
+                    # before consulting the live ref again. If another actor
+                    # deleted or moved the ref before the freeze was verified,
+                    # the observed commit is still preserved by this tag; the
+                    # subsequent live-head readback will block every deletion.
                     api.tag_archive(name, sha)
                     result["tagged"].append({**item, "tag": ARCHIVE_PREFIX + name})
                 except Exception as exc:
