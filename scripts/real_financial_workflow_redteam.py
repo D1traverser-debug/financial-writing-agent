@@ -305,6 +305,81 @@ def run() -> dict:
     except ValueError as exc:
         observations["11_unsupported_task_satisfaction"] = {"result": f"BLOCKED:{exc}"}
 
+
+    # Real retained source CSV has two company names padded with internal spaces.
+    # The historical Deep visibly names the same companies without the spaces.
+    csv_path = (
+        ROOT / "workspaces/articles/cross-border-ecommerce-20261016-v2"
+        / "research/UNIVERSE_EASTMONEY_BK1115_20261016.csv"
+    )
+    old_draft_path = (
+        ROOT / "workspaces/articles/cross-border-ecommerce-20261016-v2"
+        / "stages/DRAFT_V2_20261016.md"
+    )
+    rows = [
+        line.split(",", 1)
+        for line in csv_path.read_text(encoding="utf-8").splitlines()[1:]
+        if line.strip()
+    ]
+    assert len(rows) == 170
+    old_draft = old_draft_path.read_text(encoding="utf-8")
+    raw_missing = [{"ticker": code, "csv_name": name} for code, name in rows if name not in old_draft]
+    normalized_missing = [
+        {"ticker": code, "normalized_name": "".join(name.split())}
+        for code, name in rows if "".join(name.split()) not in old_draft
+    ]
+    observations["12_real_csv_to_draft_name_identity"] = {
+        "csv_company_rows": len(rows),
+        "csv_unique_tickers": len({code for code, _ in rows}),
+        "raw_name_mismatch_count": len(raw_missing),
+        "raw_name_mismatches": raw_missing,
+        "normalized_name_missing_count": len(normalized_missing),
+    }
+
+    # Concrete scope-check false negative: identical economic name with vs.
+    # without a space, despite intact financial comparison and full submitted
+    # names. Normalize the research name and the same article becomes admissible.
+    raw_name_research = SimpleNamespace(
+        universe=[
+            SimpleNamespace(name="生 意 宝", materiality="MATERIAL", value_chain_class="B2B"),
+            SimpleNamespace(name="焦点科技", materiality="MATERIAL", value_chain_class="B2B"),
+            SimpleNamespace(name="弱标签公司", materiality="REFERENCE_ONLY", value_chain_class="标签"),
+        ],
+        company_decision_map=object(),
+        universe_coverage=SimpleNamespace(
+            status="COMPLETE", classes=[
+                SimpleNamespace(included_companies=["生 意 宝", "焦点科技"]),
+                SimpleNamespace(included_companies=["弱标签公司"]),
+            ],
+        ),
+    )
+    scoped_article = ArticleDocument(
+        title="B2B业务的财务比较",
+        stock_names=["生意宝", "焦点科技", "弱标签公司"],
+        blocks=[
+            Block(kind="h1", text="一、贸易获客结构"),
+            Block(kind="body", text="焦点科技的交易收入兑现强于生意宝；生意宝成本更高，利润兑现较慢。"),
+            Block(kind="body", text="弱标签公司只是间接概念标签，缺乏直接兑现证据。"),
+        ],
+    )
+    try:
+        verify_task_publication_scope(state, scoped_article, raw_name_research)
+        raw_name_result = "ACCEPTED"
+    except TaskPublicationError as exc:
+        raw_name_result = f"REJECTED:{str(exc)[:220]}"
+    raw_name_research.universe[0].name = "生意宝"
+    raw_name_research.universe_coverage.classes[0].included_companies[0] = "生意宝"
+    try:
+        fix_result = verify_task_publication_scope(state, scoped_article, raw_name_research)
+        normalized_name_result = f"ACCEPTED:{fix_result['company_names_checked']}"
+    except TaskPublicationError as exc:
+        normalized_name_result = f"REJECTED:{str(exc)[:220]}"
+    observations["13_name_spacing_false_negative"] = {
+        "raw_csv_name_result": raw_name_result,
+        "normalized_same_company_result": normalized_name_result,
+        "semantic_company_identity_same": True,
+    }
+
     return observations
 
 
