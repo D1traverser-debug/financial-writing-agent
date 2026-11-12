@@ -38,12 +38,13 @@ def test_cross_repository_request_rejected():
 
 
 class SimulatedAPI:
-    def __init__(self, changed=False, fail=False, open_prs=None):
+    def __init__(self, changed=False, fail=False, open_prs=None, deleted_before_tag=False):
         self.branches={"main":A,"test/old":B,"article/active":C}
         self.tags={}
         self.changed=changed
         self.fail=fail
         self.open_prs = open_prs or []
+        self.deleted_before_tag = deleted_before_tag
         self.mutation_order = []
     def paginate(self,suffix):
         if suffix == "branches":
@@ -54,6 +55,8 @@ class SimulatedAPI:
             return list(self.open_prs)
         raise AssertionError("unexpected collection: " + suffix)
     def exact_branch_head(self,name):
+        if self.deleted_before_tag and name=="test/old":
+            return None
         return ("f"*40 if self.changed and name=="test/old"
                 else self.branches.get(name))
     def archived_tag_head(self,name):
@@ -63,7 +66,6 @@ class SimulatedAPI:
         return {"branch_updates_and_creations_frozen": True,
                 "archive_tags_update_and_delete_blocked": True}
     def tag_archive(self,name,sha):
-        assert self.exact_branch_head(name)==sha
         self.tags[name]=sha
         self.mutation_order.append("tag:" + name)
     def prune_branch(self,name,sha):
@@ -111,12 +113,24 @@ def test_open_pull_request_blocks_all_deletion_and_preserves_every_branch(tmp_pa
     assert api.tags == {} and api.mutation_order == []
 
 
+
+def test_concurrent_external_delete_after_inventory_still_preserves_observed_commit(tmp_path, monkeypatch):
+    monkeypatch.setenv("FINANCIAL_REVIEWED_MAIN_SHA", A)
+    api=SimulatedAPI(deleted_before_tag=True)
+    res=run(api,apply=True,out_path=tmp_path/"audit.json")
+    assert res["complete"] is False
+    assert api.tags["test/old"] == B
+    assert "test/old" in api.branches  # simulation leaves the ref for a deterministic assertion
+    assert not res["deleted"]
+    assert res["unresolved_failures"][0]["stage"] == "PRE_DELETE_READBACK"
+
 def test_moved_head_or_delete_failure_keeps_unarchived_branch(tmp_path, monkeypatch):
     monkeypatch.setenv("FINANCIAL_REVIEWED_MAIN_SHA", A)
     api=SimulatedAPI(changed=True)
     res=run(api,apply=True,out_path=tmp_path/"audit.json")
     assert res["complete"] is False
     assert "test/old" in api.branches
+    assert api.tags["test/old"] == B
     assert not res["deleted"]
     api=SimulatedAPI(fail=True)
     res=run(api,apply=True,out_path=tmp_path/"audit2.json")
