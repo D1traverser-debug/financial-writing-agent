@@ -166,6 +166,7 @@ def mutate_method_catalog(
     impact_target_revision: int | None = None,
     impact_evidence: Mapping[str, Any] | None = None,
     impact_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+    authorization_evidence: Mapping[str, Any] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     checked = validate_method_catalog(raw)
     _require(operation in METHOD_ACTIONS, "ACTION_UNSUPPORTED")
@@ -326,6 +327,7 @@ def mutate_method_catalog(
         "affected_stages": stages,
         "promoted_proof": promoted_proof,
         "impact_verification": impact_proof,
+        "authorization_evidence": deepcopy(dict(authorization_evidence)) if isinstance(authorization_evidence, Mapping) else None,
         "target_change_revision": impact_target_revision if operation == "VERIFY_IMPACT" else None,
         "impact_review_state": (
             "CLOSED__EXTERNAL_STAGE_EVIDENCE_READBACK"
