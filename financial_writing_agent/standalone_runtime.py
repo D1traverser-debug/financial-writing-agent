@@ -28,6 +28,7 @@ from .method_governance import (
     admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
+from .provider_attestation import verify_action_authorization, FinancialProviderAttestationError
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (IndependentEditorialEvidenceError,
@@ -93,7 +94,7 @@ class FinancialEffectUnverified(RuntimeError):
 StateReader = Callable[[str], Mapping[str, Any] | None]
 CASWriter = Callable[[str, str | None, str], Mapping[str, Any]]
 ArtifactReader = Callable[[str], Mapping[str, Any] | None]
-AuthorizationVerifier = Callable[[Mapping[str, Any]], bool]
+AuthorizationVerifier = Callable[[Mapping[str, Any]], Mapping[str, Any] | None]
 
 
 def _require(ok: bool, why: str) -> None:
@@ -426,10 +427,19 @@ def admit_article_action(
     _require(callable(authorization_verifier) and callable(cas_writer),
              "FINANCIAL_TRUSTED_AUTH_AND_CAS_REQUIRED")
     try:
-        authorized = authorization_verifier(deepcopy(r))
+        authorization_attestation = verify_action_authorization(
+            authorization_verifier(deepcopy(r)), request=r,
+        )
     except Exception as exc:
-        raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_NOT_VERIFIED") from exc
-    _require(authorized is True, "FINANCIAL_AUTHORIZATION_NOT_VERIFIED")
+        raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_ATTESTATION_NOT_VERIFIED") from exc
+    authorization_evidence = {
+        "provider_id": authorization_attestation["provider_id"],
+        "authenticated_actor": authorization_attestation["authenticated_actor"],
+        "issued_at": authorization_attestation["issued_at"],
+        "nonce": authorization_attestation["nonce"],
+        "signature": authorization_attestation["signature"],
+        "request_sha256": authorization_attestation["request_sha256"],
+    }
     path = _state_path(r["task_id"])
     observed = _read(state_reader, path)
     op = r["operation"]
@@ -456,6 +466,7 @@ def admit_article_action(
                     observed[0].get("task_requirement_authority", {}).get("active_requirements", [])
                     if observed is not None else []
                 ),
+                expected_state_blob_sha=r["expected_state_blob_sha"],
             )
         except FinancialIntentEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
@@ -511,6 +522,7 @@ def admit_article_action(
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
+    candidate["execution_receipts"][-1]["input_bindings"]["authorization_verification"] = authorization_evidence
     if owner_intent_evidence is not None:
         candidate["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"] = owner_intent_evidence
     current_admission.validate_state(candidate)
