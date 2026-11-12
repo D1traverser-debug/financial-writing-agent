@@ -7,6 +7,7 @@ from pathlib import Path
 
 from financial_writing_agent.delivery_pipeline import (
     build_verified_interaction_pack_docx, render_word_and_review_pages,
+    finalize_delivery_evidence, validate_delivery_evidence,
 )
 from financial_writing_agent.resources import load_packaged_policy
 from financial_writing_agent.schemas import InteractionPost, PlatformInteractionPack
@@ -72,6 +73,19 @@ def main() -> None:
             },
         )
         interaction_pages = inspected["pages"]
+        delivery = finalize_delivery_evidence(
+            interaction_build,
+            source_ref="workspaces/articles/render-smoke/source/interaction-pack.json",
+            source_identity="ci:synthetic-verified-source",
+            render_qa="PASS", visual_qa="PASS",
+            render_inspection_receipt=inspected,
+        )
+        validate_delivery_evidence({
+            "kind": "PLATFORM_INTERACTION_PACK_DOCX",
+            "sha256": interaction_build["sha256"],
+            **delivery,
+        })
+        assert delivery["delivery_evidence"]["render_inspection_receipt"]["rendered_page_count"] == len(interaction_pages)
         assert inspected["artifact_sha256"] == interaction_build["sha256"]
         assert inspected["review_assurance"] == "CALLER_SUPPLIED_REVIEW__INDEPENDENCE_NOT_ESTABLISHED"
 
