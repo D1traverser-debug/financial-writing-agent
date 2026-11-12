@@ -199,7 +199,7 @@ def test_financial_method_mutation_denies_stale_sha_auth_and_unverified_readback
     with pytest.raises(FinancialEffectUnverified):
         admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: True)
+                            authorization_verifier=signed_method_action_authorization)
     assert p.store == before
 
 
