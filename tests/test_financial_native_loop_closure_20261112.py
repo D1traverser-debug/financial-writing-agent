@@ -18,6 +18,7 @@ from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, _blob_sha,
     admit_article_action, observe_article,
 )
+from trusted_provider_testkit import signed_action_authorization
 
 FIXTURE = Path(__file__).resolve().parents[1] / "evals/FINANCIAL_WRITING_KERNEL_DECISION_ENVELOPE_2026-10-15.json"
 TASK = "synthetic-financial-loop"
@@ -54,7 +55,7 @@ class Provider:
         return self.sources.get(ref)
 
 
-def act(p, operation, params=None, *, auth=lambda _: True, sha=None):
+def act(p, operation, params=None, *, auth=None, sha=None):
     expected = p.read(STATE_PATH)["blob_sha"] if sha is None and p.read(STATE_PATH) else sha
     return admit_article_action({
         "schema_version": "1.0", "domain_id": DOMAIN_ID,
@@ -62,7 +63,8 @@ def act(p, operation, params=None, *, auth=lambda _: True, sha=None):
         "task_id": TASK, "operation": operation,
         "expected_state_blob_sha": expected if operation != "CREATE_ARTICLE" else None,
         "parameters": params or {},
-    }, state_reader=p.read, cas_writer=p.write, authorization_verifier=auth,
+    }, state_reader=p.read, cas_writer=p.write,
+       authorization_verifier=auth or signed_action_authorization,
        artifact_reader=p.artifact, source_snapshot_reader=p.source)
 
 
@@ -124,7 +126,7 @@ def test_full_native_fail_recover_replay_invalidates_upstream_and_rechecks_cas()
     with pytest.raises(Exception):
         act(p, "ADVANCE_STAGE")
     assert p.states == frozen
-    with pytest.raises(FinancialAdmissionError, match="AUTHORIZATION_NOT_VERIFIED"):
+    with pytest.raises(FinancialAdmissionError, match="AUTHORIZATION_ATTESTATION_NOT_VERIFIED"):
         act(p, "RESUME_BLOCKED", {"repair_evidence": ["simulation://repair"]},
             auth=lambda _: False)
     assert p.states == frozen
