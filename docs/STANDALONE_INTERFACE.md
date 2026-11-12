@@ -18,7 +18,7 @@ Operations and business admission:
 - RESUME_BLOCKED: uses persisted canonical FAIL cursor and repair evidence; replays invalidation before progression.
 - RECORD_PROACTIVE_RESOLUTION: records a scoped owner-native recovery attempt, attempted sources, outcome and safety bounds.
 - REVIEW_SYSTEM_IMPACT: reviews and closes evidence-bound feedback system impact, preserving immutable prior diagnosis.
-- observe_article: read-only, validates the actual article, returns stage, revision, digest and output metadata; does not infer independent quality.
+- observe_article: read-only, validates the actual article, returns stage, next action, blocked-review recovery cursor, open system-impact summaries, active requirement IDs, revision/digest and output metadata; does not infer independent quality.
 
 Before any current article advances through DELIVERY or FINAL_AUDIT, the same provider artifact_reader must retrieve each required DOCX binary at its article-scoped resource_ref. The port checks the Git Blob SHA, declared SHA-256, canonical file name, unique source path, ZIP/Word XML integrity and opening as a real Word document. This is binary existence and integrity only; per-page visual QA and independent editorial judgment have separate gates.
 
