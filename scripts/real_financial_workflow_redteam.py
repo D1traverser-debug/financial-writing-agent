@@ -11,7 +11,7 @@ from __future__ import annotations
 
 import hashlib
 import json
-from datetime import date
+from datetime import date, datetime, timezone
 from pathlib import Path
 from types import SimpleNamespace
 
@@ -26,9 +26,13 @@ from financial_writing_agent.models import ArtifactKind
 from financial_writing_agent.private_research import (
     REQUIRED_MODULES, validate_private_research_brief,
 )
+from financial_writing_agent.current_research_sources import (
+    CurrentResearchEvidenceError, verify_current_research_sources,
+)
 from financial_writing_agent.schemas import AuditProvenance
 from financial_writing_agent.standalone_runtime import (
     FinancialAdmissionError, _blob_sha, admit_article_action, observe_article,
+    _verify_requirement_satisfaction_sources,
 )
 from financial_writing_agent.story_quality import (
     AuditStatus, GateAudit, OriginalityEvidence, ProductMode,
@@ -97,10 +101,20 @@ def run() -> dict:
         old_brief, expected_contract_version="1.1"
     )
     old_date = date.fromisoformat(accepted_old["as_of"][:10])
+    try:
+        verify_current_research_sources(
+            accepted_old,
+            source_reader=lambda _: None,
+            as_of=datetime(2026, 11, 12, tzinfo=timezone.utc),
+        )
+        old_runtime_result = "ACCEPTED"
+    except CurrentResearchEvidenceError as exc:
+        old_runtime_result = f"BLOCKED:{exc}"
     observations["04_historical_research_freshness"] = {
         "old_as_of": old_date.isoformat(),
         "age_days_at_replay": (DATE - old_date).days,
         "structure_accepted_as_complete": accepted_old["coverage_state"] == "COMPLETE",
+        "current_admission_result": old_runtime_result,
         "live_news_or_policy_rechecked_by_this_validator": False,
     }
 
@@ -120,8 +134,17 @@ def run() -> dict:
     }
     try:
         fake = validate_private_research_brief(placeholder, expected_contract_version="1.1")
+        try:
+            verify_current_research_sources(
+                fake, source_reader=lambda _: None,
+                as_of=datetime(2026, 11, 12, tzinfo=timezone.utc),
+            )
+            live_result = "ACCEPTED"
+        except CurrentResearchEvidenceError as exc:
+            live_result = f"BLOCKED:{exc}"
         observations["05_fabricated_brief_schema"] = {
             "result": "STRUCTURAL_ACCEPTANCE",
+            "current_admission_result": live_result,
             "module_count": len(fake["modules"]),
             "source_provider_bytes_read": 0,
         }
@@ -305,10 +328,20 @@ def run() -> dict:
                 "notes": "no issuer research was actually read",
             }],
         )
+        try:
+            readback = _verify_requirement_satisfaction_sources(
+                satisfied, {"snapshots": []},
+            )
+            source_readback_result = "ACCEPTED"
+        except FinancialAdmissionError as source_exc:
+            readback = None
+            source_readback_result = f"BLOCKED:{source_exc}"
         observations["11_unsupported_task_satisfaction"] = {
             "result": "STRUCTURAL_SATISFACTION_ACCEPTED",
+            "source_readback_result": source_readback_result,
             "record_count": len(satisfied),
             "provider_sources_verified": 0,
+            "semantic_support_verified": bool(readback and readback["semantic_support_verified"]),
         }
     except ValueError as exc:
         observations["11_unsupported_task_satisfaction"] = {"result": f"BLOCKED:{exc}"}
@@ -376,15 +409,17 @@ def run() -> dict:
 
     reproduced_gaps = []
     for key, label, expected in (
-        ("05_fabricated_brief_schema", "RESEARCH_FAKE_SOURCE_REFS", "STRUCTURAL_ACCEPTANCE"),
         ("06_opposite_direction_source_claim", "CONTRADICTORY_FINANCIAL_CLAIM", "STRUCTURAL_TRACE_ACCEPTED"),
         ("09_generic_word_without_binary", "GENERIC_WORD_RECEIPT_WITHOUT_BINARY", "INTERNAL_GENERIC_RECEIPT_ACCEPTED"),
         ("10_three_company_universe_as_complete", "UNIVERSE_TRUNCATION_3_VS_174", "STRUCTURAL_SCOPE_ACCEPTED"),
-        ("11_unsupported_task_satisfaction", "UNREAD_REQUIREMENT_EVIDENCE", "STRUCTURAL_SATISFACTION_ACCEPTED"),
     ):
         value = observations.get(key, {})
         if isinstance(value, dict) and value.get("result") == expected:
             reproduced_gaps.append(label)
+    if observations.get("05_fabricated_brief_schema", {}).get("current_admission_result") == "ACCEPTED":
+        reproduced_gaps.append("RESEARCH_FAKE_SOURCE_REFS")
+    if observations.get("11_unsupported_task_satisfaction", {}).get("source_readback_result") == "ACCEPTED":
+        reproduced_gaps.append("UNREAD_REQUIREMENT_EVIDENCE")
     if observations["07_self_scored_editorial_fitness"]["self_pass_admitted"]:
         reproduced_gaps.append("SELF_REVIEW_PASS_WITHOUT_INDEPENDENT_JUDGMENT")
     if observations["12_real_csv_to_draft_name_identity"]["normalized_name_missing_count"]:
@@ -395,7 +430,22 @@ def run() -> dict:
         "product_readiness": "NOT_READY",
         "reason": "LIVE_V3_0_OF_4_DELIVERABLES__INDEPENDENT_EDITORIAL_NOT_VERIFIED",
         "reproduced_weak_assurance_paths": sorted(reproduced_gaps),
-        "successful_safety_controls": ["UNAUTHENTICATED_STATE_CHANGE_DENIED", "READ_ONLY_OBSERVATION_NO_INDEPENDENT_CERTIFICATION"],
+        "successful_safety_controls": [
+            "UNAUTHENTICATED_STATE_CHANGE_DENIED",
+            "READ_ONLY_OBSERVATION_NO_INDEPENDENT_CERTIFICATION",
+            "STALE_RESEARCH_BLOCKED_AT_CURRENT_ADMISSION",
+            "FAKE_SOURCE_REFS_BLOCKED_BY_PROVIDER_READBACK",
+            "UNREAD_REQUIREMENT_REFS_BLOCKED",
+            "SAME_SESSION_EDITORIAL_SELF_PASS_BLOCKED",
+            "WORD_DELIVERY_WITHOUT_RENDER_RECEIPT_BLOCKED",
+            "COMPANY_IDENTITY_NORMALIZED_AT_GROUNDING_BOUNDARY",
+        ],
+        "open_assurance_limits": [
+            "RESEARCH_SOURCE_AUTHORITY_AND_FACT_ENTAILMENT_NOT_VERIFIED",
+            "REQUIREMENT_SEMANTIC_SUPPORT_NOT_CERTIFIED_BY_SOURCE_READBACK",
+            "PAGE_REVIEW_INDEPENDENCE_NOT_ESTABLISHED",
+            "REAL_ARTICLE_EDITORIAL_AND_READER_OUTCOME_NOT_VERIFIED",
+        ],
         "ci_success_means": "NEGATIVE_REPLAY_EXECUTED__NOT_PUBLICATION_ACCEPTANCE",
     }
     return observations
