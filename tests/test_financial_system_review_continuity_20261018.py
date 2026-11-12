@@ -20,7 +20,8 @@ def test_explicit_financial_system_review_has_durable_current_owner_ref():
     assert (ROOT / assessment["review_ref"]).is_file()
     assert assessment["existing_task_ref"].endswith("/STATE.json")
     assert _json(assessment["existing_task_ref"])["status"] == "IN_PROGRESS"
-    assert assessment["user_action_now"] == "NONE"
+    assert "EXTERNAL_OWNER_SETUP_REQUIRED" in assessment["user_action_now"]
+    assert "no code-only route" in assessment["user_action_now"]
 
 
 def test_named_system_request_does_not_route_into_a_historical_article():
