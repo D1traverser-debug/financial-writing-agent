@@ -50,13 +50,37 @@ def decision():
 
 
 def mutate(cat, operation, *, proposed=None, method_id=METHOD_ID,
-           promotion_evidence=None, promotion_verifier=None):
+           promotion_evidence=None, promotion_verifier=None,
+           impact_target_revision=None, impact_evidence=None, impact_verifier=None):
+    params = {
+        "knowledge_id": method_id,
+        "decision_envelope": decision(),
+        "evidence_refs": ["method-source://primary"],
+        "affected_stages": ["RESEARCH", "EDITORIAL"],
+    }
+    if proposed is not None:
+        params["proposed_record"] = proposed
+    if promotion_evidence is not None:
+        params["promotion_evidence"] = promotion_evidence
+    if impact_target_revision is not None:
+        params["impact_target_revision"] = impact_target_revision
+    if impact_evidence is not None:
+        params["impact_evidence"] = impact_evidence
+    raw = json.dumps(cat, ensure_ascii=False, sort_keys=True, indent=2) + "\\n"
+    action_request = {
+        "schema_version": "1.0", "domain_id": "financial_writing",
+        "action_id": f"synthetic-method-{operation.lower()}-{cat['governance_revision'] + 1}",
+        "operation": operation, "expected_catalog_blob_sha": _blob_sha(raw),
+        "parameters": params,
+    }
     return mutate_method_catalog(
         cat, operation=operation, knowledge_id=method_id,
-        proposed_record=proposed, decision_envelope=decision(),
-        evidence_refs=["method-source://primary"],
-        affected_stages=["RESEARCH", "EDITORIAL"],
+        proposed_record=proposed, decision_envelope=params["decision_envelope"],
+        evidence_refs=params["evidence_refs"], affected_stages=params["affected_stages"],
         promotion_evidence=promotion_evidence, promotion_verifier=promotion_verifier,
+        impact_target_revision=impact_target_revision, impact_evidence=impact_evidence,
+        impact_verifier=impact_verifier, action_request=action_request,
+        authorization_evidence=signed_method_action_authorization(action_request),
     )
 
 
@@ -209,11 +233,8 @@ def test_method_revalidation_obligation_cannot_be_silently_closed_by_self_pass()
     assert target["impact_review_state"].startswith("OPEN")
     before = deepcopy(cat)
     with pytest.raises(MethodGovernanceError, match="IMPACT"):
-        mutate_method_catalog(
-            cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
-            decision_envelope=decision(), evidence_refs=["method-source://primary"],
-            affected_stages=["RESEARCH", "EDITORIAL"],
-            impact_target_revision=1,
+        mutate(
+            cat, "VERIFY_IMPACT", impact_target_revision=1,
             impact_evidence={
                 "stage_evidence_refs": {
                     "RESEARCH": "simulation://source-and-company-research-test",
@@ -232,11 +253,8 @@ def test_method_impact_closure_requires_exact_original_event_and_stage_evidence(
         challenge_seen.append(request)
         return signed_method_impact(request)
 
-    closed, receipt = mutate_method_catalog(
-        cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
-        decision_envelope=decision(), evidence_refs=["method-source://primary"],
-        affected_stages=["RESEARCH", "EDITORIAL"],
-        impact_target_revision=1,
+    closed, receipt = mutate(
+        cat, "VERIFY_IMPACT", impact_target_revision=1,
         impact_evidence={
             "stage_evidence_refs": {
                 "RESEARCH": "simulation://source-and-company-research-test",
