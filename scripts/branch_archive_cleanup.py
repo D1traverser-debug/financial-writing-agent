@@ -367,8 +367,15 @@ def archive_only(api: GitHubAPI, manifest_path: Path, approved: str, out: Path):
     return result
 
 
-def prune_only(api: GitHubAPI, manifest_path: Path, approved: str, out: Path):
+def prune_only(
+    api: GitHubAPI, manifest_path: Path, approved: str, out: Path, *,
+    confirm_unverified_branch_archive: bool = False,
+):
     manifest, checksum = read_plan(manifest_path, approved)
+    if manifest["unverified_branch_heads"] and not confirm_unverified_branch_archive:
+        raise ValueError(
+            "UNVERIFIED_BRANCH_HEADS_REQUIRE_EXPLICIT_ARCHIVE_PRUNE_CONFIRMATION"
+        )
     controls = api.verify_controls("PRUNE")
     if (controls["branch_ruleset_id"] != manifest["control_ids"]["branch_ruleset_id"]
         or controls["tag_ruleset_id"] != manifest["control_ids"]["tag_ruleset_id"]):
@@ -452,6 +459,10 @@ def main():
     group.add_argument("--plan", action="store_true")
     group.add_argument("--archive-only", action="store_true")
     group.add_argument("--prune-only", action="store_true")
+    parser.add_argument(
+        "--confirm-unverified-branch-archive", action="store_true",
+        help="explicitly authorize pruning non-main heads without an exact merged-to-main PR head",
+    )
     parser.add_argument("--manifest", default="audit/financial_branch_plan.json")
     parser.add_argument("--approved-manifest-sha256", default="")
     parser.add_argument("--out", default="audit/financial_branch_archive.json")
@@ -466,7 +477,10 @@ def main():
     elif args.archive_only:
         result = archive_only(api, Path(args.manifest), args.approved_manifest_sha256, out)
     elif args.prune_only:
-        result = prune_only(api, Path(args.manifest), args.approved_manifest_sha256, out)
+        result = prune_only(
+            api, Path(args.manifest), args.approved_manifest_sha256, out,
+            confirm_unverified_branch_archive=args.confirm_unverified_branch_archive,
+        )
         if not result["complete"]:
             raise SystemExit("PRUNE_INCOMPLETE__ARCHIVE_TAGS_RETAINED")
     else:
