@@ -186,15 +186,22 @@ def run() -> dict:
         )],
         "final_status": AuditStatus.PASS,
     }
-    self_fitness = PublicationFitness(
-        **base, assurance="CHAT_SELF_REVIEW",
-        audit_provenance=AuditProvenance(assurance="CHAT_SELF_REVIEW"),
-    )
-    observations["07_self_scored_editorial_fitness"] = {
-        "self_pass_admitted": self_fitness.final_status.value == "PASS",
-        "assurance": self_fitness.assurance,
-        "independent_reader_or_fact_evidence": False,
-    }
+    try:
+        self_fitness = PublicationFitness(
+            **base, assurance="CHAT_SELF_REVIEW",
+            audit_provenance=AuditProvenance(assurance="CHAT_SELF_REVIEW"),
+        )
+        observations["07_self_scored_editorial_fitness"] = {
+            "self_pass_admitted": self_fitness.final_status.value == "PASS",
+            "assurance": self_fitness.assurance,
+            "independent_reader_or_fact_evidence": False,
+        }
+    except ValueError as exc:
+        observations["07_self_scored_editorial_fitness"] = {
+            "self_pass_admitted": False,
+            "result": f"BLOCKED:{exc}",
+            "independent_reader_or_fact_evidence": False,
+        }
     try:
         PublicationFitness(
             **base, assurance="INDEPENDENT_EXECUTOR",
