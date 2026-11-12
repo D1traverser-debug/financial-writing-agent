@@ -166,7 +166,7 @@ def build_visible_delivery_receipt(
             _require(isinstance(binary, Mapping),
                      f"{kind} current DOCX bytes not available")
             content = binary.get("content")
-            _require(isinstance(content, bytes) and content.startswith(b"PK\\x03\\x04"),
+            _require(isinstance(content, bytes) and content.startswith(b"PK\x03\x04"),
                      f"{kind} current resource is not a DOCX binary")
             actual = hashlib.sha256(content).hexdigest()
             _require(actual == digest, f"{kind} actual DOCX bytes differ from declared hash")
