@@ -1,4 +1,4 @@
-"""Source text and numeric provenance for Financial publication.
+"""Source text, numeric provenance and conservative hard-negative financial checks.
 
 An external caller provides source reads. We recompute UTF-8 snapshot digests
 and ensure a public paragraph's asserted numbers occur in retrieved excerpts.
@@ -13,6 +13,8 @@ import re
 import unicodedata
 from collections.abc import Callable, Mapping
 from typing import Any
+
+from .financial_fact_guard import FinancialFactConflict, reject_direct_fact_contradictions
 
 SOURCE_TRACE_ASSURANCE = "SOURCE_TEXT_AND_NUMERALS_OBSERVED__SEMANTIC_ENTAILMENT_NOT_VERIFIED"
 _NUMERIC = re.compile(r"\d+(?:[.,]\d+)*")
@@ -117,6 +119,10 @@ def verify_publication_source_trace(
             _numbers(claim).issubset(_numbers(excerpt)),
             "SOURCE_TRACE_CLAIM_NUMBERS_ABSENT_FROM_SOURCE_EXCERPT",
         )
+        try:
+            reject_direct_fact_contradictions(row["claim_excerpt"], excerpt)
+        except FinancialFactConflict as exc:
+            raise SourceTraceError(str(exc)) from exc
         observed_numbers.setdefault(index, set()).update(_numbers(excerpt))
         covered.add(index)
         bound_claims.append({
