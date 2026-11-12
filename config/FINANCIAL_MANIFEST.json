@@ -17,5 +17,11 @@
   "provider_adapter": "financial_writing_agent.standalone_runtime",
   "method_evolution_authority": "evals/EVOLUTION_INDEX.json",
   "permission_policy": "PER_ACTION_EXTERNAL_USER_AUTHORIZATION_AND_PROVIDER_CAS",
-  "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE"
+  "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE",
+  "owner_intent_provenance": "financial_writing_agent.intent_governance",
+  "requirement_write_authentication": "AUTHENTICATED_ORIGINAL_USER_MESSAGE_AND_EXCERPT",
+  "method_catalog_authority": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+  "method_governance": "financial_writing_agent.method_governance",
+  "method_provider_entry": "financial_writing_agent.standalone_runtime.admit_method_action",
+  "method_impact_closure": "EXTERNAL_REVALIDATION_WITH_APPEND_ONLY_EVENT_HISTORY"
 }
