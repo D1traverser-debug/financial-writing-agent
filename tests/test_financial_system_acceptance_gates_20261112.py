@@ -170,7 +170,7 @@ def test_method_gate_malformed_signed_challenge_fails_closed_without_crashing():
         code_tests_passed=True,
     )
     assert gate in result["open_gates"]
-    assert "METHOD_INDEPENDENT_REVIEW_ATTESTATION_INVALID" in result["gates"][gate]["reason"]
+    assert "METHOD_PROMOTION_DIGEST_INVALID" in result["gates"][gate]["reason"]
 
 
 def test_owner_cannot_attest_the_independent_external_review_gate():
