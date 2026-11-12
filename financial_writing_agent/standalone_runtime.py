@@ -19,6 +19,7 @@ from copy import deepcopy
 from typing import Any, Callable, Mapping
 
 from . import current_admission, owner_lifecycle, proactive_resolution
+from .intent_governance import FinancialIntentEvidenceError, verify_requirement_change_intent
 from .path_identity import require_article_path, require_task_id
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
@@ -38,7 +39,7 @@ CREATE_KEYS = frozenset({
     "prompt", "source_refs", "target_platforms", "distribution_mode",
     "distribution_mode_source", "distribution_mode_override_evidence",
 })
-REQUIREMENT_KEYS = frozenset({"evidence_ref", "upserts", "retire_ids"})
+REQUIREMENT_KEYS = frozenset({"evidence_ref", "upserts", "retire_ids", "intent_evidence"})
 STAGE_KEYS = frozenset({
     "artifact_key", "artifact_path", "artifact_blob_sha", "review_status",
     "revision_target", "delivery_artifacts", "audit_artifact",
@@ -314,6 +315,7 @@ def admit_article_action(
     artifact_reader: ArtifactReader | None = None,
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+    owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Use existing Financial admissions and genuine provider CAS/readback.
 
@@ -333,6 +335,17 @@ def admit_article_action(
     observed = _read(state_reader, path)
     op = r["operation"]
     params = deepcopy(dict(r["parameters"]))
+    owner_intent_evidence = None
+    if op == "CHANGE_REQUIREMENTS":
+        try:
+            owner_intent_evidence = verify_requirement_change_intent(
+                params.pop("intent_evidence", None),
+                evidence_ref=params.get("evidence_ref"),
+                upserts=params.get("upserts"), retire_ids=params.get("retire_ids"),
+                owner_instruction_reader=owner_instruction_reader,
+            )
+        except FinancialIntentEvidenceError as exc:
+            raise FinancialAdmissionError(str(exc)) from exc
     if op == "CREATE_ARTICLE":
         _require(observed is None, "FINANCIAL_ARTICLE_ALREADY_EXISTS")
         params.setdefault("source_refs", [])
@@ -369,6 +382,8 @@ def admit_article_action(
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
+    if owner_intent_evidence is not None:
+        candidate["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"] = owner_intent_evidence
     current_admission.validate_state(candidate)
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
     word_bytes = None
