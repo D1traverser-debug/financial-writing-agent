@@ -159,3 +159,33 @@ def test_ambiguous_delete_and_upsert_same_requirement_is_not_one_silent_replacem
     with pytest.raises(RequirementError, match="simultaneously"):
         apply_requirement_changes(raw, upserts=[requirement("new content")],
                                   retire_ids=["deep-universe"], evidence_ref=SOURCE)
+
+
+def test_owner_suggestion_is_preserved_as_nonbinding_article_intent_without_changing_goals():
+    p = create(Provider())
+    before = p.read(f"workspaces/articles/{TASK}/STATE.json")["state"]
+    raw = "要不要考虑把Deep写得更短一些？"
+    effect = action(p, "RECORD_OWNER_INTENT", {
+        "intent_evidence": _proof(raw, intent="USER_SUGGESTION"),
+        "summary": "consider a shorter Deep version",
+    }, reader=_reader(raw))
+    assert effect["child_state_cas_verified"] is True
+    after = p.read(f"workspaces/articles/{TASK}/STATE.json")["state"]
+    assert after["task_requirement_digest"] == before["task_requirement_digest"]
+    assert after["task_requirement_authority"] == before["task_requirement_authority"]
+    assert after["intent_history"][-1]["intent"] == "USER_SUGGESTION"
+    assert after["intent_history"][-1]["status"] == "OPEN__NONBINDING"
+    assert after["execution_receipts"][-1]["capability_id"] == "financial_owner_intent_intake"
+    assert after["current_stage"] == before["current_stage"]
+
+
+def test_owner_idea_with_forged_source_cannot_be_recorded_as_authentic():
+    p = create(Provider())
+    frozen = deepcopy(p.states)
+    raw = "可以想想新的叙事结构"
+    with pytest.raises(FinancialAdmissionError, match="INTENT"):
+        action(p, "RECORD_OWNER_INTENT", {
+            "intent_evidence": _proof(raw, intent="IMPLEMENTATION_IDEA"),
+            "summary": "unverified idea",
+        }, reader=_reader(raw, role="assistant"))
+    assert p.states == frozen
