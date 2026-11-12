@@ -106,6 +106,65 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                  "CATALOG_HISTORY_SEQUENCE_INVALID")
         _require(item.get("knowledge_id") in seen and item.get("operation") in METHOD_ACTIONS,
                  "CATALOG_HISTORY_EVENT_INVALID")
+        auth = item.get("authorization_evidence")
+        if auth is not None:
+            _require(isinstance(auth, Mapping), "CATALOG_ACTION_ATTESTATION_INVALID")
+            try:
+                verified_auth = verify_provider_attestation(
+                    auth, expected_type="method_action_authorization",
+                    expected_claims={
+                        "approved": True,
+                        "action_id": item.get("authorization_action_id"),
+                        "domain_id": "financial_writing",
+                        "operation": item.get("operation"),
+                        "knowledge_id": item.get("knowledge_id"),
+                        "expected_catalog_blob_sha": item.get("authorization_expected_catalog_blob_sha"),
+                    },
+                    expected_actor=expected_owner_principal(),
+                )
+            except Exception as exc:
+                raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_ACTION_ATTESTATION_INVALID") from exc
+            _require(verified_auth["request_sha256"] == auth.get("request_sha256"),
+                     "CATALOG_ACTION_REQUEST_DIGEST_MISSING")
+        if item.get("operation") == "PROMOTE":
+            promoted = item.get("promoted_proof")
+            _require(isinstance(promoted, Mapping)
+                     and isinstance(promoted.get("attestation"), Mapping),
+                     "CATALOG_PROMOTION_ATTESTATION_MISSING")
+            challenge = {
+                "knowledge_id": item["knowledge_id"],
+                "record_sha256": promoted.get("reviewed_record_sha256"),
+                "decision_sha256": item.get("decision_sha256"),
+                "validation_refs": promoted.get("validation_refs"),
+                "review_ref": promoted.get("review_ref"),
+            }
+            try:
+                verified_promotion = verify_method_promotion_attestation(
+                    promoted["attestation"], challenge=challenge,
+                )
+            except Exception as exc:
+                raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_PROMOTION_ATTESTATION_INVALID") from exc
+            _require(verified_promotion["authenticated_actor"] == promoted.get("reviewer_principal"),
+                     "CATALOG_PROMOTION_REVIEWER_MISMATCH")
+        if item.get("operation") == "VERIFY_IMPACT":
+            impact = item.get("impact_verification")
+            _require(isinstance(impact, Mapping)
+                     and isinstance(impact.get("attestation"), Mapping),
+                     "CATALOG_IMPACT_ATTESTATION_MISSING")
+            challenge = {
+                "knowledge_id": item["knowledge_id"],
+                "target_change_revision": item.get("target_change_revision"),
+                "event_sha256": impact.get("reviewed_event_sha256"),
+                "stage_evidence_refs": impact.get("stage_evidence_refs"),
+            }
+            try:
+                verified_impact = verify_method_impact_attestation(
+                    impact["attestation"], challenge=challenge,
+                )
+            except Exception as exc:
+                raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_IMPACT_ATTESTATION_INVALID") from exc
+            _require(verified_impact["authenticated_actor"] == impact.get("reviewer_principal"),
+                     "CATALOG_IMPACT_REVIEWER_MISMATCH")
     return catalog
 
 
