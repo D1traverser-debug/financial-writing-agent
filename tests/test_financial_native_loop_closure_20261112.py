@@ -126,7 +126,7 @@ def test_full_native_fail_recover_replay_invalidates_upstream_and_rechecks_cas()
     with pytest.raises(Exception):
         act(p, "ADVANCE_STAGE")
     assert p.states == frozen
-    with pytest.raises(FinancialAdmissionError, match="AUTHORIZATION_ATTESTATION_NOT_VERIFIED"):
+    with pytest.raises(FinancialAdmissionError, match="AUTHORIZATION_NOT_VERIFIED"):
         act(p, "RESUME_BLOCKED", {"repair_evidence": ["simulation://repair"]},
             auth=lambda _: False)
     assert p.states == frozen
