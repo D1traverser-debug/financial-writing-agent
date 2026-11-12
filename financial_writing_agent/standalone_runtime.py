@@ -714,6 +714,7 @@ def admit_method_action(
             impact_verifier=impact_verifier,
             authorization_evidence=authorization_evidence,
             action_request=request,
+            observed_catalog_blob_sha=previous_sha,
         )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
