@@ -56,3 +56,9 @@ The canonical task operation `CHANGE_REQUIREMENTS` is now source-authenticated t
 Engineering CI proves only the tested deterministic contracts. Real Financial plugin selection, authenticated user-message readback, financial correctness and reader approval still require separate provider/business evidence.
 
 For material decisions explicitly referencing `METHOD-...` knowledge IDs, the Financial provider binds the method's effective version to the RESEARCH receipt, rechecks the catalog during later stage advances, and routes a stale method through guarded `REOPEN_METHOD_DEPENDENCY`. Pending proposals and unrelated method edits do not invalidate the article. This is deterministic dependency governance, not a claim that all implicit method usage is automatically known.
+
+## Native Financial Skill and system-level independent readiness
+
+A new private Financial-only ChatGPT Skill has been created: [Financial Writing — ChatGPT](https://chatgpt.com/plugins/plugins_6af591b19a708191a3879e94a7ce8742). The package has been read back, but **the user must explicitly install/connect it**; this alone is a guidance entry, not an MCP/Python host or signed permission provider. Actual native connection/first-owner-action tests are pending. Authoritative source stays on Financial `main`; CAOS remains untouched.
+
+`CHANGE_REQUIREMENTS` now needs original user source, explicit verbatim grounding **and** externally owner-confirmed exact mutation proof. Failing this stops the change, not the other safe tasks. For system completion, see `evals/FINANCIAL_INDEPENDENT_ACCEPTANCE_REAUDIT_20261112.md`; test counts, source-line coverage and signed Word bytes cannot certify native activation or independent product outcomes. Historical PRs remain audit history; a one-time, tag-first branch archive job is provided for dormant branch ref consolidation, subject to exact source-head and provider-readback guards.
