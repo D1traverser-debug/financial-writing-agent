@@ -212,3 +212,21 @@ def test_feedback_impact_review_closes_using_one_authorized_state_owner():
     assert "SYSTEM_IMPACT_REVIEW" in state["execution_receipts"][-1]["action_id"]
     with pytest.raises(Exception):
         act(p, "REVIEW_SYSTEM_IMPACT", _impact_params())
+
+
+def test_read_only_observation_reports_real_blocker_and_next_action():
+    p = make()
+    act(p, "ATTACH_FEEDBACK", {
+        "sample": {"sample_type": "USER_REJECTION", "summary": "synthetic improvement request"},
+        "system_impact": {"signal_id": "synthetic-open-obligation", "status": "OPEN",
+                          "trigger_sample_type": "USER_REJECTION"},
+    })
+    into_research_audit(p)
+    block(p)
+    before = deepcopy(p.states)
+    observation = observe_article(TASK, state_reader=p.read)
+    assert observation["next_action"]
+    assert observation["blocked_recovery_target"] == "RESEARCH"
+    assert observation["open_system_impact"] == [{"signal_id": "synthetic-open-obligation", "status": "OPEN"}]
+    assert observation["active_requirement_ids"] == []
+    assert p.states == before
