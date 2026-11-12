@@ -13,7 +13,8 @@ def test_explicit_financial_system_review_has_durable_current_owner_ref():
     index = _json("evals/EVOLUTION_INDEX.json")
     assessment = index["active_system_assessment"]
     assert assessment["owner"] == "DOMAIN:financial_writing"
-    assert assessment["status"].startswith("RUNNING")
+    assert "CANDIDATE" in assessment["status"] and "NOT_READY" in assessment["status"]
+    assert not assessment["status"].startswith("ACCEPTED")
     assert assessment["r0_production"]["pr"] == 50
     assert assessment["r0_production"]["ci_run"] == 1416
     assert (ROOT / assessment["review_ref"]).is_file()
