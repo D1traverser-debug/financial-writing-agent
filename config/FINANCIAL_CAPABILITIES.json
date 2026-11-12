@@ -51,13 +51,31 @@
       "id": "owner_learning_and_evolution",
       "source": "financial_writing_agent.owner_lifecycle",
       "assurance": "DOMAIN_OWNED_CANDIDATE_EVAL"
+    },
+    {
+      "id": "authenticated_owner_intent_classification",
+      "source": "financial_writing_agent.intent_governance",
+      "assurance": "EXACT_AUTHENTICATED_OWNER_MESSAGE_BYTES__SEMANTIC_INTENT_NOT_MACHINE_CERTIFIED"
+    },
+    {
+      "id": "financial_method_governance_lifecycle",
+      "source": "financial_writing_agent.method_governance",
+      "assurance": "CANDIDATE_VERSIONED_CAS_AND_EXTERNAL_PROMOTION_IMPACT_REVALIDATION"
+    },
+    {
+      "id": "financial_method_version_dependent_article_replay",
+      "source": "financial_writing_agent.method_governance + financial_writing_agent.owner_lifecycle + financial_writing_agent.standalone_runtime",
+      "assurance": "EXPLICIT_ADMITTED_METHOD_ID__EFFECTIVE_VERSION_SHA__SINGLE_OWNER_EARLIEST_STAGE_REPLAY__SYNTHETIC_CI"
     }
   ],
   "required_external_capabilities_at_execution": [
     "MODEL_OR_CHAT_EXECUTOR_FOR_SEMANTIC_WORK",
     "RESEARCH_SOURCE_ACCESS_FOR_CURRENT_FACTS",
     "USER_AUTHORIZED_GIT_PROVIDER_FOR_PERSISTENT_WRITES",
-    "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF"
+    "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF",
+    "AUTHENTICATED_ORIGINAL_USER_MESSAGE_READER_FOR_REQUIREMENT_WRITES",
+    "TRUSTED_GIT_CATALOG_CAS_AND_SECOND_READBACK_FOR_METHOD_WRITES",
+    "EXTERNAL_REVIEWER_FOR_METHOD_PROMOTION_AND_IMPACT_CLOSURE"
   ],
   "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS",
   "independence_clause": "NO_CAOS_UAOS_PARENT_REPOSITORY_OR_HOST_INVOCATION"

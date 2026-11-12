@@ -57,3 +57,7 @@ The exact Financial-only action/QA boundary is documented at `docs/FINANCIAL_MAI
 Use Financial's evals/EVOLUTION_INDEX.json, tests, knowledge catalog and maintenance procedures for business defects; never write to a parent. Every repair: recover full goal → competing shared causes → counterexamples → compare architectures → implement a bounded candidate → exact-head CI and negative tests → merge/readback → validate on a real article and reader outcome → retain, revise or rollback. Green tests establish engineering only. Actual owner acceptance, original sources, independent reading and verified user-accessible files remain distinct gates. Do not claim completion while a required real article is unaccepted.
 
 Open relevant modules selectively: references/research.md, private_research.md, market_explanation.md, reader_value.md, editorial.md, hooks.md, style.md, audit.md, delivery.md, maintenance.md and proactive_resolution.md. This Skill and those Financial modules together contain the adopted methods; no other plugin is needed for their existence.
+
+## Owner goal and method governance
+
+CHANGE_REQUIREMENTS requires authenticated original user-message and intent evidence; ideas are nonbinding RECORD_OWNER_INTENT. Method CRUD uses observe_method_catalog/admit_method_action, staged revisions, verified promotion, non-destructive retirement and impact review. Full contract: docs/STANDALONE_INTERFACE.md and references/maintenance.md. CAOS is read-only method evidence, not Financial runtime authority.

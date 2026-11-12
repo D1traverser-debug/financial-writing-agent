@@ -63,11 +63,11 @@ def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=Non
     }
 
 
-def run(p, request, auth=lambda _: True):
+def run(p, request, auth=lambda _: True, owner_reader=None):
     return admit_article_action(
         request, state_reader=p.read, cas_writer=p.write,
         authorization_verifier=auth, artifact_reader=p.artifact,
-        source_snapshot_reader=p.source,
+        source_snapshot_reader=p.source, owner_instruction_reader=owner_reader,
     )
 
 
@@ -102,6 +102,11 @@ def test_direct_financial_routing_and_requirement_change_revises_article_only():
     path = "workspaces/articles/solo-article-01/STATE.json"
     result = run(p, proposal("CHANGE_REQUIREMENTS", sha=p.read(path)["blob_sha"], params={
         "evidence_ref": "chat://owner/explicit-scoped-instruction",
+        "intent_evidence": {
+            "intent": "USER_REQUIREMENT", "source_ref": "chat://owner/explicit-scoped-instruction",
+            "verbatim_excerpt": "在财经Deep中完整保留本次经济相关公司池",
+            "classification_reason": "authenticated user directly requested complete company scope",
+        },
         "upserts": [{
             "requirement_id": "deep_companies_full",
             "statement": "在财经Deep中完整保留本次经济相关公司池",
@@ -109,7 +114,11 @@ def test_direct_financial_routing_and_requirement_change_revises_article_only():
             "source_kind": "USER_EXPLICIT",
             "evidence_ref": "chat://owner/explicit-scoped-instruction",
         }],
-    }))
+    }), owner_reader=lambda ref: {
+        "source_ref": ref, "source_role": "user", "authenticated_actor": "synthetic-owner",
+        "text": "在财经Deep中完整保留本次经济相关公司池",
+        "sha256": hashlib.sha256("在财经Deep中完整保留本次经济相关公司池".encode("utf-8")).hexdigest(),
+    })
     assert result["stage"] == "INTAKE"
     assert p.read(path)["state"]["task_requirement_authority"]["revision"] == 1
     assert observe_article("solo-article-01", state_reader=p.read)["requirement_revision"] == 1

@@ -272,3 +272,15 @@ The 1.0.3 candidate is promotion-eligible only when:
 Current operating Skill: `skills/financial-writing-agent/SKILL.md`; manifest `config/FINANCIAL_MANIFEST.json`; Financial-only provider entry `financial_writing_agent/standalone_runtime.py`. It requires externally verified user authorization, actual Git state and artifact bytes, provider CAS and second readback. This is an adapter, not an assertion that a native ChatGPT plugin is installed. Historical `.uaos/*`, `CAOS_SKILL.md` and `UAOS_SKILL.md` are inactive provenance only.
 
 Full product readiness still needs genuine source-to-claim and requirement-to-paragraph evidence, a current article's PrivateResearchBrief, separate Deep/Broad/interaction/audit production, live DOCX readback and independently assessed reader/owner result. `GENERAL_EDITORIAL_QUALITY` and `PERSONALIZED_WRITING_DNA` remain NOT_READY until observed, regardless of CI.
+
+## Financial system-governance acceptance addendum (owner scope: 2026-11-12)
+
+This addendum evaluates intrinsic Financial goal/workflow/method governance, **not real article content production**.
+
+- Original user demand and latest corrections control a task's active requirements. Active `TaskRequirement.source_kind` must be explicit; no model/default promotion to USER_EXPLICIT. At the connected action port, the user role, original text, quote and source digest must be independently read from a trusted provider. User suggestion, implementation idea, issue report, model inference and UNKNOWN do not become requirements by mere mention.
+- Nonbinding intents remain actionable, visible, task-owned evidence. They must not mutate the authoritative requirement digest or stage graph unless separately adjudicated as a binding user correction.
+- Existing requirements allow CREATE/REPLACE/RETIRE with source, revision, immutable historical events and earliest-affected-stage replay; ambiguous simultaneous retire-and-upsert of one ID fails closed.
+- Existing Financial method knowledge supports query, candidate add, revision staging, discard, evidence-grounded promotion, challenge, retirement, restore-as-candidate and independently verified impact closure. A method change cannot erase the previous record, silently assume legacy adoption labels are proof, or close without observing all affected stage-evidence refs.
+- Systemic diagnoses and method choices are revisited when counterexamples defeat them. Decisions and executions share one Financial owner and explicit independent assurance levels; native client activation and real editorial acceptance remain distinct from machine test results.
+
+The corresponding architecture/evidence source is `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`.

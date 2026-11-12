@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-11-11T10:19:00Z",
+  "updated_at": "2026-11-12T09:10:00Z",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -101,7 +101,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Repair Financial-only source freshness / primary-evidence and fact-direction assurance, independently admitted editor review, complete research pool and Word real-user delivery; replay on current cross-border v3. Do not modify CAOS.",
+    "next_legal_phase": "Owner-selected Financial-only system governance and method/intake CRUD simulation; do not substitute current real article production. Verify exact provider/Skill activation separately.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "NONE",
     "not_completion_evidence": [
@@ -166,7 +166,30 @@
     "current_operating_skill": "skills/financial-writing-agent/SKILL.md",
     "latest_business_adversarial_audit": "evals/FINANCIAL_REAL_WORKFLOW_AND_BUSINESS_REDTEAM_AUDIT_20261112.md",
     "latest_business_adversarial_replay": "scripts/real_financial_workflow_redteam.py",
-    "latest_business_adversarial_status": "REAL_PRODUCTION_FUNCTION_REPLAYED__STRUCTURAL_FALSE_ACCEPTANCE_CASES_REPRODUCED__LIVE_ARTICLE_AND_EDITORIAL_NOT_READY"
+    "latest_business_adversarial_status": "REAL_PRODUCTION_FUNCTION_REPLAYED__STRUCTURAL_FALSE_ACCEPTANCE_CASES_REPRODUCED__LIVE_ARTICLE_AND_EDITORIAL_NOT_READY",
+    "owner_governance_rebuild_20261112": {
+      "scoped_owner_demand": "CAOS methodology governs Financial's intrinsic requirements, process, cognition loops, knowledge/method CRUD, failure repairs and independent acceptance. No CAOS writes. No real article requested.",
+      "goal_method_architecture_ref": "evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md",
+      "active_governance_owners": [
+        "workspaces/articles/{task_id}/STATE.json",
+        "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+        "evals/EVOLUTION_INDEX.json"
+      ],
+      "method_knowledge_authority_not_second_business_ledger": true,
+      "methodological_principle": "RECURSIVE_HYPOTHESIS_METHOD_RECHALLENGE_AND_EFFECT_READBACK",
+      "method_crud_scope": "CANDIDATE_REVISE_PROMOTE_CHALLENGE_RETIRE_RESTORE_VERIFY_IMPACT",
+      "owner_intent_ingress": "READ_VERIFIED_USER_SOURCE_BEFORE_MUTATING_REQUIREMENTS",
+      "implementation_ref": "repair/financial-goal-method-governance-20261112",
+      "engineering_status": "CANDIDATE__EXACT_MAIN_READBACK_REQUIRED",
+      "client_native_activation": "NOT_TESTED",
+      "actual_live_method_effect": "NOT_TESTED",
+      "actual_real_user_source_readback": "NOT_TESTED",
+      "real_article_production": "OUT_OF_SCOPE_OF_CURRENT_OWNER_ENGINEERING_REQUEST",
+      "parent_repo_mutation": "FORBIDDEN_NONE",
+      "method_article_dependency": "EXPLICIT_METHOD_ID__ACTIVE_VERSION_DIGEST__CANONICAL_STAGE_REOPEN_WITH_CAS",
+      "method_article_dependency_test": "tests/test_financial_method_article_dependency_20261112.py",
+      "test_scope": "SYNTHETIC_AUTHENTICATED_USER_MESSAGE_AND_METHOD_PROVIDER__NOT_NATIVE_CLIENT_ACTIVATION"
+    }
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",

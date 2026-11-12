@@ -251,5 +251,46 @@
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_ALL_FINANCIAL_BUSINESS_RULES",
     "shared_method_proposals": "DOCUMENT_WITH_SCOPE_IN_FINANCIAL_HISTORY__NO_PARENT_UPCALL",
     "independent_qa_not_inferred_from_ci": true
+  },
+  "goal_method_governance": {
+    "authority": "FINANCIAL_WRITING_OWNER",
+    "original_user_text_source": "EXTERNAL_AUTHENTICATED_OWNER_MESSAGE_READER",
+    "binding_task_requirement": [
+      "USER_REQUIREMENT",
+      "USER_CORRECTION",
+      "USER_PREFERENCE"
+    ],
+    "nonbinding_article_input": [
+      "USER_SUGGESTION",
+      "IMPLEMENTATION_IDEA",
+      "ISSUE_REPORT",
+      "ASSISTANT_INFERENCE",
+      "UNKNOWN"
+    ],
+    "nonbinding_operation": "RECORD_OWNER_INTENT",
+    "binding_operation": "CHANGE_REQUIREMENTS",
+    "method_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+    "method_read": "financial_writing_agent.standalone_runtime.observe_method_catalog",
+    "method_mutation": "financial_writing_agent.standalone_runtime.admit_method_action",
+    "method_crud": [
+      "CREATE",
+      "REVISE",
+      "DISCARD_PENDING",
+      "PROMOTE",
+      "CHALLENGE",
+      "RETIRE",
+      "RESTORE",
+      "VERIFY_IMPACT"
+    ],
+    "deletion_semantics": "RETIRED_TOMBSTONE_PRESERVE_HISTORY",
+    "global_method_promotion": "EXTERNAL_PROVIDER_REVIEW_OF_EXACT_RECORD_AND_TEST_REFS",
+    "method_impact": "OPEN_UNTIL_EXTERNAL_VERIFIED_ALL_AFFECTED_STAGE_EVIDENCE",
+    "user_quality_semantic_assurance": "NOT_PROVEN_BY_STATIC_INTENT_LABEL_OR_CI",
+    "parent_write_scope": "NONE__READ_ONLY_CAOS_METHOD_REFERENCE",
+    "method_dependency_binding": "RESEARCH_DECISION_ENVELOPE_LEARNED_ITEMS_METHOD_IDS_TO_VERIFIED_EFFECTIVE_ACTIVE_CATALOG_RECORD_SHA",
+    "method_dependency_recheck": "EACH_LATER_ADMIT_ARTICLE_ACTION_ADVANCE_STAGE_WITH_EXTERNAL_CATALOG_READER",
+    "method_dependency_recovery": "REOPEN_METHOD_DEPENDENCY__OWNER_LIFECYCLE_EARLIEST_AFFECTED_STAGE",
+    "method_pending_revision": "NO_EFFECTIVE_METHOD_FINGERPRINT_CHANGE_UNTIL_PROMOTED",
+    "method_dependency_boundary": "EXPLICIT_METHOD_IDS_ONLY__IMPLICIT_USAGE_AND_LIVE_CROSS_ARTICLE_FANOUT_NOT_TESTED"
   }
 }
