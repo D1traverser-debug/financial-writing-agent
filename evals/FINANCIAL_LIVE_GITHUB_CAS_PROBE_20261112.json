@@ -1,0 +1,22 @@
+{
+  "schema_version": "1.0",
+  "scope": "REAL_GITHUB_PROVIDER_CAS_PROBE__FINANCIAL_ONLY__NON_ARTICLE_SYNTHETIC",
+  "source_branch": "repair/financial-independent-acceptance-20261112",
+  "resource_path": "evals/.financial_provider_cas_probe_20261112.json",
+  "creation_commit": "1821ee8d851e1bded9382550fbe11d1af31a66dc",
+  "original_blob_sha": "8b7a4bff988daa026bb41c4064457e688fa0c97b",
+  "stale_sha_replay": "0000000000000000000000000000000000000000",
+  "stale_write_result": "GITHUB_HTTP_409_CONFLICT",
+  "successful_expected_blob_sha": "8b7a4bff988daa026bb41c4064457e688fa0c97b",
+  "successful_update_commit": "305e62467c101e999db6cba12c90c217aeff6720",
+  "second_readback": "EXACT_UTF8_BYTES_AND_GIT_BLOB_SHA_MATCHED",
+  "deletion_commit": "9486e4e2afd226f6ff21e694312451a09e13bb89",
+  "deletion_readback": "404_NOT_FOUND",
+  "actual_user_message_semantics_verified": false,
+  "current_article_state_mutated": false,
+  "github_user_auth_revocation_verified": false,
+  "actual_chatgpt_plugin_native_action_verified": false,
+  "independent_reviewer_attested": false,
+  "assurance": "REAL_CONNECTED_GITHUB_WRITE_AND_STALE_CONFLICT__NOT_OWNER_TASK_SEMANTIC_CERTIFICATION",
+  "parent_caos_repo_mutated": false
+}
