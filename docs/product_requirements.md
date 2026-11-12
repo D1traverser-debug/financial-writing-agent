@@ -1,8 +1,8 @@
 # Financial Writing Agent — Product Requirements
 
 Status: `1.1.0_STANDALONE_FINANCIAL__EDITORIAL_NOT_READY`
-Version: `1.0.3-candidate`
-Review date: `2026-11-11`
+Version: `1.1.0-candidate`
+Review date: `2026-11-12`
 Owner: `DOMAIN:financial_writing`
 Operating governance: Financial Writing's own Skill, DecisionEnvelope, owner state and independent QA; NO external parent.
 
