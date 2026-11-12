@@ -15,8 +15,8 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
     for gate in SYSTEM_GATES:
         evidence = {
             field: (
-                ["synthetic-task"] if field in {"affected_task_ids", "after_branch_names"}
-                else "main" if field == "after_branch_names"
+                ["synthetic-task"] if field == "affected_task_ids"
+                else ["main"] if field == "after_branch_names"
                 else "synthetic-evidence"
             )
             for field in REQUIRED_GATE_EVIDENCE[gate]
