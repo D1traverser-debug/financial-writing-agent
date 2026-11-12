@@ -471,6 +471,12 @@ def observe_method_catalog(
                                 operational_only=operational_only)
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
+    history = catalog.get("change_history", [])
+    closed_revisions = {
+        event["target_change_revision"] for event in history
+        if event.get("operation") == "VERIFY_IMPACT"
+        and isinstance(event.get("impact_verification"), Mapping)
+    }
     return {
         "domain_id": DOMAIN_ID, "catalog_ref": CATALOG_PATH,
         "catalog_blob_sha": sha,
@@ -482,9 +488,10 @@ def observe_method_catalog(
                 "knowledge_id": event["knowledge_id"],
                 "affected_stages": event["affected_stages"],
             }
-            for event in catalog.get("change_history", [])
+            for event in history
             if event.get("impact_review_state")
             == "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED"
+            and event["revision"] not in closed_revisions
         ],
         "live_article_effect_verified": False,
     }
@@ -497,6 +504,7 @@ def admit_method_action(
     catalog_cas_writer: CASWriter | None,
     authorization_verifier: AuthorizationVerifier | None,
     promotion_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+    impact_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
     """Independent Financial-domain method CRUD via existing catalog Git CAS.
 
@@ -522,7 +530,8 @@ def admit_method_action(
     _require(isinstance(params, Mapping), "FINANCIAL_METHOD_ACTION_PARAMS_INVALID")
     allowed = {
         "knowledge_id", "proposed_record", "decision_envelope", "evidence_refs",
-        "affected_stages", "promotion_evidence",
+        "affected_stages", "promotion_evidence", "impact_target_revision",
+        "impact_evidence",
     }
     _require(set(params).issubset(allowed), "FINANCIAL_METHOD_ACTION_PARAMS_EXCEEDED")
     _require(callable(authorization_verifier) and callable(catalog_cas_writer),
@@ -548,6 +557,9 @@ def admit_method_action(
             affected_stages=params.get("affected_stages"),
             promotion_evidence=params.get("promotion_evidence"),
             promotion_verifier=promotion_verifier,
+            impact_target_revision=params.get("impact_target_revision"),
+            impact_evidence=params.get("impact_evidence"),
+            impact_verifier=impact_verifier,
         )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
