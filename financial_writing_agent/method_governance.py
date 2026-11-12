@@ -14,6 +14,11 @@ from copy import deepcopy
 from datetime import datetime, timezone
 from typing import Any, Callable, Mapping
 
+from .provider_attestation import (
+    verify_method_impact_attestation,
+    verify_method_promotion_attestation,
+)
+
 from .cognition_governance import (
     DecisionEnvelope, EvidenceKind, OperationClass, admission_errors,
 )
@@ -223,25 +228,21 @@ def mutate_method_catalog(
                 "review_ref": promotion_evidence["review_ref"],
             }
             try:
-                proof = promotion_verifier(deepcopy(challenge))
+                proof = verify_method_promotion_attestation(
+                    promotion_verifier(deepcopy(challenge)), challenge=challenge,
+                )
             except Exception as exc:
-                raise MethodGovernanceError("FINANCIAL_METHOD_INDEPENDENT_PROMOTION_CHECK_FAILED") from exc
-            _require(isinstance(proof, Mapping) and proof.get("verified") is True,
-                     "INDEPENDENT_PROMOTION_NOT_VERIFIED")
-            _require(proof.get("reviewed_record_sha256") == reviewed_sha,
-                     "PROMOTION_REVIEWED_RECORD_MISMATCH")
-            _require(isinstance(proof.get("reviewer_principal"), str)
-                     and bool(proof["reviewer_principal"].strip())
-                     and proof["reviewer_principal"] != "FINANCIAL_WRITING_OWNER",
-                     "PROMOTION_INDEPENDENT_REVIEWER_REQUIRED")
-            _require(proof.get("validation_refs") == refs,
-                     "PROMOTION_TEST_EVIDENCE_MISMATCH")
+                raise MethodGovernanceError(
+                    "FINANCIAL_METHOD_INDEPENDENT_PROMOTION_ATTESTATION_FAILED"
+                ) from exc
             promoted_proof = {
-                "reviewer_principal": proof["reviewer_principal"],
+                "reviewer_principal": proof["authenticated_actor"],
+                "provider_id": proof["provider_id"],
                 "reviewed_record_sha256": reviewed_sha,
                 "validation_refs": refs,
                 "review_ref": challenge["review_ref"],
-                "assurance": "EXTERNAL_PROVIDER_PROMOTION_REVIEW__OUTCOME_REVALIDATION_OPEN",
+                "attestation_signature": proof["signature"],
+                "assurance": "HMAC_SIGNED_EXTERNAL_METHOD_PROMOTION_REVIEW__OUTCOME_REVALIDATION_OPEN",
             }
             after = {**proposed, "lifecycle_status": "ACTIVE",
                      "method_revision": int(before.get("method_revision", 0)) + 1}
@@ -292,27 +293,22 @@ def mutate_method_catalog(
                 "stage_evidence_refs": dict(stage_refs),
             }
             try:
-                proof = impact_verifier(deepcopy(challenge))
+                proof = verify_method_impact_attestation(
+                    impact_verifier(deepcopy(challenge)), challenge=challenge,
+                )
             except Exception as exc:
-                raise MethodGovernanceError("FINANCIAL_METHOD_IMPACT_VERIFIER_FAILED") from exc
-            _require(isinstance(proof, Mapping) and proof.get("verified") is True,
-                     "IMPACT_INDEPENDENT_CHECK_FAILED")
-            _require(proof.get("target_change_revision") == impact_target_revision
-                     and proof.get("reviewed_event_sha256") == challenge["event_sha256"],
-                     "IMPACT_REVIEWED_EVENT_MISMATCH")
-            _require(proof.get("verified_stages") == list(stage_refs),
-                     "IMPACT_VERIFIED_STAGES_MISMATCH")
-            _require(isinstance(proof.get("reviewer_principal"), str)
-                     and bool(proof["reviewer_principal"].strip())
-                     and proof["reviewer_principal"] != "FINANCIAL_WRITING_OWNER",
-                     "IMPACT_INDEPENDENT_REVIEWER_REQUIRED")
+                raise MethodGovernanceError(
+                    "FINANCIAL_METHOD_IMPACT_ATTESTATION_FAILED"
+                ) from exc
             impact_proof = {
                 "target_change_revision": impact_target_revision,
                 "reviewed_event_sha256": challenge["event_sha256"],
                 "verified_stages": list(stage_refs),
                 "stage_evidence_refs": dict(stage_refs),
-                "reviewer_principal": proof["reviewer_principal"],
-                "assurance": "EXTERNAL_PROVIDER_STAGE_REVALIDATION__LIVE_READER_OUTCOME_OPEN",
+                "reviewer_principal": proof["authenticated_actor"],
+                "provider_id": proof["provider_id"],
+                "attestation_signature": proof["signature"],
+                "assurance": "HMAC_SIGNED_EXTERNAL_METHOD_STAGE_REVALIDATION__LIVE_READER_OUTCOME_OPEN",
             }
         if operation != "VERIFY_IMPACT":
             records[position] = after
