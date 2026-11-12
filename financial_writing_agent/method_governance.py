@@ -22,7 +22,7 @@ from .workflow_spec import BUSINESS_STAGE_NAMES
 CATALOG_PATH = "knowledge/METHOD_KNOWLEDGE_CATALOG.json"
 METHOD_ACTIONS = frozenset({
     "CREATE", "REVISE", "DISCARD_PENDING", "PROMOTE",
-    "CHALLENGE", "RETIRE", "RESTORE",
+    "CHALLENGE", "RETIRE", "RESTORE", "VERIFY_IMPACT",
 })
 METHOD_STATUSES = frozenset({
     "LEGACY_DECLARED", "CANDIDATE", "ACTIVE", "CHALLENGED", "RETIRED",
@@ -158,6 +158,9 @@ def mutate_method_catalog(
     affected_stages: list[str] | None = None,
     promotion_evidence: Mapping[str, Any] | None = None,
     promotion_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+    impact_target_revision: int | None = None,
+    impact_evidence: Mapping[str, Any] | None = None,
+    impact_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     checked = validate_method_catalog(raw)
     _require(operation in METHOD_ACTIONS, "ACTION_UNSUPPORTED")
@@ -174,6 +177,7 @@ def mutate_method_catalog(
     before = deepcopy(records[position]) if position is not None else None
     current_status = (before or {}).get("lifecycle_status", "LEGACY_DECLARED")
     promoted_proof = None
+    impact_proof = None
 
     if operation == "CREATE":
         _require(position is None, "ALREADY_EXISTS")
@@ -257,7 +261,61 @@ def mutate_method_catalog(
             after.pop("pending_revision", None)
             after["lifecycle_status"] = "CANDIDATE"
             after["method_revision"] = int(before.get("method_revision", 0)) + 1
-        records[position] = after
+        elif operation == "VERIFY_IMPACT":
+            prior = checked.get("change_history", [])
+            _require(type(impact_target_revision) is int
+                     and 0 < impact_target_revision <= len(prior), "IMPACT_TARGET_REVISION_INVALID")
+            target = prior[impact_target_revision - 1]
+            _require(target.get("knowledge_id") == knowledge_id
+                     and target.get("operation") != "VERIFY_IMPACT"
+                     and target.get("impact_review_state")
+                     == "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED",
+                     "IMPACT_TARGET_NOT_OPEN")
+            _require(not any(
+                e.get("operation") == "VERIFY_IMPACT"
+                and e.get("target_change_revision") == impact_target_revision
+                for e in prior
+            ), "IMPACT_ALREADY_CLOSED")
+            _require(isinstance(impact_evidence, Mapping)
+                     and set(impact_evidence) == {"stage_evidence_refs"},
+                     "IMPACT_STAGE_EVIDENCE_REQUIRED")
+            stage_refs = impact_evidence["stage_evidence_refs"]
+            _require(isinstance(stage_refs, Mapping)
+                     and set(stage_refs) == set(target["affected_stages"])
+                     and all(isinstance(ref, str) and bool(ref.strip())
+                             for ref in stage_refs.values()), "IMPACT_STAGE_COVERAGE_MISMATCH")
+            _require(callable(impact_verifier), "IMPACT_INDEPENDENT_VERIFIER_REQUIRED")
+            challenge = {
+                "knowledge_id": knowledge_id,
+                "target_change_revision": impact_target_revision,
+                "event_sha256": _digest(target),
+                "stage_evidence_refs": dict(stage_refs),
+            }
+            try:
+                proof = impact_verifier(deepcopy(challenge))
+            except Exception as exc:
+                raise MethodGovernanceError("FINANCIAL_METHOD_IMPACT_VERIFIER_FAILED") from exc
+            _require(isinstance(proof, Mapping) and proof.get("verified") is True,
+                     "IMPACT_INDEPENDENT_CHECK_FAILED")
+            _require(proof.get("target_change_revision") == impact_target_revision
+                     and proof.get("reviewed_event_sha256") == challenge["event_sha256"],
+                     "IMPACT_REVIEWED_EVENT_MISMATCH")
+            _require(proof.get("verified_stages") == list(stage_refs),
+                     "IMPACT_VERIFIED_STAGES_MISMATCH")
+            _require(isinstance(proof.get("reviewer_principal"), str)
+                     and bool(proof["reviewer_principal"].strip())
+                     and proof["reviewer_principal"] != "FINANCIAL_WRITING_OWNER",
+                     "IMPACT_INDEPENDENT_REVIEWER_REQUIRED")
+            impact_proof = {
+                "target_change_revision": impact_target_revision,
+                "reviewed_event_sha256": challenge["event_sha256"],
+                "verified_stages": list(stage_refs),
+                "stage_evidence_refs": dict(stage_refs),
+                "reviewer_principal": proof["reviewer_principal"],
+                "assurance": "EXTERNAL_PROVIDER_STAGE_REVALIDATION__LIVE_READER_OUTCOME_OPEN",
+            }
+        if operation != "VERIFY_IMPACT":
+            records[position] = after
 
     revision = checked.get("governance_revision", 0) + 1
     history = deepcopy(checked.get("change_history", []))
@@ -271,7 +329,13 @@ def mutate_method_catalog(
         "evidence_refs": evidence,
         "affected_stages": stages,
         "promoted_proof": promoted_proof,
-        "impact_review_state": "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED",
+        "impact_verification": impact_proof,
+        "target_change_revision": impact_target_revision if operation == "VERIFY_IMPACT" else None,
+        "impact_review_state": (
+            "CLOSED__EXTERNAL_STAGE_EVIDENCE_READBACK"
+            if operation == "VERIFY_IMPACT"
+            else "OPEN__AFFECTED_WORKFLOWS_REVALIDATION_REQUIRED"
+        ),
         "recorded_at": datetime.now(timezone.utc).isoformat(),
     }
     history.append(event)
@@ -283,7 +347,7 @@ def mutate_method_catalog(
         "operation": operation,
         "knowledge_id": knowledge_id,
         "catalog_revision": revision,
-        "lifecycle_status": after["lifecycle_status"],
+        "lifecycle_status": after.get("lifecycle_status", "LEGACY_DECLARED"),
         "impact_review_state": event["impact_review_state"],
         "change_event_sha256": _digest(event),
         "promotion_review": promoted_proof,
