@@ -7,11 +7,15 @@ from financial_writing_agent.provider_attestation import (
     verify_owner_change_approval,
     verify_owner_message,
     verify_provider_attestation,
+    verify_method_action_authorization,
+    verify_method_promotion_attestation,
+    verify_method_impact_attestation,
     request_sha256,
 )
 from trusted_provider_testkit import (
     signed_action_authorization, signed_owner_change_approval, signed_owner_message,
-    signed_attestation,
+    signed_attestation, signed_method_action_authorization,
+    signed_method_promotion, signed_method_impact,
 )
 
 
@@ -93,3 +97,57 @@ def test_callback_returning_boolean_or_fabricated_principal_cannot_authorize():
     )
     with pytest.raises(FinancialProviderAttestationError):
         verify_action_authorization(forged, request=request)
+
+
+def test_method_action_authorization_is_signed_owner_bound_and_catalog_cas_bound():
+    request = {
+        "schema_version":"1.0", "domain_id":"financial_writing",
+        "action_id":"method-a1", "operation":"CREATE",
+        "expected_catalog_blob_sha":"a"*40,
+        "parameters":{"knowledge_id":"METHOD-ONE"},
+    }
+    signed = signed_method_action_authorization(request)
+    verified = verify_method_action_authorization(signed, request=request)
+    assert verified["authenticated_actor"] == "synthetic-financial-owner"
+    changed = {**request, "expected_catalog_blob_sha":"b"*40}
+    with pytest.raises(FinancialProviderAttestationError):
+        verify_method_action_authorization(signed, request=changed)
+    with pytest.raises(FinancialProviderAttestationError):
+        verify_method_action_authorization(True, request=request)
+
+
+def test_method_promotion_requires_separate_signed_reviewer_and_exact_record_decision():
+    challenge = {
+        "knowledge_id":"METHOD-ONE", "record_sha256":"a"*64,
+        "decision_sha256":"b"*64, "validation_refs":["ci://exact"],
+        "review_ref":"review://exact",
+    }
+    signed = signed_method_promotion(challenge)
+    verified = verify_method_promotion_attestation(signed, challenge=challenge)
+    assert verified["authenticated_actor"] == "synthetic-method-reviewer"
+    assert verified["provider_id"] == "synthetic-method-review-provider"
+    altered = {**challenge, "record_sha256":"c"*64}
+    with pytest.raises(FinancialProviderAttestationError):
+        verify_method_promotion_attestation(signed, challenge=altered)
+    owner_signed = signed_attestation(
+        "method_promotion_review", actor="synthetic-financial-owner",
+        key_env="FINANCIAL_METHOD_REVIEW_KEY",
+        provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+        approved=True, **challenge,
+    )
+    with pytest.raises(FinancialProviderAttestationError, match="DIFFER_FROM_OWNER"):
+        verify_method_promotion_attestation(owner_signed, challenge=challenge)
+
+
+def test_method_impact_requires_separate_signed_reviewer_and_exact_stage_set():
+    challenge = {
+        "knowledge_id":"METHOD-ONE", "target_change_revision":3,
+        "event_sha256":"d"*64,
+        "stage_evidence_refs":{"RESEARCH":"evidence://research","EDITORIAL":"evidence://editorial"},
+    }
+    signed = signed_method_impact(challenge)
+    verified = verify_method_impact_attestation(signed, challenge=challenge)
+    assert verified["authenticated_actor"] == "synthetic-method-reviewer"
+    altered = {**challenge, "stage_evidence_refs":{"RESEARCH":"evidence://other"}}
+    with pytest.raises(FinancialProviderAttestationError):
+        verify_method_impact_attestation(signed, challenge=altered)
