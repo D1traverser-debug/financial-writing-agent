@@ -439,7 +439,12 @@ def finalize_delivery_evidence(
     _require(bool(str(source_ref).strip()), "source_ref is required")
     _require(bool(str(source_identity).strip()), "source_identity is required")
     binding = build_receipt.get("task_scope_binding")
-    verified_render_inspection = None
+    # Every visible Word artifact, including generic audit/interaction outputs,
+    # must have an actual current-session render/page receipt. PASS strings alone
+    # cannot stand in for rendering the exact DOCX bytes.
+    verified_render_inspection = _verify_render_inspection_receipt(
+        render_inspection_receipt, build_receipt.get("sha256"),
+    )
     if binding is not None:
         _require(isinstance(binding, Mapping), "task scope binding must be structured")
         _require(
@@ -450,9 +455,6 @@ def finalize_delivery_evidence(
             require_article_path(source_ref, binding.get("task_id"))
         except ValueError as exc:
             raise CanonicalDeliveryError("task-bound source_ref escapes the current article workspace") from exc
-        verified_render_inspection = _verify_render_inspection_receipt(
-            render_inspection_receipt, build_receipt.get("sha256"),
-        )
         from .claim_trace import SOURCE_TRACE_ASSURANCE
 
         traced = build_receipt.get("claim_trace_binding")
@@ -464,11 +466,6 @@ def finalize_delivery_evidence(
                  "CURRENT_WORD_SOURCE_TRACE_COVERAGE_MISSING")
         _require(type(traced.get("read_source_snapshot_count")) is int and traced["read_source_snapshot_count"] >= 1,
                  "CURRENT_WORD_SOURCE_SNAPSHOTS_NOT_OBSERVED")
-
-    if binding is None and render_inspection_receipt is not None:
-        verified_render_inspection = _verify_render_inspection_receipt(
-            render_inspection_receipt, build_receipt.get("sha256"),
-        )
 
     envelope: dict[str, Any] = {
         "schema_version": DELIVERY_EVIDENCE_SCHEMA_VERSION,
@@ -508,11 +505,9 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
     _require(evidence.get("canonical_delivery_path") == CANONICAL_DELIVERY_PATH, "visible artifact bypassed canonical Delivery")
     _require(evidence.get("artifact_kind") == resource.get("kind"), "delivery evidence artifact kind mismatch")
     _require(str(evidence.get("artifact_sha256", "")).lower() == str(resource.get("sha256", "")).lower(), "delivery evidence artifact hash mismatch")
-    if (evidence.get("task_scope_binding") is not None
-            or evidence.get("render_inspection_receipt") is not None):
-        _verify_render_inspection_receipt(
-            evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
-        )
+    _verify_render_inspection_receipt(
+        evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
+    )
     if evidence.get("task_scope_binding") is not None:
         trace = evidence.get("claim_trace_binding")
         from .claim_trace import SOURCE_TRACE_ASSURANCE
