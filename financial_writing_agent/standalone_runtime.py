@@ -16,7 +16,7 @@ import re
 from copy import deepcopy
 from typing import Any, Callable, Mapping
 
-from . import current_admission
+from . import current_admission, owner_lifecycle, proactive_resolution
 from .path_identity import require_article_path, require_task_id
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
@@ -28,7 +28,10 @@ CONTRACT_VERSION = "1.0"
 STATE_ROOT = "workspaces/articles"
 _ACTION_ID = re.compile(r"[A-Za-z0-9_.:-]{1,180}\Z")
 _SHA = re.compile(r"[a-f0-9]{40}\Z")
-OPERATIONS = frozenset({"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"})
+OPERATIONS = frozenset({
+    "CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK",
+    "RESUME_BLOCKED", "RECORD_PROACTIVE_RESOLUTION", "REVIEW_SYSTEM_IMPACT",
+})
 CREATE_KEYS = frozenset({
     "prompt", "source_refs", "target_platforms", "distribution_mode",
     "distribution_mode_source", "distribution_mode_override_evidence",
@@ -41,6 +44,27 @@ STAGE_KEYS = frozenset({
     "publication_fitnesses", "requirement_satisfaction",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
+RECOVERY_KEYS = frozenset({"repair_evidence"})
+PROACTIVE_KEYS = frozenset({
+    "target", "attempted_sources", "evidence_refs", "outcome",
+    "candidate", "confidence", "contradictions_or_unknowns",
+    "validation_plan", "safe_to_continue",
+})
+IMPACT_KEYS = frozenset({
+    "signal_id", "problem_statement", "root_cause_layer", "generalization_scope",
+    "alternatives", "selected_mechanism", "selection_rationale", "authority_surface",
+    "regression_or_eval_plan", "evidence_refs", "decision", "decision_reason",
+    "maintenance_ref", "validation_refs", "assurance_ceiling", "remaining_open",
+})
+ACTION_PARAM_KEYS = {
+    "CREATE_ARTICLE": CREATE_KEYS,
+    "CHANGE_REQUIREMENTS": REQUIREMENT_KEYS,
+    "ADVANCE_STAGE": STAGE_KEYS,
+    "ATTACH_FEEDBACK": FEEDBACK_KEYS,
+    "RESUME_BLOCKED": RECOVERY_KEYS,
+    "RECORD_PROACTIVE_RESOLUTION": PROACTIVE_KEYS,
+    "REVIEW_SYSTEM_IMPACT": IMPACT_KEYS,
+}
 
 
 class FinancialAdmissionError(ValueError):
@@ -201,10 +225,7 @@ def _request(raw: Mapping[str, Any]) -> dict[str, Any]:
              "FINANCIAL_EXPECTED_STATE_BLOB_REQUIRED")
     params = r["parameters"]
     _require(isinstance(params, Mapping), "FINANCIAL_ACTION_PARAMETERS_INVALID")
-    allowed = (
-        CREATE_KEYS if op == "CREATE_ARTICLE" else REQUIREMENT_KEYS if op == "CHANGE_REQUIREMENTS"
-        else STAGE_KEYS if op == "ADVANCE_STAGE" else FEEDBACK_KEYS
-    )
+    allowed = ACTION_PARAM_KEYS[op]
     _require(set(params).issubset(allowed), "FINANCIAL_ACTION_PARAMETERS_SCOPE_EXCEEDED")
     return r
 
@@ -262,8 +283,16 @@ def admit_article_action(
             candidate = current_admission.advance_state(state, **call)
         elif op == "CHANGE_REQUIREMENTS":
             candidate = current_admission.apply_task_requirement_change(state, **call)
-        else:
+        elif op == "ATTACH_FEEDBACK":
             candidate = current_admission.attach_material_feedback(state, **call)
+        elif op == "RESUME_BLOCKED":
+            candidate = owner_lifecycle.resume_blocked_state(state, **call)
+        elif op == "RECORD_PROACTIVE_RESOLUTION":
+            candidate = proactive_resolution.record_proactive_resolution_state(state, **call)
+        elif op == "REVIEW_SYSTEM_IMPACT":
+            candidate = owner_lifecycle.review_system_impact_state(state, **call)
+        else:
+            raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
     current_admission.validate_state(candidate)
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
