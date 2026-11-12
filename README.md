@@ -27,6 +27,8 @@ The authentic frozen cross-border v3 retained pool has **174 ticker IDs**, now p
 
 The publication source trace now rejects conservative gross contradictions (growth vs decline, reporting period, unit/metric direction) before issuing a numerical trace receipt, while **semantic entailment remains unverified**. The existing user-specific full-retained universe is checked against authentic ticker identity, not merely the count submitted by the model.
 
+At the same Financial provider action boundary, entering DELIVERY and passing FINAL_AUDIT also require actual article-scoped Word binary readback for the full output portfolio; nonexistent files and metadata-only hashes cannot mutate the article to a delivered state. This binary gate does not certify per-page QA or content quality.
+
 Independent editorial review is supportable only with authenticated provider verification, a different reviewer, and exact DRAFT bytes/content hash and attestation. Self-review remains self-review. The current visible Word delivery additionally requires real binary readback and verified per-page render receipt across **all four required Word types**. These checks do not constitute reader acceptance.
 
 See [the exact main-only repair and operating contract](docs/FINANCIAL_MAIN_ONLY_REPAIR_AND_RUNTIME_20261112.md). **No installed Financial ChatGPT connector or source-verified current cross-border article is implied by a green CI.**
