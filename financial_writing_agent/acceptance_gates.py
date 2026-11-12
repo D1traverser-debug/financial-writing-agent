@@ -10,6 +10,8 @@ from .provider_attestation import (
     expected_owner_principal,
     payload_sha256,
     verify_provider_attestation,
+    verify_method_promotion_attestation,
+    verify_method_impact_attestation,
 )
 
 SYSTEM_GATES = (
@@ -33,7 +35,8 @@ REQUIRED_GATE_EVIDENCE = {
     ),
     "METHOD_KNOWLEDGE_CRUD_AND_IMPACT": (
         "catalog_revision", "change_event_ref", "affected_task_ids",
-        "replay_readback_ref",
+        "replay_readback_ref", "promotion_challenge", "promotion_attestation",
+        "impact_challenge", "impact_attestation",
     ),
     "PROVIDER_AUTHENTICATED_RUNTIME_CAS": (
         "write_commit_ref", "write_blob_sha", "readback_blob_sha",
@@ -105,6 +108,22 @@ def _validate_gate_evidence(
         require(isinstance(evidence.get("affected_task_ids"), list)
                 and bool(evidence["affected_task_ids"]),
                 "METHOD_IMPACT_CLOSURE_EMPTY")
+    elif gate == "METHOD_KNOWLEDGE_CRUD_AND_IMPACT":
+        promotion_challenge = evidence.get("promotion_challenge")
+        impact_challenge = evidence.get("impact_challenge")
+        require(isinstance(promotion_challenge, Mapping), "METHOD_PROMOTION_CHALLENGE_MISSING")
+        require(isinstance(impact_challenge, Mapping), "METHOD_IMPACT_CHALLENGE_MISSING")
+        try:
+            verify_method_promotion_attestation(
+                evidence.get("promotion_attestation"), challenge=promotion_challenge,
+            )
+            verify_method_impact_attestation(
+                evidence.get("impact_attestation"), challenge=impact_challenge,
+            )
+        except FinancialProviderAttestationError as exc:
+            raise FinancialProviderAttestationError(
+                "METHOD_INDEPENDENT_REVIEW_ATTESTATION_INVALID:" + str(exc)
+            ) from exc
     elif gate == "PROVIDER_AUTHENTICATED_RUNTIME_CAS":
         require(evidence.get("write_blob_sha") == evidence.get("readback_blob_sha"),
                 "CAS_WRITE_READBACK_MISMATCH")
