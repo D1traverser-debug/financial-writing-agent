@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Mapping
+import os
 
 from .provider_attestation import (
     FinancialProviderAttestationError,
@@ -55,6 +56,8 @@ def _valid_ci_attestation(raw: Mapping[str, Any] | None, head_sha: str) -> bool:
         record = verify_provider_attestation(
             raw, expected_type="ci_run",
             expected_claims={"target_head_sha": head_sha, "conclusion": "success"},
+            key_env="FINANCIAL_CI_ATTESTATION_KEY",
+            provider_env="FINANCIAL_CI_PROVIDER_ID",
         )
     except FinancialProviderAttestationError:
         return False
@@ -102,10 +105,19 @@ def evaluate_system_acceptance(
         reason = "NO_SIGNED_PROVIDER_RECORD"
         if raw is not None:
             try:
+                separate_reviewer = gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW"
                 record = verify_provider_attestation(
                     raw,
                     expected_type="system_gate",
                     expected_claims={"gate": gate, "target_head_sha": head_sha},
+                    key_env=(
+                        "FINANCIAL_INDEPENDENT_REVIEW_KEY" if separate_reviewer
+                        else "FINANCIAL_PROVIDER_ATTESTATION_KEY"
+                    ),
+                    provider_env=(
+                        "FINANCIAL_INDEPENDENT_REVIEW_PROVIDER_ID" if separate_reviewer
+                        else "FINANCIAL_TRUSTED_PROVIDER_ID"
+                    ),
                 )
                 evidence = record.get("evidence")
                 if not isinstance(evidence, Mapping):
@@ -125,6 +137,7 @@ def evaluate_system_acceptance(
                     if (
                         owner is None or reviewer != record["authenticated_actor"]
                         or reviewer == owner or evidence.get("reviewed_head_sha") != head_sha
+                        or record["provider_id"] == os.environ.get("FINANCIAL_TRUSTED_PROVIDER_ID")
                     ):
                         raise FinancialProviderAttestationError("INDEPENDENT_REVIEWER_IDENTITY_OR_HEAD_INVALID")
                 status, reason = "VERIFIED_BY_SIGNED_PROVIDER_ATTESTATION", "SIGNED_EXACT_HEAD_EVIDENCE"
