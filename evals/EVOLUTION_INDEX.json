@@ -101,7 +101,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Owner-selected Financial-only system governance and method/intake CRUD simulation; do not substitute current real article production. Verify exact provider/Skill activation separately.",
+    "next_legal_phase": "Finish one Financial-only semantic intent/independent system gate candidate PR, verify exact-head candidate and main CI, independently read back plugin client/branch archives and keep unverified evidence OPEN.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "NONE",
     "not_completion_evidence": [
@@ -201,7 +201,17 @@
         "real_client_activation": "NOT_TESTED",
         "real_article_product_outcome": "OUT_OF_SCOPE",
         "CAOS_repository_changes": "NONE"
-      }
+      },
+      "independent_acceptance_reaudit": "evals/FINANCIAL_INDEPENDENT_ACCEPTANCE_REAUDIT_20261112.md",
+      "additional_correction_candidate_pr": 67,
+      "original_user_semantic_gap": "REPRODUCED__FIX_CANDIDATE_PENDING_EXACT_HEAD_CI",
+      "native_private_skill_plugin": {
+        "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
+        "release_id": "pluginrel_6af591b305e88191a537446ca98fb5d3",
+        "state": "PRIVATE_PACKAGE_CREATED_AND_READBACK__USER_INSTALL_NOT_VERIFIED__NO_HOSTED_API"
+      },
+      "branch_hygiene": "ONE_TIME_TAG_ARCHIVE_BRANCH_PRUNE_CANDIDATE__LIVE_EFFECT_PENDING",
+      "external_system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_ATTESTATION"
     }
   },
   "system_engineering_simulation_20261112": {
