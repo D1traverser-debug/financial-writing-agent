@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-11-12T09:10:00Z",
+  "updated_at": "2026-11-12T09:30:00Z",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -179,8 +179,8 @@
       "methodological_principle": "RECURSIVE_HYPOTHESIS_METHOD_RECHALLENGE_AND_EFFECT_READBACK",
       "method_crud_scope": "CANDIDATE_REVISE_PROMOTE_CHALLENGE_RETIRE_RESTORE_VERIFY_IMPACT",
       "owner_intent_ingress": "READ_VERIFIED_USER_SOURCE_BEFORE_MUTATING_REQUIREMENTS",
-      "implementation_ref": "repair/financial-goal-method-governance-20261112",
-      "engineering_status": "CANDIDATE__EXACT_MAIN_READBACK_REQUIRED",
+      "implementation_ref": "main:financial_writing_agent/intent_governance.py + financial_writing_agent/method_governance.py + financial_writing_agent/standalone_runtime.py",
+      "engineering_status": "PRODUCTION_CODE_AND_SYNTHETIC_SYSTEM_CI_VERIFIED__CLIENT_ACTIVATION_NOT_TESTED",
       "client_native_activation": "NOT_TESTED",
       "actual_live_method_effect": "NOT_TESTED",
       "actual_real_user_source_readback": "NOT_TESTED",
@@ -188,7 +188,20 @@
       "parent_repo_mutation": "FORBIDDEN_NONE",
       "method_article_dependency": "EXPLICIT_METHOD_ID__ACTIVE_VERSION_DIGEST__CANONICAL_STAGE_REOPEN_WITH_CAS",
       "method_article_dependency_test": "tests/test_financial_method_article_dependency_20261112.py",
-      "test_scope": "SYNTHETIC_AUTHENTICATED_USER_MESSAGE_AND_METHOD_PROVIDER__NOT_NATIVE_CLIENT_ACTIVATION"
+      "test_scope": "SYNTHETIC_AUTHENTICATED_USER_MESSAGE_AND_METHOD_PROVIDER__NOT_NATIVE_CLIENT_ACTIVATION",
+      "production": {
+        "pr_number": 66,
+        "candidate_head_sha": "df2acbff6df4bab3925f3b8dc11ffadc5bbd5d3f",
+        "candidate_ci_run": 43191040749,
+        "candidate_tests": "374 passed; 19/19 job steps successful",
+        "merged_main_sha": "b1ea4f87ad083be89d7b2d8a3592817e495e927f",
+        "post_merge_ci_run": 43191581515,
+        "independent_main_readback": "main SHA and PR merged/closed verified",
+        "semantic_owner_goal_evidence": "evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md",
+        "real_client_activation": "NOT_TESTED",
+        "real_article_product_outcome": "OUT_OF_SCOPE",
+        "CAOS_repository_changes": "NONE"
+      }
     }
   },
   "system_engineering_simulation_20261112": {
