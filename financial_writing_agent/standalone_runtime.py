@@ -25,6 +25,7 @@ from .intent_governance import (
 from .method_governance import (
     CATALOG_PATH, METHOD_ACTIONS, MethodGovernanceError,
     mutate_method_catalog, query_methods, validate_method_catalog,
+    admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
@@ -40,7 +41,7 @@ _SHA = re.compile(r"[a-f0-9]{40}\Z")
 OPERATIONS = frozenset({
     "CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK",
     "RESUME_BLOCKED", "RECORD_PROACTIVE_RESOLUTION", "REVIEW_SYSTEM_IMPACT",
-    "RECORD_OWNER_INTENT",
+    "RECORD_OWNER_INTENT", "REOPEN_METHOD_DEPENDENCY",
 })
 CREATE_KEYS = frozenset({
     "prompt", "source_refs", "target_platforms", "distribution_mode",
@@ -55,6 +56,7 @@ STAGE_KEYS = frozenset({
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
 OWNER_INTENT_KEYS = frozenset({"intent_evidence", "summary"})
+METHOD_REOPEN_KEYS = frozenset()
 RECOVERY_KEYS = frozenset({"repair_evidence"})
 PROACTIVE_KEYS = frozenset({
     "target", "attempted_sources", "evidence_refs", "outcome",
@@ -76,6 +78,7 @@ ACTION_PARAM_KEYS = {
     "RECORD_PROACTIVE_RESOLUTION": PROACTIVE_KEYS,
     "REVIEW_SYSTEM_IMPACT": IMPACT_KEYS,
     "RECORD_OWNER_INTENT": OWNER_INTENT_KEYS,
+    "REOPEN_METHOD_DEPENDENCY": METHOD_REOPEN_KEYS,
 }
 
 
@@ -150,6 +153,85 @@ def _read(reader: StateReader, path: str) -> tuple[dict[str, Any], str] | None:
     candidate = deepcopy(dict(state))
     _require(_strict_json_equal(candidate, parsed), "PROVIDER_STATE_CONTENT_MISMATCH")
     return candidate, sha
+
+def _read_method_catalog(
+    reader: StateReader | None,
+) -> tuple[dict[str, Any], str]:
+    _require(callable(reader), "FINANCIAL_METHOD_CATALOG_READER_REQUIRED")
+    source = _read(reader, CATALOG_PATH)
+    _require(source is not None, "FINANCIAL_METHOD_CATALOG_NOT_AVAILABLE")
+    try:
+        return validate_method_catalog(source[0]), source[1]
+    except MethodGovernanceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+
+
+def _current_method_ids(state: Mapping[str, Any]) -> list[str]:
+    quality = state.get("quality_evidence", {})
+    decision = quality.get("research_decision", {}) if isinstance(quality, Mapping) else {}
+    learned = decision.get("learned_items", []) if isinstance(decision, Mapping) else []
+    return sorted({
+        item for item in learned if isinstance(item, str)
+        and item.startswith("METHOD-") and re.fullmatch(r"METHOD-[A-Z0-9_-]+", item)
+    })
+
+
+def _persisted_method_snapshot(state: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    for receipt in reversed(state.get("execution_receipts", [])):
+        if receipt.get("stage") != "RESEARCH":
+            continue
+        snapshot = receipt.get("input_bindings", {}).get("method_usage_snapshot")
+        if isinstance(snapshot, Mapping):
+            return snapshot
+    return None
+
+
+def _diagnose_persisted_method_drift(
+    state: Mapping[str, Any], reader: StateReader | None,
+) -> tuple[list[dict[str, Any]], str]:
+    prior = _persisted_method_snapshot(state)
+    _require(prior is not None, "FINANCIAL_METHOD_NO_ADMITTED_USAGE_SNAPSHOT")
+    catalog, catalog_sha = _read_method_catalog(reader)
+    try:
+        changes = method_dependency_drift(catalog, prior)
+    except MethodGovernanceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+    return changes, catalog_sha
+
+
+def _verify_article_method_usage(
+    candidate: dict[str, Any], *,
+    leaving_stage: str,
+    method_catalog_reader: StateReader | None,
+) -> dict[str, Any] | None:
+    ids = _current_method_ids(candidate)
+    prior = _persisted_method_snapshot(candidate)
+    if leaving_stage == "RESEARCH":
+        if not ids:
+            return None
+        catalog, catalog_sha = _read_method_catalog(method_catalog_reader)
+        try:
+            fresh = admitted_method_usage_snapshot(catalog, ids)
+        except MethodGovernanceError as exc:
+            raise FinancialAdmissionError(str(exc)) from exc
+        candidate["execution_receipts"][-1]["input_bindings"]["method_usage_snapshot"] = fresh
+        candidate["execution_receipts"][-1]["input_bindings"]["method_catalog_blob_sha"] = catalog_sha
+        current_admission.validate_state(candidate)
+        return {"method_catalog_blob_sha": catalog_sha, "usage_snapshot": fresh}
+
+    # A lawful REVISE / reentry to RESEARCH already invalidates the old evidence.
+    if candidate.get("current_stage") in {"INTAKE", "RESEARCH"}:
+        return None
+    if prior is None:
+        _require(not ids, "FINANCIAL_METHOD_REFERENCE_WITHOUT_ADMITTED_SNAPSHOT")
+        return None
+    changes, catalog_sha = _diagnose_persisted_method_drift(candidate, method_catalog_reader)
+    _require(not changes, "FINANCIAL_METHOD_DEPENDENCY_STALE__REOPEN_REQUIRED")
+    return {
+        "method_catalog_blob_sha": catalog_sha,
+        "usage_snapshot": dict(prior), "stale_methods": [],
+    }
+
 
 def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | None) -> dict[str, Any] | None:
     receipts = candidate["execution_receipts"]
@@ -331,6 +413,7 @@ def admit_article_action(
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
+    method_catalog_reader: StateReader | None = None,
 ) -> dict[str, Any]:
     """Use existing Financial admissions and genuine provider CAS/readback.
 
@@ -407,12 +490,30 @@ def admit_article_action(
             candidate = owner_lifecycle.record_nonbinding_intent_state(
                 state, verified_intent=nonbinding_intent_evidence, **call,
             )
+        elif op == "REOPEN_METHOD_DEPENDENCY":
+            changes, catalog_sha = _diagnose_persisted_method_drift(
+                state, method_catalog_reader,
+            )
+            _require(bool(changes), "FINANCIAL_METHOD_NO_DEPENDENCY_CHANGE")
+            candidate = owner_lifecycle.reopen_method_dependent_article_state(
+                state,
+                previous_state_blob_sha=previous_sha,
+                executor_identity=call["executor_identity"],
+                method_dependency_changes=changes,
+                verified_catalog_blob_sha=catalog_sha,
+            )
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
     if owner_intent_evidence is not None:
         candidate["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"] = owner_intent_evidence
     current_admission.validate_state(candidate)
+    method_usage = None
+    if op == "ADVANCE_STAGE" and observed is not None:
+        method_usage = _verify_article_method_usage(
+            candidate, leaving_stage=observed[0]["current_stage"],
+            method_catalog_reader=method_catalog_reader,
+        )
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
     word_bytes = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
@@ -474,6 +575,7 @@ def admit_article_action(
         "required_stage_artifact_verified": stage_bytes,
         "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
+        "method_usage_readback": method_usage,
         "independent_editorial_review_readback": independent_editorial_proof,
         "child_state_cas_verified": True,
         "independent_editorial_quality_verified": False,
