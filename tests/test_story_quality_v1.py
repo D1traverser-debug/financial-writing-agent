@@ -146,6 +146,15 @@ def test_publication_fitness_cannot_self_pass_without_all_text_evidence_gates():
         PublicationFitness(product_mode=ProductMode.FINANCE_DEEP, gates=_all_gates()[:-1], originality_checks=_originality(), assurance="CHAT_SELF_REVIEW", final_status=AuditStatus.PASS)
 
 
+def test_chat_self_review_cannot_certify_publication_pass_even_with_all_eight_gates():
+    with pytest.raises(ValidationError, match="CHAT_SELF_REVIEW_CANNOT_CERTIFY_PUBLICATION_PASS"):
+        PublicationFitness(
+            product_mode=ProductMode.FINANCE_DEEP,
+            gates=_all_gates(), originality_checks=_originality(),
+            assurance="CHAT_SELF_REVIEW", final_status=AuditStatus.PASS,
+        )
+
+
 def test_originality_rewrite_blocks_pass():
     with pytest.raises(ValidationError):
         PublicationFitness(product_mode=ProductMode.FINANCE_DEEP, gates=_all_gates(), originality_checks=[OriginalityEvidence(compared_source_ref="source", checked_phrase_or_passage="distinctive phrase", result="NEEDS_REWRITE", notes="too close to source expression")], assurance="CHAT_SELF_REVIEW", final_status=AuditStatus.PASS)
