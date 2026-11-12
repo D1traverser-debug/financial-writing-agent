@@ -1,0 +1,32 @@
+name: Financial one-time archive of obsolete branches
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  one-time-archive:
+    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[financial-branch-archive-once]') }}
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.11"
+      - name: Dry-run branch selection and provider inventory
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/branch_archive_cleanup.py --out audit/financial_branches_dry_run.json
+      - name: Archive exact branch heads into durable Git tags, then prune obsolete refs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          RUN_FINANCIAL_BRANCH_ARCHIVE: I_APPROVE_ARCHIVE_AND_PRUNE
+        run: python scripts/branch_archive_cleanup.py --apply --out audit/financial_branch_archive.json
+      - name: Preserve independent provider readback manifest
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: financial-archived-branch-ref-map-${{ github.sha }}
+          path: audit/financial_branch*.json
+          if-no-files-found: warn
