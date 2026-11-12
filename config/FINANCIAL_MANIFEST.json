@@ -19,9 +19,20 @@
   "permission_policy": "PER_ACTION_EXTERNAL_USER_AUTHORIZATION_AND_PROVIDER_CAS",
   "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE",
   "owner_intent_provenance": "financial_writing_agent.intent_governance",
-  "requirement_write_authentication": "AUTHENTICATED_ORIGINAL_USER_MESSAGE_AND_EXCERPT",
+  "requirement_write_authentication": "AUTHENTICATED_USER_ORIGINAL_BYTES_AND_OWNER_CONFIRMED_CANONICAL_MUTATION_DIGEST",
   "method_catalog_authority": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
   "method_governance": "financial_writing_agent.method_governance",
   "method_provider_entry": "financial_writing_agent.standalone_runtime.admit_method_action",
-  "method_impact_closure": "EXTERNAL_REVALIDATION_WITH_APPEND_ONLY_EVENT_HISTORY"
+  "method_impact_closure": "EXTERNAL_REVALIDATION_WITH_APPEND_ONLY_EVENT_HISTORY",
+  "client_skill_plugin": {
+    "name": "financial-writing-agent-chatgpt",
+    "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
+    "release_id": "pluginrel_6af591b305e88191a537446ca98fb5d3",
+    "verified": "PRIVATE_PACKAGE_CREATED_AND_READBACK",
+    "installed_or_live_tool_executed": "NOT_VERIFIED",
+    "hosted_mcp_python": false
+  },
+  "system_completion_authority": "financial_writing_agent.acceptance_gates",
+  "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
+  "direct_activation_semantics": "ROUTABLE_SKILL_IF_CONNECTED__NOT_AN_INSTALLED_APP_CLAIM"
 }
