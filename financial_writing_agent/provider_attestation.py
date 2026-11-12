@@ -168,6 +168,32 @@ def verify_action_authorization(
     )
 
 
+def verify_persisted_action_authorization(
+    raw: Mapping[str, Any] | None, *, expected_claims: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Re-verify a previously admitted action signature without reapplying its short freshness window.
+
+    Admission checked freshness before the state write. Historical readback checks
+    the original signature, owner, provider, audience and exact persisted scope.
+    """
+    if not isinstance(raw, Mapping):
+        raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_ACTION_ATTESTATION_MISSING")
+    issued_at = raw.get("issued_at")
+    if not isinstance(issued_at, int) or isinstance(issued_at, bool):
+        raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_ACTION_TIMESTAMP_INVALID")
+    digest = raw.get("request_sha256")
+    if not isinstance(digest, str) or len(digest) != 64 or any(
+        char not in "0123456789abcdef" for char in digest
+    ):
+        raise FinancialProviderAttestationError("FINANCIAL_PERSISTED_ACTION_REQUEST_DIGEST_INVALID")
+    return verify_provider_attestation(
+        raw, expected_type="action_authorization",
+        expected_claims=expected_claims,
+        expected_actor=expected_owner_principal(),
+        now=issued_at,
+    )
+
+
 def verify_method_action_authorization(
     raw: Mapping[str, Any] | None, *, request: Mapping[str, Any],
 ) -> dict[str, Any]:
