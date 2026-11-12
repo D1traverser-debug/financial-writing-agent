@@ -182,7 +182,7 @@ def verify_requirement_change_intent(
             change_sha256=challenge["change_sha256"],
         )
     except Exception as exc:
-        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_OWNER_APPROVAL_ATTESTATION_FAILED") from exc
+        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_SEMANTIC_OWNER_APPROVAL_ATTESTATION_FAILED") from exc
     _require(isinstance(answer.get("approval_record_ref"), str)
              and bool(answer["approval_record_ref"].strip()),
              "SEMANTIC_OWNER_APPROVAL_RECORD_REQUIRED")
