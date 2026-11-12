@@ -5,7 +5,9 @@ from financial_writing_agent.acceptance_gates import (
     SYSTEM_GATES, REQUIRED_GATE_EVIDENCE, evaluate_system_acceptance,
 )
 from financial_writing_agent.provider_attestation import payload_sha256
-from trusted_provider_testkit import signed_attestation
+from trusted_provider_testkit import (
+    signed_attestation, signed_method_promotion, signed_method_impact,
+)
 
 SHA = "d" * 40
 
@@ -30,6 +32,29 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "before_branch_count": 99,
             "archive_tag_count": 98,
         })
+        if gate == "METHOD_KNOWLEDGE_CRUD_AND_IMPACT":
+            promotion_challenge = {
+                "knowledge_id": "METHOD-SYNTHETIC",
+                "record_sha256": "e"*64,
+                "decision_sha256": "f"*64,
+                "validation_refs": ["ci://synthetic-method-validation"],
+                "review_ref": "review://synthetic-method-promotion",
+            }
+            impact_challenge = {
+                "knowledge_id": "METHOD-SYNTHETIC",
+                "target_change_revision": 1,
+                "event_sha256": "a"*64,
+                "stage_evidence_refs": {
+                    "RESEARCH": "evidence://research",
+                    "EDITORIAL": "evidence://editorial",
+                },
+            }
+            evidence.update({
+                "promotion_challenge": promotion_challenge,
+                "promotion_attestation": signed_method_promotion(promotion_challenge),
+                "impact_challenge": impact_challenge,
+                "impact_attestation": signed_method_impact(impact_challenge),
+            })
         if gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW":
             evidence.update({
                 "reviewer_principal": reviewer,
