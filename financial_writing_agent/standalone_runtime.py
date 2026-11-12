@@ -413,6 +413,7 @@ def admit_article_action(
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
+    owner_semantic_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     method_catalog_reader: StateReader | None = None,
 ) -> dict[str, Any]:
     """Use existing Financial admissions and genuine provider CAS/readback.
@@ -450,6 +451,11 @@ def admit_article_action(
                 evidence_ref=params.get("evidence_ref"),
                 upserts=params.get("upserts"), retire_ids=params.get("retire_ids"),
                 owner_instruction_reader=owner_instruction_reader,
+                owner_semantic_verifier=owner_semantic_verifier,
+                existing_requirements=(
+                    observed[0].get("task_requirement_authority", {}).get("active_requirements", [])
+                    if observed is not None else []
+                ),
             )
         except FinancialIntentEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
