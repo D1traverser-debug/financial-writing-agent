@@ -99,6 +99,8 @@ def test_standalone_can_create_and_observe_real_financial_article_without_parent
         "PLATFORM_INTERACTION_PACK_DOCX",
     ]
     assert observation["owner_outcome_verified"] is False
+    assert observation["authorization_history"]["verified_signed_receipts"] == 1
+    assert observation["authorization_history"]["legacy_self_attested_receipts"] == 0
 
 
 def test_article_receipt_preserves_full_signed_provider_authorization_without_raw_request():
@@ -117,6 +119,33 @@ def test_article_receipt_preserves_full_signed_provider_authorization_without_ra
     assert len(proof["signature"]) == 64
     assert "parameters" not in proof
     assert "prompt" not in proof
+
+
+def test_observation_reverifies_persisted_provider_signature_and_rejects_tampering():
+    p = Provider()
+    create(p)
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    state = json.loads(p.store[path])
+    proof = state["execution_receipts"][-1]["input_bindings"]["authorization_verification"]
+    proof["signature"] = "0" * 64
+    p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    with pytest.raises(FinancialAdmissionError, match="PERSISTED_ACTION_AUTHORIZATION_INVALID"):
+        observe_article("solo-article-01", state_reader=p.read)
+
+
+def test_legacy_self_attested_receipts_are_reported_as_legacy_not_signed():
+    p = Provider()
+    create(p)
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    state = json.loads(p.store[path])
+    bindings = state["execution_receipts"][-1]["input_bindings"]
+    bindings.pop("authorization_contract_version")
+    bindings.pop("authorization_verification")
+    p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    observed = observe_article("solo-article-01", state_reader=p.read)
+    assert observed["authorization_history"]["verified_signed_receipts"] == 0
+    assert observed["authorization_history"]["legacy_self_attested_receipts"] == 1
+    assert observed["authorization_history"]["assurance"].startswith("SIGNED_NEW_RECEIPTS")
 
 
 def test_direct_financial_routing_and_requirement_change_revises_article_only():
