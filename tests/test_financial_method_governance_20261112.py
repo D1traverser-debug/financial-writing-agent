@@ -82,6 +82,7 @@ def mutate(cat, operation, *, proposed=None, method_id=METHOD_ID,
         impact_target_revision=impact_target_revision, impact_evidence=impact_evidence,
         impact_verifier=impact_verifier, action_request=action_request,
         authorization_evidence=signed_method_action_authorization(action_request),
+        observed_catalog_blob_sha=_blob_sha(raw),
     )
 
 
