@@ -25,7 +25,7 @@ def signed_attestation(
         "nonce": uuid4().hex,
         **claims,
     }
-    key = os.environ["FINANCIAL_PROVIDER_ATTESTATION_KEY"].encode("utf-8")
+    key = os.environ[key_env].encode("utf-8")
     unsigned = json.dumps(record, ensure_ascii=False, sort_keys=True,
                           separators=(",", ":"), allow_nan=False).encode("utf-8")
     record["signature"] = hmac.new(key, unsigned, hashlib.sha256).hexdigest()
