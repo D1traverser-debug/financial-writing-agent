@@ -125,7 +125,7 @@ def test_method_catalog_omission_cannot_be_bypassed_when_knowledge_is_claimed_in
     with pytest.raises(FinancialAdmissionError, match="METHOD_CATALOG"):
         admit_article_action(
             research, state_reader=p.read, cas_writer=p.write,
-            authorization_verifier=lambda _: True,
+            authorization_verifier=signed_action_authorization,
             artifact_reader=p.artifact, source_snapshot_reader=p.source,
             method_catalog_reader=None,
         )
