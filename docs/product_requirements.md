@@ -284,3 +284,7 @@ This addendum evaluates intrinsic Financial goal/workflow/method governance, **n
 - Systemic diagnoses and method choices are revisited when counterexamples defeat them. Decisions and executions share one Financial owner and explicit independent assurance levels; native client activation and real editorial acceptance remain distinct from machine test results.
 
 The corresponding architecture/evidence source is `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`.
+
+## Financial system acceptance correction (2026-11-12)
+
+The engineering test suite is a necessary but **insufficient** acceptance gate. A valid original user source hash does not prove that an LLM-derived requirement matches the actual user's intent. Requirement mutations are blocked unless their exact change digest is confirmed through a provider-attested owner semantic decision; nonbinding ideas stay nonbinding. The independent Financial client, real user-message provider, real GitHub CAS, independent reviewer and one-main branch hygiene are external release gates; their absence means NOT_READY, even with 100% engineering tests. See `evals/FINANCIAL_INDEPENDENT_ACCEPTANCE_REAUDIT_20261112.md` and `financial_writing_agent/acceptance_gates.py`. Current private ChatGPT Skill creation is not proof of actual plugin installation.
