@@ -713,6 +713,7 @@ def admit_method_action(
             impact_evidence=params.get("impact_evidence"),
             impact_verifier=impact_verifier,
             authorization_evidence=authorization_evidence,
+            action_request=request,
         )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
