@@ -66,6 +66,16 @@
       "id": "financial_method_version_dependent_article_replay",
       "source": "financial_writing_agent.method_governance + financial_writing_agent.owner_lifecycle + financial_writing_agent.standalone_runtime",
       "assurance": "EXPLICIT_ADMITTED_METHOD_ID__EFFECTIVE_VERSION_SHA__SINGLE_OWNER_EARLIEST_STAGE_REPLAY__SYNTHETIC_CI"
+    },
+    {
+      "id": "owner_confirmed_semantic_requirement_change",
+      "source": "financial_writing_agent.intent_governance + financial_writing_agent.standalone_runtime",
+      "assurance": "VERBATIM_ANCHOR_AND_EXTERNAL_OWNER_EXACT_MUTATION_CONFIRMATION__LIVE_PROVIDER_NOT_TESTED"
+    },
+    {
+      "id": "independent_whole_system_release_gate",
+      "source": "financial_writing_agent.acceptance_gates",
+      "assurance": "EXTERNAL_PROVIDER_REQUIRED_FOR_EACH_OF_SEVEN_GATES__CI_GREEN_NOT_SUFFICIENT"
     }
   ],
   "required_external_capabilities_at_execution": [
@@ -75,7 +85,10 @@
     "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF",
     "AUTHENTICATED_ORIGINAL_USER_MESSAGE_READER_FOR_REQUIREMENT_WRITES",
     "TRUSTED_GIT_CATALOG_CAS_AND_SECOND_READBACK_FOR_METHOD_WRITES",
-    "EXTERNAL_REVIEWER_FOR_METHOD_PROMOTION_AND_IMPACT_CLOSURE"
+    "EXTERNAL_REVIEWER_FOR_METHOD_PROMOTION_AND_IMPACT_CLOSURE",
+    "OWNER_CONFIRMATION_OF_CANONICAL_REQUIREMENT_CHANGE",
+    "LIVE_PRIVATE_FINANCIAL_PLUGIN_INSTALLATION_AND_FRESH_CHAT_TRIGGER",
+    "INDEPENDENT_PROVIDER_SYSTEM_ACCEPTANCE_AT_EXACT_MAIN_SHA"
   ],
   "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS",
   "independence_clause": "NO_CAOS_UAOS_PARENT_REPOSITORY_OR_HOST_INVOCATION"
