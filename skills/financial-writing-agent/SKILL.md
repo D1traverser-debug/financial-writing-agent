@@ -25,7 +25,7 @@ For a new task, material uncertainty, user rejection or recurring defect: recons
 
 ## Execution loop and Article Graph
 
-Choose a legal next stage; do actual source retrieval, research, writing, independent challenge, binary rendering or connector actions; verify material outputs and exact provider readback; fix negative findings and rerun valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. Current actions enter only current_admission.build_initial_state, advance_state, apply_task_requirement_change, attach_material_feedback. Revision invalidates downstream stages. Old/retired states stay historical. Proactive error recovery comes before requesting the user's help, subject to real consent boundaries.
+Choose a legal next stage; do actual source retrieval, research, writing, independent challenge, binary rendering or connector actions; verify material outputs and exact provider readback; fix negative findings and rerun valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. Current stage actions enter current_admission.build_initial_state, advance_state, apply_task_requirement_change and attach_material_feedback. The same guarded action port also admits owner_lifecycle.resume_blocked_state, proactive_resolution.record_proactive_resolution_state and owner_lifecycle.review_system_impact_state. Revision invalidates downstream stages. Old/retired states stay historical. Proactive error recovery comes before requesting the user's help, subject to real consent boundaries.
 
 ## Full financial content product
 
@@ -38,7 +38,7 @@ Choose a legal next stage; do actual source retrieval, research, writing, indepe
 
 ## Standalone authorized task operations
 
-The owner-neutral Financial interface is financial_writing_agent/standalone_runtime.py, not any parent/CAOS bridge. It supports read-only observe_article and CREATE_ARTICLE, CHANGE_REQUIREMENTS, ADVANCE_STAGE and ATTACH_FEEDBACK. A live client must supply real authenticated Git provider reads, an external user-authorization verifier, conditional Git Blob compare-and-swap writer, and an independent second readback. For required stages it must also read exact artifact bytes. Never treat mock callbacks, an AI decision, or a requested action flag as permission. Without connected write capability, continue source/reader work, keep state mutation OPEN and report accurately.
+The owner-neutral Financial interface is financial_writing_agent/standalone_runtime.py, not any parent/CAOS bridge. It supports read-only observe_article and guarded CREATE_ARTICLE, CHANGE_REQUIREMENTS, ADVANCE_STAGE, ATTACH_FEEDBACK, RESUME_BLOCKED, RECORD_PROACTIVE_RESOLUTION and REVIEW_SYSTEM_IMPACT. All three recovery/evolution routes use the same owner state, authenticated CAS and second readback; blocked recovery reuses the persisted legal cursor. A live client must supply real authenticated Git provider reads, an external user-authorization verifier, conditional Git Blob compare-and-swap writer, and an independent second readback. For required stages it must also read exact artifact bytes. Never treat mock callbacks, an AI decision, or a requested action flag as permission. Without connected write capability, continue source/reader work, keep state mutation OPEN and report accurately.
 
 ## Non-negotiable current provider-admission evidence
 
