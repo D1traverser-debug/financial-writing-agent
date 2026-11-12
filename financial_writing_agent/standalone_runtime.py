@@ -30,7 +30,7 @@ from .method_governance import (
 from .path_identity import require_article_path, require_task_id
 from .provider_attestation import (
     verify_action_authorization, verify_method_action_authorization,
-    FinancialProviderAttestationError,
+    verify_persisted_action_authorization, FinancialProviderAttestationError,
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
@@ -340,6 +340,64 @@ def _verify_product_word_bytes(
     }
 
 
+def _verify_persisted_action_authorization_history(
+    state: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Verify signed receipts that declare the provider-authorization contract.
+
+    Earlier receipts remain immutable self-attested provenance and are counted
+    as legacy; every receipt written by the current standalone action port must
+    carry a complete, re-verifiable provider signature.
+    """
+    receipts = state.get("execution_receipts", [])
+    _require(isinstance(receipts, list) and receipts,
+             "FINANCIAL_ACTION_RECEIPT_HISTORY_MISSING")
+    verified = 0
+    legacy = 0
+    for receipt in receipts:
+        bindings = receipt.get("input_bindings", {})
+        if bindings.get("authorization_contract_version") is None:
+            legacy += 1
+            continue
+        _require(bindings.get("authorization_contract_version") == "1.0",
+                 "FINANCIAL_ACTION_RECEIPT_AUTHORIZATION_VERSION_UNSUPPORTED")
+        proof = bindings.get("authorization_verification")
+        previous_sha = bindings.get("previous_state_blob_sha")
+        executor = receipt.get("executor_identity")
+        _require(isinstance(executor, str) and executor.startswith("financial:"),
+                 "FINANCIAL_ACTION_RECEIPT_EXECUTOR_SCOPE_INVALID")
+        action_id = executor[len("financial:"):]
+        _require(bool(action_id), "FINANCIAL_ACTION_RECEIPT_ACTION_ID_MISSING")
+        expected_previous = None if previous_sha == "NEW_FILE" else previous_sha
+        operation = proof.get("operation") if isinstance(proof, Mapping) else None
+        _require(operation in OPERATIONS,
+                 "FINANCIAL_ACTION_RECEIPT_OPERATION_INVALID")
+        try:
+            verify_persisted_action_authorization(
+                proof,
+                expected_claims={
+                    "approved": True,
+                    "action_id": action_id,
+                    "task_id": state["task_id"],
+                    "operation": operation,
+                    "expected_state_blob_sha": expected_previous,
+                },
+            )
+        except Exception as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_PERSISTED_ACTION_AUTHORIZATION_INVALID"
+            ) from exc
+        verified += 1
+    return {
+        "verified_signed_receipts": verified,
+        "legacy_self_attested_receipts": legacy,
+        "assurance": (
+            "ALL_RECEIPTS_SIGNED_AND_REVERIFIED" if legacy == 0
+            else "SIGNED_NEW_RECEIPTS__LEGACY_HISTORY_RETAINED_AS_UNVERIFIED_PROVENANCE"
+        ),
+    }
+
+
 def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
     """Read actual child-owned business state; never imply editorial acceptance."""
     path = _state_path(task_id)
@@ -348,6 +406,7 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
     state, sha = record
     _require(state["task_id"] == task_id, "FINANCIAL_ARTICLE_ID_MISMATCH")
     current_admission.validate_state(state)
+    authorization_history = _verify_persisted_action_authorization_history(state)
     authority = state["task_requirement_authority"]
     open_impacts = [
         {"signal_id": entry.get("signal_id"), "status": entry.get("status")}
@@ -377,6 +436,7 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
         "requirement_digest": state["task_requirement_digest"],
         "required_outputs": list(state["required_outputs"]),
         "recorded_outputs": sorted(state.get("delivery_artifacts", {})),
+        "authorization_history": authorization_history,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
     }
@@ -485,6 +545,7 @@ def admit_article_action(
         _require(previous_sha == r["expected_state_blob_sha"], "FINANCIAL_STATE_CHANGED_CONCURRENTLY")
         _require(state["task_id"] == r["task_id"], "FINANCIAL_ARTICLE_ID_MISMATCH")
         current_admission.validate_state(state)
+        _verify_persisted_action_authorization_history(state)
         call = {
             "previous_state_blob_sha": previous_sha,
             "executor_identity": f"financial:{r['action_id']}",
@@ -521,10 +582,12 @@ def admit_article_action(
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
+    candidate["execution_receipts"][-1]["input_bindings"]["authorization_contract_version"] = "1.0"
     candidate["execution_receipts"][-1]["input_bindings"]["authorization_verification"] = authorization_evidence
     if owner_intent_evidence is not None:
         candidate["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"] = owner_intent_evidence
     current_admission.validate_state(candidate)
+    _verify_persisted_action_authorization_history(candidate)
     method_usage = None
     if op == "ADVANCE_STAGE" and observed is not None:
         method_usage = _verify_article_method_usage(
