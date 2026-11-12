@@ -1,352 +1,398 @@
 #!/usr/bin/env python3
-"""Tag-first, freeze-gated consolidation of Financial remote branch refs.
-
-GitHub's Delete a Git Reference API is not an expected-SHA compare-and-delete.
-Therefore deletion is forbidden unless an active branch update/creation freeze,
-an immutable archive-tag ruleset, protected main, and a reviewer-protected
-GitHub Environment are all read back from GitHub before mutation.
-"""
+"""Manifest-bound two-phase archive/prune; no destructive action in archive phase."""
 from __future__ import annotations
-
 import argparse
+import hashlib
 import json
 import os
+import time
 from pathlib import Path
 from typing import Any
-from urllib.error import HTTPError
+from urllib.error import HTTPError, URLError
 from urllib.parse import quote
 from urllib.request import Request, urlopen
 
-ARCHIVE_PREFIX = "archive/financial-20261112/"
-APPROVAL = "I_APPROVE_ARCHIVE_AND_PRUNE"
 REPO = "D1traverser-debug/financial-writing-agent"
-ENVIRONMENT = "financial-branch-archive"
-BRANCH_FREEZE_RULESET = "Financial archive write freeze"
-TAG_LOCK_RULESET = "Financial archive tag lock"
+PREFIX = "archive/financial-20261112/"
+ENVIRONMENTS = ("financial-branch-archive", "financial-branch-prune")
+BRANCH_RULESET = "Financial archive write freeze"
+TAG_RULESET = "Financial archive tag lock"
 
 
-def branch_candidates(
-    branches: list[dict[str, Any]],
-    open_prs: list[dict[str, Any]],
-) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
-    """Archive inactive refs, preserving exact heads; never touch main/protected/open-PR."""
-    active_pr_heads = {
-        p.get("head", {}).get("ref")
-        for p in open_prs
-        if p.get("head", {}).get("repo", {}).get("full_name") == REPO
-    }
-    candidates, skipped = [], []
-    seen: set[str] = set()
-    for branch in branches:
-        name = branch.get("name")
-        sha = branch.get("commit", {}).get("sha")
-        if not isinstance(name, str) or not isinstance(sha, str) or len(sha) != 40:
-            raise ValueError("BRANCH_HYGIENE_INVALID_PROVIDER_DATA")
-        if name in seen:
-            raise ValueError("BRANCH_HYGIENE_DUPLICATE_BRANCH")
+def canonical(value: Any) -> str:
+    return json.dumps(value, ensure_ascii=False, sort_keys=True, separators=(",", ":"), allow_nan=False)
+
+
+def sha256(value: Any) -> str:
+    return hashlib.sha256(canonical(value).encode("utf-8")).hexdigest()
+
+
+def write_json(path: Path, value: dict[str, Any]) -> None:
+    path.parent.mkdir(parents=True, exist_ok=True)
+    path.write_text(json.dumps(value, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+
+
+def branch_rows(branches: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    rows = []
+    seen = set()
+    for item in branches:
+        name, sha = item.get("name"), item.get("commit", {}).get("sha")
+        if not isinstance(name, str) or not isinstance(sha, str) or len(sha) != 40 or name in seen:
+            raise ValueError("BRANCH_INVENTORY_INVALID_OR_DUPLICATED")
         seen.add(name)
-        row = {"branch": name, "head_sha": sha}
-        if name == "main" or branch.get("protected") is True or name in active_pr_heads:
-            skipped.append({**row, "reason": "MAIN_OR_PROTECTED_OR_ACTIVE_PR"})
-        else:
-            candidates.append(row)
-    return candidates, skipped
+        rows.append({"name": name, "sha": sha, "protected": item.get("protected") is True})
+    return sorted(rows, key=lambda x: x["name"])
 
 
 class GitHubAPI:
-    def __init__(self, repo: str, token: str | None):
-        if repo != REPO:
-            raise ValueError("branch archive is restricted to Financial repository only")
-        self.repo, self.token = repo, token
+    def __init__(self, token: str | None):
+        if not token:
+            raise ValueError("FINANCIAL_ARCHIVE_PROVIDER_TOKEN_REQUIRED")
+        self.token = token
 
-    def call(
-        self, method: str, path: str, payload: dict[str, Any] | None = None,
-        *, allow_404: bool = False,
-    ):
+    def call(self, method: str, path: str, payload=None, *, allow_404=False):
         if not path.startswith("/repos/" + REPO + "/"):
             raise ValueError("CROSS_REPOSITORY_MUTATION_FORBIDDEN")
-        url = "https://api.github.com" + path
-        raw = json.dumps(payload).encode("utf-8") if payload is not None else None
         headers = {
             "Accept": "application/vnd.github+json",
             "X-GitHub-Api-Version": "2022-11-28",
             "User-Agent": "financial-branch-archive-guard",
+            "Authorization": "Bearer " + self.token,
         }
-        if self.token:
-            headers["Authorization"] = "Bearer " + self.token
-        request = Request(url, data=raw, headers=headers, method=method)
-        try:
-            with urlopen(request, timeout=20) as response:
-                contents = response.read()
-                return json.loads(contents) if contents else None
-        except HTTPError as exc:
-            if exc.code == 404 and allow_404:
-                return None
-            raise RuntimeError(f"GITHUB_{method}_{path}_HTTP_{exc.code}") from exc
+        data = json.dumps(payload).encode("utf-8") if payload is not None else None
+        attempts = 3 if method == "GET" else 1
+        for attempt in range(attempts):
+            try:
+                with urlopen(Request("https://api.github.com" + path, data=data,
+                                     headers=headers, method=method), timeout=20) as response:
+                    body = response.read()
+                    return json.loads(body) if body else None
+            except HTTPError as exc:
+                if exc.code == 404 and allow_404:
+                    return None
+                retry = exc.headers.get("Retry-After") if exc.headers else None
+                if method == "GET" and exc.code in {403, 429} and retry and attempt < attempts - 1:
+                    try:
+                        time.sleep(min(max(float(retry), 1), 30))
+                    except ValueError:
+                        time.sleep(2)
+                    continue
+                raise RuntimeError(f"GITHUB_{method}_{path}_HTTP_{exc.code}") from exc
+            except (TimeoutError, URLError) as exc:
+                if method == "GET" and attempt < attempts - 1:
+                    time.sleep(attempt + 1)
+                    continue
+                raise RuntimeError(f"GITHUB_{method}_{path}_TRANSPORT_FAILURE") from exc
+        raise RuntimeError("GITHUB_GET_RETRY_EXHAUSTED")
 
     def paginate(self, suffix: str):
-        items = []
+        all_items = []
         for page in range(1, 1001):
-            separator = "&" if "?" in suffix else "?"
-            path = f"/repos/{self.repo}/{suffix}{separator}per_page=100&page={page}"
-            values = self.call("GET", path)
+            sep = "&" if "?" in suffix else "?"
+            values = self.call("GET", f"/repos/{REPO}/{suffix}{sep}per_page=100&page={page}")
             if not isinstance(values, list):
-                raise ValueError("BRANCH_HYGIENE_BAD_GITHUB_COLLECTION")
-            items.extend(values)
+                raise ValueError("GITHUB_COLLECTION_INVALID")
+            all_items.extend(values)
             if len(values) < 100:
-                return items
-        raise ValueError("BRANCH_HYGIENE_PAGINATION_EXCEEDED")
+                return all_items
+        raise ValueError("GITHUB_PAGINATION_EXCEEDED")
 
-    def exact_branch_head(self, name: str) -> str | None:
-        ref = self.call(
-            "GET", f"/repos/{self.repo}/git/ref/heads/{quote(name, safe='/')}",
-            allow_404=True,
-        )
+    def branch_head(self, name: str):
+        ref = self.call("GET", f"/repos/{REPO}/git/ref/heads/{quote(name, safe='/')}", allow_404=True)
         return ref.get("object", {}).get("sha") if ref else None
 
-    def archived_tag_head(self, name: str) -> str | None:
-        tag = self.call(
-            "GET", f"/repos/{self.repo}/git/ref/tags/{quote(ARCHIVE_PREFIX + name, safe='/')}",
-            allow_404=True,
-        )
-        return tag.get("object", {}).get("sha") if tag else None
+    def tag_head(self, name: str):
+        ref = self.call("GET", f"/repos/{REPO}/git/ref/tags/{quote(PREFIX + name, safe='/')}", allow_404=True)
+        return ref.get("object", {}).get("sha") if ref else None
 
-    def tag_archive(self, name: str, sha: str):
-        existing = self.archived_tag_head(name)
-        if existing is not None:
-            if existing != sha:
-                raise ValueError("ARCHIVE_TAG_CONFLICT_HEAD_NOT_IDENTICAL")
+    def tag_branch_head(self, name: str, sha: str):
+        old = self.tag_head(name)
+        if old is not None:
+            if old != sha:
+                raise ValueError("ARCHIVE_TAG_CONFLICT")
             return
-        self.call("POST", f"/repos/{self.repo}/git/refs",
-                  {"ref": "refs/tags/" + ARCHIVE_PREFIX + name, "sha": sha})
-        if self.archived_tag_head(name) != sha:
-            raise RuntimeError("ARCHIVE_TAG_SECOND_READBACK_FAILED")
+        self.call("POST", f"/repos/{REPO}/git/refs",
+                  {"ref": "refs/tags/" + PREFIX + name, "sha": sha})
+        if self.tag_head(name) != sha:
+            raise RuntimeError("ARCHIVE_TAG_READBACK_FAILED")
 
-    def prune_branch(self, name: str, sha: str):
-        if name == "main":
-            raise ValueError("CANNOT_DELETE_MAIN")
-        if self.exact_branch_head(name) != sha:
-            raise ValueError("BRANCH_HEAD_MOVED_NO_DELETE")
-        if self.archived_tag_head(name) != sha:
-            raise ValueError("ARCHIVE_TAG_NOT_PINNED_NO_DELETE")
-        # The preceding freeze ruleset is the concurrency control. GitHub's
-        # delete-ref API has no expected-SHA condition; without the freeze,
-        # this operation must not be called.
+    def delete_branch(self, name: str, sha: str):
+        if name == "main" or self.branch_head(name) != sha or self.tag_head(name) != sha:
+            raise ValueError("BRANCH_OR_ARCHIVE_TAG_PRECONDITION_FAILED")
         try:
-            self.call("DELETE", f"/repos/{self.repo}/git/refs/heads/{quote(name, safe='/')}")
-        except RuntimeError as exc:
-            # Do not collapse 404 into success. An external actor may have
-            # deleted the ref; report it as ambiguous, even though the tag is safe.
-            raise RuntimeError("BRANCH_DELETE_OUTCOME_AMBIGUOUS__" + str(exc)) from exc
-        if self.exact_branch_head(name) is not None:
-            raise RuntimeError("BRANCH_DELETE_READBACK_FAILED")
-        if self.archived_tag_head(name) != sha:
-            raise RuntimeError("ARCHIVE_TAG_CHANGED_AFTER_BRANCH_DELETE")
+            self.call("DELETE", f"/repos/{REPO}/git/refs/heads/{quote(name, safe='/')}")
+        except Exception as exc:
+            try:
+                head, tag = self.branch_head(name), self.tag_head(name)
+            except Exception as read_exc:
+                raise RuntimeError("DELETE_OUTCOME_AMBIGUOUS_READBACK_FAILED") from read_exc
+            if head is None and tag == sha:
+                return {"branch": name, "status": "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"}
+            if head == sha and tag == sha:
+                raise RuntimeError("DELETE_FAILED_REF_PRESERVED") from exc
+            raise RuntimeError("DELETE_OUTCOME_AMBIGUOUS_HEAD_OR_TAG_MISMATCH") from exc
+        if self.branch_head(name) is not None or self.tag_head(name) != sha:
+            raise RuntimeError("DELETE_POSTCONDITION_FAILED")
+        return {"branch": name, "status": "DELETE_AND_READBACK_VERIFIED"}
 
-    def _ruleset(self, name: str) -> dict[str, Any]:
-        summaries = self.paginate("rulesets?includes_parents=true")
-        matches = [x for x in summaries if x.get("name") == name]
-        if len(matches) != 1:
-            raise ValueError("REQUIRED_RULESET_MISSING_OR_DUPLICATED:" + name)
-        detail = self.call(
-            "GET", f"/repos/{self.repo}/rulesets/{matches[0]['id']}?includes_parents=true",
-        )
+    def ruleset(self, name: str):
+        found = [x for x in self.paginate("rulesets?includes_parents=true") if x.get("name") == name]
+        if len(found) != 1:
+            raise ValueError("RULESET_MISSING_OR_DUPLICATED:" + name)
+        detail = self.call("GET", f"/repos/{REPO}/rulesets/{found[0]['id']}?includes_parents=true")
         if not isinstance(detail, dict):
-            raise ValueError("REQUIRED_RULESET_DETAIL_UNAVAILABLE:" + name)
+            raise ValueError("RULESET_DETAIL_UNAVAILABLE:" + name)
         return detail
 
-    def verify_archive_controls(self) -> dict[str, Any]:
-        env = self.call(
-            "GET", f"/repos/{self.repo}/environments/{quote(ENVIRONMENT, safe='')}",
-        )
-        protection = env.get("protection_rules", []) if isinstance(env, dict) else []
-        reviewer_rules = [
-            item for item in protection
-            if item.get("type") == "required_reviewers" and item.get("reviewers")
-        ]
-        if not reviewer_rules:
-            raise ValueError("ARCHIVE_ENVIRONMENT_REQUIRES_CONFIGURED_REVIEWERS")
+    def verify_controls(self, phase: str):
+        for env_name in ENVIRONMENTS:
+            env = self.call("GET", f"/repos/{REPO}/environments/{env_name}")
+            rules = env.get("protection_rules", []) if isinstance(env, dict) else []
+            if not any(x.get("type") == "required_reviewers" and x.get("reviewers") for x in rules):
+                raise ValueError("REQUIRED_REVIEWER_ENVIRONMENT_MISSING:" + env_name)
 
-        branch = self._ruleset(BRANCH_FREEZE_RULESET)
-        branch_ref = branch.get("conditions", {}).get("ref_name", {})
+        branch = self.ruleset(BRANCH_RULESET)
         branch_types = {x.get("type") for x in branch.get("rules", [])}
-        if (
-            branch.get("target") != "branch" or branch.get("enforcement") != "active"
-            or "~ALL" not in branch_ref.get("include", [])
-            or "refs/heads/main" not in branch_ref.get("exclude", [])
-            or not {"creation", "update"}.issubset(branch_types)
-            or branch.get("bypass_actors", [])
+        refs = branch.get("conditions", {}).get("ref_name", {})
+        if "bypass_actors" not in branch or not isinstance(branch["bypass_actors"], list):
+            raise ValueError("BRANCH_BYPASS_ACTORS_NOT_VISIBLE_FAIL_CLOSED")
+        if branch["bypass_actors"]:
+            raise ValueError("BRANCH_BYPASS_ACTORS_MUST_BE_EMPTY")
+        if not (
+            branch.get("target") == "branch" and branch.get("enforcement") == "active"
+            and "~ALL" in refs.get("include", [])
+            and "refs/heads/main" in refs.get("exclude", [])
+            and {"creation", "update"}.issubset(branch_types)
         ):
-            raise ValueError("BRANCH_WRITE_FREEZE_RULESET_NOT_STRICT")
+            raise ValueError("BRANCH_WRITE_FREEZE_INVALID")
+        if phase in {"PLAN", "ARCHIVE"} and "deletion" not in branch_types:
+            raise ValueError("BRANCH_DELETION_MUST_BE_FROZEN_FOR_PLAN_AND_ARCHIVE")
+        if phase == "PRUNE" and "deletion" in branch_types:
+            raise ValueError("REMOVE_ONLY_DELETION_RULE_BEFORE_PRUNE")
 
-        tags = self._ruleset(TAG_LOCK_RULESET)
-        tag_ref = tags.get("conditions", {}).get("ref_name", {})
+        tags = self.ruleset(TAG_RULESET)
         tag_types = {x.get("type") for x in tags.get("rules", [])}
-        if (
-            tags.get("target") != "tag" or tags.get("enforcement") != "active"
-            or "refs/tags/" + ARCHIVE_PREFIX + "**" not in tag_ref.get("include", [])
-            or not {"update", "deletion"}.issubset(tag_types)
-            or tags.get("bypass_actors", [])
+        tag_refs = tags.get("conditions", {}).get("ref_name", {})
+        if "bypass_actors" not in tags or not isinstance(tags["bypass_actors"], list):
+            raise ValueError("TAG_BYPASS_ACTORS_NOT_VISIBLE_FAIL_CLOSED")
+        if tags["bypass_actors"]:
+            raise ValueError("TAG_BYPASS_ACTORS_MUST_BE_EMPTY")
+        if not (
+            tags.get("target") == "tag" and tags.get("enforcement") == "active"
+            and "refs/tags/" + PREFIX + "**" in tag_refs.get("include", [])
+            and {"update", "deletion"}.issubset(tag_types)
         ):
-            raise ValueError("ARCHIVE_TAG_IMMUTABILITY_RULESET_NOT_STRICT")
+            raise ValueError("ARCHIVE_TAG_LOCK_INVALID")
         return {
-            "environment": ENVIRONMENT,
-            "reviewer_protected_environment": True,
-            "branch_write_freeze_ruleset_id": branch["id"],
-            "archive_tag_lock_ruleset_id": tags["id"],
-            "branch_updates_and_creations_frozen": True,
-            "archive_tags_update_and_delete_blocked": True,
+            "branch_ruleset_id": branch["id"], "tag_ruleset_id": tags["id"],
+            "branch_rule_types": sorted(branch_types), "tag_rule_types": sorted(tag_types),
+            "reviewer_environments_configured": list(ENVIRONMENTS),
+            "current_run_approval": "GITHUB_ACTIONS_ENVIRONMENT_GATE__NOT_INFERRED_BY_SCRIPT",
         }
 
 
-def run(api: GitHubAPI, *, apply: bool, out_path: Path) -> dict[str, Any]:
-    branches = api.paginate("branches")
-    open_prs = api.paginate("pulls?state=open")
-    candidates, skipped = branch_candidates(branches, open_prs)
-    result: dict[str, Any] = {
-        "schema_version": "2.0",
-        "repo": REPO,
-        "mode": "APPLY" if apply else "DRY_RUN",
-        "before_branch_count": len(branches),
-        "open_pr_count": len(open_prs),
-        "candidates": len(candidates),
-        "candidate_heads": candidates,
-        "skipped": skipped,
-        "tagged": [],
-        "deleted": [],
-        "after_branch_names": [x["name"] for x in branches],
-        "archive_controls": None,
-        "complete": False,
-        "preflight_error": None,
-        "unresolved_failures": [],
+def live_manifest(api: GitHubAPI, controls: dict[str, Any]):
+    branches1 = branch_rows(api.paginate("branches"))
+    prs1 = api.paginate("pulls?state=open")
+    main1 = api.branch_head("main")
+    branches2 = branch_rows(api.paginate("branches"))
+    prs2 = api.paginate("pulls?state=open")
+    main2 = api.branch_head("main")
+    if branches1 != branches2 or prs1 != prs2 or main1 is None or main1 != main2:
+        raise ValueError("LIVE_INVENTORY_NOT_STABLE")
+    main = next((x for x in branches2 if x["name"] == "main"), None)
+    if not main or not main["protected"] or main["sha"] != main2:
+        raise ValueError("MAIN_MUST_BE_PROTECTED_AND_MATCH_LIVE_SHA")
+    if prs2:
+        raise ValueError("OPEN_PULL_REQUESTS_MUST_BE_CLOSED")
+    non_main_protected = [x for x in branches2 if x["name"] != "main" and x["protected"]]
+    if non_main_protected:
+        raise ValueError("NON_MAIN_PROTECTED_BRANCHES_PREVENT_SINGLE_MAIN")
+    candidates = [{"branch": x["name"], "head_sha": x["sha"]}
+                  for x in branches2 if x["name"] != "main"]
+    manifest = {
+        "schema_version": "3.0", "repo": REPO, "main_sha": main2,
+        "branches": branches2, "candidate_heads": candidates,
+        "control_ids": {"branch_ruleset_id": controls["branch_ruleset_id"],
+                        "tag_ruleset_id": controls["tag_ruleset_id"]},
+        "open_prs": [],
     }
-    if not apply:
-        result["changes"] = [
-            {**item, "archive_tag": ARCHIVE_PREFIX + item["branch"], "action": "DRY_RUN"}
-            for item in candidates
-        ]
-    else:
-        try:
-            if open_prs:
-                raise ValueError("OPEN_PULL_REQUESTS_MUST_BE_CLOSED_BEFORE_SINGLE_MAIN_ARCHIVE")
-            non_main_skipped = [x for x in skipped if x["branch"] != "main"]
-            if non_main_skipped:
-                raise ValueError("PROTECTED_OR_ACTIVE_BRANCHES_PREVENT_SINGLE_MAIN")
-            main = next((x for x in branches if x.get("name") == "main"), None)
-            if not main or main.get("protected") is not True:
-                raise ValueError("MAIN_MUST_BE_PROTECTED_BEFORE_ARCHIVE")
-            reviewed_sha = os.environ.get("FINANCIAL_REVIEWED_MAIN_SHA", "")
-            if reviewed_sha != main["commit"]["sha"]:
-                raise ValueError("REVIEWED_MAIN_SHA_DOES_NOT_MATCH_LIVE_MAIN")
-            result["archive_controls"] = api.verify_archive_controls()
-        except Exception as exc:
-            result["preflight_error"] = str(exc)
-        if result["preflight_error"] is None:
-            # Stage 1: tag every exact branch head and read it back. No branch
-            # deletion starts unless every inactive head is durably pinned.
-            for item in candidates:
-                try:
-                    name, sha = item["branch"], item["head_sha"]
-                    # Pin the exact head captured by the complete inventory
-                    # before consulting the live ref again. If another actor
-                    # deleted or moved the ref before the freeze was verified,
-                    # the observed commit is still preserved by this tag; the
-                    # subsequent live-head readback will block every deletion.
-                    api.tag_archive(name, sha)
-                    result["tagged"].append({**item, "tag": ARCHIVE_PREFIX + name})
-                except Exception as exc:
-                    result["unresolved_failures"].append({
-                        **item, "stage": "TAG", "reason": str(exc),
-                    })
-                    break
-            if not result["unresolved_failures"]:
-                # Recheck every branch and tag after the full archive phase.
-                for item in candidates:
-                    if (
-                        api.exact_branch_head(item["branch"]) != item["head_sha"]
-                        or api.archived_tag_head(item["branch"]) != item["head_sha"]
-                    ):
-                        result["unresolved_failures"].append({
-                            **item, "stage": "PRE_DELETE_READBACK",
-                            "reason": "BRANCH_OR_TAG_HEAD_MISMATCH",
-                        })
-                        break
-            # Stage 2: only after every head is tagged and read back, delete refs.
-            if not result["unresolved_failures"]:
-                for item in candidates:
-                    try:
-                        api.prune_branch(item["branch"], item["head_sha"])
-                        result["deleted"].append(item)
-                    except Exception as exc:
-                        result["unresolved_failures"].append({
-                            **item, "stage": "DELETE", "reason": str(exc),
-                        })
-                        break
-            # Final full inventory, not just re-reading the original candidate list.
-            try:
-                after = api.paginate("branches")
-                after_prs = api.paginate("pulls?state=open")
-                result["after_branch_names"] = sorted(x["name"] for x in after)
-                result["after_open_pr_count"] = len(after_prs)
-                for item in result["tagged"]:
-                    if api.archived_tag_head(item["branch"]) != item["head_sha"]:
-                        result["unresolved_failures"].append({
-                            **item, "stage": "FINAL_TAG_READBACK",
-                            "reason": "ARCHIVE_TAG_NOT_DURABLE",
-                        })
-                result["complete"] = (
-                    result["after_branch_names"] == ["main"]
-                    and not after_prs
-                    and not result["unresolved_failures"]
-                    and len(result["deleted"]) == len(candidates)
-                )
-                if not result["complete"] and not result["unresolved_failures"]:
-                    result["unresolved_failures"].append({
-                        "stage": "FINAL_INVENTORY",
-                        "reason": "REMOTE_REPOSITORY_NOT_SINGLE_MAIN",
-                    })
-            except Exception as exc:
-                result["unresolved_failures"].append({
-                    "stage": "FINAL_INVENTORY", "reason": str(exc),
-                })
-    out_path.parent.mkdir(parents=True, exist_ok=True)
-    out_path.write_text(json.dumps(result, ensure_ascii=False, indent=2) + "\n",
-                        encoding="utf-8")
+    return manifest
+
+
+def stable_snapshot(api: GitHubAPI, phase: str):
+    before = api.verify_controls(phase)
+    manifest = live_manifest(api, before)
+    after = api.verify_controls(phase)
+    if (before["branch_ruleset_id"] != after["branch_ruleset_id"]
+        or before["tag_ruleset_id"] != after["tag_ruleset_id"]
+        or before["branch_rule_types"] != after["branch_rule_types"]
+        or before["tag_rule_types"] != after["tag_rule_types"]):
+        raise ValueError("RULESET_CHANGED_DURING_INVENTORY")
+    return manifest, sha256(manifest), after
+
+
+def read_plan(path: Path, approved: str):
+    record = json.loads(path.read_text(encoding="utf-8"))
+    manifest = record.get("manifest")
+    actual = sha256(manifest)
+    if record.get("manifest_sha256") != actual or approved != actual:
+        raise ValueError("APPROVED_MANIFEST_SHA256_MISMATCH")
+    if manifest.get("repo") != REPO or manifest.get("schema_version") != "3.0":
+        raise ValueError("MANIFEST_IDENTITY_MISMATCH")
+    return manifest, actual
+
+
+def create_plan(api: GitHubAPI, out: Path):
+    manifest, checksum, controls = stable_snapshot(api, "PLAN")
+    result = {"manifest": manifest, "manifest_sha256": checksum,
+              "plan_status": "READY_FOR_REVIEW__NO_MUTATION", "controls": controls}
+    write_json(out, result)
     return result
+
+
+def archive_only(api: GitHubAPI, manifest_path: Path, approved: str, out: Path):
+    manifest, checksum = read_plan(manifest_path, approved)
+    current, current_sha, controls = stable_snapshot(api, "ARCHIVE")
+    if current_sha != checksum or current != manifest:
+        raise ValueError("CURRENT_INVENTORY_DIFFERS_FROM_REVIEWED_PLAN")
+    tagged = []
+    for item in manifest["candidate_heads"]:
+        api.tag_branch_head(item["branch"], item["head_sha"])
+        tagged.append(item)
+    for item in manifest["candidate_heads"]:
+        if api.branch_head(item["branch"]) != item["head_sha"] or api.tag_head(item["branch"]) != item["head_sha"]:
+            raise ValueError("ARCHIVE_READBACK_MISMATCH:" + item["branch"])
+    if api.branch_head("main") != manifest["main_sha"] or api.paginate("pulls?state=open"):
+        raise ValueError("MAIN_OR_PR_STATE_CHANGED_DURING_ARCHIVE")
+    again, again_sha, final_controls = stable_snapshot(api, "ARCHIVE")
+    if again_sha != checksum or again != manifest:
+        raise ValueError("INVENTORY_CHANGED_DURING_ARCHIVE")
+    result = {"manifest_sha256": checksum, "archive_status": "ALL_TAGS_VERIFIED__NO_BRANCHES_DELETED",
+              "tagged": tagged, "deleted": [], "controls": final_controls}
+    write_json(out, result)
+    return result
+
+
+def prune_only(api: GitHubAPI, manifest_path: Path, approved: str, out: Path):
+    manifest, checksum = read_plan(manifest_path, approved)
+    controls = api.verify_controls("PRUNE")
+    if (controls["branch_ruleset_id"] != manifest["control_ids"]["branch_ruleset_id"]
+        or controls["tag_ruleset_id"] != manifest["control_ids"]["tag_ruleset_id"]):
+        raise ValueError("RULESET_ID_CHANGED_AFTER_ARCHIVE")
+    if api.branch_head("main") != manifest["main_sha"]:
+        raise ValueError("MAIN_MOVED_AFTER_ARCHIVE")
+    if api.paginate("pulls?state=open"):
+        raise ValueError("OPEN_PULL_REQUESTS_MUST_BE_CLOSED_BEFORE_PRUNE")
+    planned = {x["name"]: x["sha"] for x in manifest["branches"]}
+    current = {x["name"]: x["sha"] for x in branch_rows(api.paginate("branches"))}
+    if any(name not in planned or planned[name] != sha for name, sha in current.items()):
+        raise ValueError("UNPLANNED_OR_MOVED_BRANCH_AFTER_ARCHIVE")
+    for item in manifest["candidate_heads"]:
+        if api.tag_head(item["branch"]) != item["head_sha"]:
+            raise ValueError("ARCHIVE_TAG_MISSING_OR_CHANGED:" + item["branch"])
+
+    deleted, absent, failures = [], [], []
+    for item in manifest["candidate_heads"]:
+        name, sha = item["branch"], item["head_sha"]
+        if api.branch_head("main") != manifest["main_sha"]:
+            failures.append({"branch": name, "reason": "MAIN_MOVED_DURING_PRUNE"})
+            break
+        if api.paginate("pulls?state=open"):
+            failures.append({"branch": name, "reason": "OPEN_PR_CREATED_DURING_PRUNE"})
+            break
+        if api.tag_head(name) != sha:
+            failures.append({"branch": name, "reason": "ARCHIVE_TAG_CHANGED_BEFORE_DELETE"})
+            break
+        head = api.branch_head(name)
+        if head is None:
+            absent.append({"branch": name, "status": "ABSENT__TAG_CONFIRMED"})
+        elif head != sha:
+            failures.append({"branch": name, "reason": "BRANCH_HEAD_CHANGED_BEFORE_DELETE"})
+            break
+        else:
+            try:
+                deleted.append(api.delete_branch(name, sha))
+            except Exception as exc:
+                failures.append({"branch": name, "reason": str(exc)})
+                break
+
+    after = branch_rows(api.paginate("branches"))
+    prs_after = api.paginate("pulls?state=open")
+    main_after = api.branch_head("main")
+    for item in manifest["candidate_heads"]:
+        if api.tag_head(item["branch"]) != item["head_sha"]:
+            failures.append({"branch": item["branch"], "reason": "FINAL_TAG_READBACK_FAILED"})
+    complete = ([x["name"] for x in after] == ["main"] and main_after == manifest["main_sha"]
+                and not prs_after and not failures)
+    result = {
+        "manifest_sha256": checksum, "before_branch_count": len(manifest["branches"]),
+        "after_branch_names": [x["name"] for x in after],
+        "tagged_branch_count": len(manifest["candidate_heads"]),
+        "deleted": deleted, "already_absent_after_archive": absent,
+        "open_pr_count_after": len(prs_after), "main_sha_after": main_after,
+        "unresolved_failures": failures, "complete": complete, "controls": controls,
+    }
+    write_json(out, result)
+    return result
+
+
+def dry_run(api: GitHubAPI, out: Path):
+    branches = branch_rows(api.paginate("branches"))
+    prs = api.paginate("pulls?state=open")
+    result = {"mode": "DRY_RUN__NO_MUTATION", "branch_count": len(branches),
+              "open_pr_count": len(prs), "branch_inventory": branches}
+    write_json(out, result)
+    return result
+
+
+def require_workflow(token: str | None):
+    if (os.environ.get("GITHUB_ACTIONS") != "true"
+        or os.environ.get("GITHUB_REF") != "refs/heads/main"
+        or not os.environ.get("GITHUB_RUN_ID") or not token):
+        raise SystemExit("ARCHIVE_ACTION_REQUIRES_MAIN_WORKFLOW_AND_ENVIRONMENT_TOKEN")
 
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--apply", action="store_true")
+    group = parser.add_mutually_exclusive_group()
+    group.add_argument("--plan", action="store_true")
+    group.add_argument("--archive-only", action="store_true")
+    group.add_argument("--prune-only", action="store_true")
+    parser.add_argument("--manifest", default="audit/financial_branch_plan.json")
+    parser.add_argument("--approved-manifest-sha256", default="")
     parser.add_argument("--out", default="audit/financial_branch_archive.json")
     args = parser.parse_args()
-    if args.apply and (
-        os.environ.get("GITHUB_ACTIONS") != "true"
-        or os.environ.get("GITHUB_REF") != "refs/heads/main"
-        or not os.environ.get("GITHUB_TOKEN")
-        or not os.environ.get("FINANCIAL_REVIEWED_MAIN_SHA")
-    ):
-        raise SystemExit("BRANCH_ARCHIVE_APPLY_REQUIRES_MAIN_WORKFLOW_AND_REVIEWED_SHA")
-    # Human authorization is enforced by GitHub's required-reviewer Environment.
-    # This source-level guard is deliberately not a self-supplied approval flag:
-    # verify_archive_controls() independently reads that Environment and both
-    # active repository rulesets before any branch/tag mutation.
-    api = GitHubAPI(REPO, os.environ.get("GITHUB_TOKEN"))
-    result = run(api, apply=args.apply, out_path=Path(args.out))
-    print(json.dumps({
-        "mode": result["mode"],
-        "before_branch_count": result["before_branch_count"],
-        "open_pr_count": result["open_pr_count"],
-        "candidates": result["candidates"],
-        "tagged": len(result["tagged"]),
-        "deleted": len(result["deleted"]),
-        "after_branch_names": result["after_branch_names"],
-        "complete": result["complete"],
-        "preflight_error": result["preflight_error"],
-        "unresolved_failures": result["unresolved_failures"],
-    }, ensure_ascii=False))
-    if args.apply and not result["complete"]:
-        raise SystemExit("ARCHIVE_NOT_COMPLETE__PRESERVED_UNRESOLVED_BRANCHES")
+    token = os.environ.get("GITHUB_TOKEN")
+    if args.plan or args.archive_only or args.prune_only:
+        require_workflow(token)
+    api = GitHubAPI(token)
+    out = Path(args.out)
+    if args.plan:
+        result = create_plan(api, out)
+    elif args.archive_only:
+        result = archive_only(api, Path(args.manifest), args.approved_manifest_sha256, out)
+    elif args.prune_only:
+        result = prune_only(api, Path(args.manifest), args.approved_manifest_sha256, out)
+        if not result["complete"]:
+            raise SystemExit("PRUNE_INCOMPLETE__ARCHIVE_TAGS_RETAINED")
+    else:
+        result = dry_run(api, out)
+    print(json.dumps(result, ensure_ascii=False, indent=2))
+    if args.plan:
+        output = os.environ.get("GITHUB_OUTPUT")
+        if output:
+            with open(output, "a", encoding="utf-8") as f:
+                f.write("manifest_sha256=" + result["manifest_sha256"] + "\n")
+        summary = os.environ.get("GITHUB_STEP_SUMMARY")
+        if summary:
+            with open(summary, "a", encoding="utf-8") as f:
+                f.write("# Financial branch archive plan\n\n")
+                f.write("Manifest SHA-256: " + result["manifest_sha256"] + "\n\n")
+                f.write("Main SHA: " + result["manifest"]["main_sha"] + "\n\n")
+                f.write("Branch count: " + str(len(result["manifest"]["branches"])) + "\n\n")
+                f.write("Candidate count: " + str(len(result["manifest"]["candidate_heads"])) + "\n\n")
+                f.write("No repository refs were modified.\n")
 
 
 if __name__ == "__main__":
