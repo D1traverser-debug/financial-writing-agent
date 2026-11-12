@@ -19,7 +19,9 @@ from copy import deepcopy
 from typing import Any, Callable, Mapping
 
 from . import current_admission, owner_lifecycle, proactive_resolution
-from .intent_governance import FinancialIntentEvidenceError, verify_requirement_change_intent
+from .intent_governance import (
+    FinancialIntentEvidenceError, verify_requirement_change_intent, verify_nonbinding_owner_intent,
+)
 from .method_governance import (
     CATALOG_PATH, METHOD_ACTIONS, MethodGovernanceError,
     mutate_method_catalog, query_methods, validate_method_catalog,
@@ -38,6 +40,7 @@ _SHA = re.compile(r"[a-f0-9]{40}\Z")
 OPERATIONS = frozenset({
     "CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK",
     "RESUME_BLOCKED", "RECORD_PROACTIVE_RESOLUTION", "REVIEW_SYSTEM_IMPACT",
+    "RECORD_OWNER_INTENT",
 })
 CREATE_KEYS = frozenset({
     "prompt", "source_refs", "target_platforms", "distribution_mode",
@@ -51,6 +54,7 @@ STAGE_KEYS = frozenset({
     "publication_fitnesses", "requirement_satisfaction",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
+OWNER_INTENT_KEYS = frozenset({"intent_evidence", "summary"})
 RECOVERY_KEYS = frozenset({"repair_evidence"})
 PROACTIVE_KEYS = frozenset({
     "target", "attempted_sources", "evidence_refs", "outcome",
@@ -71,6 +75,7 @@ ACTION_PARAM_KEYS = {
     "RESUME_BLOCKED": RECOVERY_KEYS,
     "RECORD_PROACTIVE_RESOLUTION": PROACTIVE_KEYS,
     "REVIEW_SYSTEM_IMPACT": IMPACT_KEYS,
+    "RECORD_OWNER_INTENT": OWNER_INTENT_KEYS,
 }
 
 
@@ -276,6 +281,12 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
         "active_requirement_ids": sorted(
             item["requirement_id"] for item in authority["active_requirements"]
         ),
+        "open_nonbinding_intents": [
+            {"intent_id": event["intent_id"], "intent": event["intent"],
+             "status": event["status"], "summary": event["summary"]}
+            for event in state.get("intent_history", [])
+            if event.get("status") == "OPEN__NONBINDING"
+        ],
         "requirement_revision": authority["revision"],
         "requirement_digest": state["task_requirement_digest"],
         "required_outputs": list(state["required_outputs"]),
@@ -340,6 +351,15 @@ def admit_article_action(
     op = r["operation"]
     params = deepcopy(dict(r["parameters"]))
     owner_intent_evidence = None
+    nonbinding_intent_evidence = None
+    if op == "RECORD_OWNER_INTENT":
+        try:
+            nonbinding_intent_evidence = verify_nonbinding_owner_intent(
+                params.pop("intent_evidence", None),
+                owner_instruction_reader=owner_instruction_reader,
+            )
+        except FinancialIntentEvidenceError as exc:
+            raise FinancialAdmissionError(str(exc)) from exc
     if op == "CHANGE_REQUIREMENTS":
         try:
             owner_intent_evidence = verify_requirement_change_intent(
@@ -383,6 +403,10 @@ def admit_article_action(
             candidate = proactive_resolution.record_proactive_resolution_state(state, **call)
         elif op == "REVIEW_SYSTEM_IMPACT":
             candidate = owner_lifecycle.review_system_impact_state(state, **call)
+        elif op == "RECORD_OWNER_INTENT":
+            candidate = owner_lifecycle.record_nonbinding_intent_state(
+                state, verified_intent=nonbinding_intent_evidence, **call,
+            )
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
