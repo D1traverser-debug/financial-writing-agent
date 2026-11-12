@@ -151,8 +151,15 @@ def run(api: GitHubAPI, *, apply: bool, out_path: Path) -> dict[str, Any]:
         except Exception as exc:
             changes.append({**item, "archive_tag": archive_tag,
                             "action": "FAILED_KEEP_BRANCH", "reason": str(exc)})
+    # Every non-main candidate must be verified by a fresh HEAD GET after the
+    # attempted deletion. Never infer branch disappearance from HTTP 204 alone.
+    still_present = [
+        item["branch"] for item in candidates
+        if apply and api.exact_branch_head(item["branch"]) is not None
+    ]
     result = {
         "schema_version": "1.0", "repo": REPO, "mode": "APPLY" if apply else "DRY_RUN",
+        "candidate_branch_heads_still_present": still_present,
         "observed_branch_count": len(branches), "open_pr_count": len(open_prs),
         "candidates": len(candidates), "skipped": skipped, "changes": changes,
         "total_archived_and_pruned": sum(x["action"] == "ARCHIVED_AND_PRUNED" for x in changes),
@@ -181,8 +188,10 @@ def main():
         "mode", "observed_branch_count", "open_pr_count", "candidates",
         "total_archived_and_pruned", "unresolved_failures"
     )}, ensure_ascii=False))
-    if result["unresolved_failures"]:
-        raise SystemExit(1)
+    if result["unresolved_failures"] or (
+        args.apply and result["candidate_branch_heads_still_present"]
+    ):
+        raise SystemExit("ARCHIVE_NOT_COMPLETE__PRESERVED_UNRESOLVED_BRANCHES")
 
 
 if __name__ == "__main__":
