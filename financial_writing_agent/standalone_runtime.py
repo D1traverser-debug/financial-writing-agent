@@ -431,7 +431,7 @@ def admit_article_action(
             authorization_verifier(deepcopy(r)), request=r,
         )
     except Exception as exc:
-        raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_ATTESTATION_NOT_VERIFIED") from exc
+        raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_NOT_VERIFIED__ATTESTATION_FAILED") from exc
     authorization_evidence = {
         "provider_id": authorization_attestation["provider_id"],
         "authenticated_actor": authorization_attestation["authenticated_actor"],
