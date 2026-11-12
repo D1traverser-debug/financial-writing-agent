@@ -4,13 +4,13 @@ Scope: D1traverser-debug/financial-writing-agent only. No CAOS repository, PR, s
 
 ## Live inventory at the 2026-11-12 audit
 
-- Remote branches observed: 99.
+- Remote branches observed: 99 (main + 98 non-main refs).
 - Protected branches observed: 0; main is currently unprotected.
-- Open PR observed: #67 (fix(financial): independent semantic authority and release-acceptance guardrails); it is the only open PR.
+- Pull request inventory: 67 total records (48 merged into main, 18 closed without merge, and the sole open PR #67).
+- Exact merged-PR head matching: 44 branch refs point to a head SHA that appears as the head of a merged PR into main; 54 branch refs have no exact merged-to-main PR head evidence. "No exact PR match" is not proof of unmerged content: squash merges, direct commits, stale refs and duplicate heads may explain it.
 - GitHub rulesets API currently returns an empty list: neither the branch freeze nor archive-tag lock is configured.
-- The live branch list reports main.protected=false; no branch is protected.
 - The connected GitHub read surface cannot verify the two required-reviewer Environment settings; the archive workflow will fail closed unless both are configured.
-- CI's read-only dry-run independently confirmed 99 branches and 1 open PR, with no ref mutation.
+- CI's read-only dry-run confirmed 99 branches and 1 open PR, with no ref mutation.
 - No branch or tag has been deleted by this repair.
 - Candidate code is on repair/financial-independent-acceptance-20261112, not yet authoritative main.
 
@@ -20,11 +20,11 @@ GitHub's delete-reference API has no compare-and-delete against an expected SHA.
 
 The implemented workflow therefore has three jobs:
 
-1. PLAN: read-only full inventory and SHA-256 manifest; no ref mutation.
-2. ARCHIVE: after a separate required-reviewer Environment approval, revalidate the exact manifest and create/read back every archive tag while branch creation, update and deletion are all frozen. It deletes nothing.
-3. PRUNE: after a second required-reviewer approval, and only after the owner removes the deletion rule while leaving creation/update frozen, verify the same manifest and tags, then delete refs and perform a final full inventory.
+1. PLAN: read-only full inventory and SHA-256 manifest; no ref mutation. The schema-4 manifest records all 98 non-main branch heads, all merged-to-main PR head evidence, and a per-ref disposition. It explicitly separates 44 exact merged-PR heads from 54 refs without that exact evidence.
+2. ARCHIVE: after a separate required-reviewer Environment approval, revalidate the exact manifest and create/read back an immutable archive tag for every non-main head while branch creation, update and deletion are all frozen. It deletes nothing.
+3. PRUNE: after a second required-reviewer approval, and only after the owner removes the deletion rule while leaving creation/update frozen, verify the same manifest and every archive tag, then delete refs and perform a final full inventory. Because 54 refs lack exact merged-PR head evidence, the workflow exposes a separate `confirm_unverified_branch_archive` opt-in (default false). Without that explicit input, PRUNE is skipped; the archive tags remain and all branch refs are preserved.
 
-This avoids adding a ruleset bypass actor. The App token cannot create or update branches because those rules remain active. The deletion rule is removed only after every planned head is already preserved by an immutable tag.
+The archive tags preserve the exact commits and their reachable Git history; they do not merge unique branch changes into main. Reviewers must inspect the 54 no-exact-PR entries and decide whether their contents are obsolete or need separate consolidation before approving the all-refs prune. This avoids silently treating "no exact PR match" as "safe to discard." The App token cannot create or update branches because those rules remain active. The deletion rule is removed only after every planned head is already preserved by an immutable tag.
 
 ## Required owner actions
 
@@ -117,10 +117,11 @@ Store it as repository Actions secret FINANCIAL_ARCHIVE_READ_TOKEN. It is used o
 
 From main, open Actions → Financial one-time archive of obsolete branches → Run workflow and set start_archive = true.
 
-- PLAN creates the manifest artifact and prints its SHA-256. It does not mutate repository refs.
-- ARCHIVE waits for the financial-branch-archive reviewer approval. The reviewer should inspect the manifest artifact and approve only if the exact branch names/SHAs are expected. The job creates and verifies all archive tags; it does not delete branches.
+- PLAN creates the schema-4 manifest artifact and prints its SHA-256. It does not mutate repository refs. Inspect the exact merged-PR classifications and the 54 no-exact-PR entries.
+- ARCHIVE waits for the financial-branch-archive reviewer approval. The reviewer should inspect all 98 non-main names/SHAs and approve only if every head is intended to be preserved as an immutable tag. The job creates and verifies all archive tags; it does not delete branches.
 - After ARCHIVE succeeds, edit the Financial archive write freeze ruleset and remove only Restrict deletions. Keep Restrict creations and Restrict updates active. Do not change the tag lock or bypass list.
-- PRUNE then waits for the financial-branch-prune reviewer approval. The reviewer should verify the archive-phase readback and that the deletion rule was removed while creation/update remain frozen. Approve only then.
+- If any no-exact-PR branch contains work that must enter main, stop and consolidate that work before pruning. Otherwise explicitly set `confirm_unverified_branch_archive=true` when dispatching the workflow to opt into pruning all archived non-main refs.
+- PRUNE then waits for the financial-branch-prune reviewer approval. The reviewer should verify the archive-phase readback, the explicit opt-in, and that the deletion rule was removed while creation/update remain frozen. Approve only then.
 
 The script checks that the reviewed manifest digest still matches the live branch inventory, main SHA is unchanged, no open PR exists, every tag matches the original head, and the final branch inventory is exactly [main].
 
