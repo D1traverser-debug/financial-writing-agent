@@ -51,12 +51,13 @@ def decision():
 
 def mutate(cat, operation, *, proposed=None, method_id=METHOD_ID,
            promotion_evidence=None, promotion_verifier=None,
-           impact_target_revision=None, impact_evidence=None, impact_verifier=None):
+           impact_target_revision=None, impact_evidence=None, impact_verifier=None,
+           decision_envelope=None, evidence_refs=None, affected_stages=None):
     params = {
         "knowledge_id": method_id,
-        "decision_envelope": decision(),
-        "evidence_refs": ["method-source://primary"],
-        "affected_stages": ["RESEARCH", "EDITORIAL"],
+        "decision_envelope": decision_envelope or decision(),
+        "evidence_refs": list(evidence_refs or ["method-source://primary"]),
+        "affected_stages": list(affected_stages or ["RESEARCH", "EDITORIAL"]),
     }
     if proposed is not None:
         params["proposed_record"] = proposed
@@ -152,9 +153,9 @@ def test_verified_promotion_then_challenge_then_retire_is_append_only():
 
 def test_missing_competing_decision_and_impact_scope_cannot_change_method():
     with pytest.raises(MethodGovernanceError):
-        mutate_method_catalog(
-            original(), operation="CREATE", knowledge_id=METHOD_ID,
-            proposed_record=method(), decision_envelope={"decision_id": "guess"},
+        mutate(
+            original(), "CREATE", proposed=method(),
+            decision_envelope={"decision_id": "guess"},
             evidence_refs=["self://idea"], affected_stages=[],
         )
 
