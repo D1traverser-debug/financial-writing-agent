@@ -152,7 +152,7 @@ def test_fabricated_build_receipt_cannot_be_finalized():
         )
 
 
-def test_visible_evidence_binds_issued_build_render_visual_and_rejects_tampering(tmp_path):
+def test_generic_word_builder_cannot_finalize_delivery_from_pass_strings_without_page_render_receipt(tmp_path):
     build = build_verified_article_docx(
         ArticleDocument(
             title="测试",
@@ -164,20 +164,11 @@ def test_visible_evidence_binds_issued_build_render_visual_and_rejects_tampering
         required_bold_anchors=["可见正文"],
         require_risk_disclaimer=False,
     )
-    evidence = finalize_delivery_evidence(
-        build,
-        source_ref="workspaces/articles/x/publication/FINANCE_DEEP.json",
-        source_identity="git-blob:source",
-        render_qa="PASS",
-        visual_qa="PASS",
-    )
-    resource = {
-        "kind": "FINANCE_DEEP_DOCX",
-        "sha256": build["sha256"],
-        **evidence,
-    }
-    validate_delivery_evidence(resource)
-
-    tampered = {**resource, "delivery_evidence": {**resource["delivery_evidence"], "visual_qa": "OPEN"}}
-    with pytest.raises(CanonicalDeliveryError, match="digest mismatch"):
-        validate_delivery_evidence(tampered)
+    with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_RENDER_RECEIPT_REQUIRED"):
+        finalize_delivery_evidence(
+            build,
+            source_ref="workspaces/articles/x/publication/FINANCE_DEEP.json",
+            source_identity="git-blob:source",
+            render_qa="PASS",
+            visual_qa="PASS",
+        )
