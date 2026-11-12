@@ -18,6 +18,9 @@ from .provider_attestation import (
     verify_method_action_authorization,
     verify_method_impact_attestation,
     verify_method_promotion_attestation,
+    verify_persisted_method_action_authorization,
+    verify_persisted_method_impact_attestation,
+    verify_persisted_method_promotion_attestation,
 )
 
 from .cognition_governance import (
@@ -120,7 +123,7 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                  "CATALOG_ACTION_NONCE_MISSING_OR_REPLAYED")
         seen_attestation_nonces.add((auth.get("provider_id"), action_nonce))
         try:
-            verified_auth = verify_method_action_authorization(auth, request=action_request)
+            verified_auth = verify_persisted_method_action_authorization(auth, request=action_request)
         except Exception as exc:
             raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_ACTION_ATTESTATION_INVALID") from exc
         _require(action_request.get("operation") == item.get("operation")
@@ -141,7 +144,7 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                 "review_ref": promoted.get("review_ref"),
             }
             try:
-                verified_promotion = verify_method_promotion_attestation(
+                verified_promotion = verify_persisted_method_promotion_attestation(
                     promoted["attestation"], challenge=challenge,
                 )
             except Exception as exc:
@@ -164,7 +167,7 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                 "stage_evidence_refs": impact.get("stage_evidence_refs"),
             }
             try:
-                verified_impact = verify_method_impact_attestation(
+                verified_impact = verify_persisted_method_impact_attestation(
                     impact["attestation"], challenge=challenge,
                 )
             except Exception as exc:
