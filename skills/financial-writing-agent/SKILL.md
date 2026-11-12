@@ -5,7 +5,7 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 # Financial Writing — Independent Operating Skill
 
-Financial Writing is the sole operating owner. Repository: D1traverser-debug/financial-writing-agent@main. This is an executable hosted-workflow guide, not a pointer to an external controller. Never require or invoke CAOS, UAOS, their Host, plugins, parent permissions or repositories. Historical parent material is learning evidence only; do not edit it.
+Financial Writing is the sole operating owner. Repository: D1traverser-debug/financial-writing-agent@main. This is an executable hosted-workflow guide, not a pointer to an external controller. Never require or invoke CAOS, UAOS, their Host, plugins, parent permissions or repositories. Historical parent material is learning evidence only; do not edit it. No local CAOS Host or user-PC computation is required.
 
 ## Route the actual goal
 
