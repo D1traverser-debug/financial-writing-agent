@@ -264,3 +264,46 @@ def test_method_impact_closure_requires_exact_original_event_and_stage_evidence(
     observed = observe_method_catalog(catalog_reader=p.read)
     assert observed["open_revalidation"] == []
     assert observed["live_article_effect_verified"] is False
+
+
+def test_method_impact_stamps_effective_version_and_ignores_pending_unpromoted_revisions():
+    from financial_writing_agent.method_governance import (
+        admitted_method_usage_snapshot, method_dependency_drift,
+    )
+
+    catalog, _ = mutate(original(), "CREATE", proposed=method())
+    catalog, _ = mutate(catalog, "PROMOTE", promotion_evidence={
+        "validation_refs": ["synthetic-ci://exact-change-test"], "review_ref": "simulation://review",
+    }, promotion_verifier=promotion_verifier)
+    snapshot = admitted_method_usage_snapshot(catalog, [METHOD_ID])
+    assert snapshot["methods"][0]["knowledge_id"] == METHOD_ID
+    assert method_dependency_drift(catalog, snapshot) == []
+    tentative = method()
+    tentative["method"] = "A new research method that is not yet effective."
+    pending, _ = mutate(catalog, "REVISE", proposed=tentative)
+    assert method_dependency_drift(pending, snapshot) == []
+    promoted, _ = mutate(pending, "PROMOTE", promotion_evidence={
+        "validation_refs": ["synthetic-ci://exact-change-test"], "review_ref": "simulation://review",
+    }, promotion_verifier=promotion_verifier)
+    delta = method_dependency_drift(promoted, snapshot)
+    assert len(delta) == 1
+    assert delta[0]["knowledge_id"] == METHOD_ID
+    assert delta[0]["earliest_affected_stage"] == "RESEARCH"
+    assert delta[0]["current_lifecycle_status"] == "ACTIVE"
+    assert delta[0]["change_revisions"] == [4]
+
+
+def test_method_retirement_invalidates_prior_article_method_snapshot():
+    from financial_writing_agent.method_governance import (
+        admitted_method_usage_snapshot, method_dependency_drift,
+    )
+
+    catalog, _ = mutate(original(), "CREATE", proposed=method())
+    catalog, _ = mutate(catalog, "PROMOTE", promotion_evidence={
+        "validation_refs": ["synthetic-ci://exact-change-test"], "review_ref": "simulation://review",
+    }, promotion_verifier=promotion_verifier)
+    snapshot = admitted_method_usage_snapshot(catalog, [METHOD_ID])
+    retired, _ = mutate(catalog, "RETIRE")
+    change = method_dependency_drift(retired, snapshot)
+    assert change[0]["current_lifecycle_status"] == "RETIRED"
+    assert change[0]["change_revisions"] == [3]
