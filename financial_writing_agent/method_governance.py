@@ -175,6 +175,22 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
             _require(review_nonce not in seen_attestation_nonces,
                      "CATALOG_REVIEW_ATTESTATION_NONCE_REPLAYED")
             seen_attestation_nonces.add(review_nonce)
+    for record in catalog["records"]:
+        if record.get("lifecycle_status", "LEGACY_DECLARED") != "ACTIVE":
+            continue
+        ident = record["knowledge_id"]
+        lifecycle_events = [
+            event for event in history
+            if event.get("knowledge_id") == ident
+            and event.get("operation") in {"PROMOTE", "CHALLENGE", "RETIRE", "RESTORE"}
+        ]
+        _require(bool(lifecycle_events), "ACTIVE_METHOD_WITHOUT_PROMOTION_EVENT:" + ident)
+        latest = lifecycle_events[-1]
+        _require(
+            latest.get("operation") == "PROMOTE"
+            and latest.get("result_record_sha256") == _effective_record_fingerprint(record),
+            "ACTIVE_METHOD_EFFECTIVE_RECORD_NOT_BOUND_TO_LATEST_SIGNED_PROMOTION:" + ident,
+        )
     return catalog
 
 
