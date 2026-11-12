@@ -108,7 +108,7 @@ def test_open_pull_request_blocks_all_deletion_and_preserves_every_branch(tmp_pa
     assert result["complete"] is False
     assert result["preflight_error"] == "OPEN_PULL_REQUESTS_MUST_BE_CLOSED_BEFORE_SINGLE_MAIN_ARCHIVE"
     assert set(api.branches) == {"main","test/old","article/active"}
-    assert api.tags == {} and api.mutation_order == ["verify_controls"]
+    assert api.tags == {} and api.mutation_order == []
 
 
 def test_moved_head_or_delete_failure_keeps_unarchived_branch(tmp_path, monkeypatch):
