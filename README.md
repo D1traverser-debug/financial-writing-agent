@@ -46,3 +46,11 @@ python scripts/whole_tree_audit.py
 ```
 
 CI additionally builds an isolated wheel and actually renders Word pages. **Engineering PASS is not factual, editorial or reader acceptance.** See [evals/EVOLUTION_INDEX.json](evals/EVOLUTION_INDEX.json) for domain-system readiness. The current cross-border v3 remains RESEARCH until a genuine current source-verified trajectory advances it. Financial works without CAOS, but no live independent end-to-end editorial success is claimed from unit tests.
+
+## System-owner requirements and methodology governance
+
+For a **whole Financial system rebuild**, inspect the actual user scope/corrections and `evals/EVOLUTION_INDEX.json#active_system_assessment`, then perform source-grounded diagnosis, competing-method comparison, actual Financial-only changes, negative-to-positive tests and independent `main` readback. CAOS governance is a **read-only learned approach**, not another runtime or repository write target.
+
+The canonical task operation `CHANGE_REQUIREMENTS` is now source-authenticated through `intent_evidence` and the external trusted `owner_instruction_reader`, not a claimed USER_EXPLICIT label. A separate `RECORD_OWNER_INTENT` preserves source-verified suggestions or ideas as nonbinding events inside the same article state. System methods are read/written through `observe_method_catalog`/`admit_method_action` in `standalone_runtime.py`, targeting only the existing `knowledge/METHOD_KNOWLEDGE_CATALOG.json`. Its versioned lifecycle includes staged revision, independent adoption, challenge, soft retirement and independently checked impact closure. No new task index, CAOS Host, parent bridge or separate method controller is created. See `docs/STANDALONE_INTERFACE.md` and `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`.
+
+Engineering CI proves only the tested deterministic contracts. Real Financial plugin selection, authenticated user-message readback, financial correctness and reader approval still require separate provider/business evidence.
