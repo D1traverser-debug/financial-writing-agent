@@ -36,8 +36,12 @@ def branch_rows(branches: list[dict[str, Any]]) -> list[dict[str, Any]]:
     rows = []
     seen = set()
     for item in branches:
-        name, sha = item.get("name"), item.get("commit", {}).get("sha")
-        if not isinstance(name, str) or not isinstance(sha, str) or len(sha) != 40 or name in seen:
+        commit = item.get("commit") if isinstance(item, dict) else None
+        name = item.get("name") if isinstance(item, dict) else None
+        sha = commit.get("sha") if isinstance(commit, dict) else None
+        if (not isinstance(name, str) or not name
+            or not isinstance(sha, str) or re.fullmatch(r"[a-f0-9]{40}", sha) is None
+            or name in seen):
             raise ValueError("BRANCH_INVENTORY_INVALID_OR_DUPLICATED")
         seen.add(name)
         rows.append({"name": name, "sha": sha, "protected": item.get("protected") is True})
@@ -269,7 +273,8 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         if (not isinstance(item, dict)
             or not isinstance(item.get("name"), str) or not item["name"]
             or item["name"] in seen_names
-            or not isinstance(item.get("sha"), str) or len(item["sha"]) != 40
+            or not isinstance(item.get("sha"), str)
+            or re.fullmatch(r"[a-f0-9]{40}", item["sha"]) is None
             or type(item.get("protected")) is not bool):
             raise ValueError("MANIFEST_BRANCH_INVENTORY_INVALID_OR_DUPLICATED")
         seen_names.add(item["name"])
@@ -281,8 +286,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         raise ValueError("MANIFEST_BRANCH_INVENTORY_NOT_CANONICAL")
     main = next((item for item in branches if item["name"] == "main"), None)
     if (main is None or main["protected"] is not True
-        or main["sha"] != manifest.get("main_sha")):
-        raise ValueError("MANIFEST_MAIN_IDENTITY_INVALID")
+        or main["sha"] != manifest.get("main_sha")
+        or any(item["name"] != "main" and item["protected"] for item in branches)):
+        raise ValueError("MANIFEST_MAIN_IDENTITY_INVALID_OR_NON_MAIN_PROTECTED")
     expected_candidates = [
         {"branch": item["name"], "head_sha": item["sha"]}
         for item in branches if item["name"] != "main"
@@ -300,10 +306,12 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
             or item["number"] <= 0 or item["number"] in seen_prs
             or not isinstance(item.get("head_ref"), str) or not item["head_ref"]
             or not isinstance(item.get("head_sha"), str)
-            or len(item["head_sha"]) != 40
+            or re.fullmatch(r"[a-f0-9]{40}", item["head_sha"]) is None
             or not isinstance(item.get("merged_at"), str) or not item["merged_at"]):
             raise ValueError("MANIFEST_MERGED_PR_EVIDENCE_INVALID")
         seen_prs.add(item["number"])
+    if merged != sorted(merged, key=lambda x: x["number"]):
+        raise ValueError("MANIFEST_MERGED_PR_EVIDENCE_NOT_CANONICAL")
     expected_review = []
     for item in expected_candidates:
         matching = [pr["number"] for pr in merged
@@ -326,7 +334,9 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     controls = manifest.get("control_ids")
     if (not isinstance(controls, dict)
         or type(controls.get("branch_ruleset_id")) is not int
-        or type(controls.get("tag_ruleset_id")) is not int):
+        or type(controls.get("tag_ruleset_id")) is not int
+        or controls["branch_ruleset_id"] <= 0
+        or controls["tag_ruleset_id"] <= 0):
         raise ValueError("MANIFEST_CONTROL_IDS_INVALID")
 
 
