@@ -2,6 +2,8 @@ from __future__ import annotations
 
 import hashlib
 import json
+from io import BytesIO
+from zipfile import BadZipFile, ZipFile
 from typing import Any, Callable, Mapping
 
 from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
@@ -21,6 +23,7 @@ class DeliveryAvailabilityError(ValueError):
 
 
 ResourceVerifier = Callable[[Mapping[str, Any]], bool]
+ResourceBinaryReader = Callable[[str], Mapping[str, Any] | None]
 
 
 def _require(condition: bool, message: str) -> None:
@@ -91,6 +94,7 @@ def build_visible_delivery_receipt(
     *,
     resources: list[Mapping[str, Any]],
     resource_verifier: ResourceVerifier | None,
+    resource_binary_reader: ResourceBinaryReader | None = None,
 ) -> dict[str, Any]:
     """Bind current user-visible Word resources to a reconciled Financial article.
 
@@ -150,6 +154,33 @@ def build_visible_delivery_receipt(
         except Exception:
             verified = False
         _require(verified, f"{kind}.resource_ref was not verified in the current session")
+        if state.get("writing_kernel_version") == "1.0":
+            # Current Financial task presentation must be backed by actual
+            # externally retrieved DOCX bytes, never metadata/hash/PASS only.
+            _require(callable(resource_binary_reader),
+                     "CURRENT_FINANCIAL_BINARY_READER_REQUIRED")
+            try:
+                binary = resource_binary_reader(ref)
+            except Exception as exc:
+                raise DeliveryAvailabilityError(f"{kind} current DOCX readback failed") from exc
+            _require(isinstance(binary, Mapping),
+                     f"{kind} current DOCX bytes not available")
+            content = binary.get("content")
+            _require(isinstance(content, bytes) and content.startswith(b"PK\\x03\\x04"),
+                     f"{kind} current resource is not a DOCX binary")
+            actual = hashlib.sha256(content).hexdigest()
+            _require(actual == digest, f"{kind} actual DOCX bytes differ from declared hash")
+            try:
+                with ZipFile(BytesIO(content)) as archive:
+                    _require(
+                        "word/document.xml" in archive.namelist()
+                        and "[Content_Types].xml" in archive.namelist(),
+                        f"{kind} current resource has no valid Word content",
+                    )
+                    _require(archive.testzip() is None,
+                             f"{kind} current DOCX has corrupt ZIP entries")
+            except BadZipFile as exc:
+                raise DeliveryAvailabilityError(f"{kind} current DOCX zip is invalid") from exc
 
         try:
             validate_delivery_evidence(resource)
