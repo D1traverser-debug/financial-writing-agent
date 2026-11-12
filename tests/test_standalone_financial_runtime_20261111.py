@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone
 import hashlib
+from uuid import uuid4
 
 import pytest
 
@@ -58,7 +59,7 @@ class Provider:
 def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=None):
     return {
         "schema_version": "1.0", "domain_id": DOMAIN_ID,
-        "action_id": action or f"financial-{op.lower()}-01",
+        "action_id": action or f"financial-{op.lower()}-{uuid4()}",
         "task_id": task_id,
         "operation": op,
         "expected_state_blob_sha": sha,
