@@ -18,6 +18,15 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checked-out source HEAD, not GitHub's synthetic PR merge SHA
+        env:
+          FINANCIAL_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          test "$ACTUAL" = "$FINANCIAL_SOURCE_HEAD_SHA"
+          echo "PASS: exact Financial source HEAD $ACTUAL"
       - uses: actions/setup-python@v7
         with:
           python-version: "3.11"
