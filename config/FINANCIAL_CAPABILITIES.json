@@ -61,6 +61,11 @@
       "id": "financial_method_governance_lifecycle",
       "source": "financial_writing_agent.method_governance",
       "assurance": "CANDIDATE_VERSIONED_CAS_AND_EXTERNAL_PROMOTION_IMPACT_REVALIDATION"
+    },
+    {
+      "id": "financial_method_version_dependent_article_replay",
+      "source": "financial_writing_agent.method_governance + financial_writing_agent.owner_lifecycle + financial_writing_agent.standalone_runtime",
+      "assurance": "EXPLICIT_ADMITTED_METHOD_ID__EFFECTIVE_VERSION_SHA__SINGLE_OWNER_EARLIEST_STAGE_REPLAY__SYNTHETIC_CI"
     }
   ],
   "required_external_capabilities_at_execution": [
