@@ -114,7 +114,7 @@ def verify_task_publication_scope(
 
         passages = [canonical_company_name(passage) for passage in _passages(article)]
         for item in universe:
-            name = str(_field(item, "name", "")).strip()
+            name = canonical_company_name(_field(item, "name", ""))
             if name and _field(item, "materiality") in {"SECONDARY", "REFERENCE_ONLY", "NON_MATERIAL"}:
                 if name in public_text and not any(
                     name in passage and _WEAK_ROLE_EXPLANATION.search(passage) for passage in passages
