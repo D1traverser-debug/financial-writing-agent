@@ -21,6 +21,16 @@ Financial's own decision loop recovers the owner's actual goal, compares evidenc
 
 For a normal portfolio, target deliverables are actual **FINANCE_DEEP_DOCX, FINANCE_BROAD_DOCX, PLATFORM_INTERACTION_PACK_DOCX and AUDIT_DOCX**. PrivateResearchBrief 1.1 with 15 modules is admitted prior to thesis. Deep usually selects useful arguments from comprehensive private work; the active cross-border article has an explicit **full retained company universe in Deep** exception. Keep current task requirements, company comparisons and source/Word receipts bound to the article revision. Broad must be independently planned rather than a shortened Deep.
 
+## Current Financial-only production gates (2026-11-12)
+
+The authentic frozen cross-border v3 retained pool has **174 ticker IDs**, now packaged as `resources/task_universe_baselines.json` and reconciled before the source stage transitions. A current research advance through the independent provider adapter now needs a real `source_snapshot_reader` returning `text`, `sha256`, `retrieved_at` and `source_family` for **each** of the fifteen private-research modules' evidence refs. Stale briefs, unread sources and single-family self-support no longer pass the high-level research port. This still does not verify underlying financial truth.
+
+The publication source trace now rejects conservative gross contradictions (growth vs decline, reporting period, unit/metric direction) before issuing a numerical trace receipt, while **semantic entailment remains unverified**. The existing user-specific full-retained universe is checked against authentic ticker identity, not merely the count submitted by the model.
+
+Independent editorial review is supportable only with authenticated provider verification, a different reviewer, and exact DRAFT bytes/content hash and attestation. Self-review remains self-review. The current visible Word delivery additionally requires real binary readback and verified per-page render receipt across **all four required Word types**. These checks do not constitute reader acceptance.
+
+See [the exact main-only repair and operating contract](docs/FINANCIAL_MAIN_ONLY_REPAIR_AND_RUNTIME_20261112.md). **No installed Financial ChatGPT connector or source-verified current cross-border article is implied by a green CI.**
+
 ## Run the engineering checks
 
 ```bash
