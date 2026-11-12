@@ -194,11 +194,14 @@ class GitHubAPI:
 def live_manifest(api: GitHubAPI, controls: dict[str, Any]):
     branches1 = branch_rows(api.paginate("branches"))
     prs1 = api.paginate("pulls?state=open")
+    closed1 = api.paginate("pulls?state=closed")
     main1 = api.branch_head("main")
     branches2 = branch_rows(api.paginate("branches"))
     prs2 = api.paginate("pulls?state=open")
+    closed2 = api.paginate("pulls?state=closed")
     main2 = api.branch_head("main")
-    if branches1 != branches2 or prs1 != prs2 or main1 is None or main1 != main2:
+    if (branches1 != branches2 or prs1 != prs2 or closed1 != closed2
+        or main1 is None or main1 != main2):
         raise ValueError("LIVE_INVENTORY_NOT_STABLE")
     main = next((x for x in branches2 if x["name"] == "main"), None)
     if not main or not main["protected"] or main["sha"] != main2:
@@ -208,16 +211,107 @@ def live_manifest(api: GitHubAPI, controls: dict[str, Any]):
     non_main_protected = [x for x in branches2 if x["name"] != "main" and x["protected"]]
     if non_main_protected:
         raise ValueError("NON_MAIN_PROTECTED_BRANCHES_PREVENT_SINGLE_MAIN")
+
+    merged_main_prs = []
+    for pr in closed2:
+        head = pr.get("head", {})
+        base = pr.get("base", {})
+        if pr.get("merged_at") and base.get("ref") == "main":
+            number, head_sha, head_ref = pr.get("number"), head.get("sha"), head.get("ref")
+            if (type(number) is not int or not isinstance(head_sha, str)
+                or len(head_sha) != 40 or not isinstance(head_ref, str) or not head_ref):
+                raise ValueError("MERGED_PR_HEAD_EVIDENCE_INVALID")
+            merged_main_prs.append({
+                "number": number, "head_ref": head_ref,
+                "head_sha": head_sha, "merged_at": pr["merged_at"],
+            })
+    merged_main_prs.sort(key=lambda x: x["number"])
     candidates = [{"branch": x["name"], "head_sha": x["sha"]}
                   for x in branches2 if x["name"] != "main"]
+    branch_review = []
+    for item in candidates:
+        matching = [pr["number"] for pr in merged_main_prs
+                    if pr["head_sha"] == item["head_sha"]]
+        branch_review.append({
+            **item,
+            "exact_merged_main_pr_numbers": matching,
+            "disposition": (
+                "EXACT_HEAD_OF_MERGED_MAIN_PR"
+                if matching else "NO_EXACT_MERGED_MAIN_PR__REQUIRES_EXPLICIT_REVIEW"
+            ),
+        })
     manifest = {
-        "schema_version": "3.0", "repo": REPO, "main_sha": main2,
+        "schema_version": "4.0", "repo": REPO, "main_sha": main2,
         "branches": branches2, "candidate_heads": candidates,
+        "merged_main_prs": merged_main_prs,
+        "branch_review": branch_review,
+        "unverified_branch_heads": [
+            item for item in branch_review if not item["exact_merged_main_pr_numbers"]
+        ],
         "control_ids": {"branch_ruleset_id": controls["branch_ruleset_id"],
                         "tag_ruleset_id": controls["tag_ruleset_id"]},
         "open_prs": [],
     }
     return manifest
+
+
+def validate_manifest(manifest: dict[str, Any]) -> None:
+    if not isinstance(manifest, dict) or manifest.get("repo") != REPO:
+        raise ValueError("MANIFEST_IDENTITY_MISMATCH")
+    if manifest.get("schema_version") != "4.0":
+        raise ValueError("MANIFEST_SCHEMA_VERSION_MISMATCH")
+    branches = branch_rows(manifest.get("branches"))
+    if branches != manifest.get("branches"):
+        raise ValueError("MANIFEST_BRANCH_INVENTORY_NOT_CANONICAL")
+    main = next((item for item in branches if item["name"] == "main"), None)
+    if (main is None or main["protected"] is not True
+        or main["sha"] != manifest.get("main_sha")):
+        raise ValueError("MANIFEST_MAIN_IDENTITY_INVALID")
+    expected_candidates = [
+        {"branch": item["name"], "head_sha": item["sha"]}
+        for item in branches if item["name"] != "main"
+    ]
+    if manifest.get("candidate_heads") != expected_candidates:
+        raise ValueError("MANIFEST_CANDIDATE_SET_INCOMPLETE_OR_MUTATED")
+    if manifest.get("open_prs") != []:
+        raise ValueError("MANIFEST_CONTAINS_OPEN_PULL_REQUESTS")
+    merged = manifest.get("merged_main_prs")
+    if not isinstance(merged, list):
+        raise ValueError("MANIFEST_MERGED_PR_EVIDENCE_MISSING")
+    seen_prs = set()
+    for item in merged:
+        if (not isinstance(item, dict) or type(item.get("number")) is not int
+            or item["number"] <= 0 or item["number"] in seen_prs
+            or not isinstance(item.get("head_ref"), str) or not item["head_ref"]
+            or not isinstance(item.get("head_sha"), str)
+            or len(item["head_sha"]) != 40
+            or not isinstance(item.get("merged_at"), str) or not item["merged_at"]):
+            raise ValueError("MANIFEST_MERGED_PR_EVIDENCE_INVALID")
+        seen_prs.add(item["number"])
+    expected_review = []
+    for item in expected_candidates:
+        matching = [pr["number"] for pr in merged
+                    if pr["head_sha"] == item["head_sha"]]
+        expected_review.append({
+            **item,
+            "exact_merged_main_pr_numbers": matching,
+            "disposition": (
+                "EXACT_HEAD_OF_MERGED_MAIN_PR"
+                if matching else "NO_EXACT_MERGED_MAIN_PR__REQUIRES_EXPLICIT_REVIEW"
+            ),
+        })
+    if manifest.get("branch_review") != expected_review:
+        raise ValueError("MANIFEST_BRANCH_REVIEW_BINDING_INVALID")
+    expected_unverified = [
+        item for item in expected_review if not item["exact_merged_main_pr_numbers"]
+    ]
+    if manifest.get("unverified_branch_heads") != expected_unverified:
+        raise ValueError("MANIFEST_UNVERIFIED_BRANCH_SET_INVALID")
+    controls = manifest.get("control_ids")
+    if (not isinstance(controls, dict)
+        or type(controls.get("branch_ruleset_id")) is not int
+        or type(controls.get("tag_ruleset_id")) is not int):
+        raise ValueError("MANIFEST_CONTROL_IDS_INVALID")
 
 
 def stable_snapshot(api: GitHubAPI, phase: str):
@@ -238,8 +332,7 @@ def read_plan(path: Path, approved: str):
     actual = sha256(manifest)
     if record.get("manifest_sha256") != actual or approved != actual:
         raise ValueError("APPROVED_MANIFEST_SHA256_MISMATCH")
-    if manifest.get("repo") != REPO or manifest.get("schema_version") != "3.0":
-        raise ValueError("MANIFEST_IDENTITY_MISMATCH")
+    validate_manifest(manifest)
     return manifest, actual
 
 
