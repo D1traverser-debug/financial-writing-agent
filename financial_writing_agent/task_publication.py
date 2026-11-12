@@ -10,6 +10,8 @@ import re
 from typing import Any, Mapping
 
 from .checks import check_deep_company_grounding, paragraph_has_named_economic_comparison, payload_text
+from .company_identity import (CompanyIdentityError, canonical_company_name,
+                               require_retained_universe_reconciliation)
 from .current_admission import requirement_context_for_scope
 
 # This is a supported *specific task invariant*, not a vocabulary of arbitrary
@@ -83,7 +85,7 @@ def verify_task_publication_scope(
     findings = list(check_deep_company_grounding(article, research))
     seen: set[str] = set()
     for item in universe:
-        name = str(_field(item, "name", "")).strip()
+        name = canonical_company_name(_field(item, "name", ""))
         if not name:
             findings.append("research.universe has unnamed retained company")
         elif name in seen:
@@ -100,17 +102,17 @@ def verify_task_publication_scope(
             findings.append("full-universe task requires classified value-chain coverage")
         accounted: set[str] = set()
         for item in classes:
-            accounted.update(str(name) for name in (_field(item, "included_companies", []) or []))
+            accounted.update(canonical_company_name(name) for name in (_field(item, "included_companies", []) or []))
         unaccounted = seen - accounted
         if unaccounted:
             findings.append(f"retained companies have no included value-chain classification: {sorted(unaccounted)}")
 
-        public_text = payload_text(article)
+        public_text = canonical_company_name(payload_text(article))
         missing = sorted(name for name in seen if name and name not in public_text)
         if missing:
             findings.append(f"FINANCE_DEEP silently omitted retained companies (including non-material): {missing}")
 
-        passages = _passages(article)
+        passages = [canonical_company_name(passage) for passage in _passages(article)]
         for item in universe:
             name = str(_field(item, "name", "")).strip()
             if name and _field(item, "materiality") in {"SECONDARY", "REFERENCE_ONLY", "NON_MATERIAL"}:
@@ -124,7 +126,7 @@ def verify_task_publication_scope(
             if _field(item, "materiality") == "MATERIAL":
                 class_name = str(_field(item, "value_chain_class", "")).strip()
                 if class_name:
-                    by_class.setdefault(class_name, []).append(str(_field(item, "name", "")).strip())
+                    by_class.setdefault(class_name, []).append(canonical_company_name(_field(item, "name", "")))
         for class_name, names in sorted(by_class.items()):
             if len(set(names)) < 2:
                 continue
@@ -135,6 +137,15 @@ def verify_task_publication_scope(
                 findings.append(
                     f"full-universe segment lacks named economic comparison: {class_name}"
                 )
+    baseline_receipt = None
+    if strict:
+        # The real current cross-border task has 174 immutable user-retained
+        # historical tickers; a synthetically self-declared COMPLETE 3-name
+        # research list must not bypass that actual owner obligation.
+        try:
+            baseline_receipt = require_retained_universe_reconciliation(str(state["task_id"]), research)
+        except CompanyIdentityError as exc:
+            findings.append(str(exc))
     if findings:
         raise TaskPublicationError("; ".join(dict.fromkeys(findings)))
     return {
@@ -145,6 +156,7 @@ def verify_task_publication_scope(
         "validated_requirement_ids": sorted(required_ids),
         "strict_universe_visibility": strict,
         "company_names_checked": len(seen) if strict else 0,
+        "historical_universe_baseline": baseline_receipt,
         "observed_stage": state["current_stage"],
         "assurance": SCOPE_ASSURANCE,
     }
