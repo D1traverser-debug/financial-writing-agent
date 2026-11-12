@@ -101,6 +101,24 @@ def test_standalone_can_create_and_observe_real_financial_article_without_parent
     assert observation["owner_outcome_verified"] is False
 
 
+def test_article_receipt_preserves_full_signed_provider_authorization_without_raw_request():
+    p = Provider()
+    create(p)
+    state = p.read("workspaces/articles/solo-article-01/STATE.json")["state"]
+    receipt = state["execution_receipts"][-1]
+    proof = receipt["input_bindings"]["authorization_verification"]
+    assert proof["attestation_type"] == "action_authorization"
+    assert proof["audience"] == "financial-writing-agent"
+    assert proof["authenticated_actor"] == "synthetic-financial-owner"
+    assert proof["task_id"] == "solo-article-01"
+    assert proof["operation"] == "CREATE_ARTICLE"
+    assert proof["expected_state_blob_sha"] is None
+    assert len(proof["request_sha256"]) == 64
+    assert len(proof["signature"]) == 64
+    assert "parameters" not in proof
+    assert "prompt" not in proof
+
+
 def test_direct_financial_routing_and_requirement_change_revises_article_only():
     p = Provider()
     create(p)
