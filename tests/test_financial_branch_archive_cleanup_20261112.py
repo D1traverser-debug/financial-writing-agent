@@ -14,6 +14,7 @@ def test_main_protected_open_pr_excluded_and_archive_candidates_keep_heads():
         {"name":"article/in-progress","commit":{"sha":B},"protected":False},
         {"name":"repair/merged","commit":{"sha":C},"protected":False},
         {"name":"release/protected","commit":{"sha":A},"protected":True},
+        {"name":"tmp/orphan","commit":{"sha":"e"*40},"protected":False},
     ]
     prs=[{"head":{"ref":"article/in-progress","repo":{"full_name":REPO}}}]
     candidates, skipped = branch_candidates(branches, prs, [
@@ -21,15 +22,15 @@ def test_main_protected_open_pr_excluded_and_archive_candidates_keep_heads():
          "head":{"ref":"repair/merged","sha":C}}
     ])
     assert candidates == [{"branch":"repair/merged","head_sha":C}]
-    assert len(skipped) == 3
+    assert len(skipped) == 4
     assert any(x["reason"].startswith("NO_EXACT_MERGED_PR") for x in skipped)
 
 
 def test_duplicate_or_untrustworthy_branch_metadata_fails_closed():
     with pytest.raises(ValueError):
-        branch_candidates([{"name":"main","commit":{"sha":"bad"},"protected":False}], [])
+        branch_candidates([{"name":"main","commit":{"sha":"bad"},"protected":False}], [], [])
     with pytest.raises(ValueError):
-        branch_candidates([{"name":"main","commit":{"sha":A}},{"name":"main","commit":{"sha":A}}], [])
+        branch_candidates([{"name":"main","commit":{"sha":A}},{"name":"main","commit":{"sha":A}}], [], [])
 
 
 def test_cross_repository_request_rejected():
