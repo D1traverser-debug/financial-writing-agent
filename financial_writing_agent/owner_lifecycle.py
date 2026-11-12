@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from copy import deepcopy
+from uuid import uuid4
 from typing import Any, Mapping
 
 from . import current_admission, owner_guard
@@ -363,4 +364,84 @@ def review_system_impact_state(
     _bind_current_after_mutation(after)
     _validate_owner_state(after)
     _require(after["execution_receipts"][:-1] == before["execution_receipts"], "prior execution receipts are immutable")
+    return after
+
+
+def record_nonbinding_intent_state(
+    state: Mapping[str, Any],
+    *,
+    previous_state_blob_sha: str,
+    executor_identity: str,
+    verified_intent: Mapping[str, Any],
+    summary: str,
+    state_ref: str = MAIN_STATE_REF,
+) -> dict[str, Any]:
+    """Retain the owner's suggestion/idea/issue WITHOUT mutating active requirements.
+
+    The trusted Financial provider port verifies the original user text before
+    calling this owner-native transition. This history is one field on the same
+    Article Aggregate, not another goal or task registry.
+    """
+    from .intent_governance import NONBINDING_KINDS
+
+    _require(state_ref == MAIN_STATE_REF, "Financial owner intents may target only main")
+    current_admission.validate_state(state)
+    _require(bool(str(previous_state_blob_sha).strip()), "intent requires prior Git blob")
+    _require(bool(str(executor_identity).strip()), "intent requires executor_identity")
+    _require(isinstance(verified_intent, Mapping)
+             and verified_intent.get("verified") is True
+             and verified_intent.get("intent") in NONBINDING_KINDS,
+             "nonbinding intent requires trusted verified source")
+    _require(isinstance(summary, str) and bool(summary.strip()),
+             "nonbinding intent requires an interpreted summary")
+    original = deepcopy(dict(state))
+    after = deepcopy(original)
+    entries = list(after.get("intent_history", []))
+    _require(not any(
+        item.get("source_ref") == verified_intent["source_ref"]
+        and item.get("excerpt_sha256") == verified_intent["excerpt_sha256"]
+        and item.get("intent") == verified_intent["intent"]
+        for item in entries
+    ), "duplicate nonbinding intent; reconcile existing record rather than replay")
+
+    intent_id = f"financial-owner-intent:{uuid4()}"
+    entry = {
+        "intent_id": intent_id,
+        "intent": verified_intent["intent"],
+        "source_ref": verified_intent["source_ref"],
+        "source_sha256": verified_intent["source_sha256"],
+        "excerpt_sha256": verified_intent["excerpt_sha256"],
+        "summary": summary.strip(),
+        "status": "OPEN__NONBINDING",
+        "recorded_at": _utc_now(),
+    }
+    after["intent_history"] = entries + [entry]
+    receipt = _new_receipt(
+        task_id=str(after["task_id"]),
+        stage=str(after["current_stage"]),
+        capability_id="financial_owner_intent_intake",
+        executor_identity=executor_identity,
+        previous_state_blob_sha=previous_state_blob_sha,
+        action_kind="NONBINDING_OWNER_INTENT",
+        subject_bindings={
+            "task_id": after["task_id"], "intent_id": intent_id,
+            "intent": verified_intent["intent"],
+        },
+        input_bindings={
+            "source_ref": entry["source_ref"],
+            "source_sha256": entry["source_sha256"],
+            "excerpt_sha256": entry["excerpt_sha256"],
+            "status": entry["status"],
+        },
+        output_refs=[_state_path(str(after["task_id"]))],
+        state_ref=state_ref,
+    )
+    after["execution_receipts"] = list(original["execution_receipts"]) + [receipt]
+    after["updated_at"] = _utc_now()
+    current_admission.bind_current_governance_receipt(after)
+    current_admission.validate_state(after)
+    _require(after["task_requirement_authority"] == original["task_requirement_authority"],
+             "nonbinding proposal must never change active user requirements")
+    _require(after["task_requirement_digest"] == original["task_requirement_digest"],
+             "nonbinding proposal must not change requirement digest")
     return after
