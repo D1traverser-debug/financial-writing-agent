@@ -6,7 +6,11 @@ Scope: D1traverser-debug/financial-writing-agent only. No CAOS repository, PR, s
 
 - Remote branches observed: 99.
 - Protected branches observed: 0; main is currently unprotected.
-- Open PR observed: #67 (fix(financial): independent semantic authority and release-acceptance guardrails).
+- Open PR observed: #67 (fix(financial): independent semantic authority and release-acceptance guardrails); it is the only open PR.
+- GitHub rulesets API currently returns an empty list: neither the branch freeze nor archive-tag lock is configured.
+- The live branch list reports main.protected=false; no branch is protected.
+- The connected GitHub read surface cannot verify the two required-reviewer Environment settings; the archive workflow will fail closed unless both are configured.
+- CI's read-only dry-run independently confirmed 99 branches and 1 open PR, with no ref mutation.
 - No branch or tag has been deleted by this repair.
 - Candidate code is on repair/financial-independent-acceptance-20261112, not yet authoritative main.
 
