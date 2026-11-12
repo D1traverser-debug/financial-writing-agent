@@ -3,11 +3,17 @@ on:
   push:
     branches: [main]
   workflow_dispatch:
+    inputs:
+      confirm_archive_prune:
+        description: "Explicitly authorize tag-first deletion of branches with exact merged-to-main PR evidence"
+        required: true
+        type: boolean
+        default: false
 permissions:
   contents: write
 jobs:
   one-time-archive:
-    if: ${{ github.event_name == 'workflow_dispatch' || contains(github.event.head_commit.message, '[financial-branch-archive-once]') }}
+    if: ${{ (github.event_name == 'workflow_dispatch' && inputs.confirm_archive_prune == true) || (github.event_name == 'push' && contains(github.event.head_commit.message, '[financial-branch-archive-once]')) }}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
