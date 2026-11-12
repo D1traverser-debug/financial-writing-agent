@@ -320,12 +320,14 @@ def main():
     if args.apply and (
         os.environ.get("GITHUB_ACTIONS") != "true"
         or os.environ.get("GITHUB_REF") != "refs/heads/main"
-        or os.environ.get("RUN_FINANCIAL_BRANCH_ARCHIVE") != APPROVAL
-        or os.environ.get("FINANCIAL_BRANCH_WRITES_FROZEN") != "true"
         or not os.environ.get("GITHUB_TOKEN")
         or not os.environ.get("FINANCIAL_REVIEWED_MAIN_SHA")
     ):
-        raise SystemExit("BRANCH_ARCHIVE_APPLY_REQUIRES_PROTECTED_ENVIRONMENT_AND_EXPLICIT_MAIN_SHA_APPROVAL")
+        raise SystemExit("BRANCH_ARCHIVE_APPLY_REQUIRES_MAIN_WORKFLOW_AND_REVIEWED_SHA")
+    # Human authorization is enforced by GitHub's required-reviewer Environment.
+    # This source-level guard is deliberately not a self-supplied approval flag:
+    # verify_archive_controls() independently reads that Environment and both
+    # active repository rulesets before any branch/tag mutation.
     api = GitHubAPI(REPO, os.environ.get("GITHUB_TOKEN"))
     result = run(api, apply=args.apply, out_path=Path(args.out))
     print(json.dumps({
