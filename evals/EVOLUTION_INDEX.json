@@ -167,5 +167,24 @@
     "latest_business_adversarial_audit": "evals/FINANCIAL_REAL_WORKFLOW_AND_BUSINESS_REDTEAM_AUDIT_20261112.md",
     "latest_business_adversarial_replay": "scripts/real_financial_workflow_redteam.py",
     "latest_business_adversarial_status": "REAL_PRODUCTION_FUNCTION_REPLAYED__STRUCTURAL_FALSE_ACCEPTANCE_CASES_REPRODUCED__LIVE_ARTICLE_AND_EDITORIAL_NOT_READY"
+  },
+  "system_engineering_simulation_20261112": {
+    "owner": "FINANCIAL_WRITING_OWNER",
+    "scope": "SYSTEM_RECONSTRUCTION_ONLY__NO_REAL_ARTICLE_PRODUCTION",
+    "evidence_ref": "evals/FINANCIAL_NATIVE_LOOP_GRAPH_SIMULATION_20261112.md",
+    "root_cause": "NATIVE_OWNER_LOOP_ACTIONS_AND_WORD_BYTES_NOT_BOUND_AT_STANDALONE_CAS",
+    "selected_route": "REUSE_EXISTING_FINANCIAL_OWNER_WITH_ONE_EXTERNAL_AUTH_CAS_PORT",
+    "negative_test_refs": [
+      "tests/test_financial_native_loop_closure_20261112.py",
+      "tests/test_financial_native_ten_stage_adversarial_20261112.py"
+    ],
+    "red_runs": [
+      43181243101,
+      43182492873
+    ],
+    "green_preliminary_run": 43182914806,
+    "assurance": "ENGINEERING_SIMULATED_WITH_SYNTHETIC_PROVIDER__NATIVE_CLIENT_NOT_TESTED",
+    "product_claim": "NONE__INDEPENDENT_EDITORIAL_AND_LIVE_OUTPUT_NOT_EVALUATED",
+    "parent_repository_mutations": "NONE"
   }
 }
