@@ -60,4 +60,4 @@ Open relevant modules selectively: references/research.md, private_research.md, 
 
 ## Owner goal and method governance
 
-CHANGE_REQUIREMENTS requires authenticated original user-message and intent evidence; ideas are nonbinding RECORD_OWNER_INTENT. Method CRUD uses observe_method_catalog/admit_method_action, staged revisions, verified promotion, non-destructive retirement and impact review. Full contract: docs/STANDALONE_INTERFACE.md and references/maintenance.md. CAOS is read-only method evidence, not Financial runtime authority.
+CHANGE_REQUIREMENTS requires authentic user bytes, exact original wording and trusted owner-approved canonical change proof; no verifier means BLOCK. Ideas remain nonbinding RECORD_OWNER_INTENT. Method CRUD uses observe_method_catalog/admit_method_action, staged revisions, verified promotion, non-destructive retirement and impact review. Full contract: docs/STANDALONE_INTERFACE.md and references/maintenance.md. CAOS is read-only method evidence, not Financial runtime authority.
