@@ -238,8 +238,10 @@ def test_current_visible_delivery_requires_genuine_provider_docx_bytes_not_boole
         _resource(kind, item["file_name"], digest)
         for kind, item in state["delivery_artifacts"].items()
     ]
-    outcome = build_visible_delivery_receipt(
-        state, resources=resources, resource_verifier=lambda _: True,
-        resource_binary_reader=lambda _: {"content": blob},
-    )
-    assert outcome["status"] == "VISIBLE_DELIVERY_READY"
+    # Correct binary alone is not an accepted current deliverable: page
+    # screenshots and their review receipts are also mandatory.
+    with pytest.raises(DeliveryAvailabilityError, match="per-page render evidence"):
+        build_visible_delivery_receipt(
+            state, resources=resources, resource_verifier=lambda _: True,
+            resource_binary_reader=lambda _: {"content": blob},
+        )
