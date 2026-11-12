@@ -66,7 +66,7 @@ def mutate(cat, operation, *, proposed=None, method_id=METHOD_ID,
         params["impact_target_revision"] = impact_target_revision
     if impact_evidence is not None:
         params["impact_evidence"] = impact_evidence
-    raw = json.dumps(cat, ensure_ascii=False, sort_keys=True, indent=2) + "\\n"
+    raw = json.dumps(cat, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
     action_request = {
         "schema_version": "1.0", "domain_id": "financial_writing",
         "action_id": f"synthetic-method-{operation.lower()}-{cat['governance_revision'] + 1}",
