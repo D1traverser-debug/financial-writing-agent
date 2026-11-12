@@ -110,7 +110,7 @@ def test_entire_ten_stage_graph_with_genuine_synthetic_word_bytes_and_bounded_te
     assert len([r for r in state["execution_receipts"] if "TRANSITION" in r["action_id"]]) == 10
 
 
-@pytest.mark.parametrize("case", ["missing", "wrong_sha", "foreign_task", "bad_zip", "wrong_blob"])
+@pytest.mark.parametrize("case", ["missing", "wrong_sha", "foreign_task", "bad_zip", "bad_zip_matching_sha", "wrong_blob", "file_name", "resource_reused"])
 def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_bytes(case):
     p = make()
     _prepare_delivery(p)
@@ -127,6 +127,16 @@ def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_b
         first["resource_ref"] = "workspaces/articles/unrelated/delivery/deep.docx"
     elif case == "bad_zip":
         p.artifacts[path] = b"PKbad"
+    elif case == "bad_zip_matching_sha":
+        import hashlib
+        p.artifacts[path] = b"PKbad"
+        first["sha256"] = hashlib.sha256(p.artifacts[path]).hexdigest()
+    elif case == "file_name":
+        first["file_name"] = "wrong.docx"
+    elif case == "resource_reused":
+        outputs[1]["resource_ref"] = first["resource_ref"]
+        outputs[1]["file_name"] = first["file_name"]
+        outputs[1]["sha256"] = first["sha256"]
     elif case == "wrong_blob":
         p.artifact = lambda candidate, prior=p.artifact: (
             {"content": p.artifacts[candidate], "blob_sha": "0" * 40}
@@ -138,3 +148,28 @@ def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_b
             **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
         })
     assert p.states == frozen
+
+
+def test_final_audit_rereads_all_existing_docx_before_marking_state_terminal():
+    p = make()
+    _prepare_delivery(p)
+    outputs = [_word_output(p, kind) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
+    p.artifacts[outputs[0]["resource_ref"]] = b"PKtampered-after-delivery"
+    audit = _word_output(p, "AUDIT_DOCX")
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="FINANCIAL_WORD"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["status"] == "IN_PROGRESS"
