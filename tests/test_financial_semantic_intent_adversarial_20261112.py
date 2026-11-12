@@ -72,6 +72,27 @@ def test_even_formatted_malicious_approval_cannot_inject_nonoriginal_statement()
 
 
 
+
+def test_red_nonbinding_intent_cannot_quote_a_selective_substring():
+    p = create(Provider())
+    frozen = deepcopy(p.states)
+    original = "不要只保留三家公司，必须保留完整公司池。"
+    proof = _proof("只保留三家公司", intent="USER_SUGGESTION")
+    with pytest.raises(FinancialAdmissionError, match="INTENT"):
+        admit_article_action(
+            {
+                "schema_version": "1.0", "domain_id": DOMAIN_ID,
+                "action_id": "selective-nonbinding-quote",
+                "task_id": TASK, "operation": "RECORD_OWNER_INTENT",
+                "expected_state_blob_sha": p.read(f"workspaces/articles/{TASK}/STATE.json")["blob_sha"],
+                "parameters": {"intent_evidence": proof, "summary": "selective quote"},
+            },
+            state_reader=p.read, cas_writer=p.write,
+            authorization_verifier=lambda _: True, artifact_reader=p.artifact,
+            owner_instruction_reader=_reader(original),
+        )
+    assert p.states == frozen
+
 def test_red_negation_cannot_be_removed_by_selecting_a_true_but_misleading_substring():
     p = create(Provider())
     frozen = deepcopy(p.states)
