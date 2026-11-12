@@ -34,7 +34,7 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             evidence.update({
                 "reviewer_principal": reviewer,
                 "reviewed_head_sha": SHA,
-                "findings_status": "NO_UNRESOLVED_CRITICAL_FINDINGS",
+                "findings_status": "PASS",
             })
         independent = gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW"
         proofs[gate] = signed_attestation(
@@ -85,7 +85,7 @@ def test_model_written_verified_labels_and_fake_provider_refs_do_not_certify():
         code_tests_passed=True,
     )
     assert result["system_status"].startswith("NOT_READY")
-    assert all(r["reason"] == "FINANCIAL_PROVIDER_ATTESTATION_MISSING"
+    assert all(r["reason"] == "FINANCIAL_PROVIDER_ATTESTATION_FIELDS_MISSING"
                for r in result["gates"].values())
 
 
@@ -102,7 +102,7 @@ def test_signed_synthetic_gate_and_ci_receipts_exercise_verifier_but_are_not_liv
         head_sha=SHA, candidate_proofs=_proofs(), ci_attestation=_ci(),
         code_tests_passed=True,
     )
-    assert result["system_status"] == "ACCEPTED__SIGNED_EXTERNAL_EVIDENCE_VERIFIED"
+    assert result["system_status"] == "ACCEPTED__SIGNED_EXTERNAL_EVIDENCE_VERIFIED", result
     assert result["ci_attestation_verified"] is True
     assert result["open_gates"] == []
     # The signature key is installed by pytest conftest only; this is a test of
