@@ -29,6 +29,10 @@ class FakeAPI:
 
     def verify_controls(self, phase):
         self.calls.append("controls:" + phase)
+        if phase in {"PLAN", "ARCHIVE"} and not self.deletion_frozen:
+            raise ValueError("BRANCH_DELETION_MUST_BE_FROZEN_FOR_PLAN_AND_ARCHIVE")
+        if phase == "PRUNE" and self.deletion_frozen:
+            raise ValueError("REMOVE_ONLY_DELETION_RULE_BEFORE_PRUNE")
         return {
             "branch_ruleset_id": 11,
             "tag_ruleset_id": 22,
