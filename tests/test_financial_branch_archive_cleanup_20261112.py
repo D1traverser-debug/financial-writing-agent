@@ -11,7 +11,7 @@ A, B, C, D = "a"*40, "b"*40, "c"*40, "d"*40
 
 
 class FakeAPI:
-    def __init__(self, *, deletion_frozen=True, open_prs=None):
+    def __init__(self, *, deletion_frozen=True, open_prs=None, closed_prs=None):
         self.branches = {
             "main": {"sha": A, "protected": True},
             "old/one": {"sha": B, "protected": False},
@@ -19,6 +19,11 @@ class FakeAPI:
         }
         self.tags = {}
         self.open_prs = list(open_prs or [])
+        self.closed_prs = list(closed_prs if closed_prs is not None else [{
+            "number": 17, "merged_at": "2026-11-10T10:00:00Z",
+            "base": {"ref": "main"},
+            "head": {"ref": "old/one", "sha": B},
+        }])
         self.deletion_frozen = deletion_frozen
         self.calls = []
         self.open_pr_reads = 0
@@ -57,6 +62,8 @@ class FakeAPI:
                     "head": {"ref": "old/two", "repo": {"full_name": REPO}}
                 }]
             return list(self.open_prs)
+        if suffix == "pulls?state=closed":
+            return list(self.closed_prs)
         raise AssertionError("unexpected collection " + suffix)
 
     def branch_head(self, name):
@@ -151,6 +158,45 @@ def test_plan_is_stable_exact_head_manifest_and_has_no_mutation(tmp_path):
     assert not api.tags
     assert not any(x.startswith("delete:") for x in api.calls)
     assert json.loads(path.read_text())["manifest_sha256"] == plan["manifest_sha256"]
+
+
+def test_manifest_classifies_exact_merged_pr_heads_and_explicitly_flags_unverified_heads(tmp_path):
+    api, _, plan = make_plan(tmp_path)
+    manifest = plan["manifest"]
+    assert manifest["schema_version"] == "4.0"
+    assert manifest["merged_main_prs"] == [{
+        "number": 17, "head_ref": "old/one", "head_sha": B,
+        "merged_at": "2026-11-10T10:00:00Z",
+    }]
+    assert manifest["branch_review"] == [
+        {"branch": "old/one", "head_sha": B,
+         "exact_merged_main_pr_numbers": [17],
+         "disposition": "EXACT_HEAD_OF_MERGED_MAIN_PR"},
+        {"branch": "old/two", "head_sha": C,
+         "exact_merged_main_pr_numbers": [],
+         "disposition": "NO_EXACT_MERGED_MAIN_PR__REQUIRES_EXPLICIT_REVIEW"},
+    ]
+    assert manifest["unverified_branch_heads"] == [manifest["branch_review"][1]]
+
+
+def test_plan_read_rejects_omitted_candidate_even_when_owner_recomputes_manifest_digest(tmp_path):
+    api, path, plan = make_plan(tmp_path)
+    altered = plan["manifest"]
+    altered["candidate_heads"] = altered["candidate_heads"][:1]
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="CANDIDATE_SET_INCOMPLETE_OR_MUTATED"):
+        read_plan(path, sha256(altered))
+
+
+def test_plan_read_rejects_forged_merged_pr_classification(tmp_path):
+    api, path, plan = make_plan(tmp_path)
+    altered = plan["manifest"]
+    altered["branch_review"][1]["exact_merged_main_pr_numbers"] = [17]
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="BRANCH_REVIEW_BINDING_INVALID"):
+        read_plan(path, sha256(altered))
 
 
 def test_archive_phase_tags_all_exact_heads_and_deletes_nothing(tmp_path):
