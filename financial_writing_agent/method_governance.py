@@ -16,7 +16,6 @@ from typing import Any, Callable, Mapping
 
 from .provider_attestation import (
     expected_owner_principal,
-    verify_provider_attestation,
     verify_method_action_authorization,
     verify_method_impact_attestation,
     verify_method_promotion_attestation,
@@ -109,7 +108,9 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
         _require(item.get("knowledge_id") in seen and item.get("operation") in METHOD_ACTIONS,
                  "CATALOG_HISTORY_EVENT_INVALID")
         auth = item.get("authorization_evidence")
+        action_request = item.get("authorization_request")
         _require(isinstance(auth, Mapping), "CATALOG_ACTION_ATTESTATION_MISSING")
+        _require(isinstance(action_request, Mapping), "CATALOG_ACTION_REQUEST_MISSING")
         _require(isinstance(auth.get("action_id"), str)
                  and auth["action_id"] not in seen_action_ids,
                  "CATALOG_ACTION_ID_MISSING_OR_REPLAYED")
@@ -119,26 +120,15 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                  and (auth.get("provider_id"), action_nonce) not in seen_attestation_nonces,
                  "CATALOG_ACTION_NONCE_MISSING_OR_REPLAYED")
         seen_attestation_nonces.add((auth.get("provider_id"), action_nonce))
-        _require(isinstance(auth.get("request_sha256"), str)
-                 and re.fullmatch(r"[a-f0-9]{64}", auth["request_sha256"]) is not None,
-                 "CATALOG_ACTION_REQUEST_DIGEST_INVALID")
-            try:
-                verified_auth = verify_provider_attestation(
-                    auth, expected_type="method_action_authorization",
-                    expected_claims={
-                        "approved": True,
-                        "action_id": item.get("authorization_action_id"),
-                        "domain_id": "financial_writing",
-                        "operation": item.get("operation"),
-                        "knowledge_id": item.get("knowledge_id"),
-                        "expected_catalog_blob_sha": item.get("authorization_expected_catalog_blob_sha"),
-                    },
-                    expected_actor=expected_owner_principal(),
-                )
-            except Exception as exc:
-                raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_ACTION_ATTESTATION_INVALID") from exc
-            _require(verified_auth["request_sha256"] == auth.get("request_sha256"),
-                     "CATALOG_ACTION_REQUEST_DIGEST_MISSING")
+        try:
+            verified_auth = verify_method_action_authorization(auth, request=action_request)
+        except Exception as exc:
+            raise MethodGovernanceError("FINANCIAL_METHOD_CATALOG_ACTION_ATTESTATION_INVALID") from exc
+        _require(action_request.get("operation") == item.get("operation")
+                 and action_request.get("parameters", {}).get("knowledge_id") == item.get("knowledge_id")
+                 and action_request.get("action_id") == item.get("authorization_action_id")
+                 and action_request.get("expected_catalog_blob_sha") == item.get("authorization_expected_catalog_blob_sha"),
+                 "CATALOG_ACTION_REQUEST_EVENT_BINDING_MISMATCH")
         if item.get("operation") == "PROMOTE":
             promoted = item.get("promoted_proof")
             _require(isinstance(promoted, Mapping)
@@ -449,6 +439,7 @@ def mutate_method_catalog(
         "promoted_proof": promoted_proof,
         "impact_verification": impact_proof,
         "authorization_evidence": deepcopy(dict(authorization_evidence)) if isinstance(authorization_evidence, Mapping) else None,
+        "authorization_request": deepcopy(dict(action_request)) if isinstance(action_request, Mapping) else None,
         "authorization_action_id": authorization_evidence.get("action_id") if isinstance(authorization_evidence, Mapping) else None,
         "authorization_expected_catalog_blob_sha": authorization_evidence.get("expected_catalog_blob_sha") if isinstance(authorization_evidence, Mapping) else None,
         "target_change_revision": impact_target_revision if operation == "VERIFY_IMPACT" else None,
