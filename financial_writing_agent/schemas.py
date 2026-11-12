@@ -348,7 +348,7 @@ class ResearchPackage(StrictModel):
 
         names = [company.name for company in self.universe]
         if len(names) != len(set(names)):
-            raise ValueError("research universe company names must be unique")
+            raise ValueError("research universe company names must be unique; duplicate names after canonicalization are not allowed")
         if self.universe:
             if self.universe_coverage.status == "NOT_APPLICABLE":
                 raise ValueError("non-empty company universe requires COMPLETE or BOUNDED_WITH_GAPS universe_coverage")
