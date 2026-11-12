@@ -349,6 +349,7 @@ def test_historical_method_action_promotion_and_impact_receipts_remain_readable_
                 validation_refs=promoted["validation_refs"],
                 review_ref=promoted["review_ref"],
             )
+            promoted["attestation_signature"] = promoted["attestation"]["signature"]
         impact = event.get("impact_verification")
         if impact is not None:
             impact["attestation"] = signed_attestation(
@@ -362,6 +363,7 @@ def test_historical_method_action_promotion_and_impact_receipts_remain_readable_
                 stage_evidence_refs=impact["stage_evidence_refs"],
                 verified_stages=impact["verified_stages"],
             )
+            impact["attestation_signature"] = impact["attestation"]["signature"]
     checked = validate_method_catalog(cat)
     assert query_methods(checked, operational_only=True)[0]["knowledge_id"] == METHOD_ID
 
