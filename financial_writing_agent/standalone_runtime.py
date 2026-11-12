@@ -435,14 +435,10 @@ def admit_article_action(
         )
     except Exception as exc:
         raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_NOT_VERIFIED__ATTESTATION_FAILED") from exc
-    authorization_evidence = {
-        "provider_id": authorization_attestation["provider_id"],
-        "authenticated_actor": authorization_attestation["authenticated_actor"],
-        "issued_at": authorization_attestation["issued_at"],
-        "nonce": authorization_attestation["nonce"],
-        "signature": authorization_attestation["signature"],
-        "request_sha256": authorization_attestation["request_sha256"],
-    }
+    # Preserve the complete signed receipt (never the raw user message) so a
+    # later independent audit can re-verify provider, audience, actor, scope,
+    # freshness, nonce and signature rather than trusting a hand-picked summary.
+    authorization_evidence = deepcopy(authorization_attestation)
     path = _state_path(r["task_id"])
     observed = _read(state_reader, path)
     op = r["operation"]
