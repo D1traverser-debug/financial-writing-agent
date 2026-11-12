@@ -25,17 +25,16 @@ REPO = "D1traverser-debug/financial-writing-agent"
 def branch_candidates(
     branches: list[dict[str, Any]],
     open_prs: list[dict[str, Any]],
-    merged_prs: list[dict[str, Any]],
 ) -> tuple[list[dict[str, str]], list[dict[str, str]]]:
-    """Do not prune main, protected or any still-open PR head; no implicit moves."""
+    """Archive every inactive remote ref while preserving its exact head as a tag.
+
+    The single-main goal is not equivalent to deleting unmerged history: a tag
+    is created and read back at the exact branch SHA before its ref is removed.
+    Main, protected refs and branches with an open PR in this repository stay.
+    """
     protected = {
         p.get("head", {}).get("ref")
         for p in open_prs if p.get("head", {}).get("repo", {}).get("full_name") == REPO
-    }
-    merged_heads = {
-        (p.get("head", {}).get("ref"), p.get("head", {}).get("sha"))
-        for p in merged_prs
-        if p.get("merged_at") and p.get("base", {}).get("ref") == "main"
     }
     candidates, skipped = [], []
     seen: set[str] = set()
@@ -50,8 +49,6 @@ def branch_candidates(
         row = {"branch": name, "head_sha": sha}
         if name == "main" or b.get("protected") is True or name in protected:
             skipped.append({**row, "reason": "MAIN_OR_PROTECTED_OR_ACTIVE_PR"})
-        elif (name, sha) not in merged_heads:
-            skipped.append({**row, "reason": "NO_EXACT_MERGED_PR_TO_MAIN__PRESERVE"})
         else:
             candidates.append(row)
     return candidates, skipped
@@ -141,15 +138,7 @@ def run(api: GitHubAPI, *, apply: bool, out_path: Path) -> dict[str, Any]:
         open_prs.extend(values)
         if len(values) < 100:
             break
-    merged_prs: list[dict[str, Any]] = []
-    for page in range(1, 100):
-        values = api.call("GET", f"/repos/{REPO}/pulls?state=closed&per_page=100&page={page}")
-        if not isinstance(values, list):
-            raise ValueError("BRANCH_HYGIENE_CLOSED_PR_LIST_UNAVAILABLE")
-        merged_prs.extend(p for p in values if p.get("merged_at"))
-        if len(values) < 100:
-            break
-    candidates, skipped = branch_candidates(branches, open_prs, merged_prs)
+    candidates, skipped = branch_candidates(branches, open_prs)
     changes: list[dict[str, str]] = []
     for item in candidates:
         name, sha = item["branch"], item["head_sha"]
