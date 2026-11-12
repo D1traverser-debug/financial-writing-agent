@@ -63,18 +63,20 @@ def _valid_ci_attestation(raw: Mapping[str, Any] | None, head_sha: str) -> bool:
             key_env="FINANCIAL_CI_ATTESTATION_KEY",
             provider_env="FINANCIAL_CI_PROVIDER_ID",
         )
-    except FinancialProviderAttestationError:
+    except (FinancialProviderAttestationError, TypeError, ValueError):
         return False
     return (
         isinstance(record.get("run_id"), (str, int))
+        and not isinstance(record.get("run_id"), bool)
         and bool(str(record.get("run_id")).strip())
         and isinstance(record.get("workflow"), str)
         and bool(record["workflow"].strip())
         and isinstance(record.get("test_count"), int)
+        and not isinstance(record.get("test_count"), bool)
         and record["test_count"] > 0
         and isinstance(record.get("coverage_percent"), (int, float))
         and not isinstance(record.get("coverage_percent"), bool)
-        and record["coverage_percent"] >= 85
+        and 85 <= record["coverage_percent"] <= 100
     )
 
 
@@ -127,6 +129,10 @@ def _validate_gate_evidence(
                 and isinstance(promotion_challenge.get("review_ref"), str)
                 and bool(promotion_challenge["review_ref"].strip()),
                 "METHOD_PROMOTION_REVIEW_SCOPE_INVALID")
+        require(
+            impact_challenge.get("knowledge_id") == promotion_challenge.get("knowledge_id"),
+            "METHOD_PROMOTION_IMPACT_KNOWLEDGE_ID_MISMATCH",
+        )
         require(isinstance(impact_challenge.get("knowledge_id"), str)
                 and bool(impact_challenge["knowledge_id"].strip())
                 and isinstance(impact_challenge.get("target_change_revision"), int)
@@ -152,14 +158,23 @@ def _validate_gate_evidence(
                 "METHOD_INDEPENDENT_REVIEW_ATTESTATION_INVALID:" + str(exc)
             ) from exc
     elif gate == "PROVIDER_AUTHENTICATED_RUNTIME_CAS":
-        require(evidence.get("write_blob_sha") == evidence.get("readback_blob_sha"),
+        require(isinstance(evidence.get("write_blob_sha"), str)
+                and re.fullmatch(r"[a-f0-9]{40}", evidence["write_blob_sha"]) is not None
+                and evidence.get("write_blob_sha") == evidence.get("readback_blob_sha"),
                 "CAS_WRITE_READBACK_MISMATCH")
-        require(evidence.get("stale_conflict_status") == 409,
+        require(type(evidence.get("stale_conflict_status")) is int
+                and evidence.get("stale_conflict_status") == 409,
                 "CAS_STALE_WRITE_NOT_REJECTED")
     elif gate == "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION":
-        require(str(evidence.get("plugin_id", "")).startswith("plugins_")
-                and bool(evidence.get("release_id")),
-                "NATIVE_PLUGIN_RELEASE_IDENTITY_MISSING")
+        require(isinstance(evidence.get("plugin_id"), str)
+                and evidence["plugin_id"].startswith("plugins_")
+                and isinstance(evidence.get("release_id"), str)
+                and evidence["release_id"].startswith("pluginrel_")
+                and isinstance(evidence.get("fresh_chat_session_ref"), str)
+                and bool(evidence["fresh_chat_session_ref"].strip())
+                and isinstance(evidence.get("tool_invocation_ref"), str)
+                and bool(evidence["tool_invocation_ref"].strip()),
+                "NATIVE_PLUGIN_RELEASE_OR_INVOCATION_IDENTITY_MISSING")
     elif gate == "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW":
         require(authenticated_actor != owner_principal
                 and evidence.get("reviewer_principal") == authenticated_actor,
@@ -174,8 +189,8 @@ def _validate_gate_evidence(
         require(names == ["main"], "REMOTE_REPOSITORY_NOT_SINGLE_MAIN")
         before = evidence.get("before_branch_count")
         archived = evidence.get("archive_tag_count")
-        require(isinstance(before, int) and before >= 1
-                and isinstance(archived, int) and archived >= before - 1,
+        require(type(before) is int and before >= 1
+                and type(archived) is int and archived == before - 1,
                 "HISTORICAL_BRANCH_HEADS_NOT_FULLY_ARCHIVED")
 
 
@@ -193,7 +208,7 @@ def evaluate_system_acceptance(
     are deployment secrets/configuration and are intentionally absent from
     source control and the Skill-only plugin.
     """
-    if not isinstance(head_sha, str) or len(head_sha) != 40:
+    if not isinstance(head_sha, str) or re.fullmatch(r"[a-f0-9]{40}", head_sha) is None:
         raise ValueError("FINANCIAL_SYSTEM_HEAD_SHA_REQUIRED")
     proofs = candidate_proofs or {}
     if not isinstance(proofs, Mapping) or set(proofs) - set(SYSTEM_GATES):
@@ -224,6 +239,10 @@ def evaluate_system_acceptance(
                         else "FINANCIAL_TRUSTED_PROVIDER_ID"
                     ),
                 )
+                if owner is None:
+                    raise FinancialProviderAttestationError("FINANCIAL_EXPECTED_OWNER_NOT_CONFIGURED")
+                if not separate_reviewer and record.get("authenticated_actor") != owner:
+                    raise FinancialProviderAttestationError("SYSTEM_GATE_ACTOR_MUST_MATCH_OWNER")
                 evidence = record.get("evidence")
                 if not isinstance(evidence, Mapping):
                     raise FinancialProviderAttestationError("GATE_EVIDENCE_MISSING")
@@ -247,8 +266,8 @@ def evaluate_system_acceptance(
                     owner_principal=owner,
                 )
                 status, reason = "VERIFIED_BY_SIGNED_PROVIDER_ATTESTATION", "SIGNED_EXACT_HEAD_EVIDENCE"
-            except FinancialProviderAttestationError as exc:
-                reason = str(exc)
+            except (FinancialProviderAttestationError, KeyError, TypeError, ValueError) as exc:
+                reason = str(exc) or type(exc).__name__
         results[gate] = {"status": status, "reason": reason}
     not_verified = [
         gate for gate, rec in results.items()
