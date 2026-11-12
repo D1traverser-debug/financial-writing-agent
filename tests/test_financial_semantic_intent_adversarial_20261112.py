@@ -60,6 +60,14 @@ def test_red_source_hash_and_user_role_are_not_enough_for_semantically_inverted_
     assert p.states == frozen
 
 
+def test_even_formatted_malicious_approval_cannot_inject_nonoriginal_statement():
+    p = create(Provider())
+    frozen = deepcopy(p.states)
+    with pytest.raises(FinancialAdmissionError, match="SEMANTIC"):
+        _submit(p, WRONG, semantic_verifier=accepted_owner_approval)
+    assert p.states == frozen
+
+
 def test_red_no_model_supplied_fake_pass_or_bare_verifier_callback_bypasses_proof():
     p = create(Provider())
     frozen = deepcopy(p.states)
