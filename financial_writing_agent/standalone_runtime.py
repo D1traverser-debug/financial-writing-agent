@@ -252,11 +252,26 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
     state, sha = record
     _require(state["task_id"] == task_id, "FINANCIAL_ARTICLE_ID_MISMATCH")
     current_admission.validate_state(state)
+    authority = state["task_requirement_authority"]
+    open_impacts = [
+        {"signal_id": entry.get("signal_id"), "status": entry.get("status")}
+        for entry in state.get("open_system_impact", [])
+    ]
+    blocked_target = (
+        owner_lifecycle._blocking_recovery_cursor(state)
+        if state["status"] == "BLOCKED" else None
+    )
     return {
         "contract_version": CONTRACT_VERSION, "domain_id": DOMAIN_ID,
         "task_id": task_id, "state_ref": path, "state_blob_sha": sha,
         "stage": state["current_stage"], "business_status": state["status"],
-        "requirement_revision": state["task_requirement_authority"]["revision"],
+        "next_action": state["next_action"],
+        "blocked_recovery_target": blocked_target,
+        "open_system_impact": open_impacts,
+        "active_requirement_ids": sorted(
+            item["requirement_id"] for item in authority["active_requirements"]
+        ),
+        "requirement_revision": authority["revision"],
         "requirement_digest": state["task_requirement_digest"],
         "required_outputs": list(state["required_outputs"]),
         "recorded_outputs": sorted(state.get("delivery_artifacts", {})),
