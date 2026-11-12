@@ -85,7 +85,7 @@ def test_red_nonbinding_intent_cannot_quote_a_selective_substring():
                 "parameters": {"intent_evidence": proof, "summary": "selective quote"},
             },
             state_reader=p.read, cas_writer=p.write,
-            authorization_verifier=lambda _: True, artifact_reader=p.artifact,
+            authorization_verifier=signed_action_authorization, artifact_reader=p.artifact,
             owner_instruction_reader=lambda ref: signed_owner_message(ref, original),
         )
     assert p.states == frozen
