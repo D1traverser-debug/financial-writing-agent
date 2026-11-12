@@ -15,9 +15,14 @@ Operations and business admission:
 - CHANGE_REQUIREMENTS: accepts evidence_ref, upserts/retire_ids; invokes current_admission.apply_task_requirement_change and invalidates dependent stage artifacts.
 - ADVANCE_STAGE: accepts owner-valid stage artifact, DecisionEnvelope, PrivateResearchBrief, StoryBlueprints, PublicationFitness, review and delivery parameters; invokes current_admission.advance_state. Stage artifacts must exist and match Git Blob SHA.
 - ATTACH_FEEDBACK: accepts sample and system_impact; invokes current_admission.attach_material_feedback.
+- RESUME_BLOCKED: uses persisted canonical FAIL cursor and repair evidence; replays invalidation before progression.
+- RECORD_PROACTIVE_RESOLUTION: records a scoped owner-native recovery attempt, attempted sources, outcome and safety bounds.
+- REVIEW_SYSTEM_IMPACT: reviews and closes evidence-bound feedback system impact, preserving immutable prior diagnosis.
 - observe_article: read-only, validates the actual article, returns stage, revision, digest and output metadata; does not infer independent quality.
 
-Every mutation requires a caller-supplied **externally authenticated authorization_verifier** returning exactly true, a trusted state reader returning actual raw Git blob content/state/hash, conditional/create-only CAS writer, and second independently fetched readback. Missing/denied permissions, stale SHA, mismatched blob, noncanonical path, missing stage artifact or unknown provider result are NOT a verified completion. Never blindly retry uncertain non-idempotent writes.
+Every mutation, including recovery and problem governance, requires a caller-supplied **externally authenticated authorization_verifier** returning exactly true, a trusted state reader returning actual raw Git blob content/state/hash, conditional/create-only CAS writer, and second independently fetched readback. Missing/denied permissions, stale SHA, mismatched blob, noncanonical path, missing stage artifact or unknown provider result are NOT a verified completion. Never blindly retry uncertain non-idempotent writes.
+
+Current-stage FAIL must persist a legal revision_target; illegal targets are rejected before CAS. Recovery uses the same canonical state and provider readback, with synthetic negative regression evidence.
 
 This is a Python adapter contract, **not a deployed remote API**. To use it in a chat, the connected Financial app must supply the real provider functions. A model should not promise direct native CLI/plugin invocation merely because the module exists.
 
