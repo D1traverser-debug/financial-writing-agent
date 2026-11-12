@@ -235,8 +235,20 @@ def test_prune_refuses_while_deletion_rule_is_still_frozen(tmp_path):
                  out=tmp_path / "archive.json")
     with pytest.raises(ValueError, match="REMOVE_ONLY_DELETION_RULE"):
         prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
-                   out=tmp_path / "prune.json")
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert set(api.branches) == {"main","old/one","old/two"}
+
+
+def test_prune_refuses_unverified_heads_without_explicit_owner_confirmation(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    with pytest.raises(ValueError, match="UNVERIFIED_BRANCH_HEADS_REQUIRE_EXPLICIT"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json")
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
 
 
 def test_prune_after_deletion_rule_removed_keeps_tags_and_leaves_only_main(tmp_path):
@@ -245,7 +257,7 @@ def test_prune_after_deletion_rule_removed_keeps_tags_and_leaves_only_main(tmp_p
                  out=tmp_path / "archive.json")
     api.deletion_frozen = False
     report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
-                        out=tmp_path / "prune.json")
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert report["complete"] is True
     assert report["after_branch_names"] == ["main"]
     assert api.tags == {"old/one":B, "old/two":C}
@@ -260,7 +272,7 @@ def test_prune_refuses_a_moved_branch_even_when_old_tag_is_preserved(tmp_path):
     api.branches["old/two"]["sha"] = D
     with pytest.raises(ValueError, match="UNPLANNED_OR_MOVED_BRANCH"):
         prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
-                   out=tmp_path / "prune.json")
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert set(api.branches) == {"main","old/one","old/two"}
 
 
@@ -271,7 +283,7 @@ def test_open_pr_appearing_during_prune_stops_next_delete(tmp_path):
     api.deletion_frozen = False
     api.add_pr_on_read = api.open_pr_reads + 3
     report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
-                        out=tmp_path / "prune.json")
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert report["complete"] is False
     assert "old/two" in api.branches
     assert api.tags["old/two"] == C
@@ -284,7 +296,7 @@ def test_main_moving_during_prune_prevents_false_completion(tmp_path):
     api.deletion_frozen = False
     api.move_main_on_read = api.main_reads + 2
     report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
-                        out=tmp_path / "prune.json")
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert report["complete"] is False
     assert report["main_sha_after"] == D
 
@@ -296,7 +308,7 @@ def test_ambiguous_delete_response_is_accepted_only_after_absence_and_tag_readba
     api.deletion_frozen = False
     api.ambiguous_delete.add("old/one")
     report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
-                        out=tmp_path / "prune.json")
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert report["complete"] is True
     assert report["deleted"][0]["status"] == "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"
 
