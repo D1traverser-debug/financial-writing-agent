@@ -3,6 +3,7 @@ import json
 from pathlib import Path
 from copy import deepcopy
 import hashlib
+import time
 
 import pytest
 
@@ -10,12 +11,13 @@ from financial_writing_agent.method_governance import (
     MethodGovernanceError, mutate_method_catalog, query_methods,
     validate_method_catalog,
 )
+from financial_writing_agent.provider_attestation import request_sha256
 from financial_writing_agent.standalone_runtime import (
     FinancialAdmissionError, FinancialEffectUnverified, _blob_sha,
     admit_method_action, observe_method_catalog,
 )
 from trusted_provider_testkit import (
-    signed_method_action_authorization, signed_method_impact, signed_method_promotion,
+    signed_attestation, signed_method_action_authorization, signed_method_impact, signed_method_promotion,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -303,6 +305,65 @@ def test_method_impact_stamps_effective_version_and_ignores_pending_unpromoted_r
     assert delta[0]["earliest_affected_stage"] == "RESEARCH"
     assert delta[0]["current_lifecycle_status"] == "ACTIVE"
     assert delta[0]["change_revisions"] == [4]
+
+
+def test_historical_method_action_promotion_and_impact_receipts_remain_readable_after_freshness_window():
+    cat, _ = mutate(original(), "CREATE", proposed=method())
+    cat, _ = mutate(
+        cat, "PROMOTE",
+        promotion_evidence={
+            "validation_refs": ["synthetic-ci://exact-change-test"],
+            "review_ref": "simulation://review",
+        },
+        promotion_verifier=promotion_verifier,
+    )
+    cat, _ = mutate(
+        cat, "VERIFY_IMPACT", impact_target_revision=1,
+        impact_evidence={"stage_evidence_refs": {
+            "RESEARCH": "simulation://research",
+            "EDITORIAL": "simulation://editorial",
+        }},
+        impact_verifier=lambda request: signed_method_impact(request),
+    )
+    old_issued_at = int(time.time()) - 86400
+    for event in cat["change_history"]:
+        request = event["authorization_request"]
+        event["authorization_evidence"] = signed_attestation(
+            "method_action_authorization", issued_at=old_issued_at,
+            approved=True, action_id=request["action_id"],
+            domain_id=request["domain_id"], operation=request["operation"],
+            knowledge_id=request["parameters"]["knowledge_id"],
+            expected_catalog_blob_sha=request["expected_catalog_blob_sha"],
+            request_sha256=request_sha256(request),
+        )
+        promoted = event.get("promoted_proof")
+        if promoted is not None:
+            promoted["attestation"] = signed_attestation(
+                "method_promotion_review", actor="synthetic-method-reviewer",
+                key_env="FINANCIAL_METHOD_REVIEW_KEY",
+                provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+                issued_at=old_issued_at, approved=True,
+                knowledge_id=event["knowledge_id"],
+                record_sha256=promoted["reviewed_record_sha256"],
+                decision_sha256=event["decision_sha256"],
+                validation_refs=promoted["validation_refs"],
+                review_ref=promoted["review_ref"],
+            )
+        impact = event.get("impact_verification")
+        if impact is not None:
+            impact["attestation"] = signed_attestation(
+                "method_impact_review", actor="synthetic-method-reviewer",
+                key_env="FINANCIAL_METHOD_REVIEW_KEY",
+                provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+                issued_at=old_issued_at, approved=True,
+                knowledge_id=event["knowledge_id"],
+                target_change_revision=impact["target_change_revision"],
+                event_sha256=impact["reviewed_event_sha256"],
+                stage_evidence_refs=impact["stage_evidence_refs"],
+                verified_stages=impact["verified_stages"],
+            )
+    checked = validate_method_catalog(cat)
+    assert query_methods(checked, operational_only=True)[0]["knowledge_id"] == METHOD_ID
 
 
 def test_method_retirement_invalidates_prior_article_method_snapshot():
