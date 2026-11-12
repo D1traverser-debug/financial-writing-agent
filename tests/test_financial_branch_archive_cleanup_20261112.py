@@ -140,6 +140,10 @@ def test_branch_inventory_rejects_duplicate_or_invalid_metadata():
     with pytest.raises(ValueError):
         branch_rows([{"name":"main","commit":{"sha":"bad"}}])
     with pytest.raises(ValueError):
+        branch_rows([{"name":"main","commit":{"sha":"g"*40}}])
+    with pytest.raises(ValueError):
+        branch_rows([{"name":"main","commit":None}])
+    with pytest.raises(ValueError):
         branch_rows([
             {"name":"main","commit":{"sha":A}},
             {"name":"main","commit":{"sha":A}},
@@ -186,6 +190,16 @@ def test_plan_read_rejects_omitted_candidate_even_when_owner_recomputes_manifest
     from scripts.branch_archive_cleanup import write_json, read_plan
     write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
     with pytest.raises(ValueError, match="CANDIDATE_SET_INCOMPLETE_OR_MUTATED"):
+        read_plan(path, sha256(altered))
+
+
+def test_plan_read_rejects_non_main_protected_ref_and_noncanonical_merged_pr_order(tmp_path):
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    api, path, plan = make_plan(tmp_path)
+    altered = plan["manifest"]
+    altered["branches"][1]["protected"] = True
+    write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="NON_MAIN_PROTECTED"):
         read_plan(path, sha256(altered))
 
 
