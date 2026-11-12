@@ -20,6 +20,8 @@ Operations and business admission:
 - REVIEW_SYSTEM_IMPACT: reviews and closes evidence-bound feedback system impact, preserving immutable prior diagnosis.
 - observe_article: read-only, validates the actual article, returns stage, revision, digest and output metadata; does not infer independent quality.
 
+Before any current article advances through DELIVERY or FINAL_AUDIT, the same provider artifact_reader must retrieve each required DOCX binary at its article-scoped resource_ref. The port checks the Git Blob SHA, declared SHA-256, canonical file name, unique source path, ZIP/Word XML integrity and opening as a real Word document. This is binary existence and integrity only; per-page visual QA and independent editorial judgment have separate gates.
+
 Every mutation, including recovery and problem governance, requires a caller-supplied **externally authenticated authorization_verifier** returning exactly true, a trusted state reader returning actual raw Git blob content/state/hash, conditional/create-only CAS writer, and second independently fetched readback. Missing/denied permissions, stale SHA, mismatched blob, noncanonical path, missing stage artifact or unknown provider result are NOT a verified completion. Never blindly retry uncertain non-idempotent writes.
 
 Current-stage FAIL must persist a legal revision_target; illegal targets are rejected before CAS. Recovery uses the same canonical state and provider readback, with synthetic negative regression evidence.
