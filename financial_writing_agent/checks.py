@@ -171,7 +171,12 @@ def check_company_decision_utility(payload: Any, research: Any) -> list[str]:
     if decision_map is None:
         errors.append("multi-company MATERIAL research requires company_decision_map")
 
-    material_names = [company.name for company in material]
+    from .company_identity import canonical_company_name
+
+    material_names = [
+        canonical_company_name(getattr(company, "name", ""))
+        for company in material
+    ]
     blocks = list(getattr(payload, "blocks", []))
     paragraphs = [str(getattr(block, "text", "")) for block in blocks if getattr(block, "kind", None) in {"lead", "body"}]
     comparative = [
@@ -183,7 +188,8 @@ def check_company_decision_utility(payload: Any, research: Any) -> list[str]:
         errors.append("multi-company article lacks a named evidence-bounded comparative verdict paragraph")
 
     for paragraph in paragraphs:
-        if _GENERIC_DECISION_CONDITIONAL.search(paragraph) and not any(name in paragraph for name in material_names):
+        normalized_paragraph = canonical_company_name(paragraph)
+        if _GENERIC_DECISION_CONDITIONAL.search(paragraph) and not any(name in normalized_paragraph for name in material_names):
             errors.append("generic zero-information company-selection conditional must be replaced by named evidence-bounded comparison")
             break
     return errors
@@ -207,12 +213,18 @@ def check_deep_company_grounding(
     """
     if payload is None or research is None:
         return []
-    text = payload_text(payload)
+    from .company_identity import canonical_company_name
+
+    text = canonical_company_name(payload_text(payload))
     companies = list(getattr(research, "universe", []))
     material = [company for company in companies if getattr(company, "materiality", None) == "MATERIAL"]
+    material_names = [
+        canonical_company_name(getattr(company, "name", ""))
+        for company in material
+    ]
     errors: list[str] = []
     if require_complete_material_universe:
-        missing = [company.name for company in material if company.name not in text]
+        missing = [name for name in material_names if name and name not in text]
         errors.extend(
             f"FINANCE_DEEP omitted required full-universe MATERIAL company: {name}"
             for name in missing
@@ -234,10 +246,9 @@ def check_deep_company_grounding(
     if current_heading:
         sections.append((current_heading, "\n".join(current_parts)))
 
-    material_names = [company.name for company in material]
     for heading, body in sections:
         if _MONITOR_HEADING.search(heading) and material_names:
-            section_text = f"{heading}\n{body}"
+            section_text = canonical_company_name(f"{heading}\n{body}")
             if not any(name in section_text for name in material_names):
                 errors.append(f"monitoring/validation section is detached from the stock universe: {heading}")
     errors.extend(check_company_decision_utility(payload, research))
