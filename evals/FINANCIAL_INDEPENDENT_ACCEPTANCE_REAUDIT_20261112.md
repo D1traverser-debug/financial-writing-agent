@@ -6,7 +6,7 @@
 
 1. 2026-11-12 原生产 `main` 为 `72cf852746a54b5f116e41f96bb8ca54b5f6838c`；CI #43191897225 报告 374 passed，测试总行覆盖 87%（4989 语句中 667 未覆盖），并非 100%。红队脚本自己报告 `product_readiness=NOT_READY`、当前 v3 为 RESEARCH 且 0/4 真实 Word 出品。
 2. PR #66 已合并但没有独立 review 记录；单个维护者开发、设计模拟数据、运行测试、合并不能视为多主体独立验收。
-3. GitHub 现存 98 branches（含 main）、65 个 closed PR（57 merged，8 closed without merge），0 open PR（本轮整改候选尚未计入此基线）；PR 是永久审计历史，不应伪造删除。绝大多数历史 branch 既非唯一 main 又缺少回收标记。
+3. 当前 GitHub 实时清点为 99 branches（含 main）、66 个 closed PR（48 merged into main，18 closed without merge）和 1 个 open PR（#67）。98 个非 main ref 中，44 个 head SHA 能与 merged-to-main PR 精确匹配，54 个没有这种精确证据；后者不等于未合并，可能是 squash merge、直接提交、过期 ref 或重复 head。PR 历史不可删除或伪造。
 4. 当时 GitHub main `protected=false`，未设置 mandatory required checks；外部仓库管理权限不可通过 Financial 源码声明来获取。
 5. 当时当前账户没有独立 Financial ChatGPT 插件。现已创建私有 Financial Skill 插件 `plugins_6af591b19a708191a3879e94a7ce8742`，release `pluginrel_6af591b305e88191a537446ca98fb5d3`，并经插件文件读回验证。**未经过用户显式安装、新会话激活或真实 GitHub 读写验收；该插件不托管 Python/MCP 动作 API。**
 
@@ -47,10 +47,12 @@
 
 ## Candidate CI and repository hygiene update (latest exact PR head)
 
-Candidate PR #67 head `c72b45fa37922d3af9228125001755644064731e` ran the full CI successfully: **393 passed**, source-line coverage **87%** (5,049 statements, 673 missed). The job explicitly checked out and verified `git rev-parse HEAD == PR head SHA`, ran whole-tree byte/parse inventory, wheel/install, DOCX renders, real negative business replay, the system acceptance report, and a **read-only** live GitHub branch cleanup dry-run. The machine report remained `NOT_READY__REQUIRES_EXTERNAL_EVIDENCE` with all seven external gates open.
+Candidate PR #67 head `0705f1125c3ab2c384b72c4f2faed3304add7009` ran the full CI successfully: **428 passed**, source-line coverage **87%** (5,362 statements, 695 missed). The job explicitly checked out and verified `git rev-parse HEAD == PR head SHA`, ran whole-tree byte/parse inventory (328 tracked files; 111 Python AST and 58 JSON parsed; 40,205 decoded text lines; zero warnings/errors), wheel/install, DOCX renders, synthetic negative business replay, the system acceptance report, and a **read-only** live GitHub branch cleanup dry-run.
 
-The dry-run read **99 branch refs**, found one open PR, and classified 44 exact-head branches as having a merged-to-main PR eligible for archival *only after explicit authorization*. No branch was archived or deleted. All branches without an exact merged PR-to-main head SHA, protected branches, main, and open-PR heads are preserved. Historical PR records remain untouched.
+The machine report remained `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE` with all seven external gates open: original goal/semantic correction, legal article graph/recovery, method CRUD/impact, authenticated provider CAS, native client activation, independent external adversarial review, and main-branch hygiene. The current business replay still reports `product_readiness=NOT_READY`, article stage `RESEARCH`, **0/4 delivered outputs**, and **0 quality-evidence items**. Four Word product binaries and page renders were produced only from synthetic content; this is a renderer smoke test, not editorial acceptance.
+
+The dry-run read **99 branch refs** and found one open PR. The updated schema-4 manifest records all 98 non-main refs, all merged-to-main PR head evidence, and exact per-ref classification: 44 refs match a merged PR head SHA; 54 have no exact merged-PR head evidence. It does not label those 54 as unmerged or safe to discard. All 98 heads receive archive tags before any deletion. Pruning refs without exact merged-PR evidence now requires the explicit workflow input `confirm_unverified_branch_archive=true`, in addition to the separate archive/prune reviewer approvals. No branch or tag was archived or deleted by the candidate CI; the dry-run remains read-only. Historical PR records remain untouched.
 
 The real connected GitHub CAS probe succeeded on the candidate branch: valid write/readback, deliberately stale blob SHA rejected with HTTP 409, exact updated blob readback, and temporary file deletion verified by 404. This is evidence of repository file CAS only, not proof of authenticated original user-message access, real article-state provider, access revocation or native plugin activation.
 
-A prior intermediate candidate CI run exposed two errors in the new branch-archive regression tests; these were fixed before the current 393-pass exact-head CI. Do not quote the earlier cancelled/failing runs as passing.
+Earlier intermediate candidate runs exposed test failures while the new signature-history and branch-archive guards were being tightened. They were corrected before the 428-pass exact-head CI above. Do not quote earlier failed or cancelled runs as passing.
