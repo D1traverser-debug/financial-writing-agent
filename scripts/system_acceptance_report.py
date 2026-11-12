@@ -21,7 +21,15 @@ def main():
     parser.add_argument("--out", default="audit/financial_system_acceptance.json")
     parser.add_argument("--assert-not-prematurely-certified", action="store_true")
     arguments = parser.parse_args()
-    sha = os.environ.get("GITHUB_SHA") or "0" * 40
+    sha = (os.environ.get("FINANCIAL_SOURCE_HEAD_SHA")
+           or os.environ.get("GITHUB_SHA") or "0" * 40)
+    if os.environ.get("GITHUB_ACTIONS") == "true":
+        import subprocess
+        checked_out = subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], cwd=ROOT, text=True
+        ).strip()
+        if sha != checked_out:
+            raise SystemExit("FINANCIAL_SOURCE_HEAD_NOT_ACTUALLY_CHECKED_OUT")
     index = json.loads((ROOT / "evals/EVOLUTION_INDEX.json").read_text(encoding="utf-8"))
     qual = json.loads((ROOT / "evals/quality_regression.json").read_text(encoding="utf-8"))
     plugin = json.loads((ROOT / "config/CHATGPT_FINANCIAL_PLUGIN.json").read_text(encoding="utf-8"))
