@@ -513,6 +513,7 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
         _verify_render_inspection_receipt(
             evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
         )
+    if evidence.get("task_scope_binding") is not None:
         trace = evidence.get("claim_trace_binding")
         from .claim_trace import SOURCE_TRACE_ASSURANCE
 
