@@ -1,5 +1,6 @@
 import hashlib
 import json
+from uuid import uuid4
 from copy import deepcopy
 
 import pytest
@@ -17,6 +18,8 @@ from financial_writing_agent.private_research import (
     V1_0_REQUIRED_MODULES,
     validate_private_research_brief,
 )
+from financial_writing_agent.provider_attestation import payload_sha256
+from tests.trusted_provider_testkit import signed_attestation
 
 
 def _artifact(task_id: str, stage: str) -> dict:
@@ -134,6 +137,9 @@ def _blueprint(mode: str) -> dict:
     }
 
 
+EDITORIAL_ATTESTATIONS: dict[str, dict] = {}
+
+
 def _fitness(mode: str, status: str = "PASS") -> dict:
     gates = []
     for gate in (
@@ -149,14 +155,50 @@ def _fitness(mode: str, status: str = "PASS") -> dict:
                 "revision_actions": [] if status == "PASS" else ["rewrite affected span"],
             }
         )
-    return {
+    reviewer = "verified:synthetic-independent-editor"
+    author = "verified:synthetic-article-author"
+    execution_ref = "run://synthetic-editorial-" + uuid4().hex
+    reviewed_article_sha = hashlib.sha256(
+        b'{"stage": "DRAFT", "synthetic": true}'
+    ).hexdigest()
+    fitness = {
         "product_mode": mode,
         "gates": gates,
-        "originality_checks": [{"compared_source_ref": "source-1", "checked_phrase_or_passage": "candidate passage", "result": "NO_MATERIAL_OVERLAP", "notes": "checked"}],
-        "assurance": "CHAT_SELF_REVIEW",
+        "originality_checks": [{
+            "compared_source_ref": "source-1", "checked_phrase_or_passage": "candidate passage",
+            "result": "NO_MATERIAL_OVERLAP", "notes": "checked",
+        }],
+        "deterministic_findings": [],
+        "assurance": "INDEPENDENT_EXECUTOR",
         "final_status": status,
+        "audit_provenance": {
+            "assurance": "INDEPENDENT_EXECUTOR",
+            "reviewer_identity": reviewer, "author_identity": author,
+            "execution_ref": execution_ref,
+            "reviewed_article_sha256": reviewed_article_sha,
+            "provider_attestation_sha256": "0" * 64,
+        },
     }
-
+    review_body = {
+        "product_mode": fitness["product_mode"],
+        "assurance": fitness["assurance"],
+        "gates": fitness["gates"],
+        "originality_checks": fitness["originality_checks"],
+        "deterministic_findings": fitness["deterministic_findings"],
+        "final_status": fitness["final_status"],
+    }
+    attestation = signed_attestation(
+        "independent_editorial_review", actor=reviewer,
+        key_env="FINANCIAL_EDITORIAL_REVIEW_KEY",
+        provider_env="FINANCIAL_EDITORIAL_REVIEW_PROVIDER_ID",
+        approved=status == "PASS", task_id="synthetic-financial-loop",
+        product_mode=mode, author_identity=author, execution_ref=execution_ref,
+        reviewed_article_sha256=reviewed_article_sha,
+        review_sha256=payload_sha256(review_body), final_status=status,
+    )
+    fitness["audit_provenance"]["provider_attestation_sha256"] = payload_sha256(attestation)
+    EDITORIAL_ATTESTATIONS[execution_ref] = attestation
+    return fitness
 
 def _new_state(task_id: str = "admission-test") -> dict:
     return build_initial_state(task_id=task_id, prompt="写一篇行业财经文章", source_refs=[], executor_identity="test")
