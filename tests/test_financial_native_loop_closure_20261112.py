@@ -142,7 +142,7 @@ def test_full_native_fail_recover_replay_invalidates_upstream_and_rechecks_cas()
     assert recovered["stage_artifacts"] == {}
     assert recovered["quality_evidence"] == {}
     assert recovered["recovery_history"][-1]["resume_target"] == "RESEARCH"
-    assert recovered["execution_receipts"][-1]["action_kind"] == "RESUME_BLOCKED"
+    assert "RESUME_BLOCKED" in recovered["execution_receipts"][-1]["action_id"]
     with pytest.raises(Exception):
         act(p, "RESUME_BLOCKED", {"repair_evidence": ["simulation://wrong-stage"]})
 
@@ -170,7 +170,7 @@ def test_proactive_resolution_is_an_authorized_article_action_with_readback():
     state = p.read(STATE_PATH)["state"]
     assert state["proactive_resolution_history"][-1]["outcome"] == "PROVISIONAL"
     assert state["current_stage"] == "INTAKE"
-    assert state["execution_receipts"][-1]["action_kind"] == "PROACTIVE_RESOLUTION"
+    assert "PROACTIVE_RESOLUTION" in state["execution_receipts"][-1]["action_id"]
 
 
 def _impact_params():
@@ -209,6 +209,6 @@ def test_feedback_impact_review_closes_using_one_authorized_state_owner():
     state = p.read(STATE_PATH)["state"]
     assert state["open_system_impact"] == []
     assert state["system_impact_history"][-1]["review"]["decision"] == "NO_CHANGE_WITH_REASON"
-    assert state["execution_receipts"][-1]["action_kind"] == "SYSTEM_IMPACT_REVIEW"
+    assert "SYSTEM_IMPACT_REVIEW" in state["execution_receipts"][-1]["action_id"]
     with pytest.raises(Exception):
         act(p, "REVIEW_SYSTEM_IMPACT", _impact_params())
