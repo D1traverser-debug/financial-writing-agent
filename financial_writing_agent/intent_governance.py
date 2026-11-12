@@ -30,6 +30,59 @@ def _require(ok: bool, message: str) -> None:
         raise FinancialIntentEvidenceError("FINANCIAL_INTENT_" + message)
 
 
+def _verified_user_excerpt(
+    source_ref: str,
+    excerpt: str,
+    owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None,
+) -> dict[str, str]:
+    _require(callable(owner_instruction_reader), "AUTHENTICATED_MESSAGE_READER_REQUIRED")
+    try:
+        message = owner_instruction_reader(source_ref)
+    except Exception as exc:
+        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_SOURCE_READ_FAILED") from exc
+    _require(isinstance(message, Mapping), "SOURCE_UNAVAILABLE")
+    _require(message.get("source_ref") == source_ref, "SOURCE_IDENTITY_MISMATCH")
+    _require(message.get("source_role") == "user", "SOURCE_NOT_USER")
+    _require(isinstance(message.get("authenticated_actor"), str)
+             and bool(message["authenticated_actor"].strip()), "ACTOR_UNAUTHENTICATED")
+    content = message.get("text")
+    _require(isinstance(content, str) and bool(content), "SOURCE_TEXT_UNAVAILABLE")
+    sha = hashlib.sha256(content.encode("utf-8")).hexdigest()
+    _require(sha == message.get("sha256"), "SOURCE_HASH_MISMATCH")
+    _require(excerpt in content, "USER_EXCERPT_NOT_FOUND")
+    return {
+        "source_ref": source_ref,
+        "source_sha256": sha,
+        "excerpt_sha256": hashlib.sha256(excerpt.encode("utf-8")).hexdigest(),
+    }
+
+
+def verify_nonbinding_owner_intent(
+    intent: Mapping[str, Any] | None,
+    *,
+    owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None,
+) -> dict[str, Any]:
+    """Keep user ideas/issues visible without pretending they are hard requirements."""
+    _require(isinstance(intent, Mapping), "RECORD_REQUIRED")
+    _require(set(intent) == {
+        "intent", "source_ref", "verbatim_excerpt", "classification_reason",
+    }, "FIELDS_INVALID")
+    kind = intent.get("intent")
+    _require(kind in NONBINDING_KINDS, "NONBINDING_CLASSIFICATION_REQUIRED")
+    source_ref, excerpt = intent.get("source_ref"), intent.get("verbatim_excerpt")
+    _require(isinstance(source_ref, str) and bool(source_ref.strip()), "SOURCE_REF_REQUIRED")
+    _require(isinstance(excerpt, str) and bool(excerpt.strip()), "EXACT_EXCERPT_REQUIRED")
+    _require(isinstance(intent.get("classification_reason"), str)
+             and bool(intent["classification_reason"].strip()), "RATIONALE_REQUIRED")
+    evidence = _verified_user_excerpt(source_ref, excerpt, owner_instruction_reader)
+    return {
+        **evidence,
+        "verified": True,
+        "intent": kind,
+        "assurance": "PROVIDER_AUTHENTICATED_USER_MESSAGE__NONBINDING_INTENT_ONLY",
+    }
+
+
 def verify_requirement_change_intent(
     intent: Mapping[str, Any] | None,
     *,
@@ -68,26 +121,10 @@ def verify_requirement_change_intent(
                  "UPSERT_CLASSIFICATION_MISMATCH")
         _require(item.get("evidence_ref") == source_ref, "UPSERT_SOURCE_MISMATCH")
 
-    _require(callable(owner_instruction_reader), "AUTHENTICATED_MESSAGE_READER_REQUIRED")
-    try:
-        message = owner_instruction_reader(source_ref)
-    except Exception as exc:
-        raise FinancialIntentEvidenceError("FINANCIAL_INTENT_SOURCE_READ_FAILED") from exc
-    _require(isinstance(message, Mapping), "SOURCE_UNAVAILABLE")
-    _require(message.get("source_ref") == source_ref, "SOURCE_IDENTITY_MISMATCH")
-    _require(message.get("source_role") == "user", "SOURCE_NOT_USER")
-    _require(isinstance(message.get("authenticated_actor"), str)
-             and bool(message["authenticated_actor"].strip()), "ACTOR_UNAUTHENTICATED")
-    content = message.get("text")
-    _require(isinstance(content, str) and bool(content), "SOURCE_TEXT_UNAVAILABLE")
-    sha = hashlib.sha256(content.encode("utf-8")).hexdigest()
-    _require(sha == message.get("sha256"), "SOURCE_HASH_MISMATCH")
-    _require(excerpt in content, "USER_EXCERPT_NOT_FOUND")
+    evidence = _verified_user_excerpt(source_ref, excerpt, owner_instruction_reader)
     return {
+        **evidence,
         "verified": True,
         "intent": kind,
-        "source_ref": source_ref,
-        "source_sha256": sha,
-        "excerpt_sha256": hashlib.sha256(excerpt.encode("utf-8")).hexdigest(),
         "assurance": "PROVIDER_AUTHENTICATED_USER_MESSAGE_AND_EXACT_EXCERPT__SEMANTIC_INTENT_UNDER_REVIEW",
     }
