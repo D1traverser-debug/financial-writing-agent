@@ -30,6 +30,9 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "readback_blob_sha": "d"*40,
             "stale_conflict_status": 409,
             "plugin_id": "plugins_synthetic_financial",
+            "release_id": "pluginrel_synthetic_financial",
+            "fresh_chat_session_ref": "session://synthetic-fresh-chat",
+            "tool_invocation_ref": "tool://synthetic-financial-invocation",
             "after_branch_names": ["main"],
             "before_branch_count": 99,
             "archive_tag_count": 98,
@@ -213,6 +216,63 @@ def test_system_method_gate_accepts_durable_historical_nested_review_receipts():
         code_tests_passed=True,
     )
     assert gate not in result["open_gates"]
+
+
+def test_system_gate_proof_must_be_signed_for_the_configured_owner():
+    proofs = _proofs()
+    gate = "LEGAL_ARTICLE_GRAPH_AND_RECOVERY"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-attacker",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert result["gates"][gate]["reason"] == "SYSTEM_GATE_ACTOR_MUST_MATCH_OWNER"
+
+
+def test_method_gate_rejects_validly_signed_reviews_for_different_knowledge_items():
+    proofs = _proofs()
+    gate = "METHOD_KNOWLEDGE_CRUD_AND_IMPACT"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    challenge = dict(evidence["impact_challenge"])
+    challenge["knowledge_id"] = "METHOD-OTHER"
+    evidence["impact_challenge"] = challenge
+    evidence["impact_attestation"] = signed_method_impact(challenge)
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-financial-owner",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "METHOD_PROMOTION_IMPACT_KNOWLEDGE_ID_MISMATCH" in result["gates"][gate]["reason"]
+
+
+def test_release_gate_rejects_non_hex_head_and_boolean_ci_test_count():
+    with pytest.raises(ValueError, match="HEAD_SHA_REQUIRED"):
+        evaluate_system_acceptance(head_sha="z" * 40)
+    ci = signed_attestation(
+        "ci_run", actor="github-actions[bot]",
+        key_env="FINANCIAL_CI_ATTESTATION_KEY",
+        provider_env="FINANCIAL_CI_PROVIDER_ID",
+        target_head_sha=SHA, conclusion="success",
+        run_id="synthetic-run", workflow="financial-writing-agent-ci",
+        test_count=True, coverage_percent=87,
+    )
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=_proofs(), ci_attestation=ci,
+        code_tests_passed=True,
+    )
+    assert result["ci_attestation_verified"] is False
+    assert result["system_status"].startswith("NOT_READY")
 
 
 def test_owner_cannot_attest_the_independent_external_review_gate():
