@@ -241,6 +241,70 @@ def run() -> dict:
     except CanonicalDeliveryError as exc:
         observations["09_generic_word_without_binary"] = {"result": f"BLOCKED:{exc}"}
 
+
+    # The real v3 owner requires the *full retained* universe. The gate cannot
+    # establish whether the research provider silently omitted 171 names:
+    # it only checks internal consistency of whatever list it was handed.
+    from financial_writing_agent.document import ArticleDocument, Block
+    from financial_writing_agent.task_publication import (
+        TaskPublicationError, verify_task_publication_scope,
+    )
+    fake_research = SimpleNamespace(
+        universe=[
+            SimpleNamespace(name="甲公司", materiality="MATERIAL", value_chain_class="跨境卖家"),
+            SimpleNamespace(name="乙公司", materiality="MATERIAL", value_chain_class="跨境卖家"),
+            SimpleNamespace(name="丙公司", materiality="REFERENCE_ONLY", value_chain_class="营销"),
+        ],
+        company_decision_map=object(),
+        universe_coverage=SimpleNamespace(
+            status="COMPLETE",
+            classes=[
+                SimpleNamespace(included_companies=["甲公司", "乙公司"]),
+                SimpleNamespace(included_companies=["丙公司"]),
+            ],
+        ),
+    )
+    fake_article = ArticleDocument(
+        title="三家公司不能代表174家上市公司",
+        stock_names=["甲公司", "乙公司", "丙公司"],
+        blocks=[
+            Block(kind="h1", text="一、两种经营兑现"),
+            Block(kind="body", text="甲公司收入兑现强于乙公司；乙公司库存成本更高，现金回流更慢。"),
+            Block(kind="body", text="丙公司只是间接概念标签，缺乏直接营收兑现证据。"),
+        ],
+    )
+    try:
+        narrow = verify_task_publication_scope(state, fake_article, fake_research)
+        observations["10_three_company_universe_as_complete"] = {
+            "result": "STRUCTURAL_SCOPE_ACCEPTED",
+            "claimed_complete_count": narrow["company_names_checked"],
+            "historical_retained_universe_count": 174,
+            "verified_market_completeness": False,
+        }
+    except TaskPublicationError as exc:
+        observations["10_three_company_universe_as_complete"] = {"result": f"BLOCKED:{exc}"}
+
+    # Requirement-satisfaction evidence strings alone do not prove source
+    # availability or factual sufficiency. This remains protected by human and
+    # source checks outside this schema.
+    from financial_writing_agent.current_admission import _normalize_requirement_satisfaction
+    try:
+        satisfied = _normalize_requirement_satisfaction(
+            state, "RESEARCH", [{
+                "requirement_id": "full_universe_research_pool",
+                "result": "SATISFIED",
+                "evidence_refs": ["audit-example://nonexistent-company-universe"],
+                "notes": "no issuer research was actually read",
+            }],
+        )
+        observations["11_unsupported_task_satisfaction"] = {
+            "result": "STRUCTURAL_SATISFACTION_ACCEPTED",
+            "record_count": len(satisfied),
+            "provider_sources_verified": 0,
+        }
+    except ValueError as exc:
+        observations["11_unsupported_task_satisfaction"] = {"result": f"BLOCKED:{exc}"}
+
     return observations
 
 
