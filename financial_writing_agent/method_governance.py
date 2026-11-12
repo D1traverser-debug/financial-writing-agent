@@ -352,3 +352,87 @@ def mutate_method_catalog(
         "change_event_sha256": _digest(event),
         "promotion_review": promoted_proof,
     }
+
+
+def _effective_record_fingerprint(record: Mapping[str, Any]) -> str:
+    """Pending method edits do not mutate the currently effective method."""
+    return _digest({key: val for key, val in record.items()
+                    if key != "pending_revision"})
+
+
+def admitted_method_usage_snapshot(
+    catalog: Mapping[str, Any], method_ids: list[str],
+) -> dict[str, Any]:
+    """Bind exact active methods, not their descriptive legacy adoption labels."""
+    checked = validate_method_catalog(catalog)
+    _require(isinstance(method_ids, list) and len(method_ids) == len(set(method_ids)),
+             "USAGE_METHOD_IDS_INVALID")
+    actual: list[dict[str, Any]] = []
+    for method_id in sorted(method_ids):
+        records = query_methods(checked, knowledge_id=method_id)
+        _require(len(records) == 1, f"USAGE_METHOD_MISSING:{method_id}")
+        record = records[0]
+        _require(record["lifecycle_status"] == "ACTIVE",
+                 f"USAGE_METHOD_NOT_ADMITTED:{method_id}")
+        actual.append({
+            "knowledge_id": method_id,
+            "record_sha256": _effective_record_fingerprint(record),
+            "method_revision": record.get("method_revision"),
+        })
+    return {
+        "catalog_revision": checked.get("governance_revision", 0),
+        "methods": actual,
+        "assurance": "ACTIVE_METHOD_RECORD_READBACK__ARTICLE_OUTCOME_OPEN",
+    }
+
+
+def method_dependency_drift(
+    catalog: Mapping[str, Any], snapshot: Mapping[str, Any],
+) -> list[dict[str, Any]]:
+    """Find changed effective method dependencies; ignore unrelated proposals.
+
+    Drift must have an append-only change-event cause. A changed hash without
+    a corresponding event is a source-history conflict, not permission to
+    guess the next method or silently continue.
+    """
+    checked = validate_method_catalog(catalog)
+    _require(isinstance(snapshot, Mapping), "METHOD_SNAPSHOT_REQUIRED")
+    revision = snapshot.get("catalog_revision")
+    methods = snapshot.get("methods")
+    _require(type(revision) is int and 0 <= revision <= checked.get("governance_revision", 0),
+             "METHOD_SNAPSHOT_REVISION_INVALID")
+    _require(isinstance(methods, list), "METHOD_SNAPSHOT_METHODS_INVALID")
+    changes: list[dict[str, Any]] = []
+    for prior in methods:
+        _require(isinstance(prior, Mapping), "METHOD_SNAPSHOT_ITEM_INVALID")
+        name = prior.get("knowledge_id")
+        _require(isinstance(name, str) and bool(name), "METHOD_SNAPSHOT_ID_INVALID")
+        records = query_methods(checked, knowledge_id=name)
+        current = records[0] if len(records) == 1 else None
+        current_sha = _effective_record_fingerprint(current) if current else None
+        old_sha = prior.get("record_sha256")
+        _require(isinstance(old_sha, str) and len(old_sha) == 64,
+                 "METHOD_SNAPSHOT_HASH_INVALID")
+        if old_sha == current_sha:
+            continue
+        events = [
+            event for event in checked.get("change_history", [])
+            if event["revision"] > revision and event["knowledge_id"] == name
+            and event["operation"] not in {"REVISE", "DISCARD_PENDING", "VERIFY_IMPACT"}
+        ]
+        _require(bool(events), f"METHOD_DRIFT_WITHOUT_CHANGE_PROVENANCE:{name}")
+        affected = sorted(
+            {stage for event in events for stage in event["affected_stages"]},
+            key=lambda s: BUSINESS_STAGE_NAMES.index(s),
+        )
+        _require(bool(affected), "METHOD_DRIFT_WITHOUT_AFFECTED_STAGES")
+        changes.append({
+            "knowledge_id": name,
+            "prior_record_sha256": old_sha,
+            "current_record_sha256": current_sha,
+            "current_lifecycle_status": current.get("lifecycle_status") if current else None,
+            "change_revisions": [event["revision"] for event in events],
+            "affected_stages": affected,
+            "earliest_affected_stage": affected[0],
+        })
+    return changes
