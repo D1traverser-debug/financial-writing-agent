@@ -13,10 +13,12 @@ from __future__ import annotations
 import hashlib
 import json
 import re
+from io import BytesIO
+from zipfile import BadZipFile, ZipFile
 from copy import deepcopy
 from typing import Any, Callable, Mapping
 
-from . import current_admission
+from . import current_admission, owner_lifecycle, proactive_resolution
 from .path_identity import require_article_path, require_task_id
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
@@ -28,7 +30,10 @@ CONTRACT_VERSION = "1.0"
 STATE_ROOT = "workspaces/articles"
 _ACTION_ID = re.compile(r"[A-Za-z0-9_.:-]{1,180}\Z")
 _SHA = re.compile(r"[a-f0-9]{40}\Z")
-OPERATIONS = frozenset({"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"})
+OPERATIONS = frozenset({
+    "CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK",
+    "RESUME_BLOCKED", "RECORD_PROACTIVE_RESOLUTION", "REVIEW_SYSTEM_IMPACT",
+})
 CREATE_KEYS = frozenset({
     "prompt", "source_refs", "target_platforms", "distribution_mode",
     "distribution_mode_source", "distribution_mode_override_evidence",
@@ -41,6 +46,27 @@ STAGE_KEYS = frozenset({
     "publication_fitnesses", "requirement_satisfaction",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
+RECOVERY_KEYS = frozenset({"repair_evidence"})
+PROACTIVE_KEYS = frozenset({
+    "target", "attempted_sources", "evidence_refs", "outcome",
+    "candidate", "confidence", "contradictions_or_unknowns",
+    "validation_plan", "safe_to_continue",
+})
+IMPACT_KEYS = frozenset({
+    "signal_id", "problem_statement", "root_cause_layer", "generalization_scope",
+    "alternatives", "selected_mechanism", "selection_rationale", "authority_surface",
+    "regression_or_eval_plan", "evidence_refs", "decision", "decision_reason",
+    "maintenance_ref", "validation_refs", "assurance_ceiling", "remaining_open",
+})
+ACTION_PARAM_KEYS = {
+    "CREATE_ARTICLE": CREATE_KEYS,
+    "CHANGE_REQUIREMENTS": REQUIREMENT_KEYS,
+    "ADVANCE_STAGE": STAGE_KEYS,
+    "ATTACH_FEEDBACK": FEEDBACK_KEYS,
+    "RESUME_BLOCKED": RECOVERY_KEYS,
+    "RECORD_PROACTIVE_RESOLUTION": PROACTIVE_KEYS,
+    "REVIEW_SYSTEM_IMPACT": IMPACT_KEYS,
+}
 
 
 class FinancialAdmissionError(ValueError):
@@ -160,6 +186,64 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
             "retained_universe_reconciliation": reconciliation}
 
 
+def _verify_product_word_bytes(
+    candidate: Mapping[str, Any], reader: ArtifactReader | None,
+) -> dict[str, Any]:
+    """Read current-article DOCX bytes before DELIVERY and FINAL_AUDIT state writes.
+
+    This does not certify independent editorial judgment or replace the
+    separately required per-page visible delivery inspection.
+    """
+    _require(callable(reader), "FINANCIAL_WORD_BINARY_READER_REQUIRED")
+    outputs = candidate.get("delivery_artifacts", {})
+    _require(isinstance(outputs, Mapping) and bool(outputs),
+             "FINANCIAL_WORD_OUTPUT_MANIFEST_MISSING")
+    verified: list[dict[str, str]] = []
+    seen_refs: set[str] = set()
+    from docx import Document
+
+    for kind, meta in sorted(outputs.items()):
+        _require(isinstance(meta, Mapping), f"FINANCIAL_WORD_METADATA_INVALID:{kind}")
+        ref = meta.get("resource_ref")
+        try:
+            path = require_article_path(ref, candidate["task_id"])
+        except ValueError as exc:
+            raise FinancialAdmissionError(f"FINANCIAL_WORD_RESOURCE_REF_INVALID:{kind}") from exc
+        _require(path.rsplit("/", 1)[-1] == meta["file_name"],
+                 f"FINANCIAL_WORD_FILE_NAME_MISMATCH:{kind}")
+        _require(path not in seen_refs, f"FINANCIAL_WORD_RESOURCE_REUSED:{kind}")
+        seen_refs.add(path)
+        try:
+            observed = reader(path)
+        except Exception as exc:
+            raise FinancialEffectUnverified("FINANCIAL_WORD_PROVIDER_READ_FAILED") from exc
+        _require(isinstance(observed, Mapping), f"FINANCIAL_WORD_BINARY_MISSING:{kind}")
+        binary, claimed_sha = observed.get("content"), observed.get("blob_sha")
+        _require(isinstance(binary, bytes) and binary[:2] == b"PK",
+                 f"FINANCIAL_WORD_DOCX_BYTES_INVALID:{kind}")
+        _require(_blob_sha(binary) == claimed_sha,
+                 f"FINANCIAL_WORD_PROVIDER_BLOB_MISMATCH:{kind}")
+        _require(hashlib.sha256(binary).hexdigest() == str(meta["sha256"]).lower(),
+                 f"FINANCIAL_WORD_BINARY_SHA256_MISMATCH:{kind}")
+        try:
+            with ZipFile(BytesIO(binary)) as archive:
+                names = set(archive.namelist())
+                _require("word/document.xml" in names and "[Content_Types].xml" in names,
+                         f"FINANCIAL_WORD_DOCX_STRUCTURE_INVALID:{kind}")
+                _require(archive.testzip() is None, f"FINANCIAL_WORD_DOCX_CORRUPT:{kind}")
+            Document(BytesIO(binary))
+        except (BadZipFile, KeyError, ValueError, OSError) as exc:
+            raise FinancialAdmissionError(f"FINANCIAL_WORD_DOCX_OPEN_FAILED:{kind}") from exc
+        verified.append({
+            "kind": kind, "resource_ref": path,
+            "blob_sha": claimed_sha, "sha256": hashlib.sha256(binary).hexdigest(),
+        })
+    return {
+        "assurance": "CURRENT_ARTICLE_EXACT_DOCX_BYTES_ONLY__PAGE_AND_EDITORIAL_OPEN",
+        "verified_count": len(verified), "files": verified,
+    }
+
+
 def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
     """Read actual child-owned business state; never imply editorial acceptance."""
     path = _state_path(task_id)
@@ -168,11 +252,26 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
     state, sha = record
     _require(state["task_id"] == task_id, "FINANCIAL_ARTICLE_ID_MISMATCH")
     current_admission.validate_state(state)
+    authority = state["task_requirement_authority"]
+    open_impacts = [
+        {"signal_id": entry.get("signal_id"), "status": entry.get("status")}
+        for entry in state.get("open_system_impact", [])
+    ]
+    blocked_target = (
+        owner_lifecycle._blocking_recovery_cursor(state)
+        if state["status"] == "BLOCKED" else None
+    )
     return {
         "contract_version": CONTRACT_VERSION, "domain_id": DOMAIN_ID,
         "task_id": task_id, "state_ref": path, "state_blob_sha": sha,
         "stage": state["current_stage"], "business_status": state["status"],
-        "requirement_revision": state["task_requirement_authority"]["revision"],
+        "next_action": state["next_action"],
+        "blocked_recovery_target": blocked_target,
+        "open_system_impact": open_impacts,
+        "active_requirement_ids": sorted(
+            item["requirement_id"] for item in authority["active_requirements"]
+        ),
+        "requirement_revision": authority["revision"],
         "requirement_digest": state["task_requirement_digest"],
         "required_outputs": list(state["required_outputs"]),
         "recorded_outputs": sorted(state.get("delivery_artifacts", {})),
@@ -201,10 +300,7 @@ def _request(raw: Mapping[str, Any]) -> dict[str, Any]:
              "FINANCIAL_EXPECTED_STATE_BLOB_REQUIRED")
     params = r["parameters"]
     _require(isinstance(params, Mapping), "FINANCIAL_ACTION_PARAMETERS_INVALID")
-    allowed = (
-        CREATE_KEYS if op == "CREATE_ARTICLE" else REQUIREMENT_KEYS if op == "CHANGE_REQUIREMENTS"
-        else STAGE_KEYS if op == "ADVANCE_STAGE" else FEEDBACK_KEYS
-    )
+    allowed = ACTION_PARAM_KEYS[op]
     _require(set(params).issubset(allowed), "FINANCIAL_ACTION_PARAMETERS_SCOPE_EXCEEDED")
     return r
 
@@ -262,11 +358,26 @@ def admit_article_action(
             candidate = current_admission.advance_state(state, **call)
         elif op == "CHANGE_REQUIREMENTS":
             candidate = current_admission.apply_task_requirement_change(state, **call)
-        else:
+        elif op == "ATTACH_FEEDBACK":
             candidate = current_admission.attach_material_feedback(state, **call)
+        elif op == "RESUME_BLOCKED":
+            candidate = owner_lifecycle.resume_blocked_state(state, **call)
+        elif op == "RECORD_PROACTIVE_RESOLUTION":
+            candidate = proactive_resolution.record_proactive_resolution_state(state, **call)
+        elif op == "REVIEW_SYSTEM_IMPACT":
+            candidate = owner_lifecycle.review_system_impact_state(state, **call)
+        else:
+            raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
     current_admission.validate_state(candidate)
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    word_bytes = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
+        "DELIVERY", "FINAL_AUDIT",
+    }:
+        word_bytes = _verify_product_word_bytes(candidate, artifact_reader)
+        candidate["execution_receipts"][-1]["input_bindings"]["product_word_binary_readback"] = word_bytes
+        current_admission.validate_state(candidate)
     research_sources = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "RESEARCH":
         try:
@@ -318,6 +429,7 @@ def admit_article_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
+        "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
         "independent_editorial_review_readback": independent_editorial_proof,
         "child_state_cas_verified": True,

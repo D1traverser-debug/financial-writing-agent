@@ -575,6 +575,12 @@ def advance_state(
     validate_state(state)
     working = deepcopy(dict(state))
     stage = str(state["current_stage"])
+    if stage in owner_guard.REVIEW_STAGE_NAMES and kwargs.get("review_status") == "FAIL":
+        allowed_targets = owner_guard._revision_target_names(stage)
+        _require(
+            kwargs.get("revision_target") in allowed_targets,
+            f"FAIL revision_target must be one of {sorted(allowed_targets)}",
+        )
     quality = working.setdefault("quality_evidence", {})
     evidence_bindings: dict[str, Any] = {}
 
