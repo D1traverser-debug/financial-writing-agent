@@ -66,12 +66,29 @@ def _delivery_evidence(kind, digest, *, source_quality_evidence_sha256=None):
     if source_quality_evidence_sha256 is not None:
         payload["source_quality_evidence_sha256"] = source_quality_evidence_sha256
     build = delivery_pipeline._issue_build_receipt(payload)
+    render_body = {
+        "render_receipt_version": delivery_pipeline.RENDER_INSPECTION_RECEIPT_VERSION,
+        "artifact_sha256": digest,
+        "rendered_pdf_sha256": hashlib.sha256(b"%PDF synthetic fixture").hexdigest(),
+        "rendered_page_count": 1,
+        "pages": [{
+            "page_index": 1, "page_sha256": "d" * 64,
+            "pixel_width": 1200, "pixel_height": 1600,
+            "review_status": "PASS", "review_ref": "synthetic://page-review/1",
+        }],
+        "review_assurance": "CALLER_SUPPLIED_REVIEW__INDEPENDENCE_NOT_ESTABLISHED",
+    }
+    render_receipt = {
+        **render_body,
+        "session_attestation": delivery_pipeline._issuer_sign(render_body),
+    }
     return finalize_delivery_evidence(
         build,
         source_ref=f"workspaces/articles/availability-task/source/{kind}.json",
         source_identity=f"git-blob:{kind.lower()}",
         render_qa="PASS",
         visual_qa="PASS",
+        render_inspection_receipt=render_receipt,
     )
 
 
