@@ -8,7 +8,7 @@ import time
 import pytest
 
 from financial_writing_agent.method_governance import (
-    MethodGovernanceError, mutate_method_catalog, query_methods,
+    MethodGovernanceError, _digest, mutate_method_catalog, query_methods,
     validate_method_catalog,
 )
 from financial_writing_agent.provider_attestation import request_sha256
@@ -352,6 +352,8 @@ def test_historical_method_action_promotion_and_impact_receipts_remain_readable_
             promoted["attestation_signature"] = promoted["attestation"]["signature"]
         impact = event.get("impact_verification")
         if impact is not None:
+            target = cat["change_history"][impact["target_change_revision"] - 1]
+            impact["reviewed_event_sha256"] = _digest(target)
             impact["attestation"] = signed_attestation(
                 "method_impact_review", actor="synthetic-method-reviewer",
                 key_env="FINANCIAL_METHOD_REVIEW_KEY",
