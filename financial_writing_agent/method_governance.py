@@ -185,6 +185,7 @@ def mutate_method_catalog(
         _require(position is not None, "NOT_FOUND")
         after = deepcopy(before)
         _require(current_status in METHOD_STATUSES, "CURRENT_STATUS_INVALID")
+        after.setdefault("lifecycle_status", current_status)
         if operation == "REVISE":
             _require(current_status != "RETIRED", "RETIRED_CANNOT_REVISE")
             _require(after.get("pending_revision") is None,
