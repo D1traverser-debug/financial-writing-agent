@@ -51,7 +51,10 @@ def _read_verified_user_message(
     _require(isinstance(content, str) and bool(content), "SOURCE_TEXT_UNAVAILABLE")
     sha = hashlib.sha256(content.encode("utf-8")).hexdigest()
     _require(sha == message.get("sha256"), "SOURCE_HASH_MISMATCH")
-    _require(excerpt in content, "USER_EXCERPT_NOT_FOUND")
+    # Do not accept selective quotations: a substring can silently drop
+    # negation, scope, exceptions or a later correction. The only admissible
+    # source excerpt is the complete authenticated user message.
+    _require(excerpt == content, "USER_EXCERPT_MUST_EQUAL_COMPLETE_MESSAGE")
     return {
         "source_ref": source_ref,
         "source_sha256": sha,
@@ -141,15 +144,14 @@ def verify_requirement_change_intent(
     evidence, original_user_text = _read_verified_user_message(
         source_ref, excerpt, owner_instruction_reader,
     )
-    # A reviewer is necessary, not a license for the model to invent new claims.
-    # Require the effective instruction to exist verbatim in the authenticated
-    # message; paraphrased owner intent must first be explicitly confirmed by
-    # the owner as a new, anchored instruction.
+    # Preserve the complete user utterance as the requirement payload. Do not
+    # let an LLM turn one sentence fragment into an apparently explicit rule:
+    # even a genuine substring may omit a preceding "not" or a later exception.
+    # Fine-grained paraphrases require a separate, explicit owner-authored turn.
     for item in upserted:
         _require(isinstance(item.get("statement"), str)
-                 and bool(item["statement"].strip())
-                 and item["statement"] in original_user_text,
-                 "SEMANTIC_NEW_REQUIREMENT_NOT_ANCHORED_IN_OWNER_TEXT")
+                 and item["statement"] == original_user_text,
+                 "SEMANTIC_REQUIREMENT_MUST_EQUAL_COMPLETE_OWNER_MESSAGE")
     old = {
         str(item.get("requirement_id")): deepcopy(dict(item))
         for item in (existing_requirements or [])
