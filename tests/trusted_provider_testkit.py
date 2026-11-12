@@ -11,10 +11,14 @@ from uuid import uuid4
 from financial_writing_agent.provider_attestation import AUDIENCE, request_sha256
 
 
-def signed_attestation(attestation_type: str, *, actor: str | None = None, **claims):
+def signed_attestation(
+    attestation_type: str, *, actor: str | None = None,
+    key_env: str = "FINANCIAL_PROVIDER_ATTESTATION_KEY",
+    provider_env: str = "FINANCIAL_TRUSTED_PROVIDER_ID", **claims,
+):
     record = {
         "attestation_type": attestation_type,
-        "provider_id": os.environ["FINANCIAL_TRUSTED_PROVIDER_ID"],
+        "provider_id": os.environ[provider_env],
         "audience": AUDIENCE,
         "authenticated_actor": actor or os.environ["FINANCIAL_OWNER_PRINCIPAL"],
         "issued_at": int(time.time()),
