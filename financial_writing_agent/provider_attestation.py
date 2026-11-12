@@ -178,6 +178,7 @@ def verify_method_action_authorization(
             "action_id": request["action_id"],
             "domain_id": request["domain_id"],
             "operation": request["operation"],
+            "knowledge_id": request["parameters"]["knowledge_id"],
             "expected_catalog_blob_sha": request["expected_catalog_blob_sha"],
             "request_sha256": request_sha256(request),
         },
