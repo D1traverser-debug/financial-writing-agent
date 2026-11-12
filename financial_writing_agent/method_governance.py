@@ -256,6 +256,7 @@ def mutate_method_catalog(
     impact_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     authorization_evidence: Mapping[str, Any] | None = None,
     action_request: Mapping[str, Any] | None = None,
+    observed_catalog_blob_sha: str | None = None,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     checked = validate_method_catalog(raw)
     _require(operation in METHOD_ACTIONS, "ACTION_UNSUPPORTED")
@@ -276,6 +277,8 @@ def mutate_method_catalog(
     _require(isinstance(action_request.get("expected_catalog_blob_sha"), str)
              and re.fullmatch(r"[a-f0-9]{40}", action_request["expected_catalog_blob_sha"]) is not None,
              "ACTION_REQUEST_CATALOG_SHA_INVALID")
+    _require(observed_catalog_blob_sha == action_request["expected_catalog_blob_sha"],
+             "ACTION_REQUEST_PRIOR_CATALOG_SHA_NOT_CURRENT")
     _require(isinstance(authorization_evidence, Mapping), "ACTION_AUTHORIZATION_ATTESTATION_REQUIRED")
     try:
         verify_method_action_authorization(authorization_evidence, request=action_request)
