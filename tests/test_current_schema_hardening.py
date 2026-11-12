@@ -5,6 +5,7 @@ from financial_writing_agent.checks import analyze_template_scaffolding, check_d
 from financial_writing_agent.schemas import (
     ArticlePayload,
     CompanyFinding,
+    CompanyDecisionMap,
     EvidenceItem,
     HeadlineCandidate,
     HeadlinePackage,
@@ -220,6 +221,50 @@ def test_universe_reconciliation_and_source_diversity_fail_closed():
     kwargs = _base_research_kwargs()
     kwargs["universe_coverage"] = _universe_coverage(["测试股份"], recall_sources=["同一来源"])
     with pytest.raises(ValidationError):
+        ResearchPackage(**kwargs)
+
+
+def test_company_identity_normalization_is_consistent_across_research_and_decision_maps():
+    kwargs = _base_research_kwargs(names=["生 意 宝", "焦点科技"])
+    kwargs["universe_coverage"] = _universe_coverage(["生意宝", "焦点科技"])
+    kwargs["company_decision_map"] = {
+        "material_companies": ["生 意 宝", "焦点科技"],
+        "dimensions": [
+            {
+                "dimension": "收入兑现",
+                "company_assessments": {
+                    "生 意 宝": "交易服务收入已形成",
+                    "焦点科技": "平台服务收入持续增长",
+                },
+                "evidence_refs": ["issuer://company-comparison"],
+                "why_it_changes_judgment": "区分业务收入兑现",
+            },
+            {
+                "dimension": "利润质量",
+                "company_assessments": {
+                    "生意宝": "成本较高",
+                    "焦点科技": "利润率更稳定",
+                },
+                "evidence_refs": ["issuer://profit-comparison"],
+                "why_it_changes_judgment": "区分利润转化能力",
+            },
+        ],
+        "current_comparative_verdict": "焦点科技的利润兑现更稳定",
+        "strongest_current_evidence_for": ["两家公司的收入与利润披露"],
+        "change_conditions": ["后续订单与利润率变化"],
+        "non_actionable_boundary": "仅作财经信息比较",
+    }
+    parsed = ResearchPackage(**kwargs)
+    assert parsed.universe[0].name == "生意宝"
+    assert parsed.universe_coverage.classes[0].included_companies == ["生意宝", "焦点科技"]
+    assert parsed.company_decision_map.material_companies == ["生意宝", "焦点科技"]
+    assert set(parsed.company_decision_map.dimensions[0].company_assessments) == {"生意宝", "焦点科技"}
+
+
+def test_company_identity_normalization_rejects_duplicate_spaced_aliases():
+    kwargs = _base_research_kwargs(names=["生 意 宝", "生意宝"])
+    kwargs["universe_coverage"] = _universe_coverage(["生意宝"])
+    with pytest.raises(ValidationError, match="duplicate"):
         ResearchPackage(**kwargs)
 
 
