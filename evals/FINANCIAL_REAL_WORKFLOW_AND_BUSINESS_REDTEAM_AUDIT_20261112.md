@@ -115,6 +115,14 @@
 
 历史 `stages/DRAFT_V2_20261016.md` 将欧盟 11 月 1 日小包处理费写为“当时尚未定价的未来事项”，符合**旧文时间标签**；2026-11-12 再执行，必须主动核实 11/1 后实施状态及费率，而不能把相对时间原样继承。外部政策参考：欧盟/成员国后续公告与中国商务部当期信息；用户可见审计解释已提供政策变更来源。
 
+**2026-11-12 外部官源核验：** 欧盟理事会的当期政策页已列出“2026-11-01 起 €2/类商品处理费”，爱尔兰税务局 2026-09-29 公告及 11 月运行说明明确 €2/不同商品并与 2026-07-01 起的 €3 临时关税分别计算；荷兰海关页面标注 2026-11-02 更新，明确 €2/申报行。不可将更早欧委会六月说明中的“金额与日期待定”当作11月现行事实。对实际适用范围仍须按进口场景和生效法律文本复核。
+
+- EU Council current customs overview: https://www.consilium.europa.eu/en/policies/eu-action-influx-of-small-parcels/
+- Irish Revenue 2026-09-29 notice: https://www.revenue.ie/en/corporate/press-office/press-releases/2026/pr-092926-handling-fee.aspx
+- Irish Revenue November policy: https://www.revenue.ie/en/customs/individuals/union-handling-fee/index.aspx
+- Dutch Customs (last updated 2026-11-02): https://www.douane.nl/en/themes/import-and-export/import/e-commerce/handling-fee-for-e-commerce/
+- Historical EU June Commission page (now stale on handling fee): https://taxation-customs.ec.europa.eu/news/guidance-and-legal-text-temporary-flat-fee-low-value-imports-which-will-apply-until-1-july-2028-2026-06-08_en
+
 **风险不在历史文本存档，而在**：下游 `validate_private_research_brief` 仍接受其 `COMPLETE` 结构且无法判断“旧证据对今天的发布是否仍有效”。若文章为 2026-10-16 历史回顾，时间冻结可以保留，但出版时应明确历史口径；若为 2026-11-12 当期稿，政策/个股核心数据必须刷新。
 
 ## 7. 当前验收声明
