@@ -411,7 +411,7 @@ def test_native_client_gate_requires_exact_manifest_plugin_and_release(field, wr
         ("main_protected", False, "MAIN_BRANCH_NOT_PROTECTED"),
         ("main_force_push_disabled", False, "MAIN_FORCE_PUSH_NOT_DISABLED"),
         ("main_deletion_disabled", False, "MAIN_DELETION_NOT_DISABLED"),
-        ("required_status_checks", [], "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_status_checks", ["other-check"], "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
         ("archive_tags_verified", False, "ARCHIVE_TAG_READBACK_NOT_VERIFIED"),
     ],
 )
