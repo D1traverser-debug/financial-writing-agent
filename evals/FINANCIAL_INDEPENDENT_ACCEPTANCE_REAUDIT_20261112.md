@@ -159,3 +159,9 @@ The immediately preceding failed CI (run `43403116634`) had 511 passing tests an
 **Data privacy blocker:** GitHub reports this repository as public, while its tree contains private article/research artifacts, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. Do not write additional private article/research data here until the owner explicitly chooses whole-repository private visibility or a private data-repository split with public-history cleanup. No visibility change, migration, deletion, branch prune or production merge was performed.
 
 All seven external system gates remain OPEN. The real cross-border article remains at RESEARCH with 0/4 real delivery artifacts. Engineering CI, synthetic document rendering and this audit do not certify factual finance research, independent editorial/reader quality, user-visible product activation or system completion. No CAOS repository, code, PR, settings, assets or runtime was modified.
+
+## Owner decision on repository visibility (2026-11-13)
+
+The owner explicitly stated that public/private visibility is not a concern and that execution results are the priority. The existing public repository visibility is therefore **owner-accepted and non-blocking** for this Financial system reconstruction. No repository visibility change, private-repository migration or public-history rewrite is required. Do not ask the owner to make this choice again or let it block engineering progress.
+
+This decision does not close the separate live system gates for authenticated user-message authority, provider CAS, Article Graph recovery, method-impact readback, native Skill/plugin activation, independent external review or protected-main/archive controls. Those remain separately evidenced and must not be fabricated from CI results.
