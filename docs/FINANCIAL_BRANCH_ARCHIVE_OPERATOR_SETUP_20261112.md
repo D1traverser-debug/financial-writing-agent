@@ -40,6 +40,7 @@ In repository Settings → Branches, add a branch protection rule for exactly ma
 - Require at least one approving review.
 - Dismiss stale approvals when new commits are pushed.
 - Require approval of the latest reviewable push.
+- Enforce the protection rule for administrators (no admin bypass).
 - Require the exact Financial CI status check context `test`.
 - Block force pushes and branch deletion.
 - Ensure the API reports `main.protected = true`.
@@ -239,6 +240,7 @@ Do not publish a plugin release ahead of main. After PR #67 is independently rev
 The archive script's schema-5 plan reads `GET /branches/main/protection` and rejects the plan unless the actual protection response proves all of the following:
 
 - `required_pull_request_reviews` exists and `required_approving_review_count >= 1`, `dismiss_stale_reviews = true`, and `require_last_push_approval = true`;
+- `enforce_admins.enabled = true`, so repository administrators cannot bypass the main protection rule;
 - `required_status_checks` includes the exact Financial CI context `test` (from either contexts or checks);
 - `allow_force_pushes.enabled = false`;
 - `allow_deletions.enabled = false`.
