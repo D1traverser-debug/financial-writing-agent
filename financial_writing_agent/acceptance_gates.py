@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 from typing import Any, Mapping
+import hashlib
 import json
 import os
 from pathlib import Path
@@ -12,6 +13,7 @@ from .provider_attestation import (
     expected_owner_principal,
     payload_sha256,
     verify_provider_attestation,
+    verify_owner_message,
     verify_owner_change_approval,
     verify_persisted_method_promotion_attestation,
     verify_persisted_method_impact_attestation,
@@ -48,8 +50,9 @@ def _configured_financial_plugin_identity() -> tuple[str, str]:
 
 REQUIRED_GATE_EVIDENCE = {
     "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION": (
-        "source_ref", "source_sha256", "change_sha256",
-        "owner_confirmation_ref", "owner_confirmation_attestation", "owner_principal",
+        "source_ref", "source_sha256", "owner_message_attestation",
+        "change_sha256", "owner_confirmation_ref",
+        "owner_confirmation_attestation", "owner_principal",
     ),
     "LEGAL_ARTICLE_GRAPH_AND_RECOVERY": (
         "task_id", "previous_state_blob_sha", "resulting_state_blob_sha",
@@ -116,6 +119,9 @@ def _validate_gate_evidence(
         require(owner_principal is not None
                 and evidence.get("owner_principal") == owner_principal,
                 "OWNER_PRINCIPAL_MISMATCH")
+        source_ref = evidence.get("source_ref")
+        require(isinstance(source_ref, str) and bool(source_ref.strip()),
+                "OWNER_SOURCE_REF_INVALID")
         source_sha = evidence.get("source_sha256")
         change_sha = evidence.get("change_sha256")
         require(isinstance(source_sha, str)
@@ -124,6 +130,21 @@ def _validate_gate_evidence(
         require(isinstance(change_sha, str)
                 and re.fullmatch(r"[a-f0-9]{64}", change_sha) is not None,
                 "OWNER_CHANGE_SHA_INVALID")
+        message_attestation = evidence.get("owner_message_attestation")
+        require(isinstance(message_attestation, Mapping),
+                "OWNER_MESSAGE_ATTESTATION_MISSING")
+        try:
+            verified_message = verify_owner_message(
+                message_attestation, source_ref=source_ref,
+            )
+        except (FinancialProviderAttestationError, KeyError, TypeError, ValueError) as exc:
+            raise FinancialProviderAttestationError(
+                "OWNER_MESSAGE_ATTESTATION_INVALID:" + str(exc)
+            ) from exc
+        require(
+            hashlib.sha256(verified_message["text"].encode("utf-8")).hexdigest() == source_sha,
+            "OWNER_SOURCE_SHA_MISMATCH",
+        )
         approval = evidence.get("owner_confirmation_attestation")
         require(isinstance(approval, Mapping), "OWNER_CHANGE_ATTESTATION_MISSING")
         try:
