@@ -85,8 +85,8 @@ New negative cases cover missing or mismatched original-message attestation, wro
 The repair remains Financial-only. No real article, current article STATE.json, CAOS repository, CAOS PR, plugin setting or user private source was changed by these acceptance-gate corrections.
 
 
-## Archive workflow execution-path correction (2026-11-13)
+## Archive workflow output-trace correction (2026-11-13)
 
-The branch archive PLAN job previously declared a downstream `manifest_sha256` output but did not write that value to `$GITHUB_OUTPUT`. The ARCHIVE job therefore received an empty approval digest and would fail closed before creating archive tags. The PLAN step now reads the generated manifest JSON, validates a 64-character lowercase SHA-256, and exports it as the declared step output. A regression test reads the workflow and verifies the output wiring and downstream reference.
+A follow-up source-to-workflow trace corrected an earlier false-positive diagnosis. The PLAN script `scripts/branch_archive_cleanup.py` already writes its computed `manifest_sha256` to `GITHUB_OUTPUT`; the workflow's `steps.plan.outputs.manifest_sha256` and downstream `needs.plan.outputs.manifest_sha256` bindings were already wired. The added inline YAML echo was redundant and has been removed. The regression test now verifies the actual source writer, the workflow step output declaration, and the downstream consumer together.
 
-This is only workflow wiring and synthetic regression evidence. The live workflow has not been dispatched: main protection, rulesets, GitHub App credentials and separately approved archive/prune Environments remain unconfigured. No branch or tag was mutated.
+This correction does **not** claim a live archive workflow repair or execution. The live workflow has not been dispatched: main protection, rulesets, GitHub App credentials and separately approved archive/prune Environments remain unconfigured. No branch or tag was mutated.
