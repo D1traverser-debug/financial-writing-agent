@@ -21,7 +21,8 @@ from test_financial_native_loop_closure_20261112 import (
 )
 from financial_writing_agent.delivery_pipeline import (
     build_verified_article_docx, build_verified_audit_docx,
-    build_verified_interaction_pack_docx, finalize_delivery_evidence,
+    build_verified_interaction_pack_docx, build_verified_private_research_docx,
+    finalize_delivery_evidence,
     render_word_and_review_pages,
 )
 from financial_writing_agent.document import ArticleDocument, AuditLine, Block
@@ -136,6 +137,19 @@ def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
             "independent_rewrite_from_long_form": True,
         })
         build = build_verified_interaction_pack_docx(pack, output)
+    elif kind == "PRIVATE_RESEARCH_DOCX":
+        source_state = task_state or p.read(STATE_PATH)["state"]
+        build = build_verified_private_research_docx(
+            title="合成私有研究补充",
+            blocks=[
+                Block(kind="h1", text="合成研究补充"),
+                Block(kind="body", text="仅用于验证私有研究补充文件的交付闭环，不含真实金融结论。"),
+            ],
+            stock_names=[],
+            output=output,
+            admitted_private_research_brief=source_state["quality_evidence"]["private_research_brief"],
+            required_bold_anchors=["合成研究补充"],
+        )
     elif kind == "AUDIT_DOCX":
         build = build_verified_audit_docx(
             title="合成流程验收记录",
@@ -152,15 +166,13 @@ def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
             "status": "PASS", "review_ref": f"synthetic://visual/{kind}/{event['page_index']}",
         },
     )
-    if task_state is not None:
-        draft = task_state["stage_artifacts"]["DRAFT"]
-        source_ref = draft["path"]
-        source_identity = f"git-blob:{draft['blob_sha']}"
+    source_state = task_state or p.read(STATE_PATH)["state"]
+    if kind == "PRIVATE_RESEARCH_DOCX":
+        source_artifact = source_state["stage_artifacts"]["RESEARCH"]
     else:
-        state = p.read(STATE_PATH)["state"]
-        draft = state["stage_artifacts"]["DRAFT"]
-        source_ref = draft["path"]
-        source_identity = f"git-blob:{draft['blob_sha']}"
+        source_artifact = source_state["stage_artifacts"]["DRAFT"]
+    source_ref = source_artifact["path"]
+    source_identity = f"git-blob:{source_artifact['blob_sha']}"
     finalized = finalize_delivery_evidence(
         build, source_ref=source_ref, source_identity=source_identity,
         render_qa="PASS", visual_qa="PASS", render_inspection_receipt=render,
@@ -168,13 +180,20 @@ def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
     resource_ref = f"workspaces/articles/{TASK}/delivery/{kind.lower()}.docx"
     binary = output.read_bytes()
     p.artifacts[resource_ref] = binary
-    return {
+    resource = {
         "kind": kind,
         "file_name": output.name,
         "sha256": hashlib.sha256(binary).hexdigest(),
         "resource_ref": resource_ref,
         **finalized,
     }
+    if kind == "PRIVATE_RESEARCH_DOCX":
+        resource.update({
+            "regenerated_from_durable_source": True,
+            "source_ref": source_ref,
+            "source_identity": source_identity,
+        })
+    return resource
 
 
 def test_full_ten_stage_admission_rejects_nonexistent_deliverables_before_terminal_state():
@@ -213,14 +232,18 @@ def test_entire_ten_stage_graph_with_canonical_rendered_delivery_evidence_and_bo
     })
     assert mechanical["stage"] == "FINAL_AUDIT"
     audit_meta = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
     final = act(p, "ADVANCE_STAGE", {
         **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
         "audit_artifact": audit_meta,
+        "supplemental_delivery_artifacts": [private_meta],
     })
     assert final["product_word_binary_readback"]["verified_count"] == 4
     state = p.read(STATE_PATH)["state"]
     assert state["status"] == "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
     assert set(state["delivery_artifacts"]) == set(state["required_outputs"])
+    assert final["visible_delivery_receipt"]["status"] == "VISIBLE_DELIVERY_READY"
+    assert "PRIVATE_RESEARCH_DOCX" in final["visible_delivery_receipt"]["required_outputs"]
     assert final["independent_editorial_quality_verified"] is False
     assert final["owner_outcome_verified"] is False
     assert len([r for r in state["execution_receipts"] if "TRANSITION" in r["action_id"]]) == 10
@@ -292,11 +315,63 @@ def test_final_audit_rereads_all_existing_docx_before_marking_state_terminal(tmp
     assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
     p.artifacts[outputs[0]["resource_ref"]] = b"PKtampered-after-delivery"
     audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
     frozen = deepcopy(p.states)
     with pytest.raises(Exception, match="FINANCIAL_WORD"):
         act(p, "ADVANCE_STAGE", {
             **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
             "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
         })
     assert p.states == frozen
     assert p.read(STATE_PATH)["state"]["status"] == "IN_PROGRESS"
+
+
+def test_final_audit_cannot_commit_without_required_private_research_supplement(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="FINANCIAL_VISIBLE_DELIVERY_NOT_READY"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
+
+
+def test_final_audit_rejects_private_research_supplement_with_wrong_source_identity(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    private_meta["source_identity"] = "git-blob:" + "0" * 40
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="PRIVATE_RESEARCH_SOURCE_IDENTITY_MISMATCH"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
