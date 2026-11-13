@@ -154,6 +154,10 @@ class GitHubAPI:
         approvals = reviews.get("required_approving_review_count")
         if type(approvals) is not int or approvals < 1:
             raise ValueError("MAIN_INDEPENDENT_APPROVAL_REQUIRED")
+        if reviews.get("dismiss_stale_reviews") is not True:
+            raise ValueError("MAIN_STALE_REVIEWS_NOT_DISMISSED")
+        if reviews.get("require_last_push_approval") is not True:
+            raise ValueError("MAIN_LAST_PUSH_APPROVAL_REQUIRED")
 
         force_pushes = raw.get("allow_force_pushes")
         if not isinstance(force_pushes, dict) or force_pushes.get("enabled") is not False:
@@ -165,6 +169,8 @@ class GitHubAPI:
         return {
             "pull_requests_required": True,
             "required_approving_review_count": approvals,
+            "dismiss_stale_reviews": True,
+            "require_last_push_approval": True,
             "required_status_checks": sorted(contexts),
             "force_pushes_enabled": False,
             "deletions_enabled": False,
@@ -390,6 +396,8 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         or protection.get("pull_requests_required") is not True
         or type(protection.get("required_approving_review_count")) is not int
         or protection["required_approving_review_count"] < 1
+        or protection.get("dismiss_stale_reviews") is not True
+        or protection.get("require_last_push_approval") is not True
         or not isinstance(protection.get("required_status_checks"), list)
         or "test" not in protection["required_status_checks"]
         or protection.get("force_pushes_enabled") is not False
