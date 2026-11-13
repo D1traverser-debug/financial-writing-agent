@@ -85,5 +85,5 @@ def test_non_revision_stages_cannot_be_used_as_invalidation_roots(target):
 
 
 def test_unknown_revision_stage_name_is_rejected_before_invalidation():
-    with pytest.raises(ValueError, match="unknown revision target"):
+    with pytest.raises(ValueError, match="unknown revision invalidation target"):
         invalidated_stage_names_from("NOT_A_STAGE")
