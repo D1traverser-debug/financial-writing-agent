@@ -10,7 +10,10 @@ from financial_writing_agent.current_admission import (
     requirement_context_for_scope,
     validate_state,
 )
-from financial_writing_agent.task_requirements import REQUIREMENT_CONTRACT_VERSION
+from financial_writing_agent.task_requirements import (
+    REQUIREMENT_CONTRACT_VERSION, RequirementError,
+    apply_requirement_changes, validate_requirement_authority,
+)
 
 
 EXECUTOR = "TEST:GITHUB_CHAT"
@@ -146,3 +149,80 @@ def test_requirement_replacement_preserves_history_and_updates_digest():
     assert state["task_requirement_authority"]["active_requirements"][0]["statement"] == "Deep不放全量附录池，只做横向比较"
     actions = [item["action"] for item in state["task_requirement_authority"]["history"]]
     assert actions == ["ADD", "REPLACE"]
+
+
+def test_requirement_authority_replays_complete_history_not_just_current_digest():
+    state = apply_task_requirement_change(
+        _state(),
+        previous_state_blob_sha="a" * 40,
+        executor_identity=EXECUTOR,
+        evidence_ref="chat://user/v1",
+        upserts=[_req(statement="原始需求")],
+    )
+    raw = deepcopy(state["task_requirement_authority"])
+    raw["active_requirements"][0]["statement"] = "伪造的当前值"
+    with pytest.raises(RequirementError, match="active requirements do not match complete replayed history"):
+        validate_requirement_authority(raw)
+
+
+def test_requirement_history_must_cover_every_revision_without_gaps():
+    state = apply_task_requirement_change(
+        _state(),
+        previous_state_blob_sha="a" * 40,
+        executor_identity=EXECUTOR,
+        evidence_ref="chat://user/v1",
+        upserts=[_req()],
+    )
+    raw = deepcopy(state["task_requirement_authority"])
+    raw["revision"] = 2
+    with pytest.raises(RequirementError, match="every authority revision"):
+        validate_requirement_authority(raw)
+
+
+def test_requirement_replacement_history_must_match_exact_previous_value():
+    state = apply_task_requirement_change(
+        _state(),
+        previous_state_blob_sha="a" * 40,
+        executor_identity=EXECUTOR,
+        evidence_ref="chat://user/v1",
+        upserts=[_req(statement="v1")],
+    )
+    state = apply_task_requirement_change(
+        state,
+        previous_state_blob_sha="b" * 40,
+        executor_identity=EXECUTOR,
+        evidence_ref="chat://user/v2",
+        upserts=[_req(statement="v2")],
+    )
+    raw = deepcopy(state["task_requirement_authority"])
+    raw["history"][1]["previous"]["statement"] = "not-the-previous-value"
+    with pytest.raises(RequirementError, match="REPLACE history previous value"):
+        validate_requirement_authority(raw)
+
+
+def test_duplicate_retirement_and_duplicate_scopes_are_rejected():
+    state = apply_task_requirement_change(
+        _state(),
+        previous_state_blob_sha="a" * 40,
+        executor_identity=EXECUTOR,
+        evidence_ref="chat://user/v1",
+        upserts=[_req()],
+    )
+    with pytest.raises(CurrentAdmissionError, match="duplicate retire requirement_id"):
+        apply_task_requirement_change(
+            state,
+            previous_state_blob_sha="b" * 40,
+            executor_identity=EXECUTOR,
+            evidence_ref="chat://user/retire",
+            retire_ids=["deep-shape", "deep-shape"],
+        )
+    duplicate_scope = _req()
+    duplicate_scope["scopes"] = ["FINANCE_DEEP", "FINANCE_DEEP"]
+    with pytest.raises(CurrentAdmissionError, match="requirement scopes must be unique"):
+        apply_task_requirement_change(
+            _state(),
+            previous_state_blob_sha="a" * 40,
+            executor_identity=EXECUTOR,
+            evidence_ref="chat://user/duplicate-scope",
+            upserts=[duplicate_scope],
+        )
