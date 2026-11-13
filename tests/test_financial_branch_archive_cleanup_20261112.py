@@ -412,13 +412,16 @@ def test_ruleset_deletion_rule_is_required_for_plan_but_forbidden_for_prune():
     RulesetAPI(phase_deletion=False).verify_controls("PRUNE")
 
 
-def test_archive_plan_exports_exact_manifest_digest_to_downstream_jobs():
+def test_archive_plan_script_exports_manifest_digest_and_workflow_consumes_it():
     workflow = Path(".github/workflows/branch_archive_once.yml").read_text(encoding="utf-8")
+    script = Path("scripts/branch_archive_cleanup.py").read_text(encoding="utf-8")
     plan_step = workflow.split(
         "- name: Build stable read-only branch manifest", 1,
     )[1].split("- name: Upload exact manifest for human review", 1)[0]
-    assert "run: |" in plan_step
-    assert "manifest_sha256=" in plan_step
-    assert '>> "$GITHUB_OUTPUT"' in plan_step
-    assert 'Path("audit/financial_branch_plan.json")' in plan_step
+    assert "id: plan" in plan_step
+    assert "python scripts/branch_archive_cleanup.py --plan --out audit/financial_branch_plan.json" in plan_step
+    assert 'output = os.environ.get("GITHUB_OUTPUT")' in script
+    assert 'f.write("manifest_sha256=" + result["manifest_sha256"] + "\\n")' in script
+    assert "manifest_sha256: ${{ steps.plan.outputs.manifest_sha256 }}" in workflow
     assert "needs.plan.outputs.manifest_sha256" in workflow
+    assert "echo \"manifest_sha256=$manifest_sha256\" >> \"$GITHUB_OUTPUT\"" not in workflow
