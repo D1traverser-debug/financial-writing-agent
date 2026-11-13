@@ -43,6 +43,7 @@ class FakeAPI:
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
             "required_status_checks": ["test"],
+            "branches_up_to_date_required": True,
             "admins_enforced": True,
             "force_pushes_enabled": False,
             "deletions_enabled": False,
@@ -62,6 +63,8 @@ class FakeAPI:
             raise ValueError("MAIN_ADMIN_ENFORCEMENT_REQUIRED")
         if "test" not in state.get("required_status_checks", []):
             raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        if state.get("branches_up_to_date_required") is not True:
+            raise ValueError("MAIN_BRANCH_UP_TO_DATE_REQUIRED")
         if state.get("force_pushes_enabled") is not False:
             raise ValueError("MAIN_FORCE_PUSH_NOT_DISABLED")
         if state.get("deletions_enabled") is not False:
@@ -484,6 +487,7 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
         "dismiss_stale_reviews": True,
         "require_last_push_approval": True,
         "required_status_checks": ["test"],
+        "branches_up_to_date_required": True,
         "admins_enforced": True,
         "force_pushes_enabled": False,
         "deletions_enabled": False,
@@ -496,6 +500,8 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
         ("required_status_checks", None, "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
         ("required_status_checks", {"strict": True, "contexts": ["other"], "checks": []},
          "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_status_checks", {"strict": False, "contexts": ["test"], "checks": []},
+         "MAIN_BRANCH_UP_TO_DATE_REQUIRED"),
         ("required_pull_request_reviews", None, "MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING"),
         ("required_pull_request_reviews", {"required_approving_review_count": 0,
           "dismiss_stale_reviews": True, "require_last_push_approval": True},
