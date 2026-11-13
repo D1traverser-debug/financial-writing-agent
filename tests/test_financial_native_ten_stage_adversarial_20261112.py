@@ -148,7 +148,6 @@ def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
             stock_names=[],
             output=output,
             admitted_private_research_brief=source_state["quality_evidence"]["private_research_brief"],
-            required_bold_anchors=["合成研究补充"],
         )
     elif kind == "AUDIT_DOCX":
         build = build_verified_audit_docx(
