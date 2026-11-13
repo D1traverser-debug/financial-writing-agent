@@ -57,6 +57,7 @@ STAGE_KEYS = frozenset({
     "revision_target", "delivery_artifacts", "audit_artifact",
     "decision_envelope", "private_research_brief", "story_blueprints",
     "publication_fitnesses", "requirement_satisfaction",
+    "supplemental_delivery_artifacts",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
 OWNER_INTENT_KEYS = frozenset({"intent_evidence", "summary"})
@@ -460,6 +461,100 @@ def _verify_product_word_bytes(
     }
 
 
+def _verify_visible_delivery(
+    candidate: Mapping[str, Any],
+    supplemental_resources: list[Mapping[str, Any]],
+    reader: ArtifactReader | None,
+) -> dict[str, Any]:
+    """Verify the complete visible output set before the terminal state CAS."""
+    _require(callable(reader), "FINANCIAL_VISIBLE_DELIVERY_BINARY_READER_REQUIRED")
+    _require(
+        isinstance(supplemental_resources, list)
+        and all(isinstance(item, Mapping) for item in supplemental_resources),
+        "FINANCIAL_SUPPLEMENTAL_DELIVERY_RESOURCES_INVALID",
+    )
+    research = candidate.get("stage_artifacts", {}).get("RESEARCH")
+    if supplemental_resources:
+        _require(isinstance(research, Mapping),
+                 "FINANCIAL_PRIVATE_RESEARCH_STAGE_REFERENCE_MISSING")
+        expected_source = research.get("path")
+        expected_identity = f"git-blob:{research.get('blob_sha')}"
+        seen = {
+            item.get("resource_ref")
+            for item in candidate.get("delivery_artifacts", {}).values()
+            if isinstance(item, Mapping)
+        }
+        for item in supplemental_resources:
+            _require(item.get("kind") == "PRIVATE_RESEARCH_DOCX",
+                     "FINANCIAL_SUPPLEMENTAL_OUTPUT_KIND_INVALID")
+            _require(item.get("regenerated_from_durable_source") is True,
+                     "FINANCIAL_PRIVATE_RESEARCH_WORD_NOT_REGENERATED")
+            try:
+                resource_path = require_article_path(item.get("resource_ref"), candidate["task_id"])
+            except (KeyError, ValueError) as exc:
+                raise FinancialAdmissionError(
+                    "FINANCIAL_PRIVATE_RESEARCH_RESOURCE_PATH_INVALID"
+                ) from exc
+            _require(resource_path not in seen,
+                     "FINANCIAL_VISIBLE_DELIVERY_RESOURCE_REUSED")
+            seen.add(resource_path)
+            _require(
+                item.get("source_ref") == expected_source
+                and item.get("source_identity") == expected_identity,
+                "FINANCIAL_PRIVATE_RESEARCH_SOURCE_IDENTITY_MISMATCH",
+            )
+            evidence = item.get("delivery_evidence")
+            _require(isinstance(evidence, Mapping)
+                     and evidence.get("source_ref") == expected_source
+                     and evidence.get("source_identity") == expected_identity,
+                     "FINANCIAL_PRIVATE_RESEARCH_DELIVERY_EVIDENCE_SOURCE_MISMATCH")
+
+    cache: dict[str, Mapping[str, Any] | None] = {}
+
+    def read_once(ref: str) -> Mapping[str, Any] | None:
+        if ref not in cache:
+            try:
+                cache[ref] = reader(ref)
+            except Exception as exc:
+                raise FinancialEffectUnverified(
+                    "FINANCIAL_VISIBLE_DELIVERY_PROVIDER_READ_FAILED"
+                ) from exc
+        return cache[ref]
+
+    def verify_resource(resource: Mapping[str, Any]) -> bool:
+        try:
+            ref = require_article_path(resource.get("resource_ref"), candidate["task_id"])
+        except (KeyError, ValueError):
+            return False
+        observed = read_once(ref)
+        if not isinstance(observed, Mapping):
+            return False
+        content, claimed_blob = observed.get("content"), observed.get("blob_sha")
+        if not isinstance(content, bytes) or _blob_sha(content) != claimed_blob:
+            return False
+        return hashlib.sha256(content).hexdigest() == str(resource.get("sha256", "")).lower()
+
+    try:
+        from .delivery_availability import (
+            DeliveryAvailabilityError, build_visible_delivery_receipt,
+        )
+        resources = [
+            *list(candidate.get("delivery_artifacts", {}).values()),
+            *[dict(item) for item in supplemental_resources],
+        ]
+        receipt = build_visible_delivery_receipt(
+            candidate,
+            resources=resources,
+            resource_verifier=verify_resource,
+            resource_binary_reader=read_once,
+        )
+    except DeliveryAvailabilityError as exc:
+        raise FinancialAdmissionError(
+            f"FINANCIAL_VISIBLE_DELIVERY_NOT_READY:{exc}"
+        ) from exc
+    return receipt
+
+
 def _verify_persisted_action_authorization_history(
     state: Mapping[str, Any],
 ) -> dict[str, Any]:
@@ -637,6 +732,18 @@ def admit_article_action(
     observed = _read(state_reader, path)
     op = r["operation"]
     params = deepcopy(dict(r["parameters"]))
+    supplemental_delivery_artifacts = params.pop("supplemental_delivery_artifacts", None)
+    if supplemental_delivery_artifacts is not None:
+        _require(
+            op == "ADVANCE_STAGE" and observed is not None
+            and observed[0].get("current_stage") == "FINAL_AUDIT",
+            "FINANCIAL_SUPPLEMENTAL_DELIVERY_ONLY_ALLOWED_AT_FINAL_AUDIT",
+        )
+        _require(
+            isinstance(supplemental_delivery_artifacts, list)
+            and all(isinstance(item, Mapping) for item in supplemental_delivery_artifacts),
+            "FINANCIAL_SUPPLEMENTAL_DELIVERY_RESOURCES_INVALID",
+        )
     owner_intent_evidence = None
     nonbinding_intent_evidence = None
     if op == "RECORD_OWNER_INTENT":
@@ -787,6 +894,19 @@ def admit_article_action(
         if independent_editorial_proof is not None:
             candidate["execution_receipts"][-1]["input_bindings"]["independent_editorial_proof"] = independent_editorial_proof
             current_admission.validate_state(candidate)
+    visible_delivery_receipt = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "FINAL_AUDIT":
+        visible_delivery_receipt = _verify_visible_delivery(
+            candidate,
+            supplemental_delivery_artifacts or [],
+            artifact_reader,
+        )
+        candidate["execution_receipts"][-1]["input_bindings"]["supplemental_delivery_artifacts"] = deepcopy(
+            supplemental_delivery_artifacts or []
+        )
+        candidate["execution_receipts"][-1]["input_bindings"]["visible_delivery_receipt"] = visible_delivery_receipt
+        current_admission.validate_state(candidate)
+
     payload = _canonical_payload(candidate)
     expected_new_sha = _blob_sha(payload)
     try:
@@ -811,6 +931,7 @@ def admit_article_action(
         "research_source_readback": research_sources,
         "method_usage_readback": method_usage,
         "independent_editorial_review_readback": independent_editorial_proof,
+        "visible_delivery_receipt": visible_delivery_receipt,
         "child_state_cas_verified": True,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
