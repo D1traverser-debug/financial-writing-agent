@@ -159,6 +159,10 @@ class GitHubAPI:
         if reviews.get("require_last_push_approval") is not True:
             raise ValueError("MAIN_LAST_PUSH_APPROVAL_REQUIRED")
 
+        admins = raw.get("enforce_admins")
+        if not isinstance(admins, dict) or admins.get("enabled") is not True:
+            raise ValueError("MAIN_ADMIN_ENFORCEMENT_REQUIRED")
+
         force_pushes = raw.get("allow_force_pushes")
         if not isinstance(force_pushes, dict) or force_pushes.get("enabled") is not False:
             raise ValueError("MAIN_FORCE_PUSH_NOT_DISABLED")
@@ -172,6 +176,7 @@ class GitHubAPI:
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
             "required_status_checks": sorted(contexts),
+            "admins_enforced": True,
             "force_pushes_enabled": False,
             "deletions_enabled": False,
         }
@@ -398,6 +403,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         or protection["required_approving_review_count"] < 1
         or protection.get("dismiss_stale_reviews") is not True
         or protection.get("require_last_push_approval") is not True
+        or protection.get("admins_enforced") is not True
         or not isinstance(protection.get("required_status_checks"), list)
         or "test" not in protection["required_status_checks"]
         or protection.get("force_pushes_enabled") is not False
