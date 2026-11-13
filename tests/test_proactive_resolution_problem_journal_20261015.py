@@ -24,11 +24,10 @@ def test_maintenance_routes_to_proactive_resolution_and_problem_journal():
 
 def test_proactive_resolution_recovers_before_user_escalation():
     rule = _read("skills/financial-writing-agent/references/proactive_resolution.md")
-    assert "recover, infer provisionally, test, and only then escalate" in rule
-    assert "Missing highest-tier evidence is not automatically a blocker" in rule
-    assert "user-approved or user-edited writing samples" in rule
-    assert "explicit durable user corrections, rejections, constraints and accepted outcomes" in rule
-    assert "current conversation/context signals" in rule
+    assert "investigate first" in rule
+    assert "not an automatic reason to stop or ask the user" in rule
+    assert "approved/edited samples and durable corrections" in rule
+    assert "accessible conversation context" in rule
     assert "Ask the user only when" in rule
     assert "Do not ask merely because the best evidence is imperfect" in rule
 
