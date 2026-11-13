@@ -217,21 +217,21 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "709b98ed7b719dbade721686ba3d83411a640b87",
-        "exact_head_ci_run": 43363725177,
-        "exact_head_tests_passed": 494,
-        "source_line_coverage_percent": 88,
-        "coverage_statements": 5494,
-        "coverage_missed": 681,
+        "last_exact_ci_verified_head": "a4a2098b9ec9bd0306d5838e483d09a0e52da71d",
+        "exact_head_ci_run": 43387006010,
+        "exact_head_tests_passed": 518,
+        "source_line_coverage_percent": 90,
+        "coverage_statements": 5763,
+        "coverage_missed": 575,
         "whole_tree_inventory": {
-          "tracked_files": 328,
-          "python_ast_parsed": 111,
+          "tracked_files": 331,
+          "python_ast_parsed": 114,
           "json_parsed": 58,
-          "decoded_text_lines": 40423,
+          "decoded_text_lines": 43330,
           "warnings": 0,
           "errors": 0
         },
-        "engineering_result": "PASS__CANDIDATE_ONLY_NOT_MERGED",
+        "engineering_result": "PASS__EXACT_HEAD_CI_VERIFIED__CANDIDATE_ONLY_NOT_MERGED",
         "system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
         "open_gates": [
           "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION",
@@ -303,7 +303,9 @@
           "allow_deletions": false
         },
         "branch_archive_executor_schema": "5.0",
-        "archive_workflow_live_execution": "NOT_RUN__REQUIRES_PROTECTED_MAIN_RULESETS_GITHUB_APP_CREDENTIALS_AND_TWO_REVIEWER_ENVIRONMENTS"
+        "archive_workflow_live_execution": "NOT_RUN__REQUIRES_PROTECTED_MAIN_RULESETS_GITHUB_APP_CREDENTIALS_AND_TWO_REVIEWER_ENVIRONMENTS",
+        "last_test_fixture_correction": "The migration regression now models a current-writing-kernel/pre-requirement state; pre-kernel historical states remain blocked. The legal INTAKE transition uses no nonexistent INTAKE artifact.",
+        "branch_count": 99
       }
     }
   },

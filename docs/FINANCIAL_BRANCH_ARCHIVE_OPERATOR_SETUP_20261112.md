@@ -235,9 +235,9 @@ The private ChatGPT plugin currently reports release `0.1.1` (`pluginrel_6af5a82
 Do not publish a plugin release ahead of main. After PR #67 is independently reviewed and merged, update the private plugin from the exact main Skill and its current Financial references, read back the new release ID/content, update `config/FINANCIAL_MANIFEST.json` and `config/CHATGPT_FINANCIAL_PLUGIN.json` to that exact release, then verify a fresh ChatGPT session and a real Financial tool invocation. The current `0.1.1` package must not be represented as equivalent to the candidate Skill, and a private package release alone does not prove user installation or a live provider.
 
 
-### Main protection is now verified as a live control, not a boolean
+### The archive executor requires live main protection (currently not configured)
 
-The archive script's schema-5 plan reads `GET /branches/main/protection` and rejects the plan unless the actual protection response proves all of the following:
+The archive script's schema-5 plan reads `GET /branches/main/protection` and rejects the plan unless the actual protection response proves all of the following. This describes the executor's required contract, **not the current repository configuration**: the live `main` still reports `protected=false`.
 
 - `required_pull_request_reviews` exists and `required_approving_review_count >= 1`, `dismiss_stale_reviews = true`, and `require_last_push_approval = true`;
 - `enforce_admins.enabled = true`, so repository administrators cannot bypass the main protection rule;

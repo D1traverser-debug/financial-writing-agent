@@ -124,3 +124,18 @@ Live GitHub readback after that CI run found:
 **Promotion decision: do not merge or prune yet.** Merging without independent review and main protection would violate the system's own G6/G7 acceptance contract. The one candidate PR is retained rather than split into more PRs. Required owner-side actions are in `docs/FINANCIAL_BRANCH_ARCHIVE_OPERATOR_SETUP_20261112.md`; the remaining provider, client activation and independent-review gates are not replaceable by more synthetic tests.
 
 No production article STATE.json, private source file or CAOS repository/branch/PR/plugin/setting was changed by this system-reconstruction work.
+
+
+## Latest exact-head engineering verification (2026-11-13)
+
+Candidate code head a4a2098b9ec9bd0306d5838e483d09a0e52da71d completed Financial CI run 43387006010 successfully. The workflow checked out and verified that exact source HEAD before running the suite:
+
+- **518 tests passed**; Python source-line coverage **90%** (5,763 statements; 575 missed).
+- Whole-tree inventory: **331 tracked files**, 114 Python AST parses, 58 JSON parses, 43,330 decoded text lines, **zero warnings and zero errors**.
+- Standalone Financial contract, retired-runtime absence, independent import, isolated wheel, DOCX render and four-product synthetic render checks passed.
+- The branch archive ran only in `DRY_RUN__NO_MUTATION`: 99 branches and one open PR; no branch or tag was created or deleted.
+- The test correction was limited to the regression fixture: it now models a current-writing-kernel state predating Task Requirement Authority, while preserving the block on pre-kernel historical continuation and using the legal INTAKE-to-RESEARCH transition. No production state-machine rule was relaxed.
+
+The exact-head system acceptance report remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven external gates remain OPEN. The current cross-border article remains at RESEARCH with 0/4 real outputs. Main remains unprotected, PR #67 has no independent review, and the private Skill release is not installed or live-invoked. The candidate is engineering-verified, **not merged and not system-accepted**.
+
+The follow-up commit containing this audit-record update and documentation clarification does not change the tested Financial runtime or article state. Its own CI run must still pass before the PR is ready for external review.
