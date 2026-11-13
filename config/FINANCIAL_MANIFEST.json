@@ -27,7 +27,7 @@
   "client_skill_plugin": {
     "name": "financial-writing-agent-chatgpt",
     "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-    "release_id": "pluginrel_6af591b305e88191a537446ca98fb5d3",
+    "release_id": "pluginrel_6af5a82a95f48191ba8d21fa3d188094",
     "verified": "PRIVATE_PACKAGE_CREATED_AND_READBACK",
     "installed_or_live_tool_executed": "NOT_VERIFIED",
     "hosted_mcp_python": false
