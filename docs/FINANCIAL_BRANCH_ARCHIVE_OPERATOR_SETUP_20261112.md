@@ -20,7 +20,7 @@ GitHub's delete-reference API has no compare-and-delete against an expected SHA.
 
 The implemented workflow therefore has three jobs:
 
-1. PLAN: read-only full inventory and SHA-256 manifest; no ref mutation. The schema-4 manifest records all 98 non-main branch heads, all merged-to-main PR head evidence, and a per-ref disposition. It explicitly separates 44 exact merged-PR heads from 54 refs without that exact evidence.
+1. PLAN: read-only full inventory and SHA-256 manifest; no ref mutation. The schema-5 manifest records all 98 non-main branch heads, all merged-to-main PR head evidence, and a per-ref disposition. It explicitly separates 44 exact merged-PR heads from 54 refs without that exact evidence.
 2. ARCHIVE: after a separate required-reviewer Environment approval, revalidate the exact manifest and create/read back an immutable archive tag for every non-main head while branch creation, update and deletion are all frozen. It deletes nothing.
 3. PRUNE: after a second required-reviewer approval, and only after the owner removes the deletion rule while leaving creation/update frozen, verify the same manifest and every archive tag, then delete refs and perform a final full inventory. Because 54 refs lack exact merged-PR head evidence, the workflow exposes a separate `confirm_unverified_branch_archive` opt-in (default false). Without that explicit input, PRUNE is skipped; the archive tags remain and all branch refs are preserved.
 
@@ -117,7 +117,7 @@ Store it as repository Actions secret FINANCIAL_ARCHIVE_READ_TOKEN. It is used o
 
 From main, open Actions → Financial one-time archive of obsolete branches → Run workflow and set start_archive = true.
 
-- PLAN creates the schema-4 manifest artifact and prints its SHA-256. It does not mutate repository refs. Inspect the exact merged-PR classifications and the 54 no-exact-PR entries.
+- PLAN creates the schema-5 manifest artifact and prints its SHA-256. It does not mutate repository refs. Inspect the exact merged-PR classifications and the 54 no-exact-PR entries.
 - ARCHIVE waits for the financial-branch-archive reviewer approval. The reviewer should inspect all 98 non-main names/SHAs and approve only if every head is intended to be preserved as an immutable tag. The job creates and verifies all archive tags; it does not delete branches.
 - After ARCHIVE succeeds, edit the Financial archive write freeze ruleset and remove only Restrict deletions. Keep Restrict creations and Restrict updates active. Do not change the tag lock or bypass list.
 - If any no-exact-PR branch contains work that must enter main, stop and consolidate that work before pruning. Otherwise explicitly set `confirm_unverified_branch_archive=true` when dispatching the workflow to opt into pruning all archived non-main refs.
@@ -166,7 +166,7 @@ The system acceptance evaluator rejects missing or contradictory fields. These a
 
 ## Full no-exact-merged-PR branch-head classification (read-only, 2026-11-13)
 
-The 54 unverified refs reduce to 34 unique commit heads. The table records the current branch-name grouping and the disposition selected from read-only comparisons and representative source inspection. The schema-4 live manifest remains the final SHA-bound inventory at execution time.
+The 54 unverified refs reduce to 34 unique commit heads. The table records the current branch-name grouping and the disposition selected from read-only comparisons and representative source inspection. The schema-5 live manifest remains the final SHA-bound inventory at execution time.
 
 | Unique head | Branch ref(s) | Compare-to-main class | Review disposition |
 |---|---|---|---|
@@ -229,3 +229,15 @@ This compare classification improves the earlier "no exact PR match" signal but 
 The private ChatGPT plugin currently reports release `0.1.1` (`pluginrel_6af5a82a95f48191ba8d21fa3d188094`). Its installed package is skill-only, has no hosted Python/MCP endpoint, and its current Skill text still treats one authenticated user utterance as one atomic requirement. The candidate repository Skill has corrected this: it preserves the complete authenticated utterance as source evidence while allowing multiple scoped requirement records, provided the exact canonical mutation receives a separate signed owner confirmation.
 
 Do not publish a plugin release ahead of main. After PR #67 is independently reviewed and merged, update the private plugin from the exact main Skill and its current Financial references, read back the new release ID/content, update `config/FINANCIAL_MANIFEST.json` and `config/CHATGPT_FINANCIAL_PLUGIN.json` to that exact release, then verify a fresh ChatGPT session and a real Financial tool invocation. The current `0.1.1` package must not be represented as equivalent to the candidate Skill, and a private package release alone does not prove user installation or a live provider.
+
+
+### Main protection is now verified as a live control, not a boolean
+
+The archive script's schema-5 plan reads `GET /branches/main/protection` and rejects the plan unless the actual protection response proves all of the following:
+
+- `required_pull_request_reviews` exists and `required_approving_review_count >= 1`;
+- `required_status_checks` includes the exact Financial CI context `test` (from either contexts or checks);
+- `allow_force_pushes.enabled = false`;
+- `allow_deletions.enabled = false`.
+
+The normalized protection snapshot is embedded in the manifest and its SHA-256. PLAN and ARCHIVE re-read it; PRUNE re-reads it before each deletion and after the final inventory, requiring exact equality with the reviewed snapshot. A protection change that remains superficially "valid" (for example, changing the approval count) also stops the prune. Missing protection fields fail closed. Unit tests cover missing CI, missing PR requirement, zero approvals, force-push/deletion enabled, and protection changes before or during prune.
