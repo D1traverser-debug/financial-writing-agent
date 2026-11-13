@@ -16,6 +16,8 @@ from urllib.request import Request, urlopen
 REPO = "D1traverser-debug/financial-writing-agent"
 PREFIX = "archive/financial-20261112/"
 ENVIRONMENTS = ("financial-branch-archive", "financial-branch-prune")
+REQUIRED_CI_CHECK = "test"
+REQUIRED_CI_APP_ID = 15368  # Verified from the exact GitHub Actions check-run.
 BRANCH_RULESET = "Financial archive write freeze"
 TAG_RULESET = "Financial archive tag lock"
 
@@ -138,21 +140,43 @@ class GitHubAPI:
             item for item in raw_contexts
             if isinstance(item, str) and item
         }
-        checks = status.get("checks", [])
-        if isinstance(checks, list):
-            contexts.update(
-                item.get("context") for item in checks
-                if isinstance(item, dict) and isinstance(item.get("context"), str)
-                and item.get("context")
-            )
-        if "test" not in contexts:
-            raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        checks = status.get("checks")
+        if not isinstance(checks, list):
+            raise ValueError("MAIN_FINANCIAL_CI_CHECK_APP_ID_REQUIRED")
+        check_bindings = []
+        for item in checks:
+            if (not isinstance(item, dict)
+                or not isinstance(item.get("context"), str) or not item["context"]):
+                raise ValueError("MAIN_FINANCIAL_CI_CHECK_BINDING_INVALID")
+            app_id = item.get("app_id")
+            if app_id is not None and (type(app_id) is not int or app_id <= 0):
+                raise ValueError("MAIN_FINANCIAL_CI_CHECK_APP_ID_INVALID")
+            check_bindings.append({"context": item["context"], "app_id": app_id})
+            contexts.add(item["context"])
+        if not any(
+            item["context"] == REQUIRED_CI_CHECK and item["app_id"] == REQUIRED_CI_APP_ID
+            for item in check_bindings
+        ):
+            raise ValueError("MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH")
         if status.get("strict") is not True:
             raise ValueError("MAIN_BRANCH_UP_TO_DATE_REQUIRED")
 
         reviews = raw.get("required_pull_request_reviews")
         if not isinstance(reviews, dict):
             raise ValueError("MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING")
+        raw_bypass = reviews.get("bypass_pull_request_allowances") or {}
+        if not isinstance(raw_bypass, dict):
+            raise ValueError("MAIN_PULL_REQUEST_BYPASS_ALLOWANCES_INVALID")
+        bypass_allowances = {}
+        for kind in ("users", "teams", "apps"):
+            values = raw_bypass.get(kind, [])
+            if values is None:
+                values = []
+            if not isinstance(values, list):
+                raise ValueError("MAIN_PULL_REQUEST_BYPASS_ALLOWANCES_INVALID")
+            if values:
+                raise ValueError("MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED")
+            bypass_allowances[kind] = []
         approvals = reviews.get("required_approving_review_count")
         if type(approvals) is not int or approvals < 1:
             raise ValueError("MAIN_INDEPENDENT_APPROVAL_REQUIRED")
@@ -178,6 +202,10 @@ class GitHubAPI:
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
             "required_status_checks": sorted(contexts),
+            "required_status_check_apps": sorted(
+                check_bindings, key=lambda item: (item["context"], item["app_id"] or -1),
+            ),
+            "pull_request_bypass_allowances": bypass_allowances,
             "branches_up_to_date_required": True,
             "admins_enforced": True,
             "force_pushes_enabled": False,
@@ -443,7 +471,16 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         or protection.get("require_last_push_approval") is not True
         or protection.get("admins_enforced") is not True
         or not isinstance(protection.get("required_status_checks"), list)
-        or "test" not in protection["required_status_checks"]
+        or REQUIRED_CI_CHECK not in protection["required_status_checks"]
+        or not isinstance(protection.get("required_status_check_apps"), list)
+        or not any(
+            isinstance(item, dict) and item.get("context") == REQUIRED_CI_CHECK
+            and item.get("app_id") == REQUIRED_CI_APP_ID
+            for item in protection["required_status_check_apps"]
+        )
+        or protection.get("pull_request_bypass_allowances") != {
+            "users": [], "teams": [], "apps": [],
+        }
         or protection.get("branches_up_to_date_required") is not True
         or protection.get("force_pushes_enabled") is not False
         or protection.get("deletions_enabled") is not False

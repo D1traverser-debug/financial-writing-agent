@@ -81,6 +81,7 @@ REQUIRED_GATE_EVIDENCE = {
         "main_require_last_push_approval", "main_enforce_admins",
         "main_branches_up_to_date_required", "main_force_push_disabled",
         "main_deletion_disabled", "required_status_checks",
+        "required_status_check_apps", "main_pull_request_bypass_allowances",
     ),
 }
 
@@ -288,6 +289,16 @@ def _validate_gate_evidence(
         checks = evidence.get("required_status_checks")
         require(isinstance(checks, list) and "test" in checks,
                 "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        check_apps = evidence.get("required_status_check_apps")
+        require(isinstance(check_apps, list) and any(
+            isinstance(item, Mapping) and item.get("context") == "test"
+            and item.get("app_id") == 15368 for item in check_apps
+        ), "MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH")
+        bypass = evidence.get("main_pull_request_bypass_allowances")
+        require(isinstance(bypass, Mapping)
+                and set(bypass) == {"users", "teams", "apps"}
+                and all(bypass[kind] == [] for kind in ("users", "teams", "apps")),
+                "MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED")
 
 
 def evaluate_system_acceptance(

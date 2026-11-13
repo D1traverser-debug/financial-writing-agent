@@ -53,6 +53,8 @@ class FakeAPI:
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
             "required_status_checks": ["test"],
+            "required_status_check_apps": [{"context": "test", "app_id": 15368}],
+            "pull_request_bypass_allowances": {"users": [], "teams": [], "apps": []},
             "branches_up_to_date_required": True,
             "admins_enforced": True,
             "force_pushes_enabled": False,
@@ -73,6 +75,15 @@ class FakeAPI:
             raise ValueError("MAIN_ADMIN_ENFORCEMENT_REQUIRED")
         if "test" not in state.get("required_status_checks", []):
             raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        if not any(
+            item.get("context") == "test" and item.get("app_id") == 15368
+            for item in state.get("required_status_check_apps", [])
+        ):
+            raise ValueError("MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH")
+        if state.get("pull_request_bypass_allowances") != {
+            "users": [], "teams": [], "apps": [],
+        }:
+            raise ValueError("MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED")
         if state.get("branches_up_to_date_required") is not True:
             raise ValueError("MAIN_BRANCH_UP_TO_DATE_REQUIRED")
         if state.get("force_pushes_enabled") is not False:
@@ -176,11 +187,15 @@ class RulesetAPI(GitHubAPI):
             ],
         }
         self.protection = protection or {
-            "required_status_checks": {"strict": True, "contexts": ["test"], "checks": []},
+            "required_status_checks": {
+                "strict": True, "contexts": ["test"],
+                "checks": [{"context": "test", "app_id": 15368}],
+            },
             "required_pull_request_reviews": {
                 "required_approving_review_count": 1,
                 "dismiss_stale_reviews": True,
                 "require_last_push_approval": True,
+                "bypass_pull_request_allowances": {"users": [], "teams": [], "apps": []},
             },
             "enforce_admins": {"enabled": True},
             "allow_force_pushes": {"enabled": False},
@@ -561,6 +576,8 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
         "dismiss_stale_reviews": True,
         "require_last_push_approval": True,
         "required_status_checks": ["test"],
+        "required_status_check_apps": [{"context": "test", "app_id": 15368}],
+        "pull_request_bypass_allowances": {"users": [], "teams": [], "apps": []},
         "branches_up_to_date_required": True,
         "admins_enforced": True,
         "force_pushes_enabled": False,
@@ -574,8 +591,19 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
         ("required_status_checks", None, "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
         ("required_status_checks", {"strict": True, "contexts": ["other"], "checks": []},
          "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
-        ("required_status_checks", {"strict": False, "contexts": ["test"], "checks": []},
+        ("required_status_checks", {"strict": False, "contexts": ["test"],
+          "checks": [{"context": "test", "app_id": 15368}]},
          "MAIN_BRANCH_UP_TO_DATE_REQUIRED"),
+        ("required_status_checks", {"strict": True, "contexts": ["test"],
+          "checks": [{"context": "test", "app_id": 1}]},
+         "MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH"),
+        ("required_status_checks", {"strict": True, "contexts": ["test"], "checks": []},
+         "MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH"),
+        ("required_pull_request_reviews", {
+          "required_approving_review_count": 1, "dismiss_stale_reviews": True,
+          "require_last_push_approval": True,
+          "bypass_pull_request_allowances": {"users": ["D1traverser-debug"], "teams": [], "apps": []},
+        }, "MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED"),
         ("required_pull_request_reviews", None, "MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING"),
         ("required_pull_request_reviews", {"required_approving_review_count": 0,
           "dismiss_stale_reviews": True, "require_last_push_approval": True},

@@ -41,7 +41,8 @@ In repository Settings → Branches, add a branch protection rule for exactly ma
 - Dismiss stale approvals when new commits are pushed.
 - Require approval of the latest reviewable push.
 - Enforce the protection rule for administrators (no admin bypass).
-- Require the exact Financial CI status check context `test` and require branches to be up to date before merging.
+- Require the exact Financial CI check `test` from the GitHub Actions App (app ID `15368`), not merely any publisher using the same context; require branches to be up to date.
+- Keep `bypass_pull_request_allowances.users`, `teams` and `apps` empty so no named principal can bypass PR review.
 - Block force pushes and branch deletion.
 - Ensure the API reports `main.protected = true`.
 
@@ -241,8 +242,9 @@ The archive script's schema-5 plan reads `GET /branches/main/protection` and rej
 
 - `required_pull_request_reviews` exists and `required_approving_review_count >= 1`, `dismiss_stale_reviews = true`, and `require_last_push_approval = true`;
 - `enforce_admins.enabled = true`, so repository administrators cannot bypass the main protection rule;
-- `required_status_checks` includes the exact Financial CI context `test` (from either contexts or checks) and `strict = true`;
+- `required_status_checks.strict = true` and the structured `checks` list pins context `test` to GitHub Actions App ID `15368`; an unpinned legacy context is insufficient;
+- `required_pull_request_reviews.bypass_pull_request_allowances` has empty `users`, `teams` and `apps` lists;
 - `allow_force_pushes.enabled = false`;
 - `allow_deletions.enabled = false`.
 
-The normalized protection snapshot (including the up-to-date requirement) is embedded in the manifest and its SHA-256. PLAN and ARCHIVE re-read it; PRUNE re-reads it before each deletion and after the final inventory, requiring exact equality with the reviewed snapshot. A protection change that remains superficially "valid" (for example, changing the approval count) also stops the prune. Missing protection fields fail closed. Unit tests cover missing CI, missing PR requirement, zero approvals, force-push/deletion enabled, and protection changes before or during prune.
+The normalized protection snapshot (including the exact CI App binding, empty PR-bypass allowances and up-to-date requirement) is embedded in the manifest and its SHA-256. PLAN and ARCHIVE re-read it; PRUNE re-reads it before each deletion and after the final inventory, requiring exact equality with the reviewed snapshot. A protection change that remains superficially "valid" (for example, changing the approval count) also stops the prune. Missing protection fields fail closed. Unit tests cover missing CI, missing PR requirement, zero approvals, force-push/deletion enabled, and protection changes before or during prune.

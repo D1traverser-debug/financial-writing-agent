@@ -51,6 +51,8 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "main_force_push_disabled": True,
             "main_deletion_disabled": True,
             "required_status_checks": ["test"],
+            "required_status_check_apps": [{"context": "test", "app_id": 15368}],
+            "main_pull_request_bypass_allowances": {"users": [], "teams": [], "apps": []},
         })
         if gate == "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION":
             source_ref = "chat://synthetic-owner/source-message"
@@ -424,6 +426,8 @@ def test_native_client_gate_requires_exact_manifest_plugin_and_release(field, wr
         ("main_force_push_disabled", False, "MAIN_FORCE_PUSH_NOT_DISABLED"),
         ("main_deletion_disabled", False, "MAIN_DELETION_NOT_DISABLED"),
         ("required_status_checks", ["other-check"], "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_status_check_apps", [{"context": "test", "app_id": 1}], "MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH"),
+        ("main_pull_request_bypass_allowances", {"users": ["D1traverser-debug"], "teams": [], "apps": []}, "MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED"),
         ("archive_tags_verified", False, "ARCHIVE_TAG_READBACK_NOT_VERIFIED"),
     ],
 )
