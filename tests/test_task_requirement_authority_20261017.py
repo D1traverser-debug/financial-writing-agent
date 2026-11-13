@@ -123,7 +123,7 @@ def test_requirement_authority_tamper_is_detected():
     )
     tampered = deepcopy(state)
     tampered["task_requirement_authority"]["active_requirements"][0]["statement"] = "被静默改写"
-    with pytest.raises(CurrentAdmissionError, match="digest mismatch"):
+    with pytest.raises(CurrentAdmissionError, match="active requirements do not match complete replayed history"):
         validate_state(tampered)
 
 
