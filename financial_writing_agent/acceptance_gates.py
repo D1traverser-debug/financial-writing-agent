@@ -79,7 +79,8 @@ REQUIRED_GATE_EVIDENCE = {
         "final_inventory_sha256", "main_protected", "main_requires_pull_request",
         "required_approving_review_count", "main_dismiss_stale_reviews",
         "main_require_last_push_approval", "main_enforce_admins",
-        "main_force_push_disabled", "main_deletion_disabled", "required_status_checks",
+        "main_branches_up_to_date_required", "main_force_push_disabled",
+        "main_deletion_disabled", "required_status_checks",
     ),
 }
 
@@ -278,6 +279,8 @@ def _validate_gate_evidence(
                 "MAIN_LAST_PUSH_APPROVAL_REQUIRED")
         require(evidence.get("main_enforce_admins") is True,
                 "MAIN_ADMIN_ENFORCEMENT_REQUIRED")
+        require(evidence.get("main_branches_up_to_date_required") is True,
+                "MAIN_BRANCH_UP_TO_DATE_REQUIRED")
         require(evidence.get("main_force_push_disabled") is True,
                 "MAIN_FORCE_PUSH_NOT_DISABLED")
         require(evidence.get("main_deletion_disabled") is True,
