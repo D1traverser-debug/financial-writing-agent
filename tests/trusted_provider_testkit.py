@@ -53,10 +53,10 @@ def signed_owner_message(source_ref: str, text: str, *, source_role="user",
     )
 
 
-def signed_owner_change_approval(request):
+def signed_owner_change_approval(request, *, approved: bool = True):
     return signed_attestation(
         "owner_change_approval",
-        approved=True,
+        approved=approved,
         source_sha256=request["source_sha256"],
         change_sha256=request["change_sha256"],
         confirmation_method="EXPLICIT_OWNER_CONFIRMATION",
