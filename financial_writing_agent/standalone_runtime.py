@@ -473,6 +473,44 @@ def _verify_visible_delivery(
         and all(isinstance(item, Mapping) for item in supplemental_resources),
         "FINANCIAL_SUPPLEMENTAL_DELIVERY_RESOURCES_INVALID",
     )
+
+    cache: dict[str, Mapping[str, Any] | None] = {}
+
+    def read_once(ref: str) -> Mapping[str, Any] | None:
+        if ref not in cache:
+            try:
+                cache[ref] = reader(ref)
+            except Exception as exc:
+                raise FinancialEffectUnverified(
+                    "FINANCIAL_VISIBLE_DELIVERY_PROVIDER_READ_FAILED"
+                ) from exc
+        return cache[ref]
+
+    source_stage_readbacks: list[dict[str, str]] = []
+    for stage_key in ("RESEARCH", "DRAFT"):
+        stage_ref = candidate.get("stage_artifacts", {}).get(stage_key)
+        _require(isinstance(stage_ref, Mapping),
+                 f"FINANCIAL_VISIBLE_DELIVERY_{stage_key}_REFERENCE_MISSING")
+        try:
+            stage_path = require_article_path(stage_ref.get("path"), candidate["task_id"])
+        except (KeyError, ValueError) as exc:
+            raise FinancialAdmissionError(
+                f"FINANCIAL_VISIBLE_DELIVERY_{stage_key}_PATH_INVALID"
+            ) from exc
+        observed_stage = read_once(stage_path)
+        _require(isinstance(observed_stage, Mapping),
+                 f"FINANCIAL_VISIBLE_DELIVERY_{stage_key}_BYTES_MISSING")
+        content, claimed_blob = observed_stage.get("content"), observed_stage.get("blob_sha")
+        _require(
+            isinstance(content, (bytes, str))
+            and _valid_sha(claimed_blob)
+            and _blob_sha(content) == claimed_blob == stage_ref.get("blob_sha"),
+            f"FINANCIAL_VISIBLE_DELIVERY_SOURCE_STAGE_BYTES_MISMATCH:{stage_key}",
+        )
+        source_stage_readbacks.append({
+            "stage": stage_key, "path": stage_path, "verified_blob_sha": claimed_blob,
+        })
+
     research = candidate.get("stage_artifacts", {}).get("RESEARCH")
     if supplemental_resources:
         _require(isinstance(research, Mapping),
@@ -509,18 +547,6 @@ def _verify_visible_delivery(
                      and evidence.get("source_identity") == expected_identity,
                      "FINANCIAL_PRIVATE_RESEARCH_DELIVERY_EVIDENCE_SOURCE_MISMATCH")
 
-    cache: dict[str, Mapping[str, Any] | None] = {}
-
-    def read_once(ref: str) -> Mapping[str, Any] | None:
-        if ref not in cache:
-            try:
-                cache[ref] = reader(ref)
-            except Exception as exc:
-                raise FinancialEffectUnverified(
-                    "FINANCIAL_VISIBLE_DELIVERY_PROVIDER_READ_FAILED"
-                ) from exc
-        return cache[ref]
-
     def verify_resource(resource: Mapping[str, Any]) -> bool:
         try:
             ref = require_article_path(resource.get("resource_ref"), candidate["task_id"])
@@ -552,6 +578,7 @@ def _verify_visible_delivery(
         raise FinancialAdmissionError(
             f"FINANCIAL_VISIBLE_DELIVERY_NOT_READY:{exc}"
         ) from exc
+    receipt["source_stage_artifact_readback"] = source_stage_readbacks
     return receipt
 
 
