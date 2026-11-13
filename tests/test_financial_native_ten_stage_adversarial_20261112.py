@@ -476,7 +476,7 @@ def test_final_audit_blocks_if_research_source_bytes_changed_after_research(tmp_
     ).hexdigest()
     p.sources[source_ref]["retrieved_at"] = datetime.now(timezone.utc).isoformat()
     frozen = deepcopy(p.states)
-    with pytest.raises(Exception, match="CURRENT_RESEARCH_SOURCE_BYTES_CHANGED"):
+    with pytest.raises(Exception, match="DELIVERY_RESEARCH_SOURCE_BYTES_CHANGED"):
         act(p, "ADVANCE_STAGE", {
             **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
             "audit_artifact": audit,
