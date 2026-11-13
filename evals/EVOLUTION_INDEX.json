@@ -42,7 +42,7 @@
   ],
   "active_system_assessment": {
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
-    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY",
+    "status": "PRODUCTION_MAIN_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY",
     "owner": "DOMAIN:financial_writing",
     "review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
@@ -52,9 +52,9 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Proceed without any repository visibility change, data migration or history rewrite. Obtain an independent adversarial review of the exact current PR head; configure and verify protected-main controls; then squash-merge the single Financial candidate and verify production-main CI. After main is authoritative, align the private Skill/plugin to the exact main release and verify fresh-session invocation. Continue real owner-message, provider CAS, article-graph, method-impact and branch-archive evidence before closing the corresponding live gates.",
+    "next_legal_phase": "PR #67 was merged to production main and its exact production head passed CI. Do not reopen or re-merge that candidate. Continue only the remaining evidence-gated work: native private Skill installation and fresh-session invocation; real authenticated owner-message and semantic-approval provider; real GitHub CAS/revocation and article/method effect readback; independent external adversarial review of the production head; GitHub administrator protection/rulesets and tag-first archival of non-main branches. Real article production remains outside this system-reconstruction scope.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
-    "user_action_now": "EXTERNAL_OWNER_SETUP_REQUIRED_FOR_PLUGIN_INSTALLATION_AND_GITHUB_ADMIN_CONTROLS; NO_ACTION_REQUIRED_FOR_REPOSITORY_VISIBILITY_OR_DATA_MIGRATION. Remaining external actions for full live acceptance are limited to: a genuinely independent reviewer for the exact candidate; GitHub administrator configuration of protected-main and required-reviewer archive controls; explicit installation/invocation of the Financial Skill/plugin in a fresh ChatGPT session; and any real provider credentials/authorizations unavailable to repository code. There is no code-only route to authenticate the real ChatGPT user or create repository administration permissions. Continue all code-side work without asking the owner to resolve public/private visibility.",
+    "user_action_now": "NO_ACTION_REQUIRED_TO_MERGE_PR_67__ALREADY_PRODUCTION_MAIN. Remaining external actions for full acceptance: install and invoke the private Financial Skill in a fresh ChatGPT session; provide/enable genuine authenticated owner-message, semantic-approval and GitHub CAS evidence; obtain a genuinely independent reviewer; and configure GitHub administrator protection/rulesets plus reviewer-controlled branch archival. Do not revisit repository visibility, migration or history rewriting.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
@@ -90,7 +90,7 @@
     "current_operating_skill": "skills/financial-writing-agent/SKILL.md",
     "latest_business_adversarial_audit": "evals/FINANCIAL_REAL_WORKFLOW_AND_BUSINESS_REDTEAM_AUDIT_20261112.md",
     "latest_business_adversarial_replay": "scripts/real_financial_workflow_redteam.py",
-    "latest_business_adversarial_status": "REAL_PRODUCTION_FUNCTION_REPLAYED__STRUCTURAL_FALSE_ACCEPTANCE_CASES_REPRODUCED__LIVE_ARTICLE_AND_EDITORIAL_NOT_READY",
+    "latest_business_adversarial_status": "CURRENT_MAIN_REDTEAM_REPLAY__TARGETED_NEGATIVE_CASES_BLOCKED__SEMANTIC_SOURCE_AND_EXTERNAL_REVIEW_LIMITS_OPEN",
     "owner_governance_rebuild_20261112": {
       "scoped_owner_demand": "Financial Writing owns its intrinsic requirements, process, decision/execution loops, knowledge and method CRUD, failure repair and independent acceptance. No external parent runtime is required. The current request is system engineering, not real article production.",
       "goal_method_architecture_ref": "evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md",
@@ -103,7 +103,7 @@
       "methodological_principle": "RECURSIVE_HYPOTHESIS_METHOD_RECHALLENGE_AND_EFFECT_READBACK",
       "method_crud_scope": "CANDIDATE_REVISE_PROMOTE_CHALLENGE_RETIRE_RESTORE_VERIFY_IMPACT",
       "owner_intent_ingress": "READ_VERIFIED_USER_SOURCE_BEFORE_MUTATING_REQUIREMENTS",
-      "implementation_ref": "PR#67 candidate: financial_writing_agent/intent_governance.py + tests/test_financial_semantic_intent_adversarial_20261112.py",
+      "implementation_ref": "PR#67 merged to production main: financial_writing_agent/intent_governance.py + tests/test_financial_semantic_intent_adversarial_20261112.py",
       "engineering_status": "PRODUCTION_CODE_AND_SYNTHETIC_SYSTEM_CI_VERIFIED__CLIENT_ACTIVATION_NOT_TESTED",
       "client_native_activation": "NOT_TESTED",
       "actual_live_method_effect": "NOT_TESTED",
@@ -113,23 +113,37 @@
       "method_article_dependency_test": "tests/test_financial_method_article_dependency_20261112.py",
       "test_scope": "SYNTHETIC_AUTHENTICATED_USER_MESSAGE_AND_METHOD_PROVIDER__NOT_NATIVE_CLIENT_ACTIVATION",
       "production": {
-        "pr_number": 66,
-        "candidate_head_sha": "792939bd4003a54583b3038020e934aba60692c5",
-        "candidate_ci_run": 43255571900,
-        "candidate_tests": "374 passed; 19/19 job steps successful",
-        "merged_main_sha": "b1ea4f87ad083be89d7b2d8a3592817e495e927f",
-        "post_merge_ci_run": 43191581515,
-        "independent_main_readback": "main SHA and PR merged/closed verified",
+        "pr_number": 67,
+        "candidate_branch": "repair/financial-independent-acceptance-20261112",
+        "candidate_head_sha": "18421e675dd6e65acc5f6fb7a5616e56182b41f0",
+        "candidate_ci_run": 43457837359,
+        "candidate_tests": "523 passed; 90% source-line coverage",
+        "merged_main_sha": "2296223fa3b61a854cf2f4965fe93d96be333b4c",
+        "merged_at": "2026-11-13T16:42:08Z",
+        "post_merge_ci_run": 43465361740,
+        "post_merge_ci_run_number": 1919,
+        "post_merge_ci_conclusion": "success",
+        "post_merge_tests": "523 passed; 90% source-line coverage",
+        "post_merge_coverage_statements": 5763,
+        "post_merge_coverage_missed": 572,
+        "whole_tree_inventory": {
+          "tracked_files": 304,
+          "python_ast_parsed": 112,
+          "json_parsed": 52,
+          "decoded_text_lines": 41331,
+          "warnings": 0,
+          "errors": 0
+        },
+        "independent_main_readback": "MAIN SHA AND PR MERGED/CLOSED VERIFIED",
         "semantic_owner_goal_evidence": "evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md",
         "real_client_activation": "NOT_TESTED",
         "real_article_product_outcome": "OUT_OF_SCOPE",
-        "candidate_ci_tests": "433 passed; 22/22 job steps successful; 87% line coverage",
         "independent_review": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
-        "production_merge": "NOT_MERGED__PR_67_OPEN"
+        "production_merge": "MERGED"
       },
       "independent_acceptance_reaudit": "evals/FINANCIAL_INDEPENDENT_ACCEPTANCE_REAUDIT_20261112.md",
       "additional_correction_candidate_pr": 67,
-      "original_user_semantic_gap": "FIXED_IN_CANDIDATE__EXACT_HEAD_CI_PASS__LIVE_OWNER_MESSAGE_PROVIDER_STILL_OPEN",
+      "original_user_semantic_gap": "FIXED_IN_PRODUCTION_MAIN__EXACT_HEAD_AND_POST_MERGE_CI_PASS__LIVE_OWNER_MESSAGE_PROVIDER_STILL_OPEN",
       "native_private_skill_plugin": {
         "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
         "release_id": "pluginrel_6af72ebbaef0819187235f6772cd972f",
@@ -155,7 +169,7 @@
           "warnings": 0,
           "errors": 0
         },
-        "engineering_result": "PASS__EXACT_HEAD_CI_VERIFIED__CANDIDATE_ONLY_NOT_MERGED",
+        "engineering_result": "PASS__PROMOTED_TO_PRODUCTION_MAIN__POST_MERGE_CI_VERIFIED",
         "system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
         "open_gates": [
           "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION",
@@ -178,8 +192,8 @@
           "all non-main refs are tagged before deletion; unverified-ref pruning requires confirm_unverified_branch_archive=true and separate archive/prune reviewer approvals",
           "no branch or tag was mutated by candidate CI"
         ],
-        "production_main_sha_at_audit": "72cf852746a54b5f116e41f96bb8ca54b5f6838c",
-        "pull_request_merged": false,
+        "production_main_sha_at_audit": "2296223fa3b61a854cf2f4965fe93d96be333b4c",
+        "pull_request_merged": true,
         "semantic_requirement_decomposition": {
           "source_preservation": "COMPLETE_AUTHENTICATED_USER_UTTERANCE_AND_FULL_EXCERPT_SHA256",
           "normalized_requirement_statements": "MULTIPLE_SCOPED_REQUIREMENTS_ALLOWED_FROM_ONE_UTTERANCE",
@@ -194,12 +208,12 @@
           "negative_tests": "WRONG_SOURCE_SHA_OR_REF__MISSING_OR_MISMATCHED_OWNER_APPROVAL__WRONG_PLUGIN_RELEASE__UNPROTECTED_MAIN__MISSING_REQUIRED_CHECK__UNVERIFIED_ARCHIVE_TAGS"
         },
         "branch_archive_workflow": "PLAN_STEP_EXPORTS_VALIDATED_MANIFEST_SHA_TO_GITHUB_OUTPUT__STATIC_REGRESSION_TEST_PASS__LIVE_DISPATCH_NOT_RUN",
-        "current_open_pull_requests": 1,
+        "current_open_pull_requests": 0,
         "current_branch_count": 99,
         "unmerged_unique_branch_heads": 34,
-        "branch_archive_status": "NOT_STARTED__MAIN_UNPROTECTED__RULESETS_AND_REQUIRED_REVIEWER_ENVIRONMENTS_NOT_VERIFIED",
+        "branch_archive_status": "NOT_STARTED__MAIN_UNPROTECTED__RULESETS_AND_REVIEWER_ENVIRONMENTS_NOT_VERIFIED",
         "site_poc_status": "SEPARATE_OLD_RUNTIME_LINE__FAIL_CLOSED_TOOL_DISPATCH__NOT_PRODUCTION__ARCHIVE_ONLY",
-        "branch_review_status": "34_UNIQUE_HEADS_CLASSIFIED_WITH_FULL_SHAS_AND_EXACT_REF_NAMES__TAGS_REQUIRED_BEFORE_PRUNE",
+        "branch_review_status": "NON_MAIN_BRANCHES_REMAIN__TAG_FIRST_ARCHIVE_AND_REVIEWER_CONTROLLED_PRUNE_NOT_STARTED",
         "unverified_branch_refs": 54,
         "unverified_unique_branch_heads": 34,
         "compare_to_main": {
@@ -235,12 +249,12 @@
         "archive_workflow_live_execution": "NOT_RUN__REQUIRES_PROTECTED_MAIN_RULESETS_GITHUB_APP_CREDENTIALS_AND_TWO_REVIEWER_ENVIRONMENTS",
         "last_test_fixture_correction": "The migration regression now models a current-writing-kernel/pre-requirement state; pre-kernel historical states remain blocked. The legal INTAKE transition uses no nonexistent INTAKE artifact.",
         "branch_count": 99,
-        "exact_head_ci_status": "SUCCESS",
+        "exact_head_ci_status": "SUCCESS__POST_MERGE_MAIN_CI_ALSO_SUCCESS",
         "skill_utf8_bytes": 11822,
         "maintenance_reference_surfaces": "TWO_BYTE_IDENTICAL",
         "problem_journal_revision": "1.9",
         "parent_upcall_execution": "REJECTED_AT_DECISION_ENVELOPE_ADMISSION__NO_PARENT_GUIDANCE_RETURN_PATH",
-        "independent_review_status": "NOT_OBTAINED__CODEX_REVIEW_FAILED_ON_OLD_HEAD_DUE_USAGE_LIMIT__NO_CURRENT_HEAD_REVIEW",
+        "independent_review_status": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
         "public_repository_data_boundary": {
           "visibility": "public",
           "private_research_artifact_present": true,
@@ -305,10 +319,41 @@
           ],
           "skill_router_utf8_bytes": 11822,
           "remaining": "FRESH_SESSION_PLUGIN_INSTALLATION_AND_INVOCATION_NOT_VERIFIED__INDEPENDENT_REVIEW_AND_PROTECTED_MAIN_OPEN"
-        }
+        },
+        "branch_inventory_as_of": "2026-11-13T16:43:15Z"
       },
       "plugin_current_release": "0.1.2__PRIVATE_PACKAGE_UPDATED_AND_READBACK__SMALL_LOADER_DEFERS_TO_CANONICAL_FINANCIAL_MAIN_SKILL__FRESH_SESSION_INVOCATION_OPEN",
       "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_FETCHES_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_BUSINESS_RULES__FRESH_SESSION_INVOCATION_OPEN"
+    },
+    "latest_production_verification": {
+      "main_branch": "main",
+      "main_sha": "2296223fa3b61a854cf2f4965fe93d96be333b4c",
+      "merged_pr": 67,
+      "merged_candidate_branch": "repair/financial-independent-acceptance-20261112",
+      "candidate_head_sha": "18421e675dd6e65acc5f6fb7a5616e56182b41f0",
+      "merged_at": "2026-11-13T16:42:08Z",
+      "production_ci_run_id": 43465361740,
+      "production_ci_run_number": 1919,
+      "production_ci_conclusion": "success",
+      "tests_passed": 523,
+      "source_line_coverage_percent": 90,
+      "coverage_statements": 5763,
+      "coverage_missed": 572,
+      "whole_tree_inventory": {
+        "tracked_files": 304,
+        "python_ast_parsed": 112,
+        "json_parsed": 52,
+        "decoded_text_lines": 41331,
+        "warnings": 0,
+        "errors": 0
+      },
+      "current_open_pull_requests": 0,
+      "branch_count": 99,
+      "main_protected": false,
+      "repository_rulesets_count": 0,
+      "independent_review": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
+      "private_skill_user_installation": "NOT_VERIFIED__EXPLICIT_ACTION_REQUIRED",
+      "system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE"
     }
   },
   "system_engineering_simulation_20261112": {
