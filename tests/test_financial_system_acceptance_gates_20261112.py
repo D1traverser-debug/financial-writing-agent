@@ -1,5 +1,6 @@
 """Signed external proof, not callback or Boolean self-certification."""
 import copy
+import hashlib
 import time
 import pytest
 
@@ -9,7 +10,7 @@ from financial_writing_agent.acceptance_gates import (
 from financial_writing_agent.provider_attestation import payload_sha256
 from trusted_provider_testkit import (
     signed_attestation, signed_method_promotion, signed_method_impact,
-    signed_owner_change_approval,
+    signed_owner_change_approval, signed_owner_message,
 )
 
 SHA = "d" * 40
@@ -46,14 +47,19 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "required_status_checks": ["test"],
         })
         if gate == "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION":
-            source_sha = "a"*64
+            source_ref = "chat://synthetic-owner/source-message"
+            source_text = "请保留完整财经写作目标并按范围拆分需求。"
+            source_sha = hashlib.sha256(source_text.encode("utf-8")).hexdigest()
             change_sha = "b"*64
+            message_attestation = signed_owner_message(source_ref, source_text)
             approval = signed_owner_change_approval({
                 "source_sha256": source_sha,
                 "change_sha256": change_sha,
             })
             evidence.update({
+                "source_ref": source_ref,
                 "source_sha256": source_sha,
+                "owner_message_attestation": message_attestation,
                 "change_sha256": change_sha,
                 "owner_confirmation_ref": approval["approval_record_ref"],
                 "owner_confirmation_attestation": approval,
@@ -317,17 +323,6 @@ def test_wrong_head_and_missing_gate_specific_evidence_are_rejected():
     assert SYSTEM_GATES[0] in result["open_gates"]
 
 
-def _resign_owner_gate(proofs, evidence):
-    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
-    proofs[gate] = signed_attestation(
-        "system_gate", actor="synthetic-financial-owner",
-        key_env="FINANCIAL_PROVIDER_ATTESTATION_KEY",
-        provider_env="FINANCIAL_TRUSTED_PROVIDER_ID",
-        gate=gate, target_head_sha=SHA, evidence=evidence,
-        evidence_sha256=payload_sha256(evidence),
-    )
-
-
 def test_owner_goal_gate_rejects_unbound_confirmation_reference():
     proofs = _proofs()
     gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
@@ -432,3 +427,45 @@ def test_main_hygiene_gate_rejects_unprotected_or_unverified_archive(field, valu
     )
     assert gate in result["open_gates"]
     assert reason in result["gates"][gate]["reason"]
+
+
+def test_owner_goal_gate_rejects_source_sha_not_matching_authenticated_message():
+    proofs = _proofs()
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence["source_sha256"] = "c"*64
+    _resign_owner_gate(proofs, evidence, gate)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "OWNER_SOURCE_SHA_MISMATCH" in result["gates"][gate]["reason"]
+
+
+def test_owner_goal_gate_rejects_message_attestation_for_different_source_ref():
+    proofs = _proofs()
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence["source_ref"] = "chat://different-owner-message"
+    _resign_owner_gate(proofs, evidence, gate)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "OWNER_MESSAGE_ATTESTATION_INVALID" in result["gates"][gate]["reason"]
+
+
+def test_owner_goal_gate_rejects_missing_original_message_attestation():
+    proofs = _proofs()
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence.pop("owner_message_attestation")
+    _resign_owner_gate(proofs, evidence, gate)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "GATE_EVIDENCE_FIELDS_MISSING" in result["gates"][gate]["reason"]
