@@ -6,6 +6,7 @@ import pytest
 
 from financial_writing_agent.acceptance_gates import (
     SYSTEM_GATES, REQUIRED_GATE_EVIDENCE, evaluate_system_acceptance,
+    _configured_financial_plugin_identity,
 )
 from financial_writing_agent.provider_attestation import payload_sha256
 from trusted_provider_testkit import (
@@ -17,6 +18,7 @@ SHA = "d" * 40
 
 
 def _proofs(*, reviewer="synthetic-independent-reviewer"):
+    plugin_id, release_id = _configured_financial_plugin_identity()
     proofs = {}
     for gate in SYSTEM_GATES:
         evidence = {field: "synthetic-evidence" for field in REQUIRED_GATE_EVIDENCE[gate]}
@@ -31,8 +33,8 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "write_blob_sha": "d"*40,
             "readback_blob_sha": "d"*40,
             "stale_conflict_status": 409,
-            "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-            "release_id": "pluginrel_6af5a82a95f48191ba8d21fa3d188094",
+            "plugin_id": plugin_id,
+            "release_id": release_id,
             "fresh_chat_session_ref": "session://synthetic-fresh-chat",
             "tool_invocation_ref": "tool://synthetic-financial-invocation",
             "after_branch_names": ["main"],
