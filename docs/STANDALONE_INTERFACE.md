@@ -70,6 +70,6 @@ The system gate evaluator is intentionally stricter than the article action API'
 
 - G1 verifies a provider-signed original owner message (source reference, user role, authenticated owner and recomputed UTF-8 SHA-256), then a separate provider-signed explicit owner approval bound to the exact canonical change SHA-256. The confirmation reference must equal the signed approval record reference.
 - G5 compares the activated plugin ID and release ID to the exact values in `config/FINANCIAL_MANIFEST.json`; an arbitrary plugin with valid-looking prefixes is not Financial activation.
-- G7 requires a complete archive manifest and final inventory digest, verified archive-tag readback, a single remaining `main` branch, active main protection, pull-request-only merges with at least one approval, disabled force pushes/deletion and the required `test` CI status check.
+- G7 requires a complete archive manifest and final inventory digest, verified archive-tag readback, a single remaining `main` branch, active main protection, pull-request-only merges with at least one approval, stale approvals dismissed on new pushes, approval of the latest reviewable push, administrator enforcement, up-to-date `test` CI, and force-push/deletion disabled.
 
 These are externally evidenced release gates, not synthetic self-certification. CI fixtures use test-only signing keys and do not close live gates. The current main branch is still unprotected; no repository-administration setting is changed by this Python acceptance evaluator.
