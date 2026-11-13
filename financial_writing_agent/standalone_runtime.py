@@ -371,12 +371,64 @@ def _verify_product_word_bytes(
             Document(BytesIO(binary))
         except (BadZipFile, KeyError, ValueError, OSError) as exc:
             raise FinancialAdmissionError(f"FINANCIAL_WORD_DOCX_OPEN_FAILED:{kind}") from exc
+
+        # A valid ZIP/DOCX and matching hash are not sufficient for publication.
+        # Require the canonical Delivery receipt, exact render/page inspection,
+        # source identity and (for long-form) task-scope + claim-trace bindings.
+        try:
+            from .delivery_pipeline import validate_delivery_evidence
+            validate_delivery_evidence(meta)
+        except Exception as exc:
+            raise FinancialAdmissionError(
+                f"FINANCIAL_WORD_DELIVERY_EVIDENCE_INVALID:{kind}"
+            ) from exc
+        delivery = meta.get("delivery_evidence")
+        _require(isinstance(delivery, Mapping),
+                 f"FINANCIAL_WORD_DELIVERY_EVIDENCE_MISSING:{kind}")
+        draft = candidate.get("stage_artifacts", {}).get("DRAFT")
+        _require(isinstance(draft, Mapping),
+                 "FINANCIAL_WORD_CURRENT_DRAFT_REFERENCE_MISSING")
+        _require(
+            delivery.get("source_ref") == draft.get("path")
+            and delivery.get("source_identity") == f"git-blob:{draft.get('blob_sha')}",
+            f"FINANCIAL_WORD_DRAFT_SOURCE_BINDING_MISMATCH:{kind}",
+        )
+        if kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+            scope = delivery.get("task_scope_binding")
+            _require(isinstance(scope, Mapping),
+                     f"FINANCIAL_WORD_TASK_SCOPE_BINDING_MISSING:{kind}")
+            _require(
+                scope.get("task_id") == candidate.get("task_id")
+                and scope.get("requirement_digest") == candidate.get("task_requirement_digest")
+                and scope.get("requirement_revision")
+                    == candidate.get("task_requirement_authority", {}).get("revision")
+                and scope.get("mode") == kind.removesuffix("_DOCX")
+                and scope.get("observed_stage") == "DELIVERY"
+                and scope.get("draft_artifact_path") == draft.get("path")
+                and scope.get("draft_artifact_blob_sha") == draft.get("blob_sha"),
+                f"FINANCIAL_WORD_TASK_SCOPE_BINDING_MISMATCH:{kind}",
+            )
+            trace = delivery.get("claim_trace_binding")
+            _require(
+                isinstance(trace, Mapping)
+                and trace.get("task_id") == candidate.get("task_id")
+                and trace.get("assurance")
+                    == "SOURCE_TEXT_AND_NUMERALS_OBSERVED__SEMANTIC_ENTAILMENT_NOT_VERIFIED"
+                and type(trace.get("traced_block_count")) is int
+                and trace["traced_block_count"] >= 1
+                and type(trace.get("read_source_snapshot_count")) is int
+                and trace["read_source_snapshot_count"] >= 1,
+                f"FINANCIAL_WORD_SOURCE_TRACE_BINDING_INVALID:{kind}",
+            )
+        render = delivery.get("render_inspection_receipt")
         verified.append({
             "kind": kind, "resource_ref": path,
             "blob_sha": claimed_sha, "sha256": hashlib.sha256(binary).hexdigest(),
+            "delivery_evidence_sha256": meta.get("delivery_evidence_sha256"),
+            "rendered_page_count": render.get("rendered_page_count") if isinstance(render, Mapping) else None,
         })
     return {
-        "assurance": "CURRENT_ARTICLE_EXACT_DOCX_BYTES_ONLY__PAGE_AND_EDITORIAL_OPEN",
+        "assurance": "CANONICAL_BUILD__CURRENT_DRAFT_BOUND__SOURCE_TRACE__RENDERED_PAGE_READBACK__EDITORIAL_INDEPENDENCE_OPEN",
         "verified_count": len(verified), "files": verified,
     }
 
