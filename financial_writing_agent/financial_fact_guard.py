@@ -11,9 +11,30 @@ import re
 import unicodedata
 
 _PERIOD = re.compile(
-    r"(?:20\d{2})(?:年)?(?:上半年|下半年|前三季度|第一季度|第二季度|第三季度|第四季度|全年|年度|年报|半年度|[HQ][1-4])",
+    r"(20\\d{2})\\s*(?:年)?\\s*(上半年|下半年|前三季度|第一季度|第二季度|第三季度|第四季度|全年|年度|年报|半年度|[HQ][1-4]|FY)",
     flags=re.I,
 )
+_PERIOD_ALIASES = {
+    "上半年": "H1", "半年度": "H1", "下半年": "H2",
+    "第一季度": "Q1", "第二季度": "Q2",
+    "第三季度": "Q3", "第四季度": "Q4",
+    "前三季度": "Q1-Q3",
+    "全年": "FY", "年度": "FY", "年报": "FY",
+}
+
+
+def _canonical_periods(text: str) -> set[tuple[str, str]]:
+    """Normalize equivalent Chinese/English spellings without losing the year.
+
+    This prevents false direct-contradiction reports; it does not certify
+    financial source entailment, publication freshness or editorial quality.
+    """
+    return {
+        (year, _PERIOD_ALIASES.get(period, period.upper()))
+        for year, period in _PERIOD.findall(text)
+    }
+
+
 _NUMBER_UNIT = re.compile(r"(\d+(?:\.\d+)?)\s*(万亿元|亿元|万美元|亿美元|万元|万|元|%|％)")
 _DIRECTION_NUMBER = re.compile(
     r"(?:同比|环比|较上期|较去年同期)?\s*"
@@ -72,8 +93,8 @@ def _metric_direction(text: str, metric: str) -> set[str]:
 def reject_direct_fact_contradictions(claim: str, source_excerpt: str) -> None:
     """Fail closed only on unambiguous contradictions observable in both texts."""
     public, source = _clean(claim), _clean(source_excerpt)
-    public_periods = set(_PERIOD.findall(public))
-    source_periods = set(_PERIOD.findall(source))
+    public_periods = _canonical_periods(public)
+    source_periods = _canonical_periods(source)
     if public_periods and source_periods and not public_periods.issubset(source_periods):
         raise FinancialFactConflict("SOURCE_TRACE_CONFLICT_REPORTING_PERIOD")
 

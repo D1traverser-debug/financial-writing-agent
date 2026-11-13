@@ -188,3 +188,65 @@ def test_current_builder_fails_before_creating_word_if_source_snapshots_are_fals
             claim_bindings=_rows(), source_reader=lambda _: None,
         )
     assert not target.exists()
+
+
+@pytest.mark.parametrize(
+    ("claim_period", "source_period"),
+    [
+        ("2025年上半年", "2025 H1"),
+        ("2025半年度", "2025年上半年"),
+        ("2025年第三季度", "2025Q3"),
+        ("2025年全年", "2025年度"),
+        ("2025年年报", "2025 FY"),
+    ],
+)
+def test_financial_period_synonyms_do_not_create_false_source_conflict(claim_period, source_period):
+    from financial_writing_agent.financial_fact_guard import reject_direct_fact_contradictions
+
+    reject_direct_fact_contradictions(
+        f"甲公司{claim_period}营业收入增长10%。",
+        f"甲公司{source_period}营业收入增长10%。",
+    )
+
+
+@pytest.mark.parametrize(
+    ("claim_period", "source_period"),
+    [
+        ("2025年上半年", "2025 H2"),
+        ("2025年第三季度", "2025 Q2"),
+        ("2025年全年", "2024年度"),
+    ],
+)
+def test_financial_period_normalization_still_rejects_different_periods(claim_period, source_period):
+    from financial_writing_agent.financial_fact_guard import (
+        FinancialFactConflict, reject_direct_fact_contradictions,
+    )
+
+    with pytest.raises(FinancialFactConflict, match="SOURCE_TRACE_CONFLICT_REPORTING_PERIOD"):
+        reject_direct_fact_contradictions(
+            f"甲公司{claim_period}营业收入增长10%。",
+            f"甲公司{source_period}营业收入增长10%。",
+        )
+
+
+def test_real_publication_source_trace_accepts_equivalent_period_notation_without_certifying_semantics():
+    from types import SimpleNamespace
+    from financial_writing_agent.claim_trace import verify_publication_source_trace
+
+    claim = "甲公司2025年上半年营业收入增长10%。"
+    excerpt = "甲公司2025 H1营业收入增长10%，其它费用仍待核对。"
+    article = SimpleNamespace(title="公司财报核对", blocks=[
+        SimpleNamespace(kind="body", text=claim),
+    ])
+    evidence = [{
+        "claim_id": "period-1", "block_index": 0, "claim_excerpt": claim,
+        "source_ref": "issuer://financial-2025-h1", "source_excerpt": excerpt,
+    }]
+    snapshot = {"text": excerpt, "sha256": hashlib.sha256(excerpt.encode("utf-8")).hexdigest()}
+    result = verify_publication_source_trace(
+        article, evidence, article_task_id="period-normalization-check",
+        source_reader=lambda ref: snapshot if ref == "issuer://financial-2025-h1" else None,
+    )
+    assert result["traced_block_count"] == 1
+    assert result["primary_source_authority_verified"] is False
+    assert result["semantic_fact_entailment_verified"] is False
