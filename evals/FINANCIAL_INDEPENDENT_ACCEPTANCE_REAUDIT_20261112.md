@@ -100,3 +100,27 @@ This remains code-level evidence only. The repository's live main branch is stil
 
 
 The main-protection snapshot additionally requires strict/up-to-date status checks, stale approvals to be dismissed on new pushes, approval of the latest reviewable push, and administrator enforcement (no admin bypass). This prevents a previously approved PR head from remaining approved after new commits and prevents administrators from silently bypassing the configured rule. These controls are included in the signed G7 evidence contract and the archive executor's normalized protection digest.
+
+
+## Latest exact-head engineering and release-boundary verification (2026-11-13)
+
+Candidate head `5b70b20bd3d401f6d70070f3e39bfed2feb7286e` completed Financial CI run `43382363475` successfully. The workflow supplied `FINANCIAL_SOURCE_HEAD_SHA` equal to the checked-out candidate HEAD and reported:
+
+- **508 tests passed**; source line coverage **88%** (5,763 statements, 675 missed).
+- Whole-tree inventory: 329 tracked files, 112 Python AST parses, 58 JSON parses, 43,033 decoded text lines, **zero warnings and zero errors**.
+- Standalone Financial operating Skill and runtime static audit passed; the Skill is 11,943 UTF-8 bytes, below the 12,000-byte router limit.
+- All three reference mirrors for the changed Delivery contract were synchronized; the global static audit also verified the full configured set of 12 Financial reference mirrors.
+- Clean standalone wheel/install smoke passed. This is package/runtime engineering evidence, not a live ChatGPT host deployment.
+- The branch-archive job ran only in `DRY_RUN__NO_MUTATION` mode: 99 branch refs and one open PR. No branch or tag was created or deleted.
+
+The same exact-head machine acceptance report returned `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven system gates remain OPEN. It explicitly reported that the private Skill release exists but is not verified installed in the user's client, and no hosted Python/MCP provider is deployed.
+
+Live GitHub readback after that CI run found:
+- `main` remains at `72cf852746a54b5f116e41f96bb8ca54b5f6838c` and reports `protected=false`.
+- The repository rulesets endpoint returns an empty list.
+- PR #67 is the only open PR, targeting `main`; it is mergeable but has no submitted review records.
+- PR #67 contains 305 commits, 56 changed files, 6,254 additions and 354 deletions. The candidate branch is 305 commits ahead of main and is not yet the authoritative main.
+
+**Promotion decision: do not merge or prune yet.** Merging without independent review and main protection would violate the system's own G6/G7 acceptance contract. The one candidate PR is retained rather than split into more PRs. Required owner-side actions are in `docs/FINANCIAL_BRANCH_ARCHIVE_OPERATOR_SETUP_20261112.md`; the remaining provider, client activation and independent-review gates are not replaceable by more synthetic tests.
+
+No production article STATE.json, private source file or CAOS repository/branch/PR/plugin/setting was changed by this system-reconstruction work.
