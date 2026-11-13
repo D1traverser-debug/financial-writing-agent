@@ -381,7 +381,8 @@ def _verify_delivery_research_freshness(
             body_sha = item.get("body_sha256")
             family = item.get("source_family")
             _require(
-                _valid_sha(ref_sha) and _valid_sha(body_sha)
+                isinstance(ref_sha, str) and re.fullmatch(r"[a-f0-9]{64}", ref_sha) is not None
+                and isinstance(body_sha, str) and re.fullmatch(r"[a-f0-9]{64}", body_sha) is not None
                 and isinstance(family, str) and bool(family.strip()),
                 "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_FIELDS_INVALID",
             )
