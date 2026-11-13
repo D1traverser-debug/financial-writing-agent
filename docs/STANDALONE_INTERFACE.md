@@ -62,3 +62,14 @@ The private Financial ChatGPT Skill plugin release is documented at `config/CHAT
 The current candidate replaces Boolean/callback trust with signed provider attestations for owner messages, exact owner approvals and action authorization. HMAC verification is fail-closed, audience/provider/actor/claim bound and freshness limited. Production still requires a separately deployed host signer that authenticates the actual user and protects keys; the Skill or verifier module cannot manufacture that identity.
 
 The Financial branch archive is deliberately two-phase after an exact manifest: PLAN records all branch names and SHAs; ARCHIVE runs under a full non-main creation/update/deletion freeze and creates immutable archive tags only; PRUNE requires a second reviewer approval after the owner removes only the deletion rule while leaving creation/update frozen. The workflow checks the same manifest SHA and final inventory. See docs/FINANCIAL_BRANCH_ARCHIVE_OPERATOR_SETUP_20261112.md for the live repository state and owner-side prerequisites. The current repository settings are not yet configured, so no destructive prune is authorized.
+
+
+## System acceptance gate v1.2 — exact evidence binding (2026-11-13)
+
+The system gate evaluator is intentionally stricter than the article action API's unit tests:
+
+- G1 verifies a provider-signed original owner message (source reference, user role, authenticated owner and recomputed UTF-8 SHA-256), then a separate provider-signed explicit owner approval bound to the exact canonical change SHA-256. The confirmation reference must equal the signed approval record reference.
+- G5 compares the activated plugin ID and release ID to the exact values in `config/FINANCIAL_MANIFEST.json`; an arbitrary plugin with valid-looking prefixes is not Financial activation.
+- G7 requires a complete archive manifest and final inventory digest, verified archive-tag readback, a single remaining `main` branch, active main protection, pull-request-only merges with at least one approval, disabled force pushes/deletion and the required `test` CI status check.
+
+These are externally evidenced release gates, not synthetic self-certification. CI fixtures use test-only signing keys and do not close live gates. The current main branch is still unprotected; no repository-administration setting is changed by this Python acceptance evaluator.
