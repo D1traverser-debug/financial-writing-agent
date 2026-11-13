@@ -3,7 +3,7 @@ from __future__ import annotations
 import hashlib
 import json
 from copy import deepcopy
-from typing import Any, Mapping
+from typing import Any, Literal, Mapping
 
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
@@ -54,6 +54,8 @@ class TaskRequirement(StrictModel):
         unknown_scopes = sorted(set(self.scopes) - VALID_SCOPES)
         if unknown_scopes:
             raise ValueError(f"unsupported requirement scopes: {unknown_scopes}")
+        if len(self.scopes) != len(set(self.scopes)):
+            raise ValueError("requirement scopes must be unique")
         if self.source_kind not in {"USER_EXPLICIT", "USER_CORRECTION", "USER_PREFERENCE"}:
             raise ValueError("non-authoritative suggestion, hypothesis or issue cannot enter active TaskRequirement")
         if self.affects_from_stage not in VALID_AFFECTED_STAGES:
@@ -63,11 +65,34 @@ class TaskRequirement(StrictModel):
 
 class RequirementHistoryEntry(StrictModel):
     revision: int = Field(ge=1)
-    action: str
+    action: Literal["ADD", "REPLACE", "RETIRE"]
     requirement_id: str = Field(min_length=1)
     previous: dict[str, Any] | None = None
     current: dict[str, Any] | None = None
     evidence_ref: str = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_history_transition(self):
+        if self.action == "ADD":
+            if self.previous is not None or self.current is None:
+                raise ValueError("ADD history requires previous=null and current")
+        elif self.action == "REPLACE":
+            if self.previous is None or self.current is None:
+                raise ValueError("REPLACE history requires both previous and current")
+        elif self.action == "RETIRE":
+            if self.previous is None or self.current is not None:
+                raise ValueError("RETIRE history requires previous and current=null")
+
+        for label, raw in (("previous", self.previous), ("current", self.current)):
+            if raw is None:
+                continue
+            try:
+                parsed = TaskRequirement.model_validate(raw)
+            except ValueError as exc:
+                raise ValueError(f"{label} history requirement is invalid") from exc
+            if parsed.requirement_id != self.requirement_id:
+                raise ValueError(f"{label} history requirement_id mismatch")
+        return self
 
 
 class RequirementAuthority(StrictModel):
@@ -83,8 +108,59 @@ class RequirementAuthority(StrictModel):
         ids = [item.requirement_id for item in self.active_requirements]
         if len(ids) != len(set(ids)):
             raise ValueError("active requirement ids must be unique")
-        if self.history and max(item.revision for item in self.history) > self.revision:
-            raise ValueError("requirement history revision cannot exceed authority revision")
+        if ids != sorted(ids):
+            raise ValueError("active requirements must use canonical requirement_id order")
+
+        if self.revision == 0:
+            if self.history or self.active_requirements:
+                raise ValueError("revision-zero requirement authority must be empty")
+            return self
+        if not self.history:
+            raise ValueError("nonzero requirement authority requires complete change history")
+
+        revisions = [item.revision for item in self.history]
+        if revisions != sorted(revisions):
+            raise ValueError("requirement history must be in revision order")
+        if set(revisions) != set(range(1, self.revision + 1)) or revisions[-1] != self.revision:
+            raise ValueError("requirement history must contain every authority revision exactly in order")
+
+        replayed: dict[str, dict[str, Any]] = {}
+        revision_seen_ids: set[str] = set()
+        revision_evidence_ref: str | None = None
+        current_revision = 0
+        for entry in self.history:
+            if entry.revision != current_revision:
+                current_revision = entry.revision
+                revision_seen_ids = set()
+                revision_evidence_ref = entry.evidence_ref
+            elif entry.evidence_ref != revision_evidence_ref:
+                raise ValueError("one requirement revision must use one owner evidence_ref")
+            if entry.requirement_id in revision_seen_ids:
+                raise ValueError("one requirement revision cannot mutate the same requirement twice")
+            revision_seen_ids.add(entry.requirement_id)
+
+            previous = entry.previous
+            current = entry.current
+            active_before = replayed.get(entry.requirement_id)
+            if entry.action == "ADD":
+                if active_before is not None:
+                    raise ValueError("ADD history cannot add an already-active requirement")
+                replayed[entry.requirement_id] = dict(current or {})
+            elif entry.action == "REPLACE":
+                if active_before is None or active_before != previous:
+                    raise ValueError("REPLACE history previous value does not match replayed authority")
+                replayed[entry.requirement_id] = dict(current or {})
+            elif entry.action == "RETIRE":
+                if active_before is None or active_before != previous:
+                    raise ValueError("RETIRE history previous value does not match replayed authority")
+                del replayed[entry.requirement_id]
+
+        active_dump = {
+            item.requirement_id: item.model_dump(mode="json")
+            for item in self.active_requirements
+        }
+        if replayed != active_dump:
+            raise ValueError("active requirements do not match complete replayed history")
         return self
 
 
@@ -143,7 +219,17 @@ def apply_requirement_changes(
     history = list(authority.history)
     next_revision = authority.revision + 1
 
-    retire_set = {str(item).strip() for item in (retire_ids or []) if str(item).strip()}
+    if retire_ids is not None and not isinstance(retire_ids, list):
+        raise RequirementError("retire_ids must be a list")
+    raw_retire_ids = list(retire_ids or [])
+    if any(not isinstance(item, str) or not item.strip() for item in raw_retire_ids):
+        raise RequirementError("retire_ids must contain nonempty strings")
+    normalized_retire_ids = [item.strip() for item in raw_retire_ids]
+    if len(normalized_retire_ids) != len(set(normalized_retire_ids)):
+        raise RequirementError("duplicate retire requirement_id")
+    retire_set = set(normalized_retire_ids)
+    if upserts is not None and not isinstance(upserts, list):
+        raise RequirementError("upserts must be a list")
     upsert_ids = [str(item.get("requirement_id", "")).strip() for item in (upserts or [])
                   if isinstance(item, Mapping)]
     if retire_set.intersection(upsert_ids):
