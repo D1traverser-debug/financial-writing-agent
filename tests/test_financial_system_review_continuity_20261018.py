@@ -13,15 +13,18 @@ def test_explicit_financial_system_review_has_durable_current_owner_ref():
     index = _json("evals/EVOLUTION_INDEX.json")
     assessment = index["active_system_assessment"]
     assert assessment["owner"] == "DOMAIN:financial_writing"
-    assert "CANDIDATE" in assessment["status"] and "NOT_READY" in assessment["status"]
+    assert assessment["status"] == "PRODUCTION_MAIN_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY"
+    assert assessment["latest_production_verification"]["merged_pr"] == 67
+    assert assessment["latest_production_verification"]["production_ci_conclusion"] == "success"
+    assert assessment["latest_production_verification"]["system_acceptance"].startswith("NOT_READY")
     assert not assessment["status"].startswith("ACCEPTED")
     assert assessment["r0_production"]["pr"] == 50
     assert assessment["r0_production"]["ci_run"] == 1416
     assert (ROOT / assessment["review_ref"]).is_file()
     assert assessment["existing_task_ref"].endswith("/STATE.json")
     assert _json(assessment["existing_task_ref"])["status"] == "IN_PROGRESS"
-    assert "EXTERNAL_OWNER_SETUP_REQUIRED" in assessment["user_action_now"]
-    assert "no code-only route" in assessment["user_action_now"]
+    assert "NO_ACTION_REQUIRED_TO_MERGE_PR_67" in assessment["user_action_now"]
+    assert "Remaining external actions" in assessment["user_action_now"]
 
 
 def test_named_system_request_does_not_route_into_a_historical_article():
