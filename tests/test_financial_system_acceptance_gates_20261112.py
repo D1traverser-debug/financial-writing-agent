@@ -9,6 +9,7 @@ from financial_writing_agent.acceptance_gates import (
 from financial_writing_agent.provider_attestation import payload_sha256
 from trusted_provider_testkit import (
     signed_attestation, signed_method_promotion, signed_method_impact,
+    signed_owner_change_approval,
 )
 
 SHA = "d" * 40
@@ -37,6 +38,19 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "before_branch_count": 99,
             "archive_tag_count": 98,
         })
+        if gate == "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION":
+            source_sha = "a"*64
+            change_sha = "b"*64
+            approval = signed_owner_change_approval({
+                "source_sha256": source_sha,
+                "change_sha256": change_sha,
+            })
+            evidence.update({
+                "source_sha256": source_sha,
+                "change_sha256": change_sha,
+                "owner_confirmation_ref": approval["approval_record_ref"],
+                "owner_confirmation_attestation": approval,
+            })
         if gate == "METHOD_KNOWLEDGE_CRUD_AND_IMPACT":
             promotion_challenge = {
                 "knowledge_id": "METHOD-SYNTHETIC",
@@ -294,3 +308,65 @@ def test_wrong_head_and_missing_gate_specific_evidence_are_rejected():
         code_tests_passed=True,
     )
     assert SYSTEM_GATES[0] in result["open_gates"]
+
+
+def _resign_owner_gate(proofs, evidence):
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-financial-owner",
+        key_env="FINANCIAL_PROVIDER_ATTESTATION_KEY",
+        provider_env="FINANCIAL_TRUSTED_PROVIDER_ID",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+
+
+def test_owner_goal_gate_rejects_unbound_confirmation_reference():
+    proofs = _proofs()
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence["owner_confirmation_ref"] = "fake://arbitrary-reference"
+    _resign_owner_gate(proofs, evidence)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "OWNER_CONFIRMATION_REF_MISMATCH" in result["gates"][gate]["reason"]
+
+
+def test_owner_goal_gate_rejects_confirmation_for_different_change_digest():
+    proofs = _proofs()
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence["change_sha256"] = "c"*64
+    _resign_owner_gate(proofs, evidence)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "OWNER_CHANGE_ATTESTATION_INVALID" in result["gates"][gate]["reason"]
+
+
+def test_owner_goal_gate_rejects_missing_nested_confirmation_signature():
+    proofs = _proofs()
+    gate = "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence.pop("owner_confirmation_attestation")
+    _resign_owner_gate(proofs, evidence)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert "GATE_EVIDENCE_FIELDS_MISSING" in result["gates"][gate]["reason"]
+
+
+def test_owner_goal_gate_accepts_only_matching_signed_source_and_change():
+    proofs = _proofs()
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION" not in result["open_gates"]
