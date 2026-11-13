@@ -144,14 +144,15 @@ def verify_requirement_change_intent(
     evidence, original_user_text = _read_verified_user_message(
         source_ref, excerpt, owner_instruction_reader,
     )
-    # Preserve the complete user utterance as the requirement payload. Do not
-    # let an LLM turn one sentence fragment into an apparently explicit rule:
-    # even a genuine substring may omit a preceding "not" or a later exception.
-    # Fine-grained paraphrases require a separate, explicit owner-authored turn.
+    # Preserve the complete authenticated utterance as immutable source
+    # evidence, but do not force every normalized requirement to duplicate the
+    # whole message. One instruction may contain several independently scoped
+    # requirements. Their complete canonical mutation is bound below and must
+    # receive an explicit owner-confirmation attestation before any CAS write.
     for item in upserted:
         _require(isinstance(item.get("statement"), str)
-                 and item["statement"] == original_user_text,
-                 "SEMANTIC_REQUIREMENT_MUST_EQUAL_COMPLETE_OWNER_MESSAGE")
+                 and bool(item["statement"].strip()),
+                 "REQUIREMENT_STATEMENT_REQUIRED")
     old = {
         str(item.get("requirement_id")): deepcopy(dict(item))
         for item in (existing_requirements or [])
