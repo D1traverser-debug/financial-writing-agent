@@ -163,12 +163,56 @@ The final signed Financial main-hygiene gate must include all of the following, 
 The system acceptance evaluator rejects missing or contradictory fields. These are evidence requirements, not claims that repository administration has already been configured.
 
 
+
+## Full no-exact-merged-PR branch-head classification (read-only, 2026-11-13)
+
+The 54 unverified refs reduce to 34 unique commit heads. The table records the current branch-name grouping and the disposition selected from read-only comparisons and representative source inspection. The schema-4 live manifest remains the final SHA-bound inventory at execution time.
+
+| Unique head | Branch ref(s) | Compare-to-main class | Review disposition |
+|---|---|---|---|
+| `ec87c775…` | `article/ai-security-infrastructure-2026-10-12-7f3a91c2` | Diverged | Article/task snapshot; FINAL_AUDIT is CHAT_SELF_REVIEW and certification OPEN. Preserve task history; not system code or accepted publication. |
+| `36919f6d…` | `9 article/fw-20261012-ai-security-6dd14859 aliases + maintenance/fresh-chat-authority-20261012 (10 refs)` | Ancestor | One shared SHA already reachable from main; duplicate article/run aliases. Archive after tag readback. |
+| `45658bd…` | `article/2026-10-15-huangjiu-high-end-channel` | Ancestor | Historical article branch already reachable from main; archive after tag readback. |
+| `bebd3ef0…` | `editorial-density-compliance-hardening` | Diverged | Legacy runtime/Site PoC line; preserve as alternative history, do not merge wholesale. |
+| `2530215e…` | `final-evidence-hardening` | Diverged | Legacy runtime/Site PoC line; preserve as alternative history. |
+| `e580cd4d…` | `fix/financial-current-lineage-tamper-20261018; fix/parent-governed-financial-lineage-invariant-20261018` | Ancestor | Two refs share one SHA already reachable from main; archive after tag readback. |
+| `23530f2e…` | `hotfix/financial-writing-1.0.2-authoritative-state-20261015` | Diverged | Old authoritative-state/candidate-integrity modules. Current admission, owner guard/lifecycle and standalone runtime are the selected replacement; preserve old code/tests, do not merge by filename. |
+| `af5fe1ca…` | `human-voice-headline-craft-20261009` | Diverged | Older editorial/style experiments on legacy runtime line; preserve; any style reuse must be checked against current Financial references. |
+| `9fca4081…` | `maintenance/continuity-v2-runtime-parity-20261009` | Diverged | Site PoC plus continuity-v2 runtime port; not selected production runtime. |
+| `95b6cb98…` | `maintenance/continuity-v2-task-metadata-writing-20261009` | Diverged | Site PoC plus task-metadata port; preserve as alternative implementation history. |
+| `efe13414…` | `maintenance/domain-identity-decoupling-20261014` | Diverged | UAOS-bound identity/adapter work; current candidate removes parent-runtime dependency. |
+| `182b9049…` | `maintenance/github-chat-branch-discovery-20261012` | Diverged | Older GitHub-chat branch discovery/continuity path; current candidate uses owner-native standalone authority. |
+| `2efb69cc…` | `maintenance/github-chat-runtime-20261012` | Diverged | Older GitHub-chat runtime/store path; preserve as superseded implementation history. |
+| `3b4604f9…` | `maintenance/owner-local-integrity-20261013` | Diverged | Earlier GitHub-chat lifecycle/owner-integrity design; current candidate uses owner-native state and provider attestations. |
+| `9042c336…` | `maintenance/persistent-asset-profile-20261017` | Diverged | Asset profile explicitly inherits UAOS parent policy; not a standalone Financial authority. Preserve as historical inventory evidence. |
+| `1948a9f8…` | `maintenance/phase1-workflow-kernel-20261012` | Ancestor | Phase-1 kernel tip already reachable from main; archive after tag readback. |
+| `208280dc…` | `maintenance/phase2-state-recovery-20261012` | Ancestor | Phase-2 recovery tip already reachable from main; archive after tag readback. |
+| `180f0986…` | `maintenance/phase3-specialist-boundaries-20261012` | Diverged | Earlier multi-specialist contracts are an alternative design; selected runtime does not require that orchestration layer. |
+| `b8deba8f…` | `maintenance/uaos-article-binding-20261014` | Diverged | UAOS article-binding adapter conflicts with current no-parent-runtime boundary; preserve only. |
+| `7763d4ea…` | `maintenance-autonomy-hardening` | Diverged | Legacy Site/runtime branch; preserve as alternative implementation history. |
+| `16a00ea9…` | `narrative-finance-style-hardening-20261008` | Diverged | Earlier editorial/style work on legacy runtime line; preserve; compare with current style reference before reuse. |
+| `086315bb…` | `predeploy-hardening-actual/base/ci/final/work (5 refs)` | Ancestor | Five refs share one historical SHA already reachable from main; archive after tag readback. |
+| `ce6353fe…` | `predeploy-hardening-noop; predeploy-hardening-types-base; typed-tools-scratch (3 refs)` | Diverged | Older skill/engine/MCP implementation. Current candidate uses a different owner-native runtime and delivery pipeline; preserve as historical design. |
+| `0484e962…` | `professional-analysis-hardening` | Diverged | Legacy Site/runtime line; preserve as alternative implementation history. |
+| `7ae3b8e9…` | `reader-value-learning-hardening` | Diverged | Legacy Site/runtime and reader-value experiment; preserve. Current reader-value references remain selected authority. |
+| `PR #67 head` | `repair/financial-independent-acceptance-20261112` | Candidate | Keep open for independent review and exact-head CI; do not prune or merge before required review and system gates. |
+| `eb420499…` | `research/cross-border-v3-source-revalidation-20261018` | Ahead of main | One unique commit containing task-specific source-revalidation evidence; preserve separately, does not admit or publish the article. |
+| `cda850e1…` | `test/github-chat-guard-tracer-20261012` | Diverged | Earlier GitHub-chat guard/tracer; current provider-attestation and standalone-runtime boundaries supersede its execution model. |
+| `07874059…` | `tmp-noop-should-not-use; tmp-noop-should-not-use-2` | Ancestor | Two no-op refs share one historical SHA already reachable from main; archive after tag readback. |
+| `56f41a70…` | `tmp-should-not-create; -2; -3; -4 (4 refs)` | Ancestor | Four no-op refs share one historical SHA already reachable from main; archive after tag readback. |
+| `22e30e39…` | `uaos/common-behavior-1-3-root-scope` | Diverged | UAOS/common-behavior and problem-action-admission experiment; current Financial cognition/intent governance is selected. |
+| `1703aeadee…` | `v0.2.1-runtime-rule-hardening` | Diverged | Site PoC/runtime rule-hardening line; preserve as alternative, non-production deployment history. |
+| `dee14a44…` | `v0.2.1-writing-agent-integrated` | Diverged | Site PoC integrated branch; business tool dispatch remains fail-closed; preserve, do not promote. |
+| `2494a21e…` | `writing-system-gap-hardening` | Diverged | Most developed historical Site/D1/R2 PoC; SiteDispatcher.call uses FailClosedDispatcher and 16-tool business execution is not wired. Archive-only, not production. |
+
+**Disposition totals:** 26 refs / 8 unique heads are already ancestors of main; 26 refs / 24 unique heads are divergent and contain unique historical commits; one additional ref is the current PR #67 candidate; one is the cross-border source-revalidation note. The article branch and source-revalidation branch are task evidence, not system code. The legacy runtime/Site/UAOS branches are preserved as alternative historical implementations, not merged into the selected standalone architecture. The archive tags must preserve every branch head before any ref is deleted. This table does not replace the final live manifest or authorize destructive pruning.
+
 ## Additional compare-to-main classification (2026-11-13)
 
 A read-only GitHub compare was run for every unique SHA among the 54 refs without an exact merged-PR-head match. The 54 refs reduce to 34 unique commit heads:
 
-- **25 refs / 8 unique heads** have `ahead_by = 0` and `behind_by > 0`: their tip commits are already ancestors of main. They are stale/duplicate refs; their archive tags still must be verified before deletion.
-- **27 refs / 24 unique heads** are divergent with commits ahead of main. These contain unique historical commits and must be preserved and reviewed before any prune.
+- **26 refs / 8 unique heads** have `ahead_by = 0` and `behind_by > 0`: their tip commits are already ancestors of main. They are stale/duplicate refs; their archive tags still must be verified before deletion.
+- **26 refs / 24 unique heads** are divergent with commits ahead of main. These contain unique historical commits and must be preserved and reviewed before any prune.
 - **1 ref** is the current open PR #67 candidate. It is ahead of main and must remain until review and merge.
 - **1 ref**, `research/cross-border-v3-source-revalidation-20261018`, has one unique commit ahead of main. It contains a task-specific source-revalidation report and must be reviewed separately; it does not itself admit or publish the article.
 
