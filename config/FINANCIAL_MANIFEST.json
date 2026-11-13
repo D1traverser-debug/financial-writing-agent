@@ -34,5 +34,6 @@
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
-  "direct_activation_semantics": "ROUTABLE_SKILL_IF_CONNECTED__NOT_AN_INSTALLED_APP_CLAIM"
+  "direct_activation_semantics": "ROUTABLE_SKILL_IF_CONNECTED__NOT_AN_INSTALLED_APP_CLAIM",
+  "data_authority": "config/DATA_AUTHORITY.json"
 }
