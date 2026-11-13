@@ -156,7 +156,7 @@ The final signed Financial main-hygiene gate must include all of the following, 
 - SHA-256 of the exact reviewed archive manifest.
 - A successful tag-by-tag readback proving each archived branch head is preserved.
 - SHA-256 of the final remote branch inventory.
-- `main.protected = true`, force pushes disabled, and branch deletion disabled.
+- `main.protected = true`, pull requests required, at least one approving review required, force pushes disabled, and branch deletion disabled.
 - The Financial CI job context `test` required by the main protection rule.
 - Final branch names exactly `["main"]`, with one verified archive tag per original non-main branch.
 
