@@ -70,3 +70,16 @@ The original exact-head CI at `6715ab46918ef94aff7ecf3395c3c734030ac87d` (run `4
 
 The subsequent commits in this candidate synchronize the plugin release pointer and execution/evolution metadata with the already-created private Skill release `0.1.1`, and align the machine contract with the requirement-decomposition correction. They do not change the article's live STATE.json or any CAOS asset. The PR's current exact HEAD must complete its own CI before any promotion decision.
 
+
+
+## Additional acceptance-gate adversarial review (2026-11-13)
+
+A second review of the acceptance evaluator found three evidence-binding gaps that were narrower than the runtime guards but could still allow a signed outer system-gate record to overstate readiness:
+
+1. **G1 owner goal / semantic correction** previously checked the owner identity and a well-formed source SHA, but did not verify that the SHA matched an authenticated original user-message attestation or that the confirmation reference resolved to a signed approval of the exact canonical change digest. It now requires the provider-signed original owner message, recomputes its UTF-8 SHA-256, verifies a separate owner-change approval for the exact source and change digests, and requires the public confirmation reference to equal the signed approval record reference.
+2. **G5 native client activation** previously accepted any strings with `plugins_` and `pluginrel_` prefixes. It now compares both identifiers to the exact plugin ID and release ID in `config/FINANCIAL_MANIFEST.json`, plus requires fresh-session and actual tool-invocation references.
+3. **G7 main-branch hygiene** previously checked only a one-branch inventory and archive-tag count. It now also requires a digest-bound archive manifest, verified archive-tag readback, final inventory digest, active main protection, disabled force-push/deletion, and the required Financial CI `test` status check.
+
+New negative cases cover missing or mismatched original-message attestation, wrong source digest, arbitrary confirmation references, mismatched change digest, wrong plugin/release, unprotected main, force-push/deletion allowance, missing required check and unverified archive tags. These changes do not fabricate any external gate receipt; all seven live gates remain OPEN until their real providers return evidence against the exact promoted main SHA.
+
+The repair remains Financial-only. No real article, current article STATE.json, CAOS repository, CAOS PR, plugin setting or user private source was changed by these acceptance-gate corrections.
