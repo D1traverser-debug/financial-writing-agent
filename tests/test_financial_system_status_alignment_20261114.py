@@ -17,15 +17,17 @@ def test_chatgpt_plugin_record_matches_canonical_manifest_release():
     assert plugin["version"] == canonical["version"]
 
 
-def test_evolution_index_records_pr67_as_merged_not_as_open_candidate():
+def test_evolution_index_tracks_pr67_production_without_rewriting_historical_audit():
     assessment = _json("evals/EVOLUTION_INDEX.json")["active_system_assessment"]
-    production = assessment["owner_governance_rebuild_20261112"]["production"]
+    history = assessment["owner_governance_rebuild_20261112"]
     latest = assessment["latest_production_verification"]
     assert assessment["status"] == "PRODUCTION_MAIN_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY"
-    assert production["pr_number"] == 67
-    assert production["production_merge"] == "MERGED"
-    assert production["merged_main_sha"] == latest["main_sha"]
-    assert production["post_merge_ci_conclusion"] == "success"
-    assert latest["current_open_pull_requests"] == 0
-    assert latest["main_protected"] is False
+    assert history["production"]["pr_number"] == 66
+    assert history["independent_acceptance_candidate"]["pull_request"] == 67
+    assert history["independent_acceptance_candidate"]["pull_request_merged"] is False
+    assert latest["merged_pr"] == 67
+    assert latest["main_sha"] == "2296223fa3b61a854cf2f4965fe93d96be333b4c"
+    assert latest["production_ci_conclusion"] == "success"
+    assert latest["current_open_pull_requests_at_observation"] == 0
+    assert latest["main_protected_at_observation"] is False
     assert latest["system_acceptance"] == "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE"
