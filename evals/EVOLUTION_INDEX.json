@@ -141,8 +141,8 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "b5a4b77b2e8387db569345b9cd0db189f64c4c44",
-        "exact_head_ci_run": 43456459381,
+        "last_exact_ci_verified_head": "6e5e152763c1adf60c6934874e8132d6d91acaf0",
+        "exact_head_ci_run": 43457206861,
         "exact_head_tests_passed": 523,
         "source_line_coverage_percent": 90,
         "coverage_statements": 5763,
@@ -265,8 +265,8 @@
           "repair": "The fixture now obtains plugin_id and release_id from the same canonical _configured_financial_plugin_identity() function used by the release gate. Exact-head follow-up CI passed on add49c39670c467b57eb0eb8efd35d9b8e20bc21."
         },
         "repair_followup_ci": {
-          "head_sha": "b5a4b77b2e8387db569345b9cd0db189f64c4c44",
-          "run_id": 43456459381,
+          "head_sha": "6e5e152763c1adf60c6934874e8132d6d91acaf0",
+          "run_id": 43457206861,
           "conclusion": "success",
           "tests": "523 passed",
           "source_line_coverage_percent": 90,
