@@ -223,23 +223,24 @@ def build_verified_article_docx(
             )
         except ValueError as exc:
             raise CanonicalDeliveryError(f"current task publication scope failed: {exc}") from exc
-        draft_ref = task_state.get("stage_artifacts", {}).get("DRAFT")
-        _require(isinstance(draft_ref, Mapping), "CURRENT_TASK_DRAFT_ARTIFACT_REQUIRED")
-        draft_path = draft_ref.get("path")
-        draft_blob_sha = draft_ref.get("blob_sha")
-        try:
-            canonical_draft_path = require_article_path(draft_path, str(task_state["task_id"]))
-        except (KeyError, ValueError) as exc:
-            raise CanonicalDeliveryError("CURRENT_TASK_DRAFT_ARTIFACT_PATH_INVALID") from exc
-        _require(
-            isinstance(draft_blob_sha, str) and re.fullmatch(r"[a-f0-9]{40}", draft_blob_sha) is not None,
-            "CURRENT_TASK_DRAFT_ARTIFACT_BLOB_SHA_INVALID",
-        )
-        task_scope_binding = {
-            **dict(task_scope_binding),
-            "draft_artifact_path": canonical_draft_path,
-            "draft_artifact_blob_sha": draft_blob_sha,
-        }
+        if task_state.get("current_stage") in {"DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"}:
+            draft_ref = task_state.get("stage_artifacts", {}).get("DRAFT")
+            _require(isinstance(draft_ref, Mapping), "CURRENT_TASK_DRAFT_ARTIFACT_REQUIRED")
+            draft_path = draft_ref.get("path")
+            draft_blob_sha = draft_ref.get("blob_sha")
+            try:
+                canonical_draft_path = require_article_path(draft_path, str(task_state["task_id"]))
+            except (KeyError, ValueError) as exc:
+                raise CanonicalDeliveryError("CURRENT_TASK_DRAFT_ARTIFACT_PATH_INVALID") from exc
+            _require(
+                isinstance(draft_blob_sha, str) and re.fullmatch(r"[a-f0-9]{40}", draft_blob_sha) is not None,
+                "CURRENT_TASK_DRAFT_ARTIFACT_BLOB_SHA_INVALID",
+            )
+            task_scope_binding = {
+                **dict(task_scope_binding),
+                "draft_artifact_path": canonical_draft_path,
+                "draft_artifact_blob_sha": draft_blob_sha,
+            }
         if claim_bindings is not None:
             from .claim_trace import verify_publication_source_trace
 
@@ -457,23 +458,24 @@ def finalize_delivery_evidence(
     _require(bool(str(source_identity).strip()), "source_identity is required")
     binding = build_receipt.get("task_scope_binding")
     artifact_kind = str(build_receipt.get("artifact_kind", ""))
-    if artifact_kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
-        _require(isinstance(binding, Mapping), "CURRENT_WORD_TASK_SCOPE_BINDING_REQUIRED")
-        _require(
-            binding.get("mode") == artifact_kind.removesuffix("_DOCX"),
-            "CURRENT_WORD_TASK_SCOPE_MODE_MISMATCH",
-        )
-        _require(
-            isinstance(binding.get("draft_artifact_path"), str)
-            and isinstance(binding.get("draft_artifact_blob_sha"), str)
-            and re.fullmatch(r"[a-f0-9]{40}", str(binding.get("draft_artifact_blob_sha"))) is not None,
-            "CURRENT_WORD_TASK_DRAFT_BINDING_REQUIRED",
-        )
-        _require(
-            source_ref == binding.get("draft_artifact_path")
-            and source_identity == f"git-blob:{binding.get('draft_artifact_blob_sha')}",
-            "CURRENT_WORD_TASK_DRAFT_IDENTITY_MISMATCH",
-        )
+    if binding is not None:
+        _require(isinstance(binding, Mapping), "CURRENT_WORD_TASK_SCOPE_BINDING_INVALID")
+        if artifact_kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+            _require(
+                binding.get("mode") == artifact_kind.removesuffix("_DOCX"),
+                "CURRENT_WORD_TASK_SCOPE_MODE_MISMATCH",
+            )
+            _require(
+                isinstance(binding.get("draft_artifact_path"), str)
+                and isinstance(binding.get("draft_artifact_blob_sha"), str)
+                and re.fullmatch(r"[a-f0-9]{40}", str(binding.get("draft_artifact_blob_sha"))) is not None,
+                "CURRENT_WORD_TASK_DRAFT_BINDING_REQUIRED",
+            )
+            _require(
+                source_ref == binding.get("draft_artifact_path")
+                and source_identity == f"git-blob:{binding.get('draft_artifact_blob_sha')}",
+                "CURRENT_WORD_TASK_DRAFT_IDENTITY_MISMATCH",
+            )
     # Every visible Word artifact, including generic audit/interaction outputs,
     # must have an actual current-session render/page receipt. PASS strings alone
     # cannot stand in for rendering the exact DOCX bytes.
@@ -545,28 +547,28 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
     )
     artifact_kind = str(evidence.get("artifact_kind", ""))
     binding = evidence.get("task_scope_binding")
-    if artifact_kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
-        _require(isinstance(binding, Mapping), "CURRENT_WORD_TASK_SCOPE_BINDING_REQUIRED")
-        _require(
-            binding.get("mode") == artifact_kind.removesuffix("_DOCX"),
-            "CURRENT_WORD_TASK_SCOPE_MODE_MISMATCH",
-        )
-        _require(
-            isinstance(binding.get("task_id"), str) and bool(binding.get("task_id"))
-            and isinstance(binding.get("requirement_digest"), str)
-            and re.fullmatch(r"[a-f0-9]{64}", binding["requirement_digest"]) is not None
-            and type(binding.get("requirement_revision")) is int
-            and binding["requirement_revision"] >= 0
-            and binding.get("observed_stage") == "DELIVERY",
-            "CURRENT_WORD_TASK_SCOPE_BINDING_INVALID",
-        )
-        _require(
-            isinstance(binding.get("draft_artifact_path"), str)
-            and isinstance(binding.get("draft_artifact_blob_sha"), str)
-            and re.fullmatch(r"[a-f0-9]{40}", binding["draft_artifact_blob_sha"]) is not None,
-            "CURRENT_WORD_TASK_DRAFT_BINDING_REQUIRED",
-        )
     if binding is not None:
+        _require(isinstance(binding, Mapping), "CURRENT_WORD_TASK_SCOPE_BINDING_INVALID")
+        if artifact_kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+            _require(
+                binding.get("mode") == artifact_kind.removesuffix("_DOCX"),
+                "CURRENT_WORD_TASK_SCOPE_MODE_MISMATCH",
+            )
+            _require(
+                isinstance(binding.get("task_id"), str) and bool(binding.get("task_id"))
+                and isinstance(binding.get("requirement_digest"), str)
+                and re.fullmatch(r"[a-f0-9]{64}", binding["requirement_digest"]) is not None
+                and type(binding.get("requirement_revision")) is int
+                and binding["requirement_revision"] >= 0
+                and binding.get("observed_stage") in {"DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"},
+                "CURRENT_WORD_TASK_SCOPE_BINDING_INVALID",
+            )
+            _require(
+                isinstance(binding.get("draft_artifact_path"), str)
+                and isinstance(binding.get("draft_artifact_blob_sha"), str)
+                and re.fullmatch(r"[a-f0-9]{40}", binding["draft_artifact_blob_sha"]) is not None,
+                "CURRENT_WORD_TASK_DRAFT_BINDING_REQUIRED",
+            )
         trace = evidence.get("claim_trace_binding")
         from .claim_trace import SOURCE_TRACE_ASSURANCE
 
