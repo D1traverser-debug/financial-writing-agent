@@ -1,6 +1,6 @@
-import json
-
 from docx import Document
+
+from financial_writing_agent.resources import load_packaged_policy
 
 from financial_writing_agent.checks import check_docx
 from financial_writing_agent.document import ArticleDocument, Block, build_article_docx
@@ -14,7 +14,7 @@ def _risk_text() -> str:
 
 
 def test_word_builder_normalizes_hierarchy_preserves_bold_contract_and_exact_typography(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = load_packaged_policy()
     article = ArticleDocument(
         title="测试标题",
         stock_names=["国电南瑞"],
@@ -59,7 +59,7 @@ def test_word_builder_normalizes_hierarchy_preserves_bold_contract_and_exact_typ
 
 
 def test_a_share_company_names_are_automatically_bolded_and_skim_anchors_remain_bold(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = load_packaged_policy()
     article = ArticleDocument(
         title="公司加粗测试",
         stock_names=["国电南瑞", "许继电气"],
@@ -89,7 +89,7 @@ def test_a_share_company_names_are_automatically_bolded_and_skim_anchors_remain_
 
 
 def test_checker_rejects_any_unbold_a_share_occurrence_when_auto_bold_is_required(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = load_packaged_policy()
     article = ArticleDocument(
         title="公司加粗机械检查",
         stock_names=["国电南瑞"],
@@ -115,7 +115,7 @@ def test_checker_rejects_any_unbold_a_share_occurrence_when_auto_bold_is_require
 
 
 def test_concise_nonempty_risk_disclaimer_is_allowed_without_fixed_character_floor(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = load_packaged_policy()
     assert policy["risk_disclaimer"]["min_body_chars"] == 0
     article = ArticleDocument(
         title="简洁风险提示测试",
@@ -133,7 +133,7 @@ def test_concise_nonempty_risk_disclaimer_is_allowed_without_fixed_character_flo
 
 
 def test_tables_are_hard_fail(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = load_packaged_policy()
     article = ArticleDocument(
         title="无表格测试",
         blocks=[
@@ -154,7 +154,7 @@ def test_tables_are_hard_fail(tmp_path):
 
 
 def test_source_appendix_and_underlines_are_hard_fail(tmp_path):
-    policy = json.loads(open("config/policy.json", encoding="utf-8").read())
+    policy = load_packaged_policy()
     article = ArticleDocument(
         title="来源与下划线测试",
         blocks=[

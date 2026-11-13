@@ -2,7 +2,9 @@ from __future__ import annotations
 
 from typing import Literal
 
-from pydantic import BaseModel, ConfigDict, Field, model_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+from .company_identity import canonical_company_name, canonical_ticker
 
 
 class StrictModel(BaseModel):
@@ -88,6 +90,16 @@ class MarketExplanationHypothesis(StrictModel):
 class CompanyFinding(StrictModel):
     name: str = Field(min_length=1)
     ticker: str | None = None
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_company_name(cls, value):
+        return canonical_company_name(value)
+
+    @field_validator("ticker", mode="before")
+    @classmethod
+    def normalize_ticker(cls, value):
+        return None if value is None or value == "" else canonical_ticker(value)
     value_chain_class: str = Field(min_length=1)
     materiality: CompanyMateriality = "MATERIAL"
     relevance: str = Field(min_length=1)
@@ -123,11 +135,34 @@ class CompanyDecisionDimension(StrictModel):
     evidence_refs: list[str] = Field(min_length=1)
     why_it_changes_judgment: str = Field(min_length=1)
 
+    @field_validator("company_assessments", mode="before")
+    @classmethod
+    def normalize_assessment_keys(cls, value):
+        if not isinstance(value, dict):
+            return value
+        normalized = {}
+        for name, assessment in value.items():
+            canonical = canonical_company_name(name)
+            if canonical in normalized:
+                raise ValueError("company assessments contain duplicate canonical company identities")
+            normalized[canonical] = assessment
+        return normalized
+
 
 class CompanyDecisionMap(StrictModel):
     """Evidence-bounded company differentiation, not an actionable recommendation ranking."""
 
     material_companies: list[str] = Field(min_length=2)
+
+    @field_validator("material_companies", mode="before")
+    @classmethod
+    def normalize_material_company_names(cls, value):
+        if not isinstance(value, list):
+            return value
+        normalized = [canonical_company_name(item) for item in value]
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("material_companies contain duplicate canonical company identities")
+        return normalized
     dimensions: list[CompanyDecisionDimension] = Field(min_length=2)
     current_comparative_verdict: str = Field(min_length=1)
     strongest_current_evidence_for: list[str] = Field(min_length=1)
@@ -147,6 +182,11 @@ class CompanyDecisionMap(StrictModel):
 class UniverseExclusion(StrictModel):
     name: str = Field(min_length=1)
     value_chain_class: str = Field(min_length=1)
+
+    @field_validator("name", mode="before")
+    @classmethod
+    def normalize_company_name(cls, value):
+        return canonical_company_name(value)
     reason: str = Field(min_length=1)
     evidence_refs: list[str] = Field(default_factory=list)
 
@@ -158,6 +198,19 @@ class UniverseClassCoverage(StrictModel):
     excluded_companies: list[str] = Field(default_factory=list)
     unresolved_candidates: list[str] = Field(default_factory=list)
     source_refs: list[str] = Field(min_length=1)
+
+    @field_validator(
+        "included_companies", "excluded_companies", "unresolved_candidates",
+        mode="before",
+    )
+    @classmethod
+    def normalize_covered_company_names(cls, value):
+        if not isinstance(value, list):
+            return value
+        normalized = [canonical_company_name(item) for item in value]
+        if len(normalized) != len(set(normalized)):
+            raise ValueError("universe class contains duplicate canonical company identities")
+        return normalized
 
     @model_validator(mode="after")
     def class_has_accounting(self):
@@ -295,7 +348,7 @@ class ResearchPackage(StrictModel):
 
         names = [company.name for company in self.universe]
         if len(names) != len(set(names)):
-            raise ValueError("research universe company names must be unique")
+            raise ValueError("research universe company names must be unique; duplicate names after canonicalization are not allowed")
         if self.universe:
             if self.universe_coverage.status == "NOT_APPLICABLE":
                 raise ValueError("non-empty company universe requires COMPLETE or BOUNDED_WITH_GAPS universe_coverage")

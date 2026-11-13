@@ -16,6 +16,9 @@ from financial_writing_agent.task_requirements import (
     apply_requirement_changes,
 )
 from test_financial_native_loop_closure_20261112 import Provider
+from trusted_provider_testkit import (
+    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
+)
 
 TASK = "financial-goal-governance-sim"
 SOURCE = "user-message://verified/2026-11-12/goal-1"
@@ -34,9 +37,10 @@ def action(p, op, params, *, reader=None, sha=None):
         "expected_state_blob_sha": None if op == "CREATE_ARTICLE" else prev,
         "parameters": params,
     }, state_reader=p.read, cas_writer=p.write,
-       authorization_verifier=lambda _: True,
+       authorization_verifier=signed_action_authorization,
        artifact_reader=p.artifact, source_snapshot_reader=p.source,
-       owner_instruction_reader=reader)
+       owner_instruction_reader=reader,
+       owner_semantic_verifier=signed_owner_change_approval)
 
 
 def create(p):
@@ -68,12 +72,11 @@ def _reader(text=USER_TEXT, *, role="user", ref=SOURCE, forged_sha=False):
     def read(which):
         if which != ref:
             return None
-        return {
-            "text": text,
-            "sha256": "0" * 64 if forged_sha else hashlib.sha256(text.encode("utf-8")).hexdigest(),
-            "source_role": role, "source_ref": ref,
-            "authenticated_actor": "account-user" if role == "user" else "agent",
-        }
+        return signed_owner_message(
+            ref, text, source_role=role,
+            actor="synthetic-financial-owner" if role == "user" else "synthetic-assistant",
+            sha256="0" * 64 if forged_sha else None,
+        )
     return read
 
 

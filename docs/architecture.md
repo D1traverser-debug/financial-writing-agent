@@ -1,12 +1,12 @@
 # Financial Writing Agent — Architecture
 
 Version: `1.1.0 / standalone Financial operating domain`
-Reviewed: `2026-11-11`
+Reviewed: `2026-11-12`
 Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
 
-Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no parent/CAOS runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no external parent runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
@@ -18,7 +18,7 @@ Hard invariants:
 
 ## 1A. Current standalone deployment and capability boundary
 
-Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import CAOS, and no local CAOS Host is required. Historical `.uaos/*` and `CAOS_SKILL.md` are inactive compatibility artifacts.
+Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import an external parent runtime. Retired integration stubs have been removed from the current tree.
 
 Model/web/data retrieval and document tools must actually be connected in the Financial environment; an installed Python wheel by itself does not execute LLM research or prove any native plugin connection. The real cross-border v3 task and all historic receipts remain unchanged. Full product readiness still requires independently observed financial facts, useful narrative and actual accessible Word results.
 
@@ -84,7 +84,10 @@ Required modules are:
 - `negative_and_falsification_pool`;
 - `scenario_tree`;
 - `next_window_validation`;
-- `publication_distillation`.
+- `publication_distillation`;
+- `material_catalyst_and_policy_ledger` (contract 1.1): all materially relevant events and policy phases, including changes, suspensions, reductions, exemptions, retaliation, expiry and rollback;
+- `driver_sustainability_operability_and_concept_map` (contract 1.1): independently evidence the immediate driver, durability, market operability and concept/sector identity;
+- `cross_segment_global_selection` (contract 1.1): compare segment winners and role candidates again across the whole market under current catalyst, liquidity and sentiment constraints.
 
 Every module is `APPLICABLE` or `NOT_MATERIAL`; applicable modules require evidence refs and `NOT_MATERIAL` requires an explicit reason. The validator deliberately proves contract completeness, not semantic excellence. Research Audit remains responsible for detecting placeholder evidence, stale facts and unjustified role labels.
 
@@ -175,7 +178,7 @@ Promotion flow: `evidence -> DecisionEnvelope/root scope -> candidate -> regress
 Financial-owned evolution follows:
 `problem/feedback -> causal diagnosis -> alternatives/counterexamples -> root-scope admission -> evolution disposition -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
 
-One article may create a domain candidate but cannot silently become universal truth. Financial-specific business/writing rules and generalizable methods used inside Financial remain Financial-owned. Reusable methods are evaluated and promoted only with Financial-local negative/positive evidence, never via a mandatory parent upcall.
+One article may create a domain candidate but cannot silently become universal truth. Financial-specific business/writing rules and generalizable methods used inside Financial remain Financial-owned. Reusable methods are evaluated and promoted only with Financial-local negative/positive evidence, current Financial operations reject parent upcalls; external methods may inform local choices but cannot delegate ownership.
 
 The 1.0.3 private-research admission is Financial-local. It governs how A-share financial writing research is represented before publication and never requires another agent to adopt its domain-specific taxonomy.
 
@@ -215,16 +218,25 @@ A historical or pre-private-marker article is not evidence that 1.0.3 private-re
 
 ## Owner intent, requirements, methodology CRUD and recursive dependency control (2026-11-12)
 
-The CAOS-inspired governance method is **replicated as Financial-owned behavior**, not a new parent/Host/runtime dependency. The current Financial Skill remains the sole domain operating entry. Source authority: actual user message/correction → authenticated owner-intent evidence → typed requirement classification; task requirements and stage invalidations stay in one Article Aggregate. Nonbinding ideas remain visible in the article's `intent_history` without acquiring hard-goal authority. `USER_EXPLICIT` is never an inferred default.
+The evidence-first governance method is **implemented as Financial-owned behavior**, not a new parent/Host/runtime dependency. The current Financial Skill remains the sole domain operating entry. Source authority: actual user message/correction → authenticated owner-intent evidence → typed requirement classification; task requirements and stage invalidations stay in one Article Aggregate. Nonbinding ideas remain visible in the article's `intent_history` without acquiring hard-goal authority. `USER_EXPLICIT` is never an inferred default.
 
 Decision and execution are distinct loops with recursive re-entry. The decision loop challenges source, task interpretation, alternative mechanisms, chosen methodology, and its verifier; the execution loop performs an authorized action, independently reads back actual source/effect, follows downstream invalidation and may reopen an upstream hypothesis. The ten-stage business state graph is unchanged; problem/recovery and feedback governance remain owner-native.
 
 The existing method catalog is the **only method knowledge authority**. It carries a versioned, append-only change history, pending revisions that cannot silently replace current methods, explicit candidate/adopted/challenged/retired states, non-destructive retirement and verified promotion/impact closures. Existing legacy method labels remain LEGACY_DECLARED; they are not automatic proof of an independently validated method. The dedicated method-scope action in the same `standalone_runtime` uses user-authenticated exact Git CAS/readback but is **not a second task state or workflow controller**. A changed method records affected stages and OPEN revalidation rather than silently approving old dependent tasks.
 
-Assurance boundary: synthetic CI verifies deterministic admission and state replay; native Financial plugin activation, real original-message provider, semantic intent classification and cross-article live impact verification remain separate evidence requirements. See `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`.
+Assurance boundary: synthetic CI verifies deterministic admission and state replay; native Financial plugin activation, real original-message provider, semantic intent classification and cross-article live impact verification remain separate evidence requirements. See `evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md`.
 
 ### Method-version→Article dependency edge (verified synthetic path)
 
 When a current research DecisionEnvelope explicitly names a method ID, the Financial provider action gateway binds its effective ACTIVE record hash, method revision and catalog revision into the existing RESEARCH receipt. Each following stage reads the method catalog and compares effective fingerprints. A pending revision that has **not** been promoted leaves active evidence unchanged; a revised, challenged or retired method fails closed with `METHOD_DEPENDENCY_STALE`. The authorized `REOPEN_METHOD_DEPENDENCY` action derives the earliest affected stage from signed/provider-read catalog change-event history, archives invalidated evidence, reuses `owner_guard._invalidate_from`, preserves original task requirements, and appends a canonical owner receipt under Git CAS/readback. An unrelated method change does not create false invalidation. This is a dependency edge in existing Financial state and method catalog, not a second Graph or shadow history.
 
 Coverage is scoped to **explicit method IDs used in an admitted research decision**. It does not heuristically infer every LLM method influence or automatically crawl all historical articles. Unverifiable provenance remains OPEN; a real connected client must supply the actual method reader.
+
+
+## 14. Active ChatGPT-native execution runtime
+
+The current user-facing runtime is the ChatGPT model following the single Financial Skill, with the user's already-connected GitHub connector as the persistent provider and current web/document/Python tools for research and production. The Skill-only plugin is an instruction package; it neither grants GitHub access nor hosts Python/MCP. This design therefore requires no custom hosted service, local daemon or paid API.
+
+All persistent task state and artifacts remain in the existing Financial repository. Single-file writes use the current blob SHA and exact readback. Multi-file writes use Git blobs, a tree based on the current main tree, a commit parented to the exact current main head, and update_ref with expected_sha and force=false; every changed path is then read back at the resulting commit SHA. Binary Word artifacts use base64 blobs. Stale writes stop for reread and recomputation. Explicit owner confirmation in the current conversation authorizes binding requirement changes; the full source message and confirmation are preserved in the existing article intent history.
+
+The Python standalone_runtime module remains a reference implementation and CI test target for a separately hosted integration. It is not directly invoked by a Skill-only chat and is not a prerequisite for the active ChatGPT path. Its HMAC/provider gates remain applicable only when that optional adapter is actually deployed and called. System release acceptance, independent editorial acceptance and real article quality remain separate from basic native execution.

@@ -25,6 +25,11 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["external_host_required"] is False
     assert manifest["state_authority"] == "workspaces/articles/{task_id}/STATE.json"
     assert manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime"
+    native = manifest["chatgpt_native_runtime"]
+    assert native["orchestrator"] == "CHATGPT_MODEL_WITH_FINANCIAL_SKILL"
+    assert native["persistence_provider"] == "CONNECTED_USER_GITHUB_CONNECTOR"
+    assert native["write_protocol"] == "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA"
+    assert native["requires_hosted_python_mcp"] is False
     assert execution["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
     assert execution["execution"]["live_parent_business_proxy_required"] is False
     assert execution["authority"]["alternate_business_state_authority_allowed"] is False
@@ -33,7 +38,10 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["standalone_governance"]["external_parent_required"] is False
     assert {"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"} <= OPERATIONS
     assert len({c["id"] for c in caps["capabilities"]}) == len(caps["capabilities"])
-    assert all(item["role"] != "AUTHORITY" for item in _json("config/PERSISTENT_ASSET_PROFILE.json")["non_authority_assets"])
+    data = _json("config/DATA_AUTHORITY.json")
+    assert data["business_authority"] == "github://D1traverser-debug/financial-writing-agent@main"
+    assert data["no_parallel_article_ledger"] is True
+    assert data["no_external_parent_runtime"] is True
 
 
 def test_financial_state_is_article_identity_and_task_contract_identity_free():
@@ -54,14 +62,10 @@ def test_financial_state_is_article_identity_and_task_contract_identity_free():
 def test_retired_parent_paths_are_historical_and_current_entry_is_financial():
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     assert (ROOT / manifest["skill_entrypoint"]).exists()
-    assert (ROOT / "FINANCIAL_SKILL.md").exists()
     assert (ROOT / "financial_writing_agent/standalone_runtime.py").exists()
-    for name in (".uaos/MANIFEST.json", ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json"):
-        payload = _json(name)
-        assert payload["active"] is False
-        assert payload["authority"] is False
-        assert payload["runtime_required"] is False
-    for path in ("continuity", "state", "TASK_INDEX.json"):
+    for name in ("FINANCIAL_SKILL.md", "CAOS_SKILL.md", "UAOS_SKILL.md", ".uaos", "docs/CAOS_CHILD_INTERFACE.md"):
+        assert not (ROOT / name).exists()
+    for path in ("continuity", "state", "TASK_INDEX.json", "references"):
         assert not (ROOT / path).exists()
 
 
@@ -69,6 +73,8 @@ def test_discovery_skill_is_real_operating_entry_not_second_parent_pointer():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     assert "Independent Operating Skill" in skill
     assert "standalone_runtime.py" in skill
+    for marker in ("create_blob", "create_tree", "create_commit", "update_ref", "expected_sha", "fetch_file"):
+        assert marker in skill
     assert "Decision" in skill and "Execution" in skill
     assert "PrivateResearchBrief" in skill
     assert "continuity/" not in skill
@@ -84,3 +90,11 @@ def test_installed_package_has_no_caos_required_dependencies():
     modules = (ROOT / "financial_writing_agent/standalone_runtime.py").read_text(encoding="utf-8")
     assert "caos_bridge" not in modules
     assert "cognition_agent_os" not in modules
+
+
+
+def test_standalone_interface_uses_canonical_skill_paths_and_no_hosted_claim():
+    interface = (ROOT / "docs/STANDALONE_INTERFACE.md").read_text(encoding="utf-8")
+    assert "canonical operating Skill source" in interface
+    assert "skills/financial-writing-agent/references/maintenance.md" in interface
+    assert "skills/financial-writing-agent/skills/" not in interface

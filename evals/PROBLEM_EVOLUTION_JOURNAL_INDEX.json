@@ -1,41 +1,17 @@
 {
-  "schema_version": "1.3",
+  "schema_version": "1.4",
   "journal": "evals/PROBLEM_EVOLUTION_JOURNAL.md",
   "owner": "DOMAIN:financial_writing",
-  "revision": "1.6",
+  "revision": "1.9",
   "backfill_window": {
     "from": "2026-10-10",
     "through": "2026-10-15"
   },
-  "current_open_items": [
-    "P-20261015-08",
-    "P-20261015-09",
-    "P-20261015-10",
-    "P-20261015-15",
-    "P-20261015-16"
-  ],
-  "latest_closed_items": [
-    "P-20261015-11",
-    "P-20261015-12",
-    "P-20261015-13",
-    "P-20261015-14"
-  ],
-  "parent_guidance_items": [
-    "PROACTIVE_RESOLUTION_GAP",
-    "EVOLUTION_HISTORY_INTERFACE",
-    "VERSION_METADATA_DRIFT",
-    "INHERITANCE_BEHAVIOR_VS_DECLARATION",
-    "DECLARATION_TO_OPERATION_GAP",
-    "PROBLEM_TO_ACTION_CLOSURE_GAP",
-    "INHERITED_COGNITION_AUTO_ACTIVATION_GAP"
-  ],
-  "parent_guidance_status": "NEW_LIVE_INHERITANCE_EVIDENCE_PENDING_PARENT_READJUDICATION",
-  "latest_open_incident_ref": "evals/USER_FEEDBACK_SYSTEM_IMPACT_2026-10-15_INHERITED_COGNITION_AUTO_ACTIVATION_GAP.md",
   "rule_refs": [
-    "references/maintenance.md",
-    "references/proactive_resolution.md",
-    "references/research.md",
-    "references/knowledge.md",
+    "skills/financial-writing-agent/references/maintenance.md",
+    "skills/financial-writing-agent/references/proactive_resolution.md",
+    "skills/financial-writing-agent/references/research.md",
+    "skills/financial-writing-agent/references/knowledge.md",
     "financial_writing_agent/proactive_resolution.py"
   ],
   "proactive_resolution_promotion_receipt": {
@@ -60,5 +36,32 @@
     "production_ci_status": "success",
     "assurance": "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN",
     "semantics": "Event-specific promotion receipt for the owner-native proactive-resolution action receipt, user-escalation admission and missing-voice-sample behavior trajectory. Later journal-only or parent-observation updates do not invalidate this mechanism receipt. Current parent observation is owned by UAOS, not mirrored here as a moving latest/pending fact."
-  }
+  },
+  "historical_parent_guidance_items": [
+    "PROACTIVE_RESOLUTION_GAP",
+    "EVOLUTION_HISTORY_INTERFACE",
+    "VERSION_METADATA_DRIFT",
+    "INHERITANCE_BEHAVIOR_VS_DECLARATION",
+    "DECLARATION_TO_OPERATION_GAP",
+    "PROBLEM_TO_ACTION_CLOSURE_GAP",
+    "INHERITED_COGNITION_AUTO_ACTIVATION_GAP"
+  ],
+  "historical_parent_guidance_status": "ARCHIVAL_ONLY__NO_LIVE_PARENT_DEPENDENCY",
+  "status": "HISTORICAL_PROBLEM_JOURNAL_INDEX__NOT_CURRENT_SYSTEM_STATUS",
+  "system_status_authority": "evals/EVOLUTION_INDEX.json",
+  "open_items_at_2026_10_15": [
+    "P-20261015-08",
+    "P-20261015-09",
+    "P-20261015-10",
+    "P-20261015-15",
+    "P-20261015-16"
+  ],
+  "closed_items_at_2026_10_15": [
+    "P-20261015-11",
+    "P-20261015-12",
+    "P-20261015-13",
+    "P-20261015-14"
+  ],
+  "latest_incident_id": "P-20261113-01",
+  "latest_incident_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261113-01"
 }

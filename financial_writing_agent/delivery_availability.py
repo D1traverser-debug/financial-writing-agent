@@ -230,9 +230,20 @@ def build_visible_delivery_receipt(
             else:
                 _require(digest == canonical_sha, f"non-regenerated {kind} binary hash must match canonical owner state")
 
+        render_receipt = evidence.get("render_inspection_receipt")
+        scope_binding = evidence.get("task_scope_binding")
         presented[kind] = {
             "file_name": file_name,
             "sha256": digest,
+            "delivery_evidence_sha256": resource.get("delivery_evidence_sha256"),
+            "rendered_page_count": (
+                render_receipt.get("rendered_page_count")
+                if isinstance(render_receipt, Mapping) else None
+            ),
+            "task_requirement_digest": (
+                scope_binding.get("requirement_digest")
+                if isinstance(scope_binding, Mapping) else None
+            ),
             "resource_ref": ref,
             "supplemental": is_supplemental,
             "regenerated_from_durable_source": regenerated,

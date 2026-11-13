@@ -1,13 +1,13 @@
-import json
 from pathlib import Path
 
 from financial_writing_agent.checks import analyze_template_scaffolding
+from financial_writing_agent.resources import load_packaged_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
 def _policy():
-    return json.loads((ROOT / "config/policy.json").read_text(encoding="utf-8"))
+    return load_packaged_policy()
 
 
 def test_single_template_signal_is_diagnostic_not_failure():
@@ -56,7 +56,7 @@ def test_audit_requires_semantic_confirmation_before_template_revision():
 
 
 def test_current_reader_value_rule_rejects_humanizer_caricature():
-    rule = (ROOT / "references/reader_value.md").read_text(encoding="utf-8")
+    rule = (ROOT / "skills/financial-writing-agent/references/reader_value.md").read_text(encoding="utf-8")
     assert "去AI味” is not a generation style" in rule
     assert "Voice evidence priority" in rule
     assert "not generation mandates" in rule

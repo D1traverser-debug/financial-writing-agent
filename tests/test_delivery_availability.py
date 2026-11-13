@@ -66,12 +66,29 @@ def _delivery_evidence(kind, digest, *, source_quality_evidence_sha256=None):
     if source_quality_evidence_sha256 is not None:
         payload["source_quality_evidence_sha256"] = source_quality_evidence_sha256
     build = delivery_pipeline._issue_build_receipt(payload)
+    render_body = {
+        "render_receipt_version": delivery_pipeline.RENDER_INSPECTION_RECEIPT_VERSION,
+        "artifact_sha256": digest,
+        "rendered_pdf_sha256": hashlib.sha256(b"%PDF synthetic fixture").hexdigest(),
+        "rendered_page_count": 1,
+        "pages": [{
+            "page_index": 1, "page_sha256": "d" * 64,
+            "pixel_width": 1200, "pixel_height": 1600,
+            "review_status": "PASS", "review_ref": "synthetic://page-review/1",
+        }],
+        "review_assurance": "CALLER_SUPPLIED_REVIEW__INDEPENDENCE_NOT_ESTABLISHED",
+    }
+    render_receipt = {
+        **render_body,
+        "session_attestation": delivery_pipeline._issuer_sign(render_body),
+    }
     return finalize_delivery_evidence(
         build,
         source_ref=f"workspaces/articles/availability-task/source/{kind}.json",
         source_identity=f"git-blob:{kind.lower()}",
         render_qa="PASS",
         visual_qa="PASS",
+        render_inspection_receipt=render_receipt,
     )
 
 
@@ -238,9 +255,20 @@ def test_current_visible_delivery_requires_genuine_provider_docx_bytes_not_boole
         _resource(kind, item["file_name"], digest)
         for kind, item in state["delivery_artifacts"].items()
     ]
-    # Correct binary alone is not an accepted current deliverable: page
-    # screenshots and their review receipts are also mandatory.
-    with pytest.raises(DeliveryAvailabilityError, match="per-page render evidence"):
+    # Correct binary alone is not an accepted current deliverable. Remove
+    # the page receipt and re-sign the envelope to model an otherwise valid
+    # same-session build with no render/readback evidence.
+    for resource in resources:
+        evidence = resource["delivery_evidence"]
+        unsigned = {key: value for key, value in evidence.items() if key != "session_attestation"}
+        unsigned.pop("render_inspection_receipt", None)
+        signed = {
+            **unsigned,
+            "session_attestation": delivery_pipeline._issuer_sign(unsigned),
+        }
+        resource["delivery_evidence"] = signed
+        resource["delivery_evidence_sha256"] = delivery_pipeline._canonical_digest(signed)
+    with pytest.raises(DeliveryAvailabilityError, match="CURRENT_WORD_RENDER_RECEIPT_REQUIRED"):
         build_visible_delivery_receipt(
             state, resources=resources, resource_verifier=lambda _: True,
             resource_binary_reader=lambda _: {"content": blob},

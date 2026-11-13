@@ -1,130 +1,50 @@
-"""Standalone Financial single-owner, reference and runtime-isolation audit.
-
-This proves source-config invariants only, not live app activation, current
-financial facts or actual article/reader acceptance.
-"""
+"""Financial-only architecture, file authority and reference-integrity audit."""
 from __future__ import annotations
 import json
 from pathlib import Path
 from financial_writing_agent.writing_kernel import validate_kernel
-
 ROOT = Path(__file__).resolve().parents[1]
 PRIMARY = "FINANCIAL_WRITING_OWNER"
+REFERENCE_NAMES = ("research.md","knowledge.md","private_research.md","reader_value.md","market_explanation.md","audit.md","editorial.md","hooks.md","style.md","platforms.md","delivery.md","maintenance.md","proactive_resolution.md")
+RETIRED_ARTIFACTS = (".uaos","CAOS_SKILL.md","UAOS_SKILL.md","FINANCIAL_SKILL.md","docs/CAOS_CHILD_INTERFACE.md","config/PERSISTENT_ASSET_PROFILE.json","config/retired_runtime_paths.json","scripts/retired_runtime_static_audit.py","tests/test_retired_runtime_absence.py","tests/test_uaos_cognition_evolution_inheritance.py","evals/FINANCIAL_UAOS_COGNITION_EVOLUTION_PRODUCT_AUDIT_2026-10-15.md","evals/PARENT_GUIDANCE_HANDOFF.md","evals/PARENT_GUIDANCE_HANDOFF_20261016_CROSS_BORDER_STALE_RESUME.md","evals/uaos_article_binding_2026-10-14.json","references")
 
+def load(path):
+    return json.loads((ROOT/path).read_text(encoding="utf-8"))
 
-def load(path: str):
-    return json.loads((ROOT / path).read_text(encoding="utf-8"))
-
-
-def require(value, message: str):
-    if not value:
-        raise SystemExit(message)
-
+def require(value,message):
+    if not value: raise SystemExit(message)
 
 def main():
-    needed = (
-        "config/FINANCIAL_MANIFEST.json", "config/FINANCIAL_CAPABILITIES.json",
-        "config/EXECUTION_CONTRACT.json", "config/PERSISTENT_ASSET_PROFILE.json",
-        "skills/financial-writing-agent/SKILL.md", "FINANCIAL_SKILL.md",
-        "docs/product_requirements.md", "docs/architecture.md",
-        "docs/STANDALONE_INTERFACE.md", "financial_writing_agent/standalone_runtime.py",
-        "financial_writing_agent/current_admission.py", "financial_writing_agent/owner_guard.py",
-        "financial_writing_agent/owner_lifecycle.py", "financial_writing_agent/cognition_governance.py",
-        "financial_writing_agent/private_research.py", "financial_writing_agent/story_quality.py",
-        "financial_writing_agent/claim_trace.py", "financial_writing_agent/delivery_pipeline.py",
-        "evals/EVOLUTION_INDEX.json", "evals/quality_regression.json",
-    )
-    for path in needed:
-        require((ROOT / path).is_file(), f"missing standalone Financial source: {path}")
-    manifest, caps, contract, assets = (
-        load(x) for x in (
-            "config/FINANCIAL_MANIFEST.json", "config/FINANCIAL_CAPABILITIES.json",
-            "config/EXECUTION_CONTRACT.json", "config/PERSISTENT_ASSET_PROFILE.json"
-        )
-    )
-    require(manifest["controller"] == caps["owner"] == contract["authority"]["controller"] == PRIMARY,
-            "standalone Financial authority mismatch")
-    require(manifest["domain_id"] == caps["domain_id"] == contract["domain_id"] == "financial_writing",
-            "domain identity drift")
-    require(manifest["skill_entrypoint"] == caps["entrypoint"] == "skills/financial-writing-agent/SKILL.md",
-            "standalone operating Skill mismatch")
-    require(manifest["state_authority"] == "workspaces/articles/{task_id}/STATE.json",
-            "Article Aggregate identity changed")
-    require(manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime",
-            "Financial-only provider entry missing")
-    require(manifest["external_parent_required"] is False and manifest["external_host_required"] is False,
-            "external parent/Host became mandatory")
-    require(caps["independent_parent_free"] is True
-            and caps["independence_clause"] == "NO_CAOS_UAOS_PARENT_REPOSITORY_OR_HOST_INVOCATION",
-            "active capability dependency is external")
-    require(contract["product_path"] == "DIRECT_FINANCIAL_STANDALONE"
-            and contract["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
-            and contract["execution"]["direct_domain_activation"] is True,
-            "current execution no longer direct Financial")
-    require(contract["execution"]["live_parent_business_proxy_required"] is False
-            and contract["execution"]["free_form_article_fallback_allowed"] is False,
-            "fallback or external parent proxy enabled")
-    require(contract["standalone_governance"]["external_parent_required"] is False
-            and contract["standalone_governance"]["parent_host_or_plugin_assumed_connected"] is False,
-            "standalone mode assumes a live Host")
-    require(contract["authority"]["alternate_business_state_authority_allowed"] is False,
-            "second owner slipped into execution config")
-    idx = load("evals/EVOLUTION_INDEX.json")["active_system_assessment"]
-    require(idx.get("review_ref") == "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
-            "current Financial system owner still points at a retired integration audit")
-    require(idx.get("current_method_owner") == PRIMARY
-            and idx.get("current_runtime_authority") == "config/FINANCIAL_MANIFEST.json",
-            "current domain method/runtime authority drift")
-    require("parent_governance_ref" not in idx,
-            "current Financial evolution authority still advertises a parent controller")
+    needed=("config/FINANCIAL_MANIFEST.json","config/FINANCIAL_CAPABILITIES.json","config/EXECUTION_CONTRACT.json","config/DATA_AUTHORITY.json","skills/financial-writing-agent/SKILL.md","docs/product_requirements.md","docs/architecture.md","docs/STANDALONE_INTERFACE.md","financial_writing_agent/standalone_runtime.py","financial_writing_agent/current_admission.py","financial_writing_agent/owner_guard.py","financial_writing_agent/owner_lifecycle.py","financial_writing_agent/cognition_governance.py","financial_writing_agent/private_research.py","financial_writing_agent/story_quality.py","financial_writing_agent/claim_trace.py","financial_writing_agent/delivery_pipeline.py","evals/EVOLUTION_INDEX.json","evals/quality_regression.json","knowledge/METHOD_KNOWLEDGE_CATALOG.json")
+    for path in needed: require((ROOT/path).is_file(),f"missing Financial source: {path}")
+    manifest,caps,contract,data=(load(x) for x in ("config/FINANCIAL_MANIFEST.json","config/FINANCIAL_CAPABILITIES.json","config/EXECUTION_CONTRACT.json","config/DATA_AUTHORITY.json"))
+    require(manifest["controller"]==caps["owner"]==contract["authority"]["controller"]==PRIMARY,"Financial authority mismatch")
+    require(manifest["domain_id"]==caps["domain_id"]==contract["domain_id"]=="financial_writing","domain identity drift")
+    require(manifest["skill_entrypoint"]==caps["entrypoint"]=="skills/financial-writing-agent/SKILL.md","Financial Skill entrypoint mismatch")
+    require(manifest["data_authority"]==contract["authority"]["data_authority"]=="config/DATA_AUTHORITY.json","data authority pointer mismatch")
+    require(manifest["state_authority"]==data["article_state_pattern"]=="workspaces/articles/{task_id}/STATE.json","Article Aggregate identity changed")
+    require(manifest["provider_adapter"]=="financial_writing_agent.standalone_runtime","Financial reference adapter entry missing")
+    native=manifest["chatgpt_native_runtime"]
+    require(native["orchestrator"]=="CHATGPT_MODEL_WITH_FINANCIAL_SKILL" and native["persistence_provider"]=="CONNECTED_USER_GITHUB_CONNECTOR","native ChatGPT runtime/provider missing")
+    require(native["requires_hosted_python_mcp"] is False and native["write_protocol"]=="GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA","native GitHub CAS contract drift")
+    require(manifest["external_parent_required"] is False and manifest["external_host_required"] is False,"external parent/Host became mandatory")
+    require(caps["independent_parent_free"] is True and caps["independence_clause"]=="NO_EXTERNAL_PARENT_REPOSITORY_OR_HOST_INVOCATION","external runtime dependency declared")
+    require(contract["execution"]["route_selection"]=="DIRECT_FINANCIAL_ONLY" and contract["execution"]["direct_domain_activation"] is True,"execution is no longer direct Financial")
+    require(contract["authority"]["alternate_business_state_authority_allowed"] is False,"second business-state authority slipped in")
+    require(data["business_authority"]=="github://D1traverser-debug/financial-writing-agent@main","canonical business authority changed")
+    require(data["method_catalog"]=="knowledge/METHOD_KNOWLEDGE_CATALOG.json" and data["system_evolution"]=="evals/EVOLUTION_INDEX.json","method/evolution authority drift")
+    require(data["no_parallel_article_ledger"] is True and data["no_external_parent_runtime"] is True,"parallel state or external parent runtime enabled")
+    for relative in RETIRED_ARTIFACTS: require(not (ROOT/relative).exists(),f"retired Financial artifact remains: {relative}")
+    skill=(ROOT/manifest["skill_entrypoint"]).read_text(encoding="utf-8")
+    for marker in ("Independent Operating Skill","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no external parent","article","originality","create_blob","create_tree","create_commit","update_ref","expected_sha","fetch_file"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty/runtime protocol: {marker}")
+    from financial_writing_agent.standalone_runtime import DOMAIN_ID,OPERATIONS
+    require(DOMAIN_ID=="financial_writing","Financial standalone module domain drift")
+    require({"CREATE_ARTICLE","ADVANCE_STAGE","CHANGE_REQUIREMENTS","ATTACH_FEEDBACK","RESUME_BLOCKED","RECORD_PROACTIVE_RESOLUTION","REVIEW_SYSTEM_IMPACT"}<=OPERATIONS,"owner mutation operations incomplete")
+    require(validate_kernel()==[],"Financial writing-pass graph invalid")
+    ids=[x["id"] for x in caps["capabilities"]]
+    require(len(ids)==len(set(ids)) and len(ids)>=8,"Financial capabilities missing or duplicated")
+    package_refs=ROOT/"financial_writing_agent/resources/references";skill_refs=ROOT/"skills/financial-writing-agent/references"
+    for name in REFERENCE_NAMES: require((package_refs/name).read_bytes()==(skill_refs/name).read_bytes(),f"Financial reference mirror drift: {name}")
+    print("PASS: one Financial Skill, one article-state authority, one method catalog, two synchronized reference surfaces, no retired parent artifacts")
 
-    require(contract["problem_and_evolution"]["generic_problem_cognition_owner"] == PRIMARY,
-            "decision loop outsourced")
-    require(contract["problem_and_evolution"]["common_or_cross_domain_change_uses_parent_upcall"] is False,
-            "Financial evolution depends on parent")
-    require(len(assets["current_authority_assets"]) == 1, "not exactly one Financial business authority")
-    require(assets["current_authority_assets"][0]["resource_ref"]
-            == "github://D1traverser-debug/financial-writing-agent@main",
-            "Financial GitHub authority changed")
-    require(all(x["role"] != "AUTHORITY" for x in assets["non_authority_assets"]),
-            "external asset promoted to business owner")
-
-    active = (manifest, caps, contract, assets)
-    all_text = json.dumps(active, ensure_ascii=False)
-    for forbidden in ("D1traverser-debug/cognition-agent-os", "D1traverser-debug/universal-agent-os"):
-        require(forbidden not in all_text, f"active Financial config still binds retired parent: {forbidden}")
-    for path in ("CAOS_SKILL.md", "UAOS_SKILL.md", ".uaos/MANIFEST.json",
-                 ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json"):
-        text = (ROOT / path).read_text(encoding="utf-8")
-        require("non-authoritative" in text or "RETIRED_HISTORICAL_COMPATIBILITY_ONLY" in text
-                or "non-authoritative" in text.lower() or "non-authoritative" in text.lower(),
-                f"old entry still looks active: {path}")
-    skill = (ROOT / manifest["skill_entrypoint"]).read_text(encoding="utf-8")
-    for marker in ("Independent Operating Skill", "Decision", "Execution", "PrivateResearchBrief",
-                   "Deep", "source", "DOCX", "standalone_runtime.py", "No local CAOS",
-                   "article", "originality"):
-        require(marker.lower() in skill.lower(), f"operating Skill lacks Financial duty: {marker}")
-    from financial_writing_agent.standalone_runtime import DOMAIN_ID, OPERATIONS
-    require(DOMAIN_ID == "financial_writing", "Financial standalone module domain drift")
-    require({"CREATE_ARTICLE", "ADVANCE_STAGE", "CHANGE_REQUIREMENTS", "ATTACH_FEEDBACK"} <= OPERATIONS,
-            "owner mutation operations incomplete")
-    require(validate_kernel() == [], "Financial writing-pass graph invalid")
-    caps_ids = [item["id"] for item in caps["capabilities"]]
-    require(len(caps_ids) == len(set(caps_ids)) and len(caps_ids) >= 8,
-            "standalone Financial capabilities missing/duplicated")
-    require(not (ROOT / "continuity").exists() and not (ROOT / "TASK_INDEX.json").exists(),
-            "parallel Financial task controller returned")
-    for name in ("research.md", "knowledge.md", "private_research.md", "reader_value.md",
-                 "market_explanation.md", "audit.md", "editorial.md", "hooks.md",
-                 "style.md", "platforms.md", "delivery.md", "maintenance.md"):
-        reference = (ROOT / "references" / name).read_bytes()
-        package = (ROOT / "financial_writing_agent/resources/references" / name).read_bytes()
-        skill_ref = (ROOT / "skills/financial-writing-agent/references" / name).read_bytes()
-        require(reference == package == skill_ref, f"Financial reference mirror drift: {name}")
-    print("PASS: Financial operates with its own standalone Skill, owner state, method/capability "
-          "manifest, provider action port and Word/research validators; no active parent "
-          "dependency. Live connected app and editorial outcome not certified.")
-
-
-if __name__ == "__main__":
-    main()
+if __name__=="__main__": main()

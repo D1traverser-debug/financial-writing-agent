@@ -79,6 +79,8 @@ def _task_bound_receipt(original):
         "validated_requirement_ids": ["deep_complete_retained_universe"],
         "strict_universe_visibility": True, "company_names_checked": 3,
         "observed_stage": "DELIVERY",
+        "draft_artifact_path": "workspaces/articles/article-render-test/stages/DRAFT.json",
+        "draft_artifact_blob_sha": "a" * 40,
         "assurance": "STRUCTURAL_TASK_SCOPE_ONLY__FACTS_AND_EDITORIAL_NOT_INDEPENDENTLY_VERIFIED",
     }
     # Synthetic reviewer-independent source binding. This fixture exercises
@@ -113,8 +115,8 @@ def test_current_task_fails_closed_if_only_render_visual_pass_strings(monkeypatc
     bound = _task_bound_receipt(built)
     with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_RENDER_RECEIPT_REQUIRED"):
         finalize_delivery_evidence(
-            bound, source_ref="workspaces/articles/article-render-test/publication/DEEP.json",
-            source_identity="git-blob:synthetic", render_qa="PASS", visual_qa="PASS",
+            bound, source_ref="workspaces/articles/article-render-test/stages/DRAFT.json",
+            source_identity="git-blob:" + "a" * 40, render_qa="PASS", visual_qa="PASS",
         )
 
 
@@ -152,8 +154,8 @@ def test_task_bound_word_requires_actual_two_page_receipt_and_detects_tampering(
     assert proof["review_assurance"] == "CALLER_SUPPLIED_REVIEW__INDEPENDENCE_NOT_ESTABLISHED"
     assert [page["page_index"] for page in proof["pages"]] == [1, 2]
     kwargs = {
-        "source_ref": "workspaces/articles/article-render-test/publication/DEEP.json",
-        "source_identity": "git-blob:synthetic", "render_qa": "PASS", "visual_qa": "PASS",
+        "source_ref": "workspaces/articles/article-render-test/stages/DRAFT.json",
+        "source_identity": "git-blob:" + "a" * 40, "render_qa": "PASS", "visual_qa": "PASS",
     }
     valid = finalize_delivery_evidence(bound, **kwargs, render_inspection_receipt=proof)
     validate_delivery_evidence({
@@ -197,7 +199,7 @@ def test_current_word_with_real_render_but_no_source_snapshot_is_not_deliverable
     )
     with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_SOURCE_TRACE_REQUIRED"):
         finalize_delivery_evidence(
-            no_source, source_ref="workspaces/articles/article-render-test/publication/DEEP.json",
-            source_identity="git-blob:synthetic", render_qa="PASS", visual_qa="PASS",
+            no_source, source_ref="workspaces/articles/article-render-test/stages/DRAFT.json",
+            source_identity="git-blob:" + "a" * 40, render_qa="PASS", visual_qa="PASS",
             render_inspection_receipt=proof,
         )

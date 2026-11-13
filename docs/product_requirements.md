@@ -1,8 +1,8 @@
 # Financial Writing Agent — Product Requirements
 
 Status: `1.1.0_STANDALONE_FINANCIAL__EDITORIAL_NOT_READY`
-Version: `1.0.3-candidate`
-Review date: `2026-11-11`
+Version: `1.1.0-candidate`
+Review date: `2026-11-12`
 Owner: `DOMAIN:financial_writing`
 Operating governance: Financial Writing's own Skill, DecisionEnvelope, owner state and independent QA; NO external parent.
 
@@ -42,7 +42,7 @@ The governing outcome is not “satisfy the most rules”. It is **high-value, e
 
 ### PR-01 — Direct domain operation and ownership
 
-A fresh session selects Financial Writing directly. Financial independently owns its goal/decision/execution loops, article state, user corrections, source and writing quality, evidence and delivery. No external CAOS/UAOS invocation or parent runtime may be required.
+A fresh session selects Financial Writing directly. Financial independently owns its goal/decision/execution loops, article state, user corrections, source and writing quality, evidence and delivery. No external parent runtime or second controller may be required.
 
 ### PR-02 — Feedback classification before evolution
 
@@ -70,7 +70,7 @@ For material thematic/company work, Research must:
 
 Every new Financial task created through current admission carries `private_research_contract_version=1.1`. Leaving RESEARCH requires both an admitted material `DecisionEnvelope` and a digest-bound `PrivateResearchBrief`.
 
-The brief is the private analytical workbench, not the public article. It must include every required module from `references/private_research.md`, each marked `APPLICABLE` or `NOT_MATERIAL` with explicit reasoning. For ordinary A-share thematic/company work where market behavior matters, the brief covers as applicable:
+The brief is the private analytical workbench, not the public article. It must include every required module from `skills/financial-writing-agent/references/private_research.md`, each marked `APPLICABLE` or `NOT_MATERIAL` with explicit reasoning. For ordinary A-share thematic/company work where market behavior matters, the brief covers as applicable:
 - economic-substance and market-label company universes;
 - company-level revenue/profit/business-stage/channel/customer/order detail;
 - total market cap, float market cap, turnover, traded value and liquidity for material short-horizon candidates;
@@ -228,11 +228,11 @@ This requirement preserves both continuity and provenance without silently equat
 
 ## 6. Financial-native cognition and decision contract
 
-Financial owns and executes the complete goal-recovery, decision, failure-diagnosis, counterexample, method-comparison, execution and verification procedure itself. No CAOS or UAOS Host is invoked or consulted for operating authority. Material problems require micro diagnosis, macro goal/topology alignment, governing-assumption challenge and external research proportional to risk. Systemic problems compare root layers and falsifiers before a lawful repair. Same-model decisions are not independent product proof.
+Financial owns and executes the complete goal-recovery, decision, failure-diagnosis, counterexample, method-comparison, execution and verification procedure itself. No external controller or Host is invoked or consulted for operating authority. Material problems require micro diagnosis, macro goal/topology alignment, governing-assumption challenge and external research proportional to risk. Systemic problems compare root layers and falsifiers before a lawful repair. Same-model decisions are not independent product proof.
 
 ## 7. Financial-owned evolution contract
 
-Financial owns finance-specific and reusable method promotion for its own system. A correction is evidence, not authority to copy the proposed fix. Reusable changes require causal comparison, negative tests, exact-head candidate validation and production/product readback. No external parent upcall is required.
+Financial owns finance-specific and reusable method promotion for its own system. A correction is evidence, not authority to copy the proposed fix. Reusable changes require causal comparison, negative tests, exact-head candidate validation and production/product readback. No external parent upcall is an allowed operating path.
 
 ## 8. Explicit non-goals
 
@@ -269,7 +269,7 @@ The 1.0.3 candidate is promotion-eligible only when:
 
 ## 10. Standalone Financial connection and independent acceptance (2026-11-11)
 
-Current operating Skill: `skills/financial-writing-agent/SKILL.md`; manifest `config/FINANCIAL_MANIFEST.json`; Financial-only provider entry `financial_writing_agent/standalone_runtime.py`. It requires externally verified user authorization, actual Git state and artifact bytes, provider CAS and second readback. This is an adapter, not an assertion that a native ChatGPT plugin is installed. Historical `.uaos/*`, `CAOS_SKILL.md` and `UAOS_SKILL.md` are inactive provenance only.
+Current operating Skill: `skills/financial-writing-agent/SKILL.md`; manifest `config/FINANCIAL_MANIFEST.json`; Financial-only provider entry `financial_writing_agent/standalone_runtime.py`. It requires externally verified user authorization, actual Git state and artifact bytes, provider CAS and second readback. This is an adapter, not an assertion that a native ChatGPT plugin is installed. Retired integration stubs are removed from the current Financial tree; only Financial-owned runtime assets remain.
 
 Full product readiness still needs genuine source-to-claim and requirement-to-paragraph evidence, a current article's PrivateResearchBrief, separate Deep/Broad/interaction/audit production, live DOCX readback and independently assessed reader/owner result. `GENERAL_EDITORIAL_QUALITY` and `PERSONALIZED_WRITING_DNA` remain NOT_READY until observed, regardless of CI.
 
@@ -283,4 +283,8 @@ This addendum evaluates intrinsic Financial goal/workflow/method governance, **n
 - Existing Financial method knowledge supports query, candidate add, revision staging, discard, evidence-grounded promotion, challenge, retirement, restore-as-candidate and independently verified impact closure. A method change cannot erase the previous record, silently assume legacy adoption labels are proof, or close without observing all affected stage-evidence refs.
 - Systemic diagnoses and method choices are revisited when counterexamples defeat them. Decisions and executions share one Financial owner and explicit independent assurance levels; native client activation and real editorial acceptance remain distinct from machine test results.
 
-The corresponding architecture/evidence source is `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`.
+The corresponding architecture/evidence source is `evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md`.
+
+## Financial system acceptance correction (2026-11-12)
+
+The engineering test suite is a necessary but **insufficient** acceptance gate. A valid original user source hash does not prove that an LLM-derived requirement matches the actual user's intent. Requirement mutations are blocked unless their exact change digest is confirmed through a provider-attested owner semantic decision; nonbinding ideas stay nonbinding. The independent Financial client, real user-message provider, real GitHub CAS, independent reviewer and one-main branch hygiene are external release gates; their absence means NOT_READY, even with 100% engineering tests. See `evals/FINANCIAL_INDEPENDENT_ACCEPTANCE_REAUDIT_20261112.md` and `financial_writing_agent/acceptance_gates.py`. Current private ChatGPT Skill creation is not proof of actual plugin installation.

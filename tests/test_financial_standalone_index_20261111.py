@@ -18,7 +18,9 @@ def test_single_current_financial_evolution_ref_is_standalone_and_local():
     assert idx["review_ref"] == "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md"
     assert idx["current_operating_skill"] == m["skill_entrypoint"]
     assert "parent_governance_ref" not in idx
-    assert idx["standalone_reconstruction"]["active_parent_dependency"] is False
+    assert m["external_parent_required"] is False
+    assert m["external_host_required"] is False
+    assert "active_parent_dependency" not in idx["standalone_reconstruction"]
     assert idx["standalone_reconstruction"]["production_merge_verified"] is True
     assert idx["standalone_reconstruction"]["editorial_acceptance"] == "NOT_READY"
 
@@ -27,5 +29,8 @@ def test_product_version_tracks_independent_package_not_prior_child_era():
     package = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     requirements = (ROOT / "docs/product_requirements.md").read_text(encoding="utf-8")
     assert package["project"]["version"] == "1.1.0"
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    assert manifest["skill_entrypoint"] == "skills/financial-writing-agent/SKILL.md"
+    assert manifest["data_authority"] == "config/DATA_AUTHORITY.json"
     assert "1.1.0_STANDALONE_FINANCIAL" in requirements
-    assert "No external CAOS" in requirements or "No CAOS or UAOS" in requirements
+    assert "no external parent" in requirements.lower()

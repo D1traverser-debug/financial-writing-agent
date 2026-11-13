@@ -1,0 +1,681 @@
+"""Adversarial tests for manifest-bound, two-phase branch archive/prune."""
+import json
+from pathlib import Path
+import pytest
+
+from scripts.branch_archive_cleanup import (
+    GitHubAPI, REPO, archive_only, branch_rows, create_plan, prune_only, sha256,
+)
+
+A, B, C, D = "a"*40, "b"*40, "c"*40, "d"*40
+
+
+class FakeAPI:
+    def __init__(self, *, deletion_frozen=True, open_prs=None, closed_prs=None):
+        self.branches = {
+            "main": {"sha": A, "protected": True},
+            "old/one": {"sha": B, "protected": False},
+            "old/two": {"sha": C, "protected": False},
+        }
+        self.tags = {}
+        self.open_prs = list(open_prs or [])
+        self.closed_prs = list(closed_prs if closed_prs is not None else [{
+            "number": 17, "merged_at": "2026-11-10T10:00:00Z",
+            "base": {"ref": "main"},
+            "head": {"ref": "old/one", "sha": B},
+        }])
+        self.deletion_frozen = deletion_frozen
+        self.branch_write_freeze = True
+        self.remove_branch_write_freeze_after_delete = False
+        self.calls = []
+        self.open_pr_reads = 0
+        self.add_pr_on_read = None
+        self.move_main_on_read = None
+        self.main_reads = 0
+        self.main_inventory_reads = 0
+        self.move_main_on_inventory_read = None
+        self.ambiguous_delete = set()
+        self.unprotect_main_after_delete = False
+        self.change_main_protection_after_delete = False
+        self.reviewer_environments = {
+            "financial-branch-archive": {
+                "prevent_self_review": True,
+                "reviewers": [{"login": "archive-reviewer", "id": 101}],
+            },
+            "financial-branch-prune": {
+                "prevent_self_review": True,
+                "reviewers": [{"login": "prune-reviewer", "id": 202}],
+            },
+        }
+        self.main_protection_state = {
+            "pull_requests_required": True,
+            "required_approving_review_count": 1,
+            "dismiss_stale_reviews": True,
+            "require_last_push_approval": True,
+            "required_status_checks": ["test"],
+            "required_status_check_apps": [{"context": "test", "app_id": 15368}],
+            "pull_request_bypass_allowances": {"users": [], "teams": [], "apps": []},
+            "branches_up_to_date_required": True,
+            "admins_enforced": True,
+            "force_pushes_enabled": False,
+            "deletions_enabled": False,
+        }
+
+    def main_protection(self):
+        state = dict(self.main_protection_state)
+        if state.get("pull_requests_required") is not True:
+            raise ValueError("MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING")
+        if type(state.get("required_approving_review_count")) is not int or state["required_approving_review_count"] < 1:
+            raise ValueError("MAIN_INDEPENDENT_APPROVAL_REQUIRED")
+        if state.get("dismiss_stale_reviews") is not True:
+            raise ValueError("MAIN_STALE_REVIEWS_NOT_DISMISSED")
+        if state.get("require_last_push_approval") is not True:
+            raise ValueError("MAIN_LAST_PUSH_APPROVAL_REQUIRED")
+        if state.get("admins_enforced") is not True:
+            raise ValueError("MAIN_ADMIN_ENFORCEMENT_REQUIRED")
+        if "test" not in state.get("required_status_checks", []):
+            raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        if not any(
+            item.get("context") == "test" and item.get("app_id") == 15368
+            for item in state.get("required_status_check_apps", [])
+        ):
+            raise ValueError("MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH")
+        if state.get("pull_request_bypass_allowances") != {
+            "users": [], "teams": [], "apps": [],
+        }:
+            raise ValueError("MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED")
+        if state.get("branches_up_to_date_required") is not True:
+            raise ValueError("MAIN_BRANCH_UP_TO_DATE_REQUIRED")
+        if state.get("force_pushes_enabled") is not False:
+            raise ValueError("MAIN_FORCE_PUSH_NOT_DISABLED")
+        if state.get("deletions_enabled") is not False:
+            raise ValueError("MAIN_DELETION_NOT_DISABLED")
+        return state
+
+    def verify_controls(self, phase):
+        self.calls.append("controls:" + phase)
+        if phase in {"PLAN", "ARCHIVE"} and not self.deletion_frozen:
+            raise ValueError("BRANCH_DELETION_MUST_BE_FROZEN_FOR_PLAN_AND_ARCHIVE")
+        if phase == "PRUNE" and self.deletion_frozen:
+            raise ValueError("REMOVE_ONLY_DELETION_RULE_BEFORE_PRUNE")
+        if not self.branch_write_freeze:
+            raise ValueError("BRANCH_WRITE_FREEZE_INVALID")
+        return {
+            "branch_ruleset_id": 11,
+            "tag_ruleset_id": 22,
+            "branch_rule_types": (
+                ["creation", "update", "deletion"] if self.deletion_frozen
+                else ["creation", "update"]
+            ),
+            "tag_rule_types": ["update", "deletion"],
+            "reviewer_environments": self.reviewer_environments,
+            "main_protection": self.main_protection(),
+        }
+
+    def paginate(self, suffix):
+        if suffix == "branches":
+            self.main_inventory_reads += 1
+            if self.move_main_on_inventory_read == self.main_inventory_reads:
+                self.branches["main"]["sha"] = D
+            return [
+                {"name": name, "commit": {"sha": data["sha"]},
+                 "protected": data["protected"]}
+                for name, data in sorted(self.branches.items())
+            ]
+        if suffix == "pulls?state=open":
+            self.open_pr_reads += 1
+            if self.add_pr_on_read == self.open_pr_reads:
+                self.open_prs = [{
+                    "head": {"ref": "old/two", "repo": {"full_name": REPO}}
+                }]
+            return list(self.open_prs)
+        if suffix == "pulls?state=closed":
+            return list(self.closed_prs)
+        raise AssertionError("unexpected collection " + suffix)
+
+    def branch_head(self, name):
+        if name == "main":
+            self.main_reads += 1
+            if self.move_main_on_read == self.main_reads:
+                self.branches["main"]["sha"] = D
+        data = self.branches.get(name)
+        return data["sha"] if data else None
+
+    def tag_head(self, name):
+        return self.tags.get(name)
+
+    def tag_branch_head(self, name, sha):
+        self.calls.append("tag:" + name)
+        old = self.tags.get(name)
+        if old is not None and old != sha:
+            raise ValueError("tag conflict")
+        self.tags[name] = sha
+
+    def delete_branch(self, name, sha):
+        self.calls.append("delete:" + name)
+        assert self.branch_head(name) == sha
+        assert self.tag_head(name) == sha
+        del self.branches[name]
+        if self.remove_branch_write_freeze_after_delete:
+            self.branch_write_freeze = False
+        if self.unprotect_main_after_delete:
+            self.branches["main"]["protected"] = False
+            self.main_protection_state["pull_requests_required"] = False
+        if self.change_main_protection_after_delete:
+            self.main_protection_state["required_approving_review_count"] = 2
+        if name in self.ambiguous_delete:
+            return {"branch": name, "status": "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"}
+        return {"branch": name, "status": "DELETE_AND_READBACK_VERIFIED"}
+
+
+class RulesetAPI(GitHubAPI):
+    def __init__(
+        self, *, omit_bypass=False, bypass=None, phase_deletion=True,
+        protection=None, prevent_self_review=True, environment_reviewers=None,
+    ):
+        self.token = "synthetic-test-token"
+        self.omit_bypass = omit_bypass
+        self.bypass = bypass or []
+        self.phase_deletion = phase_deletion
+        self.prevent_self_review = prevent_self_review
+        self.environment_reviewers = environment_reviewers or {
+            "financial-branch-archive": [
+                {"type": "User", "reviewer": {"login": "archive-reviewer", "id": 101}},
+            ],
+            "financial-branch-prune": [
+                {"type": "User", "reviewer": {"login": "prune-reviewer", "id": 202}},
+            ],
+        }
+        self.protection = protection or {
+            "required_status_checks": {
+                "strict": True, "contexts": ["test"],
+                "checks": [{"context": "test", "app_id": 15368}],
+            },
+            "required_pull_request_reviews": {
+                "required_approving_review_count": 1,
+                "dismiss_stale_reviews": True,
+                "require_last_push_approval": True,
+                "bypass_pull_request_allowances": {"users": [], "teams": [], "apps": []},
+            },
+            "enforce_admins": {"enabled": True},
+            "allow_force_pushes": {"enabled": False},
+            "allow_deletions": {"enabled": False},
+        }
+
+    def paginate(self, suffix):
+        assert suffix == "rulesets?includes_parents=true"
+        return [{"id": 11, "name": "Financial archive write freeze"},
+                {"id": 22, "name": "Financial archive tag lock"}]
+
+    def call(self, method, path, payload=None, *, allow_404=False):
+        if path.endswith("/branches/main/protection"):
+            return self.protection
+        if "/environments/" in path:
+            env_name = path.rsplit("/", 1)[-1]
+            return {"protection_rules": [{
+                "type": "required_reviewers",
+                "prevent_self_review": self.prevent_self_review,
+                "reviewers": self.environment_reviewers[env_name],
+            }]}
+        if "/rulesets/11?" in path:
+            result = {
+                "id": 11, "target": "branch", "enforcement": "active",
+                "conditions": {"ref_name": {"include": ["~ALL"], "exclude": ["refs/heads/main"]}},
+                "rules": [{"type":"creation"},{"type":"update"}] +
+                         ([{"type":"deletion"}] if self.phase_deletion else []),
+            }
+            if not self.omit_bypass:
+                result["bypass_actors"] = self.bypass
+            return result
+        if "/rulesets/22?" in path:
+            return {
+                "id": 22, "target": "tag", "enforcement": "active",
+                "conditions": {"ref_name": {"include": ["refs/tags/archive/financial-20261112/**"]}},
+                "rules": [{"type":"update"},{"type":"deletion"}],
+                "bypass_actors": [],
+            }
+        raise AssertionError(path)
+
+
+def make_plan(tmp_path):
+    api = FakeAPI()
+    path = tmp_path / "plan.json"
+    plan = create_plan(api, out=path)
+    return api, path, plan
+
+
+def test_branch_inventory_rejects_duplicate_or_invalid_metadata():
+    with pytest.raises(ValueError):
+        branch_rows([{"name":"main","commit":{"sha":"bad"}}])
+    with pytest.raises(ValueError):
+        branch_rows([{"name":"main","commit":{"sha":"g"*40}}])
+    with pytest.raises(ValueError):
+        branch_rows([{"name":"main","commit":None}])
+    with pytest.raises(ValueError):
+        branch_rows([
+            {"name":"main","commit":{"sha":A}},
+            {"name":"main","commit":{"sha":A}},
+        ])
+
+
+def test_plan_is_stable_exact_head_manifest_and_has_no_mutation(tmp_path):
+    api, path, plan = make_plan(tmp_path)
+    assert plan["manifest"]["main_sha"] == A
+    assert plan["manifest"]["candidate_heads"] == [
+        {"branch":"old/one","head_sha":B},
+        {"branch":"old/two","head_sha":C},
+    ]
+    assert plan["manifest_sha256"] == sha256(plan["manifest"])
+    assert plan["plan_status"] == "READY_FOR_REVIEW__NO_MUTATION"
+    assert not api.tags
+    assert not any(x.startswith("delete:") for x in api.calls)
+    assert json.loads(path.read_text())["manifest_sha256"] == plan["manifest_sha256"]
+
+
+def test_manifest_classifies_exact_merged_pr_heads_and_explicitly_flags_unverified_heads(tmp_path):
+    api, _, plan = make_plan(tmp_path)
+    manifest = plan["manifest"]
+    assert manifest["schema_version"] == "5.0"
+    assert manifest["merged_main_prs"] == [{
+        "number": 17, "head_ref": "old/one", "head_sha": B,
+        "merged_at": "2026-11-10T10:00:00Z",
+    }]
+    assert manifest["branch_review"] == [
+        {"branch": "old/one", "head_sha": B,
+         "exact_merged_main_pr_numbers": [17],
+         "disposition": "EXACT_HEAD_OF_MERGED_MAIN_PR"},
+        {"branch": "old/two", "head_sha": C,
+         "exact_merged_main_pr_numbers": [],
+         "disposition": "NO_EXACT_MERGED_MAIN_PR__REQUIRES_EXPLICIT_REVIEW"},
+    ]
+    assert manifest["unverified_branch_heads"] == [manifest["branch_review"][1]]
+
+
+def test_plan_read_rejects_omitted_candidate_even_when_owner_recomputes_manifest_digest(tmp_path):
+    api, path, plan = make_plan(tmp_path)
+    altered = plan["manifest"]
+    altered["candidate_heads"] = altered["candidate_heads"][:1]
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="CANDIDATE_SET_INCOMPLETE_OR_MUTATED"):
+        read_plan(path, sha256(altered))
+
+
+def test_plan_read_rejects_non_main_protected_ref_and_noncanonical_merged_pr_order(tmp_path):
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    api, path, plan = make_plan(tmp_path)
+    altered = plan["manifest"]
+    altered["branches"][1]["protected"] = True
+    write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="NON_MAIN_PROTECTED"):
+        read_plan(path, sha256(altered))
+
+
+def test_plan_read_rejects_forged_merged_pr_classification(tmp_path):
+    api, path, plan = make_plan(tmp_path)
+    altered = plan["manifest"]
+    altered["branch_review"][1]["exact_merged_main_pr_numbers"] = [17]
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    write_json(path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="BRANCH_REVIEW_BINDING_INVALID"):
+        read_plan(path, sha256(altered))
+
+
+def test_archive_phase_tags_all_exact_heads_and_deletes_nothing(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    report = archive_only(
+        api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+        out=tmp_path / "archive.json",
+    )
+    assert report["archive_status"] == "ALL_TAGS_VERIFIED__NO_BRANCHES_DELETED"
+    assert api.tags == {"old/one":B, "old/two":C}
+    assert set(api.branches) == {"main","old/one","old/two"}
+    assert not any(x.startswith("delete:") for x in api.calls)
+
+
+def test_archive_phase_rejects_manifest_change_before_any_tag(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    api.branches["old/one"]["sha"] = D
+    with pytest.raises(ValueError, match="CURRENT_INVENTORY_DIFFERS"):
+        archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                     out=tmp_path / "archive.json")
+    assert api.tags == {}
+    assert set(api.branches) == {"main","old/one","old/two"}
+
+
+def test_archive_phase_rejects_wrong_approved_digest(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    with pytest.raises(ValueError, match="APPROVED_MANIFEST_SHA256_MISMATCH"):
+        archive_only(api, manifest_path=plan_path, approved="0"*64,
+                     out=tmp_path / "archive.json")
+    assert api.tags == {}
+
+
+def test_prune_refuses_while_deletion_rule_is_still_frozen(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    with pytest.raises(ValueError, match="REMOVE_ONLY_DELETION_RULE"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main","old/one","old/two"}
+
+
+def test_prune_refuses_unverified_heads_without_explicit_owner_confirmation(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    with pytest.raises(ValueError, match="UNVERIFIED_BRANCH_HEADS_REQUIRE_EXPLICIT"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json")
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+
+
+def test_prune_refuses_if_branch_update_freeze_was_removed_before_prune(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.branch_write_freeze = False
+    with pytest.raises(ValueError, match="BRANCH_WRITE_FREEZE_INVALID"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_stops_if_branch_update_freeze_is_removed_between_deletions(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.remove_branch_write_freeze_after_delete = True
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["prune_rulesets_verified_after"] is False
+    assert "old/two" in api.branches
+    assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
+    assert api.tags == {"old/one": B, "old/two": C}
+
+
+def test_prune_refuses_if_main_protection_was_removed_after_archive(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.branches["main"]["protected"] = False
+    with pytest.raises(ValueError, match="MAIN_PROTECTION_OR_HEAD_INVALID:BEFORE_PRUNE"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_stops_if_main_protection_is_removed_between_deletions(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.unprotect_main_after_delete = True
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["main_protected_after"] is False
+    assert report["main_protection_verified_after"] is False
+    assert "old/two" in api.branches
+    assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
+    assert api.tags == {"old/one": B, "old/two": C}
+
+
+def test_prune_after_deletion_rule_removed_keeps_tags_and_leaves_only_main(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is True
+    assert report["after_branch_names"] == ["main"]
+    assert api.tags == {"old/one":B, "old/two":C}
+    assert [x for x in api.calls if x.startswith("delete:")] == ["delete:old/one","delete:old/two"]
+
+
+def test_prune_refuses_a_moved_branch_even_when_old_tag_is_preserved(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.branches["old/two"]["sha"] = D
+    with pytest.raises(ValueError, match="UNPLANNED_OR_MOVED_BRANCH"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main","old/one","old/two"}
+
+
+def test_open_pr_appearing_during_prune_stops_next_delete(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.add_pr_on_read = api.open_pr_reads + 3
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert "old/two" in api.branches
+    assert api.tags["old/two"] == C
+
+
+def test_main_moving_during_prune_prevents_false_completion(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.move_main_on_inventory_read = api.main_inventory_reads + 3
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["main_sha_after"] == D
+
+
+def test_ambiguous_delete_response_is_accepted_only_after_absence_and_tag_readback(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.ambiguous_delete.add("old/one")
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is True
+    assert report["deleted"][0]["status"] == "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"
+
+
+def test_ruleset_bypass_actors_must_be_visible_and_empty():
+    with pytest.raises(ValueError, match="BYPASS_ACTORS_NOT_VISIBLE"):
+        RulesetAPI(omit_bypass=True).verify_controls("PLAN")
+    with pytest.raises(ValueError, match="BYPASS_ACTORS_MUST_BE_EMPTY"):
+        RulesetAPI(bypass=[{"actor_type":"Integration","actor_id":7,"bypass_mode":"always"}]).verify_controls("PLAN")
+
+
+def test_ruleset_deletion_rule_is_required_for_plan_but_forbidden_for_prune():
+    with pytest.raises(ValueError, match="DELETION_MUST_BE_FROZEN"):
+        RulesetAPI(phase_deletion=False).verify_controls("PLAN")
+    RulesetAPI(phase_deletion=False).verify_controls("PRUNE")
+
+def test_archive_environments_require_self_review_prevention():
+    with pytest.raises(ValueError, match="ENVIRONMENT_SELF_REVIEW_MUST_BE_PREVENTED"):
+        RulesetAPI(prevent_self_review=False).verify_controls("PLAN")
+
+
+def test_archive_environments_reject_owner_or_team_only_reviewers():
+    owner = {
+        "financial-branch-archive": [
+            {"type": "User", "reviewer": {"login": "D1traverser-debug", "id": 211308281}},
+        ],
+        "financial-branch-prune": [
+            {"type": "User", "reviewer": {"login": "prune-reviewer", "id": 202}},
+        ],
+    }
+    with pytest.raises(ValueError, match="REPOSITORY_OWNER_CANNOT_BE_ARCHIVE_REVIEWER"):
+        RulesetAPI(environment_reviewers=owner).verify_controls("PLAN")
+    team_only = {
+        "financial-branch-archive": [
+            {"type": "Team", "reviewer": {"slug": "admins", "id": 9}},
+        ],
+        "financial-branch-prune": [
+            {"type": "User", "reviewer": {"login": "prune-reviewer", "id": 202}},
+        ],
+    }
+    with pytest.raises(ValueError, match="ENVIRONMENT_REVIEWERS_MUST_BE_DIRECT_USERS"):
+        RulesetAPI(environment_reviewers=team_only).verify_controls("PLAN")
+
+
+def test_archive_plan_binds_reviewer_identity_and_rejects_changes_before_tagging(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    api.reviewer_environments["financial-branch-archive"]["reviewers"][0]["id"] = 303
+    with pytest.raises(ValueError, match="CURRENT_INVENTORY_DIFFERS_FROM_REVIEWED_PLAN"):
+        archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                     out=tmp_path / "archive.json")
+    assert api.tags == {}
+
+
+def test_manifest_rejects_missing_or_owner_archive_reviewer_identity(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    altered = plan["manifest"]
+    altered["reviewer_environments"]["financial-branch-prune"]["reviewers"][0]["login"] = "D1traverser-debug"
+    write_json(plan_path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="MANIFEST_REVIEWER_IDENTITY_INVALID"):
+        read_plan(plan_path, sha256(altered))
+
+
+def test_archive_plan_script_exports_manifest_digest_and_workflow_consumes_it():
+    workflow = Path(".github/workflows/branch_archive_once.yml").read_text(encoding="utf-8")
+    script = Path("scripts/branch_archive_cleanup.py").read_text(encoding="utf-8")
+    plan_step = workflow.split(
+        "- name: Build stable read-only branch manifest", 1,
+    )[1].split("- name: Upload exact manifest for human review", 1)[0]
+    assert "id: plan" in plan_step
+    assert "python scripts/branch_archive_cleanup.py --plan --out audit/financial_branch_plan.json" in plan_step
+    assert 'output = os.environ.get("GITHUB_OUTPUT")' in script
+    assert 'f.write("manifest_sha256=" + result["manifest_sha256"] + "\\n")' in script
+    assert "manifest_sha256: ${{ steps.plan.outputs.manifest_sha256 }}" in workflow
+    assert "needs.plan.outputs.manifest_sha256" in workflow
+    assert "echo \"manifest_sha256=$manifest_sha256\" >> \"$GITHUB_OUTPUT\"" not in workflow
+
+
+def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_delete():
+    controls = RulesetAPI().verify_controls("PLAN")
+    assert controls["main_protection"] == {
+        "pull_requests_required": True,
+        "required_approving_review_count": 1,
+        "dismiss_stale_reviews": True,
+        "require_last_push_approval": True,
+        "required_status_checks": ["test"],
+        "required_status_check_apps": [{"context": "test", "app_id": 15368}],
+        "pull_request_bypass_allowances": {"users": [], "teams": [], "apps": []},
+        "branches_up_to_date_required": True,
+        "admins_enforced": True,
+        "force_pushes_enabled": False,
+        "deletions_enabled": False,
+    }
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "reason"),
+    [
+        ("required_status_checks", None, "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_status_checks", {"strict": True, "contexts": ["other"], "checks": []},
+         "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_status_checks", {"strict": False, "contexts": ["test"],
+          "checks": [{"context": "test", "app_id": 15368}]},
+         "MAIN_BRANCH_UP_TO_DATE_REQUIRED"),
+        ("required_status_checks", {"strict": True, "contexts": ["test"],
+          "checks": [{"context": "test", "app_id": 1}]},
+         "MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH"),
+        ("required_status_checks", {"strict": True, "contexts": ["test"], "checks": []},
+         "MAIN_FINANCIAL_CI_CHECK_APP_ID_MISMATCH"),
+        ("required_pull_request_reviews", {
+          "required_approving_review_count": 1, "dismiss_stale_reviews": True,
+          "require_last_push_approval": True,
+          "bypass_pull_request_allowances": {"users": ["D1traverser-debug"], "teams": [], "apps": []},
+        }, "MAIN_PULL_REQUEST_BYPASS_NOT_ALLOWED"),
+        ("required_pull_request_reviews", None, "MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING"),
+        ("required_pull_request_reviews", {"required_approving_review_count": 0,
+          "dismiss_stale_reviews": True, "require_last_push_approval": True},
+         "MAIN_INDEPENDENT_APPROVAL_REQUIRED"),
+        ("required_pull_request_reviews", {"required_approving_review_count": 1,
+          "dismiss_stale_reviews": False, "require_last_push_approval": True},
+         "MAIN_STALE_REVIEWS_NOT_DISMISSED"),
+        ("required_pull_request_reviews", {"required_approving_review_count": 1,
+          "dismiss_stale_reviews": True, "require_last_push_approval": False},
+         "MAIN_LAST_PUSH_APPROVAL_REQUIRED"),
+        ("enforce_admins", {"enabled": False}, "MAIN_ADMIN_ENFORCEMENT_REQUIRED"),
+        ("allow_force_pushes", {"enabled": True}, "MAIN_FORCE_PUSH_NOT_DISABLED"),
+        ("allow_deletions", {"enabled": True}, "MAIN_DELETION_NOT_DISABLED"),
+    ],
+)
+def test_archive_controls_fail_closed_when_main_protection_is_weak(field, value, reason):
+    protection = {
+        "required_status_checks": {
+            "strict": True, "contexts": ["test"],
+            "checks": [{"context": "test", "app_id": 15368}],
+        },
+        "required_pull_request_reviews": {
+            "required_approving_review_count": 1,
+            "dismiss_stale_reviews": True,
+            "require_last_push_approval": True,
+            "bypass_pull_request_allowances": {"users": [], "teams": [], "apps": []},
+        },
+        "enforce_admins": {"enabled": True},
+        "allow_force_pushes": {"enabled": False},
+        "allow_deletions": {"enabled": False},
+    }
+    protection[field] = value
+    with pytest.raises(ValueError, match=reason):
+        RulesetAPI(protection=protection).verify_controls("PLAN")
+
+
+def test_prune_refuses_if_required_main_ci_check_is_removed_after_archive(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.main_protection_state["required_status_checks"] = []
+    with pytest.raises(ValueError, match="MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_rejects_a_valid_but_changed_main_protection_snapshot_after_archive(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.main_protection_state["required_approving_review_count"] = 2
+    with pytest.raises(ValueError, match="MAIN_PROTECTION_CHANGED_AFTER_ARCHIVE"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_stops_if_valid_main_protection_changes_between_branch_deletions(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.change_main_protection_after_delete = True
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["main_protection_verified_after"] is False
+    assert "old/two" in api.branches
+    assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
+    assert api.tags == {"old/one": B, "old/two": C}

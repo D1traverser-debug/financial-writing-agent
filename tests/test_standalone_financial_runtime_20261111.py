@@ -4,6 +4,7 @@ import json
 from pathlib import Path
 from datetime import datetime, timezone
 import hashlib
+from uuid import uuid4
 
 import pytest
 
@@ -12,6 +13,9 @@ from financial_writing_agent.private_research import REQUIRED_MODULES
 from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, FinancialEffectUnverified,
     _blob_sha, admit_article_action, observe_article,
+)
+from trusted_provider_testkit import (
+    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -55,7 +59,7 @@ class Provider:
 def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=None):
     return {
         "schema_version": "1.0", "domain_id": DOMAIN_ID,
-        "action_id": action or f"financial-{op.lower()}-01",
+        "action_id": action or f"financial-{op.lower()}-{uuid4()}",
         "task_id": task_id,
         "operation": op,
         "expected_state_blob_sha": sha,
@@ -63,11 +67,13 @@ def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=Non
     }
 
 
-def run(p, request, auth=lambda _: True, owner_reader=None):
+def run(p, request, auth=None, owner_reader=None):
     return admit_article_action(
         request, state_reader=p.read, cas_writer=p.write,
-        authorization_verifier=auth, artifact_reader=p.artifact,
+        authorization_verifier=auth or signed_action_authorization,
+        artifact_reader=p.artifact,
         source_snapshot_reader=p.source, owner_instruction_reader=owner_reader,
+        owner_semantic_verifier=signed_owner_change_approval,
     )
 
 
@@ -94,6 +100,65 @@ def test_standalone_can_create_and_observe_real_financial_article_without_parent
         "PLATFORM_INTERACTION_PACK_DOCX",
     ]
     assert observation["owner_outcome_verified"] is False
+    assert observation["authorization_history"]["verified_signed_receipts"] == 1
+    assert observation["authorization_history"]["legacy_self_attested_receipts"] == 0
+
+
+def test_article_receipt_preserves_full_signed_provider_authorization_without_raw_request():
+    p = Provider()
+    create(p)
+    state = p.read("workspaces/articles/solo-article-01/STATE.json")["state"]
+    receipt = state["execution_receipts"][-1]
+    proof = receipt["input_bindings"]["authorization_verification"]
+    assert proof["attestation_type"] == "action_authorization"
+    assert proof["audience"] == "financial-writing-agent"
+    assert proof["authenticated_actor"] == "synthetic-financial-owner"
+    assert proof["task_id"] == "solo-article-01"
+    assert proof["operation"] == "CREATE_ARTICLE"
+    assert proof["expected_state_blob_sha"] is None
+    assert len(proof["request_sha256"]) == 64
+    assert len(proof["signature"]) == 64
+    assert "parameters" not in proof
+    assert "prompt" not in proof
+
+
+def test_observation_reverifies_persisted_provider_signature_and_rejects_tampering():
+    p = Provider()
+    create(p)
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    state = json.loads(p.store[path])
+    proof = state["execution_receipts"][-1]["input_bindings"]["authorization_verification"]
+    proof["signature"] = "0" * 64
+    p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    with pytest.raises(FinancialAdmissionError, match="PERSISTED_ACTION_AUTHORIZATION_INVALID"):
+        observe_article("solo-article-01", state_reader=p.read)
+
+
+def test_persisted_article_action_history_rejects_replayed_action_id_and_nonce():
+    from financial_writing_agent.standalone_runtime import (
+        _verify_persisted_action_authorization_history,
+    )
+    p = Provider()
+    create(p)
+    state = p.read("workspaces/articles/solo-article-01/STATE.json")["state"]
+    state["execution_receipts"].append(deepcopy(state["execution_receipts"][-1]))
+    with pytest.raises(FinancialAdmissionError, match="ACTION_ID_REPLAYED"):
+        _verify_persisted_action_authorization_history(state)
+
+
+def test_legacy_self_attested_receipts_are_reported_as_legacy_not_signed():
+    p = Provider()
+    create(p)
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    state = json.loads(p.store[path])
+    bindings = state["execution_receipts"][-1]["input_bindings"]
+    bindings.pop("authorization_contract_version")
+    bindings.pop("authorization_verification")
+    p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    observed = observe_article("solo-article-01", state_reader=p.read)
+    assert observed["authorization_history"]["verified_signed_receipts"] == 0
+    assert observed["authorization_history"]["legacy_self_attested_receipts"] == 1
+    assert observed["authorization_history"]["assurance"].startswith("SIGNED_NEW_RECEIPTS")
 
 
 def test_direct_financial_routing_and_requirement_change_revises_article_only():
@@ -114,11 +179,9 @@ def test_direct_financial_routing_and_requirement_change_revises_article_only():
             "source_kind": "USER_EXPLICIT",
             "evidence_ref": "chat://owner/explicit-scoped-instruction",
         }],
-    }), owner_reader=lambda ref: {
-        "source_ref": ref, "source_role": "user", "authenticated_actor": "synthetic-owner",
-        "text": "在财经Deep中完整保留本次经济相关公司池",
-        "sha256": hashlib.sha256("在财经Deep中完整保留本次经济相关公司池".encode("utf-8")).hexdigest(),
-    })
+    }), owner_reader=lambda ref: signed_owner_message(
+        ref, "在财经Deep中完整保留本次经济相关公司池",
+    ))
     assert result["stage"] == "INTAKE"
     assert p.read(path)["state"]["task_requirement_authority"]["revision"] == 1
     assert observe_article("solo-article-01", state_reader=p.read)["requirement_revision"] == 1
@@ -267,7 +330,7 @@ def test_provider_must_return_exact_state_content_not_claimed_sha_only():
     with pytest.raises(FinancialAdmissionError, match="PROVIDER_STATE_BLOB_SHA_MISMATCH"):
         admit_article_action(
             proposal("ADVANCE_STAGE", sha=p.read("workspaces/articles/solo-article-01/STATE.json")["blob_sha"]),
-            state_reader=tampered, cas_writer=p.write, authorization_verifier=lambda _: True,
+            state_reader=tampered, cas_writer=p.write, authorization_verifier=signed_action_authorization,
         )
 
 

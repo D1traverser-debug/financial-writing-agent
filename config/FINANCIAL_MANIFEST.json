@@ -16,12 +16,36 @@
   "current_admission": "financial_writing_agent.current_admission",
   "provider_adapter": "financial_writing_agent.standalone_runtime",
   "method_evolution_authority": "evals/EVOLUTION_INDEX.json",
-  "permission_policy": "PER_ACTION_EXTERNAL_USER_AUTHORIZATION_AND_PROVIDER_CAS",
+  "permission_policy": "EXPLICIT_CURRENT_CHAT_OWNER_CONFIRMATION_PLUS_GITHUB_GITDATA_CAS_AND_READBACK",
   "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE",
   "owner_intent_provenance": "financial_writing_agent.intent_governance",
-  "requirement_write_authentication": "AUTHENTICATED_ORIGINAL_USER_MESSAGE_AND_EXCERPT",
+  "requirement_write_authentication": "COMPLETE_CURRENT_CONVERSATION_MESSAGE_PLUS_EXPLICIT_OWNER_CONFIRMATION_OF_NORMALIZED_MUTATION",
   "method_catalog_authority": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
   "method_governance": "financial_writing_agent.method_governance",
   "method_provider_entry": "financial_writing_agent.standalone_runtime.admit_method_action",
-  "method_impact_closure": "EXTERNAL_REVALIDATION_WITH_APPEND_ONLY_EVENT_HISTORY"
+  "method_impact_closure": "EXTERNAL_REVALIDATION_WITH_APPEND_ONLY_EVENT_HISTORY",
+  "client_skill_plugin": {
+    "name": "financial-writing-agent-chatgpt",
+    "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
+    "release_id": "pluginrel_6af72ebbaef0819187235f6772cd972f",
+    "verified": "PRIVATE_PACKAGE_UPDATED_AND_READBACK",
+    "installed_or_live_tool_executed": "NOT_VERIFIED",
+    "hosted_mcp_python": false,
+    "required_companion_connector": "EXISTING_GITHUB_CONNECTOR_WITH_READ_WRITE_PERMISSION",
+    "custom_hosted_service_required": false,
+    "version": "0.1.2"
+  },
+  "system_completion_authority": "financial_writing_agent.acceptance_gates",
+  "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
+  "direct_activation_semantics": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR__NO_CUSTOM_HOSTED_SERVICE_REQUIRED",
+  "data_authority": "config/DATA_AUTHORITY.json",
+  "chatgpt_native_runtime": {
+    "orchestrator": "CHATGPT_MODEL_WITH_FINANCIAL_SKILL",
+    "persistence_provider": "CONNECTED_USER_GITHUB_CONNECTOR",
+    "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA",
+    "readback_protocol": "FETCH_EXACT_COMMITTED_FILES",
+    "requires_hosted_python_mcp": false,
+    "python_adapter_role": "OPTIONAL_REFERENCE_IMPLEMENTATION_AND_CI_TEST_TARGET"
+  },
+  "provider_adapter_role": "OPTIONAL_REFERENCE_NOT_ACTIVE_CHAT_RUNTIME"
 }

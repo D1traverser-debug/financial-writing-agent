@@ -3,16 +3,21 @@ import json
 from pathlib import Path
 from copy import deepcopy
 import hashlib
+import time
 
 import pytest
 
 from financial_writing_agent.method_governance import (
-    MethodGovernanceError, mutate_method_catalog, query_methods,
+    MethodGovernanceError, _digest, mutate_method_catalog, query_methods,
     validate_method_catalog,
 )
+from financial_writing_agent.provider_attestation import request_sha256
 from financial_writing_agent.standalone_runtime import (
     FinancialAdmissionError, FinancialEffectUnverified, _blob_sha,
     admit_method_action, observe_method_catalog,
+)
+from trusted_provider_testkit import (
+    signed_attestation, signed_method_action_authorization, signed_method_impact, signed_method_promotion,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -47,13 +52,39 @@ def decision():
 
 
 def mutate(cat, operation, *, proposed=None, method_id=METHOD_ID,
-           promotion_evidence=None, promotion_verifier=None):
+           promotion_evidence=None, promotion_verifier=None,
+           impact_target_revision=None, impact_evidence=None, impact_verifier=None,
+           decision_envelope=None, evidence_refs=None, affected_stages=None):
+    params = {
+        "knowledge_id": method_id,
+        "decision_envelope": decision_envelope or decision(),
+        "evidence_refs": list(evidence_refs or ["method-source://primary"]),
+        "affected_stages": list(affected_stages or ["RESEARCH", "EDITORIAL"]),
+    }
+    if proposed is not None:
+        params["proposed_record"] = proposed
+    if promotion_evidence is not None:
+        params["promotion_evidence"] = promotion_evidence
+    if impact_target_revision is not None:
+        params["impact_target_revision"] = impact_target_revision
+    if impact_evidence is not None:
+        params["impact_evidence"] = impact_evidence
+    raw = json.dumps(cat, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    action_request = {
+        "schema_version": "1.0", "domain_id": "financial_writing",
+        "action_id": f"synthetic-method-{operation.lower()}-{cat.get('governance_revision', 0) + 1}",
+        "operation": operation, "expected_catalog_blob_sha": _blob_sha(raw),
+        "parameters": params,
+    }
     return mutate_method_catalog(
         cat, operation=operation, knowledge_id=method_id,
-        proposed_record=proposed, decision_envelope=decision(),
-        evidence_refs=["method-source://primary"],
-        affected_stages=["RESEARCH", "EDITORIAL"],
+        proposed_record=proposed, decision_envelope=params["decision_envelope"],
+        evidence_refs=params["evidence_refs"], affected_stages=params["affected_stages"],
         promotion_evidence=promotion_evidence, promotion_verifier=promotion_verifier,
+        impact_target_revision=impact_target_revision, impact_evidence=impact_evidence,
+        impact_verifier=impact_verifier, action_request=action_request,
+        authorization_evidence=signed_method_action_authorization(action_request),
+        observed_catalog_blob_sha=_blob_sha(raw),
     )
 
 
@@ -102,12 +133,7 @@ def test_unreviewed_method_promotion_is_fail_closed_even_with_self_attested_pass
 
 
 def promotion_verifier(request):
-    return {
-        "verified": True,
-        "reviewed_record_sha256": request["record_sha256"],
-        "reviewer_principal": "synthetic-external-test-reviewer",
-        "validation_refs": ["synthetic-ci://exact-change-test"],
-    }
+    return signed_method_promotion(request)
 
 
 def test_verified_promotion_then_challenge_then_retire_is_append_only():
@@ -130,9 +156,9 @@ def test_verified_promotion_then_challenge_then_retire_is_append_only():
 
 def test_missing_competing_decision_and_impact_scope_cannot_change_method():
     with pytest.raises(MethodGovernanceError):
-        mutate_method_catalog(
-            original(), operation="CREATE", knowledge_id=METHOD_ID,
-            proposed_record=method(), decision_envelope={"decision_id": "guess"},
+        mutate(
+            original(), "CREATE", proposed=method(),
+            decision_envelope={"decision_id": "guess"},
             evidence_refs=["self://idea"], affected_stages=[],
         )
 
@@ -177,7 +203,7 @@ def test_financial_method_cas_port_reads_real_catalog_and_never_writes_caos_or_a
     before = p.read(CATALOG_PATH)["blob_sha"]
     r = admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: True)
+                            authorization_verifier=signed_method_action_authorization)
     assert r["method_catalog_cas_verified"] is True
     assert r["previous_catalog_blob_sha"] == before
     assert len(observe_method_catalog(catalog_reader=p.read)["records"]) == len(original()["records"]) + 1
@@ -195,13 +221,13 @@ def test_financial_method_mutation_denies_stale_sha_auth_and_unverified_readback
     with pytest.raises(FinancialAdmissionError, match="CHANGED_CONCURRENTLY"):
         admit_method_action(p.request("CREATE", expected="f"*40, proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: True)
+                            authorization_verifier=signed_method_action_authorization)
     assert p.store == before
     p.tamper = True
     with pytest.raises(FinancialEffectUnverified):
         admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: True)
+                            authorization_verifier=signed_method_action_authorization)
     assert p.store == before
 
 
@@ -211,11 +237,8 @@ def test_method_revalidation_obligation_cannot_be_silently_closed_by_self_pass()
     assert target["impact_review_state"].startswith("OPEN")
     before = deepcopy(cat)
     with pytest.raises(MethodGovernanceError, match="IMPACT"):
-        mutate_method_catalog(
-            cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
-            decision_envelope=decision(), evidence_refs=["method-source://primary"],
-            affected_stages=["RESEARCH", "EDITORIAL"],
-            impact_target_revision=1,
+        mutate(
+            cat, "VERIFY_IMPACT", impact_target_revision=1,
             impact_evidence={
                 "stage_evidence_refs": {
                     "RESEARCH": "simulation://source-and-company-research-test",
@@ -232,19 +255,10 @@ def test_method_impact_closure_requires_exact_original_event_and_stage_evidence(
 
     def trusted_impact_verifier(request):
         challenge_seen.append(request)
-        return {
-            "verified": True,
-            "target_change_revision": request["target_change_revision"],
-            "reviewed_event_sha256": request["event_sha256"],
-            "verified_stages": list(request["stage_evidence_refs"]),
-            "reviewer_principal": "synthetic-independent-method-reviewer",
-        }
+        return signed_method_impact(request)
 
-    closed, receipt = mutate_method_catalog(
-        cat, operation="VERIFY_IMPACT", knowledge_id=METHOD_ID,
-        decision_envelope=decision(), evidence_refs=["method-source://primary"],
-        affected_stages=["RESEARCH", "EDITORIAL"],
-        impact_target_revision=1,
+    closed, receipt = mutate(
+        cat, "VERIFY_IMPACT", impact_target_revision=1,
         impact_evidence={
             "stage_evidence_refs": {
                 "RESEARCH": "simulation://source-and-company-research-test",
@@ -291,6 +305,69 @@ def test_method_impact_stamps_effective_version_and_ignores_pending_unpromoted_r
     assert delta[0]["earliest_affected_stage"] == "RESEARCH"
     assert delta[0]["current_lifecycle_status"] == "ACTIVE"
     assert delta[0]["change_revisions"] == [4]
+
+
+def test_historical_method_action_promotion_and_impact_receipts_remain_readable_after_freshness_window():
+    cat, _ = mutate(original(), "CREATE", proposed=method())
+    cat, _ = mutate(
+        cat, "PROMOTE",
+        promotion_evidence={
+            "validation_refs": ["synthetic-ci://exact-change-test"],
+            "review_ref": "simulation://review",
+        },
+        promotion_verifier=promotion_verifier,
+    )
+    cat, _ = mutate(
+        cat, "VERIFY_IMPACT", impact_target_revision=1,
+        impact_evidence={"stage_evidence_refs": {
+            "RESEARCH": "simulation://research",
+            "EDITORIAL": "simulation://editorial",
+        }},
+        impact_verifier=lambda request: signed_method_impact(request),
+    )
+    old_issued_at = int(time.time()) - 86400
+    for event in cat["change_history"]:
+        request = event["authorization_request"]
+        event["authorization_evidence"] = signed_attestation(
+            "method_action_authorization", issued_at=old_issued_at,
+            approved=True, action_id=request["action_id"],
+            domain_id=request["domain_id"], operation=request["operation"],
+            knowledge_id=request["parameters"]["knowledge_id"],
+            expected_catalog_blob_sha=request["expected_catalog_blob_sha"],
+            request_sha256=request_sha256(request),
+        )
+        promoted = event.get("promoted_proof")
+        if promoted is not None:
+            promoted["attestation"] = signed_attestation(
+                "method_promotion_review", actor="synthetic-method-reviewer",
+                key_env="FINANCIAL_METHOD_REVIEW_KEY",
+                provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+                issued_at=old_issued_at, approved=True,
+                knowledge_id=event["knowledge_id"],
+                record_sha256=promoted["reviewed_record_sha256"],
+                decision_sha256=event["decision_sha256"],
+                validation_refs=promoted["validation_refs"],
+                review_ref=promoted["review_ref"],
+            )
+            promoted["attestation_signature"] = promoted["attestation"]["signature"]
+        impact = event.get("impact_verification")
+        if impact is not None:
+            target = cat["change_history"][impact["target_change_revision"] - 1]
+            impact["reviewed_event_sha256"] = _digest(target)
+            impact["attestation"] = signed_attestation(
+                "method_impact_review", actor="synthetic-method-reviewer",
+                key_env="FINANCIAL_METHOD_REVIEW_KEY",
+                provider_env="FINANCIAL_METHOD_REVIEW_PROVIDER_ID",
+                issued_at=old_issued_at, approved=True,
+                knowledge_id=event["knowledge_id"],
+                target_change_revision=impact["target_change_revision"],
+                event_sha256=impact["reviewed_event_sha256"],
+                stage_evidence_refs=impact["stage_evidence_refs"],
+                verified_stages=impact["verified_stages"],
+            )
+            impact["attestation_signature"] = impact["attestation"]["signature"]
+    checked = validate_method_catalog(cat)
+    assert query_methods(checked, operational_only=True)[0]["knowledge_id"] == METHOD_ID
 
 
 def test_method_retirement_invalidates_prior_article_method_snapshot():

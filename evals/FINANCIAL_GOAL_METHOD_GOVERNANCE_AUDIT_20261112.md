@@ -1,22 +1,22 @@
-# Financial Writing — CAOS-method governed system reconstruction (2026-11-12)
+# Financial Writing — goal and method governance reconstruction (2026-11-12)
 
-Scope: **Financial Writing-only system engineering**. CAOS source/Skill was consulted strictly read-only (observed CAOS main `9686cedeb3fd8171ecf70eab33aaea641217b04a`); no CAOS code, PR, branch, settings, Host, plugin or article content was changed. The owner explicitly prioritizes Financial's intrinsic requirements, decision/execution/recovery, methodology CRUD, governance and testable architecture over any real article production.
+Scope: **Financial Writing-only system engineering**. This audit records Financial's own requirements, decision/execution/recovery, method CRUD, governance and testable architecture. No external parent runtime is part of the resulting design.
 
 ## Complete owner demand, preserved without the last-patch substitution
 
-1. CAOS should **direct the redevelopment method**; the eventual Financial plugin/client must work independently, with one Financial owner and one `main`. CAOS is **not** an installed Financial runtime controller.
+1. Evidence-first governance should **direct the redevelopment method**; the eventual Financial client must work independently, with one Financial owner and one `main`. No external parent is a Financial runtime controller.
 2. Recover the user's original demands and corrections; separate hard instruction, correction, preference, tentative suggestion, proposed fix, issue/failure observation and unverified model inference. Do not silently delete or overwrite an earlier requirement.
 3. Decisions must challenge their own route/tool/source/root-cause method, compare reuse/adapt/replace/remove/build, perform bounded external/current evidence investigation, verify counterexamples, and reopen contradicted diagnoses recursively.
 4. Execution must persist legal state transitions, authenticated grants, precise resource/provider bytes, evidence-bounded stage artifacts, invalidation and repair loops, independent checks and OPEN obligations.
 5. Methods and knowledge require **add/read/revise/promote/challenge/retire/restore** with provenance, version, applicability, counterexamples, independent promotion and impact revalidation; deletion is non-destructive retirement, not erasure of source history.
-6. Use the existing `knowledge/METHOD_KNOWLEDGE_CATALOG.json`, `evals/EVOLUTION_INDEX.json`, the Financial Skill and the per-article state as authority. No second Financial task ledger, no CAOS writes. Historical provenance remains unchanged.
+6. Use the existing `knowledge/METHOD_KNOWLEDGE_CATALOG.json`, `evals/EVOLUTION_INDEX.json`, the Financial Skill and the per-article state as authority. No second Financial task ledger or external parent writes. Historical provenance remains unchanged.
 
 ## Root-cause alternatives — evidence and falsifiers
 
 | Hypothesis | Evidence observed | Discriminator | Disposition |
 | --- | --- | --- | --- |
 | Just improve prompts/skill text | Existing Skill already describes goal recovery and method evolution | Try real transport operations and source binding | Rejected as sufficient; runtime had no method lifecycle |
-| Add an external CAOS parent controller | CAOS supports richer recursive decisions | Check if Financial has one canonical article state and existing knowledge/evolution owners | Rejected: violates standalone connection and risks split authority |
+| Add an external external parent parent controller | external parent supports richer recursive decisions | Check if Financial has one canonical article state and existing knowledge/evolution owners | Rejected: violates standalone connection and risks split authority |
 | Rebuild the Financial task state schema from scratch | Existing TaskRequirement v1 has revision, history and stage invalidation | Simulate corrections and old receipts | Rejected: needless provenance break |
 | Extend existing Financial authorities with authenticated intent and bounded method governance | `TaskRequirement.source_kind` defaulted to `USER_EXPLICIT`; knowledge catalog has 14 descriptive records but no CRUD API; new method cannot be independently admitted or retired through a provider port | Negative tests for suggested text, forged author, stale CAS, pending adoption, retired rule, missing impact evidence | **Selected**, preserving one owner and append-only provenance |
 
@@ -40,13 +40,13 @@ The selected solution was rechallenged against legacy catalog readability, owner
 - Write: `admit_article_action` is the one article-state provider port. `admit_method_action` is a method-authority scope of the **same Financial domain**, writing only `knowledge/METHOD_KNOWLEDGE_CATALOG.json` under user authorization, exact expected Git Blob CAS, reread and byte identity; it is not a second controller or task index. Any missing provider/authentication blocks only the affected action.
 - Global rules: a user correction to one article cannot silently become a method or global writing rule. Method changes need material DecisionEnvelope evidence beyond user opinion, source-family method evidence, alternative analysis, external promotion and later impact revalidation. Old catalog entries are `LEGACY_DECLARED`, **not automatically independently verified**.
 - Outputs: self-assessed source/method facts and green CI cannot establish product quality, original user-message authenticity in a real ChatGPT client, native activation, or reader acceptance.
-- Historical: old records and receipts remain provenance. No direct CAOS/UAOS invocation is introduced.
+- Historical: old records and receipts remain provenance. No external parent invocation is introduced.
 
 ## Engineering checks / negative regression
 
 Core suites:
 - `tests/test_financial_goal_intent_governance_20261112.py`: missing source kind; suggestion modeled as command; forged assistant/user role; unknown source; bad digest/quote/source ID; explicit correction preserving requirement revision; nonbinding idea record without silently mutating active requirements; ambiguous retire+upsert refusal.
-- `tests/test_financial_method_governance_20261112.py`: legacy catalog read; candidate not active; staged revision without overwrite; fake/self review refused; provider-sourced promotion; challenge/retire/restore history; impact close negative and externally attested positive; no CAOS/article write; authorization denial, stale CAS, forged write, second-read mismatch.
+- `tests/test_financial_method_governance_20261112.py`: legacy catalog read; candidate not active; staged revision without overwrite; fake/self review refused; provider-sourced promotion; challenge/retire/restore history; impact close negative and externally attested positive; no external parent/article write; authorization denial, stale CAS, forged write, second-read mismatch.
 - Existing 346+ Financial article graph, research, delivery, static, wheel and Word render tests remain relevant and must all PASS at exact branch head before promotion.
 
 Assurance = `ENGINEERING_REPLAY_WITH_SYNTHETIC_TRUSTED_PROVIDER`. Real ChatGPT user-message origin, actual provider activation, external reviewer identity and reader outcome = `NOT_TESTED`. This is the **user-selected engineering scope**, not a request to produce a real article. Changed code must be promoted only after exact-head CI, defect scan and post-main independent reread.

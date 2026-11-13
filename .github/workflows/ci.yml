@@ -17,27 +17,43 @@ jobs:
   test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v7
-      - uses: actions/setup-python@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1
+        with:
+          ref: ${{ github.event.pull_request.head.sha || github.sha }}
+      - name: Verify exact checked-out source HEAD, not GitHub's synthetic PR merge SHA
+        env:
+          FINANCIAL_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          ACTUAL=$(git rev-parse HEAD)
+          test "$ACTUAL" = "$FINANCIAL_SOURCE_HEAD_SHA"
+          echo "PASS: exact Financial source HEAD $ACTUAL"
+      - uses: actions/setup-python@6d4fd22b20465ccc0f7354476588e8df7c9ca0e0
         with:
           python-version: "3.11"
           cache: pip
       - name: Install Python dependencies
         run: python -m pip install -e '.[dev]'
-      - name: Unit and trajectory tests with full Financial source-line coverage
+      - name: Unit, trajectory and hostile-case tests with measured (not assumed full) line coverage
         run: |
           mkdir -p audit
           coverage run --source=financial_writing_agent -m pytest -q
           coverage json -o audit/test_line_coverage.json
-          coverage report -m
+          coverage report -m --fail-under=85
+      - name: Machine-readable independent system acceptance (may remain NOT_READY)
+        env:
+          FINANCIAL_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+        run: |
+          python scripts/system_acceptance_report.py --assert-not-prematurely-certified --out audit/financial_system_acceptance.json
+      - name: Live branch inventory and zero-mutation archive dry-run
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: python scripts/branch_archive_cleanup.py --out audit/financial_branch_archive_dry_run.json
       - name: Every-tracked-file byte and parse inventory (no semantic completion claim)
         run: python scripts/whole_tree_audit.py --output audit/whole_tree.json
       - name: Executable contract eval baseline
         run: python scripts/eval_contracts.py
       - name: Static single-owner and legacy-quarantine audit
         run: python scripts/static_audit.py
-      - name: Static retired-runtime absence audit
-        run: python scripts/retired_runtime_static_audit.py
       - name: Standalone Financial-only runtime and independent capability manifest
         run: python scripts/verify_standalone_contract.py
       - name: Build wheel and isolated install smoke
@@ -122,7 +138,7 @@ jobs:
         run: python scripts/real_financial_workflow_redteam.py | tee audit/financial_business_redteam.json
       - name: Preserve the current exact-head audit and line-coverage evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
           name: financial-whole-tree-assurance-${{ github.sha }}
           path: audit/*.json

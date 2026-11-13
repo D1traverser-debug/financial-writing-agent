@@ -1,0 +1,48 @@
+{
+  "schema_version": "1.0",
+  "domain_id": "financial_writing",
+  "status": "CURRENT_SINGLE_SOURCE_OF_TRUTH",
+  "business_authority": "github://D1traverser-debug/financial-writing-agent@main",
+  "operating_skill": "skills/financial-writing-agent/SKILL.md",
+  "domain_manifest": "config/FINANCIAL_MANIFEST.json",
+  "execution_contract": "config/EXECUTION_CONTRACT.json",
+  "article_state_pattern": "workspaces/articles/{task_id}/STATE.json",
+  "method_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+  "system_evolution": "evals/EVOLUTION_INDEX.json",
+  "editorial_readiness": "evals/quality_regression.json",
+  "article_workspace": {
+    "state": "STATE.json",
+    "research": "research/",
+    "editorial": "editorial/",
+    "stage_outputs": "stages/",
+    "reviews": "reviews/",
+    "delivery": "delivery/",
+    "feedback": "feedback/"
+  },
+  "operations": {
+    "create": "Create one task-scoped STATE.json through current_admission.build_initial_state.",
+    "read": "Read the task STATE.json and its exact referenced artifacts; observe_article returns the validated stage and next action.",
+    "update": "Change requirements through current_admission.apply_task_requirement_change; preserve append-only history and invalidate dependent evidence.",
+    "delete": "Do not erase historical receipts or accepted evidence. Retire requirements/methods through lifecycle operations; delete only disposable unreferenced temporary artifacts.",
+    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace."
+  },
+  "method_operations": [
+    "CREATE",
+    "READ",
+    "REVISE_PENDING",
+    "DISCARD_PENDING",
+    "PROMOTE",
+    "CHALLENGE",
+    "RETIRE",
+    "RESTORE",
+    "VERIFY_IMPACT"
+  ],
+  "external_inputs": {
+    "chat": "Source of user intent and explicit approval; never a shadow article-state store.",
+    "research_sources": "Evidence inputs with exact source, date and content provenance.",
+    "github_provider": "Durable file storage and exact read/write/readback authority.",
+    "temporary_files": "Ephemeral work products only; never canonical state."
+  },
+  "no_parallel_article_ledger": true,
+  "no_external_parent_runtime": true
+}

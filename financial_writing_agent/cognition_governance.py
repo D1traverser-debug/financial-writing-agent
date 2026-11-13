@@ -45,6 +45,7 @@ class EvolutionDisposition(str, Enum):
     NO_EVOLUTION = "NO_EVOLUTION"
     EVIDENCE_ONLY = "EVIDENCE_ONLY"
     DOMAIN_CANDIDATE = "DOMAIN_CANDIDATE"
+    # Legacy serialized value only; admission rejects parent delegation for standalone Financial.
     PARENT_UPCALL = "PARENT_UPCALL"
 
 
@@ -283,7 +284,7 @@ class DecisionEnvelope(StrictModel):
                 if not self.architecture_reassessment_refs:
                     raise ValueError("systemic problem requires architecture reassessment evidence")
 
-            if self.evolution_disposition in {EvolutionDisposition.DOMAIN_CANDIDATE, EvolutionDisposition.PARENT_UPCALL} and not self.problem_record_ref:
+            if self.evolution_disposition is EvolutionDisposition.DOMAIN_CANDIDATE and not self.problem_record_ref:
                 raise ValueError("evolution-relevant problem requires a durable problem_record_ref")
         return self
 
@@ -318,6 +319,10 @@ class DecisionEnvelope(StrictModel):
 def admission_errors(envelope: DecisionEnvelope) -> list[str]:
     """Semantic warnings beyond shape validation; does not overstate independence."""
     errors: list[str] = []
+    if envelope.evolution_disposition is EvolutionDisposition.PARENT_UPCALL:
+        errors.append(
+            "standalone Financial cannot emit a parent upcall; preserve legacy references as history and use Financial-owned evolution"
+        )
     if envelope.operation_class == OperationClass.MATERIAL_JUDGMENT:
         families = {e.source_family.casefold().strip() for e in envelope.evidence}
         if len(families) < 2:
@@ -330,9 +335,6 @@ def admission_errors(envelope: DecisionEnvelope) -> list[str]:
             errors.append("triggered problem/architecture decision lacks required external method evidence")
         if envelope.problem_triggered and envelope.root_scope_receipt() is None:
             errors.append("problem-triggered decision lacks an admitted root-scope receipt")
-        if envelope.evolution_disposition in {
-            EvolutionDisposition.DOMAIN_CANDIDATE,
-            EvolutionDisposition.PARENT_UPCALL,
-        } and not envelope.knowledge_writeback_candidates:
+        if envelope.evolution_disposition is EvolutionDisposition.DOMAIN_CANDIDATE and not envelope.knowledge_writeback_candidates:
             errors.append("evolution-relevant decision needs durable learning/writeback candidate evidence")
     return errors

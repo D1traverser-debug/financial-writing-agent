@@ -21,6 +21,7 @@ class ProblemClosureDecision(str, Enum):
     REPAIR_EXECUTED = "REPAIR_EXECUTED"
     BLOCKED_WITH_REASON = "BLOCKED_WITH_REASON"
     NO_CHANGE_WITH_EVIDENCE = "NO_CHANGE_WITH_EVIDENCE"
+    # Historical outcome value only; current Financial operations never emit it.
     PARENT_GUIDANCE_REQUIRED = "PARENT_GUIDANCE_REQUIRED"
 
 
@@ -73,6 +74,7 @@ def finalize_problem_action(
     repair_verified: bool,
     blocker_reason: str | None = None,
     no_change_evidence: Iterable[str] | None = None,
+    # Retained only for callers deserializing legacy requests; never authorizes delegation.
     parent_upcall_ref: str | None = None,
 ) -> ProblemClosureDecision:
     """Enforce DecisionEnvelope -> RootScopeReceipt -> EvolutionDisposition -> action.
@@ -108,8 +110,7 @@ def finalize_problem_action(
         envelope.operation_class is OperationClass.MATERIAL_JUDGMENT
         or envelope.systemic_problem_signal
         or envelope.architecture_or_governance_change
-        or envelope.evolution_disposition
-        in {EvolutionDisposition.DOMAIN_CANDIDATE, EvolutionDisposition.PARENT_UPCALL}
+        or envelope.evolution_disposition is EvolutionDisposition.DOMAIN_CANDIDATE
     )
     if durable_required and not (
         isinstance(envelope.problem_record_ref, str) and envelope.problem_record_ref.strip()
@@ -117,17 +118,6 @@ def finalize_problem_action(
         raise ProblemActionAdmissionError(
             "problem action denied: material/evolution-relevant problem requires durable problem_record_ref"
         )
-
-    if envelope.evolution_disposition is EvolutionDisposition.PARENT_UPCALL:
-        if repair_path_available and owner_authorized:
-            raise ProblemActionAdmissionError(
-                "problem action denied: parent upcall cannot bypass an admitted owner-authorized repair"
-            )
-        if not (isinstance(parent_upcall_ref, str) and parent_upcall_ref.strip()):
-            raise ProblemActionAdmissionError(
-                "problem action denied: PARENT_UPCALL requires a structured parent-upcall reference"
-            )
-        return ProblemClosureDecision.PARENT_GUIDANCE_REQUIRED
 
     if repair_path_available and owner_authorized:
         if not repair_attempted:
@@ -147,5 +137,5 @@ def finalize_problem_action(
     if no_change:
         return ProblemClosureDecision.NO_CHANGE_WITH_EVIDENCE
     raise ProblemActionAdmissionError(
-        "problem action denied: no verified repair, concrete blocker, evidence-backed no-change, or governed parent upcall"
+        "problem action denied: no verified repair, concrete blocker, or evidence-backed no-change"
     )

@@ -1,15 +1,15 @@
 # Financial Writing — Problem & Evolution Journal
 
-Status: `CURRENT_DURABLE_PROBLEM_LEDGER`
-Journal revision: `1.6`
-Updated: `2026-10-15`
+Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
+Journal revision: `1.9`
+Updated: `2026-11-13`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
-Purpose: one chronological problem/repair history for Financial maintenance and later UAOS/总控 guidance.
+Purpose: one chronological problem/repair history for Financial maintenance; prior parent/child references are provenance only and do not create a live controller or routing dependency.
 
 ## Reading rule
 
-This is the single index of problems actually encountered during the current Financial system-evolution period. It records failures, rejected repairs and verification failures—not only final fixes. Detailed incident/eval files remain primary evidence; this journal preserves the causal path so a future controller does not have to reconstruct it from chats, commits and scattered audits.
+This is the chronological record of problems encountered during Financial system evolution. It preserves failures, rejected repairs and verification failures—not only final fixes. Detailed incident/eval files remain primary evidence. Current system status and routing authority live only in `evals/EVOLUTION_INDEX.json`; this journal is historical evidence for future maintainers, not a current controller or queue.
 
 Historical entries may mention architecture later retired. They are history, not current routing authority.
 
@@ -533,7 +533,7 @@ Verification state: candidate CI/review remains authoritative for promotion; do 
 
 ---
 
-# Parent Guidance Queue / adjudication state
+# Historical Parent Guidance Queue / adjudication state (archival only)
 
 1. `PROACTIVE_RESOLUTION_GAP` — `PARENT_ADJUDICATED`: UAOS Common Behavior Assurance requires proportionate recovery before avoidable user escalation; domain recovery order remains owner-specific.
 2. `EVOLUTION_HISTORY_INTERFACE` — `PARENT_ADJUDICATED`: one discoverable owner-native evolution evidence entrypoint + causal history is required; no universal journal file/state machine.
@@ -568,3 +568,38 @@ Scope: owner-selected **system reconstruction**, NOT article production. CAOS is
 **P-20261112-04 — Skill and reference synchronization regression.** Full governance prose pushed primary Skill above <12,000 UTF-8 budget and altered only one of three byte-identical maintenance reference mirrors. Candidate CI exposed both. Action: slim entry referencing detailed canonical documents; synchronize all three existing maintenance mirrors. Reuse existing budget/mirror tests rather than weakening checks.
 
 **Causal method and acceptance:** recover complete user goal → discriminate rival causes with actual source and RED failures → compare reuse/adapt/remove/replace/build → challenge favored route with neighboring failure cases → Financial-only authorized candidate → exact-head CI and provider readback → promote or reopen; keep every unsupported outcome OPEN. No separate Financial task ledger or method controller; no CAOS changes. Complete architecture decision and evidence: `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`. Native ChatGPT skill auto-selection, real authenticated owner-message provider and actual article/editorial acceptance are separate untested integration/product goals.
+
+
+---
+
+## P-20261113-01 — Standalone migration left stale consumers and a live parent-upcall escape hatch
+
+Status: `CANDIDATE_REPAIR_VERIFIED__NOT_PROMOTED__EXTERNAL_ACCEPTANCE_OPEN`
+Failure classes: `MIGRATION_CONSUMER_DRIFT`, `DECLARED_STANDALONE_WITH_PARENT_UPCALL_PATH`, `HISTORICAL_QUEUE_AS_ACTIVE_STATUS`, `STARTUP_SKILL_BUDGET_DRIFT`
+
+**Trigger and user consequence.** The 2026-11-13 review of Financial PR #67 checked the actual candidate tree against its canonical authority map and exact-head CI. Candidate HEAD `805cf56f` had 478 passing tests and 33 failures. The failures were concentrated in tests that still opened retired `config/policy.json`, root `references/`, `PERSISTENT_ASSET_PROFILE.json`, root Skill pointers and old parent artifacts after the candidate had deliberately migrated to packaged policy, two controlled reference surfaces, `DATA_AUTHORITY.json` and one Financial Skill. The Skill was also 14,583 bytes against the 12,000-byte startup budget. Separately, `EvolutionDisposition.PARENT_UPCALL` still passed admission and `finalize_problem_action` could return `PARENT_GUIDANCE_REQUIRED`, contradicting the standalone manifest. The journal index still described the old parent queue as current, and the standalone interface contained an invalid duplicated Skill path.
+
+**Competing roots and counterexamples.** H1: the production package was missing its policy/resources. Counterexample: `checks.load_policy` already falls back to the packaged resource; failures were direct test reads and old consumer assumptions, not a missing runtime policy. H2: restore old root files to make tests green. Rejected: this would reintroduce a third policy/reference authority and retired controller entrypoints. H3: the parent-upcall branch is harmless because no parent runtime is mandatory. Counterexample: a valid `PARENT_UPCALL` DecisionEnvelope could still produce `PARENT_GUIDANCE_REQUIRED`; this was an executable delegation path, not merely historical text. H4: loosen the Skill budget or delete assertions. Rejected: that would hide startup and consumer drift rather than repair it.
+
+**Selected Financial-only repair.** Update every identified consumer to the new canonical package/data/reference paths; keep exactly two byte-identical reference surfaces; keep the Skill below 12,000 UTF-8 bytes while preserving required operating duties; reclassify the old parent queue as archival history; reject `PARENT_UPCALL` during current DecisionEnvelope admission while retaining its enum/outcome values only for historical parsing; remove the current parent-guidance return path; correct the standalone interface path and wording. Do not restore retired files, create a second owner, or modify CAOS.
+
+**Verification.** Candidate HEAD `678d01e67dcbd98c80b4822d5b2a3513e4d4521d`, exact-head GitHub Actions run `43402355945`: `success`; 512 tests passed; source-line coverage 90% (5,759 statements, 571 missed); whole-tree audit 304 tracked files, 112 Python AST, 52 JSON, 40,813 decoded text lines, zero warnings/errors. Static single-owner/legacy audit, standalone capability initialization, isolated wheel install and synthetic DOCX/page rendering passed. These are engineering and synthetic artifact checks only; they do not establish real editorial acceptance, user-visible delivery or live provider activation.
+
+**Remaining OPEN conditions.** PR #67 is not merged; current production `main` remains unchanged. No independent review has been submitted. Main is unprotected, branch archival has not run, the private Skill is not verified installed in a fresh session, and the live authenticated owner-message/semantic-confirmation provider is absent. The repository is public while containing private research/article material; do not treat it as a safe production store until the owner resolves repository visibility/data separation. Whole-system acceptance therefore remains `NOT_READY`.
+
+## 2026-11-13 archival boundary — prior parent queue
+
+The earlier section titled “Historical Parent Guidance Queue / adjudication state (archival only)” records statuses from the former parent/child design. Those entries and their original wording remain preserved as provenance. They are **archival only**, not a live queue or instruction to contact a parent system. Current Financial status is owned only by `evals/EVOLUTION_INDEX.json`; current Financial admission rejects legacy parent-upcall dispositions. No CAOS/UAOS runtime, repository, file, branch, PR or host was modified.
+
+
+---
+
+## P-20261113-01 verification addendum — final candidate replay (2026-11-13)
+
+The first post-migration CI on `ee4b5ce2e0035c677b4b4f838bb06eab87814ae6` reported 511 passed and two failures. Both were genuine migration-consistency defects: the packaged maintenance reference had not received the same two canonical path/ownership edits as the Skill reference, and the regression still asserted journal revision 1.6 after the journal had moved to 1.7. The package mirror was synchronized byte-for-byte, the journal/index advanced to 1.8, and the test now checks archival status rather than a live parent queue. Exact-head run `43403603151` on `f783b6dc91c113a6c504f1171e5a4fa8850d5d3c` passed 513 tests at 90% coverage.
+
+A subsequent targeted code-path audit found three residual compatibility signals: `PARENT_UPCALL` still appeared in DecisionEnvelope durability/writeback conditions, the action error string still described a governed parent upcall, and the legacy `parent_upcall_ref` argument was undocumented. These did not reopen a successful parent return path, but they contradicted the one-owner contract. The two remaining disposition conditions were removed, the argument was explicitly documented as legacy-only and non-authorizing, and a negative regression now verifies that even a parent-upcall envelope without a durable record is rejected at Financial admission. The historical enum and closure-outcome values remain only for parsing old records; no current action returns `PARENT_GUIDANCE_REQUIRED`.
+
+Final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99`, exact-head CI run `43404325789`: **514 tests passed**, 90% line coverage (5,759 statements; 572 missed). Whole-tree audit: 304 tracked files, 112 Python AST parses, 52 JSON parses, 40,872 decoded text lines, zero warnings and zero errors. The operating Skill is 11,848 UTF-8 bytes; the two controlled maintenance reference surfaces are byte-identical. Standalone import, clean wheel/install, single-owner/retired-artifact checks and four synthetic Word product renders passed. These remain engineering/synthetic-output evidence only.
+
+Current release boundary: PR #67 remains open and unmerged; no independent review has been submitted. The prior Codex review attempt failed on older head `0ddb200f9a7fc8eb4f1651e493b78bdda769121e` and the bot reported review usage limits; this is not a review of the current candidate. The repository is public and the candidate tree contains private article/research data, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. No further private article/research writes should be made to this public repository until the owner chooses private visibility or a private data-repository split. The last recorded GitHub inventory has 99 branches, one open PR, no repository rulesets and unprotected main; no branch/tag archive or deletion was run. All seven signed external acceptance gates remain OPEN. The cross-border v3 article remains at RESEARCH with 0/4 real delivery artifacts. No production merge, plugin update/installation or CAOS modification occurred.

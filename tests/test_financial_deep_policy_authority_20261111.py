@@ -10,9 +10,7 @@ ROOT = Path(__file__).resolve().parents[1]
 
 
 def test_deep_policy_is_research_complete_and_default_publication_selective():
-    source = json.loads((ROOT / "config/policy.json").read_text(encoding="utf-8"))
-    packaged = load_packaged_policy()
-    assert source == packaged
+    source = load_packaged_policy()
     assert source["contract_version"] == "0.9.2"
     research = source["research"]
     editorial = source["editorial"]

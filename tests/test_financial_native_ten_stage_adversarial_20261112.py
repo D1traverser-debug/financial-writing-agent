@@ -7,12 +7,28 @@ asserted from this transport-only simulation.
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
+import hashlib
+import struct
+import zlib
+from pathlib import Path
+from types import SimpleNamespace
+
 import pytest
 
 from test_current_admission_v1 import _blueprint, _fitness
 from test_financial_native_loop_closure_20261112 import (
     TASK, STATE_PATH, act, make, into_research_audit, stage_artifact,
 )
+from financial_writing_agent.delivery_pipeline import (
+    build_verified_article_docx, build_verified_audit_docx,
+    build_verified_interaction_pack_docx, build_verified_private_research_docx,
+    finalize_delivery_evidence,
+    render_word_and_review_pages,
+)
+from financial_writing_agent.document import ArticleDocument, AuditLine, Block
+from financial_writing_agent.models import ArtifactKind
+from financial_writing_agent.schemas import PlatformInteractionPack
 
 
 def _prepare_delivery(p):
@@ -42,6 +58,144 @@ def _fake_output(kind):
     }
 
 
+def _png(width=4, height=4):
+    def chunk(kind, data):
+        return (
+            struct.pack(">I", len(data)) + kind + data
+            + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
+        )
+    ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
+    raw = b"".join(b"\x00" + b"\xff\xff\xff" * width for _ in range(height))
+    return (
+        b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr)
+        + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
+    )
+
+
+def _install_fake_renderer(monkeypatch):
+    def fake_render(docx_path, render_dir):
+        out = Path(render_dir)
+        out.mkdir(parents=True, exist_ok=True)
+        (out / f"{Path(docx_path).stem}.pdf").write_bytes(b"%PDF-1.4 synthetic render")
+        page = out / "page-1.png"
+        page.write_bytes(_png())
+        return [str(page)]
+    monkeypatch.setattr("financial_writing_agent.rendering.render_docx_pages", fake_render)
+
+
+def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
+    """Create a canonical build + exact render receipt; all prose is synthetic."""
+    from financial_writing_agent.standalone_runtime import _blob_sha
+
+    _install_fake_renderer(monkeypatch)
+    output = tmp_path / (kind.lower() + ".docx")
+    if kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+        article = ArticleDocument(
+            title=f"合成测试稿：{kind}",
+            stock_names=[],
+            blocks=[
+                Block(kind="h1", text="合成事实核验"),
+                Block(kind="body", text="这是**可检查语义锚点**的合成审稿文本。"),
+            ],
+        )
+        source_text = "这是可检查语义锚点的合成审稿文本。"
+        source_ref = f"simulation://delivery-source/{kind}"
+        claim_bindings = [{
+            "claim_id": f"synthetic-{kind.lower()}",
+            "block_index": 1,
+            "claim_excerpt": source_text,
+            "source_ref": source_ref,
+            "source_excerpt": source_text,
+        }]
+        kwargs = {}
+        if kind == "FINANCE_DEEP_DOCX":
+            kwargs["research"] = SimpleNamespace(universe=[], company_decision_map=None)
+        build = build_verified_article_docx(
+            article, output,
+            artifact_kind=ArtifactKind(kind),
+            required_bold_anchors=["可检查语义锚点"],
+            require_risk_disclaimer=False,
+            task_state=task_state,
+            claim_bindings=claim_bindings,
+            source_reader=lambda _: {
+                "text": source_text,
+                "sha256": hashlib.sha256(source_text.encode("utf-8")).hexdigest(),
+            },
+            **kwargs,
+        )
+    elif kind == "PLATFORM_INTERACTION_PACK_DOCX":
+        pack = PlatformInteractionPack.model_validate({
+            "topic": "合成测试",
+            "posts": [
+                {"platform_family": "WECHAT_IMAGE_TEXT", "hook": "测试开头一",
+                 "body": "合成互动正文一。", "interaction_prompt": "你的看法是什么？"},
+                {"platform_family": "TOUTIAO_MICRO", "hook": "测试开头二",
+                 "body": "合成互动正文二。", "interaction_prompt": "你会如何判断？"},
+                {"platform_family": "NETEASE_DYNAMIC", "hook": "测试开头三",
+                 "body": "合成互动正文三。", "interaction_prompt": "还有哪些变量？"},
+            ],
+            "evidence_boundary": "仅为合成测试，不构成事实或投资结论。",
+            "independent_rewrite_from_long_form": True,
+        })
+        build = build_verified_interaction_pack_docx(pack, output)
+    elif kind == "PRIVATE_RESEARCH_DOCX":
+        source_state = task_state or p.read(STATE_PATH)["state"]
+        build = build_verified_private_research_docx(
+            title="合成私有研究补充",
+            blocks=[
+                Block(kind="h1", text="合成研究补充"),
+                Block(kind="body", text="仅用于验证私有研究补充文件的交付闭环，不含真实金融结论。"),
+            ],
+            stock_names=[],
+            output=output,
+            admitted_private_research_brief=source_state["quality_evidence"]["private_research_brief"],
+        )
+    elif kind == "AUDIT_DOCX":
+        build = build_verified_audit_docx(
+            title="合成流程验收记录",
+            lines=[AuditLine(area="二进制", status="PASS", evidence="文件可读取", notes="合成测试")],
+            artifacts=["synthetic://artifact"],
+            output=output,
+        )
+    else:
+        raise AssertionError(f"unsupported synthetic output kind: {kind}")
+
+    render = render_word_and_review_pages(
+        build, docx_path=output, render_dir=tmp_path / (kind.lower() + "-render"),
+        visual_reviewer=lambda event: {
+            "status": "PASS", "review_ref": f"synthetic://visual/{kind}/{event['page_index']}",
+        },
+    )
+    source_state = task_state or p.read(STATE_PATH)["state"]
+    if kind == "PRIVATE_RESEARCH_DOCX":
+        source_artifact = source_state["stage_artifacts"]["RESEARCH"]
+    else:
+        source_artifact = source_state["stage_artifacts"]["DRAFT"]
+    source_ref = source_artifact["path"]
+    source_identity = f"git-blob:{source_artifact['blob_sha']}"
+    finalized = finalize_delivery_evidence(
+        build, source_ref=source_ref, source_identity=source_identity,
+        render_qa="PASS", visual_qa="PASS", render_inspection_receipt=render,
+    )
+    resource_ref = f"workspaces/articles/{TASK}/delivery/{kind.lower()}.docx"
+    binary = output.read_bytes()
+    p.artifacts[resource_ref] = binary
+    resource = {
+        "kind": kind,
+        "file_name": output.name,
+        "sha256": hashlib.sha256(binary).hexdigest(),
+        "resource_ref": resource_ref,
+        **finalized,
+    }
+    if kind == "PRIVATE_RESEARCH_DOCX":
+        resource.update({
+            "regenerated_from_durable_source": True,
+            "source_ref": source_ref,
+            "source_identity": source_identity,
+        })
+    return resource
+
+
 def test_full_ten_stage_admission_rejects_nonexistent_deliverables_before_terminal_state():
     p = make()
     _prepare_delivery(p)
@@ -59,62 +213,56 @@ def test_full_ten_stage_admission_rejects_nonexistent_deliverables_before_termin
     assert p.read(STATE_PATH)["state"]["current_stage"] == "DELIVERY"
 
 
-def _word_output(p, kind):
-    """A genuine DOCX binary whose prose is only a synthetic test marker."""
-    from io import BytesIO
-    import hashlib
-    from docx import Document
-    doc = Document()
-    doc.add_heading(f"synthetic-only-{kind}", level=1)
-    doc.add_paragraph("本文件仅供工作流字节验证，不包含真实金融信息或用户稿件。")
-    out = BytesIO()
-    doc.save(out)
-    binary = out.getvalue()
-    resource_ref = f"workspaces/articles/{TASK}/delivery/{kind.lower()}.docx"
-    p.artifacts[resource_ref] = binary
-    return {
-        "kind": kind,
-        "file_name": kind.lower() + ".docx",
-        "sha256": hashlib.sha256(binary).hexdigest(),
-        "resource_ref": resource_ref,
-    }
-
-
-def test_entire_ten_stage_graph_with_genuine_synthetic_word_bytes_and_bounded_terminal():
+def test_entire_ten_stage_graph_with_canonical_rendered_delivery_evidence_and_bounded_terminal(tmp_path, monkeypatch):
     p = make()
     _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
     article_kinds = ("FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX")
-    metadata = [_word_output(p, kind) for kind in article_kinds]
+    metadata = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in article_kinds]
     delivery = act(p, "ADVANCE_STAGE", {
         **stage_artifact(p, "DELIVERY"),
         "delivery_artifacts": metadata,
     })
     assert delivery["stage"] == "MECHANICAL_AUDIT"
     assert delivery["product_word_binary_readback"]["verified_count"] == 3
-    assert delivery["product_word_binary_readback"]["assurance"].endswith("PAGE_AND_EDITORIAL_OPEN")
+    assert delivery["product_word_binary_readback"]["assurance"].endswith("EDITORIAL_INDEPENDENCE_OPEN")
+    assert all(item["rendered_page_count"] == 1 for item in delivery["product_word_binary_readback"]["files"])
     mechanical = act(p, "ADVANCE_STAGE", {
         **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
     })
     assert mechanical["stage"] == "FINAL_AUDIT"
-    audit_meta = _word_output(p, "AUDIT_DOCX")
+    audit_meta = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
     final = act(p, "ADVANCE_STAGE", {
         **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
         "audit_artifact": audit_meta,
+        "supplemental_delivery_artifacts": [private_meta],
     })
     assert final["product_word_binary_readback"]["verified_count"] == 4
     state = p.read(STATE_PATH)["state"]
     assert state["status"] == "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
     assert set(state["delivery_artifacts"]) == set(state["required_outputs"])
+    assert final["visible_delivery_receipt"]["status"] == "VISIBLE_DELIVERY_READY"
+    assert "PRIVATE_RESEARCH_DOCX" in final["visible_delivery_receipt"]["required_outputs"]
+    from financial_writing_agent.standalone_runtime import observe_article
+    observed = observe_article(TASK, state_reader=p.read)
+    assert observed["visible_delivery_status"] == "VISIBLE_DELIVERY_READY"
+    assert observed["visible_delivery_receipt"]["task_id"] == TASK
     assert final["independent_editorial_quality_verified"] is False
     assert final["owner_outcome_verified"] is False
     assert len([r for r in state["execution_receipts"] if "TRANSITION" in r["action_id"]]) == 10
 
 
-@pytest.mark.parametrize("case", ["missing", "wrong_sha", "foreign_task", "bad_zip", "bad_zip_matching_sha", "wrong_blob", "file_name", "resource_reused"])
-def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_bytes(case):
+@pytest.mark.parametrize("case", [
+    "missing", "wrong_sha", "foreign_task", "bad_zip", "bad_zip_matching_sha",
+    "wrong_blob", "file_name", "resource_reused", "missing_delivery_evidence",
+    "tampered_delivery_evidence",
+])
+def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_bytes(case, tmp_path, monkeypatch):
     p = make()
     _prepare_delivery(p)
-    outputs = [_word_output(p, kind) for kind in (
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
         "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
     )]
     first = outputs[0]
@@ -137,6 +285,11 @@ def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_b
         outputs[1]["resource_ref"] = first["resource_ref"]
         outputs[1]["file_name"] = first["file_name"]
         outputs[1]["sha256"] = first["sha256"]
+    elif case == "missing_delivery_evidence":
+        first.pop("delivery_evidence", None)
+        first.pop("delivery_evidence_sha256", None)
+    elif case == "tampered_delivery_evidence":
+        first["delivery_evidence"]["source_identity"] = "git-blob:" + "0" * 40
     elif case == "wrong_blob":
         p.artifact = lambda candidate, prior=p.artifact: (
             {"content": p.artifacts[candidate], "blob_sha": "0" * 40}
@@ -150,10 +303,11 @@ def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_b
     assert p.states == frozen
 
 
-def test_final_audit_rereads_all_existing_docx_before_marking_state_terminal():
+def test_final_audit_rereads_all_existing_docx_before_marking_state_terminal(tmp_path, monkeypatch):
     p = make()
     _prepare_delivery(p)
-    outputs = [_word_output(p, kind) for kind in (
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
         "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
     )]
     act(p, "ADVANCE_STAGE", {
@@ -164,12 +318,169 @@ def test_final_audit_rereads_all_existing_docx_before_marking_state_terminal():
     })
     assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
     p.artifacts[outputs[0]["resource_ref"]] = b"PKtampered-after-delivery"
-    audit = _word_output(p, "AUDIT_DOCX")
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
     frozen = deepcopy(p.states)
     with pytest.raises(Exception, match="FINANCIAL_WORD"):
         act(p, "ADVANCE_STAGE", {
             **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
             "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
         })
     assert p.states == frozen
     assert p.read(STATE_PATH)["state"]["status"] == "IN_PROGRESS"
+
+
+def test_final_audit_cannot_commit_without_required_private_research_supplement(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="FINANCIAL_VISIBLE_DELIVERY_NOT_READY"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
+
+
+def test_final_audit_rejects_private_research_supplement_with_wrong_source_identity(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    private_meta["source_identity"] = "git-blob:" + "0" * 40
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="PRIVATE_RESEARCH_SOURCE_IDENTITY_MISMATCH"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
+
+
+@pytest.mark.parametrize("stage_key", ["RESEARCH", "DRAFT"])
+def test_final_audit_rereads_exact_research_and_draft_stage_bytes_before_terminal(stage_key, tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    stage_path = p.read(STATE_PATH)["state"]["stage_artifacts"][stage_key]["path"]
+    p.artifacts[stage_path] = b"tampered-after-stage-admission"
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match=f"SOURCE_STAGE_BYTES_MISMATCH:{stage_key}"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
+
+
+def test_final_audit_rejects_private_research_resource_without_current_provider_bytes(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    del p.artifacts[private_meta["resource_ref"]]
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="VISIBLE_DELIVERY_NOT_READY"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
+
+
+def test_delivery_blocks_when_research_source_snapshots_are_older_than_seven_days(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    stale = (datetime.now(timezone.utc) - timedelta(days=8)).isoformat()
+    for source in p.sources.values():
+        source["retrieved_at"] = stale
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="CURRENT_RESEARCH_SOURCE_SNAPSHOT_STALE_OR_FUTURE"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "DELIVERY"
+
+
+def test_final_audit_blocks_if_research_source_bytes_changed_after_research(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    source_ref = sorted(p.sources)[0]
+    p.sources[source_ref]["text"] += " 后续版本出现了新的实质内容。"
+    p.sources[source_ref]["sha256"] = hashlib.sha256(
+        p.sources[source_ref]["text"].encode("utf-8")
+    ).hexdigest()
+    p.sources[source_ref]["retrieved_at"] = datetime.now(timezone.utc).isoformat()
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="DELIVERY_RESEARCH_SOURCE_BYTES_CHANGED"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"

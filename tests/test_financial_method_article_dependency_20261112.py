@@ -8,6 +8,7 @@ from financial_writing_agent.method_governance import CATALOG_PATH
 from financial_writing_agent.standalone_runtime import (
     FinancialAdmissionError, admit_article_action,
 )
+from trusted_provider_testkit import signed_action_authorization
 from test_standalone_financial_runtime_20261111 import (
     Provider, create, run, proposal, research_proposal,
 )
@@ -37,7 +38,7 @@ def _native_action(p, operation, *, parameters=None, reader=None, grant=True):
         proposal(operation, sha=p.read(STATE_PATH)["blob_sha"],
                  params=parameters or {}, task_id=ARTICLE),
         state_reader=p.read, cas_writer=p.write,
-        authorization_verifier=lambda _: grant,
+        authorization_verifier=signed_action_authorization if grant else (lambda _: False),
         artifact_reader=p.artifact, source_snapshot_reader=p.source,
         method_catalog_reader=p.read if reader is None else reader,
     )
@@ -53,7 +54,7 @@ def _used_method_state():
     observed = admit_article_action(
         research,
         state_reader=p.read, cas_writer=p.write,
-        authorization_verifier=lambda _: True,
+        authorization_verifier=signed_action_authorization,
         artifact_reader=p.artifact, source_snapshot_reader=p.source,
         method_catalog_reader=p.read,
     )
@@ -124,7 +125,7 @@ def test_method_catalog_omission_cannot_be_bypassed_when_knowledge_is_claimed_in
     with pytest.raises(FinancialAdmissionError, match="METHOD_CATALOG"):
         admit_article_action(
             research, state_reader=p.read, cas_writer=p.write,
-            authorization_verifier=lambda _: True,
+            authorization_verifier=signed_action_authorization,
             artifact_reader=p.artifact, source_snapshot_reader=p.source,
             method_catalog_reader=None,
         )

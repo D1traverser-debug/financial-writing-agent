@@ -1,0 +1,189 @@
+# 财经写作系统 — 对抗式独立验收复审（2026-11-12）
+
+**结论：工程模拟测试 PASS 不等于系统整体验收 PASS。实际终态仍为 NOT_READY。** 本轮仅修改 Financial Writing 自身资产；外部项目不在修改范围内。用户此轮指令是“完整做好系统”，**不是出真实财经文章**。
+
+## 精确的已有证据
+
+1. 2026-11-12 原生产 `main` 为 `72cf852746a54b5f116e41f96bb8ca54b5f6838c`；CI #43191897225 报告 374 passed，测试总行覆盖 87%（4989 语句中 667 未覆盖），并非 100%。红队脚本自己报告 `product_readiness=NOT_READY`、当前 v3 为 RESEARCH 且 0/4 真实 Word 出品。
+2. PR #66 已合并但没有独立 review 记录；单个维护者开发、设计模拟数据、运行测试、合并不能视为多主体独立验收。
+3. 当前 GitHub 实时清点为 99 branches（含 main）、66 个 closed PR（48 merged into main，18 closed without merge）和 1 个 open PR（#67）。98 个非 main ref 中，44 个 head SHA 能与 merged-to-main PR 精确匹配，54 个没有这种精确证据；后者不等于未合并，可能是 squash merge、直接提交、过期 ref 或重复 head。PR 历史不可删除或伪造。
+4. 当时 GitHub main `protected=false`，未设置 mandatory required checks；外部仓库管理权限不可通过 Financial 源码声明来获取。
+5. 当时当前账户没有独立 Financial ChatGPT 插件。现已创建私有 Financial Skill 插件 `plugins_6af591b19a708191a3879e94a7ce8742`，release `pluginrel_6af5a82a95f48191ba8d21fa3d188094`，并经插件文件读回验证。**未经过用户显式安装、新会话激活或真实 GitHub 读写验收；该插件不托管 Python/MCP 动作 API。**
+
+## 根因链条
+
+原始要求 → 已认证原文及哈希 → **模型自行填写 statement、source_kind 或 retire_ids** → `CHANGE_REQUIREMENTS` 无原文与新要求语义绑定 → 可能合法 CAS 存储与用户原意相反的要求 → 后续 10 阶段在错误目标上执行 → Word 结构和 CI 均可能 PASS → 用户需求失败。
+
+这是完整目标恢复和语义治理缺口，不能靠多加「来源哈希」补救。其他独立缺口：host/ChatGPT plugin 激活与仓库代码未真正集成；「外部 reviewer」只有注入回调，模拟实现不能替代真人或独立认证来源；主分支没有保护；PR 合并后旧分支未自动归档。
+
+## 差异化修复
+
+- RED：合法用户消息，试图替换为「Deep 只能保留 3 家」并上传正确 SHA；需要拒绝。模型伪造 `approved=True`、错 source/change digest、未认证 retirement，均拒绝且 STATE.json 字节不变。
+- FIX：`intent_governance.verify_requirement_change_intent` 保存并验证完整原始用户消息及全文 excerpt；允许 AI 将复杂指令拆成多条有范围的 requirement statement，但完整 upsert/retire 集合必须由独立可信 provider 展示并取得 owner 对**规范化完整 mutation hash**的明确签名确认。来源哈希不能替代语义确认；没有真实确认 provider 就 **BLOCK**，且 STATE.json 不变。原文不写入公开 GitHub，receipt 只保存必要摘要和身份边界。此证明仍依赖真实提供者，不声称语义可由哈希自动判定。
+- 一次性仓库 branch 清理流程归档原 branch HEAD SHA 为 Git tag 后再删 ref；先 Dry Run、排除 main/protected/open-PR，遇 SHA 变化、权限和归档冲突 fail-closed；保留原 Git commit history 和标记，GitHub PR history 原封不动。需真实 Actions 权限和 provider readback。
+- 私人 Financial Skill 插件是**单独域入口**，不依赖外部 parent runtime；代码明确提示其不是 Python host，不自带 GitHub 授权，使用者必须实际连接、在新会话独立验证。
+- 7 门外部验收模块 `financial_writing_agent/acceptance_gates.py`：对原始意图、Article Graph/恢复、方法 CRUD+传播、真实 Git CAS、客户端激活、独立红队、main 分支治理分别要求与被验 `main` 精确绑定的外部来源回读和非拥有者认证。CI 只写 `NOT_READY` 报告，不把 PASS 数量视为产品完成。
+
+## 退出标准及证据层级
+
+| Gate | 验收必须满足 | 可信证据 | 本轮现有状态 |
+| --- | --- | --- | --- |
+| G1 用户意图忠实 | 可恢复且从未将建议或矛盾需求升格 | 实际认证原始消息 + 外部 owner-approved 变更摘要 | 代码与 mock 已有；live OPEN |
+| G2 Graph/恢复 | 各阶段合法、失败恢复、重验影响范围完整 | 独立提供者状态读回、失败事务不可污染 | 模拟已覆盖；live OPEN |
+| G3 方法论 CRUD | 版本、质疑、复用、退役、影响传播和回退 | 真实方法录入、影响对象读回 | 模拟已覆盖；live OPEN |
+| G4 授权和写入 | 授权、CAS 冲突、拒绝与撤权可靠 | 真 Git provider 交叉权限和两次读回 | live OPEN |
+| G5 唯一入口 | 新 ChatGPT 会话只连接 Financial 可完成一次原生任务 | 插件实际安装/激活与完整工具动作证据 | 私人 Skill 已创建；未安装 |
+| G6 外部独立审计 | 与编码者不同的真实主体设计反例并复验 | reviewer 真实身份 + 变更及 CI SHA | OPEN |
+| G7 一主分支 | 只有 main 作为活动分支且旧史可找回 | GitHub 标签、branch list、删除结果二次读回 | 一次性 Archive 候选 / OPEN |
+
+**程序退出准则**：7 门均有外部强证明，并且精确 `main` CI PASS，才能称“系统整体验收通过”。不应利用同一模型捏造两个 reviewer 角色。此门不包括真实文章出品质量；财经内容出品将另行以现实用户样本评测。已验证的工程 PASS 与未验证的运营/客户端能力应分别保留。
+
+## 本轮差异与约束
+
+- 只有一个整改候选 PR #67，禁止把同一轮拆成无关的小 PR 膨胀历史。
+- 用户现有独立私人 Financial 插件可打开 `https://chatgpt.com/plugins/plugins_6af591b19a708191a3879e94a7ce8742`，**但安装需要用户明确操作**；不虚构安装成功。
+- 不使用外部项目资产来交叉编辑 Financial。
+- GitHub 仓库管理员的 branch protection settings 与真正的 ChatGPT user-message provider/host API 不在 GitHub 源代码修复权限内，必须明确标记为外部权限边界。
+
+## Earlier candidate CI and repository hygiene update (historical exact PR head 792939)
+
+Candidate PR #67 head `792939bd4003a54583b3038020e934aba60692c5` ran the full CI successfully (run `43255571900`): **433 passed**, source-line coverage **87%** (5,362 statements, 695 missed). The job explicitly checked out and verified `git rev-parse HEAD == PR head SHA`, ran whole-tree byte/parse inventory (328 tracked files; 111 Python AST and 58 JSON parsed; 40,423 decoded text lines; zero warnings/errors), wheel/install, DOCX renders, synthetic negative business replay, the system acceptance report, and a **read-only** live GitHub branch cleanup dry-run.
+
+The machine report remained `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE` with all seven external gates open: original goal/semantic correction, legal article graph/recovery, method CRUD/impact, authenticated provider CAS, native client activation, independent external adversarial review, and main-branch hygiene. The current business replay still reports `product_readiness=NOT_READY`, article stage `RESEARCH`, **0/4 delivered outputs**, and **0 quality-evidence items**. Four Word product binaries and page renders were produced only from synthetic content; this is a renderer smoke test, not editorial acceptance.
+
+The dry-run read **99 branch refs** and found one open PR. The updated schema-4 manifest records all 98 non-main refs, all merged-to-main PR head evidence, and exact per-ref classification: 44 refs match a merged PR head SHA; 54 have no exact merged-PR head evidence. It does not label those 54 as unmerged or safe to discard. All 98 heads receive archive tags before any deletion. Pruning refs without exact merged-PR evidence now requires the explicit workflow input `confirm_unverified_branch_archive=true`, in addition to the separate archive/prune reviewer approvals. No branch or tag was archived or deleted by the candidate CI; the dry-run remains read-only. Historical PR records remain untouched.
+
+The real connected GitHub CAS probe succeeded on the candidate branch: valid write/readback, deliberately stale blob SHA rejected with HTTP 409, exact updated blob readback, and temporary file deletion verified by 404. This is evidence of repository file CAS only, not proof of authenticated original user-message access, real article-state provider, access revocation or native plugin activation.
+
+Earlier intermediate candidate runs exposed test failures while the new signature-history and branch-archive guards were being tightened. They were corrected before the 428-pass exact-head CI above. Do not quote earlier failed or cancelled runs as passing.
+
+## Latest requirement-governance correction and exact-head CI (2026-11-13)
+
+The original exact-head CI at `6715ab46918ef94aff7ecf3395c3c734030ac87d` (run `43347991686`) completed successfully:
+- **446 tests passed**.
+- Source-line coverage: **87%** (5,442 statements; 697 missed).
+- The exact candidate HEAD was checked out and verified before tests.
+- The new adversarial regression confirms that one complete authenticated user utterance can produce multiple scoped requirements only after the external owner-confirmation provider signs the exact canonical mutation.
+- A signed rejection of a contradictory proposal is denied before state mutation; selective/truncated source excerpts, unsigned approvals and wrong-source/wrong-mutation approvals remain blocked.
+- The machine acceptance report still correctly reports all seven external gates OPEN and `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`.
+- Business replay still reports the live cross-border v3 article at RESEARCH, 0/4 required Word outputs, zero quality-evidence items and `product_readiness=NOT_READY`. No real article was produced by this system-reconstruction task.
+
+The subsequent commits in this candidate synchronize the plugin release pointer and execution/evolution metadata with the already-created private Skill release `0.1.1`, and align the machine contract with the requirement-decomposition correction. They do not change the article's live STATE.json or any external project asset. The PR's current exact HEAD must complete its own CI before any promotion decision.
+
+
+
+## Additional acceptance-gate adversarial review (2026-11-13)
+
+A second review of the acceptance evaluator found three evidence-binding gaps that were narrower than the runtime guards but could still allow a signed outer system-gate record to overstate readiness:
+
+1. **G1 owner goal / semantic correction** previously checked the owner identity and a well-formed source SHA, but did not verify that the SHA matched an authenticated original user-message attestation or that the confirmation reference resolved to a signed approval of the exact canonical change digest. It now requires the provider-signed original owner message, recomputes its UTF-8 SHA-256, verifies a separate owner-change approval for the exact source and change digests, and requires the public confirmation reference to equal the signed approval record reference.
+2. **G5 native client activation** previously accepted any strings with `plugins_` and `pluginrel_` prefixes. It now compares both identifiers to the exact plugin ID and release ID in `config/FINANCIAL_MANIFEST.json`, plus requires fresh-session and actual tool-invocation references.
+3. **G7 main-branch hygiene** previously checked only a one-branch inventory and archive-tag count. It now also requires a digest-bound archive manifest, verified archive-tag readback, final inventory digest, active main protection, pull-request-only merges with at least one approving review, disabled force-push/deletion, and the required Financial CI `test` status check.
+
+New negative cases cover missing or mismatched original-message attestation, wrong source digest, arbitrary confirmation references, mismatched change digest, wrong plugin/release, unprotected main, force-push/deletion allowance, missing required check and unverified archive tags. These changes do not fabricate any external gate receipt; all seven live gates remain OPEN until their real providers return evidence against the exact promoted main SHA.
+
+The repair remains Financial-only. No real article, current article STATE.json, external parent repository, external parent PR, plugin setting or user private source was changed by these acceptance-gate corrections.
+
+
+## Archive workflow output-trace correction (2026-11-13)
+
+A follow-up source-to-workflow trace corrected an earlier false-positive diagnosis. The PLAN script `scripts/branch_archive_cleanup.py` already writes its computed `manifest_sha256` to `GITHUB_OUTPUT`; the workflow's `steps.plan.outputs.manifest_sha256` and downstream `needs.plan.outputs.manifest_sha256` bindings were already wired. The added inline YAML echo was redundant and has been removed. The regression test now verifies the actual source writer, the workflow step output declaration, and the downstream consumer together.
+
+This correction does **not** claim a live archive workflow repair or execution. The live workflow has not been dispatched: main protection, rulesets, GitHub App credentials and separately approved archive/prune Environments remain unconfigured. No branch or tag was mutated.
+
+
+## G7 archive executor protection-boundary hardening (2026-11-13)
+
+A further review found that the archive script previously treated `main.protected=true` as sufficient, while the operator contract also requires PR-only merges, a required independent approval, the Financial `test` check, and force-push/deletion disabled. The archive executor now reads the actual main branch protection response, validates all four conditions, stores the normalized protection snapshot in a schema-5 manifest, and requires exact snapshot equality at PLAN/ARCHIVE, before PRUNE, before every deletion, and after the final inventory. A valid-but-changed protection configuration also fails closed. Regression cases cover missing PR protection, zero approvals, missing CI, force-push/deletion enabled and changed protection between deletion steps.
+
+This remains code-level evidence only. The repository's live main branch is still unprotected, no archive rulesets or required-reviewer Environments have been configured, and no archive tag or branch deletion has occurred.
+
+
+The main-protection snapshot additionally requires strict/up-to-date status checks, stale approvals to be dismissed on new pushes, approval of the latest reviewable push, and administrator enforcement (no admin bypass). This prevents a previously approved PR head from remaining approved after new commits and prevents administrators from silently bypassing the configured rule. These controls are included in the signed G7 evidence contract and the archive executor's normalized protection digest.
+
+
+## Latest exact-head engineering and release-boundary verification (2026-11-13)
+
+Candidate head `5b70b20bd3d401f6d70070f3e39bfed2feb7286e` completed Financial CI run `43382363475` successfully. The workflow supplied `FINANCIAL_SOURCE_HEAD_SHA` equal to the checked-out candidate HEAD and reported:
+
+- **508 tests passed**; source line coverage **88%** (5,763 statements, 675 missed).
+- Whole-tree inventory: 329 tracked files, 112 Python AST parses, 58 JSON parses, 43,033 decoded text lines, **zero warnings and zero errors**.
+- Standalone Financial operating Skill and runtime static audit passed; the Skill is 11,943 UTF-8 bytes, below the 12,000-byte router limit.
+- All three reference mirrors for the changed Delivery contract were synchronized; the global static audit also verified the full configured set of 12 Financial reference mirrors.
+- Clean standalone wheel/install smoke passed. This is package/runtime engineering evidence, not a live ChatGPT host deployment.
+- The branch-archive job ran only in `DRY_RUN__NO_MUTATION` mode: 99 branch refs and one open PR. No branch or tag was created or deleted.
+
+The same exact-head machine acceptance report returned `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven system gates remain OPEN. It explicitly reported that the private Skill release exists but is not verified installed in the user's client, and no hosted Python/MCP provider is deployed.
+
+Live GitHub readback after that CI run found:
+- `main` remains at `72cf852746a54b5f116e41f96bb8ca54b5f6838c` and reports `protected=false`.
+- The repository rulesets endpoint returns an empty list.
+- PR #67 is the only open PR, targeting `main`; it is mergeable but has no submitted review records.
+- PR #67 contains 305 commits, 56 changed files, 6,254 additions and 354 deletions. The candidate branch is 305 commits ahead of main and is not yet the authoritative main.
+
+**Promotion decision: do not merge or prune yet.** Merging without independent review and main protection would violate the system's own G6/G7 acceptance contract. The one candidate PR is retained rather than split into more PRs. Required owner-side actions are in `docs/FINANCIAL_BRANCH_ARCHIVE_OPERATOR_SETUP_20261112.md`; the remaining provider, client activation and independent-review gates are not replaceable by more synthetic tests.
+
+No production article STATE.json, private source file or external project repository/branch/PR/plugin/setting was changed by this system-reconstruction work.
+
+
+## Latest exact-head engineering verification (2026-11-13)
+
+Candidate code head a4a2098b9ec9bd0306d5838e483d09a0e52da71d completed Financial CI run 43387006010 successfully. The workflow checked out and verified that exact source HEAD before running the suite:
+
+- **518 tests passed**; Python source-line coverage **90%** (5,763 statements; 575 missed).
+- Whole-tree inventory: **331 tracked files**, 114 Python AST parses, 58 JSON parses, 43,330 decoded text lines, **zero warnings and zero errors**.
+- Standalone Financial contract, retired-runtime absence, independent import, isolated wheel, DOCX render and four-product synthetic render checks passed.
+- The branch archive ran only in `DRY_RUN__NO_MUTATION`: 99 branches and one open PR; no branch or tag was created or deleted.
+- The test correction was limited to the regression fixture: it now models a current-writing-kernel state predating Task Requirement Authority, while preserving the block on pre-kernel historical continuation and using the legal INTAKE-to-RESEARCH transition. No production state-machine rule was relaxed.
+
+The exact-head system acceptance report remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven external gates remain OPEN. The current cross-border article remains at RESEARCH with 0/4 real outputs. Main remains unprotected, PR #67 has no independent review, and the private Skill release is not installed or live-invoked. The candidate is engineering-verified, **not merged and not system-accepted**.
+
+The documentation-only follow-up commit 05db70573172509fde1863a88c0f7faa01476313 subsequently passed exact-head CI run 43388002966 (518 tests, 90% coverage). It changed no Financial runtime or article state. PR #67 remains a candidate-only change awaiting independent review and external acceptance.
+
+
+
+## Final standalone migration candidate verification (2026-11-13)
+
+The migration candidate was repaired through exact-head failures rather than by restoring retired root-level authorities or weakening tests. The final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99` passed GitHub Actions run `43404325789`:
+
+- 514 tests passed; source-line coverage 90% (5,759 statements, 572 missed).
+- Whole-tree audit: 304 tracked files, 112 Python AST parses, 52 JSON parses, 40,872 decoded text lines, zero warnings/errors.
+- Financial Skill size 11,848 UTF-8 bytes; two controlled reference surfaces are byte-identical.
+- Parent-upcall dispositions are rejected at current DecisionEnvelope admission; the former parent-guidance closure branch is absent. Legacy enum/argument names remain non-authorizing compatibility only.
+- Standalone direct import, wheel/install, single-owner/retired-runtime checks and four synthetic Word product render checks pass.
+
+The immediately preceding failed CI (run `43403116634`) had 511 passing tests and two failures: stale maintenance mirror bytes and a stale journal-revision assertion. Both were corrected and the next exact-head CI passed 513 tests. A further negative test was added to prove that legacy parent-upcall data cannot be made durable or bypass admission; the final run passed 514 tests.
+
+**System acceptance remains NOT_READY.** No independent review exists for this exact candidate. The previous Codex review failed on an older commit and the bot reported usage limits. The native plugin remains a private Skill-only package and is not verified installed or invoked in a fresh session. The authenticated owner-message/approval provider and real Git CAS provider are not deployed. Main protection/ruleset/archive prerequisites remain open; the last recorded inventory shows 99 branches and no rulesets. PR #67 is open and unmerged.
+
+**Data privacy blocker:** GitHub reports this repository as public, while its tree contains private article/research artifacts, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. Do not write additional private article/research data here until the owner explicitly chooses whole-repository private visibility or a private data-repository split with public-history cleanup. No visibility change, migration, deletion, branch prune or production merge was performed.
+
+All seven external system gates remain OPEN. The real cross-border article remains at RESEARCH with 0/4 real delivery artifacts. Engineering CI, synthetic document rendering and this audit do not certify factual finance research, independent editorial/reader quality, user-visible product activation or system completion. No CAOS repository, code, PR, settings, assets or runtime was modified.
+
+## Owner decision on repository visibility (2026-11-13)
+
+The owner explicitly stated that public/private visibility is not a concern and that execution results are the priority. The existing public repository visibility is therefore **owner-accepted and non-blocking** for this Financial system reconstruction. No repository visibility change, private-repository migration or public-history rewrite is required. Do not ask the owner to make this choice again or let it block engineering progress.
+
+This decision does not close the separate live system gates for authenticated user-message authority, provider CAS, Article Graph recovery, method-impact readback, native Skill/plugin activation, independent external review or protected-main/archive controls. Those remain separately evidenced and must not be fabricated from CI results.
+
+
+## Latest exact-head engineering verification and native runtime correction (2026-11-13)
+
+Candidate HEAD `332c2bfeb2cf2cbcab51a7f5058b9becaea08ec9` passed exact-head GitHub Actions run [43443188398](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43443188398):
+
+- **514 tests passed**; source-line coverage **90%** (5,759 statements; 572 missed).
+- Whole-tree inventory: **304 tracked files**, 112 Python AST parses, 52 JSON parses, 41,039 decoded text lines, **zero warnings/errors**.
+- Direct Financial import, standalone wheel/install, static single-owner and retired-artifact absence checks passed.
+- DOCX rendering and four synthetic Word binaries with per-page render/hash checks passed. These are renderer checks only, not real-article editorial acceptance.
+- The branch archive job remained **DRY_RUN / NO_MUTATION**. No branch or tag was created or deleted.
+- The machine acceptance report remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven live gates remain OPEN.
+
+A real integration-path contradiction was found and corrected: the Skill-only package did not host Python/MCP, yet the previous instructions treated the unhosted Python adapter as the only writable runtime. The candidate now documents the actual native path as ChatGPT + the Financial Skill + the user's existing GitHub connector. GitHub persistence uses exact blob SHA, Git blobs/tree/commit, expected-SHA ref update without force, and exact post-write file readback. The Python adapter is retained as an optional reference integration, not represented as a deployed chat service. The current chat session successfully performed Financial-only Git blob/tree/commit/ref writes and exact readbacks on the candidate branch; this is real connector evidence, not proof that the private Skill is installed or invoked in a fresh session.
+
+The first attempt at this correction caused a CI regression: run `43442332196` had 512 passing tests and two failures because the Skill exceeded its 12,000-byte budget and omitted the `fetch_file` marker. The detailed protocol was moved to `docs/STANDALONE_INTERFACE.md`; the Skill router is now 11,822 UTF-8 bytes and retains the required operation markers. The full subsequent exact-head run `43443188398` passed all 514 tests.
+
+The candidate deletes obsolete Financial-repository parent/UAOS artifacts, including `.uaos/`, `CAOS_SKILL.md`, `UAOS_SKILL.md`, `FINANCIAL_SKILL.md`, parent handoff/binding files, the retired root reference mirror and retired-runtime audit files. These paths are absent from the candidate tree. This is Financial-repository cleanup only; the CAOS repository and all CAOS assets remain untouched.
+
+Live system acceptance is still **NOT_READY**. Outstanding gates: authenticated owner-message/semantic approval evidence; live Article Graph transition/recovery; real method CRUD and impact readback; full provider authorization/CAS/revocation evidence; fresh-session Skill installation/invocation; independent external review of this exact candidate; and protected-main/archive administration. Production `main` remains `72cf852746a54b5f116e41f96bb8ca54b5f6838c`, unprotected; PR #67 remains open and unmerged. The current cross-border v3 article remains at RESEARCH with 0/4 real delivery artifacts; real article production is out of scope for this system-reconstruction request.
+
+No CAOS repository, code, PR, settings, assets, branch or runtime was modified.

@@ -125,6 +125,29 @@ def test_unknown_task_scope_cannot_be_autocertified_as_met():
         verify_task_publication_scope(state, _article(), _research())
 
 
+def test_company_grounding_uses_canonical_identity_for_monitoring_sections():
+    from financial_writing_agent.checks import check_deep_company_grounding
+
+    research = SimpleNamespace(
+        universe=[
+            SimpleNamespace(name="生 意 宝", materiality="MATERIAL"),
+            SimpleNamespace(name="焦点科技", materiality="MATERIAL"),
+        ],
+        company_decision_map=object(),
+    )
+    article = ArticleDocument(
+        title="B2B公司比较",
+        stock_names=["生意宝", "焦点科技"],
+        blocks=[
+            Block(kind="h1", text="一、经营比较"),
+            Block(kind="body", text="焦点科技的交易收入兑现强于生意宝；生意宝成本更高，利润兑现较慢。"),
+            Block(kind="h1", text="后续验证"),
+            Block(kind="body", text="后续继续核对生意宝和焦点科技的订单、回款及利润变化。"),
+        ],
+    )
+    assert check_deep_company_grounding(article, research) == []
+
+
 def test_same_state_structural_success_not_proof_of_editorial_or_fact_verification():
     # A self-declared complete 3-company list cannot be treated as coverage
     # of the currently admitted 174-company user obligation.

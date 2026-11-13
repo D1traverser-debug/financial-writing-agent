@@ -1,6 +1,7 @@
 from docx import Document
 
-from financial_writing_agent.checks import check_docx, load_policy
+from financial_writing_agent.checks import check_docx
+from financial_writing_agent.resources import load_packaged_policy
 from financial_writing_agent.document import build_interaction_pack_docx
 from financial_writing_agent.schemas import InteractionPost, PlatformInteractionPack
 
@@ -36,7 +37,7 @@ def _pack() -> PlatformInteractionPack:
 
 
 def test_interaction_pack_renders_as_word_without_article_risk_requirement(tmp_path):
-    policy = load_policy("config/policy.json")
+    policy = load_packaged_policy()
     path = build_interaction_pack_docx(_pack(), tmp_path / "interaction.docx", policy)
     assert path.is_file()
     text = "\n".join(p.text for p in Document(path).paragraphs)
@@ -53,7 +54,7 @@ def test_interaction_pack_renders_as_word_without_article_risk_requirement(tmp_p
 
 
 def test_interaction_pack_publication_source_leak_still_fails(tmp_path):
-    policy = load_policy("config/policy.json")
+    policy = load_packaged_policy()
     pack = _pack()
     pack.posts[0].body = "某券商研报指出，甲公司兑现更快。"
     path = build_interaction_pack_docx(pack, tmp_path / "interaction-source-leak.docx", policy)
@@ -72,8 +73,7 @@ def test_reader_value_reference_mirrors_are_identical():
 
     root = Path(__file__).resolve().parents[1]
     refs = [
-        root / "references/reader_value.md",
         root / "financial_writing_agent/resources/references/reader_value.md",
         root / "skills/financial-writing-agent/references/reader_value.md",
     ]
-    assert refs[0].read_bytes() == refs[1].read_bytes() == refs[2].read_bytes()
+    assert refs[0].read_bytes() == refs[1].read_bytes()

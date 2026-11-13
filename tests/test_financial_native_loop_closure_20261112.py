@@ -18,6 +18,8 @@ from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, _blob_sha,
     admit_article_action, observe_article,
 )
+from trusted_provider_testkit import signed_action_authorization
+from test_current_admission_v1 import EDITORIAL_ATTESTATIONS
 
 FIXTURE = Path(__file__).resolve().parents[1] / "evals/FINANCIAL_WRITING_KERNEL_DECISION_ENVELOPE_2026-10-15.json"
 TASK = "synthetic-financial-loop"
@@ -54,16 +56,78 @@ class Provider:
         return self.sources.get(ref)
 
 
-def act(p, operation, params=None, *, auth=lambda _: True, sha=None):
+def act(p, operation, params=None, *, auth=None, sha=None):
     expected = p.read(STATE_PATH)["blob_sha"] if sha is None and p.read(STATE_PATH) else sha
+    def editorial_verifier(request):
+        return EDITORIAL_ATTESTATIONS[request["execution_ref"]]
     return admit_article_action({
         "schema_version": "1.0", "domain_id": DOMAIN_ID,
         "action_id": f"synthetic-{operation.lower()}-{len(p.states.get(STATE_PATH, ''))}",
         "task_id": TASK, "operation": operation,
         "expected_state_blob_sha": expected if operation != "CREATE_ARTICLE" else None,
         "parameters": params or {},
-    }, state_reader=p.read, cas_writer=p.write, authorization_verifier=auth,
-       artifact_reader=p.artifact, source_snapshot_reader=p.source)
+    }, state_reader=p.read, cas_writer=p.write,
+       authorization_verifier=auth or signed_action_authorization,
+       artifact_reader=p.artifact, source_snapshot_reader=p.source,
+       independent_editorial_verifier=editorial_verifier)
+
+
+def test_requirement_satisfaction_source_refs_require_actual_readback_and_do_not_claim_semantic_support():
+    from financial_writing_agent.standalone_runtime import _verify_requirement_satisfaction_sources
+
+    satisfaction = [{
+        "requirement_id": "full_universe_research_pool",
+        "result": "SATISFIED",
+        "evidence_refs": ["source://issuer-universe"],
+        "notes": "synthetic only",
+    }]
+    with pytest.raises(FinancialAdmissionError, match="SATISFACTION_UNREAD_SOURCE"):
+        _verify_requirement_satisfaction_sources(satisfaction, {"snapshots": []})
+    readback = _verify_requirement_satisfaction_sources(
+        satisfaction,
+        {"snapshots": [{
+            "source_ref_sha256": hashlib.sha256(
+                b"source://issuer-universe"
+            ).hexdigest(),
+            "body_sha256": "a" * 64,
+            "source_family": "issuer-filing",
+            "retrieved_at": datetime.now(timezone.utc).isoformat(),
+        }]},
+    )
+    assert readback["checked_evidence_ref_count"] == 1
+    assert readback["semantic_support_verified"] is False
+    assert readback["assurance"] == "SOURCE_BYTE_READBACK_ONLY__SEMANTIC_SUPPORT_NOT_CERTIFIED"
+
+
+def test_requirement_satisfaction_must_bind_the_actual_current_stage_artifact():
+    from financial_writing_agent.standalone_runtime import _verify_requirement_satisfaction_sources
+
+    satisfaction = [{
+        "requirement_id": "draft-structure",
+        "result": "SATISFIED",
+        "evidence_refs": ["source://issuer-universe"],
+    }]
+    sources = {"snapshots": [{
+        "source_ref_sha256": hashlib.sha256(b"source://issuer-universe").hexdigest(),
+        "body_sha256": "a" * 64,
+        "source_family": "issuer-filing",
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+    }]}
+    with pytest.raises(FinancialAdmissionError, match="CURRENT_STAGE_ARTIFACT_NOT_BOUND"):
+        _verify_requirement_satisfaction_sources(
+            satisfaction, sources,
+            stage_artifact_path="workspaces/articles/synthetic-financial-loop/stages/DRAFT.json",
+        )
+
+    satisfaction[0]["evidence_refs"].append(
+        "workspaces/articles/synthetic-financial-loop/stages/DRAFT.json"
+    )
+    proof = _verify_requirement_satisfaction_sources(
+        satisfaction, sources,
+        stage_artifact_path="workspaces/articles/synthetic-financial-loop/stages/DRAFT.json",
+    )
+    assert proof["checked_evidence_ref_count"] == 2
+    assert proof["semantic_support_verified"] is False
 
 
 def make():

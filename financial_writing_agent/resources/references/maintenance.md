@@ -33,7 +33,7 @@ The separate Word builder, source readback, actual LibreOffice PDF/PNG rendering
 
 ## Native recovery and complete failure journal
 
-references/proactive_resolution.md and financial_writing_agent/proactive_resolution.py are the Financial recovery tools. **A missing ideal input is not automatically a user blocker**: recover, infer provisionally, test, and only then escalate; call record_proactive_resolution_state and require_user_escalation_admission. **Problem-to-action closure** means that an authorized repair that can be performed may not be replaced with advice alone.
+skills/financial-writing-agent/references/proactive_resolution.md and financial_writing_agent/proactive_resolution.py are the Financial recovery tools. **A missing ideal input is not automatically a user blocker**: recover, infer provisionally, test, and only then escalate; call record_proactive_resolution_state and require_user_escalation_admission. **Problem-to-action closure** means that an authorized repair that can be performed may not be replaced with advice alone.
 
 The historical evals/PROBLEM_EVOLUTION_JOURNAL.md is retained as provenance and explicit negative cases. **Every encountered problem must appear** there when it materially changes system behavior, alongside selected and rejected roots, counterevidence, action, verification, uncertainty and follow-up conditions. **Do not rewrite the journal into a success-only narrative**. New Financial system-status authority remains evals/EVOLUTION_INDEX.json, not a new parent queue.
 
@@ -41,7 +41,7 @@ The historical evals/PROBLEM_EVOLUTION_JOURNAL.md is retained as provenance and 
 
 Signal → original user/source evidence → competing root/falsifier → bounded Financial-only candidate branch → negative+legitimate-neighbor tests → exact-head CI and controlled merge → production-state reread → actual article/user outcome → KEEP / REPAIR / ROLLBACK / RETIRE.
 
-Consolidate repeated rules and avoid permanent prohibitions based on one case. Use knowledge/METHOD_KNOWLEDGE_CATALOG.json for scope/fit/misfit and revalidation triggers. Original rejected or historical artifacts stay as provenance; do not rewrite them into accepted examples. Common/cross-domain analogies can be researched for Financial applicability, but **no parent upcall or CAOS write is required**. Never claim whole-system readiness solely from machine-code coverage or an article's same-chat editorial PASS.
+Consolidate repeated rules and avoid permanent prohibitions based on one case. Use knowledge/METHOD_KNOWLEDGE_CATALOG.json for scope/fit/misfit and revalidation triggers. Original rejected or historical artifacts stay as provenance; do not rewrite them into accepted examples. Common/cross-domain analogies can inform Financial-owned decisions, but **parent upcalls are not an operating path and CAOS is never written**. Never claim whole-system readiness solely from machine-code coverage or an article's same-chat editorial PASS.
 
 ## Independent quality boundary
 

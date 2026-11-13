@@ -1,0 +1,25 @@
+{
+  "schema_version": "1.0",
+  "name": "financial-writing-agent-chatgpt",
+  "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
+  "release_id": "pluginrel_6af5a82a95f48191ba8d21fa3d188094",
+  "plugin_url": "https://chatgpt.com/plugins/plugins_6af591b19a708191a3879e94a7ce8742",
+  "scope": "PRIVATE_USER_PLUGIN",
+  "created_and_archive_readback": "VERIFIED_WITH_PLUGIN_CREATOR",
+  "user_installation": "UNVERIFIED__EXPLICIT_ACTION_REQUIRED",
+  "skill_only": true,
+  "has_hosted_mcp_or_python_action_endpoint": false,
+  "github_tool_grant_by_plugin": false,
+  "current_authority": "D1traverser-debug/financial-writing-agent@main",
+  "required_real_provider_evidence": [
+    "original_user_message_reader",
+    "owner_semantic_verifier",
+    "actual_github_provider_CAS",
+    "independent_external_reviewer"
+  ],
+  "caos_dependency": "NONE",
+  "active_execution_model": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR",
+  "required_companion_connector": "GITHUB_CONNECTOR_READ_WRITE",
+  "custom_hosted_python_mcp_required": false,
+  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA_AND_EXACT_READBACK"
+}

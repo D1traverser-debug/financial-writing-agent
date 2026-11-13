@@ -236,9 +236,10 @@ class PublicationFitness(StrictModel):
             raise ValueError("originality overlap requiring rewrite blocks publication PASS")
         if self.audit_provenance.assurance != self.assurance:
             raise ValueError("publication fitness assurance must match audit_provenance.assurance")
-        # Independently reviewed evidence must additionally be verified by the
-        # external provider before mutation. The Pydantic schema checks only
-        # identities and immutable hashes, not provider authenticity.
+        if self.assurance == "CHAT_SELF_REVIEW" and self.final_status == AuditStatus.PASS:
+            raise ValueError("CHAT_SELF_REVIEW_CANNOT_CERTIFY_PUBLICATION_PASS")
+        # Independent provenance hashes are only an envelope. The Financial
+        # runtime must verify the external provider's signature before state CAS.
         return self
 
 

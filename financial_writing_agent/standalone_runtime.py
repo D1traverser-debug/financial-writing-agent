@@ -28,6 +28,10 @@ from .method_governance import (
     admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
+from .provider_attestation import (
+    verify_action_authorization, verify_method_action_authorization,
+    verify_persisted_action_authorization, FinancialProviderAttestationError,
+)
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (IndependentEditorialEvidenceError,
@@ -53,6 +57,7 @@ STAGE_KEYS = frozenset({
     "revision_target", "delivery_artifacts", "audit_artifact",
     "decision_envelope", "private_research_brief", "story_blueprints",
     "publication_fitnesses", "requirement_satisfaction",
+    "supplemental_delivery_artifacts",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
 OWNER_INTENT_KEYS = frozenset({"intent_evidence", "summary"})
@@ -93,7 +98,7 @@ class FinancialEffectUnverified(RuntimeError):
 StateReader = Callable[[str], Mapping[str, Any] | None]
 CASWriter = Callable[[str, str | None, str], Mapping[str, Any]]
 ArtifactReader = Callable[[str], Mapping[str, Any] | None]
-AuthorizationVerifier = Callable[[Mapping[str, Any]], bool]
+AuthorizationVerifier = Callable[[Mapping[str, Any]], Mapping[str, Any] | None]
 
 
 def _require(ok: bool, why: str) -> None:
@@ -278,6 +283,139 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
             "retained_universe_reconciliation": reconciliation}
 
 
+def _verify_requirement_satisfaction_sources(
+    satisfaction: list[Mapping[str, Any]],
+    research_sources: Mapping[str, Any],
+    *,
+    stage_artifact_path: str | None = None,
+) -> dict[str, Any]:
+    """Verify evidence refs resolve to bytes read in this admission.
+
+    This proves source availability and byte identity only; it does not certify
+    that the source semantically supports the requirement.
+    """
+    snapshots = research_sources.get("snapshots")
+    _require(isinstance(snapshots, list), "FINANCIAL_RESEARCH_SOURCE_READBACK_MISSING")
+    known = {
+        item.get("source_ref_sha256")
+        for item in snapshots if isinstance(item, Mapping)
+    }
+    stage_artifact_digest = None
+    if stage_artifact_path:
+        stage_artifact_digest = hashlib.sha256(stage_artifact_path.encode("utf-8")).hexdigest()
+        known.add(stage_artifact_digest)
+    checked = 0
+    for item in satisfaction:
+        _require(isinstance(item, Mapping),
+                 "FINANCIAL_REQUIREMENT_SATISFACTION_RECORD_INVALID")
+        refs = item.get("evidence_refs")
+        _require(isinstance(refs, list) and bool(refs),
+                 "FINANCIAL_REQUIREMENT_SATISFACTION_EVIDENCE_REFS_MISSING")
+        ref_digests: set[str] = set()
+        for ref in refs:
+            _require(isinstance(ref, str) and bool(ref.strip()),
+                     "FINANCIAL_REQUIREMENT_SATISFACTION_SOURCE_REF_INVALID")
+            digest = hashlib.sha256(ref.encode("utf-8")).hexdigest()
+            _require(
+                digest in known,
+                "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
+            )
+            ref_digests.add(digest)
+            checked += 1
+        if stage_artifact_digest is not None:
+            _require(
+                stage_artifact_digest in ref_digests,
+                "FINANCIAL_REQUIREMENT_SATISFACTION_CURRENT_STAGE_ARTIFACT_NOT_BOUND",
+            )
+    return {
+        "checked_evidence_ref_count": checked,
+        "assurance": "SOURCE_BYTE_READBACK_ONLY__SEMANTIC_SUPPORT_NOT_CERTIFIED",
+        "semantic_support_verified": False,
+    }
+
+
+def _latest_research_source_readback(state: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """Reuse only a previously admitted RESEARCH source snapshot set."""
+    receipts = state.get("execution_receipts", [])
+    if not isinstance(receipts, list):
+        return None
+    for receipt in reversed(receipts):
+        if not isinstance(receipt, Mapping) or receipt.get("stage") != "RESEARCH":
+            continue
+        bindings = receipt.get("input_bindings", {})
+        if not isinstance(bindings, Mapping):
+            continue
+        readback = bindings.get("research_source_readback")
+        if isinstance(readback, Mapping) and isinstance(readback.get("snapshots"), list):
+            return readback
+    return None
+
+
+def _verify_delivery_research_freshness(
+    candidate: Mapping[str, Any],
+    source_reader: Callable[[str], Mapping[str, Any] | None] | None,
+) -> dict[str, Any] | None:
+    """Recheck current research freshness and source-byte stability before delivery."""
+    if candidate.get("private_research_contract_version") != "1.1":
+        return None
+    try:
+        current = verify_current_research_sources(
+            candidate["quality_evidence"]["private_research_brief"],
+            source_reader=source_reader,
+        )
+    except CurrentResearchEvidenceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+    previous = _latest_research_source_readback(candidate)
+    _require(isinstance(previous, Mapping),
+             "FINANCIAL_DELIVERY_RESEARCH_SOURCE_READBACK_MISSING")
+
+    def snapshot_map(readback: Mapping[str, Any]) -> dict[str, tuple[str, str]]:
+        snapshots = readback.get("snapshots")
+        _require(isinstance(snapshots, list),
+                 "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_SET_INVALID")
+        result: dict[str, tuple[str, str]] = {}
+        for item in snapshots:
+            _require(isinstance(item, Mapping),
+                     "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_INVALID")
+            ref_sha = item.get("source_ref_sha256")
+            body_sha = item.get("body_sha256")
+            family = item.get("source_family")
+            _require(
+                isinstance(ref_sha, str) and re.fullmatch(r"[a-f0-9]{64}", ref_sha) is not None
+                and isinstance(body_sha, str) and re.fullmatch(r"[a-f0-9]{64}", body_sha) is not None
+                and isinstance(family, str) and bool(family.strip()),
+                "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_FIELDS_INVALID",
+            )
+            _require(ref_sha not in result,
+                     "FINANCIAL_DELIVERY_RESEARCH_DUPLICATE_SOURCE_REF")
+            result[ref_sha] = (body_sha, family)
+        return result
+
+    previous_map = snapshot_map(previous)
+    current_map = snapshot_map(current)
+    _require(
+        set(previous_map) == set(current_map),
+        "FINANCIAL_DELIVERY_RESEARCH_SOURCE_SET_CHANGED__RESEARCH_REPLAY_REQUIRED",
+    )
+    changed = sorted(
+        ref_sha for ref_sha in previous_map
+        if previous_map[ref_sha] != current_map[ref_sha]
+    )
+    _require(
+        not changed,
+        "FINANCIAL_DELIVERY_RESEARCH_SOURCE_BYTES_CHANGED__RESEARCH_REPLAY_REQUIRED",
+    )
+    return {
+        "schema_version": "1.0",
+        "current_readback": current,
+        "compared_to_research_receipt": True,
+        "source_set_unchanged": True,
+        "source_body_bytes_unchanged": True,
+        "changed_source_ref_sha256": [],
+        "assurance": "CURRENT_SOURCE_RECENCY_AND_BYTE_STABILITY__SEMANTIC_SUPPORT_NOT_CERTIFIED",
+    }
+
+
 def _verify_product_word_bytes(
     candidate: Mapping[str, Any], reader: ArtifactReader | None,
 ) -> dict[str, Any]:
@@ -326,13 +464,258 @@ def _verify_product_word_bytes(
             Document(BytesIO(binary))
         except (BadZipFile, KeyError, ValueError, OSError) as exc:
             raise FinancialAdmissionError(f"FINANCIAL_WORD_DOCX_OPEN_FAILED:{kind}") from exc
+
+        # A valid ZIP/DOCX and matching hash are not sufficient for publication.
+        # Require the canonical Delivery receipt, exact render/page inspection,
+        # source identity and (for long-form) task-scope + claim-trace bindings.
+        try:
+            from .delivery_pipeline import validate_delivery_evidence
+            validate_delivery_evidence(meta)
+        except Exception as exc:
+            raise FinancialAdmissionError(
+                f"FINANCIAL_WORD_DELIVERY_EVIDENCE_INVALID:{kind}"
+            ) from exc
+        delivery = meta.get("delivery_evidence")
+        _require(isinstance(delivery, Mapping),
+                 f"FINANCIAL_WORD_DELIVERY_EVIDENCE_MISSING:{kind}")
+        draft = candidate.get("stage_artifacts", {}).get("DRAFT")
+        _require(isinstance(draft, Mapping),
+                 "FINANCIAL_WORD_CURRENT_DRAFT_REFERENCE_MISSING")
+        _require(
+            delivery.get("source_ref") == draft.get("path")
+            and delivery.get("source_identity") == f"git-blob:{draft.get('blob_sha')}",
+            f"FINANCIAL_WORD_DRAFT_SOURCE_BINDING_MISMATCH:{kind}",
+        )
+        if kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+            scope = delivery.get("task_scope_binding")
+            _require(isinstance(scope, Mapping),
+                     f"FINANCIAL_WORD_TASK_SCOPE_BINDING_MISSING:{kind}")
+            _require(
+                scope.get("task_id") == candidate.get("task_id")
+                and scope.get("requirement_digest") == candidate.get("task_requirement_digest")
+                and scope.get("requirement_revision")
+                    == candidate.get("task_requirement_authority", {}).get("revision")
+                and scope.get("mode") == kind.removesuffix("_DOCX")
+                and scope.get("observed_stage") == "DELIVERY"
+                and scope.get("draft_artifact_path") == draft.get("path")
+                and scope.get("draft_artifact_blob_sha") == draft.get("blob_sha"),
+                f"FINANCIAL_WORD_TASK_SCOPE_BINDING_MISMATCH:{kind}",
+            )
+            trace = delivery.get("claim_trace_binding")
+            _require(
+                isinstance(trace, Mapping)
+                and trace.get("task_id") == candidate.get("task_id")
+                and trace.get("assurance")
+                    == "SOURCE_TEXT_AND_NUMERALS_OBSERVED__SEMANTIC_ENTAILMENT_NOT_VERIFIED"
+                and type(trace.get("traced_block_count")) is int
+                and trace["traced_block_count"] >= 1
+                and type(trace.get("read_source_snapshot_count")) is int
+                and trace["read_source_snapshot_count"] >= 1,
+                f"FINANCIAL_WORD_SOURCE_TRACE_BINDING_INVALID:{kind}",
+            )
+        render = delivery.get("render_inspection_receipt")
         verified.append({
             "kind": kind, "resource_ref": path,
             "blob_sha": claimed_sha, "sha256": hashlib.sha256(binary).hexdigest(),
+            "delivery_evidence_sha256": meta.get("delivery_evidence_sha256"),
+            "rendered_page_count": render.get("rendered_page_count") if isinstance(render, Mapping) else None,
         })
     return {
-        "assurance": "CURRENT_ARTICLE_EXACT_DOCX_BYTES_ONLY__PAGE_AND_EDITORIAL_OPEN",
+        "assurance": "CANONICAL_BUILD__CURRENT_DRAFT_BOUND__SOURCE_TRACE__RENDERED_PAGE_READBACK__EDITORIAL_INDEPENDENCE_OPEN",
         "verified_count": len(verified), "files": verified,
+    }
+
+
+def _verify_visible_delivery(
+    candidate: Mapping[str, Any],
+    supplemental_resources: list[Mapping[str, Any]],
+    reader: ArtifactReader | None,
+) -> dict[str, Any]:
+    """Verify the complete visible output set before the terminal state CAS."""
+    _require(callable(reader), "FINANCIAL_VISIBLE_DELIVERY_BINARY_READER_REQUIRED")
+    _require(
+        isinstance(supplemental_resources, list)
+        and all(isinstance(item, Mapping) for item in supplemental_resources),
+        "FINANCIAL_SUPPLEMENTAL_DELIVERY_RESOURCES_INVALID",
+    )
+
+    cache: dict[str, Mapping[str, Any] | None] = {}
+
+    def read_once(ref: str) -> Mapping[str, Any] | None:
+        if ref not in cache:
+            try:
+                cache[ref] = reader(ref)
+            except Exception as exc:
+                raise FinancialEffectUnverified(
+                    "FINANCIAL_VISIBLE_DELIVERY_PROVIDER_READ_FAILED"
+                ) from exc
+        return cache[ref]
+
+    source_stage_readbacks: list[dict[str, str]] = []
+    for stage_key in ("RESEARCH", "DRAFT"):
+        stage_ref = candidate.get("stage_artifacts", {}).get(stage_key)
+        _require(isinstance(stage_ref, Mapping),
+                 f"FINANCIAL_VISIBLE_DELIVERY_{stage_key}_REFERENCE_MISSING")
+        try:
+            stage_path = require_article_path(stage_ref.get("path"), candidate["task_id"])
+        except (KeyError, ValueError) as exc:
+            raise FinancialAdmissionError(
+                f"FINANCIAL_VISIBLE_DELIVERY_{stage_key}_PATH_INVALID"
+            ) from exc
+        observed_stage = read_once(stage_path)
+        _require(isinstance(observed_stage, Mapping),
+                 f"FINANCIAL_VISIBLE_DELIVERY_{stage_key}_BYTES_MISSING")
+        content, claimed_blob = observed_stage.get("content"), observed_stage.get("blob_sha")
+        _require(
+            isinstance(content, (bytes, str))
+            and _valid_sha(claimed_blob)
+            and _blob_sha(content) == claimed_blob == stage_ref.get("blob_sha"),
+            f"FINANCIAL_VISIBLE_DELIVERY_SOURCE_STAGE_BYTES_MISMATCH:{stage_key}",
+        )
+        source_stage_readbacks.append({
+            "stage": stage_key, "path": stage_path, "verified_blob_sha": claimed_blob,
+        })
+
+    research = candidate.get("stage_artifacts", {}).get("RESEARCH")
+    if supplemental_resources:
+        _require(isinstance(research, Mapping),
+                 "FINANCIAL_PRIVATE_RESEARCH_STAGE_REFERENCE_MISSING")
+        expected_source = research.get("path")
+        expected_identity = f"git-blob:{research.get('blob_sha')}"
+        seen = {
+            item.get("resource_ref")
+            for item in candidate.get("delivery_artifacts", {}).values()
+            if isinstance(item, Mapping)
+        }
+        for item in supplemental_resources:
+            _require(item.get("kind") == "PRIVATE_RESEARCH_DOCX",
+                     "FINANCIAL_SUPPLEMENTAL_OUTPUT_KIND_INVALID")
+            _require(item.get("regenerated_from_durable_source") is True,
+                     "FINANCIAL_PRIVATE_RESEARCH_WORD_NOT_REGENERATED")
+            try:
+                resource_path = require_article_path(item.get("resource_ref"), candidate["task_id"])
+            except (KeyError, ValueError) as exc:
+                raise FinancialAdmissionError(
+                    "FINANCIAL_PRIVATE_RESEARCH_RESOURCE_PATH_INVALID"
+                ) from exc
+            _require(resource_path not in seen,
+                     "FINANCIAL_VISIBLE_DELIVERY_RESOURCE_REUSED")
+            seen.add(resource_path)
+            _require(
+                item.get("source_ref") == expected_source
+                and item.get("source_identity") == expected_identity,
+                "FINANCIAL_PRIVATE_RESEARCH_SOURCE_IDENTITY_MISMATCH",
+            )
+            evidence = item.get("delivery_evidence")
+            _require(isinstance(evidence, Mapping)
+                     and evidence.get("source_ref") == expected_source
+                     and evidence.get("source_identity") == expected_identity,
+                     "FINANCIAL_PRIVATE_RESEARCH_DELIVERY_EVIDENCE_SOURCE_MISMATCH")
+
+    def verify_resource(resource: Mapping[str, Any]) -> bool:
+        try:
+            ref = require_article_path(resource.get("resource_ref"), candidate["task_id"])
+        except (KeyError, ValueError):
+            return False
+        observed = read_once(ref)
+        if not isinstance(observed, Mapping):
+            return False
+        content, claimed_blob = observed.get("content"), observed.get("blob_sha")
+        if not isinstance(content, bytes) or _blob_sha(content) != claimed_blob:
+            return False
+        return hashlib.sha256(content).hexdigest() == str(resource.get("sha256", "")).lower()
+
+    try:
+        from .delivery_availability import (
+            DeliveryAvailabilityError, build_visible_delivery_receipt,
+        )
+        resources = [
+            *list(candidate.get("delivery_artifacts", {}).values()),
+            *[dict(item) for item in supplemental_resources],
+        ]
+        receipt = build_visible_delivery_receipt(
+            candidate,
+            resources=resources,
+            resource_verifier=verify_resource,
+            resource_binary_reader=read_once,
+        )
+    except DeliveryAvailabilityError as exc:
+        raise FinancialAdmissionError(
+            f"FINANCIAL_VISIBLE_DELIVERY_NOT_READY:{exc}"
+        ) from exc
+    receipt["source_stage_artifact_readback"] = source_stage_readbacks
+    return receipt
+
+
+def _verify_persisted_action_authorization_history(
+    state: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Verify signed receipts that declare the provider-authorization contract.
+
+    Earlier receipts remain immutable self-attested provenance and are counted
+    as legacy; every receipt written by the current standalone action port must
+    carry a complete, re-verifiable provider signature.
+    """
+    receipts = state.get("execution_receipts", [])
+    _require(isinstance(receipts, list) and receipts,
+             "FINANCIAL_ACTION_RECEIPT_HISTORY_MISSING")
+    verified = 0
+    legacy = 0
+    seen_action_ids: set[str] = set()
+    seen_nonces: set[tuple[str, str]] = set()
+    for receipt in receipts:
+        bindings = receipt.get("input_bindings", {})
+        if bindings.get("authorization_contract_version") is None:
+            legacy += 1
+            continue
+        _require(bindings.get("authorization_contract_version") == "1.0",
+                 "FINANCIAL_ACTION_RECEIPT_AUTHORIZATION_VERSION_UNSUPPORTED")
+        proof = bindings.get("authorization_verification")
+        previous_sha = bindings.get("previous_state_blob_sha")
+        executor = receipt.get("executor_identity")
+        _require(isinstance(executor, str) and executor.startswith("financial:"),
+                 "FINANCIAL_ACTION_RECEIPT_EXECUTOR_SCOPE_INVALID")
+        action_id = executor[len("financial:"):]
+        _require(bool(action_id), "FINANCIAL_ACTION_RECEIPT_ACTION_ID_MISSING")
+        _require(action_id not in seen_action_ids,
+                 "FINANCIAL_ACTION_RECEIPT_ACTION_ID_REPLAYED")
+        seen_action_ids.add(action_id)
+        _require(isinstance(proof, Mapping),
+                 "FINANCIAL_ACTION_RECEIPT_ATTESTATION_MISSING")
+        nonce = proof.get("nonce")
+        provider_id = proof.get("provider_id")
+        _require(isinstance(provider_id, str) and isinstance(nonce, str)
+                 and len(nonce) >= 16
+                 and (provider_id, nonce) not in seen_nonces,
+                 "FINANCIAL_ACTION_RECEIPT_NONCE_MISSING_OR_REPLAYED")
+        seen_nonces.add((provider_id, nonce))
+        expected_previous = None if previous_sha == "NEW_FILE" else previous_sha
+        operation = proof.get("operation")
+        _require(operation in OPERATIONS,
+                 "FINANCIAL_ACTION_RECEIPT_OPERATION_INVALID")
+        try:
+            verify_persisted_action_authorization(
+                proof,
+                expected_claims={
+                    "approved": True,
+                    "action_id": action_id,
+                    "task_id": state["task_id"],
+                    "operation": operation,
+                    "expected_state_blob_sha": expected_previous,
+                },
+            )
+        except Exception as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_PERSISTED_ACTION_AUTHORIZATION_INVALID"
+            ) from exc
+        verified += 1
+    return {
+        "verified_signed_receipts": verified,
+        "legacy_self_attested_receipts": legacy,
+        "assurance": (
+            "ALL_RECEIPTS_SIGNED_AND_REVERIFIED" if legacy == 0
+            else "SIGNED_NEW_RECEIPTS__LEGACY_HISTORY_RETAINED_AS_UNVERIFIED_PROVENANCE"
+        ),
     }
 
 
@@ -344,7 +727,16 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
     state, sha = record
     _require(state["task_id"] == task_id, "FINANCIAL_ARTICLE_ID_MISMATCH")
     current_admission.validate_state(state)
+    authorization_history = _verify_persisted_action_authorization_history(state)
     authority = state["task_requirement_authority"]
+    visible_delivery_receipt = None
+    for receipt in reversed(state.get("execution_receipts", [])):
+        if not isinstance(receipt, Mapping):
+            continue
+        bindings = receipt.get("input_bindings", {})
+        if isinstance(bindings, Mapping) and isinstance(bindings.get("visible_delivery_receipt"), Mapping):
+            visible_delivery_receipt = dict(bindings["visible_delivery_receipt"])
+            break
     open_impacts = [
         {"signal_id": entry.get("signal_id"), "status": entry.get("status")}
         for entry in state.get("open_system_impact", [])
@@ -373,6 +765,12 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
         "requirement_digest": state["task_requirement_digest"],
         "required_outputs": list(state["required_outputs"]),
         "recorded_outputs": sorted(state.get("delivery_artifacts", {})),
+        "visible_delivery_status": (
+            visible_delivery_receipt.get("status")
+            if visible_delivery_receipt is not None else "NOT_VERIFIED"
+        ),
+        "visible_delivery_receipt": visible_delivery_receipt,
+        "authorization_history": authorization_history,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
     }
@@ -413,6 +811,7 @@ def admit_article_action(
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
+    owner_semantic_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     method_catalog_reader: StateReader | None = None,
 ) -> dict[str, Any]:
     """Use existing Financial admissions and genuine provider CAS/readback.
@@ -425,14 +824,31 @@ def admit_article_action(
     _require(callable(authorization_verifier) and callable(cas_writer),
              "FINANCIAL_TRUSTED_AUTH_AND_CAS_REQUIRED")
     try:
-        authorized = authorization_verifier(deepcopy(r))
+        authorization_attestation = verify_action_authorization(
+            authorization_verifier(deepcopy(r)), request=r,
+        )
     except Exception as exc:
-        raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_NOT_VERIFIED") from exc
-    _require(authorized is True, "FINANCIAL_AUTHORIZATION_NOT_VERIFIED")
+        raise FinancialAdmissionError("FINANCIAL_AUTHORIZATION_NOT_VERIFIED__ATTESTATION_FAILED") from exc
+    # Preserve the complete signed receipt (never the raw user message) so a
+    # later independent audit can re-verify provider, audience, actor, scope,
+    # freshness, nonce and signature rather than trusting a hand-picked summary.
+    authorization_evidence = deepcopy(authorization_attestation)
     path = _state_path(r["task_id"])
     observed = _read(state_reader, path)
     op = r["operation"]
     params = deepcopy(dict(r["parameters"]))
+    supplemental_delivery_artifacts = params.pop("supplemental_delivery_artifacts", None)
+    if supplemental_delivery_artifacts is not None:
+        _require(
+            op == "ADVANCE_STAGE" and observed is not None
+            and observed[0].get("current_stage") == "FINAL_AUDIT",
+            "FINANCIAL_SUPPLEMENTAL_DELIVERY_ONLY_ALLOWED_AT_FINAL_AUDIT",
+        )
+        _require(
+            isinstance(supplemental_delivery_artifacts, list)
+            and all(isinstance(item, Mapping) for item in supplemental_delivery_artifacts),
+            "FINANCIAL_SUPPLEMENTAL_DELIVERY_RESOURCES_INVALID",
+        )
     owner_intent_evidence = None
     nonbinding_intent_evidence = None
     if op == "RECORD_OWNER_INTENT":
@@ -450,6 +866,12 @@ def admit_article_action(
                 evidence_ref=params.get("evidence_ref"),
                 upserts=params.get("upserts"), retire_ids=params.get("retire_ids"),
                 owner_instruction_reader=owner_instruction_reader,
+                owner_semantic_verifier=owner_semantic_verifier,
+                existing_requirements=(
+                    observed[0].get("task_requirement_authority", {}).get("active_requirements", [])
+                    if observed is not None else []
+                ),
+                expected_state_blob_sha=r["expected_state_blob_sha"],
             )
         except FinancialIntentEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
@@ -469,6 +891,7 @@ def admit_article_action(
         _require(previous_sha == r["expected_state_blob_sha"], "FINANCIAL_STATE_CHANGED_CONCURRENTLY")
         _require(state["task_id"] == r["task_id"], "FINANCIAL_ARTICLE_ID_MISMATCH")
         current_admission.validate_state(state)
+        _verify_persisted_action_authorization_history(state)
         call = {
             "previous_state_blob_sha": previous_sha,
             "executor_identity": f"financial:{r['action_id']}",
@@ -505,9 +928,12 @@ def admit_article_action(
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
+    candidate["execution_receipts"][-1]["input_bindings"]["authorization_contract_version"] = "1.0"
+    candidate["execution_receipts"][-1]["input_bindings"]["authorization_verification"] = authorization_evidence
     if owner_intent_evidence is not None:
         candidate["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"] = owner_intent_evidence
     current_admission.validate_state(candidate)
+    _verify_persisted_action_authorization_history(candidate)
     method_usage = None
     if op == "ADVANCE_STAGE" and observed is not None:
         method_usage = _verify_article_method_usage(
@@ -515,6 +941,16 @@ def admit_article_action(
             method_catalog_reader=method_catalog_reader,
         )
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    delivery_research_freshness = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
+        "DELIVERY", "FINAL_AUDIT",
+    }:
+        delivery_research_freshness = _verify_delivery_research_freshness(
+            candidate, source_snapshot_reader,
+        )
+        if delivery_research_freshness is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["delivery_research_freshness_readback"] = delivery_research_freshness
+            current_admission.validate_state(candidate)
     word_bytes = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
         "DELIVERY", "FINAL_AUDIT",
@@ -523,6 +959,7 @@ def admit_article_action(
         candidate["execution_receipts"][-1]["input_bindings"]["product_word_binary_readback"] = word_bytes
         current_admission.validate_state(candidate)
     research_sources = None
+    satisfaction_readback = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "RESEARCH":
         try:
             research_sources = verify_current_research_sources(
@@ -531,15 +968,34 @@ def admit_article_action(
             )
         except CurrentResearchEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
-        known = {item["source_ref_sha256"] for item in research_sources["snapshots"]}
-        if stage_bytes is not None:
-            known.add(hashlib.sha256(stage_bytes["path"].encode("utf-8")).hexdigest())
-        for item in candidate["execution_receipts"][-1]["input_bindings"].get("task_requirement_satisfaction", []):
-            for ref in item["evidence_refs"]:
-                _require(
-                    hashlib.sha256(ref.encode("utf-8")).hexdigest() in known,
-                    "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
+        satisfaction = candidate["execution_receipts"][-1]["input_bindings"].get(
+            "task_requirement_satisfaction", []
+        )
+        if satisfaction:
+            satisfaction_readback = _verify_requirement_satisfaction_sources(
+                satisfaction, research_sources,
+                stage_artifact_path=stage_bytes["path"] if stage_bytes is not None else None,
+            )
+        candidate["execution_receipts"][-1]["input_bindings"]["research_source_readback"] = research_sources
+        if satisfaction_readback is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
+        current_admission.validate_state(candidate)
+    elif op == "ADVANCE_STAGE" and observed is not None:
+        satisfaction = candidate["execution_receipts"][-1]["input_bindings"].get(
+            "task_requirement_satisfaction", []
+        )
+        if satisfaction:
+            prior_research_sources = _latest_research_source_readback(candidate)
+            try:
+                satisfaction_readback = _verify_requirement_satisfaction_sources(
+                    satisfaction,
+                    prior_research_sources if prior_research_sources is not None else {"snapshots": []},
+                    stage_artifact_path=stage_bytes["path"] if stage_bytes is not None else None,
                 )
+            except FinancialAdmissionError:
+                raise
+            candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
+            current_admission.validate_state(candidate)
     independent_editorial_proof = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "EDITORIAL_AUDIT":
         try:
@@ -553,6 +1009,19 @@ def admit_article_action(
         if independent_editorial_proof is not None:
             candidate["execution_receipts"][-1]["input_bindings"]["independent_editorial_proof"] = independent_editorial_proof
             current_admission.validate_state(candidate)
+    visible_delivery_receipt = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "FINAL_AUDIT":
+        visible_delivery_receipt = _verify_visible_delivery(
+            candidate,
+            supplemental_delivery_artifacts or [],
+            artifact_reader,
+        )
+        candidate["execution_receipts"][-1]["input_bindings"]["supplemental_delivery_artifacts"] = deepcopy(
+            supplemental_delivery_artifacts or []
+        )
+        candidate["execution_receipts"][-1]["input_bindings"]["visible_delivery_receipt"] = visible_delivery_receipt
+        current_admission.validate_state(candidate)
+
     payload = _canonical_payload(candidate)
     expected_new_sha = _blob_sha(payload)
     try:
@@ -575,8 +1044,10 @@ def admit_article_action(
         "required_stage_artifact_verified": stage_bytes,
         "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
+        "delivery_research_freshness_readback": delivery_research_freshness,
         "method_usage_readback": method_usage,
         "independent_editorial_review_readback": independent_editorial_proof,
+        "visible_delivery_receipt": visible_delivery_receipt,
         "child_state_cas_verified": True,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
@@ -663,10 +1134,15 @@ def admit_method_action(
     _require(callable(authorization_verifier) and callable(catalog_cas_writer),
              "FINANCIAL_METHOD_TRUSTED_AUTH_AND_CAS_REQUIRED")
     try:
-        approved = authorization_verifier(deepcopy(dict(request)))
+        authorization_attestation = verify_method_action_authorization(
+            authorization_verifier(deepcopy(dict(request))), request=request,
+        )
     except Exception as exc:
-        raise FinancialAdmissionError("FINANCIAL_METHOD_AUTHORIZATION_NOT_VERIFIED") from exc
-    _require(approved is True, "FINANCIAL_METHOD_AUTHORIZATION_NOT_VERIFIED")
+        raise FinancialAdmissionError(
+            "FINANCIAL_METHOD_AUTHORIZATION_ATTESTATION_NOT_VERIFIED"
+        ) from exc
+    # Preserve the complete signed receipt for later append-only catalog verification.
+    authorization_evidence = deepcopy(authorization_attestation)
 
     observed = _read(catalog_reader, CATALOG_PATH)
     _require(observed is not None, "FINANCIAL_METHOD_CATALOG_UNAVAILABLE")
@@ -686,6 +1162,9 @@ def admit_method_action(
             impact_target_revision=params.get("impact_target_revision"),
             impact_evidence=params.get("impact_evidence"),
             impact_verifier=impact_verifier,
+            authorization_evidence=authorization_evidence,
+            action_request=request,
+            observed_catalog_blob_sha=previous_sha,
         )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
@@ -711,6 +1190,7 @@ def admit_method_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "governance_revision": candidate["governance_revision"],
         "method_change_receipt": receipt,
+        "authorization_verification": authorization_evidence,
         "method_catalog_cas_verified": True,
         "live_article_effect_verified": False,
     }
