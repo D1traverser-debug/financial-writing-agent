@@ -25,6 +25,8 @@ class FakeAPI:
             "head": {"ref": "old/one", "sha": B},
         }])
         self.deletion_frozen = deletion_frozen
+        self.branch_write_freeze = True
+        self.remove_branch_write_freeze_after_delete = False
         self.calls = []
         self.open_pr_reads = 0
         self.add_pr_on_read = None
@@ -41,6 +43,8 @@ class FakeAPI:
             raise ValueError("BRANCH_DELETION_MUST_BE_FROZEN_FOR_PLAN_AND_ARCHIVE")
         if phase == "PRUNE" and self.deletion_frozen:
             raise ValueError("REMOVE_ONLY_DELETION_RULE_BEFORE_PRUNE")
+        if not self.branch_write_freeze:
+            raise ValueError("BRANCH_WRITE_FREEZE_INVALID")
         return {
             "branch_ruleset_id": 11,
             "tag_ruleset_id": 22,
@@ -95,6 +99,8 @@ class FakeAPI:
         assert self.branch_head(name) == sha
         assert self.tag_head(name) == sha
         del self.branches[name]
+        if self.remove_branch_write_freeze_after_delete:
+            self.branch_write_freeze = False
         if self.unprotect_main_after_delete:
             self.branches["main"]["protected"] = False
         if name in self.ambiguous_delete:
@@ -272,6 +278,35 @@ def test_prune_refuses_unverified_heads_without_explicit_owner_confirmation(tmp_
     assert set(api.branches) == {"main", "old/one", "old/two"}
     assert not any(call.startswith("delete:") for call in api.calls)
 
+
+
+
+def test_prune_refuses_if_branch_update_freeze_was_removed_before_prune(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.branch_write_freeze = False
+    with pytest.raises(ValueError, match="BRANCH_WRITE_FREEZE_INVALID"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_stops_if_branch_update_freeze_is_removed_between_deletions(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.remove_branch_write_freeze_after_delete = True
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["prune_rulesets_verified_after"] is False
+    assert "old/two" in api.branches
+    assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
+    assert api.tags == {"old/one": B, "old/two": C}
 
 
 def test_prune_refuses_if_main_protection_was_removed_after_archive(tmp_path):
