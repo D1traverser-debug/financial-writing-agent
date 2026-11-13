@@ -18,7 +18,10 @@ def test_financial_skill_is_self_sufficient_domain_workflow():
     assert "continuity/" not in text
 
 
-def test_root_pointer_and_old_paths_have_no_active_control():
-    assert "skills/financial-writing-agent/SKILL.md" in ROOT_POINTER.read_text(encoding="utf-8")
-    assert "non-authoritative" in (ROOT / "CAOS_SKILL.md").read_text(encoding="utf-8")
-    assert "non-authoritative" in (ROOT / "UAOS_SKILL.md").read_text(encoding="utf-8")
+def test_only_financial_skill_is_an_operating_entry():
+    import json
+
+    manifest = json.loads((ROOT / "config/FINANCIAL_MANIFEST.json").read_text(encoding="utf-8"))
+    assert manifest["skill_entrypoint"] == "skills/financial-writing-agent/SKILL.md"
+    for retired in ("FINANCIAL_SKILL.md", "CAOS_SKILL.md", "UAOS_SKILL.md", ".uaos"):
+        assert not (ROOT / retired).exists()

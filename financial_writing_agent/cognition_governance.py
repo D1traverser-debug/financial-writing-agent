@@ -45,6 +45,7 @@ class EvolutionDisposition(str, Enum):
     NO_EVOLUTION = "NO_EVOLUTION"
     EVIDENCE_ONLY = "EVIDENCE_ONLY"
     DOMAIN_CANDIDATE = "DOMAIN_CANDIDATE"
+    # Legacy serialized value only; admission rejects parent delegation for standalone Financial.
     PARENT_UPCALL = "PARENT_UPCALL"
 
 
@@ -318,6 +319,10 @@ class DecisionEnvelope(StrictModel):
 def admission_errors(envelope: DecisionEnvelope) -> list[str]:
     """Semantic warnings beyond shape validation; does not overstate independence."""
     errors: list[str] = []
+    if envelope.evolution_disposition is EvolutionDisposition.PARENT_UPCALL:
+        errors.append(
+            "standalone Financial cannot emit a parent upcall; preserve legacy references as history and use Financial-owned evolution"
+        )
     if envelope.operation_class == OperationClass.MATERIAL_JUDGMENT:
         families = {e.source_family.casefold().strip() for e in envelope.evidence}
         if len(families) < 2:

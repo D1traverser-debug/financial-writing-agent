@@ -1,5 +1,6 @@
-import json
 from pathlib import Path
+
+from financial_writing_agent.resources import load_packaged_policy
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -12,7 +13,7 @@ def test_domain_repo_contains_no_controller_task_index_or_system_infra_checkpoin
 
 
 def test_comparison_dimensions_are_topic_specific_not_technology_template():
-    policy = json.loads((ROOT / "config/policy.json").read_text(encoding="utf-8"))
+    policy = load_packaged_policy()
     editorial = policy["editorial"]
     assert editorial["company_comparison_dimensions_policy"] == "TOPIC_SPECIFIC_FROM_CURRENT_AUDITED_EVIDENCE"
     assert editorial["fixed_cross_topic_comparison_dimension_list_forbidden"] is True
@@ -20,7 +21,7 @@ def test_comparison_dimensions_are_topic_specific_not_technology_template():
 
 
 def test_visible_delivery_is_not_proven_by_filename_and_hash():
-    policy = json.loads((ROOT / "config/policy.json").read_text(encoding="utf-8"))
+    policy = load_packaged_policy()
     visible = policy["visible_delivery"]
     assert visible["fresh_current_session_resource_required"] is True
     assert visible["filename_and_hash_alone_are_availability_proof"] is False
@@ -31,10 +32,9 @@ def test_visible_delivery_is_not_proven_by_filename_and_hash():
 
 
 def test_delivery_reference_mirrors_include_current_resource_availability_contract():
-    source = (ROOT / "references/delivery.md").read_bytes()
     skill = (ROOT / "skills/financial-writing-agent/references/delivery.md").read_bytes()
     package = (ROOT / "financial_writing_agent/resources/references/delivery.md").read_bytes()
-    assert source == skill == package
-    text = source.decode("utf-8")
+    assert skill == package
+    text = skill.decode("utf-8")
     assert "Current visible-delivery availability" in text
     assert "filename + SHA-256 alone is artifact identity, not current resource availability" in text

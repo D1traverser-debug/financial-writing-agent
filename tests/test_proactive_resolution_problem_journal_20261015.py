@@ -1,3 +1,4 @@
+import json
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -8,7 +9,7 @@ def _read(path: str) -> str:
 
 
 def test_maintenance_routes_to_proactive_resolution_and_problem_journal():
-    maintenance = _read("references/maintenance.md")
+    maintenance = _read("skills/financial-writing-agent/references/maintenance.md")
     assert "Revision: 3.0-STANDALONE" in maintenance
     assert "references/proactive_resolution.md" in maintenance
     assert "financial_writing_agent/proactive_resolution.py" in maintenance
@@ -22,7 +23,7 @@ def test_maintenance_routes_to_proactive_resolution_and_problem_journal():
 
 
 def test_proactive_resolution_recovers_before_user_escalation():
-    rule = _read("references/proactive_resolution.md")
+    rule = _read("skills/financial-writing-agent/references/proactive_resolution.md")
     assert "recover, infer provisionally, test, and only then escalate" in rule
     assert "Missing highest-tier evidence is not automatically a blocker" in rule
     assert "user-approved or user-edited writing samples" in rule
@@ -75,28 +76,28 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in journal
 
 
-def test_machine_index_and_parent_handoff_expose_adjudication_and_promotion_receipt():
-    index = _read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
-    handoff = _read("evals/PARENT_GUIDANCE_HANDOFF.md")
-    assert '"revision": "1.6"' in index
-    assert '"P-20261015-15"' in index
-    assert '"P-20261015-16"' in index
-    assert '"executable_proactive_resolution_promotion_receipt"' in index
-    assert '"executable_proactive_resolution_candidate"' not in index
-    assert '"production_ci_number": 1037' in index
-    assert '"production_ci_status": "success"' in index
-    assert '"latest_production_receipt"' not in index
-    for signal in (
+def test_machine_index_preserves_parent_history_without_live_parent_handoff():
+    payload = json.loads(_read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json"))
+    assert payload["revision"] == "1.6"
+    assert "P-20261015-15" in payload["current_open_items"]
+    assert "P-20261015-16" in payload["current_open_items"]
+    assert "executable_proactive_resolution_promotion_receipt" in payload
+    assert "executable_proactive_resolution_candidate" not in payload
+    receipt = payload["executable_proactive_resolution_promotion_receipt"]
+    assert receipt["production_ci_number"] == 1037
+    assert receipt["production_ci_status"] == "success"
+    assert payload["historical_parent_guidance_status"] == "ARCHIVAL_ONLY__NO_LIVE_PARENT_DEPENDENCY"
+    assert set(payload["historical_parent_guidance_items"]) >= {
         "PROACTIVE_RESOLUTION_GAP",
         "EVOLUTION_HISTORY_INTERFACE",
         "VERSION_METADATA_DRIFT",
         "INHERITANCE_BEHAVIOR_VS_DECLARATION",
         "DECLARATION_TO_OPERATION_GAP",
         "PROBLEM_TO_ACTION_CLOSURE_GAP",
-    ):
-        assert signal in index
-        assert signal in handoff
-    assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in index
-    assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in handoff
-    assert "NEW_LIVE_INHERITANCE_EVIDENCE_PENDING_PARENT_ADJUDICATION" in handoff
-    assert "EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED" in handoff
+        "INHERITED_COGNITION_AUTO_ACTIVATION_GAP",
+    }
+    assert all(
+        path.startswith("skills/financial-writing-agent/references/") or path.startswith("financial_writing_agent/")
+        for path in payload["rule_refs"]
+    )
+    assert not (ROOT / "evals/PARENT_GUIDANCE_HANDOFF.md").exists()

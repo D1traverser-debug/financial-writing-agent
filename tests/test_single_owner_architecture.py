@@ -33,7 +33,10 @@ def test_current_authority_has_one_financial_owner_path():
     assert execution["standalone_governance"]["external_parent_required"] is False
     assert {"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"} <= OPERATIONS
     assert len({c["id"] for c in caps["capabilities"]}) == len(caps["capabilities"])
-    assert all(item["role"] != "AUTHORITY" for item in _json("config/PERSISTENT_ASSET_PROFILE.json")["non_authority_assets"])
+    data = _json("config/DATA_AUTHORITY.json")
+    assert data["business_authority"] == "github://D1traverser-debug/financial-writing-agent@main"
+    assert data["no_parallel_article_ledger"] is True
+    assert data["no_external_parent_runtime"] is True
 
 
 def test_financial_state_is_article_identity_and_task_contract_identity_free():
@@ -54,14 +57,10 @@ def test_financial_state_is_article_identity_and_task_contract_identity_free():
 def test_retired_parent_paths_are_historical_and_current_entry_is_financial():
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     assert (ROOT / manifest["skill_entrypoint"]).exists()
-    assert (ROOT / "FINANCIAL_SKILL.md").exists()
     assert (ROOT / "financial_writing_agent/standalone_runtime.py").exists()
-    for name in (".uaos/MANIFEST.json", ".uaos/ADAPTER.json", ".uaos/CAPABILITIES.json"):
-        payload = _json(name)
-        assert payload["active"] is False
-        assert payload["authority"] is False
-        assert payload["runtime_required"] is False
-    for path in ("continuity", "state", "TASK_INDEX.json"):
+    for name in ("FINANCIAL_SKILL.md", "CAOS_SKILL.md", "UAOS_SKILL.md", ".uaos", "docs/CAOS_CHILD_INTERFACE.md"):
+        assert not (ROOT / name).exists()
+    for path in ("continuity", "state", "TASK_INDEX.json", "references"):
         assert not (ROOT / path).exists()
 
 

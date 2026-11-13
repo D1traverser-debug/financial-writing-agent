@@ -1,10 +1,9 @@
-import json
-
+from financial_writing_agent.resources import load_packaged_policy
 from financial_writing_agent.schemas import ArticlePayload
 
 
 def _policy():
-    return json.loads(open("config/policy.json", encoding="utf-8").read())
+    return load_packaged_policy()
 
 
 def test_reader_funnel_requires_three_opening_jobs_without_fixed_sentence_formula_or_immediate_full_payoff():

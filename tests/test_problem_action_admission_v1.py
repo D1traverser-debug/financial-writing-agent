@@ -185,3 +185,20 @@ def test_real_user_choice_can_block_without_fabricating_root_cause_completion():
         blocker_reason="explicit publication approval is required",
     )
     assert result is ProblemClosureDecision.BLOCKED_WITH_REASON
+
+
+
+def test_standalone_financial_rejects_legacy_parent_upcall_disposition():
+    envelope = _envelope().model_copy(
+        update={"evolution_disposition": EvolutionDisposition.PARENT_UPCALL}
+    )
+    with pytest.raises(ProblemActionAdmissionError, match="standalone Financial cannot emit a parent upcall"):
+        finalize_problem_action(
+            envelope,
+            repair_path_available=False,
+            owner_authorized=False,
+            explicit_user_choice_required=False,
+            repair_attempted=False,
+            repair_verified=False,
+            parent_upcall_ref="legacy://parent-guidance",
+        )

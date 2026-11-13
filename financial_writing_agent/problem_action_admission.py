@@ -21,6 +21,7 @@ class ProblemClosureDecision(str, Enum):
     REPAIR_EXECUTED = "REPAIR_EXECUTED"
     BLOCKED_WITH_REASON = "BLOCKED_WITH_REASON"
     NO_CHANGE_WITH_EVIDENCE = "NO_CHANGE_WITH_EVIDENCE"
+    # Historical outcome value only; current Financial operations never emit it.
     PARENT_GUIDANCE_REQUIRED = "PARENT_GUIDANCE_REQUIRED"
 
 
@@ -117,17 +118,6 @@ def finalize_problem_action(
         raise ProblemActionAdmissionError(
             "problem action denied: material/evolution-relevant problem requires durable problem_record_ref"
         )
-
-    if envelope.evolution_disposition is EvolutionDisposition.PARENT_UPCALL:
-        if repair_path_available and owner_authorized:
-            raise ProblemActionAdmissionError(
-                "problem action denied: parent upcall cannot bypass an admitted owner-authorized repair"
-            )
-        if not (isinstance(parent_upcall_ref, str) and parent_upcall_ref.strip()):
-            raise ProblemActionAdmissionError(
-                "problem action denied: PARENT_UPCALL requires a structured parent-upcall reference"
-            )
-        return ProblemClosureDecision.PARENT_GUIDANCE_REQUIRED
 
     if repair_path_available and owner_authorized:
         if not repair_attempted:
