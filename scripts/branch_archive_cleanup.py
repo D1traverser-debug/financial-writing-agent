@@ -394,6 +394,15 @@ def archive_only(api: GitHubAPI, manifest_path: Path, approved: str, out: Path):
     return result
 
 
+def _require_protected_main(api: GitHubAPI, expected_sha: str, phase: str):
+    """Re-read the branch inventory and require main to remain protected and unchanged."""
+    rows = branch_rows(api.paginate("branches"))
+    main = next((item for item in rows if item["name"] == "main"), None)
+    if main is None or main["protected"] is not True or main["sha"] != expected_sha:
+        raise ValueError("MAIN_PROTECTION_OR_HEAD_INVALID:" + phase)
+    return rows
+
+
 def prune_only(
     api: GitHubAPI, manifest_path: Path, approved: str, out: Path, *,
     confirm_unverified_branch_archive: bool = False,
@@ -407,12 +416,13 @@ def prune_only(
     if (controls["branch_ruleset_id"] != manifest["control_ids"]["branch_ruleset_id"]
         or controls["tag_ruleset_id"] != manifest["control_ids"]["tag_ruleset_id"]):
         raise ValueError("RULESET_ID_CHANGED_AFTER_ARCHIVE")
-    if api.branch_head("main") != manifest["main_sha"]:
-        raise ValueError("MAIN_MOVED_AFTER_ARCHIVE")
+    current_rows = _require_protected_main(
+        api, manifest["main_sha"], "BEFORE_PRUNE",
+    )
     if api.paginate("pulls?state=open"):
         raise ValueError("OPEN_PULL_REQUESTS_MUST_BE_CLOSED_BEFORE_PRUNE")
     planned = {x["name"]: x["sha"] for x in manifest["branches"]}
-    current = {x["name"]: x["sha"] for x in branch_rows(api.paginate("branches"))}
+    current = {x["name"]: x["sha"] for x in current_rows}
     if any(name not in planned or planned[name] != sha for name, sha in current.items()):
         raise ValueError("UNPLANNED_OR_MOVED_BRANCH_AFTER_ARCHIVE")
     for item in manifest["candidate_heads"]:
@@ -422,8 +432,10 @@ def prune_only(
     deleted, absent, failures = [], [], []
     for item in manifest["candidate_heads"]:
         name, sha = item["branch"], item["head_sha"]
-        if api.branch_head("main") != manifest["main_sha"]:
-            failures.append({"branch": name, "reason": "MAIN_MOVED_DURING_PRUNE"})
+        try:
+            _require_protected_main(api, manifest["main_sha"], "DURING_PRUNE")
+        except Exception as exc:
+            failures.append({"branch": name, "reason": str(exc)})
             break
         if api.paginate("pulls?state=open"):
             failures.append({"branch": name, "reason": "OPEN_PR_CREATED_DURING_PRUNE"})
@@ -447,17 +459,26 @@ def prune_only(
     after = branch_rows(api.paginate("branches"))
     prs_after = api.paginate("pulls?state=open")
     main_after = api.branch_head("main")
+    main_after_row = next((item for item in after if item["name"] == "main"), None)
+    main_protected_after = bool(main_after_row and main_after_row["protected"])
     for item in manifest["candidate_heads"]:
         if api.tag_head(item["branch"]) != item["head_sha"]:
             failures.append({"branch": item["branch"], "reason": "FINAL_TAG_READBACK_FAILED"})
-    complete = ([x["name"] for x in after] == ["main"] and main_after == manifest["main_sha"]
-                and not prs_after and not failures)
+    if not main_protected_after:
+        failures.append({"branch": "main", "reason": "MAIN_PROTECTION_REMOVED_DURING_PRUNE"})
+    complete = (
+        [x["name"] for x in after] == ["main"]
+        and main_after == manifest["main_sha"]
+        and main_protected_after
+        and not prs_after and not failures
+    )
     result = {
         "manifest_sha256": checksum, "before_branch_count": len(manifest["branches"]),
         "after_branch_names": [x["name"] for x in after],
         "tagged_branch_count": len(manifest["candidate_heads"]),
         "deleted": deleted, "already_absent_after_archive": absent,
         "open_pr_count_after": len(prs_after), "main_sha_after": main_after,
+        "main_protected_after": main_protected_after,
         "unresolved_failures": failures, "complete": complete, "controls": controls,
     }
     write_json(out, result)
