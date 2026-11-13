@@ -222,3 +222,10 @@ Two concrete historical samples were inspected:
 - The older `writing-system-gap-hardening` head contains a Cloudflare Site/D1/R2 MCP proof-of-concept. Its `SiteDispatcher.call` delegates to `FailClosedDispatcher`; `MIGRATION_STATUS.md` explicitly says business execution for all 16 tools is not wired and real-article live-model E2E remains 0. It is historical design evidence, **not a usable hosted Financial runtime**.
 
 This compare classification improves the earlier "no exact PR match" signal but does not replace the reviewed archive manifest. No merge, article-state mutation, branch deletion or tag creation was performed during this read-only review.
+
+
+## Native Skill release alignment — G5 remains open
+
+The private ChatGPT plugin currently reports release `0.1.1` (`pluginrel_6af5a82a95f48191ba8d21fa3d188094`). Its installed package is skill-only, has no hosted Python/MCP endpoint, and its current Skill text still treats one authenticated user utterance as one atomic requirement. The candidate repository Skill has corrected this: it preserves the complete authenticated utterance as source evidence while allowing multiple scoped requirement records, provided the exact canonical mutation receives a separate signed owner confirmation.
+
+Do not publish a plugin release ahead of main. After PR #67 is independently reviewed and merged, update the private plugin from the exact main Skill and its current Financial references, read back the new release ID/content, update `config/FINANCIAL_MANIFEST.json` and `config/CHATGPT_FINANCIAL_PLUGIN.json` to that exact release, then verify a fresh ChatGPT session and a real Financial tool invocation. The current `0.1.1` package must not be represented as equivalent to the candidate Skill, and a private package release alone does not prove user installation or a live provider.
