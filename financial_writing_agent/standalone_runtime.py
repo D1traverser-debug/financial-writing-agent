@@ -299,8 +299,10 @@ def _verify_requirement_satisfaction_sources(
         item.get("source_ref_sha256")
         for item in snapshots if isinstance(item, Mapping)
     }
+    stage_artifact_digest = None
     if stage_artifact_path:
-        known.add(hashlib.sha256(stage_artifact_path.encode("utf-8")).hexdigest())
+        stage_artifact_digest = hashlib.sha256(stage_artifact_path.encode("utf-8")).hexdigest()
+        known.add(stage_artifact_digest)
     checked = 0
     for item in satisfaction:
         _require(isinstance(item, Mapping),
@@ -308,19 +310,44 @@ def _verify_requirement_satisfaction_sources(
         refs = item.get("evidence_refs")
         _require(isinstance(refs, list) and bool(refs),
                  "FINANCIAL_REQUIREMENT_SATISFACTION_EVIDENCE_REFS_MISSING")
+        ref_digests: set[str] = set()
         for ref in refs:
             _require(isinstance(ref, str) and bool(ref.strip()),
                      "FINANCIAL_REQUIREMENT_SATISFACTION_SOURCE_REF_INVALID")
+            digest = hashlib.sha256(ref.encode("utf-8")).hexdigest()
             _require(
-                hashlib.sha256(ref.encode("utf-8")).hexdigest() in known,
+                digest in known,
                 "FINANCIAL_REQUIREMENT_SATISFACTION_UNREAD_SOURCE",
             )
+            ref_digests.add(digest)
             checked += 1
+        if stage_artifact_digest is not None:
+            _require(
+                stage_artifact_digest in ref_digests,
+                "FINANCIAL_REQUIREMENT_SATISFACTION_CURRENT_STAGE_ARTIFACT_NOT_BOUND",
+            )
     return {
         "checked_evidence_ref_count": checked,
         "assurance": "SOURCE_BYTE_READBACK_ONLY__SEMANTIC_SUPPORT_NOT_CERTIFIED",
         "semantic_support_verified": False,
     }
+
+
+def _latest_research_source_readback(state: Mapping[str, Any]) -> Mapping[str, Any] | None:
+    """Reuse only a previously admitted RESEARCH source snapshot set."""
+    receipts = state.get("execution_receipts", [])
+    if not isinstance(receipts, list):
+        return None
+    for receipt in reversed(receipts):
+        if not isinstance(receipt, Mapping) or receipt.get("stage") != "RESEARCH":
+            continue
+        bindings = receipt.get("input_bindings", {})
+        if not isinstance(bindings, Mapping):
+            continue
+        readback = bindings.get("research_source_readback")
+        if isinstance(readback, Mapping) and isinstance(readback.get("snapshots"), list):
+            return readback
+    return None
 
 
 def _verify_product_word_bytes(
@@ -710,6 +737,7 @@ def admit_article_action(
         candidate["execution_receipts"][-1]["input_bindings"]["product_word_binary_readback"] = word_bytes
         current_admission.validate_state(candidate)
     research_sources = None
+    satisfaction_readback = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "RESEARCH":
         try:
             research_sources = verify_current_research_sources(
@@ -721,13 +749,31 @@ def admit_article_action(
         satisfaction = candidate["execution_receipts"][-1]["input_bindings"].get(
             "task_requirement_satisfaction", []
         )
-        satisfaction_readback = _verify_requirement_satisfaction_sources(
-            satisfaction, research_sources,
-            stage_artifact_path=stage_bytes["path"] if stage_bytes is not None else None,
-        )
+        if satisfaction:
+            satisfaction_readback = _verify_requirement_satisfaction_sources(
+                satisfaction, research_sources,
+                stage_artifact_path=stage_bytes["path"] if stage_bytes is not None else None,
+            )
         candidate["execution_receipts"][-1]["input_bindings"]["research_source_readback"] = research_sources
-        candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
+        if satisfaction_readback is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
         current_admission.validate_state(candidate)
+    elif op == "ADVANCE_STAGE" and observed is not None:
+        satisfaction = candidate["execution_receipts"][-1]["input_bindings"].get(
+            "task_requirement_satisfaction", []
+        )
+        if satisfaction:
+            prior_research_sources = _latest_research_source_readback(candidate)
+            try:
+                satisfaction_readback = _verify_requirement_satisfaction_sources(
+                    satisfaction,
+                    prior_research_sources if prior_research_sources is not None else {"snapshots": []},
+                    stage_artifact_path=stage_bytes["path"] if stage_bytes is not None else None,
+                )
+            except FinancialAdmissionError:
+                raise
+            candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
+            current_admission.validate_state(candidate)
     independent_editorial_proof = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "EDITORIAL_AUDIT":
         try:
