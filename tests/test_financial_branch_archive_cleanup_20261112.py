@@ -621,11 +621,15 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
 )
 def test_archive_controls_fail_closed_when_main_protection_is_weak(field, value, reason):
     protection = {
-        "required_status_checks": {"strict": True, "contexts": ["test"], "checks": []},
+        "required_status_checks": {
+            "strict": True, "contexts": ["test"],
+            "checks": [{"context": "test", "app_id": 15368}],
+        },
         "required_pull_request_reviews": {
             "required_approving_review_count": 1,
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
+            "bypass_pull_request_allowances": {"users": [], "teams": [], "apps": []},
         },
         "enforce_admins": {"enabled": True},
         "allow_force_pushes": {"enabled": False},
