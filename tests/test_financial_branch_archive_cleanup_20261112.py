@@ -410,3 +410,15 @@ def test_ruleset_deletion_rule_is_required_for_plan_but_forbidden_for_prune():
     with pytest.raises(ValueError, match="DELETION_MUST_BE_FROZEN"):
         RulesetAPI(phase_deletion=False).verify_controls("PLAN")
     RulesetAPI(phase_deletion=False).verify_controls("PRUNE")
+
+
+def test_archive_plan_exports_exact_manifest_digest_to_downstream_jobs():
+    workflow = Path(".github/workflows/branch_archive_once.yml").read_text(encoding="utf-8")
+    plan_step = workflow.split(
+        "- name: Build stable read-only branch manifest", 1,
+    )[1].split("- name: Upload exact manifest for human review", 1)[0]
+    assert "run: |" in plan_step
+    assert "manifest_sha256=" in plan_step
+    assert '>> "$GITHUB_OUTPUT"' in plan_step
+    assert 'Path("audit/financial_branch_plan.json")' in plan_step
+    assert "needs.plan.outputs.manifest_sha256" in workflow
