@@ -178,7 +178,7 @@ Promotion flow: `evidence -> DecisionEnvelope/root scope -> candidate -> regress
 Financial-owned evolution follows:
 `problem/feedback -> causal diagnosis -> alternatives/counterexamples -> root-scope admission -> evolution disposition -> candidate -> reproducible eval -> owner promotion -> production reread -> live observation -> keep/repair/rollback/retire`.
 
-One article may create a domain candidate but cannot silently become universal truth. Financial-specific business/writing rules and generalizable methods used inside Financial remain Financial-owned. Reusable methods are evaluated and promoted only with Financial-local negative/positive evidence, never via a mandatory parent upcall.
+One article may create a domain candidate but cannot silently become universal truth. Financial-specific business/writing rules and generalizable methods used inside Financial remain Financial-owned. Reusable methods are evaluated and promoted only with Financial-local negative/positive evidence, current Financial operations reject parent upcalls; external methods may inform local choices but cannot delegate ownership.
 
 The 1.0.3 private-research admission is Financial-local. It governs how A-share financial writing research is represented before publication and never requires another agent to adopt its domain-specific taxonomy.
 

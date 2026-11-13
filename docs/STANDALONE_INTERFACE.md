@@ -2,7 +2,7 @@
 
 ## Business and authority
 
-Only Financial Writing controls its domain tasks, methodology, source checks, Word output and lifecycle. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its authoritative hosted operating Skill is skills/financial-writing-agent/SKILL.md. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No external parent runtime, local daemon or second task owner is required.
+Only Financial Writing controls its domain tasks, methodology, source checks, Word output and lifecycle. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its canonical operating Skill source is skills/financial-writing-agent/SKILL.md. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No external parent runtime, local daemon or second task owner is required.
 
 
 
@@ -49,7 +49,7 @@ This is a Python adapter contract, **not a deployed remote API**. To use it in a
 
 ## Independent financial business method
 
-Decision loop and execution loop are defined in the standalone Skill and skills/financial-writing-agent/skills/financial-writing-agent/references/maintenance.md. They are concrete Financial behaviors: sourced value-chain and company economics, competing causal theses, 15-module private research, reader-oriented Deep/Broad story selection, source-originality/claim checks, actual Word artifact rendering and feedback-driven improvements. These are implemented inside Financial and do not call an external parent runtime. No parent bridge is part of the active package.
+Decision loop and execution loop are defined in the standalone Skill and skills/financial-writing-agent/references/maintenance.md. They are concrete Financial behaviors: sourced value-chain and company economics, competing causal theses, 15-module private research, reader-oriented Deep/Broad story selection, source-originality/claim checks, actual Word artifact rendering and feedback-driven improvements. These are implemented inside Financial and do not call an external parent runtime. No parent bridge is part of the active package; current Financial admission rejects legacy parent-upcall dispositions.
 
 ## Deployment and product acceptance
 

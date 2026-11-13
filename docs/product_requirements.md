@@ -232,7 +232,7 @@ Financial owns and executes the complete goal-recovery, decision, failure-diagno
 
 ## 7. Financial-owned evolution contract
 
-Financial owns finance-specific and reusable method promotion for its own system. A correction is evidence, not authority to copy the proposed fix. Reusable changes require causal comparison, negative tests, exact-head candidate validation and production/product readback. No external parent upcall is required.
+Financial owns finance-specific and reusable method promotion for its own system. A correction is evidence, not authority to copy the proposed fix. Reusable changes require causal comparison, negative tests, exact-head candidate validation and production/product readback. No external parent upcall is an allowed operating path.
 
 ## 8. Explicit non-goals
 
