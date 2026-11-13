@@ -212,8 +212,8 @@
         },
         "main_protected": false,
         "branch_archive_output_trace": "PYTHON_PLAN_SCRIPT_EXPORTS_GITHUB_OUTPUT__YAML_HAS_NO_REDUNDANT_ECHO__SOURCE_TO_WORKFLOW_REGRESSION_TEST_PASS",
-        "plugin_current_release": "0.1.1__SKILL_ONLY__NOT_INSTALLED_OR_LIVE_TOOL_VERIFIED",
-        "plugin_alignment": "CURRENT_PLUGIN_0_1_1_HAS_ATOMIC_UTTERANCE_RULE__CANDIDATE_SKILL_SUPPORTS_MULTI_REQUIREMENT_DECOMPOSITION__UPDATE_AFTER_MAIN_MERGE",
+        "plugin_current_release": "0.1.2__PRIVATE_PACKAGE_UPDATED_AND_READBACK__SMALL_LOADER_DEFERS_TO_CANONICAL_FINANCIAL_MAIN_SKILL__FRESH_SESSION_INVOCATION_OPEN",
+        "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_FETCHES_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_BUSINESS_RULES__FRESH_SESSION_INVOCATION_OPEN",
         "required_main_protection_contract": {
           "require_pull_request": true,
           "required_approving_reviews": 1,
@@ -255,22 +255,31 @@
         "repository_rulesets_count": 0,
         "real_article_status": "RESEARCH__0_OF_4_REAL_DELIVERY_ARTIFACTS__ARTICLE_PRODUCTION_OUT_OF_SCOPE",
         "last_failed_candidate_ci": {
-          "head_sha": "8ea2ff026c3c4f0bd384082d53ce8c117fb861e2",
-          "run_id": 43442332196,
+          "head_sha": "f2a659381db1a5420f5acd749bad7ce16923d60f",
+          "run_id": 43455013821,
           "conclusion": "failure",
-          "tests": "512 passed; 2 failed",
+          "tests": "522 passed; 1 failed",
           "root_causes": [
-            "Skill router exceeded the 12,000 UTF-8 byte budget after the native runtime protocol was duplicated into the Skill.",
-            "The Skill did not include the explicit fetch_file operation marker required by its static operating-entry audit."
+            "The synthetic signed-acceptance fixture hard-coded the prior private plugin release ID while the candidate manifest correctly pointed to Financial Skill 0.1.2."
           ],
-          "repair": "Moved detailed CAS protocol to docs/STANDALONE_INTERFACE.md, reduced the Skill router to 11,822 UTF-8 bytes, retained explicit native GitHub operation markers, and reran the full exact-head workflow."
+          "repair": "The fixture now obtains plugin_id and release_id from the same canonical _configured_financial_plugin_identity() function used by the release gate. Exact-head follow-up CI passed on add49c39670c467b57eb0eb8efd35d9b8e20bc21."
         },
         "repair_followup_ci": {
-          "head_sha": "332c2bfeb2cf2cbcab51a7f5058b9becaea08ec9",
-          "run_id": 43443188398,
+          "head_sha": "add49c39670c467b57eb0eb8efd35d9b8e20bc21",
+          "run_id": 43455613685,
           "conclusion": "success",
-          "tests": "514 passed",
-          "source_line_coverage_percent": 90
+          "tests": "523 passed",
+          "source_line_coverage_percent": 90,
+          "coverage_statements": 5763,
+          "coverage_missed": 572,
+          "whole_tree_inventory": {
+            "tracked_files": 304,
+            "python_ast_parsed": 112,
+            "json_parsed": 52,
+            "decoded_text_lines": 41322,
+            "warnings": 0,
+            "errors": 0
+          }
         },
         "previous_failed_candidate_ci": {
           "head_sha": "ee4b5ce2e0035c677b4b4f838bb06eab87814ae6",
@@ -299,34 +308,7 @@
         }
       },
       "plugin_current_release": "0.1.2__PRIVATE_PACKAGE_UPDATED_AND_READBACK__SMALL_LOADER_DEFERS_TO_CANONICAL_FINANCIAL_MAIN_SKILL__FRESH_SESSION_INVOCATION_OPEN",
-      "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_FETCHES_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_BUSINESS_RULES__FRESH_SESSION_INVOCATION_OPEN",
-      "last_failed_candidate_ci": {
-        "head_sha": "f2a659381db1a5420f5acd749bad7ce16923d60f",
-        "run_id": 43455013821,
-        "conclusion": "failure",
-        "tests": "522 passed; 1 failed",
-        "root_causes": [
-          "The synthetic signed-acceptance fixture hard-coded the prior private plugin release ID while the candidate manifest correctly pointed to Financial Skill 0.1.2."
-        ],
-        "repair": "The fixture now obtains plugin_id and release_id from the same canonical _configured_financial_plugin_identity() function used by the release gate. Exact-head follow-up CI passed on add49c39670c467b57eb0eb8efd35d9b8e20bc21."
-      },
-      "repair_followup_ci": {
-        "head_sha": "add49c39670c467b57eb0eb8efd35d9b8e20bc21",
-        "run_id": 43455613685,
-        "conclusion": "success",
-        "tests": "523 passed",
-        "source_line_coverage_percent": 90,
-        "coverage_statements": 5763,
-        "coverage_missed": 572,
-        "whole_tree_inventory": {
-          "tracked_files": 304,
-          "python_ast_parsed": 112,
-          "json_parsed": 52,
-          "decoded_text_lines": 41322,
-          "warnings": 0,
-          "errors": 0
-        }
-      }
+      "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_FETCHES_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_BUSINESS_RULES__FRESH_SESSION_INVOCATION_OPEN"
     }
   },
   "system_engineering_simulation_20261112": {
