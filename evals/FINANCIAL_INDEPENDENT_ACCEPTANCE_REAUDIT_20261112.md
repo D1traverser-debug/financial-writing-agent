@@ -165,3 +165,25 @@ All seven external system gates remain OPEN. The real cross-border article remai
 The owner explicitly stated that public/private visibility is not a concern and that execution results are the priority. The existing public repository visibility is therefore **owner-accepted and non-blocking** for this Financial system reconstruction. No repository visibility change, private-repository migration or public-history rewrite is required. Do not ask the owner to make this choice again or let it block engineering progress.
 
 This decision does not close the separate live system gates for authenticated user-message authority, provider CAS, Article Graph recovery, method-impact readback, native Skill/plugin activation, independent external review or protected-main/archive controls. Those remain separately evidenced and must not be fabricated from CI results.
+
+
+## Latest exact-head engineering verification and native runtime correction (2026-11-13)
+
+Candidate HEAD `332c2bfeb2cf2cbcab51a7f5058b9becaea08ec9` passed exact-head GitHub Actions run [43443188398](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43443188398):
+
+- **514 tests passed**; source-line coverage **90%** (5,759 statements; 572 missed).
+- Whole-tree inventory: **304 tracked files**, 112 Python AST parses, 52 JSON parses, 41,039 decoded text lines, **zero warnings/errors**.
+- Direct Financial import, standalone wheel/install, static single-owner and retired-artifact absence checks passed.
+- DOCX rendering and four synthetic Word binaries with per-page render/hash checks passed. These are renderer checks only, not real-article editorial acceptance.
+- The branch archive job remained **DRY_RUN / NO_MUTATION**. No branch or tag was created or deleted.
+- The machine acceptance report remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven live gates remain OPEN.
+
+A real integration-path contradiction was found and corrected: the Skill-only package did not host Python/MCP, yet the previous instructions treated the unhosted Python adapter as the only writable runtime. The candidate now documents the actual native path as ChatGPT + the Financial Skill + the user's existing GitHub connector. GitHub persistence uses exact blob SHA, Git blobs/tree/commit, expected-SHA ref update without force, and exact post-write file readback. The Python adapter is retained as an optional reference integration, not represented as a deployed chat service. The current chat session successfully performed Financial-only Git blob/tree/commit/ref writes and exact readbacks on the candidate branch; this is real connector evidence, not proof that the private Skill is installed or invoked in a fresh session.
+
+The first attempt at this correction caused a CI regression: run `43442332196` had 512 passing tests and two failures because the Skill exceeded its 12,000-byte budget and omitted the `fetch_file` marker. The detailed protocol was moved to `docs/STANDALONE_INTERFACE.md`; the Skill router is now 11,822 UTF-8 bytes and retains the required operation markers. The full subsequent exact-head run `43443188398` passed all 514 tests.
+
+The candidate deletes obsolete Financial-repository parent/UAOS artifacts, including `.uaos/`, `CAOS_SKILL.md`, `UAOS_SKILL.md`, `FINANCIAL_SKILL.md`, parent handoff/binding files, the retired root reference mirror and retired-runtime audit files. These paths are absent from the candidate tree. This is Financial-repository cleanup only; the CAOS repository and all CAOS assets remain untouched.
+
+Live system acceptance is still **NOT_READY**. Outstanding gates: authenticated owner-message/semantic approval evidence; live Article Graph transition/recovery; real method CRUD and impact readback; full provider authorization/CAS/revocation evidence; fresh-session Skill installation/invocation; independent external review of this exact candidate; and protected-main/archive administration. Production `main` remains `72cf852746a54b5f116e41f96bb8ca54b5f6838c`, unprotected; PR #67 remains open and unmerged. The current cross-border v3 article remains at RESEARCH with 0/4 real delivery artifacts; real article production is out of scope for this system-reconstruction request.
+
+No CAOS repository, code, PR, settings, assets, branch or runtime was modified.

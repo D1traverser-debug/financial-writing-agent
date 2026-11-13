@@ -140,8 +140,8 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "71994995a74decbd075caf447bd944288a2f7ab8",
-        "exact_head_ci_run": 43432683740,
+        "last_exact_ci_verified_head": "332c2bfeb2cf2cbcab51a7f5058b9becaea08ec9",
+        "exact_head_ci_run": 43443188398,
         "exact_head_tests_passed": 514,
         "source_line_coverage_percent": 90,
         "coverage_statements": 5759,
@@ -150,7 +150,7 @@
           "tracked_files": 304,
           "python_ast_parsed": 112,
           "json_parsed": 52,
-          "decoded_text_lines": 40950,
+          "decoded_text_lines": 41039,
           "warnings": 0,
           "errors": 0
         },
@@ -229,7 +229,7 @@
         "last_test_fixture_correction": "The migration regression now models a current-writing-kernel/pre-requirement state; pre-kernel historical states remain blocked. The legal INTAKE transition uses no nonexistent INTAKE artifact.",
         "branch_count": 99,
         "exact_head_ci_status": "SUCCESS",
-        "skill_utf8_bytes": 11848,
+        "skill_utf8_bytes": 11822,
         "maintenance_reference_surfaces": "TWO_BYTE_IDENTICAL",
         "problem_journal_revision": "1.9",
         "parent_upcall_execution": "REJECTED_AT_DECISION_ENVELOPE_ADMISSION__NO_PARENT_GUIDANCE_RETURN_PATH",
@@ -248,6 +248,24 @@
         "repository_rulesets_count": 0,
         "real_article_status": "RESEARCH__0_OF_4_REAL_DELIVERY_ARTIFACTS__ARTICLE_PRODUCTION_OUT_OF_SCOPE",
         "last_failed_candidate_ci": {
+          "head_sha": "8ea2ff026c3c4f0bd384082d53ce8c117fb861e2",
+          "run_id": 43442332196,
+          "conclusion": "failure",
+          "tests": "512 passed; 2 failed",
+          "root_causes": [
+            "Skill router exceeded the 12,000 UTF-8 byte budget after the native runtime protocol was duplicated into the Skill.",
+            "The Skill did not include the explicit fetch_file operation marker required by its static operating-entry audit."
+          ],
+          "repair": "Moved detailed CAS protocol to docs/STANDALONE_INTERFACE.md, reduced the Skill router to 11,822 UTF-8 bytes, retained explicit native GitHub operation markers, and reran the full exact-head workflow."
+        },
+        "repair_followup_ci": {
+          "head_sha": "332c2bfeb2cf2cbcab51a7f5058b9becaea08ec9",
+          "run_id": 43443188398,
+          "conclusion": "success",
+          "tests": "514 passed",
+          "source_line_coverage_percent": 90
+        },
+        "previous_failed_candidate_ci": {
           "head_sha": "ee4b5ce2e0035c677b4b4f838bb06eab87814ae6",
           "run_id": 43403116634,
           "conclusion": "failure",
@@ -257,11 +275,20 @@
             "journal test asserted stale revision"
           ]
         },
-        "repair_followup_ci": {
-          "head_sha": "f783b6dc91c113a6c504f1171e5a4fa8850d5d3c",
-          "run_id": 43403603151,
-          "conclusion": "success",
-          "tests": "513 passed"
+        "native_chatgpt_runtime": {
+          "status": "DOCUMENTED__LIVE_GITHUB_GITDATA_WRITE_AND_EXACT_READBACK_VERIFIED_IN_CURRENT_CHAT",
+          "runtime": "CHATGPT_MODEL_PLUS_FINANCIAL_SKILL_PLUS_CONNECTED_GITHUB_CONNECTOR",
+          "custom_hosted_python_mcp_required": false,
+          "verified_commit": "2c2a9208a0ba2c8837ef4d7335f911b6eb2f61fa",
+          "verified_paths": [
+            "skills/financial-writing-agent/SKILL.md",
+            "README.md",
+            "docs/STANDALONE_INTERFACE.md",
+            "docs/architecture.md",
+            "config/FINANCIAL_MANIFEST.json"
+          ],
+          "skill_router_utf8_bytes": 11822,
+          "remaining": "FRESH_SESSION_PLUGIN_INSTALLATION_AND_INVOCATION_NOT_VERIFIED__INDEPENDENT_REVIEW_AND_PROTECTED_MAIN_OPEN"
         }
       }
     }
