@@ -296,7 +296,9 @@
     "explicit_owner_semantic_verifier": "financial_writing_agent.intent_governance.verify_requirement_change_intent(owner_semantic_verifier=...)",
     "binding_without_provider": "BLOCK_WITHOUT_STATE_MUTATION",
     "private_chatgpt_plugin": "plugins_6af591b19a708191a3879e94a7ce8742",
-    "plugin_live_client_status": "NOT_VERIFIED__USER_INSTALL_REQUIRED"
+    "plugin_live_client_status": "NOT_VERIFIED__USER_INSTALL_REQUIRED",
+    "requirement_decomposition": "MULTIPLE_SCOPED_REQUIREMENTS_FROM_ONE_FULL_USER_UTTERANCE_ALLOWED_ONLY_AFTER_SIGNED_OWNER_CONFIRMATION_OF_EXACT_CANONICAL_MUTATION",
+    "no_confirmation": "BLOCK_WITHOUT_STATE_MUTATION"
   },
   "system_acceptance": {
     "status": "NOT_READY__EXTERNAL_EVIDENCE_OPEN",
