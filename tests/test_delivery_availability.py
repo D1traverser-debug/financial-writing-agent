@@ -347,3 +347,39 @@ def test_current_visible_delivery_rejects_zip_valid_but_word_xml_corrupt():
             resource_verifier=lambda _: True,
             resource_binary_reader=lambda ref: {"content": source_bytes[ref]},
         )
+
+
+def test_current_visible_delivery_accepts_real_parseable_word_bytes_after_final_audit():
+    # Legitimate neighbor of the corrupt-XML and premature-state rejection cases.
+    from io import BytesIO
+    from docx import Document
+
+    state = _state()
+    state["writing_kernel_version"] = "1.0"
+    state["current_stage"] = "FINAL_AUDIT"
+    state["review_decisions"] = {
+        "FINAL_AUDIT": {"status": "PASS", "assurance": "CHAT_SELF_REVIEW"},
+    }
+    resources = []
+    bytes_by_ref = {}
+    for kind in state["required_outputs"]:
+        stream = BytesIO()
+        word = Document()
+        word.add_paragraph(f"Verified real Word content for {kind}.")
+        word.save(stream)
+        data = stream.getvalue()
+        digest = hashlib.sha256(data).hexdigest()
+        state["delivery_artifacts"][kind]["sha256"] = digest
+        resource = _resource(kind, f"{kind.lower()}.docx", digest)
+        resources.append(resource)
+        bytes_by_ref[resource["resource_ref"]] = data
+    ready = build_visible_delivery_receipt(
+        state,
+        resources=resources,
+        resource_verifier=lambda _: True,
+        resource_binary_reader=lambda ref: {"content": bytes_by_ref[ref]},
+    )
+    assert ready["status"] == "VISIBLE_DELIVERY_READY"
+    assert set(ready["presented_artifacts"]) == set(state["required_outputs"])
+    assert ready["business_state_status"] == "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN"
+    assert "NOT_A_SECOND_TASK_STATE_AUTHORITY" in ready["assurance_boundary"]
