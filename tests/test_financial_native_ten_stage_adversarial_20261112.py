@@ -7,6 +7,7 @@ asserted from this transport-only simulation.
 from __future__ import annotations
 
 from copy import deepcopy
+from datetime import datetime, timedelta, timezone
 import hashlib
 import struct
 import zlib
@@ -432,3 +433,54 @@ def test_final_audit_rejects_private_research_resource_without_current_provider_
             "supplemental_delivery_artifacts": [private_meta],
         })
     assert p.states == frozen
+
+
+def test_delivery_blocks_when_research_source_snapshots_are_older_than_seven_days(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    stale = (datetime.now(timezone.utc) - timedelta(days=8)).isoformat()
+    for source in p.sources.values():
+        source["retrieved_at"] = stale
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="CURRENT_RESEARCH_SOURCE_SNAPSHOT_STALE_OR_FUTURE"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "DELIVERY"
+
+
+def test_final_audit_blocks_if_research_source_bytes_changed_after_research(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    source_ref = sorted(p.sources)[0]
+    p.sources[source_ref]["text"] += " 后续版本出现了新的实质内容。"
+    p.sources[source_ref]["sha256"] = hashlib.sha256(
+        p.sources[source_ref]["text"].encode("utf-8")
+    ).hexdigest()
+    p.sources[source_ref]["retrieved_at"] = datetime.now(timezone.utc).isoformat()
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="CURRENT_RESEARCH_SOURCE_BYTES_CHANGED"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
