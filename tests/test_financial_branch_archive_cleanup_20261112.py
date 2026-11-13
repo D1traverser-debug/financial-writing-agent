@@ -36,6 +36,7 @@ class FakeAPI:
         self.move_main_on_inventory_read = None
         self.ambiguous_delete = set()
         self.unprotect_main_after_delete = False
+        self.change_main_protection_after_delete = False
         self.main_protection_state = {
             "pull_requests_required": True,
             "required_approving_review_count": 1,
@@ -126,6 +127,8 @@ class FakeAPI:
         if self.unprotect_main_after_delete:
             self.branches["main"]["protected"] = False
             self.main_protection_state["pull_requests_required"] = False
+        if self.change_main_protection_after_delete:
+            self.main_protection_state["required_approving_review_count"] = 2
         if name in self.ambiguous_delete:
             return {"branch": name, "status": "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"}
         return {"branch": name, "status": "DELETE_AND_READBACK_VERIFIED"}
@@ -363,6 +366,7 @@ def test_prune_stops_if_main_protection_is_removed_between_deletions(tmp_path):
                         out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert report["complete"] is False
     assert report["main_protected_after"] is False
+    assert report["main_protection_verified_after"] is False
     assert "old/two" in api.branches
     assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
     assert api.tags == {"old/one": B, "old/two": C}
@@ -505,3 +509,31 @@ def test_prune_refuses_if_required_main_ci_check_is_removed_after_archive(tmp_pa
                    out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert set(api.branches) == {"main", "old/one", "old/two"}
     assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_rejects_a_valid_but_changed_main_protection_snapshot_after_archive(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.main_protection_state["required_approving_review_count"] = 2
+    with pytest.raises(ValueError, match="MAIN_PROTECTION_CHANGED_AFTER_ARCHIVE"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_stops_if_valid_main_protection_changes_between_branch_deletions(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.change_main_protection_after_delete = True
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["main_protection_verified_after"] is False
+    assert "old/two" in api.branches
+    assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
+    assert api.tags == {"old/one": B, "old/two": C}
