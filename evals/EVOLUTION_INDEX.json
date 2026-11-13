@@ -140,17 +140,17 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "6c6f73e39d03a7f811abd34d35da081206b40968",
-        "exact_head_ci_run": 43430043693,
+        "last_exact_ci_verified_head": "71994995a74decbd075caf447bd944288a2f7ab8",
+        "exact_head_ci_run": 43432683740,
         "exact_head_tests_passed": 514,
         "source_line_coverage_percent": 90,
         "coverage_statements": 5759,
         "coverage_missed": 572,
         "whole_tree_inventory": {
-          "tracked_files": 314,
+          "tracked_files": 304,
           "python_ast_parsed": 112,
-          "json_parsed": 53,
-          "decoded_text_lines": 42017,
+          "json_parsed": 52,
+          "decoded_text_lines": 40950,
           "warnings": 0,
           "errors": 0
         },
@@ -246,7 +246,7 @@
           "follow_up": "Do not spend further execution cycles asking the owner to choose public/private visibility or migrate the repository."
         },
         "repository_rulesets_count": 0,
-        "real_article_status": "RESEARCH__0_OF_4_REAL_DELIVERY_ARTIFACTS",
+        "real_article_status": "RESEARCH__0_OF_4_REAL_DELIVERY_ARTIFACTS__ARTICLE_PRODUCTION_OUT_OF_SCOPE",
         "last_failed_candidate_ci": {
           "head_sha": "ee4b5ce2e0035c677b4b4f838bb06eab87814ae6",
           "run_id": 43403116634,
