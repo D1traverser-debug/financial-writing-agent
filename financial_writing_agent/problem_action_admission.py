@@ -74,6 +74,7 @@ def finalize_problem_action(
     repair_verified: bool,
     blocker_reason: str | None = None,
     no_change_evidence: Iterable[str] | None = None,
+    # Retained only for callers deserializing legacy requests; never authorizes delegation.
     parent_upcall_ref: str | None = None,
 ) -> ProblemClosureDecision:
     """Enforce DecisionEnvelope -> RootScopeReceipt -> EvolutionDisposition -> action.
@@ -109,8 +110,7 @@ def finalize_problem_action(
         envelope.operation_class is OperationClass.MATERIAL_JUDGMENT
         or envelope.systemic_problem_signal
         or envelope.architecture_or_governance_change
-        or envelope.evolution_disposition
-        in {EvolutionDisposition.DOMAIN_CANDIDATE, EvolutionDisposition.PARENT_UPCALL}
+        or envelope.evolution_disposition is EvolutionDisposition.DOMAIN_CANDIDATE
     )
     if durable_required and not (
         isinstance(envelope.problem_record_ref, str) and envelope.problem_record_ref.strip()
@@ -137,5 +137,5 @@ def finalize_problem_action(
     if no_change:
         return ProblemClosureDecision.NO_CHANGE_WITH_EVIDENCE
     raise ProblemActionAdmissionError(
-        "problem action denied: no verified repair, concrete blocker, evidence-backed no-change, or governed parent upcall"
+        "problem action denied: no verified repair, concrete blocker, or evidence-backed no-change"
     )

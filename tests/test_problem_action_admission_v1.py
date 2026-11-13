@@ -202,3 +202,24 @@ def test_standalone_financial_rejects_legacy_parent_upcall_disposition():
             repair_verified=False,
             parent_upcall_ref="legacy://parent-guidance",
         )
+
+
+
+def test_legacy_parent_upcall_is_not_a_durable_evolution_disposition():
+    envelope = _envelope().model_copy(
+        update={
+            "evolution_disposition": EvolutionDisposition.PARENT_UPCALL,
+            "problem_record_ref": None,
+            "knowledge_writeback_candidates": [],
+        }
+    )
+    with pytest.raises(ProblemActionAdmissionError, match="standalone Financial cannot emit a parent upcall"):
+        finalize_problem_action(
+            envelope,
+            repair_path_available=False,
+            owner_authorized=False,
+            explicit_user_choice_required=False,
+            repair_attempted=False,
+            repair_verified=False,
+            parent_upcall_ref="legacy://parent-guidance",
+        )

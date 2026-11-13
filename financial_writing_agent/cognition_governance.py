@@ -284,7 +284,7 @@ class DecisionEnvelope(StrictModel):
                 if not self.architecture_reassessment_refs:
                     raise ValueError("systemic problem requires architecture reassessment evidence")
 
-            if self.evolution_disposition in {EvolutionDisposition.DOMAIN_CANDIDATE, EvolutionDisposition.PARENT_UPCALL} and not self.problem_record_ref:
+            if self.evolution_disposition is EvolutionDisposition.DOMAIN_CANDIDATE and not self.problem_record_ref:
                 raise ValueError("evolution-relevant problem requires a durable problem_record_ref")
         return self
 
@@ -335,9 +335,6 @@ def admission_errors(envelope: DecisionEnvelope) -> list[str]:
             errors.append("triggered problem/architecture decision lacks required external method evidence")
         if envelope.problem_triggered and envelope.root_scope_receipt() is None:
             errors.append("problem-triggered decision lacks an admitted root-scope receipt")
-        if envelope.evolution_disposition in {
-            EvolutionDisposition.DOMAIN_CANDIDATE,
-            EvolutionDisposition.PARENT_UPCALL,
-        } and not envelope.knowledge_writeback_candidates:
+        if envelope.evolution_disposition is EvolutionDisposition.DOMAIN_CANDIDATE and not envelope.knowledge_writeback_candidates:
             errors.append("evolution-relevant decision needs durable learning/writeback candidate evidence")
     return errors
