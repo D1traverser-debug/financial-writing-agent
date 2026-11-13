@@ -379,7 +379,7 @@ def test_owner_goal_gate_accepts_only_matching_signed_source_and_change():
     assert "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION" not in result["open_gates"]
 
 
-def _resign_owner_gate(proofs, evidence, gate):
+def _resign_owner_gate(proofs, evidence, gate="ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION"):
     proofs[gate] = signed_attestation(
         "system_gate", actor="synthetic-financial-owner",
         key_env="FINANCIAL_PROVIDER_ATTESTATION_KEY",
