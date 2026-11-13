@@ -99,6 +99,37 @@ def test_requirement_satisfaction_source_refs_require_actual_readback_and_do_not
     assert readback["assurance"] == "SOURCE_BYTE_READBACK_ONLY__SEMANTIC_SUPPORT_NOT_CERTIFIED"
 
 
+def test_requirement_satisfaction_must_bind_the_actual_current_stage_artifact():
+    from financial_writing_agent.standalone_runtime import _verify_requirement_satisfaction_sources
+
+    satisfaction = [{
+        "requirement_id": "draft-structure",
+        "result": "SATISFIED",
+        "evidence_refs": ["source://issuer-universe"],
+    }]
+    sources = {"snapshots": [{
+        "source_ref_sha256": hashlib.sha256(b"source://issuer-universe").hexdigest(),
+        "body_sha256": "a" * 64,
+        "source_family": "issuer-filing",
+        "retrieved_at": datetime.now(timezone.utc).isoformat(),
+    }]}
+    with pytest.raises(FinancialAdmissionError, match="CURRENT_STAGE_ARTIFACT_NOT_BOUND"):
+        _verify_requirement_satisfaction_sources(
+            satisfaction, sources,
+            stage_artifact_path="workspaces/articles/synthetic-financial-loop/stages/DRAFT.json",
+        )
+
+    satisfaction[0]["evidence_refs"].append(
+        "workspaces/articles/synthetic-financial-loop/stages/DRAFT.json"
+    )
+    proof = _verify_requirement_satisfaction_sources(
+        satisfaction, sources,
+        stage_artifact_path="workspaces/articles/synthetic-financial-loop/stages/DRAFT.json",
+    )
+    assert proof["checked_evidence_ref_count"] == 2
+    assert proof["semantic_support_verified"] is False
+
+
 def make():
     p = Provider()
     act(p, "CREATE_ARTICLE", {"prompt": "Synthetic financial systems transition replay"})
