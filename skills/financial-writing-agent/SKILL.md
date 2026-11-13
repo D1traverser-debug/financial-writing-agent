@@ -46,7 +46,7 @@ If PublicationFitness claims INDEPENDENT_EXECUTOR, the host must provide a real 
 
 ## Method governance and evolution
 
-CHANGE_REQUIREMENTS needs a provider-signed complete original user utterance and explicit approval bound to source SHA-256 and canonical full mutation SHA-256. Selective excerpts, Boolean callbacks and model-authored actors fail closed. Action authorization is separately signed and bound to action/task/operation, full request digest and expected prior state SHA. Ideas remain nonbinding RECORD_OWNER_INTENT.
+CHANGE_REQUIREMENTS preserves the complete provider-authenticated original user utterance and rejects selective excerpts. The utterance is source evidence, not a requirement-template constraint: decompose a complex instruction into multiple scoped, traceable requirements when appropriate. Before any write, show the complete normalized upsert/retire set for explicit owner confirmation; the trusted provider must sign that exact mutation, bound to the full source SHA-256 and canonical mutation SHA-256. A source hash alone, Boolean callback, model-authored actor or unconfirmed proposal never authorizes a write. Action authorization is separately signed and bound to action/task/operation, full request digest and expected prior state SHA. Ideas remain nonbinding RECORD_OWNER_INTENT.
 
 Method CRUD uses observe_method_catalog/admit_method_action, staged revisions, signed independent promotion, non-destructive retirement and signed impact review. Re-read and verify complete signed receipts on catalog reads; prevent replay; an ACTIVE method must match its latest signed promotion. Production still needs a separate real provider/reviewer trust adapter. Full contract: docs/STANDALONE_INTERFACE.md and references/maintenance.md.
 
