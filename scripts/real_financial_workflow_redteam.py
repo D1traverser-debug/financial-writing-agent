@@ -51,6 +51,28 @@ def run() -> dict:
     raw_state = state_path.read_bytes()
     state = json.loads(raw_state)
     validate_state(state)
+    # A complete-looking set of Word resources must not turn an unfinished
+    # article into a visible, user-deliverable FINAL_AUDIT result.
+    from financial_writing_agent.delivery_availability import (
+        DeliveryAvailabilityError, build_visible_delivery_receipt,
+    )
+    for blocked_status in ("IN_PROGRESS", "BLOCKED"):
+        fake_ready = dict(state)
+        fake_ready["status"] = blocked_status
+        fake_ready["delivery_artifacts"] = {
+            kind: {"sha256": "a" * 64} for kind in state["required_outputs"]
+        }
+        try:
+            build_visible_delivery_receipt(
+                fake_ready, resources=[], resource_verifier=lambda _: True,
+            )
+        except DeliveryAvailabilityError as exc:
+            assert "VISIBLE_DELIVERY_REQUIRES_TERMINAL_ARTICLE_STATE" in str(exc)
+        else:
+            raise AssertionError("nonterminal article was certified for visible delivery")
+    observations["00_live_delivery_state_gate"] = (
+        "PASS__NONTERMINAL_AND_BLOCKED_WORD_RESOURCE_REPLAY_REJECTED"
+    )
     observations["01_actual_article_state"] = {
         "stage": state["current_stage"],
         "status": state["status"],
