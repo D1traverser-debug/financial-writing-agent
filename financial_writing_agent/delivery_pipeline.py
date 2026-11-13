@@ -223,6 +223,23 @@ def build_verified_article_docx(
             )
         except ValueError as exc:
             raise CanonicalDeliveryError(f"current task publication scope failed: {exc}") from exc
+        draft_ref = task_state.get("stage_artifacts", {}).get("DRAFT")
+        _require(isinstance(draft_ref, Mapping), "CURRENT_TASK_DRAFT_ARTIFACT_REQUIRED")
+        draft_path = draft_ref.get("path")
+        draft_blob_sha = draft_ref.get("blob_sha")
+        try:
+            canonical_draft_path = require_article_path(draft_path, str(task_state["task_id"]))
+        except (KeyError, ValueError) as exc:
+            raise CanonicalDeliveryError("CURRENT_TASK_DRAFT_ARTIFACT_PATH_INVALID") from exc
+        _require(
+            isinstance(draft_blob_sha, str) and re.fullmatch(r"[a-f0-9]{40}", draft_blob_sha) is not None,
+            "CURRENT_TASK_DRAFT_ARTIFACT_BLOB_SHA_INVALID",
+        )
+        task_scope_binding = {
+            **dict(task_scope_binding),
+            "draft_artifact_path": canonical_draft_path,
+            "draft_artifact_blob_sha": draft_blob_sha,
+        }
         if claim_bindings is not None:
             from .claim_trace import verify_publication_source_trace
 
@@ -439,6 +456,24 @@ def finalize_delivery_evidence(
     _require(bool(str(source_ref).strip()), "source_ref is required")
     _require(bool(str(source_identity).strip()), "source_identity is required")
     binding = build_receipt.get("task_scope_binding")
+    artifact_kind = str(build_receipt.get("artifact_kind", ""))
+    if artifact_kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+        _require(isinstance(binding, Mapping), "CURRENT_WORD_TASK_SCOPE_BINDING_REQUIRED")
+        _require(
+            binding.get("mode") == artifact_kind.removesuffix("_DOCX"),
+            "CURRENT_WORD_TASK_SCOPE_MODE_MISMATCH",
+        )
+        _require(
+            isinstance(binding.get("draft_artifact_path"), str)
+            and isinstance(binding.get("draft_artifact_blob_sha"), str)
+            and re.fullmatch(r"[a-f0-9]{40}", str(binding.get("draft_artifact_blob_sha"))) is not None,
+            "CURRENT_WORD_TASK_DRAFT_BINDING_REQUIRED",
+        )
+        _require(
+            source_ref == binding.get("draft_artifact_path")
+            and source_identity == f"git-blob:{binding.get('draft_artifact_blob_sha')}",
+            "CURRENT_WORD_TASK_DRAFT_IDENTITY_MISMATCH",
+        )
     # Every visible Word artifact, including generic audit/interaction outputs,
     # must have an actual current-session render/page receipt. PASS strings alone
     # cannot stand in for rendering the exact DOCX bytes.
@@ -508,15 +543,44 @@ def validate_delivery_evidence(resource: Mapping[str, Any]) -> None:
     _verify_render_inspection_receipt(
         evidence.get("render_inspection_receipt"), evidence.get("artifact_sha256"),
     )
-    if evidence.get("task_scope_binding") is not None:
+    artifact_kind = str(evidence.get("artifact_kind", ""))
+    binding = evidence.get("task_scope_binding")
+    if artifact_kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+        _require(isinstance(binding, Mapping), "CURRENT_WORD_TASK_SCOPE_BINDING_REQUIRED")
+        _require(
+            binding.get("mode") == artifact_kind.removesuffix("_DOCX"),
+            "CURRENT_WORD_TASK_SCOPE_MODE_MISMATCH",
+        )
+        _require(
+            isinstance(binding.get("task_id"), str) and bool(binding.get("task_id"))
+            and isinstance(binding.get("requirement_digest"), str)
+            and re.fullmatch(r"[a-f0-9]{64}", binding["requirement_digest"]) is not None
+            and type(binding.get("requirement_revision")) is int
+            and binding["requirement_revision"] >= 0
+            and binding.get("observed_stage") == "DELIVERY",
+            "CURRENT_WORD_TASK_SCOPE_BINDING_INVALID",
+        )
+        _require(
+            isinstance(binding.get("draft_artifact_path"), str)
+            and isinstance(binding.get("draft_artifact_blob_sha"), str)
+            and re.fullmatch(r"[a-f0-9]{40}", binding["draft_artifact_blob_sha"]) is not None,
+            "CURRENT_WORD_TASK_DRAFT_BINDING_REQUIRED",
+        )
+    if binding is not None:
         trace = evidence.get("claim_trace_binding")
         from .claim_trace import SOURCE_TRACE_ASSURANCE
 
         _require(isinstance(trace, Mapping), "CURRENT_WORD_SOURCE_TRACE_REQUIRED")
         _require(trace.get("assurance") == SOURCE_TRACE_ASSURANCE,
                  "CURRENT_WORD_SOURCE_TRACE_ASSURANCE_INVALID")
-        _require(trace.get("task_id") == evidence["task_scope_binding"].get("task_id"),
+        _require(trace.get("task_id") == binding.get("task_id"),
                  "CURRENT_WORD_SOURCE_TRACE_TASK_MISMATCH")
+        _require(
+            type(trace.get("traced_block_count")) is int and trace["traced_block_count"] >= 1
+            and type(trace.get("read_source_snapshot_count")) is int
+            and trace["read_source_snapshot_count"] >= 1,
+            "CURRENT_WORD_SOURCE_TRACE_COVERAGE_MISSING",
+        )
     for gate in ("mechanical_qa", "constraint_qa", "render_qa", "visual_qa"):
         _require(evidence.get(gate) == "PASS", f"delivery evidence requires {gate}=PASS")
     _require(bool(str(evidence.get("source_ref", "")).strip()), "delivery evidence source_ref is required")
