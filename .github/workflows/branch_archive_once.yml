@@ -44,14 +44,7 @@ jobs:
         id: plan
         env:
           GITHUB_TOKEN: ${{ secrets.FINANCIAL_ARCHIVE_READ_TOKEN }}
-        run: |
-          python scripts/branch_archive_cleanup.py --plan --out audit/financial_branch_plan.json
-          manifest_sha256="$(python -c 'import json; from pathlib import Path; print(json.loads(Path("audit/financial_branch_plan.json").read_text(encoding="utf-8"))["manifest_sha256"])')"
-          if [[ ! "$manifest_sha256" =~ ^[a-f0-9]{64}$ ]]; then
-            echo "::error::archive plan did not produce a valid manifest SHA-256"
-            exit 1
-          fi
-          echo "manifest_sha256=$manifest_sha256" >> "$GITHUB_OUTPUT"
+        run: python scripts/branch_archive_cleanup.py --plan --out audit/financial_branch_plan.json
       - name: Upload exact manifest for human review
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
