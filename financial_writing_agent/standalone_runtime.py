@@ -664,6 +664,14 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
     current_admission.validate_state(state)
     authorization_history = _verify_persisted_action_authorization_history(state)
     authority = state["task_requirement_authority"]
+    visible_delivery_receipt = None
+    for receipt in reversed(state.get("execution_receipts", [])):
+        if not isinstance(receipt, Mapping):
+            continue
+        bindings = receipt.get("input_bindings", {})
+        if isinstance(bindings, Mapping) and isinstance(bindings.get("visible_delivery_receipt"), Mapping):
+            visible_delivery_receipt = dict(bindings["visible_delivery_receipt"])
+            break
     open_impacts = [
         {"signal_id": entry.get("signal_id"), "status": entry.get("status")}
         for entry in state.get("open_system_impact", [])
@@ -692,6 +700,11 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
         "requirement_digest": state["task_requirement_digest"],
         "required_outputs": list(state["required_outputs"]),
         "recorded_outputs": sorted(state.get("delivery_artifacts", {})),
+        "visible_delivery_status": (
+            visible_delivery_receipt.get("status")
+            if visible_delivery_receipt is not None else "NOT_VERIFIED"
+        ),
+        "visible_delivery_receipt": visible_delivery_receipt,
         "authorization_history": authorization_history,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
