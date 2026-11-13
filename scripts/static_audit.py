@@ -23,7 +23,10 @@ def main():
     require(manifest["skill_entrypoint"]==caps["entrypoint"]=="skills/financial-writing-agent/SKILL.md","Financial Skill entrypoint mismatch")
     require(manifest["data_authority"]==contract["authority"]["data_authority"]=="config/DATA_AUTHORITY.json","data authority pointer mismatch")
     require(manifest["state_authority"]==data["article_state_pattern"]=="workspaces/articles/{task_id}/STATE.json","Article Aggregate identity changed")
-    require(manifest["provider_adapter"]=="financial_writing_agent.standalone_runtime","Financial provider entry missing")
+    require(manifest["provider_adapter"]=="financial_writing_agent.standalone_runtime","Financial reference adapter entry missing")
+    native=manifest["chatgpt_native_runtime"]
+    require(native["orchestrator"]=="CHATGPT_MODEL_WITH_FINANCIAL_SKILL" and native["persistence_provider"]=="CONNECTED_USER_GITHUB_CONNECTOR","native ChatGPT runtime/provider missing")
+    require(native["requires_hosted_python_mcp"] is False and native["write_protocol"]=="GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA","native GitHub CAS contract drift")
     require(manifest["external_parent_required"] is False and manifest["external_host_required"] is False,"external parent/Host became mandatory")
     require(caps["independent_parent_free"] is True and caps["independence_clause"]=="NO_EXTERNAL_PARENT_REPOSITORY_OR_HOST_INVOCATION","external runtime dependency declared")
     require(contract["execution"]["route_selection"]=="DIRECT_FINANCIAL_ONLY" and contract["execution"]["direct_domain_activation"] is True,"execution is no longer direct Financial")
@@ -33,7 +36,7 @@ def main():
     require(data["no_parallel_article_ledger"] is True and data["no_external_parent_runtime"] is True,"parallel state or external parent runtime enabled")
     for relative in RETIRED_ARTIFACTS: require(not (ROOT/relative).exists(),f"retired Financial artifact remains: {relative}")
     skill=(ROOT/manifest["skill_entrypoint"]).read_text(encoding="utf-8")
-    for marker in ("Independent Operating Skill","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no external parent","article","originality"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty: {marker}")
+    for marker in ("Independent Operating Skill","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no external parent","article","originality","create_blob","create_tree","create_commit","update_ref","expected_sha","fetch_file"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty/runtime protocol: {marker}")
     from financial_writing_agent.standalone_runtime import DOMAIN_ID,OPERATIONS
     require(DOMAIN_ID=="financial_writing","Financial standalone module domain drift")
     require({"CREATE_ARTICLE","ADVANCE_STAGE","CHANGE_REQUIREMENTS","ATTACH_FEEDBACK","RESUME_BLOCKED","RECORD_PROACTIVE_RESOLUTION","REVIEW_SYSTEM_IMPACT"}<=OPERATIONS,"owner mutation operations incomplete")

@@ -312,5 +312,26 @@
     "self_attested_pass_allowed": false,
     "unit_test_count_is_release_proof": false,
     "article_product_outcome": "SEPARATE_SCOPE_NOT_REQUESTED"
+  },
+  "chatgpt_native_execution": {
+    "active_for_skill_sessions": true,
+    "orchestrator": "CHATGPT_MODEL_WITH_FINANCIAL_SKILL",
+    "persistence_provider": "CONNECTED_USER_GITHUB_CONNECTOR",
+    "read_operations": [
+      "get_repo",
+      "fetch_file"
+    ],
+    "single_file_write": "update_file_WITH_EXACT_CURRENT_BLOB_SHA_THEN_FETCH_READBACK",
+    "atomic_multi_file_write": [
+      "create_blob_FOR_EACH_TEXT_OR_BINARY_ARTIFACT",
+      "create_tree_FROM_EXACT_CURRENT_MAIN_TREE_SHA",
+      "create_commit_PARENTED_TO_EXACT_CURRENT_MAIN_HEAD",
+      "update_ref_MAIN_WITH_EXPECTED_SHA_AND_FORCE_FALSE",
+      "fetch_EVERY_CHANGED_PATH_AT_RESULTING_COMMIT_SHA"
+    ],
+    "binary_artifact_write": "create_blob_ENCODING_BASE64",
+    "stale_write_behavior": "STOP_REREAD_MAIN_RECONSTRUCT_AND_RECOMPUTE__NEVER_FORCE",
+    "binding_requirement_authorization": "EXPLICIT_OWNER_CONFIRMATION_IN_CURRENT_CONVERSATION_AFTER_FULL_NORMALIZED_CHANGE",
+    "python_adapter_role": "OPTIONAL_REFERENCE_IMPLEMENTATION_AND_CI_TEST_TARGET_NOT_ACTIVE_CHAT_CALL"
   }
 }

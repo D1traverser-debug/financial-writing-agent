@@ -17,5 +17,9 @@
     "actual_github_provider_CAS",
     "independent_external_reviewer"
   ],
-  "caos_dependency": "NONE"
+  "caos_dependency": "NONE",
+  "active_execution_model": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR",
+  "required_companion_connector": "GITHUB_CONNECTOR_READ_WRITE",
+  "custom_hosted_python_mcp_required": false,
+  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA_AND_EXACT_READBACK"
 }

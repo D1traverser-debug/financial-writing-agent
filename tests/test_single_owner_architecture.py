@@ -25,6 +25,11 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["external_host_required"] is False
     assert manifest["state_authority"] == "workspaces/articles/{task_id}/STATE.json"
     assert manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime"
+    native = manifest["chatgpt_native_runtime"]
+    assert native["orchestrator"] == "CHATGPT_MODEL_WITH_FINANCIAL_SKILL"
+    assert native["persistence_provider"] == "CONNECTED_USER_GITHUB_CONNECTOR"
+    assert native["write_protocol"] == "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA"
+    assert native["requires_hosted_python_mcp"] is False
     assert execution["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
     assert execution["execution"]["live_parent_business_proxy_required"] is False
     assert execution["authority"]["alternate_business_state_authority_allowed"] is False
@@ -68,6 +73,8 @@ def test_discovery_skill_is_real_operating_entry_not_second_parent_pointer():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     assert "Independent Operating Skill" in skill
     assert "standalone_runtime.py" in skill
+    for marker in ("create_blob", "create_tree", "create_commit", "update_ref", "expected_sha", "fetch_file"):
+        assert marker in skill
     assert "Decision" in skill and "Execution" in skill
     assert "PrivateResearchBrief" in skill
     assert "continuity/" not in skill
