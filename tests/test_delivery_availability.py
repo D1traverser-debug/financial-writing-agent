@@ -307,3 +307,43 @@ def test_current_word_delivery_refuses_missing_failing_or_misattributed_final_au
         build_visible_delivery_receipt(
             state, resources=_canonical_resources(), resource_verifier=lambda _: True,
         )
+
+
+def test_current_visible_delivery_rejects_zip_valid_but_word_xml_corrupt():
+    # A DOCX can pass ZIP CRC and contain both expected entry names while its
+    # WordprocessingML cannot be opened. The visible-delivery gate must reject it.
+    from io import BytesIO
+    from zipfile import ZipFile
+    from docx import Document
+
+    state = _state()
+    state["writing_kernel_version"] = "1.0"
+    state["current_stage"] = "FINAL_AUDIT"
+    state["review_decisions"] = {
+        "FINAL_AUDIT": {"status": "PASS", "assurance": "CHAT_SELF_REVIEW"},
+    }
+    resources = []
+    source_bytes = {}
+    for kind in state["required_outputs"]:
+        stream = BytesIO()
+        if kind == "FINANCE_DEEP_DOCX":
+            with ZipFile(stream, "w") as archive:
+                archive.writestr("[Content_Types].xml", "<Types/>")
+                archive.writestr("word/document.xml", "<w:document>")
+        else:
+            doc = Document()
+            doc.add_paragraph("This is a synthetically rendered Word artifact.")
+            doc.save(stream)
+        content = stream.getvalue()
+        digest = hashlib.sha256(content).hexdigest()
+        state["delivery_artifacts"][kind]["sha256"] = digest
+        resource = _resource(kind, f"{kind.lower()}.docx", digest)
+        resources.append(resource)
+        source_bytes[resource["resource_ref"]] = content
+    with pytest.raises(DeliveryAvailabilityError, match="current DOCX Word package is unreadable"):
+        build_visible_delivery_receipt(
+            state,
+            resources=resources,
+            resource_verifier=lambda _: True,
+            resource_binary_reader=lambda ref: {"content": source_bytes[ref]},
+        )

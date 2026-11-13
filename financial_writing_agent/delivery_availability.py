@@ -5,6 +5,7 @@ import json
 from io import BytesIO
 from zipfile import BadZipFile, ZipFile
 from typing import Any, Callable, Mapping
+from docx import Document
 
 from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
 from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidence
@@ -205,6 +206,15 @@ def build_visible_delivery_receipt(
                              f"{kind} current DOCX has corrupt ZIP entries")
             except BadZipFile as exc:
                 raise DeliveryAvailabilityError(f"{kind} current DOCX zip is invalid") from exc
+            # CRC and ZIP entry names alone do not prove valid WordprocessingML.
+            # Parse the exact bytes being shown to the user, not a local filename
+            # or the builder's earlier promise about the same artifact.
+            try:
+                Document(BytesIO(content))
+            except Exception as exc:
+                raise DeliveryAvailabilityError(
+                    f"{kind} current DOCX Word package is unreadable"
+                ) from exc
 
         try:
             validate_delivery_evidence(resource)
