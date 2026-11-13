@@ -83,3 +83,10 @@ A second review of the acceptance evaluator found three evidence-binding gaps th
 New negative cases cover missing or mismatched original-message attestation, wrong source digest, arbitrary confirmation references, mismatched change digest, wrong plugin/release, unprotected main, force-push/deletion allowance, missing required check and unverified archive tags. These changes do not fabricate any external gate receipt; all seven live gates remain OPEN until their real providers return evidence against the exact promoted main SHA.
 
 The repair remains Financial-only. No real article, current article STATE.json, CAOS repository, CAOS PR, plugin setting or user private source was changed by these acceptance-gate corrections.
+
+
+## Archive workflow execution-path correction (2026-11-13)
+
+The branch archive PLAN job previously declared a downstream `manifest_sha256` output but did not write that value to `$GITHUB_OUTPUT`. The ARCHIVE job therefore received an empty approval digest and would fail closed before creating archive tags. The PLAN step now reads the generated manifest JSON, validates a 64-character lowercase SHA-256, and exports it as the declared step output. A regression test reads the workflow and verifies the output wiring and downstream reference.
+
+This is only workflow wiring and synthetic regression evidence. The live workflow has not been dispatched: main protection, rulesets, GitHub App credentials and separately approved archive/prune Environments remain unconfigured. No branch or tag was mutated.
