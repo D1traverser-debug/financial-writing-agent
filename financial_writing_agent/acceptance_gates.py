@@ -2,7 +2,9 @@
 from __future__ import annotations
 
 from typing import Any, Mapping
+import json
 import os
+from pathlib import Path
 import re
 
 from .provider_attestation import (
@@ -24,7 +26,25 @@ SYSTEM_GATES = (
     "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW",
     "FINANCIAL_MAIN_BRANCH_HYGIENE",
 )
-GATE_VERSION = "1.1"
+GATE_VERSION = "1.2"
+
+
+def _configured_financial_plugin_identity() -> tuple[str, str]:
+    manifest_path = Path(__file__).resolve().parents[1] / "config" / "FINANCIAL_MANIFEST.json"
+    try:
+        manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
+        plugin = manifest["client_skill_plugin"]
+        plugin_id = plugin["plugin_id"]
+        release_id = plugin["release_id"]
+    except (OSError, ValueError, KeyError, TypeError) as exc:
+        raise FinancialProviderAttestationError(
+            "FINANCIAL_PLUGIN_MANIFEST_UNAVAILABLE"
+        ) from exc
+    if (not isinstance(plugin_id, str) or not plugin_id.startswith("plugins_")
+            or not isinstance(release_id, str) or not release_id.startswith("pluginrel_")):
+        raise FinancialProviderAttestationError("FINANCIAL_PLUGIN_MANIFEST_IDENTITY_INVALID")
+    return plugin_id, release_id
+
 
 REQUIRED_GATE_EVIDENCE = {
     "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION": (
@@ -52,7 +72,9 @@ REQUIRED_GATE_EVIDENCE = {
     ),
     "FINANCIAL_MAIN_BRANCH_HYGIENE": (
         "before_branch_count", "after_branch_names", "archive_tag_count",
-        "branch_inventory_ref",
+        "branch_inventory_ref", "archive_manifest_sha256", "archive_tags_verified",
+        "final_inventory_sha256", "main_protected", "main_force_push_disabled",
+        "main_deletion_disabled", "required_status_checks",
     ),
 }
 
@@ -187,11 +209,12 @@ def _validate_gate_evidence(
                 and evidence.get("stale_conflict_status") == 409,
                 "CAS_STALE_WRITE_NOT_REJECTED")
     elif gate == "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION":
-        require(isinstance(evidence.get("plugin_id"), str)
-                and evidence["plugin_id"].startswith("plugins_")
-                and isinstance(evidence.get("release_id"), str)
-                and evidence["release_id"].startswith("pluginrel_")
-                and isinstance(evidence.get("fresh_chat_session_ref"), str)
+        expected_plugin_id, expected_release_id = _configured_financial_plugin_identity()
+        require(evidence.get("plugin_id") == expected_plugin_id,
+                "NATIVE_FINANCIAL_PLUGIN_ID_MISMATCH")
+        require(evidence.get("release_id") == expected_release_id,
+                "NATIVE_FINANCIAL_PLUGIN_RELEASE_MISMATCH")
+        require(isinstance(evidence.get("fresh_chat_session_ref"), str)
                 and bool(evidence["fresh_chat_session_ref"].strip())
                 and isinstance(evidence.get("tool_invocation_ref"), str)
                 and bool(evidence["tool_invocation_ref"].strip()),
@@ -213,6 +236,21 @@ def _validate_gate_evidence(
         require(type(before) is int and before >= 1
                 and type(archived) is int and archived == before - 1,
                 "HISTORICAL_BRANCH_HEADS_NOT_FULLY_ARCHIVED")
+        require(re.fullmatch(r"[a-f0-9]{64}", str(evidence.get("archive_manifest_sha256", ""))) is not None,
+                "ARCHIVE_MANIFEST_DIGEST_INVALID")
+        require(evidence.get("archive_tags_verified") is True,
+                "ARCHIVE_TAG_READBACK_NOT_VERIFIED")
+        require(re.fullmatch(r"[a-f0-9]{64}", str(evidence.get("final_inventory_sha256", ""))) is not None,
+                "FINAL_BRANCH_INVENTORY_DIGEST_INVALID")
+        require(evidence.get("main_protected") is True,
+                "MAIN_BRANCH_NOT_PROTECTED")
+        require(evidence.get("main_force_push_disabled") is True,
+                "MAIN_FORCE_PUSH_NOT_DISABLED")
+        require(evidence.get("main_deletion_disabled") is True,
+                "MAIN_DELETION_NOT_DISABLED")
+        checks = evidence.get("required_status_checks")
+        require(isinstance(checks, list) and "test" in checks,
+                "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
 
 
 def evaluate_system_acceptance(
