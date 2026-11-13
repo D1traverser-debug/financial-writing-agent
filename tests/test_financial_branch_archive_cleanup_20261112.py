@@ -30,6 +30,8 @@ class FakeAPI:
         self.add_pr_on_read = None
         self.move_main_on_read = None
         self.main_reads = 0
+        self.main_inventory_reads = 0
+        self.move_main_on_inventory_read = None
         self.ambiguous_delete = set()
         self.unprotect_main_after_delete = False
 
@@ -51,6 +53,9 @@ class FakeAPI:
 
     def paginate(self, suffix):
         if suffix == "branches":
+            self.main_inventory_reads += 1
+            if self.move_main_on_inventory_read == self.main_inventory_reads:
+                self.branches["main"]["sha"] = D
             return [
                 {"name": name, "commit": {"sha": data["sha"]},
                  "protected": data["protected"]}
@@ -340,7 +345,7 @@ def test_main_moving_during_prune_prevents_false_completion(tmp_path):
     archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
                  out=tmp_path / "archive.json")
     api.deletion_frozen = False
-    api.move_main_on_read = api.main_reads + 2
+    api.move_main_on_inventory_read = api.main_inventory_reads + 3
     report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
                         out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
     assert report["complete"] is False
