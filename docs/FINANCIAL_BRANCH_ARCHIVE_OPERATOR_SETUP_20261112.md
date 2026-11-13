@@ -148,3 +148,16 @@ It does not create a trusted signer or deploy a host API. Production still needs
 STOP — NO DESTRUCTIVE BRANCH PRUNE AUTHORIZED YET.
 
 At audit time main was unprotected, the archive Environments/rulesets were not verified, and PR #67 remained open. Keep all existing refs until owner-side controls are configured, PR #67 is merged, and the staged workflow has passed its read-only plan and tag-verification phase.
+
+## Required G7 readback evidence
+
+The final signed Financial main-hygiene gate must include all of the following, not merely a one-branch count:
+
+- SHA-256 of the exact reviewed archive manifest.
+- A successful tag-by-tag readback proving each archived branch head is preserved.
+- SHA-256 of the final remote branch inventory.
+- `main.protected = true`, force pushes disabled, and branch deletion disabled.
+- The Financial CI job context `test` required by the main protection rule.
+- Final branch names exactly `["main"]`, with one verified archive tag per original non-main branch.
+
+The system acceptance evaluator rejects missing or contradictory fields. These are evidence requirements, not claims that repository administration has already been configured.
