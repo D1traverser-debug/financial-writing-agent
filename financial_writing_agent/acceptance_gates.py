@@ -10,6 +10,7 @@ from .provider_attestation import (
     expected_owner_principal,
     payload_sha256,
     verify_provider_attestation,
+    verify_owner_change_approval,
     verify_persisted_method_promotion_attestation,
     verify_persisted_method_impact_attestation,
 )
@@ -27,7 +28,8 @@ GATE_VERSION = "1.1"
 
 REQUIRED_GATE_EVIDENCE = {
     "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION": (
-        "source_ref", "source_sha256", "owner_confirmation_ref", "owner_principal",
+        "source_ref", "source_sha256", "change_sha256",
+        "owner_confirmation_ref", "owner_confirmation_attestation", "owner_principal",
     ),
     "LEGAL_ARTICLE_GRAPH_AND_RECOVERY": (
         "task_id", "previous_state_blob_sha", "resulting_state_blob_sha",
@@ -92,9 +94,28 @@ def _validate_gate_evidence(
         require(owner_principal is not None
                 and evidence.get("owner_principal") == owner_principal,
                 "OWNER_PRINCIPAL_MISMATCH")
-        require(isinstance(evidence.get("source_sha256"), str)
-                and re.fullmatch(r"[a-f0-9]{64}", evidence["source_sha256"]) is not None,
+        source_sha = evidence.get("source_sha256")
+        change_sha = evidence.get("change_sha256")
+        require(isinstance(source_sha, str)
+                and re.fullmatch(r"[a-f0-9]{64}", source_sha) is not None,
                 "OWNER_SOURCE_SHA_INVALID")
+        require(isinstance(change_sha, str)
+                and re.fullmatch(r"[a-f0-9]{64}", change_sha) is not None,
+                "OWNER_CHANGE_SHA_INVALID")
+        approval = evidence.get("owner_confirmation_attestation")
+        require(isinstance(approval, Mapping), "OWNER_CHANGE_ATTESTATION_MISSING")
+        try:
+            verified_approval = verify_owner_change_approval(
+                approval, source_sha256=source_sha, change_sha256=change_sha,
+            )
+        except (FinancialProviderAttestationError, KeyError, TypeError, ValueError) as exc:
+            raise FinancialProviderAttestationError(
+                "OWNER_CHANGE_ATTESTATION_INVALID:" + str(exc)
+            ) from exc
+        require(
+            evidence.get("owner_confirmation_ref") == verified_approval.get("approval_record_ref"),
+            "OWNER_CONFIRMATION_REF_MISMATCH",
+        )
     elif gate == "LEGAL_ARTICLE_GRAPH_AND_RECOVERY":
         previous = evidence.get("previous_state_blob_sha")
         resulting = evidence.get("resulting_state_blob_sha")
