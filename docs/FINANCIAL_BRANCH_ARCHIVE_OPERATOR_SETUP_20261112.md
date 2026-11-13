@@ -37,9 +37,12 @@ Review and merge PR #67 only after its latest CI and independent source review a
 In repository Settings → Branches, add a branch protection rule for exactly main:
 
 - Require pull requests before merging.
-- Require the Financial CI status check before merge.
+- Require at least one approving review.
+- Dismiss stale approvals when new commits are pushed.
+- Require approval of the latest reviewable push.
+- Require the exact Financial CI status check context `test`.
 - Block force pushes and branch deletion.
-- Ensure the API reports main.protected = true.
+- Ensure the API reports `main.protected = true`.
 
 This is separate from the temporary archive ruleset.
 
