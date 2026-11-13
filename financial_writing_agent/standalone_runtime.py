@@ -351,6 +351,70 @@ def _latest_research_source_readback(state: Mapping[str, Any]) -> Mapping[str, A
     return None
 
 
+def _verify_delivery_research_freshness(
+    candidate: Mapping[str, Any],
+    source_reader: Callable[[str], Mapping[str, Any] | None] | None,
+) -> dict[str, Any] | None:
+    """Recheck current research freshness and source-byte stability before delivery."""
+    if candidate.get("private_research_contract_version") != "1.1":
+        return None
+    try:
+        current = verify_current_research_sources(
+            candidate["quality_evidence"]["private_research_brief"],
+            source_reader=source_reader,
+        )
+    except CurrentResearchEvidenceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+    previous = _latest_research_source_readback(candidate)
+    _require(isinstance(previous, Mapping),
+             "FINANCIAL_DELIVERY_RESEARCH_SOURCE_READBACK_MISSING")
+
+    def snapshot_map(readback: Mapping[str, Any]) -> dict[str, tuple[str, str]]:
+        snapshots = readback.get("snapshots")
+        _require(isinstance(snapshots, list),
+                 "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_SET_INVALID")
+        result: dict[str, tuple[str, str]] = {}
+        for item in snapshots:
+            _require(isinstance(item, Mapping),
+                     "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_INVALID")
+            ref_sha = item.get("source_ref_sha256")
+            body_sha = item.get("body_sha256")
+            family = item.get("source_family")
+            _require(
+                _valid_sha(ref_sha) and _valid_sha(body_sha)
+                and isinstance(family, str) and bool(family.strip()),
+                "FINANCIAL_DELIVERY_RESEARCH_SNAPSHOT_FIELDS_INVALID",
+            )
+            _require(ref_sha not in result,
+                     "FINANCIAL_DELIVERY_RESEARCH_DUPLICATE_SOURCE_REF")
+            result[ref_sha] = (body_sha, family)
+        return result
+
+    previous_map = snapshot_map(previous)
+    current_map = snapshot_map(current)
+    _require(
+        set(previous_map) == set(current_map),
+        "FINANCIAL_DELIVERY_RESEARCH_SOURCE_SET_CHANGED__RESEARCH_REPLAY_REQUIRED",
+    )
+    changed = sorted(
+        ref_sha for ref_sha in previous_map
+        if previous_map[ref_sha] != current_map[ref_sha]
+    )
+    _require(
+        not changed,
+        "FINANCIAL_DELIVERY_RESEARCH_SOURCE_BYTES_CHANGED__RESEARCH_REPLAY_REQUIRED",
+    )
+    return {
+        "schema_version": "1.0",
+        "current_readback": current,
+        "compared_to_research_receipt": True,
+        "source_set_unchanged": True,
+        "source_body_bytes_unchanged": True,
+        "changed_source_ref_sha256": [],
+        "assurance": "CURRENT_SOURCE_RECENCY_AND_BYTE_STABILITY__SEMANTIC_SUPPORT_NOT_CERTIFIED",
+    }
+
+
 def _verify_product_word_bytes(
     candidate: Mapping[str, Any], reader: ArtifactReader | None,
 ) -> dict[str, Any]:
@@ -876,6 +940,16 @@ def admit_article_action(
             method_catalog_reader=method_catalog_reader,
         )
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    delivery_research_freshness = None
+    if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
+        "DELIVERY", "FINAL_AUDIT",
+    }:
+        delivery_research_freshness = _verify_delivery_research_freshness(
+            candidate, source_snapshot_reader,
+        )
+        if delivery_research_freshness is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["delivery_research_freshness_readback"] = delivery_research_freshness
+            current_admission.validate_state(candidate)
     word_bytes = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
         "DELIVERY", "FINAL_AUDIT",
@@ -969,6 +1043,7 @@ def admit_article_action(
         "required_stage_artifact_verified": stage_bytes,
         "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
+        "delivery_research_freshness_readback": delivery_research_freshness,
         "method_usage_readback": method_usage,
         "independent_editorial_review_readback": independent_editorial_proof,
         "visible_delivery_receipt": visible_delivery_receipt,
