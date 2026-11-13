@@ -36,6 +36,27 @@ class FakeAPI:
         self.move_main_on_inventory_read = None
         self.ambiguous_delete = set()
         self.unprotect_main_after_delete = False
+        self.main_protection_state = {
+            "pull_requests_required": True,
+            "required_approving_review_count": 1,
+            "required_status_checks": ["test"],
+            "force_pushes_enabled": False,
+            "deletions_enabled": False,
+        }
+
+    def main_protection(self):
+        state = dict(self.main_protection_state)
+        if state.get("pull_requests_required") is not True:
+            raise ValueError("MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING")
+        if type(state.get("required_approving_review_count")) is not int or state["required_approving_review_count"] < 1:
+            raise ValueError("MAIN_INDEPENDENT_APPROVAL_REQUIRED")
+        if "test" not in state.get("required_status_checks", []):
+            raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        if state.get("force_pushes_enabled") is not False:
+            raise ValueError("MAIN_FORCE_PUSH_NOT_DISABLED")
+        if state.get("deletions_enabled") is not False:
+            raise ValueError("MAIN_DELETION_NOT_DISABLED")
+        return state
 
     def verify_controls(self, phase):
         self.calls.append("controls:" + phase)
@@ -53,6 +74,7 @@ class FakeAPI:
                 else ["creation", "update"]
             ),
             "tag_rule_types": ["update", "deletion"],
+            "main_protection": self.main_protection(),
         }
 
     def paginate(self, suffix):
@@ -103,17 +125,24 @@ class FakeAPI:
             self.branch_write_freeze = False
         if self.unprotect_main_after_delete:
             self.branches["main"]["protected"] = False
+            self.main_protection_state["pull_requests_required"] = False
         if name in self.ambiguous_delete:
             return {"branch": name, "status": "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"}
         return {"branch": name, "status": "DELETE_AND_READBACK_VERIFIED"}
 
 
 class RulesetAPI(GitHubAPI):
-    def __init__(self, *, omit_bypass=False, bypass=None, phase_deletion=True):
+    def __init__(self, *, omit_bypass=False, bypass=None, phase_deletion=True, protection=None):
         self.token = "synthetic-test-token"
         self.omit_bypass = omit_bypass
         self.bypass = bypass or []
         self.phase_deletion = phase_deletion
+        self.protection = protection or {
+            "required_status_checks": {"strict": True, "contexts": ["test"], "checks": []},
+            "required_pull_request_reviews": {"required_approving_review_count": 1},
+            "allow_force_pushes": {"enabled": False},
+            "allow_deletions": {"enabled": False},
+        }
 
     def paginate(self, suffix):
         assert suffix == "rulesets?includes_parents=true"
@@ -121,6 +150,8 @@ class RulesetAPI(GitHubAPI):
                 {"id": 22, "name": "Financial archive tag lock"}]
 
     def call(self, method, path, payload=None, *, allow_404=False):
+        if path.endswith("/branches/main/protection"):
+            return self.protection
         if "/environments/" in path:
             return {"protection_rules": [{"type": "required_reviewers", "reviewers": [{"type":"User","id":1}]}]}
         if "/rulesets/11?" in path:
@@ -181,7 +212,7 @@ def test_plan_is_stable_exact_head_manifest_and_has_no_mutation(tmp_path):
 def test_manifest_classifies_exact_merged_pr_heads_and_explicitly_flags_unverified_heads(tmp_path):
     api, _, plan = make_plan(tmp_path)
     manifest = plan["manifest"]
-    assert manifest["schema_version"] == "4.0"
+    assert manifest["schema_version"] == "5.0"
     assert manifest["merged_main_prs"] == [{
         "number": 17, "head_ref": "old/one", "head_sha": B,
         "merged_at": "2026-11-10T10:00:00Z",
@@ -425,3 +456,52 @@ def test_archive_plan_script_exports_manifest_digest_and_workflow_consumes_it():
     assert "manifest_sha256: ${{ steps.plan.outputs.manifest_sha256 }}" in workflow
     assert "needs.plan.outputs.manifest_sha256" in workflow
     assert "echo \"manifest_sha256=$manifest_sha256\" >> \"$GITHUB_OUTPUT\"" not in workflow
+
+
+def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_delete():
+    controls = RulesetAPI().verify_controls("PLAN")
+    assert controls["main_protection"] == {
+        "pull_requests_required": True,
+        "required_approving_review_count": 1,
+        "required_status_checks": ["test"],
+        "force_pushes_enabled": False,
+        "deletions_enabled": False,
+    }
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "reason"),
+    [
+        ("required_status_checks", None, "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_status_checks", {"strict": True, "contexts": ["other"], "checks": []},
+         "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("required_pull_request_reviews", None, "MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING"),
+        ("required_pull_request_reviews", {"required_approving_review_count": 0},
+         "MAIN_INDEPENDENT_APPROVAL_REQUIRED"),
+        ("allow_force_pushes", {"enabled": True}, "MAIN_FORCE_PUSH_NOT_DISABLED"),
+        ("allow_deletions", {"enabled": True}, "MAIN_DELETION_NOT_DISABLED"),
+    ],
+)
+def test_archive_controls_fail_closed_when_main_protection_is_weak(field, value, reason):
+    protection = {
+        "required_status_checks": {"strict": True, "contexts": ["test"], "checks": []},
+        "required_pull_request_reviews": {"required_approving_review_count": 1},
+        "allow_force_pushes": {"enabled": False},
+        "allow_deletions": {"enabled": False},
+    }
+    protection[field] = value
+    with pytest.raises(ValueError, match=reason):
+        RulesetAPI(protection=protection).verify_controls("PLAN")
+
+
+def test_prune_refuses_if_required_main_ci_check_is_removed_after_archive(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.main_protection_state["required_status_checks"] = []
+    with pytest.raises(ValueError, match="MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
