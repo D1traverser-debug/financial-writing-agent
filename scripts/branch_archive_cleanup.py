@@ -214,11 +214,44 @@ class GitHubAPI:
 
     def verify_controls(self, phase: str):
         main_protection = self.main_protection()
+        reviewer_environments = {}
         for env_name in ENVIRONMENTS:
             env = self.call("GET", f"/repos/{REPO}/environments/{env_name}")
             rules = env.get("protection_rules", []) if isinstance(env, dict) else []
-            if not any(x.get("type") == "required_reviewers" and x.get("reviewers") for x in rules):
-                raise ValueError("REQUIRED_REVIEWER_ENVIRONMENT_MISSING:" + env_name)
+            reviewer_rules = [
+                item for item in rules
+                if isinstance(item, dict) and item.get("type") == "required_reviewers"
+            ]
+            if len(reviewer_rules) != 1:
+                raise ValueError("REQUIRED_REVIEWER_ENVIRONMENT_MISSING_OR_DUPLICATED:" + env_name)
+            reviewer_rule = reviewer_rules[0]
+            if reviewer_rule.get("prevent_self_review") is not True:
+                raise ValueError("ENVIRONMENT_SELF_REVIEW_MUST_BE_PREVENTED:" + env_name)
+            raw_reviewers = reviewer_rule.get("reviewers")
+            if not isinstance(raw_reviewers, list) or not raw_reviewers:
+                raise ValueError("ENVIRONMENT_REVIEWERS_MISSING:" + env_name)
+            reviewers = []
+            seen_ids = set()
+            for item in raw_reviewers:
+                if not isinstance(item, dict) or item.get("type") != "User":
+                    raise ValueError("ENVIRONMENT_REVIEWERS_MUST_BE_DIRECT_USERS:" + env_name)
+                user = item.get("reviewer")
+                if not isinstance(user, dict):
+                    raise ValueError("ENVIRONMENT_REVIEWER_IDENTITY_NOT_VISIBLE:" + env_name)
+                login, user_id = user.get("login"), user.get("id")
+                if (not isinstance(login, str) or not login.strip()
+                    or type(user_id) is not int or user_id <= 0):
+                    raise ValueError("ENVIRONMENT_REVIEWER_IDENTITY_INVALID:" + env_name)
+                if login.casefold() == REPO.split("/", 1)[0].casefold():
+                    raise ValueError("REPOSITORY_OWNER_CANNOT_BE_ARCHIVE_REVIEWER:" + env_name)
+                if user_id in seen_ids:
+                    raise ValueError("ENVIRONMENT_REVIEWER_DUPLICATED:" + env_name)
+                seen_ids.add(user_id)
+                reviewers.append({"login": login.casefold(), "id": user_id})
+            reviewer_environments[env_name] = {
+                "prevent_self_review": True,
+                "reviewers": sorted(reviewers, key=lambda value: (value["login"], value["id"])),
+            }
 
         branch = self.ruleset(BRANCH_RULESET)
         branch_types = {x.get("type") for x in branch.get("rules", [])}
@@ -256,6 +289,7 @@ class GitHubAPI:
             "branch_ruleset_id": branch["id"], "tag_ruleset_id": tags["id"],
             "branch_rule_types": sorted(branch_types), "tag_rule_types": sorted(tag_types),
             "reviewer_environments_configured": list(ENVIRONMENTS),
+            "reviewer_environments": reviewer_environments,
             "main_protection": main_protection,
             "current_run_approval": "GITHUB_ACTIONS_ENVIRONMENT_GATE__NOT_INFERRED_BY_SCRIPT",
         }
@@ -313,6 +347,7 @@ def live_manifest(api: GitHubAPI, controls: dict[str, Any]):
     manifest = {
         "schema_version": "5.0", "repo": REPO, "main_sha": main2,
         "main_protection": controls["main_protection"],
+        "reviewer_environments": controls["reviewer_environments"],
         "branches": branches2, "candidate_heads": candidates,
         "merged_main_prs": merged_main_prs,
         "branch_review": branch_review,
@@ -415,6 +450,26 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     ):
         raise ValueError("MANIFEST_MAIN_PROTECTION_INVALID")
 
+    reviewer_environments = manifest.get("reviewer_environments")
+    if not isinstance(reviewer_environments, dict) or set(reviewer_environments) != set(ENVIRONMENTS):
+        raise ValueError("MANIFEST_REVIEWER_ENVIRONMENTS_INVALID")
+    for env_name in ENVIRONMENTS:
+        entry = reviewer_environments.get(env_name)
+        reviewers = entry.get("reviewers") if isinstance(entry, dict) else None
+        if (not isinstance(entry, dict) or entry.get("prevent_self_review") is not True
+            or not isinstance(reviewers, list) or not reviewers):
+            raise ValueError("MANIFEST_REVIEWER_ENVIRONMENT_INVALID:" + env_name)
+        seen_ids = set()
+        for reviewer in reviewers:
+            if (not isinstance(reviewer, dict)
+                or not isinstance(reviewer.get("login"), str)
+                or not reviewer["login"].strip()
+                or reviewer["login"].casefold() == REPO.split("/", 1)[0].casefold()
+                or type(reviewer.get("id")) is not int or reviewer["id"] <= 0
+                or reviewer["id"] in seen_ids):
+                raise ValueError("MANIFEST_REVIEWER_IDENTITY_INVALID:" + env_name)
+            seen_ids.add(reviewer["id"])
+
     controls = manifest.get("control_ids")
     if (not isinstance(controls, dict)
         or type(controls.get("branch_ruleset_id")) is not int
@@ -432,7 +487,8 @@ def stable_snapshot(api: GitHubAPI, phase: str):
         or before["tag_ruleset_id"] != after["tag_ruleset_id"]
         or before["branch_rule_types"] != after["branch_rule_types"]
         or before["tag_rule_types"] != after["tag_rule_types"]
-        or before["main_protection"] != after["main_protection"]):
+        or before["main_protection"] != after["main_protection"]
+        or before["reviewer_environments"] != after["reviewer_environments"]):
         raise ValueError("RULESET_CHANGED_DURING_INVENTORY")
     return manifest, sha256(manifest), after
 
@@ -503,6 +559,8 @@ def prune_only(
             "UNVERIFIED_BRANCH_HEADS_REQUIRE_EXPLICIT_ARCHIVE_PRUNE_CONFIRMATION"
         )
     controls = api.verify_controls("PRUNE")
+    if controls["reviewer_environments"] != manifest["reviewer_environments"]:
+        raise ValueError("REVIEWER_ENVIRONMENTS_CHANGED_AFTER_ARCHIVE")
     if controls["main_protection"] != manifest["main_protection"]:
         raise ValueError("MAIN_PROTECTION_CHANGED_AFTER_ARCHIVE")
     if (controls["branch_ruleset_id"] != manifest["control_ids"]["branch_ruleset_id"]
@@ -533,6 +591,7 @@ def prune_only(
                 or controls_now["branch_rule_types"] != controls["branch_rule_types"]
                 or controls_now["tag_rule_types"] != controls["tag_rule_types"]
                 or controls_now["main_protection"] != manifest["main_protection"]
+                or controls_now["reviewer_environments"] != manifest["reviewer_environments"]
             ):
                 raise ValueError("PRUNE_RULESET_CHANGED_DURING_PRUNE")
             _require_protected_main(
@@ -575,6 +634,7 @@ def prune_only(
             and final_controls["branch_rule_types"] == controls["branch_rule_types"]
             and final_controls["tag_rule_types"] == controls["tag_rule_types"]
             and final_controls["main_protection"] == manifest["main_protection"]
+            and final_controls["reviewer_environments"] == manifest["reviewer_environments"]
         )
         if not rulesets_verified_after:
             failures.append({"branch": "main", "reason": "PRUNE_RULESET_CHANGED_AFTER_PRUNE"})

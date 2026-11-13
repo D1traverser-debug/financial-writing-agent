@@ -37,6 +37,16 @@ class FakeAPI:
         self.ambiguous_delete = set()
         self.unprotect_main_after_delete = False
         self.change_main_protection_after_delete = False
+        self.reviewer_environments = {
+            "financial-branch-archive": {
+                "prevent_self_review": True,
+                "reviewers": [{"login": "archive-reviewer", "id": 101}],
+            },
+            "financial-branch-prune": {
+                "prevent_self_review": True,
+                "reviewers": [{"login": "prune-reviewer", "id": 202}],
+            },
+        }
         self.main_protection_state = {
             "pull_requests_required": True,
             "required_approving_review_count": 1,
@@ -87,6 +97,7 @@ class FakeAPI:
                 else ["creation", "update"]
             ),
             "tag_rule_types": ["update", "deletion"],
+            "reviewer_environments": self.reviewer_environments,
             "main_protection": self.main_protection(),
         }
 
@@ -147,11 +158,23 @@ class FakeAPI:
 
 
 class RulesetAPI(GitHubAPI):
-    def __init__(self, *, omit_bypass=False, bypass=None, phase_deletion=True, protection=None):
+    def __init__(
+        self, *, omit_bypass=False, bypass=None, phase_deletion=True,
+        protection=None, prevent_self_review=True, environment_reviewers=None,
+    ):
         self.token = "synthetic-test-token"
         self.omit_bypass = omit_bypass
         self.bypass = bypass or []
         self.phase_deletion = phase_deletion
+        self.prevent_self_review = prevent_self_review
+        self.environment_reviewers = environment_reviewers or {
+            "financial-branch-archive": [
+                {"type": "User", "reviewer": {"login": "archive-reviewer", "id": 101}},
+            ],
+            "financial-branch-prune": [
+                {"type": "User", "reviewer": {"login": "prune-reviewer", "id": 202}},
+            ],
+        }
         self.protection = protection or {
             "required_status_checks": {"strict": True, "contexts": ["test"], "checks": []},
             "required_pull_request_reviews": {
@@ -173,7 +196,12 @@ class RulesetAPI(GitHubAPI):
         if path.endswith("/branches/main/protection"):
             return self.protection
         if "/environments/" in path:
-            return {"protection_rules": [{"type": "required_reviewers", "reviewers": [{"type":"User","id":1}]}]}
+            env_name = path.rsplit("/", 1)[-1]
+            return {"protection_rules": [{
+                "type": "required_reviewers",
+                "prevent_self_review": self.prevent_self_review,
+                "reviewers": self.environment_reviewers[env_name],
+            }]}
         if "/rulesets/11?" in path:
             result = {
                 "id": 11, "target": "branch", "enforcement": "active",
@@ -462,6 +490,52 @@ def test_ruleset_deletion_rule_is_required_for_plan_but_forbidden_for_prune():
     with pytest.raises(ValueError, match="DELETION_MUST_BE_FROZEN"):
         RulesetAPI(phase_deletion=False).verify_controls("PLAN")
     RulesetAPI(phase_deletion=False).verify_controls("PRUNE")
+
+def test_archive_environments_require_self_review_prevention():
+    with pytest.raises(ValueError, match="ENVIRONMENT_SELF_REVIEW_MUST_BE_PREVENTED"):
+        RulesetAPI(prevent_self_review=False).verify_controls("PLAN")
+
+
+def test_archive_environments_reject_owner_or_team_only_reviewers():
+    owner = {
+        "financial-branch-archive": [
+            {"type": "User", "reviewer": {"login": "D1traverser-debug", "id": 211308281}},
+        ],
+        "financial-branch-prune": [
+            {"type": "User", "reviewer": {"login": "prune-reviewer", "id": 202}},
+        ],
+    }
+    with pytest.raises(ValueError, match="REPOSITORY_OWNER_CANNOT_BE_ARCHIVE_REVIEWER"):
+        RulesetAPI(environment_reviewers=owner).verify_controls("PLAN")
+    team_only = {
+        "financial-branch-archive": [
+            {"type": "Team", "reviewer": {"slug": "admins", "id": 9}},
+        ],
+        "financial-branch-prune": [
+            {"type": "User", "reviewer": {"login": "prune-reviewer", "id": 202}},
+        ],
+    }
+    with pytest.raises(ValueError, match="ENVIRONMENT_REVIEWERS_MUST_BE_DIRECT_USERS"):
+        RulesetAPI(environment_reviewers=team_only).verify_controls("PLAN")
+
+
+def test_archive_plan_binds_reviewer_identity_and_rejects_changes_before_tagging(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    api.reviewer_environments["financial-branch-archive"]["reviewers"][0]["id"] = 303
+    with pytest.raises(ValueError, match="CURRENT_INVENTORY_DIFFERS_FROM_REVIEWED_PLAN"):
+        archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                     out=tmp_path / "archive.json")
+    assert api.tags == {}
+
+
+def test_manifest_rejects_missing_or_owner_archive_reviewer_identity(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    from scripts.branch_archive_cleanup import write_json, read_plan
+    altered = plan["manifest"]
+    altered["reviewer_environments"]["financial-branch-prune"]["reviewers"][0]["login"] = "D1traverser-debug"
+    write_json(plan_path, {"manifest": altered, "manifest_sha256": sha256(altered)})
+    with pytest.raises(ValueError, match="MANIFEST_REVIEWER_IDENTITY_INVALID"):
+        read_plan(plan_path, sha256(altered))
 
 
 def test_archive_plan_script_exports_manifest_digest_and_workflow_consumes_it():

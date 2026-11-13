@@ -83,11 +83,11 @@ Create both environments:
 
 For each:
 
-- Add at least one trusted required reviewer, preferably an independent reviewer.
-- Enable prevention of self-review if available.
+- Add at least one direct GitHub **User** reviewer whose login is not `D1traverser-debug`; team-only reviewer lists are rejected because their membership is not proven by this audit.
+- Enable **Prevent self-review**. This is mandatory, not optional; the workflow fails closed if GitHub reports it as false or absent.
 - Keep the archive App private key scoped to these environments.
 
-The first reviewer sees the plan artifact and approves creation of tags only. The second reviewer approves the prune job only after all tags have been verified and the owner has removed the branch deletion rule. The script checks that reviewer protection is configured; GitHub Actions Environment approval is what gates the actual job. The script does not pretend a GET of environment settings proves approval of a particular run.
+The archive and prune environments each require a direct non-owner User reviewer and mandatory self-review prevention. The exact reviewer identities and settings are pinned into the approved plan manifest and rechecked before ARCHIVE, before every PRUNE deletion, and after the final readback; changing reviewers between phases invalidates the plan. The first environment approval gates tag creation only. The second gates pruning only after all tags are verified and the owner removes the branch deletion rule. The script does not pretend a GET of environment settings proves approval of a particular run.
 
 ### 6. Create a narrowly scoped GitHub App for the write phases
 
