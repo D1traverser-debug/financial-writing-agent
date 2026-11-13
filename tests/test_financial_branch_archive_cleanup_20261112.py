@@ -31,6 +31,7 @@ class FakeAPI:
         self.move_main_on_read = None
         self.main_reads = 0
         self.ambiguous_delete = set()
+        self.unprotect_main_after_delete = False
 
     def verify_controls(self, phase):
         self.calls.append("controls:" + phase)
@@ -89,6 +90,8 @@ class FakeAPI:
         assert self.branch_head(name) == sha
         assert self.tag_head(name) == sha
         del self.branches[name]
+        if self.unprotect_main_after_delete:
+            self.branches["main"]["protected"] = False
         if name in self.ambiguous_delete:
             return {"branch": name, "status": "AMBIGUOUS_RESPONSE_BUT_ABSENCE_AND_TAG_VERIFIED"}
         return {"branch": name, "status": "DELETE_AND_READBACK_VERIFIED"}
@@ -263,6 +266,35 @@ def test_prune_refuses_unverified_heads_without_explicit_owner_confirmation(tmp_
                    out=tmp_path / "prune.json")
     assert set(api.branches) == {"main", "old/one", "old/two"}
     assert not any(call.startswith("delete:") for call in api.calls)
+
+
+
+def test_prune_refuses_if_main_protection_was_removed_after_archive(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.branches["main"]["protected"] = False
+    with pytest.raises(ValueError, match="MAIN_PROTECTION_OR_HEAD_INVALID:BEFORE_PRUNE"):
+        prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                   out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert set(api.branches) == {"main", "old/one", "old/two"}
+    assert not any(call.startswith("delete:") for call in api.calls)
+
+
+def test_prune_stops_if_main_protection_is_removed_between_deletions(tmp_path):
+    api, plan_path, plan = make_plan(tmp_path)
+    archive_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                 out=tmp_path / "archive.json")
+    api.deletion_frozen = False
+    api.unprotect_main_after_delete = True
+    report = prune_only(api, manifest_path=plan_path, approved=plan["manifest_sha256"],
+                        out=tmp_path / "prune.json", confirm_unverified_branch_archive=True)
+    assert report["complete"] is False
+    assert report["main_protected_after"] is False
+    assert "old/two" in api.branches
+    assert [call for call in api.calls if call.startswith("delete:")] == ["delete:old/one"]
+    assert api.tags == {"old/one": B, "old/two": C}
 
 
 def test_prune_after_deletion_rule_removed_keeps_tags_and_leaves_only_main(tmp_path):
