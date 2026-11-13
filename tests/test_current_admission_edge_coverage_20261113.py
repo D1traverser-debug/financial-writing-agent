@@ -14,6 +14,7 @@ from financial_writing_agent.current_admission import (
     advance_state,
     apply_task_requirement_change,
     migrate_task_requirement_authority,
+    WRITING_KERNEL_VERSION,
 )
 from test_current_admission_v1 import (
     _artifact, _brief, _decision, _new_state,
@@ -173,6 +174,18 @@ def test_pre_requirement_migration_rejects_current_authority_and_migrates_legacy
         task_id="legacy-requirement-migration", prompt="legacy", source_refs=[],
         executor_identity="test", _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
     )
+    # A pre-P10 state is still current-kernel state; a pre-kernel historical
+    # state must remain blocked and require a current-kernel successor.
+    with pytest.raises(owner_guard.GithubChatGuardError, match="historical Financial state cannot be materially advanced"):
+        owner_guard.advance_state(
+            legacy, previous_state_blob_sha="b" * 40, executor_identity="test",
+            artifact_key="INTAKE", artifact_path=f"workspaces/articles/{legacy['task_id']}/INTAKE.json",
+            artifact_blob_sha="intake-blob",
+            _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
+        )
+
+    legacy["writing_kernel_version"] = WRITING_KERNEL_VERSION
+    legacy["quality_evidence"] = {}
     legacy = owner_guard.advance_state(
         legacy, previous_state_blob_sha="b" * 40, executor_identity="test",
         artifact_key="INTAKE", artifact_path=f"workspaces/articles/{legacy['task_id']}/INTAKE.json",
