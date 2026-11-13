@@ -123,7 +123,7 @@ From main, open Actions → Financial one-time archive of obsolete branches → 
 - If any no-exact-PR branch contains work that must enter main, stop and consolidate that work before pruning. Otherwise explicitly set `confirm_unverified_branch_archive=true` when dispatching the workflow to opt into pruning all archived non-main refs.
 - PRUNE then waits for the financial-branch-prune reviewer approval. The reviewer should verify the archive-phase readback, the explicit opt-in, and that the deletion rule was removed while creation/update remain frozen. Approve only then.
 
-The script checks that the reviewed manifest digest still matches the live branch inventory, main SHA is unchanged, no open PR exists, every tag matches the original head, and the final branch inventory is exactly [main].
+The script checks that the reviewed manifest digest still matches the live branch inventory, main SHA and protection remain unchanged, no open PR exists, every tag matches the original head, and the final branch inventory is exactly [main]. During PRUNE it re-reads main protection plus the branch creation/update freeze and archive-tag lock before each deletion, then verifies those controls again after the final inventory. If any control is removed or changes, pruning stops and all archive tags remain.
 
 Operational constraint: do not create, close or retarget pull requests during the cleanup window. The script rechecks open PRs before each deletion and after completion, but GitHub has no repository ruleset that atomically freezes PR creation. An open-and-closed PR between checks cannot be ruled out by the branch-ref API. If PR activity cannot be paused, do not run PRUNE.
 
