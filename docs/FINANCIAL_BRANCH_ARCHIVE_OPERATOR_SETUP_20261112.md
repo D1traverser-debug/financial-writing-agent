@@ -161,3 +161,20 @@ The final signed Financial main-hygiene gate must include all of the following, 
 - Final branch names exactly `["main"]`, with one verified archive tag per original non-main branch.
 
 The system acceptance evaluator rejects missing or contradictory fields. These are evidence requirements, not claims that repository administration has already been configured.
+
+
+## Additional compare-to-main classification (2026-11-13)
+
+A read-only GitHub compare was run for every unique SHA among the 54 refs without an exact merged-PR-head match. The 54 refs reduce to 34 unique commit heads:
+
+- **25 refs / 8 unique heads** have `ahead_by = 0` and `behind_by > 0`: their tip commits are already ancestors of main. They are stale/duplicate refs; their archive tags still must be verified before deletion.
+- **27 refs / 24 unique heads** are divergent with commits ahead of main. These contain unique historical commits and must be preserved and reviewed before any prune.
+- **1 ref** is the current open PR #67 candidate. It is ahead of main and must remain until review and merge.
+- **1 ref**, `research/cross-border-v3-source-revalidation-20261018`, has one unique commit ahead of main. It contains a task-specific source-revalidation report and must be reviewed separately; it does not itself admit or publish the article.
+
+Two concrete historical samples were inspected:
+
+- `article/ai-security-infrastructure-2026-10-12-7f3a91c2` contains a complete article draft and task state at FINAL_AUDIT, but its review assurance is `CHAT_SELF_REVIEW` and certification remains OPEN. Do not treat it as an independently accepted article or delete its history without owner review.
+- The older `writing-system-gap-hardening` head contains a Cloudflare Site/D1/R2 MCP proof-of-concept. Its `SiteDispatcher.call` delegates to `FailClosedDispatcher`; `MIGRATION_STATUS.md` explicitly says business execution for all 16 tools is not wired and real-article live-model E2E remains 0. It is historical design evidence, **not a usable hosted Financial runtime**.
+
+This compare classification improves the earlier "no exact PR match" signal but does not replace the reviewed archive manifest. No merge, article-state mutation, branch deletion or tag creation was performed during this read-only review.
