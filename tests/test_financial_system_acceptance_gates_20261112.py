@@ -42,6 +42,8 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "archive_tags_verified": True,
             "final_inventory_sha256": "b"*64,
             "main_protected": True,
+            "main_requires_pull_request": True,
+            "required_approving_review_count": 1,
             "main_force_push_disabled": True,
             "main_deletion_disabled": True,
             "required_status_checks": ["test"],
@@ -409,6 +411,8 @@ def test_native_client_gate_requires_exact_manifest_plugin_and_release(field, wr
     ("field", "value", "reason"),
     [
         ("main_protected", False, "MAIN_BRANCH_NOT_PROTECTED"),
+        ("main_requires_pull_request", False, "MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING"),
+        ("required_approving_review_count", 0, "MAIN_INDEPENDENT_APPROVAL_REQUIRED"),
         ("main_force_push_disabled", False, "MAIN_FORCE_PUSH_NOT_DISABLED"),
         ("main_deletion_disabled", False, "MAIN_DELETION_NOT_DISABLED"),
         ("required_status_checks", ["other-check"], "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
