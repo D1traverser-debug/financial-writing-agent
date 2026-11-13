@@ -8,7 +8,13 @@ There is one operating entrypoint: [Financial Writing Skill](skills/financial-wr
 
 Select the Financial Writing Skill in a fresh ChatGPT session. Use the connected GitHub and research tools available to that session. The Skill directs the complete workflow; this repository is the durable source of truth.
 
-Do not claim that a file was written, a state transition happened or an article was delivered until the provider operation has returned and the exact result has been read back. If a required connector or permission is unavailable, continue safe research/editorial work and report the precise blocked operation.
+Do not claim that a file was written, a state transition happened or an article was delivered until the GitHub operation has returned and the exact result has been read back. If a required connector or permission is unavailable, continue safe research/editorial work and report the precise blocked operation.
+
+## Active ChatGPT execution path
+
+The active standalone runtime is ChatGPT + the Financial Writing Skill + the user's existing GitHub connector. The plugin is a Skill package; it does not host Python/MCP or grant GitHub permissions. No custom server, local daemon or paid API is required when the GitHub connector is connected with read/write access.
+
+For a single text file, update with its exact current blob SHA and read it back. For atomic multi-file changes, create blobs, create a tree from the current main tree, create a commit parented to the exact current main head, update main with expected_sha and force=false, then fetch every changed file at the resulting commit SHA. Use base64 blobs for DOCX binaries. On a stale-head conflict, reread and recompute; never force or blindly retry. Explicit confirmation in the current conversation authorizes binding requirement changes. The Python adapter is an optional reference implementation and CI test target, not a service that must be deployed for the Skill to operate.
 
 ## Canonical file map
 
