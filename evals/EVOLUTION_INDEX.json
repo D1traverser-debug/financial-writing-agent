@@ -217,8 +217,8 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "a4a2098b9ec9bd0306d5838e483d09a0e52da71d",
-        "exact_head_ci_run": 43387006010,
+        "last_exact_ci_verified_head": "05db70573172509fde1863a88c0f7faa01476313",
+        "exact_head_ci_run": 43388002966,
         "exact_head_tests_passed": 518,
         "source_line_coverage_percent": 90,
         "coverage_statements": 5763,
@@ -227,7 +227,7 @@
           "tracked_files": 331,
           "python_ast_parsed": 114,
           "json_parsed": 58,
-          "decoded_text_lines": 43330,
+          "decoded_text_lines": 43347,
           "warnings": 0,
           "errors": 0
         },

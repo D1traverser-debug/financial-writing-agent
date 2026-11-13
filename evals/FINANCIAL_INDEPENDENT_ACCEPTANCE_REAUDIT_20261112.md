@@ -138,4 +138,4 @@ Candidate code head a4a2098b9ec9bd0306d5838e483d09a0e52da71d completed Financial
 
 The exact-head system acceptance report remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven external gates remain OPEN. The current cross-border article remains at RESEARCH with 0/4 real outputs. Main remains unprotected, PR #67 has no independent review, and the private Skill release is not installed or live-invoked. The candidate is engineering-verified, **not merged and not system-accepted**.
 
-The follow-up commit containing this audit-record update and documentation clarification does not change the tested Financial runtime or article state. Its own CI run must still pass before the PR is ready for external review.
+The documentation-only follow-up commit 05db70573172509fde1863a88c0f7faa01476313 subsequently passed exact-head CI run 43388002966 (518 tests, 90% coverage). It changed no Financial runtime or article state. PR #67 remains a candidate-only change awaiting independent review and external acceptance.
