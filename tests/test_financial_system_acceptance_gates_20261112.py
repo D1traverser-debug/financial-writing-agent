@@ -30,13 +30,20 @@ def _proofs(*, reviewer="synthetic-independent-reviewer"):
             "write_blob_sha": "d"*40,
             "readback_blob_sha": "d"*40,
             "stale_conflict_status": 409,
-            "plugin_id": "plugins_synthetic_financial",
-            "release_id": "pluginrel_synthetic_financial",
+            "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
+            "release_id": "pluginrel_6af5a82a95f48191ba8d21fa3d188094",
             "fresh_chat_session_ref": "session://synthetic-fresh-chat",
             "tool_invocation_ref": "tool://synthetic-financial-invocation",
             "after_branch_names": ["main"],
             "before_branch_count": 99,
             "archive_tag_count": 98,
+            "archive_manifest_sha256": "a"*64,
+            "archive_tags_verified": True,
+            "final_inventory_sha256": "b"*64,
+            "main_protected": True,
+            "main_force_push_disabled": True,
+            "main_deletion_disabled": True,
+            "required_status_checks": ["test"],
         })
         if gate == "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION":
             source_sha = "a"*64
@@ -370,3 +377,58 @@ def test_owner_goal_gate_accepts_only_matching_signed_source_and_change():
         code_tests_passed=True,
     )
     assert "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION" not in result["open_gates"]
+
+
+def _resign_owner_gate(proofs, evidence, gate):
+    proofs[gate] = signed_attestation(
+        "system_gate", actor="synthetic-financial-owner",
+        key_env="FINANCIAL_PROVIDER_ATTESTATION_KEY",
+        provider_env="FINANCIAL_TRUSTED_PROVIDER_ID",
+        gate=gate, target_head_sha=SHA, evidence=evidence,
+        evidence_sha256=payload_sha256(evidence),
+    )
+
+
+@pytest.mark.parametrize(
+    ("field", "wrong", "reason"),
+    [
+        ("plugin_id", "plugins_not_financial", "NATIVE_FINANCIAL_PLUGIN_ID_MISMATCH"),
+        ("release_id", "pluginrel_old_release", "NATIVE_FINANCIAL_PLUGIN_RELEASE_MISMATCH"),
+    ],
+)
+def test_native_client_gate_requires_exact_manifest_plugin_and_release(field, wrong, reason):
+    proofs = _proofs()
+    gate = "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence[field] = wrong
+    _resign_owner_gate(proofs, evidence, gate)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert reason in result["gates"][gate]["reason"]
+
+
+@pytest.mark.parametrize(
+    ("field", "value", "reason"),
+    [
+        ("main_protected", False, "MAIN_BRANCH_NOT_PROTECTED"),
+        ("main_force_push_disabled", False, "MAIN_FORCE_PUSH_NOT_DISABLED"),
+        ("main_deletion_disabled", False, "MAIN_DELETION_NOT_DISABLED"),
+        ("required_status_checks", [], "MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING"),
+        ("archive_tags_verified", False, "ARCHIVE_TAG_READBACK_NOT_VERIFIED"),
+    ],
+)
+def test_main_hygiene_gate_rejects_unprotected_or_unverified_archive(field, value, reason):
+    proofs = _proofs()
+    gate = "FINANCIAL_MAIN_BRANCH_HYGIENE"
+    evidence = copy.deepcopy(proofs[gate]["evidence"])
+    evidence[field] = value
+    _resign_owner_gate(proofs, evidence, gate)
+    result = evaluate_system_acceptance(
+        head_sha=SHA, candidate_proofs=proofs, ci_attestation=_ci(),
+        code_tests_passed=True,
+    )
+    assert gate in result["open_gates"]
+    assert reason in result["gates"][gate]["reason"]
