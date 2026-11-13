@@ -77,7 +77,8 @@ REQUIRED_GATE_EVIDENCE = {
         "before_branch_count", "after_branch_names", "archive_tag_count",
         "branch_inventory_ref", "archive_manifest_sha256", "archive_tags_verified",
         "final_inventory_sha256", "main_protected", "main_requires_pull_request",
-        "required_approving_review_count", "main_force_push_disabled",
+        "required_approving_review_count", "main_dismiss_stale_reviews",
+        "main_require_last_push_approval", "main_force_push_disabled",
         "main_deletion_disabled", "required_status_checks",
     ),
 }
@@ -271,6 +272,10 @@ def _validate_gate_evidence(
         approvals = evidence.get("required_approving_review_count")
         require(type(approvals) is int and approvals >= 1,
                 "MAIN_INDEPENDENT_APPROVAL_REQUIRED")
+        require(evidence.get("main_dismiss_stale_reviews") is True,
+                "MAIN_STALE_REVIEWS_NOT_DISMISSED")
+        require(evidence.get("main_require_last_push_approval") is True,
+                "MAIN_LAST_PUSH_APPROVAL_REQUIRED")
         require(evidence.get("main_force_push_disabled") is True,
                 "MAIN_FORCE_PUSH_NOT_DISABLED")
         require(evidence.get("main_deletion_disabled") is True,
