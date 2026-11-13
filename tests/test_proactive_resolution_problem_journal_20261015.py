@@ -59,7 +59,7 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `1.8`" in journal
+    assert "Journal revision: `1.9`" in journal
     assert "DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS" in journal
     assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
     assert "CI #1034" in journal
@@ -77,11 +77,15 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
     assert "INHERITED_COGNITION_AUTO_ACTIVATION_GAP" in journal
     assert "2026-11-13 archival boundary" in journal
     assert "current Financial admission rejects legacy parent-upcall dispositions" in journal
+    assert "Final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99`" in journal
+    assert "514 tests passed" in journal
+    assert "no current action returns `PARENT_GUIDANCE_REQUIRED`" in journal
+    assert "No further private article/research writes should be made" in journal
 
 
 def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     payload = json.loads(_read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json"))
-    assert payload["revision"] == "1.8"
+    assert payload["revision"] == "1.9"
     assert payload["status"] == "HISTORICAL_PROBLEM_JOURNAL_INDEX__NOT_CURRENT_SYSTEM_STATUS"
     assert payload["system_status_authority"] == "evals/EVOLUTION_INDEX.json"
     assert "P-20261015-15" in payload["open_items_at_2026_10_15"]

@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `1.8`
+Journal revision: `1.9`
 Updated: `2026-11-13`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -590,3 +590,16 @@ Failure classes: `MIGRATION_CONSUMER_DRIFT`, `DECLARED_STANDALONE_WITH_PARENT_UP
 ## 2026-11-13 archival boundary — prior parent queue
 
 The earlier section titled “Historical Parent Guidance Queue / adjudication state (archival only)” records statuses from the former parent/child design. Those entries and their original wording remain preserved as provenance. They are **archival only**, not a live queue or instruction to contact a parent system. Current Financial status is owned only by `evals/EVOLUTION_INDEX.json`; current Financial admission rejects legacy parent-upcall dispositions. No CAOS/UAOS runtime, repository, file, branch, PR or host was modified.
+
+
+---
+
+## P-20261113-01 verification addendum — final candidate replay (2026-11-13)
+
+The first post-migration CI on `ee4b5ce2e0035c677b4b4f838bb06eab87814ae6` reported 511 passed and two failures. Both were genuine migration-consistency defects: the packaged maintenance reference had not received the same two canonical path/ownership edits as the Skill reference, and the regression still asserted journal revision 1.6 after the journal had moved to 1.7. The package mirror was synchronized byte-for-byte, the journal/index advanced to 1.8, and the test now checks archival status rather than a live parent queue. Exact-head run `43403603151` on `f783b6dc91c113a6c504f1171e5a4fa8850d5d3c` passed 513 tests at 90% coverage.
+
+A subsequent targeted code-path audit found three residual compatibility signals: `PARENT_UPCALL` still appeared in DecisionEnvelope durability/writeback conditions, the action error string still described a governed parent upcall, and the legacy `parent_upcall_ref` argument was undocumented. These did not reopen a successful parent return path, but they contradicted the one-owner contract. The two remaining disposition conditions were removed, the argument was explicitly documented as legacy-only and non-authorizing, and a negative regression now verifies that even a parent-upcall envelope without a durable record is rejected at Financial admission. The historical enum and closure-outcome values remain only for parsing old records; no current action returns `PARENT_GUIDANCE_REQUIRED`.
+
+Final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99`, exact-head CI run `43404325789`: **514 tests passed**, 90% line coverage (5,759 statements; 572 missed). Whole-tree audit: 304 tracked files, 112 Python AST parses, 52 JSON parses, 40,872 decoded text lines, zero warnings and zero errors. The operating Skill is 11,848 UTF-8 bytes; the two controlled maintenance reference surfaces are byte-identical. Standalone import, clean wheel/install, single-owner/retired-artifact checks and four synthetic Word product renders passed. These remain engineering/synthetic-output evidence only.
+
+Current release boundary: PR #67 remains open and unmerged; no independent review has been submitted. The prior Codex review attempt failed on older head `0ddb200f9a7fc8eb4f1651e493b78bdda769121e` and the bot reported review usage limits; this is not a review of the current candidate. The repository is public and the candidate tree contains private article/research data, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. No further private article/research writes should be made to this public repository until the owner chooses private visibility or a private data-repository split. The last recorded GitHub inventory has 99 branches, one open PR, no repository rulesets and unprotected main; no branch/tag archive or deletion was run. All seven signed external acceptance gates remain OPEN. The cross-border v3 article remains at RESEARCH with 0/4 real delivery artifacts. No production merge, plugin update/installation or CAOS modification occurred.

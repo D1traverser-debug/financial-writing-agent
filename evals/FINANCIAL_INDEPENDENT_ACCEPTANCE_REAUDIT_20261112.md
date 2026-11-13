@@ -139,3 +139,23 @@ Candidate code head a4a2098b9ec9bd0306d5838e483d09a0e52da71d completed Financial
 The exact-head system acceptance report remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`; all seven external gates remain OPEN. The current cross-border article remains at RESEARCH with 0/4 real outputs. Main remains unprotected, PR #67 has no independent review, and the private Skill release is not installed or live-invoked. The candidate is engineering-verified, **not merged and not system-accepted**.
 
 The documentation-only follow-up commit 05db70573172509fde1863a88c0f7faa01476313 subsequently passed exact-head CI run 43388002966 (518 tests, 90% coverage). It changed no Financial runtime or article state. PR #67 remains a candidate-only change awaiting independent review and external acceptance.
+
+
+
+## Final standalone migration candidate verification (2026-11-13)
+
+The migration candidate was repaired through exact-head failures rather than by restoring retired root-level authorities or weakening tests. The final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99` passed GitHub Actions run `43404325789`:
+
+- 514 tests passed; source-line coverage 90% (5,759 statements, 572 missed).
+- Whole-tree audit: 304 tracked files, 112 Python AST parses, 52 JSON parses, 40,872 decoded text lines, zero warnings/errors.
+- Financial Skill size 11,848 UTF-8 bytes; two controlled reference surfaces are byte-identical.
+- Parent-upcall dispositions are rejected at current DecisionEnvelope admission; the former parent-guidance closure branch is absent. Legacy enum/argument names remain non-authorizing compatibility only.
+- Standalone direct import, wheel/install, single-owner/retired-runtime checks and four synthetic Word product render checks pass.
+
+The immediately preceding failed CI (run `43403116634`) had 511 passing tests and two failures: stale maintenance mirror bytes and a stale journal-revision assertion. Both were corrected and the next exact-head CI passed 513 tests. A further negative test was added to prove that legacy parent-upcall data cannot be made durable or bypass admission; the final run passed 514 tests.
+
+**System acceptance remains NOT_READY.** No independent review exists for this exact candidate. The previous Codex review failed on an older commit and the bot reported usage limits. The native plugin remains a private Skill-only package and is not verified installed or invoked in a fresh session. The authenticated owner-message/approval provider and real Git CAS provider are not deployed. Main protection/ruleset/archive prerequisites remain open; the last recorded inventory shows 99 branches and no rulesets. PR #67 is open and unmerged.
+
+**Data privacy blocker:** GitHub reports this repository as public, while its tree contains private article/research artifacts, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. Do not write additional private article/research data here until the owner explicitly chooses whole-repository private visibility or a private data-repository split with public-history cleanup. No visibility change, migration, deletion, branch prune or production merge was performed.
+
+All seven external system gates remain OPEN. The real cross-border article remains at RESEARCH with 0/4 real delivery artifacts. Engineering CI, synthetic document rendering and this audit do not certify factual finance research, independent editorial/reader quality, user-visible product activation or system completion. No CAOS repository, code, PR, settings, assets or runtime was modified.
