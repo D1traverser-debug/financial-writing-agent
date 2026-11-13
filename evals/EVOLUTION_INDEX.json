@@ -1,7 +1,6 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-11-13T03:13:48Z",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -218,8 +217,8 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "15631f59e2b93a8edfdfaa70226eb80356fca374",
-        "exact_head_ci_run": 43357550854,
+        "last_exact_ci_verified_head": "23430a67917ea458eb5152ea56486e685c7bd90b",
+        "exact_head_ci_run": 43358887347,
         "exact_head_tests_passed": 476,
         "source_line_coverage_percent": 88,
         "coverage_statements": 5490,
@@ -271,7 +270,13 @@
           "g7": "ARCHIVE_MANIFEST_AND_TAG_READBACK_AND_FINAL_INVENTORY_AND_PROTECTED_PR_ONLY_MAIN_WITH_REVIEW_AND_CI",
           "negative_tests": "WRONG_SOURCE_SHA_OR_REF__MISSING_OR_MISMATCHED_OWNER_APPROVAL__WRONG_PLUGIN_RELEASE__UNPROTECTED_MAIN__MISSING_REQUIRED_CHECK__UNVERIFIED_ARCHIVE_TAGS"
         },
-        "branch_archive_workflow": "PLAN_STEP_EXPORTS_VALIDATED_MANIFEST_SHA_TO_GITHUB_OUTPUT__STATIC_REGRESSION_TEST_PASS__LIVE_DISPATCH_NOT_RUN"
+        "branch_archive_workflow": "PLAN_STEP_EXPORTS_VALIDATED_MANIFEST_SHA_TO_GITHUB_OUTPUT__STATIC_REGRESSION_TEST_PASS__LIVE_DISPATCH_NOT_RUN",
+        "current_open_pull_requests": 1,
+        "current_branch_count": 99,
+        "unmerged_unique_branch_heads": 34,
+        "branch_archive_status": "NOT_STARTED__MAIN_UNPROTECTED__ARCHIVE_RULESETS_AND_ENVIRONMENTS_NOT_VERIFIED",
+        "site_poc_status": "SEPARATE_OLD_RUNTIME_LINE__FAIL_CLOSED_TOOL_DISPATCH__NOT_PRODUCTION__ARCHIVE_ONLY",
+        "branch_review_status": "34_UNMERGED_UNIQUE_HEADS_COMPARED_TO_CANDIDATE__CONTENT_CLASSIFICATION_AND_HUMAN_ARCHIVE_APPROVAL_PENDING"
       }
     }
   },
@@ -295,8 +300,8 @@
     "parent_repository_mutations": "NONE",
     "latest_candidate_ci": {
       "pull_request": 67,
-      "head_sha": "15631f59e2b93a8edfdfaa70226eb80356fca374",
-      "run_id": 43357550854,
+      "head_sha": "23430a67917ea458eb5152ea56486e685c7bd90b",
+      "run_id": 43358887347,
       "tests_passed": 476,
       "line_coverage_percent": 88,
       "whole_system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
