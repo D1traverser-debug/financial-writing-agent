@@ -90,3 +90,10 @@ The repair remains Financial-only. No real article, current article STATE.json, 
 A follow-up source-to-workflow trace corrected an earlier false-positive diagnosis. The PLAN script `scripts/branch_archive_cleanup.py` already writes its computed `manifest_sha256` to `GITHUB_OUTPUT`; the workflow's `steps.plan.outputs.manifest_sha256` and downstream `needs.plan.outputs.manifest_sha256` bindings were already wired. The added inline YAML echo was redundant and has been removed. The regression test now verifies the actual source writer, the workflow step output declaration, and the downstream consumer together.
 
 This correction does **not** claim a live archive workflow repair or execution. The live workflow has not been dispatched: main protection, rulesets, GitHub App credentials and separately approved archive/prune Environments remain unconfigured. No branch or tag was mutated.
+
+
+## G7 archive executor protection-boundary hardening (2026-11-13)
+
+A further review found that the archive script previously treated `main.protected=true` as sufficient, while the operator contract also requires PR-only merges, a required independent approval, the Financial `test` check, and force-push/deletion disabled. The archive executor now reads the actual main branch protection response, validates all four conditions, stores the normalized protection snapshot in a schema-5 manifest, and requires exact snapshot equality at PLAN/ARCHIVE, before PRUNE, before every deletion, and after the final inventory. A valid-but-changed protection configuration also fails closed. Regression cases cover missing PR protection, zero approvals, missing CI, force-push/deletion enabled and changed protection between deletion steps.
+
+This remains code-level evidence only. The repository's live main branch is still unprotected, no archive rulesets or required-reviewer Environments have been configured, and no archive tag or branch deletion has occurred.
