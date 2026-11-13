@@ -433,6 +433,14 @@ def prune_only(
     for item in manifest["candidate_heads"]:
         name, sha = item["branch"], item["head_sha"]
         try:
+            controls_now = api.verify_controls("PRUNE")
+            if (
+                controls_now["branch_ruleset_id"] != manifest["control_ids"]["branch_ruleset_id"]
+                or controls_now["tag_ruleset_id"] != manifest["control_ids"]["tag_ruleset_id"]
+                or controls_now["branch_rule_types"] != controls["branch_rule_types"]
+                or controls_now["tag_rule_types"] != controls["tag_rule_types"]
+            ):
+                raise ValueError("PRUNE_RULESET_CHANGED_DURING_PRUNE")
             _require_protected_main(api, manifest["main_sha"], "DURING_PRUNE")
         except Exception as exc:
             failures.append({"branch": name, "reason": str(exc)})
@@ -461,6 +469,20 @@ def prune_only(
     main_after = api.branch_head("main")
     main_after_row = next((item for item in after if item["name"] == "main"), None)
     main_protected_after = bool(main_after_row and main_after_row["protected"])
+    rulesets_verified_after = False
+    try:
+        final_controls = api.verify_controls("PRUNE")
+        rulesets_verified_after = (
+            final_controls["branch_ruleset_id"] == manifest["control_ids"]["branch_ruleset_id"]
+            and final_controls["tag_ruleset_id"] == manifest["control_ids"]["tag_ruleset_id"]
+            and final_controls["branch_rule_types"] == controls["branch_rule_types"]
+            and final_controls["tag_rule_types"] == controls["tag_rule_types"]
+        )
+        if not rulesets_verified_after:
+            failures.append({"branch": "main", "reason": "PRUNE_RULESET_CHANGED_AFTER_PRUNE"})
+    except Exception as exc:
+        failures.append({"branch": "main", "reason": str(exc)})
+        final_controls = controls
     for item in manifest["candidate_heads"]:
         if api.tag_head(item["branch"]) != item["head_sha"]:
             failures.append({"branch": item["branch"], "reason": "FINAL_TAG_READBACK_FAILED"})
@@ -470,6 +492,7 @@ def prune_only(
         [x["name"] for x in after] == ["main"]
         and main_after == manifest["main_sha"]
         and main_protected_after
+        and rulesets_verified_after
         and not prs_after and not failures
     )
     result = {
@@ -479,7 +502,8 @@ def prune_only(
         "deleted": deleted, "already_absent_after_archive": absent,
         "open_pr_count_after": len(prs_after), "main_sha_after": main_after,
         "main_protected_after": main_protected_after,
-        "unresolved_failures": failures, "complete": complete, "controls": controls,
+        "prune_rulesets_verified_after": rulesets_verified_after,
+        "unresolved_failures": failures, "complete": complete, "controls": final_controls,
     }
     write_json(out, result)
     return result
