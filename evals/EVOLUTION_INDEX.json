@@ -54,7 +54,7 @@
     },
     "next_legal_phase": "Resolve the public-repository/private-research data boundary first. Obtain an independent adversarial review of the exact current PR head; configure and verify protected-main controls; then squash-merge the single Financial candidate and verify production-main CI. Only after main is authoritative may the private Skill/plugin be updated and installed in a fresh ChatGPT session. Complete real owner-message, provider CAS, article-graph, method-impact and branch-archive evidence before closing any live gate.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
-    "user_action_now": "OWNER_DECISION_REQUIRED: either make the entire public repository private while preserving refs, or migrate private article/research/user data to a private repository and scrub public history. Also arrange an independent reviewer and GitHub admin controls; the model cannot authenticate the owner or self-certify review.",
+    "user_action_now": "EXTERNAL_OWNER_SETUP_REQUIRED_FOR_PLUGIN_INSTALLATION_AND_GITHUB_ADMIN_CONTROLS; OWNER_DECISION_REQUIRED: either make the entire public repository private while preserving refs, or migrate private article/research/user data to a private repository and scrub public history. Also arrange an independent reviewer; the model cannot authenticate the owner or self-certify review.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
