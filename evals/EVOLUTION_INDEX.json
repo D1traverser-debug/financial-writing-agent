@@ -231,7 +231,7 @@
         "exact_head_ci_status": "SUCCESS",
         "skill_utf8_bytes": 11848,
         "maintenance_reference_surfaces": "TWO_BYTE_IDENTICAL",
-        "problem_journal_revision": "1.8",
+        "problem_journal_revision": "1.9",
         "parent_upcall_execution": "REJECTED_AT_DECISION_ENVELOPE_ADMISSION__NO_PARENT_GUIDANCE_RETURN_PATH",
         "independent_review_status": "NOT_OBTAINED__CODEX_REVIEW_FAILED_ON_OLD_HEAD_DUE_USAGE_LIMIT__NO_CURRENT_HEAD_REVIEW",
         "public_repository_data_boundary": {
