@@ -52,9 +52,9 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Resolve the public-repository/private-research data boundary first. Obtain an independent adversarial review of the exact current PR head; configure and verify protected-main controls; then squash-merge the single Financial candidate and verify production-main CI. Only after main is authoritative may the private Skill/plugin be updated and installed in a fresh ChatGPT session. Complete real owner-message, provider CAS, article-graph, method-impact and branch-archive evidence before closing any live gate.",
+    "next_legal_phase": "Proceed without any repository visibility change, data migration or history rewrite. Obtain an independent adversarial review of the exact current PR head; configure and verify protected-main controls; then squash-merge the single Financial candidate and verify production-main CI. After main is authoritative, align the private Skill/plugin to the exact main release and verify fresh-session invocation. Continue real owner-message, provider CAS, article-graph, method-impact and branch-archive evidence before closing the corresponding live gates.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
-    "user_action_now": "EXTERNAL_OWNER_SETUP_REQUIRED_FOR_PLUGIN_INSTALLATION_AND_GITHUB_ADMIN_CONTROLS; OWNER_DECISION_REQUIRED: either make the entire public repository private while preserving refs, or migrate private article/research/user data to a private repository and scrub public history. Also arrange an independent reviewer; the model cannot authenticate the owner or self-certify review. no code-only route can authenticate the real ChatGPT user or create repository administration permissions.",
+    "user_action_now": "NO_ACTION_REQUIRED_FOR_REPOSITORY_VISIBILITY_OR_DATA_MIGRATION. Remaining external actions for full live acceptance are limited to: a genuinely independent reviewer for the exact candidate; GitHub administrator configuration of protected-main and required-reviewer archive controls; explicit installation/invocation of the Financial Skill/plugin in a fresh ChatGPT session; and any real provider credentials/authorizations unavailable to repository code. Continue all code-side work without asking the owner to resolve public/private visibility.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
@@ -140,17 +140,17 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "0440c5c8bd315825fa8e14500782b8bae6f53f99",
-        "exact_head_ci_run": 43404325789,
+        "last_exact_ci_verified_head": "6c6f73e39d03a7f811abd34d35da081206b40968",
+        "exact_head_ci_run": 43430043693,
         "exact_head_tests_passed": 514,
         "source_line_coverage_percent": 90,
         "coverage_statements": 5759,
         "coverage_missed": 572,
         "whole_tree_inventory": {
-          "tracked_files": 304,
+          "tracked_files": 314,
           "python_ast_parsed": 112,
-          "json_parsed": 52,
-          "decoded_text_lines": 40872,
+          "json_parsed": 53,
+          "decoded_text_lines": 42017,
           "warnings": 0,
           "errors": 0
         },
@@ -237,8 +237,13 @@
         "public_repository_data_boundary": {
           "visibility": "public",
           "private_research_artifact_present": true,
-          "example_path": "workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json",
-          "status": "OWNER_DECISION_REQUIRED__NO_NEW_PRIVATE_ARTICLE_DATA_WRITES"
+          "status": "OWNER_ACCEPTED_EXISTING_PUBLIC_VISIBILITY__NON_BLOCKING",
+          "owner_decision": "2026-11-13: The user explicitly stated that public/private visibility is not a concern and that execution results are the priority.",
+          "blocking": false,
+          "visibility_change": "NOT_REQUESTED",
+          "data_migration": "NOT_REQUESTED",
+          "history_rewrite": "NOT_REQUESTED",
+          "follow_up": "Do not spend further execution cycles asking the owner to choose public/private visibility or migrate the repository."
         },
         "repository_rulesets_count": 0,
         "real_article_status": "RESEARCH__0_OF_4_REAL_DELIVERY_ARTIFACTS",
