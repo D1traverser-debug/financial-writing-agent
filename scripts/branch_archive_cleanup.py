@@ -147,6 +147,8 @@ class GitHubAPI:
             )
         if "test" not in contexts:
             raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        if status.get("strict") is not True:
+            raise ValueError("MAIN_BRANCH_UP_TO_DATE_REQUIRED")
 
         reviews = raw.get("required_pull_request_reviews")
         if not isinstance(reviews, dict):
@@ -176,6 +178,7 @@ class GitHubAPI:
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
             "required_status_checks": sorted(contexts),
+            "branches_up_to_date_required": True,
             "admins_enforced": True,
             "force_pushes_enabled": False,
             "deletions_enabled": False,
@@ -406,6 +409,7 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
         or protection.get("admins_enforced") is not True
         or not isinstance(protection.get("required_status_checks"), list)
         or "test" not in protection["required_status_checks"]
+        or protection.get("branches_up_to_date_required") is not True
         or protection.get("force_pushes_enabled") is not False
         or protection.get("deletions_enabled") is not False
     ):
