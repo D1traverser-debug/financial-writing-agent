@@ -217,11 +217,11 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "698cfebf165022b37e7e28b73fea93af8973f4d4",
-        "exact_head_ci_run": 43360932414,
-        "exact_head_tests_passed": 476,
+        "last_exact_ci_verified_head": "9ca8d691629638c3499c54bd14f4aeb6739605dc",
+        "exact_head_ci_run": 43363343907,
+        "exact_head_tests_passed": 494,
         "source_line_coverage_percent": 88,
-        "coverage_statements": 5490,
+        "coverage_statements": 5494,
         "coverage_missed": 681,
         "whole_tree_inventory": {
           "tracked_files": 328,
@@ -276,7 +276,7 @@
         "unmerged_unique_branch_heads": 34,
         "branch_archive_status": "NOT_STARTED__MAIN_UNPROTECTED__RULESETS_AND_REQUIRED_REVIEWER_ENVIRONMENTS_NOT_VERIFIED",
         "site_poc_status": "SEPARATE_OLD_RUNTIME_LINE__FAIL_CLOSED_TOOL_DISPATCH__NOT_PRODUCTION__ARCHIVE_ONLY",
-        "branch_review_status": "34_UNIQUE_HEADS_CLASSIFIED__TASK_ARTICLE_AND_RESEARCH_PRESERVED_AS_ARCHIVE_HISTORY__OWNER_APPROVAL_REQUIRED_BEFORE_PRUNE",
+        "branch_review_status": "34_UNIQUE_HEADS_CLASSIFIED_WITH_FULL_SHAS_AND_EXACT_REF_NAMES__TAGS_REQUIRED_BEFORE_PRUNE",
         "unverified_branch_refs": 54,
         "unverified_unique_branch_heads": 34,
         "compare_to_main": {
@@ -288,9 +288,22 @@
           "task_research_refs": 1
         },
         "main_protected": false,
-        "branch_archive_output_trace": "PYTHON_PLAN_SCRIPT_ALREADY_EXPORTS_GITHUB_OUTPUT__REDUNDANT_YAML_ECHO_REMOVED__SOURCE_TO_WORKFLOW_REGRESSION_TEST_PASS",
+        "branch_archive_output_trace": "PYTHON_PLAN_SCRIPT_EXPORTS_GITHUB_OUTPUT__YAML_HAS_NO_REDUNDANT_ECHO__SOURCE_TO_WORKFLOW_REGRESSION_TEST_PASS",
         "plugin_current_release": "0.1.1__SKILL_ONLY__NOT_INSTALLED_OR_LIVE_TOOL_VERIFIED",
-        "plugin_alignment": "CANDIDATE_SKILL_NOW_SUPPORTS_MULTI_REQUIREMENT_DECOMPOSITION__CURRENT_PLUGIN_0_1_1_STILL_HAS_ATOMIC_UTTERANCE_RULE__UPDATE_AFTER_MAIN_MERGE"
+        "plugin_alignment": "CURRENT_PLUGIN_0_1_1_HAS_ATOMIC_UTTERANCE_RULE__CANDIDATE_SKILL_SUPPORTS_MULTI_REQUIREMENT_DECOMPOSITION__UPDATE_AFTER_MAIN_MERGE",
+        "required_main_protection_contract": {
+          "require_pull_request": true,
+          "required_approving_reviews": 1,
+          "dismiss_stale_reviews": true,
+          "require_last_push_approval": true,
+          "enforce_admins": true,
+          "require_status_check": "test",
+          "require_branches_up_to_date": true,
+          "allow_force_pushes": false,
+          "allow_deletions": false
+        },
+        "branch_archive_executor_schema": "5.0",
+        "archive_workflow_live_execution": "NOT_RUN__REQUIRES_PROTECTED_MAIN_RULESETS_GITHUB_APP_CREDENTIALS_AND_TWO_REVIEWER_ENVIRONMENTS"
       }
     }
   },
@@ -314,14 +327,13 @@
     "parent_repository_mutations": "NONE",
     "latest_candidate_ci": {
       "pull_request": 67,
-      "head_sha": "698cfebf165022b37e7e28b73fea93af8973f4d4",
-      "run_id": 43360932414,
-      "tests_passed": 476,
+      "head_sha": "9ca8d691629638c3499c54bd14f4aeb6739605dc",
+      "run_id": 43363343907,
+      "tests_passed": 494,
       "line_coverage_percent": 88,
       "whole_system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
       "article_product_readiness": "NOT_READY__0_OF_4_DELIVERABLES__0_QUALITY_EVIDENCE",
       "parent_repository_mutations": "NONE"
     }
-  },
-  "updated_at": "2026-11-13T03:44:15Z"
+  }
 }
