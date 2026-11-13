@@ -186,10 +186,10 @@ def test_pre_requirement_migration_rejects_current_authority_and_migrates_legacy
 
     legacy["writing_kernel_version"] = WRITING_KERNEL_VERSION
     legacy["quality_evidence"] = {}
+    # INTAKE has no persisted stage artifact; the legal first transition is
+    # a plain advance into RESEARCH.
     legacy = owner_guard.advance_state(
         legacy, previous_state_blob_sha="b" * 40, executor_identity="test",
-        artifact_key="INTAKE", artifact_path=f"workspaces/articles/{legacy['task_id']}/INTAKE.json",
-        artifact_blob_sha="intake-blob",
         _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
     )
     legacy["quality_evidence"] = {"research_decision": {"historical": "retained"}}
