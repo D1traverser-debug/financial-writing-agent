@@ -60,7 +60,7 @@ Read the Financial-owned `research.md`, `private_research.md`, `market_explanati
 
 PublicationFitness has eight gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF. Same-chat critique is CHAT_SELF_REVIEW, not independent acceptance. A real reviewer must receive exact draft bytes and return verifiable review evidence; otherwise acceptance stays OPEN.
 
-Normal portfolio delivery requires actual AUDIT, FINANCE_DEEP, FINANCE_BROAD and PLATFORM_INTERACTION Word files, plus PRIVATE_RESEARCH when required. Use the real DOCX bytes, PDF/PNG page rendering, visual inspection and current-session resource readback. Filename, hash, typed PASS or synthetic CI cannot prove user-visible availability or reader quality.
+Required outputs: `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, when contracted, `PRIVATE_RESEARCH_DOCX`. Verify actual DOCX bytes, PDF/PNG pages, visual inspection and current-session access. A filename, hash, PASS or CI does not prove delivery or reader quality.
 
 ## Method governance and evolution
 
