@@ -9,6 +9,7 @@ from typing import Any, Callable, Mapping
 from .delivery_contract import REQUIRED_SUPPLEMENTAL_VISIBLE_OUTPUTS
 from .delivery_pipeline import CanonicalDeliveryError, validate_delivery_evidence
 from .models import ArtifactKind
+from .owner_guard import TERMINAL_STATUS
 from .path_identity import require_task_id, require_word_basename
 from .private_research import validate_private_research_brief
 from .task_requirements import (
@@ -105,6 +106,29 @@ def build_visible_delivery_receipt(
     prior-session attachments alone cannot bypass that gate.
     """
     _require(isinstance(state, Mapping), "state is required")
+    _require(
+        state.get("status") == TERMINAL_STATUS,
+        "VISIBLE_DELIVERY_REQUIRES_TERMINAL_ARTICLE_STATE",
+    )
+    # Historical presentation states may not carry current_stage, but a state
+    # that does must be at the last audited stage; current-kernel states always
+    # have this field.  Word bytes alone never authorize early publication.
+    stage = state.get("current_stage")
+    _require(
+        stage == "FINAL_AUDIT"
+        if state.get("writing_kernel_version") == "1.0"
+        else stage in {None, "FINAL_AUDIT"},
+        "VISIBLE_DELIVERY_REQUIRES_FINAL_AUDIT_STAGE",
+    )
+    if state.get("writing_kernel_version") == "1.0":
+        decisions = state.get("review_decisions")
+        final = decisions.get("FINAL_AUDIT") if isinstance(decisions, Mapping) else None
+        _require(
+            isinstance(final, Mapping)
+            and final.get("status") == "PASS"
+            and final.get("assurance") == "CHAT_SELF_REVIEW",
+            "VISIBLE_DELIVERY_REQUIRES_FINAL_AUDIT_PASS",
+        )
     task_id = str(state.get("task_id", "")).strip()
     _require(bool(task_id), "state.task_id is required")
     try:

@@ -225,6 +225,10 @@ def test_current_visible_delivery_requires_genuine_provider_docx_bytes_not_boole
 
     state = _state(with_private=False)
     state["writing_kernel_version"] = "1.0"
+    state["current_stage"] = "FINAL_AUDIT"
+    state["review_decisions"] = {
+        "FINAL_AUDIT": {"status": "PASS", "assurance": "CHAT_SELF_REVIEW"},
+    }
     resources = _canonical_resources()
     with pytest.raises(DeliveryAvailabilityError, match="CURRENT_FINANCIAL_BINARY_READER_REQUIRED"):
         build_visible_delivery_receipt(state, resources=resources, resource_verifier=lambda _: True)
@@ -272,4 +276,34 @@ def test_current_visible_delivery_requires_genuine_provider_docx_bytes_not_boole
         build_visible_delivery_receipt(
             state, resources=resources, resource_verifier=lambda _: True,
             resource_binary_reader=lambda _: {"content": blob},
+        )
+
+@pytest.mark.parametrize("early_status", ["IN_PROGRESS", "BLOCKED", "RESEARCH"])
+def test_visible_delivery_refuses_unfinished_or_blocked_article_even_if_word_resources_look_complete(early_status):
+    state = _state()
+    state["status"] = early_status
+    with pytest.raises(DeliveryAvailabilityError, match="VISIBLE_DELIVERY_REQUIRES_TERMINAL_ARTICLE_STATE"):
+        build_visible_delivery_receipt(
+            state, resources=_canonical_resources(), resource_verifier=lambda _: True,
+        )
+
+
+def test_visible_delivery_refuses_terminal_label_at_earlier_stage():
+    state = _state()
+    state["current_stage"] = "RESEARCH"
+    with pytest.raises(DeliveryAvailabilityError, match="VISIBLE_DELIVERY_REQUIRES_FINAL_AUDIT_STAGE"):
+        build_visible_delivery_receipt(
+            state, resources=_canonical_resources(), resource_verifier=lambda _: True,
+        )
+
+
+@pytest.mark.parametrize("final_review", [{}, {"FINAL_AUDIT": {"status": "FAIL", "assurance": "CHAT_SELF_REVIEW"}}, {"FINAL_AUDIT": {"status": "PASS", "assurance": "SELF_INDEPENDENT"}}])
+def test_current_word_delivery_refuses_missing_failing_or_misattributed_final_audit(final_review):
+    state = _state()
+    state["writing_kernel_version"] = "1.0"
+    state["current_stage"] = "FINAL_AUDIT"
+    state["review_decisions"] = final_review
+    with pytest.raises(DeliveryAvailabilityError, match="VISIBLE_DELIVERY_REQUIRES_FINAL_AUDIT_PASS"):
+        build_visible_delivery_receipt(
+            state, resources=_canonical_resources(), resource_verifier=lambda _: True,
         )
