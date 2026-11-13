@@ -199,7 +199,7 @@ def test_current_word_with_real_render_but_no_source_snapshot_is_not_deliverable
     )
     with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_SOURCE_TRACE_REQUIRED"):
         finalize_delivery_evidence(
-            no_source, source_ref="workspaces/articles/article-render-test/publication/DEEP.json",
-            source_identity="git-blob:synthetic", render_qa="PASS", visual_qa="PASS",
+            no_source, source_ref="workspaces/articles/article-render-test/stages/DRAFT.json",
+            source_identity="git-blob:" + "a" * 40, render_qa="PASS", visual_qa="PASS",
             render_inspection_receipt=proof,
         )
