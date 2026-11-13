@@ -143,6 +143,8 @@ class GitHubAPI:
         checks = status.get("checks")
         if not isinstance(checks, list):
             raise ValueError("MAIN_FINANCIAL_CI_CHECK_APP_ID_REQUIRED")
+        if REQUIRED_CI_CHECK not in contexts:
+            raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
         check_bindings = []
         for item in checks:
             if (not isinstance(item, dict)
