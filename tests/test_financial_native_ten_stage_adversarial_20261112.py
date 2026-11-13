@@ -374,3 +374,31 @@ def test_final_audit_rejects_private_research_supplement_with_wrong_source_ident
             "supplemental_delivery_artifacts": [private_meta],
         })
     assert p.states == frozen
+
+
+@pytest.mark.parametrize("stage_key", ["RESEARCH", "DRAFT"])
+def test_final_audit_rereads_exact_research_and_draft_stage_bytes_before_terminal(stage_key, tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    stage_path = p.read(STATE_PATH)["state"]["stage_artifacts"][stage_key]["path"]
+    p.artifacts[stage_path] = b"tampered-after-stage-admission"
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match=f"SOURCE_STAGE_BYTES_MISMATCH:{stage_key}"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
