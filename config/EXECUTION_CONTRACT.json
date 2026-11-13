@@ -292,7 +292,7 @@
     "method_dependency_recovery": "REOPEN_METHOD_DEPENDENCY__OWNER_LIFECYCLE_EARLIEST_AFFECTED_STAGE",
     "method_pending_revision": "NO_EFFECTIVE_METHOD_FINGERPRINT_CHANGE_UNTIL_PROMOTED",
     "method_dependency_boundary": "EXPLICIT_METHOD_IDS_ONLY__IMPLICIT_USAGE_AND_LIVE_CROSS_ARTICLE_FANOUT_NOT_TESTED",
-    "binding_task_requirement_guard": "ORIGINAL_USER_MESSAGE_BYTES_AND_VERBATIM_STATEMENT_AND_EXTERNAL_OWNER_CONFIRMED_EXACT_MUTATION_HASH",
+    "binding_task_requirement_guard": "ORIGINAL_USER_MESSAGE_BYTES_AND_COMPLETE_SOURCE_EXCERPT_AND_EXTERNAL_OWNER_CONFIRMED_CANONICAL_MUTATION_HASH",
     "explicit_owner_semantic_verifier": "financial_writing_agent.intent_governance.verify_requirement_change_intent(owner_semantic_verifier=...)",
     "binding_without_provider": "BLOCK_WITHOUT_STATE_MUTATION",
     "private_chatgpt_plugin": "plugins_6af591b19a708191a3879e94a7ce8742",
