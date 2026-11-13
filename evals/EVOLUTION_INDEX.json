@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1",
   "authority": "FINANCIAL_WRITING_AGENT",
-  "updated_at": "2026-11-13T03:10:49Z",
+  "updated_at": "2026-11-13T03:13:48Z",
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
@@ -218,8 +218,8 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "7cae6d2b2182d45c8cefcbb949247731c8104986",
-        "exact_head_ci_run": 43357206565,
+        "last_exact_ci_verified_head": "15631f59e2b93a8edfdfaa70226eb80356fca374",
+        "exact_head_ci_run": 43357550854,
         "exact_head_tests_passed": 476,
         "source_line_coverage_percent": 88,
         "coverage_statements": 5490,
@@ -295,8 +295,8 @@
     "parent_repository_mutations": "NONE",
     "latest_candidate_ci": {
       "pull_request": 67,
-      "head_sha": "7cae6d2b2182d45c8cefcbb949247731c8104986",
-      "run_id": 43357206565,
+      "head_sha": "15631f59e2b93a8edfdfaa70226eb80356fca374",
+      "run_id": 43357550854,
       "tests_passed": 476,
       "line_coverage_percent": 88,
       "whole_system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
