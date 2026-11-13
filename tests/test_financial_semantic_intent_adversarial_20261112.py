@@ -48,7 +48,11 @@ def _submit(provider, statement, *, semantic_verifier=None,
 
 
 def accepted_owner_approval(request):
-    return signed_owner_change_approval(request)
+    return signed_owner_change_approval(request, approved=True)
+
+
+def rejected_owner_approval(request):
+    return signed_owner_change_approval(request, approved=False)
 
 
 def test_red_source_hash_and_user_role_are_not_enough_for_semantically_inverted_requirements():
@@ -60,11 +64,13 @@ def test_red_source_hash_and_user_role_are_not_enough_for_semantically_inverted_
     assert p.states == frozen
 
 
-def test_even_formatted_malicious_approval_cannot_inject_nonoriginal_statement():
+def test_signed_owner_rejection_blocks_a_semantically_inverted_requirement():
     p = create(Provider())
     frozen = deepcopy(p.states)
+    # The provider sees the full source and exact proposed mutation, then signs
+    # a rejection. A source hash alone is not semantic approval.
     with pytest.raises(FinancialAdmissionError, match="SEMANTIC"):
-        _submit(p, WRONG, semantic_verifier=accepted_owner_approval)
+        _submit(p, WRONG, semantic_verifier=rejected_owner_approval)
     assert p.states == frozen
 
 
@@ -97,7 +103,7 @@ def test_red_negation_cannot_be_removed_by_selecting_a_true_but_misleading_subst
     with pytest.raises(FinancialAdmissionError, match="SEMANTIC"):
         _submit(
             p, "只保留三家公司。", source=original,
-            semantic_verifier=accepted_owner_approval,
+            semantic_verifier=rejected_owner_approval,
         )
     assert p.states == frozen
 
@@ -115,7 +121,7 @@ def test_red_truncated_excerpt_cannot_drop_context_even_when_statement_matches_i
     assert p.states == frozen
 
 
-def test_red_complete_owner_utterance_is_the_only_accepted_requirement_payload():
+def test_green_complete_owner_utterance_is_preserved_as_source_evidence():
     p = create(Provider())
     original = "不要只保留三家公司，必须保留完整公司池。"
     result = _submit(
@@ -124,7 +130,53 @@ def test_red_complete_owner_utterance_is_the_only_accepted_requirement_payload()
     )
     assert result["child_state_cas_verified"]
     state = p.read(f"workspaces/articles/{TASK}/STATE.json")["state"]
-    assert state["task_requirement_authority"]["active_requirements"][0]["statement"] == original
+    active = state["task_requirement_authority"]["active_requirements"]
+    assert active[0]["statement"] == original
+    receipt = state["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"]
+    assert receipt["source_sha256"] == hashlib.sha256(original.encode("utf-8")).hexdigest()
+    assert receipt["excerpt_sha256"] == hashlib.sha256(original.encode("utf-8")).hexdigest()
+
+
+def test_green_one_full_owner_message_can_be_decomposed_into_multiple_confirmed_requirements():
+    p = create(Provider())
+    original = "财经Deep应保留完整公司池，并按细分行业比较各公司的订单、盈利能力和现金流。"
+    first = requirement("财经Deep应保留完整公司池，并说明各公司纳入或排除的理由。")
+    second = requirement("在各细分行业内比较公司的订单、盈利能力和现金流。")
+    second["requirement_id"] = "deep-segment-comparison"
+    path = f"workspaces/articles/{TASK}/STATE.json"
+    proposal = {
+        "schema_version": "1.0", "domain_id": DOMAIN_ID,
+        "action_id": "multi-requirement-decomposition",
+        "task_id": TASK, "operation": "CHANGE_REQUIREMENTS",
+        "expected_state_blob_sha": p.read(path)["blob_sha"],
+        "parameters": {
+            "evidence_ref": SOURCE,
+            "upserts": [first, second],
+            "retire_ids": None,
+            "intent_evidence": _proof(original),
+        },
+    }
+    result = admit_article_action(
+        proposal, state_reader=p.read, cas_writer=p.write,
+        authorization_verifier=signed_action_authorization,
+        artifact_reader=p.artifact, source_snapshot_reader=p.source,
+        owner_instruction_reader=_reader(original),
+        owner_semantic_verifier=accepted_owner_approval,
+    )
+    assert result["child_state_cas_verified"]
+    state = p.read(path)["state"]
+    active = state["task_requirement_authority"]["active_requirements"]
+    assert {item["requirement_id"] for item in active} == {
+        "deep-universe", "deep-segment-comparison",
+    }
+    assert {item["statement"] for item in active} == {
+        first["statement"], second["statement"],
+    }
+    receipt = state["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"]
+    assert receipt["source_sha256"] == hashlib.sha256(original.encode("utf-8")).hexdigest()
+    assert receipt["semantic_approval"]["approved"] is True
+    assert receipt["semantic_approval"]["change_sha256"]
+
 
 def test_red_no_model_supplied_fake_pass_or_bare_verifier_callback_bypasses_proof():
     p = create(Provider())
@@ -138,9 +190,7 @@ def test_red_honest_verifier_rejects_contradictory_source_paraphrase():
     p = create(Provider())
     frozen = deepcopy(p.states)
     with pytest.raises(FinancialAdmissionError, match="SEMANTIC"):
-        _submit(p, WRONG, semantic_verifier=lambda _: {
-            "approved": False, "reason": "source requires entire company universe; only three contradicts",
-        })
+        _submit(p, WRONG, semantic_verifier=rejected_owner_approval)
     assert p.states == frozen
 
 
