@@ -243,6 +243,10 @@ def test_entire_ten_stage_graph_with_canonical_rendered_delivery_evidence_and_bo
     assert set(state["delivery_artifacts"]) == set(state["required_outputs"])
     assert final["visible_delivery_receipt"]["status"] == "VISIBLE_DELIVERY_READY"
     assert "PRIVATE_RESEARCH_DOCX" in final["visible_delivery_receipt"]["required_outputs"]
+    from financial_writing_agent.standalone_runtime import observe_article
+    observed = observe_article(TASK, state_reader=p.read)
+    assert observed["visible_delivery_status"] == "VISIBLE_DELIVERY_READY"
+    assert observed["visible_delivery_receipt"]["task_id"] == TASK
     assert final["independent_editorial_quality_verified"] is False
     assert final["owner_outcome_verified"] is False
     assert len([r for r in state["execution_receipts"] if "TRANSITION" in r["action_id"]]) == 10
