@@ -24,7 +24,6 @@
       "FURTHER_AUTHORIAL_STYLE_OR_ANTI_AI_RULE_EVOLUTION",
       "NEW_NUMBERING_RULES"
     ],
-    "parent_upcall": "evals/PARENT_GUIDANCE_HANDOFF_20261016_CROSS_BORDER_STALE_RESUME.md",
     "candidate_final_head": "cbff7aab2bcf9720d72bd7b2a23cc80d7083567b",
     "candidate_ci_run": 38842872462,
     "candidate_ci_number": 1242,
@@ -35,54 +34,7 @@
     "result": "PASS",
     "assurance": "PRODUCTION_REGRESSION_VERIFIED__LIVE_CURRENT_KERNEL_SUCCESSOR_ARTICLE_QUALITY_OBSERVATION_OPEN"
   },
-  "recent_resolved_or_promoted": [
-    {
-      "id": "FIN-CB13-CONSOLIDATED-20261016",
-      "status": "PROMOTED__PRODUCTION_CI_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN",
-      "goal": "Adopt UAOS Common Behavior Assurance 1.3 through Financial's existing cognition system while mechanically preventing action before evidence-grounded root scope and evolution disposition.",
-      "selected_architecture": "SINGLE_DECISION_ENVELOPE_CAUSAL_MODEL_PLUS_THIN_ACTION_GATE",
-      "competing_candidates": [
-        {
-          "ref": "PR#38",
-          "disposition": "BASE_SELECTED_AND_ABSORBED_INTO_PR40",
-          "reason": "Root-scope hypotheses live inside the existing DecisionEnvelope, preserving one cognition model."
-        },
-        {
-          "ref": "PR#39",
-          "disposition": "SUPERSEDED_AFTER_PARTIAL_ABSORPTION",
-          "reason": "Its action-closure requirement was retained, but its duplicate ProblemLayer/RootScopeHypothesis model was rejected to avoid a second causal authority."
-        },
-        {
-          "ref": "PR#40",
-          "disposition": "SELECTED_PROMOTION_PATH",
-          "reason": "Consolidates the single DecisionEnvelope/RootScopeReceipt model with a thin evidence-grounded action gate."
-        }
-      ],
-      "required_evidence": [
-        "root hypotheses compare causal layers before repair",
-        "root hypothesis evidence refs are mechanically grounded in DecisionEnvelope evidence before action",
-        "selected root cause has non-user observed or testable evidence",
-        "typed evolution disposition precedes terminal action",
-        "owner-authorized repair cannot terminate as recommendation-only",
-        "systemic/evolution-relevant closure has durable causal evidence"
-      ],
-      "acceptance_refs": [
-        "tests/test_cognition_governance_v1.py",
-        "tests/test_problem_action_admission_v1.py",
-        "scripts/eval_contracts.py",
-        "scripts/static_audit.py"
-      ],
-      "pull_request": 40,
-      "candidate_final_head": "5522029a4c77d2bb57a6c064795fdb7c81f78263",
-      "candidate_ci_run": 38831226757,
-      "candidate_ci_number": 1199,
-      "production_commit": "4f282e816663a6c6176965648c3313a93b279648",
-      "production_ci_run": 38831430136,
-      "production_ci_number": 1200,
-      "result": "PASS",
-      "assurance": "COMMON_BEHAVIOR_1_3_SINGLE_COGNITION_MODEL_AND_ACTION_GATE_PRODUCTION_CI_VERIFIED__LIVE_ARTICLE_BEHAVIOR_AND_QUALITY_OBSERVATION_OPEN"
-    }
-  ],
+  "recent_resolved_or_promoted": [],
   "historical_notes": [
     "PR#38 and PR#39 were parallel candidates from the same production baseline; PR#40 is the explicit consolidated promotion path.",
     "Financial Writing 1.0.2 is the current production runtime after PR#42 promotion; historical article receipts remain immutable provenance rather than current-quality assurance.",
@@ -112,39 +64,13 @@
     ],
     "boundary": "ONE_FINANCIAL_EVOLUTION_OWNER__NO_NEW_TASK_INDEX_OR_PARALLEL_ARTICLE_STATE",
     "previous_review_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md",
-    "r1_base_main_sha": "e580cd4dfda8db47674803451c9adfff9e3cf975",
-    "r1_candidate_branch": "rebuild/financial-integrity-r1-20261111",
-    "r1_scoped_evidence": {
-      "current_candidate_ci_run": 42981344176,
-      "tested_head": "56553f3ceae7b8a5df451a5b89d2922070a54294",
-      "result": "CANDIDATE_AND_INITIAL_PRODUCTION_CI_VERIFIED__R1_PRODUCTION_RECEIPT_ABOVE",
-      "actual_caos_parent_module": "src/cognition_agent_os/domain_contract.py",
-      "parent_observed_sha": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
-      "parent_observation_protocol": "CHILD_CONTRACT_OBSERVATION_V1",
-      "native_child_effect_interface": "financial_writing_agent/caos_bridge.py",
-      "independent_editorial_result": "NOT_READY"
-    },
-    "r1_production": {
-      "pr": 52,
-      "candidate_head": "03fa630747225e867d593b03e2ce496551a362c5",
-      "merged_main_sha": "9bf0cc4e90b124eb0b730c255722354dbd2dea1f",
-      "candidate_ci_run": 42983168142,
-      "production_ci_run": 42983349995,
-      "engineering_result": "PASS",
-      "source_level_parent_observation": "REAL_PINNED_CAOS_DOMAIN_CONTRACT_AND_REMOTE_GITHUB_FINANCIAL_BYTES",
-      "parent_repo_unchanged_main_sha": "9686cedeb3fd8171ecf70eab33aaea641217b04a",
-      "semantic_readiness": "NOT_READY",
-      "source_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md"
-    },
     "standalone_reconstruction": {
-      "user_goal": "CAOS method study informs Financial redevelopment; user connects ONLY Financial and it works independently",
+      "user_goal": "Financial Writing is the only operating domain and must complete its work independently.",
       "financial_only_candidate_pr": 60,
       "candidate_branch": "rebuild/standalone-financial-operating-system-20261111",
       "single_owner": "FINANCIAL_WRITING_OWNER",
       "primary_skill": "skills/financial-writing-agent/SKILL.md",
       "provider_entry": "financial_writing_agent/standalone_runtime.py",
-      "active_parent_dependency": false,
-      "prior_caos_child_contract": "RETIRED_TO_HISTORICAL_PROVENANCE",
       "independent_plugin_activation_verified": false,
       "live_user_article_product_verified": false,
       "editorial_acceptance": "NOT_READY",
@@ -156,7 +82,6 @@
       "merged_main_sha": "8efe50c8151613e587c204967b65b68666caf0ad",
       "production_ci_run": 43002323750,
       "engineering_result": "PASS",
-      "native_parent_dependency": false,
       "complete_financial_product_verified": false,
       "user_action_now": "NONE_TO_VERIFY_CODE__CONNECT_FINANCIAL_SKILL_FOR_LIVE_HOST_EFFECT_IF_DESIRED"
     },
@@ -167,8 +92,8 @@
     "latest_business_adversarial_replay": "scripts/real_financial_workflow_redteam.py",
     "latest_business_adversarial_status": "REAL_PRODUCTION_FUNCTION_REPLAYED__STRUCTURAL_FALSE_ACCEPTANCE_CASES_REPRODUCED__LIVE_ARTICLE_AND_EDITORIAL_NOT_READY",
     "owner_governance_rebuild_20261112": {
-      "scoped_owner_demand": "CAOS methodology governs Financial's intrinsic requirements, process, cognition loops, knowledge/method CRUD, failure repairs and independent acceptance. No CAOS writes. No real article requested.",
-      "goal_method_architecture_ref": "evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md",
+      "scoped_owner_demand": "Financial Writing owns its intrinsic requirements, process, decision/execution loops, knowledge and method CRUD, failure repair and independent acceptance. No external parent runtime is required. The current request is system engineering, not real article production.",
+      "goal_method_architecture_ref": "evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md",
       "active_governance_owners": [
         "workspaces/articles/{task_id}/STATE.json",
         "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
@@ -184,7 +109,6 @@
       "actual_live_method_effect": "NOT_TESTED",
       "actual_real_user_source_readback": "NOT_TESTED",
       "real_article_production": "OUT_OF_SCOPE_OF_CURRENT_OWNER_ENGINEERING_REQUEST",
-      "parent_repo_mutation": "FORBIDDEN_NONE",
       "method_article_dependency": "EXPLICIT_METHOD_ID__ACTIVE_VERSION_DIGEST__CANONICAL_STAGE_REOPEN_WITH_CAS",
       "method_article_dependency_test": "tests/test_financial_method_article_dependency_20261112.py",
       "test_scope": "SYNTHETIC_AUTHENTICATED_USER_MESSAGE_AND_METHOD_PROVIDER__NOT_NATIVE_CLIENT_ACTIVATION",
@@ -196,10 +120,9 @@
         "merged_main_sha": "b1ea4f87ad083be89d7b2d8a3592817e495e927f",
         "post_merge_ci_run": 43191581515,
         "independent_main_readback": "main SHA and PR merged/closed verified",
-        "semantic_owner_goal_evidence": "evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md",
+        "semantic_owner_goal_evidence": "evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md",
         "real_client_activation": "NOT_TESTED",
         "real_article_product_outcome": "OUT_OF_SCOPE",
-        "CAOS_repository_changes": "NONE",
         "candidate_ci_tests": "433 passed; 22/22 job steps successful; 87% line coverage",
         "independent_review": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
         "production_merge": "NOT_MERGED__PR_67_OPEN"
@@ -256,7 +179,6 @@
         ],
         "production_main_sha_at_audit": "72cf852746a54b5f116e41f96bb8ca54b5f6838c",
         "pull_request_merged": false,
-        "caos_parent_mutations": "NONE",
         "semantic_requirement_decomposition": {
           "source_preservation": "COMPLETE_AUTHENTICATED_USER_UTTERANCE_AND_FULL_EXCERPT_SHA256",
           "normalized_requirement_statements": "MULTIPLE_SCOPED_REQUIREMENTS_ALLOWED_FROM_ONE_UTTERANCE",
@@ -326,7 +248,6 @@
     "green_preliminary_run": 43182914806,
     "assurance": "ENGINEERING_SIMULATED_WITH_SYNTHETIC_PROVIDER__NATIVE_CLIENT_NOT_TESTED",
     "product_claim": "NONE__INDEPENDENT_EDITORIAL_AND_LIVE_OUTPUT_NOT_EVALUATED",
-    "parent_repository_mutations": "NONE",
     "latest_candidate_ci": {
       "pull_request": 67,
       "head_sha": "709b98ed7b719dbade721686ba3d83411a640b87",
@@ -334,8 +255,7 @@
       "tests_passed": 494,
       "line_coverage_percent": 88,
       "whole_system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
-      "article_product_readiness": "NOT_READY__0_OF_4_DELIVERABLES__0_QUALITY_EVIDENCE",
-      "parent_repository_mutations": "NONE"
+      "article_product_readiness": "NOT_READY__0_OF_4_DELIVERABLES__0_QUALITY_EVIDENCE"
     }
   }
 }

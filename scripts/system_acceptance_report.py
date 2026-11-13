@@ -66,7 +66,6 @@ def main():
             "independent adversarial review and actual effect readback",
             "provider-confirmed branch archival/readback and single-main status",
         ],
-        "caos_parent_repo_modified": False,
     }
     p = ROOT / arguments.out
     p.parent.mkdir(parents=True, exist_ok=True)

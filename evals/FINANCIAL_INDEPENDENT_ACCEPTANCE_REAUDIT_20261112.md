@@ -1,6 +1,6 @@
 # 财经写作系统 — 对抗式独立验收复审（2026-11-12）
 
-**结论：工程模拟测试 PASS 不等于系统整体验收 PASS。实际终态仍为 NOT_READY。** 本轮仅修改 Financial Writing，CAOS 仓库代码、分支、插件、PR 和设置完全不触碰。用户此轮指令是“完整做好系统”，**不是出真实财经文章**。
+**结论：工程模拟测试 PASS 不等于系统整体验收 PASS。实际终态仍为 NOT_READY。** 本轮仅修改 Financial Writing 自身资产；外部项目不在修改范围内。用户此轮指令是“完整做好系统”，**不是出真实财经文章**。
 
 ## 精确的已有证据
 
@@ -21,7 +21,7 @@
 - RED：合法用户消息，试图替换为「Deep 只能保留 3 家」并上传正确 SHA；需要拒绝。模型伪造 `approved=True`、错 source/change digest、未认证 retirement，均拒绝且 STATE.json 字节不变。
 - FIX：`intent_governance.verify_requirement_change_intent` 保存并验证完整原始用户消息及全文 excerpt；允许 AI 将复杂指令拆成多条有范围的 requirement statement，但完整 upsert/retire 集合必须由独立可信 provider 展示并取得 owner 对**规范化完整 mutation hash**的明确签名确认。来源哈希不能替代语义确认；没有真实确认 provider 就 **BLOCK**，且 STATE.json 不变。原文不写入公开 GitHub，receipt 只保存必要摘要和身份边界。此证明仍依赖真实提供者，不声称语义可由哈希自动判定。
 - 一次性仓库 branch 清理流程归档原 branch HEAD SHA 为 Git tag 后再删 ref；先 Dry Run、排除 main/protected/open-PR，遇 SHA 变化、权限和归档冲突 fail-closed；保留原 Git commit history 和标记，GitHub PR history 原封不动。需真实 Actions 权限和 provider readback。
-- 私人 Financial Skill 插件是**单独域入口**，不依赖 CAOS runtime；代码明确提示其不是 Python host，不自带 GitHub 授权，使用者必须实际连接、在新会话独立验证。
+- 私人 Financial Skill 插件是**单独域入口**，不依赖外部 parent runtime；代码明确提示其不是 Python host，不自带 GitHub 授权，使用者必须实际连接、在新会话独立验证。
 - 7 门外部验收模块 `financial_writing_agent/acceptance_gates.py`：对原始意图、Article Graph/恢复、方法 CRUD+传播、真实 Git CAS、客户端激活、独立红队、main 分支治理分别要求与被验 `main` 精确绑定的外部来源回读和非拥有者认证。CI 只写 `NOT_READY` 报告，不把 PASS 数量视为产品完成。
 
 ## 退出标准及证据层级
@@ -42,7 +42,7 @@
 
 - 只有一个整改候选 PR #67，禁止把同一轮拆成无关的小 PR 膨胀历史。
 - 用户现有独立私人 Financial 插件可打开 `https://chatgpt.com/plugins/plugins_6af591b19a708191a3879e94a7ce8742`，**但安装需要用户明确操作**；不虚构安装成功。
-- 不使用 CAOS PR、文件或 Plugin Creator 项目条目来交叉编辑 Financial。
+- 不使用外部项目资产来交叉编辑 Financial。
 - GitHub 仓库管理员的 branch protection settings 与真正的 ChatGPT user-message provider/host API 不在 GitHub 源代码修复权限内，必须明确标记为外部权限边界。
 
 ## Earlier candidate CI and repository hygiene update (historical exact PR head 792939)
@@ -68,7 +68,7 @@ The original exact-head CI at `6715ab46918ef94aff7ecf3395c3c734030ac87d` (run `4
 - The machine acceptance report still correctly reports all seven external gates OPEN and `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`.
 - Business replay still reports the live cross-border v3 article at RESEARCH, 0/4 required Word outputs, zero quality-evidence items and `product_readiness=NOT_READY`. No real article was produced by this system-reconstruction task.
 
-The subsequent commits in this candidate synchronize the plugin release pointer and execution/evolution metadata with the already-created private Skill release `0.1.1`, and align the machine contract with the requirement-decomposition correction. They do not change the article's live STATE.json or any CAOS asset. The PR's current exact HEAD must complete its own CI before any promotion decision.
+The subsequent commits in this candidate synchronize the plugin release pointer and execution/evolution metadata with the already-created private Skill release `0.1.1`, and align the machine contract with the requirement-decomposition correction. They do not change the article's live STATE.json or any external project asset. The PR's current exact HEAD must complete its own CI before any promotion decision.
 
 
 
@@ -82,7 +82,7 @@ A second review of the acceptance evaluator found three evidence-binding gaps th
 
 New negative cases cover missing or mismatched original-message attestation, wrong source digest, arbitrary confirmation references, mismatched change digest, wrong plugin/release, unprotected main, force-push/deletion allowance, missing required check and unverified archive tags. These changes do not fabricate any external gate receipt; all seven live gates remain OPEN until their real providers return evidence against the exact promoted main SHA.
 
-The repair remains Financial-only. No real article, current article STATE.json, CAOS repository, CAOS PR, plugin setting or user private source was changed by these acceptance-gate corrections.
+The repair remains Financial-only. No real article, current article STATE.json, external parent repository, external parent PR, plugin setting or user private source was changed by these acceptance-gate corrections.
 
 
 ## Archive workflow output-trace correction (2026-11-13)
@@ -123,7 +123,7 @@ Live GitHub readback after that CI run found:
 
 **Promotion decision: do not merge or prune yet.** Merging without independent review and main protection would violate the system's own G6/G7 acceptance contract. The one candidate PR is retained rather than split into more PRs. Required owner-side actions are in `docs/FINANCIAL_BRANCH_ARCHIVE_OPERATOR_SETUP_20261112.md`; the remaining provider, client activation and independent-review gates are not replaceable by more synthetic tests.
 
-No production article STATE.json, private source file or CAOS repository/branch/PR/plugin/setting was changed by this system-reconstruction work.
+No production article STATE.json, private source file or external project repository/branch/PR/plugin/setting was changed by this system-reconstruction work.
 
 
 ## Latest exact-head engineering verification (2026-11-13)

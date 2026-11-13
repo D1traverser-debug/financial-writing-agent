@@ -2,7 +2,24 @@
 
 ## Business and authority
 
-Only Financial Writing controls its domain tasks, methodology, source checks, Word output and lifecycle. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its authoritative hosted operating Skill is skills/financial-writing-agent/SKILL.md. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No CAOS parent, legacy UAOS runtime, local daemon or independent second task owner is assumed.
+Only Financial Writing controls its domain tasks, methodology, source checks, Word output and lifecycle. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its authoritative hosted operating Skill is skills/financial-writing-agent/SKILL.md. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No external parent runtime, local daemon or second task owner is required.
+
+
+
+## Canonical file and CRUD map
+
+- Operating entry: `skills/financial-writing-agent/SKILL.md`.
+- Domain authority: `config/FINANCIAL_MANIFEST.json`, `config/FINANCIAL_CAPABILITIES.json` and `config/EXECUTION_CONTRACT.json`.
+- Data/file map: `config/DATA_AUTHORITY.json`.
+- Article business state: one `workspaces/articles/<task_id>/STATE.json` per task. It binds requirements, current stage, artifact identities, execution receipts, intent history and recovery status.
+- Article files: `research/`, `editorial/`, `stages/`, `reviews/`, `delivery/` and `feedback/` live beneath the same task directory. Do not create a global article index or store an article's current state in a separate database.
+- Method CRUD: `knowledge/METHOD_KNOWLEDGE_CATALOG.json` is the only reusable-method store. Revisions are staged; retirement preserves history; promotion and impact closure require evidence.
+- System evolution: `evals/EVOLUTION_INDEX.json` is the current system status/evolution index; `evals/quality_regression.json` is the quality baseline.
+- Policy/reference content has two synchronized copies only: the Skill modules under `skills/financial-writing-agent/references/` and the Python package modules under `financial_writing_agent/resources/references/`.
+
+## Human interaction and authorization
+
+Recover the complete user request and available corrections before asking follow-up questions. Distinguish binding requirements from preferences, ideas, issue reports and questions. Use reversible defaults for non-material ambiguity; ask one focused question only when ambiguity changes the outcome or safety boundary. Show the complete normalized requirement change before a binding write. Preserve prior receipts and read back every provider mutation by exact content/hash. If the connected provider cannot perform a required authenticated action, mark only that action OPEN and continue safe work.
 
 ## Native input operations
 
@@ -32,7 +49,7 @@ This is a Python adapter contract, **not a deployed remote API**. To use it in a
 
 ## Independent financial business method
 
-Decision loop and execution loop are defined in the standalone Skill and references/maintenance.md. They are concrete Financial behaviors: sourced value-chain and company economics, competing causal theses, 15-module private research, reader-oriented Deep/Broad story selection, source-originality/claim checks, actual Word artifact rendering and feedback-driven improvements. These do not call CAOS. Importing a historical CAOS bridge is forbidden in the standalone runtime.
+Decision loop and execution loop are defined in the standalone Skill and skills/financial-writing-agent/skills/financial-writing-agent/references/maintenance.md. They are concrete Financial behaviors: sourced value-chain and company economics, competing causal theses, 15-module private research, reader-oriented Deep/Broad story selection, source-originality/claim checks, actual Word artifact rendering and feedback-driven improvements. These are implemented inside Financial and do not call an external parent runtime. No parent bridge is part of the active package.
 
 ## Deployment and product acceptance
 

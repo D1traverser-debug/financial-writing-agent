@@ -1,6 +1,6 @@
 # Financial main-only branch archive — operator setup and stop conditions
 
-Scope: D1traverser-debug/financial-writing-agent only. No CAOS repository, PR, setting, asset or runtime is touched.
+Scope: D1traverser-debug/financial-writing-agent only. This procedure does not modify any other project.
 
 ## Live inventory at the 2026-11-12 audit
 

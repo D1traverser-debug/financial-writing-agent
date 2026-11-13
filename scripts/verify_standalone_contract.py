@@ -1,4 +1,4 @@
-"""Direct Financial independence gate; deliberately imports no CAOS code."""
+"""Direct Financial independence gate; deliberately imports no external parent code."""
 from __future__ import annotations
 
 import importlib
@@ -37,7 +37,7 @@ def main() -> None:
     from financial_writing_agent.models import TaskContract
     assert len(TaskContract(prompt="isolated Financial").required_outputs) == 4
     print("PASS: direct Financial imports, native owner state, Skill, core writer and "
-          "standalone capability contracts initialize without CAOS/UAOS or any external parent")
+          "standalone capability contracts initialize without any external parent runtime")
 
 
 if __name__ == "__main__":

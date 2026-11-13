@@ -6,7 +6,7 @@ Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
 
-Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no parent/CAOS runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no external parent runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
@@ -18,7 +18,7 @@ Hard invariants:
 
 ## 1A. Current standalone deployment and capability boundary
 
-Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import CAOS, and no local CAOS Host is required. Historical `.uaos/*` and `CAOS_SKILL.md` are inactive compatibility artifacts.
+Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import an external parent runtime. Retired integration stubs have been removed from the current tree.
 
 Model/web/data retrieval and document tools must actually be connected in the Financial environment; an installed Python wheel by itself does not execute LLM research or prove any native plugin connection. The real cross-border v3 task and all historic receipts remain unchanged. Full product readiness still requires independently observed financial facts, useful narrative and actual accessible Word results.
 
@@ -218,13 +218,13 @@ A historical or pre-private-marker article is not evidence that 1.0.3 private-re
 
 ## Owner intent, requirements, methodology CRUD and recursive dependency control (2026-11-12)
 
-The CAOS-inspired governance method is **replicated as Financial-owned behavior**, not a new parent/Host/runtime dependency. The current Financial Skill remains the sole domain operating entry. Source authority: actual user message/correction → authenticated owner-intent evidence → typed requirement classification; task requirements and stage invalidations stay in one Article Aggregate. Nonbinding ideas remain visible in the article's `intent_history` without acquiring hard-goal authority. `USER_EXPLICIT` is never an inferred default.
+The evidence-first governance method is **implemented as Financial-owned behavior**, not a new parent/Host/runtime dependency. The current Financial Skill remains the sole domain operating entry. Source authority: actual user message/correction → authenticated owner-intent evidence → typed requirement classification; task requirements and stage invalidations stay in one Article Aggregate. Nonbinding ideas remain visible in the article's `intent_history` without acquiring hard-goal authority. `USER_EXPLICIT` is never an inferred default.
 
 Decision and execution are distinct loops with recursive re-entry. The decision loop challenges source, task interpretation, alternative mechanisms, chosen methodology, and its verifier; the execution loop performs an authorized action, independently reads back actual source/effect, follows downstream invalidation and may reopen an upstream hypothesis. The ten-stage business state graph is unchanged; problem/recovery and feedback governance remain owner-native.
 
 The existing method catalog is the **only method knowledge authority**. It carries a versioned, append-only change history, pending revisions that cannot silently replace current methods, explicit candidate/adopted/challenged/retired states, non-destructive retirement and verified promotion/impact closures. Existing legacy method labels remain LEGACY_DECLARED; they are not automatic proof of an independently validated method. The dedicated method-scope action in the same `standalone_runtime` uses user-authenticated exact Git CAS/readback but is **not a second task state or workflow controller**. A changed method records affected stages and OPEN revalidation rather than silently approving old dependent tasks.
 
-Assurance boundary: synthetic CI verifies deterministic admission and state replay; native Financial plugin activation, real original-message provider, semantic intent classification and cross-article live impact verification remain separate evidence requirements. See `evals/FINANCIAL_GOAL_METHOD_CAOS_GOVERNANCE_AUDIT_20261112.md`.
+Assurance boundary: synthetic CI verifies deterministic admission and state replay; native Financial plugin activation, real original-message provider, semantic intent classification and cross-article live impact verification remain separate evidence requirements. See `evals/FINANCIAL_GOAL_METHOD_GOVERNANCE_AUDIT_20261112.md`.
 
 ### Method-version→Article dependency edge (verified synthetic path)
 

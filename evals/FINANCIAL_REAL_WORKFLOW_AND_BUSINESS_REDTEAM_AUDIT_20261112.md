@@ -1,6 +1,6 @@
 # 财经写作系统真实业务回放与对抗审计（2026-11-12）
 
-> **归属：仅 Financial Writing。** 本审计不会修改、创建 PR 或要求运行 CAOS / UAOS 仓库、服务或文件。  
+> **归属：仅 Financial Writing。** 本审计只处理 Financial 自身的仓库、服务和文件。  
 > **结论：ENGINEERING PASS；财经业务产品 NOT_READY。** 本记录不能替代第三方编辑、现场登录连接、主张真实性或读者验收。
 
 ## 0. 审计范围与证据层级
@@ -84,8 +84,8 @@
 - **支持**：R07 same-chat 任意 PASS 和 R08 schema 硬拒外部独立 PASS；历史被用户拒绝，现有 quality readiness NOT_READY。
 - **归属**：PublicationFitness 与 editorial promotion。**首要根因。**
 
-### H4：架构依赖 CAOS，连接不独立
-- **反证**：当前 Financial Skill、独立 state 接口、无父依赖 manifest、R02 和 R03 能正常工作；**没有证据应重新修改或接入 CAOS**。真实本体插件尚未连接是 **Financial 的集成缺口**，不是要动 CAOS。
+### H4：架构依赖外部父级运行时，连接不独立
+- **反证**：当前 Financial Skill、独立 state 接口、无外部父级依赖 manifest、R02 和 R03 能正常工作；**没有证据应重新引入外部父级运行时**。真实本体插件尚未连接是 **Financial 的集成缺口**。
 
 ### H5：Word 渲染实现全部失效
 - **反证**：真实 CI 可装 wheel、可 LibreOffice render，PNG 与 DOCX 的哈希读回有效。问题是 **审核和用户访问证据不足**，尤其非长文的 generic 证据路径；并非全部 Word 功能不可用。
@@ -109,7 +109,7 @@
 | P2 | 写作风格和多场景盲评，受众留存与原创性测试，并形成独立 held-out corpus | 至少两种不同议题的真实双版本文章，盲评相对基线改进；不过拟合跨境专题 |
 | P2 | 复用知识只能保留“来源/时间/适用条件/反例/再验证条件”，优先减少重复扫描耗时 | 历史资料在旧时间触发质疑，而非被自动认作最新事实 |
 
-**首选修复路线**：适配现有 Financial 自有 Article Aggregate 和各 gate，新增“事实主张级+时态+来源验证”的阻断证明以及“真实独立编辑”的证明，不创建第二套业务状态或父级运行系统。备选“加关键词黑名单”只可作报警，不可当事实判断；备选“复制/调用 CAOS”明确排除；备选“重做全部多 Agent”在业务改善证据不足之前不采用。
+**首选修复路线**：适配现有 Financial 自有 Article Aggregate 和各 gate，新增“事实主张级+时态+来源验证”的阻断证明以及“真实独立编辑”的证明，不创建第二套业务状态或父级运行系统。备选“加关键词黑名单”只可作报警，不可当事实判断；备选“复制/调用外部父级系统”明确排除；备选“重做全部多 Agent”在业务改善证据不足之前不采用。
 
 ## 6. 外部政策的真实反例：历史资料不能直接视为当前事实
 
@@ -132,6 +132,6 @@
 3. `EDITORIAL`: **NOT_READY**；没有独立事实核验和认可，更不存在可声明的泛化读者提升。
 4. `LIVE_FINANCIAL_APP`: **NOT_VERIFIED**；GitHub repo 自述不等于已连接/部署的 ChatGPT Plugin。
 5. `LIVE_ARTICLE`: **NOT_READY**；v3 没有跳阶段，也没有伪造新来源、假“研究完成”或旧稿重新包装。
-6. `CAOS`: **NO WRITES / NO PR ACTIONS / NO DEPENDENCY**，本审计从始至终只执行 Financial 仓库内操作。
+6. 外部父级系统不属于本系统运行依赖；本审计只执行 Financial 仓库内操作。
 
 后续任何改动，仍只允许对 `D1traverser-debug/financial-writing-agent` 开展；真实用户验收不能由同一执行器写一个 PASS 字符串代替。
