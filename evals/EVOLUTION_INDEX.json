@@ -141,17 +141,17 @@
       "independent_acceptance_candidate": {
         "pull_request": 67,
         "branch": "repair/financial-independent-acceptance-20261112",
-        "last_exact_ci_verified_head": "332c2bfeb2cf2cbcab51a7f5058b9becaea08ec9",
-        "exact_head_ci_run": 43443188398,
-        "exact_head_tests_passed": 514,
+        "last_exact_ci_verified_head": "add49c39670c467b57eb0eb8efd35d9b8e20bc21",
+        "exact_head_ci_run": 43455613685,
+        "exact_head_tests_passed": 523,
         "source_line_coverage_percent": 90,
-        "coverage_statements": 5759,
+        "coverage_statements": 5763,
         "coverage_missed": 572,
         "whole_tree_inventory": {
           "tracked_files": 304,
           "python_ast_parsed": 112,
           "json_parsed": 52,
-          "decoded_text_lines": 41039,
+          "decoded_text_lines": 41322,
           "warnings": 0,
           "errors": 0
         },
@@ -298,8 +298,35 @@
           "remaining": "FRESH_SESSION_PLUGIN_INSTALLATION_AND_INVOCATION_NOT_VERIFIED__INDEPENDENT_REVIEW_AND_PROTECTED_MAIN_OPEN"
         }
       },
-      "plugin_current_release": "0.1.2__CANONICAL_LOADER_SKILL_ONLY__NOT_INSTALLED_OR_LIVE_TOOL_VERIFIED",
-      "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_DEFERS_TO_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_RULES__FRESH_SESSION_INVOCATION_OPEN"
+      "plugin_current_release": "0.1.2__PRIVATE_PACKAGE_UPDATED_AND_READBACK__SMALL_LOADER_DEFERS_TO_CANONICAL_FINANCIAL_MAIN_SKILL__FRESH_SESSION_INVOCATION_OPEN",
+      "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_FETCHES_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_BUSINESS_RULES__FRESH_SESSION_INVOCATION_OPEN",
+      "last_failed_candidate_ci": {
+        "head_sha": "f2a659381db1a5420f5acd749bad7ce16923d60f",
+        "run_id": 43455013821,
+        "conclusion": "failure",
+        "tests": "522 passed; 1 failed",
+        "root_causes": [
+          "The synthetic signed-acceptance fixture hard-coded the prior private plugin release ID while the candidate manifest correctly pointed to Financial Skill 0.1.2."
+        ],
+        "repair": "The fixture now obtains plugin_id and release_id from the same canonical _configured_financial_plugin_identity() function used by the release gate. Exact-head follow-up CI passed on add49c39670c467b57eb0eb8efd35d9b8e20bc21."
+      },
+      "repair_followup_ci": {
+        "head_sha": "add49c39670c467b57eb0eb8efd35d9b8e20bc21",
+        "run_id": 43455613685,
+        "conclusion": "success",
+        "tests": "523 passed",
+        "source_line_coverage_percent": 90,
+        "coverage_statements": 5763,
+        "coverage_missed": 572,
+        "whole_tree_inventory": {
+          "tracked_files": 304,
+          "python_ast_parsed": 112,
+          "json_parsed": 52,
+          "decoded_text_lines": 41322,
+          "warnings": 0,
+          "errors": 0
+        }
+      }
     }
   },
   "system_engineering_simulation_20261112": {
