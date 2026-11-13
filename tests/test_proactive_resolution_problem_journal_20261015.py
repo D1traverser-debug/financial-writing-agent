@@ -32,7 +32,7 @@ def test_proactive_resolution_recovers_before_user_escalation():
     assert "Do not ask merely because the best evidence is imperfect" in rule
 
 
-def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
+def test_problem_journal_preserves_historical_parent_queue_as_archival_provenance():
     journal = _read("evals/PROBLEM_EVOLUTION_JOURNAL.md")
     required_entries = {
         "P-20261010-01",
@@ -59,12 +59,13 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `1.6`" in journal
+    assert "Journal revision: `1.8`" in journal
+    assert "DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS" in journal
     assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
     assert "CI #1034" in journal
     assert "CI #1036" in journal
     assert "CI #1037" in journal
-    assert "Parent Guidance Queue / adjudication state" in journal
+    assert "Historical Parent Guidance Queue / adjudication state (archival only)" in journal
     assert "PROACTIVE_RESOLUTION_GAP" in journal
     assert "DECLARATION_TO_OPERATION_GAP" in journal
     assert "PROBLEM_TO_ACTION_CLOSURE_GAP" in journal
@@ -80,7 +81,7 @@ def test_problem_journal_keeps_failures_repairs_and_parent_queue_together():
 
 def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     payload = json.loads(_read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json"))
-    assert payload["revision"] == "1.7"
+    assert payload["revision"] == "1.8"
     assert payload["status"] == "HISTORICAL_PROBLEM_JOURNAL_INDEX__NOT_CURRENT_SYSTEM_STATUS"
     assert payload["system_status_authority"] == "evals/EVOLUTION_INDEX.json"
     assert "P-20261015-15" in payload["open_items_at_2026_10_15"]

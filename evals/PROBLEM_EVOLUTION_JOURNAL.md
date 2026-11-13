@@ -1,15 +1,15 @@
 # Financial Writing — Problem & Evolution Journal
 
-Status: `CURRENT_DURABLE_PROBLEM_LEDGER`
-Journal revision: `1.7`
-Updated: `2026-10-15`
+Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
+Journal revision: `1.8`
+Updated: `2026-11-13`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
-Purpose: one chronological problem/repair history for Financial maintenance and later UAOS/总控 guidance.
+Purpose: one chronological problem/repair history for Financial maintenance; prior parent/child references are provenance only and do not create a live controller or routing dependency.
 
 ## Reading rule
 
-This is the single index of problems actually encountered during the current Financial system-evolution period. It records failures, rejected repairs and verification failures—not only final fixes. Detailed incident/eval files remain primary evidence; this journal preserves the causal path so a future controller does not have to reconstruct it from chats, commits and scattered audits.
+This is the chronological record of problems encountered during Financial system evolution. It preserves failures, rejected repairs and verification failures—not only final fixes. Detailed incident/eval files remain primary evidence. Current system status and routing authority live only in `evals/EVOLUTION_INDEX.json`; this journal is historical evidence for future maintainers, not a current controller or queue.
 
 Historical entries may mention architecture later retired. They are history, not current routing authority.
 
@@ -533,7 +533,7 @@ Verification state: candidate CI/review remains authoritative for promotion; do 
 
 ---
 
-# Parent Guidance Queue / adjudication state
+# Historical Parent Guidance Queue / adjudication state (archival only)
 
 1. `PROACTIVE_RESOLUTION_GAP` — `PARENT_ADJUDICATED`: UAOS Common Behavior Assurance requires proportionate recovery before avoidable user escalation; domain recovery order remains owner-specific.
 2. `EVOLUTION_HISTORY_INTERFACE` — `PARENT_ADJUDICATED`: one discoverable owner-native evolution evidence entrypoint + causal history is required; no universal journal file/state machine.
@@ -589,4 +589,4 @@ Failure classes: `MIGRATION_CONSUMER_DRIFT`, `DECLARED_STANDALONE_WITH_PARENT_UP
 
 ## 2026-11-13 archival boundary — prior parent queue
 
-The earlier section titled “Parent Guidance Queue / adjudication state” records historical statuses from the former parent/child design. Those entries and their original wording remain preserved as provenance. They are **archival only**, not a live queue or instruction to contact a parent system. Current Financial status is owned only by `evals/EVOLUTION_INDEX.json`; current Financial admission rejects legacy parent-upcall dispositions. No CAOS/UAOS runtime, repository, file, branch, PR or host was modified.
+The earlier section titled “Historical Parent Guidance Queue / adjudication state (archival only)” records statuses from the former parent/child design. Those entries and their original wording remain preserved as provenance. They are **archival only**, not a live queue or instruction to contact a parent system. Current Financial status is owned only by `evals/EVOLUTION_INDEX.json`; current Financial admission rejects legacy parent-upcall dispositions. No CAOS/UAOS runtime, repository, file, branch, PR or host was modified.
