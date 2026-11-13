@@ -121,6 +121,52 @@ class GitHubAPI:
         if self.tag_head(name) != sha:
             raise RuntimeError("ARCHIVE_TAG_READBACK_FAILED")
 
+    def main_protection(self):
+        raw = self.call(
+            "GET", f"/repos/{REPO}/branches/main/protection", allow_404=True,
+        )
+        if not isinstance(raw, dict):
+            raise ValueError("MAIN_BRANCH_PROTECTION_MISSING")
+
+        status = raw.get("required_status_checks")
+        if not isinstance(status, dict):
+            raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+        contexts = {
+            item for item in status.get("contexts", [])
+            if isinstance(item, str) and item
+        }
+        checks = status.get("checks", [])
+        if isinstance(checks, list):
+            contexts.update(
+                item.get("context") for item in checks
+                if isinstance(item, dict) and isinstance(item.get("context"), str)
+                and item.get("context")
+            )
+        if "test" not in contexts:
+            raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
+
+        reviews = raw.get("required_pull_request_reviews")
+        if not isinstance(reviews, dict):
+            raise ValueError("MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING")
+        approvals = reviews.get("required_approving_review_count")
+        if type(approvals) is not int or approvals < 1:
+            raise ValueError("MAIN_INDEPENDENT_APPROVAL_REQUIRED")
+
+        force_pushes = raw.get("allow_force_pushes")
+        if not isinstance(force_pushes, dict) or force_pushes.get("enabled") is not False:
+            raise ValueError("MAIN_FORCE_PUSH_NOT_DISABLED")
+        deletions = raw.get("allow_deletions")
+        if not isinstance(deletions, dict) or deletions.get("enabled") is not False:
+            raise ValueError("MAIN_DELETION_NOT_DISABLED")
+
+        return {
+            "pull_requests_required": True,
+            "required_approving_review_count": approvals,
+            "required_status_checks": sorted(contexts),
+            "force_pushes_enabled": False,
+            "deletions_enabled": False,
+        }
+
     def delete_branch(self, name: str, sha: str):
         if name == "main" or self.branch_head(name) != sha or self.tag_head(name) != sha:
             raise ValueError("BRANCH_OR_ARCHIVE_TAG_PRECONDITION_FAILED")
@@ -150,6 +196,7 @@ class GitHubAPI:
         return detail
 
     def verify_controls(self, phase: str):
+        main_protection = self.main_protection()
         for env_name in ENVIRONMENTS:
             env = self.call("GET", f"/repos/{REPO}/environments/{env_name}")
             rules = env.get("protection_rules", []) if isinstance(env, dict) else []
@@ -192,6 +239,7 @@ class GitHubAPI:
             "branch_ruleset_id": branch["id"], "tag_ruleset_id": tags["id"],
             "branch_rule_types": sorted(branch_types), "tag_rule_types": sorted(tag_types),
             "reviewer_environments_configured": list(ENVIRONMENTS),
+            "main_protection": main_protection,
             "current_run_approval": "GITHUB_ACTIONS_ENVIRONMENT_GATE__NOT_INFERRED_BY_SCRIPT",
         }
 
@@ -246,7 +294,8 @@ def live_manifest(api: GitHubAPI, controls: dict[str, Any]):
             ),
         })
     manifest = {
-        "schema_version": "4.0", "repo": REPO, "main_sha": main2,
+        "schema_version": "5.0", "repo": REPO, "main_sha": main2,
+        "main_protection": controls["main_protection"],
         "branches": branches2, "candidate_heads": candidates,
         "merged_main_prs": merged_main_prs,
         "branch_review": branch_review,
@@ -263,7 +312,7 @@ def live_manifest(api: GitHubAPI, controls: dict[str, Any]):
 def validate_manifest(manifest: dict[str, Any]) -> None:
     if not isinstance(manifest, dict) or manifest.get("repo") != REPO:
         raise ValueError("MANIFEST_IDENTITY_MISMATCH")
-    if manifest.get("schema_version") != "4.0":
+    if manifest.get("schema_version") != "5.0":
         raise ValueError("MANIFEST_SCHEMA_VERSION_MISMATCH")
     raw_branches = manifest.get("branches")
     if not isinstance(raw_branches, list):
@@ -332,6 +381,19 @@ def validate_manifest(manifest: dict[str, Any]) -> None:
     ]
     if manifest.get("unverified_branch_heads") != expected_unverified:
         raise ValueError("MANIFEST_UNVERIFIED_BRANCH_SET_INVALID")
+    protection = manifest.get("main_protection")
+    if (
+        not isinstance(protection, dict)
+        or protection.get("pull_requests_required") is not True
+        or type(protection.get("required_approving_review_count")) is not int
+        or protection["required_approving_review_count"] < 1
+        or not isinstance(protection.get("required_status_checks"), list)
+        or "test" not in protection["required_status_checks"]
+        or protection.get("force_pushes_enabled") is not False
+        or protection.get("deletions_enabled") is not False
+    ):
+        raise ValueError("MANIFEST_MAIN_PROTECTION_INVALID")
+
     controls = manifest.get("control_ids")
     if (not isinstance(controls, dict)
         or type(controls.get("branch_ruleset_id")) is not int
@@ -348,7 +410,8 @@ def stable_snapshot(api: GitHubAPI, phase: str):
     if (before["branch_ruleset_id"] != after["branch_ruleset_id"]
         or before["tag_ruleset_id"] != after["tag_ruleset_id"]
         or before["branch_rule_types"] != after["branch_rule_types"]
-        or before["tag_rule_types"] != after["tag_rule_types"]):
+        or before["tag_rule_types"] != after["tag_rule_types"]
+        or before["main_protection"] != after["main_protection"]):
         raise ValueError("RULESET_CHANGED_DURING_INVENTORY")
     return manifest, sha256(manifest), after
 
@@ -400,6 +463,7 @@ def _require_protected_main(api: GitHubAPI, expected_sha: str, phase: str):
     main = next((item for item in rows if item["name"] == "main"), None)
     if main is None or main["protected"] is not True or main["sha"] != expected_sha:
         raise ValueError("MAIN_PROTECTION_OR_HEAD_INVALID:" + phase)
+    api.main_protection()
     return rows
 
 
@@ -413,6 +477,8 @@ def prune_only(
             "UNVERIFIED_BRANCH_HEADS_REQUIRE_EXPLICIT_ARCHIVE_PRUNE_CONFIRMATION"
         )
     controls = api.verify_controls("PRUNE")
+    if controls["main_protection"] != manifest["main_protection"]:
+        raise ValueError("MAIN_PROTECTION_CHANGED_AFTER_ARCHIVE")
     if (controls["branch_ruleset_id"] != manifest["control_ids"]["branch_ruleset_id"]
         or controls["tag_ruleset_id"] != manifest["control_ids"]["tag_ruleset_id"]):
         raise ValueError("RULESET_ID_CHANGED_AFTER_ARCHIVE")
@@ -439,6 +505,7 @@ def prune_only(
                 or controls_now["tag_ruleset_id"] != manifest["control_ids"]["tag_ruleset_id"]
                 or controls_now["branch_rule_types"] != controls["branch_rule_types"]
                 or controls_now["tag_rule_types"] != controls["tag_rule_types"]
+                or controls_now["main_protection"] != manifest["main_protection"]
             ):
                 raise ValueError("PRUNE_RULESET_CHANGED_DURING_PRUNE")
             _require_protected_main(api, manifest["main_sha"], "DURING_PRUNE")
@@ -477,6 +544,7 @@ def prune_only(
             and final_controls["tag_ruleset_id"] == manifest["control_ids"]["tag_ruleset_id"]
             and final_controls["branch_rule_types"] == controls["branch_rule_types"]
             and final_controls["tag_rule_types"] == controls["tag_rule_types"]
+            and final_controls["main_protection"] == manifest["main_protection"]
         )
         if not rulesets_verified_after:
             failures.append({"branch": "main", "reason": "PRUNE_RULESET_CHANGED_AFTER_PRUNE"})
@@ -492,6 +560,7 @@ def prune_only(
         [x["name"] for x in after] == ["main"]
         and main_after == manifest["main_sha"]
         and main_protected_after
+        and final_controls.get("main_protection") == manifest["main_protection"]
         and rulesets_verified_after
         and not prs_after and not failures
     )
@@ -502,6 +571,8 @@ def prune_only(
         "deleted": deleted, "already_absent_after_archive": absent,
         "open_pr_count_after": len(prs_after), "main_sha_after": main_after,
         "main_protected_after": main_protected_after,
+        "main_protection_after": final_controls.get("main_protection"),
+        "main_protection_verified_after": final_controls.get("main_protection") == manifest["main_protection"],
         "prune_rulesets_verified_after": rulesets_verified_after,
         "unresolved_failures": failures, "complete": complete, "controls": final_controls,
     }
