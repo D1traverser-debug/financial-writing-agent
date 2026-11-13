@@ -406,3 +406,29 @@ def test_final_audit_rereads_exact_research_and_draft_stage_bytes_before_termina
             "supplemental_delivery_artifacts": [private_meta],
         })
     assert p.states == frozen
+
+
+def test_final_audit_rejects_private_research_resource_without_current_provider_bytes(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
+        "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
+    )]
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "DELIVERY"), "delivery_artifacts": outputs,
+    })
+    act(p, "ADVANCE_STAGE", {
+        **stage_artifact(p, "MECHANICAL_AUDIT"), "review_status": "PASS",
+    })
+    audit = _word_output(p, "AUDIT_DOCX", tmp_path, monkeypatch)
+    private_meta = _word_output(p, "PRIVATE_RESEARCH_DOCX", tmp_path, monkeypatch)
+    del p.artifacts[private_meta["resource_ref"]]
+    frozen = deepcopy(p.states)
+    with pytest.raises(Exception, match="VISIBLE_DELIVERY_NOT_READY"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "FINAL_AUDIT"), "review_status": "PASS",
+            "audit_artifact": audit,
+            "supplemental_delivery_artifacts": [private_meta],
+        })
+    assert p.states == frozen
