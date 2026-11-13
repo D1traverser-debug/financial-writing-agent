@@ -226,11 +226,16 @@ def test_entire_ten_stage_graph_with_canonical_rendered_delivery_evidence_and_bo
     assert len([r for r in state["execution_receipts"] if "TRANSITION" in r["action_id"]]) == 10
 
 
-@pytest.mark.parametrize("case", ["missing", "wrong_sha", "foreign_task", "bad_zip", "bad_zip_matching_sha", "wrong_blob", "file_name", "resource_reused"])
-def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_bytes(case):
+@pytest.mark.parametrize("case", [
+    "missing", "wrong_sha", "foreign_task", "bad_zip", "bad_zip_matching_sha",
+    "wrong_blob", "file_name", "resource_reused", "missing_delivery_evidence",
+    "tampered_delivery_evidence",
+])
+def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_bytes(case, tmp_path, monkeypatch):
     p = make()
     _prepare_delivery(p)
-    outputs = [_word_output(p, kind) for kind in (
+    task_state = p.read(STATE_PATH)["state"]
+    outputs = [_word_output(p, kind, tmp_path, monkeypatch, task_state=task_state) for kind in (
         "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"
     )]
     first = outputs[0]
@@ -253,6 +258,11 @@ def test_delivery_binary_boundary_rejects_mutation_without_exact_provider_word_b
         outputs[1]["resource_ref"] = first["resource_ref"]
         outputs[1]["file_name"] = first["file_name"]
         outputs[1]["sha256"] = first["sha256"]
+    elif case == "missing_delivery_evidence":
+        first.pop("delivery_evidence", None)
+        first.pop("delivery_evidence_sha256", None)
+    elif case == "tampered_delivery_evidence":
+        first["delivery_evidence"]["source_identity"] = "git-blob:" + "0" * 40
     elif case == "wrong_blob":
         p.artifact = lambda candidate, prior=p.artifact: (
             {"content": p.artifacts[candidate], "blob_sha": "0" * 40}
