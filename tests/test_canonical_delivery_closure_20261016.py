@@ -152,7 +152,7 @@ def test_fabricated_build_receipt_cannot_be_finalized():
         )
 
 
-def test_generic_word_builder_cannot_finalize_delivery_from_pass_strings_without_page_render_receipt(tmp_path):
+def test_generic_longform_builder_cannot_finalize_as_task_bound_delivery_without_scope(tmp_path):
     build = build_verified_article_docx(
         ArticleDocument(
             title="测试",
@@ -164,7 +164,7 @@ def test_generic_word_builder_cannot_finalize_delivery_from_pass_strings_without
         required_bold_anchors=["可见正文"],
         require_risk_disclaimer=False,
     )
-    with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_RENDER_RECEIPT_REQUIRED"):
+    with pytest.raises(CanonicalDeliveryError, match="CURRENT_WORD_TASK_SCOPE_BINDING_REQUIRED"):
         finalize_delivery_evidence(
             build,
             source_ref="workspaces/articles/x/publication/FINANCE_DEEP.json",
