@@ -235,7 +235,7 @@ Do not publish a plugin release ahead of main. After PR #67 is independently rev
 
 The archive script's schema-5 plan reads `GET /branches/main/protection` and rejects the plan unless the actual protection response proves all of the following:
 
-- `required_pull_request_reviews` exists and `required_approving_review_count >= 1`;
+- `required_pull_request_reviews` exists and `required_approving_review_count >= 1`, `dismiss_stale_reviews = true`, and `require_last_push_approval = true`;
 - `required_status_checks` includes the exact Financial CI context `test` (from either contexts or checks);
 - `allow_force_pushes.enabled = false`;
 - `allow_deletions.enabled = false`.
