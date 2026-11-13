@@ -43,6 +43,7 @@ class FakeAPI:
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
             "required_status_checks": ["test"],
+            "admins_enforced": True,
             "force_pushes_enabled": False,
             "deletions_enabled": False,
         }
@@ -57,6 +58,8 @@ class FakeAPI:
             raise ValueError("MAIN_STALE_REVIEWS_NOT_DISMISSED")
         if state.get("require_last_push_approval") is not True:
             raise ValueError("MAIN_LAST_PUSH_APPROVAL_REQUIRED")
+        if state.get("admins_enforced") is not True:
+            raise ValueError("MAIN_ADMIN_ENFORCEMENT_REQUIRED")
         if "test" not in state.get("required_status_checks", []):
             raise ValueError("MAIN_FINANCIAL_CI_REQUIRED_CHECK_MISSING")
         if state.get("force_pushes_enabled") is not False:
@@ -153,6 +156,7 @@ class RulesetAPI(GitHubAPI):
                 "dismiss_stale_reviews": True,
                 "require_last_push_approval": True,
             },
+            "enforce_admins": {"enabled": True},
             "allow_force_pushes": {"enabled": False},
             "allow_deletions": {"enabled": False},
         }
@@ -480,6 +484,7 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
         "dismiss_stale_reviews": True,
         "require_last_push_approval": True,
         "required_status_checks": ["test"],
+        "admins_enforced": True,
         "force_pushes_enabled": False,
         "deletions_enabled": False,
     }
@@ -501,6 +506,7 @@ def test_main_protection_snapshot_requires_pr_review_ci_and_disabled_force_push_
         ("required_pull_request_reviews", {"required_approving_review_count": 1,
           "dismiss_stale_reviews": True, "require_last_push_approval": False},
          "MAIN_LAST_PUSH_APPROVAL_REQUIRED"),
+        ("enforce_admins", {"enabled": False}, "MAIN_ADMIN_ENFORCEMENT_REQUIRED"),
         ("allow_force_pushes", {"enabled": True}, "MAIN_FORCE_PUSH_NOT_DISABLED"),
         ("allow_deletions", {"enabled": True}, "MAIN_DELETION_NOT_DISABLED"),
     ],
@@ -513,6 +519,7 @@ def test_archive_controls_fail_closed_when_main_protection_is_weak(field, value,
             "dismiss_stale_reviews": True,
             "require_last_push_approval": True,
         },
+        "enforce_admins": {"enabled": True},
         "allow_force_pushes": {"enabled": False},
         "allow_deletions": {"enabled": False},
     }
