@@ -47,6 +47,15 @@ def _prepare_delivery(p):
     assert p.read(STATE_PATH)["state"]["current_stage"] == "DELIVERY"
 
 
+def _fake_output(kind):
+    return {
+        "kind": kind,
+        "file_name": kind.lower() + ".docx",
+        "sha256": "f" * 64,
+        "resource_ref": f"workspaces/articles/{TASK}/delivery/{kind.lower()}.docx",
+    }
+
+
 def _png(width=4, height=4):
     def chunk(kind, data):
         return (
@@ -54,9 +63,9 @@ def _png(width=4, height=4):
             + struct.pack(">I", zlib.crc32(kind + data) & 0xFFFFFFFF)
         )
     ihdr = struct.pack(">IIBBBBB", width, height, 8, 2, 0, 0, 0)
-    raw = b"".join(b"\\x00" + b"\\xff\\xff\\xff" * width for _ in range(height))
+    raw = b"".join(b"\x00" + b"\xff\xff\xff" * width for _ in range(height))
     return (
-        b"\\x89PNG\\r\\n\\x1a\\n" + chunk(b"IHDR", ihdr)
+        b"\x89PNG\r\n\x1a\n" + chunk(b"IHDR", ihdr)
         + chunk(b"IDAT", zlib.compress(raw)) + chunk(b"IEND", b"")
     )
 
@@ -183,27 +192,6 @@ def test_full_ten_stage_admission_rejects_nonexistent_deliverables_before_termin
         })
     assert p.states == frozen
     assert p.read(STATE_PATH)["state"]["current_stage"] == "DELIVERY"
-
-
-def _word_output(p, kind):
-    """A genuine DOCX binary whose prose is only a synthetic test marker."""
-    from io import BytesIO
-    import hashlib
-    from docx import Document
-    doc = Document()
-    doc.add_heading(f"synthetic-only-{kind}", level=1)
-    doc.add_paragraph("本文件仅供工作流字节验证，不包含真实金融信息或用户稿件。")
-    out = BytesIO()
-    doc.save(out)
-    binary = out.getvalue()
-    resource_ref = f"workspaces/articles/{TASK}/delivery/{kind.lower()}.docx"
-    p.artifacts[resource_ref] = binary
-    return {
-        "kind": kind,
-        "file_name": kind.lower() + ".docx",
-        "sha256": hashlib.sha256(binary).hexdigest(),
-        "resource_ref": resource_ref,
-    }
 
 
 def test_entire_ten_stage_graph_with_canonical_rendered_delivery_evidence_and_bounded_terminal(tmp_path, monkeypatch):
