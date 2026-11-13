@@ -42,7 +42,7 @@
   ],
   "active_system_assessment": {
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
-    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY",
+    "status": "PRODUCTION_MAIN_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY",
     "owner": "DOMAIN:financial_writing",
     "review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
@@ -52,9 +52,9 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Proceed without any repository visibility change, data migration or history rewrite. Obtain an independent adversarial review of the exact current PR head; configure and verify protected-main controls; then squash-merge the single Financial candidate and verify production-main CI. After main is authoritative, align the private Skill/plugin to the exact main release and verify fresh-session invocation. Continue real owner-message, provider CAS, article-graph, method-impact and branch-archive evidence before closing the corresponding live gates.",
+    "next_legal_phase": "PR #67 was merged to production main and its exact production head passed CI. Do not reopen or re-merge that candidate. Continue only the remaining evidence-gated work: native private Skill installation and fresh-session invocation; real authenticated owner-message and semantic-approval provider; real GitHub CAS/revocation and article/method effect readback; independent external adversarial review of the production head; GitHub administrator protection/rulesets and tag-first archival of non-main branches. Real article production remains outside this system-reconstruction scope.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
-    "user_action_now": "EXTERNAL_OWNER_SETUP_REQUIRED_FOR_PLUGIN_INSTALLATION_AND_GITHUB_ADMIN_CONTROLS; NO_ACTION_REQUIRED_FOR_REPOSITORY_VISIBILITY_OR_DATA_MIGRATION. Remaining external actions for full live acceptance are limited to: a genuinely independent reviewer for the exact candidate; GitHub administrator configuration of protected-main and required-reviewer archive controls; explicit installation/invocation of the Financial Skill/plugin in a fresh ChatGPT session; and any real provider credentials/authorizations unavailable to repository code. There is no code-only route to authenticate the real ChatGPT user or create repository administration permissions. Continue all code-side work without asking the owner to resolve public/private visibility.",
+    "user_action_now": "NO_ACTION_REQUIRED_TO_MERGE_PR_67__ALREADY_PRODUCTION_MAIN. Remaining external actions for full acceptance: install and invoke the private Financial Skill in a fresh ChatGPT session; provide/enable genuine authenticated owner-message, semantic-approval and GitHub CAS evidence; obtain a genuinely independent reviewer; and configure GitHub administrator protection/rulesets plus reviewer-controlled branch archival. Do not revisit repository visibility, migration or history rewriting.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
@@ -309,6 +309,36 @@
       },
       "plugin_current_release": "0.1.2__PRIVATE_PACKAGE_UPDATED_AND_READBACK__SMALL_LOADER_DEFERS_TO_CANONICAL_FINANCIAL_MAIN_SKILL__FRESH_SESSION_INVOCATION_OPEN",
       "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_FETCHES_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_BUSINESS_RULES__FRESH_SESSION_INVOCATION_OPEN"
+    },
+    "latest_production_verification": {
+      "main_branch": "main",
+      "main_sha": "2296223fa3b61a854cf2f4965fe93d96be333b4c",
+      "merged_pr": 67,
+      "merged_candidate_branch": "repair/financial-independent-acceptance-20261112",
+      "candidate_head_sha": "18421e675dd6e65acc5f6fb7a5616e56182b41f0",
+      "merged_at": "2026-11-13T16:42:08Z",
+      "production_ci_run_id": 43465361740,
+      "production_ci_conclusion": "success",
+      "tests_passed": 523,
+      "source_line_coverage_percent": 90,
+      "coverage_statements": 5763,
+      "coverage_missed": 572,
+      "whole_tree_inventory": {
+        "tracked_files": 304,
+        "python_ast_parsed": 112,
+        "json_parsed": 52,
+        "decoded_text_lines": 41331,
+        "warnings": 0,
+        "errors": 0
+      },
+      "current_open_pull_requests_at_observation": 0,
+      "branch_count_at_observation": 99,
+      "main_protected_at_observation": false,
+      "repository_rulesets_at_observation": 0,
+      "independent_review": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
+      "private_skill_user_installation": "NOT_VERIFIED__EXPLICIT_ACTION_REQUIRED",
+      "system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE",
+      "historical_snapshot_note": "owner_governance_rebuild_20261112.production and independent_acceptance_candidate are immutable records of earlier audits. Consult latest_production_verification for the subsequent PR #67 production status."
     }
   },
   "system_engineering_simulation_20261112": {

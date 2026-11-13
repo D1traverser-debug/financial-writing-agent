@@ -18,6 +18,9 @@ def main():
     needed=("config/FINANCIAL_MANIFEST.json","config/FINANCIAL_CAPABILITIES.json","config/EXECUTION_CONTRACT.json","config/DATA_AUTHORITY.json","skills/financial-writing-agent/SKILL.md","docs/product_requirements.md","docs/architecture.md","docs/STANDALONE_INTERFACE.md","financial_writing_agent/standalone_runtime.py","financial_writing_agent/current_admission.py","financial_writing_agent/owner_guard.py","financial_writing_agent/owner_lifecycle.py","financial_writing_agent/cognition_governance.py","financial_writing_agent/private_research.py","financial_writing_agent/story_quality.py","financial_writing_agent/claim_trace.py","financial_writing_agent/delivery_pipeline.py","evals/EVOLUTION_INDEX.json","evals/quality_regression.json","knowledge/METHOD_KNOWLEDGE_CATALOG.json")
     for path in needed: require((ROOT/path).is_file(),f"missing Financial source: {path}")
     manifest,caps,contract,data=(load(x) for x in ("config/FINANCIAL_MANIFEST.json","config/FINANCIAL_CAPABILITIES.json","config/EXECUTION_CONTRACT.json","config/DATA_AUTHORITY.json"))
+    plugin=load("config/CHATGPT_FINANCIAL_PLUGIN.json")
+    plugin_release=manifest["client_skill_plugin"]
+    require(plugin["plugin_id"]==plugin_release["plugin_id"] and plugin["release_id"]==plugin_release["release_id"] and plugin.get("version")==plugin_release["version"],"Financial ChatGPT plugin identity/release drift")
     require(manifest["controller"]==caps["owner"]==contract["authority"]["controller"]==PRIMARY,"Financial authority mismatch")
     require(manifest["domain_id"]==caps["domain_id"]==contract["domain_id"]=="financial_writing","domain identity drift")
     require(manifest["skill_entrypoint"]==caps["entrypoint"]=="skills/financial-writing-agent/SKILL.md","Financial Skill entrypoint mismatch")

@@ -33,6 +33,10 @@ def main():
     index = json.loads((ROOT / "evals/EVOLUTION_INDEX.json").read_text(encoding="utf-8"))
     qual = json.loads((ROOT / "evals/quality_regression.json").read_text(encoding="utf-8"))
     plugin = json.loads((ROOT / "config/CHATGPT_FINANCIAL_PLUGIN.json").read_text(encoding="utf-8"))
+    manifest = json.loads((ROOT / "config/FINANCIAL_MANIFEST.json").read_text(encoding="utf-8"))
+    canonical_plugin = manifest["client_skill_plugin"]
+    if any(plugin.get(key) != canonical_plugin.get(key) for key in ("plugin_id", "release_id", "version")):
+        raise SystemExit("FINANCIAL_PLUGIN_CONFIG_MANIFEST_MISMATCH")
     # No external source provider is available in the CI runner, by design.
     # Never load 'verified' labels from the source repository as independent
     # runtime receipts or the acceptance check becomes self-certifying.
@@ -43,8 +47,9 @@ def main():
         "engineering_contract_tests": "PASS__UPSTREAM_CI_TEST_STEP_REQUIRED",
         "whole_system_acceptance": assessment,
         "native_plugin": {
-            "plugin_id": plugin["plugin_id"],
-            "release_id": plugin["release_id"],
+            "plugin_id": canonical_plugin["plugin_id"],
+            "release_id": canonical_plugin["release_id"],
+            "version": canonical_plugin["version"],
             "private_skill_archive": "CREATED__EXTERNALLY_READBACK",
             "actually_installed_in_user_client": "NOT_VERIFIED",
             "custom_hosted_python_mcp": "NOT_DEPLOYED",
@@ -75,7 +80,7 @@ def main():
         "head": sha,
         "system_status": report["release_readiness"],
         "open_gates": assessment["open_gates"],
-        "plugin_release_created": plugin["release_id"],
+        "plugin_release_created": canonical_plugin["release_id"],
         "native_client_installed": False,
         "note": "green CI != Financial independent system acceptance",
     }, ensure_ascii=False, indent=2))
