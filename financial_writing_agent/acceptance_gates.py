@@ -76,7 +76,8 @@ REQUIRED_GATE_EVIDENCE = {
     "FINANCIAL_MAIN_BRANCH_HYGIENE": (
         "before_branch_count", "after_branch_names", "archive_tag_count",
         "branch_inventory_ref", "archive_manifest_sha256", "archive_tags_verified",
-        "final_inventory_sha256", "main_protected", "main_force_push_disabled",
+        "final_inventory_sha256", "main_protected", "main_requires_pull_request",
+        "required_approving_review_count", "main_force_push_disabled",
         "main_deletion_disabled", "required_status_checks",
     ),
 }
@@ -265,6 +266,11 @@ def _validate_gate_evidence(
                 "FINAL_BRANCH_INVENTORY_DIGEST_INVALID")
         require(evidence.get("main_protected") is True,
                 "MAIN_BRANCH_NOT_PROTECTED")
+        require(evidence.get("main_requires_pull_request") is True,
+                "MAIN_PULL_REQUEST_REQUIRED_RULE_MISSING")
+        approvals = evidence.get("required_approving_review_count")
+        require(type(approvals) is int and approvals >= 1,
+                "MAIN_INDEPENDENT_APPROVAL_REQUIRED")
         require(evidence.get("main_force_push_disabled") is True,
                 "MAIN_FORCE_PUSH_NOT_DISABLED")
         require(evidence.get("main_deletion_disabled") is True,
