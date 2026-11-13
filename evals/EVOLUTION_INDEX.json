@@ -132,8 +132,9 @@
       "original_user_semantic_gap": "FIXED_IN_CANDIDATE__EXACT_HEAD_CI_PASS__LIVE_OWNER_MESSAGE_PROVIDER_STILL_OPEN",
       "native_private_skill_plugin": {
         "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-        "release_id": "pluginrel_6af5a82a95f48191ba8d21fa3d188094",
-        "state": "PRIVATE_PACKAGE_CREATED_AND_READBACK__USER_INSTALL_NOT_VERIFIED__NO_HOSTED_API"
+        "release_id": "pluginrel_6af72ebbaef0819187235f6772cd972f",
+        "version": "0.1.2",
+        "state": "PRIVATE_PACKAGE_UPDATED_AND_READBACK__USER_INSTALL_NOT_VERIFIED__NO_HOSTED_API"
       },
       "branch_hygiene": "SCHEMA_4_EXACT_HEAD_MANIFEST__ALL_NON_MAIN_HEADS_TAGGED_BEFORE_PRUNE__UNVERIFIED_PRUNE_EXPLICIT_OPT_IN__LIVE_ADMIN_CONTROLS_OPEN",
       "external_system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_ATTESTATION",
@@ -296,7 +297,9 @@
           "skill_router_utf8_bytes": 11822,
           "remaining": "FRESH_SESSION_PLUGIN_INSTALLATION_AND_INVOCATION_NOT_VERIFIED__INDEPENDENT_REVIEW_AND_PROTECTED_MAIN_OPEN"
         }
-      }
+      },
+      "plugin_current_release": "0.1.2__CANONICAL_LOADER_SKILL_ONLY__NOT_INSTALLED_OR_LIVE_TOOL_VERIFIED",
+      "plugin_alignment": "PLUGIN_0.1.2_READBACK_VERIFIED__SMALL_LOADER_DEFERS_TO_FINANCIAL_MAIN_CANONICAL_SKILL__NO_DUPLICATED_RULES__FRESH_SESSION_INVOCATION_OPEN"
     }
   },
   "system_engineering_simulation_20261112": {

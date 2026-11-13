@@ -27,12 +27,13 @@
   "client_skill_plugin": {
     "name": "financial-writing-agent-chatgpt",
     "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-    "release_id": "pluginrel_6af5a82a95f48191ba8d21fa3d188094",
-    "verified": "PRIVATE_PACKAGE_CREATED_AND_READBACK",
+    "release_id": "pluginrel_6af72ebbaef0819187235f6772cd972f",
+    "verified": "PRIVATE_PACKAGE_UPDATED_AND_READBACK",
     "installed_or_live_tool_executed": "NOT_VERIFIED",
     "hosted_mcp_python": false,
     "required_companion_connector": "EXISTING_GITHUB_CONNECTOR_WITH_READ_WRITE_PERMISSION",
-    "custom_hosted_service_required": false
+    "custom_hosted_service_required": false,
+    "version": "0.1.2"
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
