@@ -66,7 +66,7 @@
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
     "status": "PRODUCTION_MAIN_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY",
     "owner": "DOMAIN:financial_writing",
-    "review_ref": "evals/FINANCIAL_SYSTEM_CONTINUATION_AUDIT_20261114.md",
+    "review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
     "r0_production": {
       "pr": 50,
@@ -335,8 +335,48 @@
     },
     "latest_production_verification": {
       "main_branch": "main",
+      "main_sha": "2296223fa3b61a854cf2f4965fe93d96be333b4c",
+      "merged_pr": 67,
+      "merged_candidate_branch": "repair/financial-independent-acceptance-20261112",
+      "candidate_head_sha": "18421e675dd6e65acc5f6fb7a5616e56182b41f0",
+      "merged_at": "2026-11-13T16:42:08Z",
+      "production_ci_run_id": 43465361740,
+      "production_ci_conclusion": "success",
+      "tests_passed": 523,
+      "source_line_coverage_percent": 90,
+      "coverage_statements": 5763,
+      "coverage_missed": 572,
+      "whole_tree_inventory": {
+        "tracked_files": 304,
+        "python_ast_parsed": 112,
+        "json_parsed": 52,
+        "decoded_text_lines": 41331,
+        "warnings": 0,
+        "errors": 0
+      },
+      "current_open_pull_requests_at_observation": 0,
+      "branch_count_at_observation": 99,
+      "main_protected_at_observation": false,
+      "repository_rulesets_at_observation": 0,
+      "independent_review": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
+      "private_skill_user_installation": "NOT_VERIFIED__EXPLICIT_ACTION_REQUIRED",
+      "system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE",
+      "historical_snapshot_note": "owner_governance_rebuild_20261112.production and independent_acceptance_candidate are immutable records of earlier audits. Consult latest_production_verification for the subsequent PR #67 production status."
+    },
+    "remaining_open_gates": [
+      "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION",
+      "LEGAL_ARTICLE_GRAPH_AND_RECOVERY",
+      "METHOD_KNOWLEDGE_CRUD_AND_IMPACT",
+      "PROVIDER_AUTHENTICATED_RUNTIME_CAS",
+      "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION",
+      "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW",
+      "FINANCIAL_MAIN_BRANCH_HYGIENE"
+    ],
+    "latest_continuation_review_ref": "evals/FINANCIAL_SYSTEM_CONTINUATION_AUDIT_20261114.md",
+    "latest_continuation_verification": {
+      "main_branch": "main",
       "main_sha": "cdeeefb64c6d8a0a85cfda59bf70850b7597e72c",
-      "merged_pr": 74,
+      "latest_merged_pr": 74,
       "prior_effect_binding_pr": 73,
       "merged_candidate_branch": "financial/method-catalog-effect-binding-20261114",
       "candidate_head_sha": "3ef40925fb017e5de92e92c2a20fcbcc67b8cbfb",
@@ -363,17 +403,8 @@
       "article_action_effect_binding": "MERGED__SYNTHETIC_CI_VERIFIED__LIVE_PROVIDER_EFFECT_OPEN",
       "method_catalog_effect_binding": "MERGED__SYNTHETIC_CI_VERIFIED__LEGACY_HISTORY_PRESERVED_EFFECT_UNBOUND",
       "system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE",
-      "historical_snapshot_note": "This is the exact production verification after PR #74. Earlier nested production records remain immutable snapshots. CI verifies engineering behavior only; live provider, independent review, fresh-session plugin activation and protected-main controls remain open."
-    },
-    "remaining_open_gates": [
-      "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION",
-      "LEGAL_ARTICLE_GRAPH_AND_RECOVERY",
-      "METHOD_KNOWLEDGE_CRUD_AND_IMPACT",
-      "PROVIDER_AUTHENTICATED_RUNTIME_CAS",
-      "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION",
-      "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW",
-      "FINANCIAL_MAIN_BRANCH_HYGIENE"
-    ]
+      "historical_snapshot_note": "latest_production_verification remains the immutable PR #67 snapshot. This continuation record captures PR #73/#74 and the current production head without rewriting the earlier audit."
+    }
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
