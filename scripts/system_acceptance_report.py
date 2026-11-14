@@ -12,9 +12,56 @@ import os
 from pathlib import Path
 
 from financial_writing_agent.acceptance_gates import evaluate_system_acceptance
-from financial_writing_agent.whole_system_assurance import project_whole_system
-
+from financial_writing_agent.whole_system_assurance import (\n    project_whole_system, audit_repository_business_changes,\n)\n
 ROOT = Path(__file__).resolve().parents[1]
+
+
+def _audit_git_business_effects(head_sha: str) -> dict:
+    """Inspect the actual GitHub PR/push byte diff at both immutable revisions."""
+    import subprocess
+
+    base = os.environ.get("FINANCIAL_CHANGE_BASE_SHA", "").strip()
+    if not base or set(base) == {"0"}:
+        if os.environ.get("GITHUB_ACTIONS") == "true":
+            raise SystemExit("FINANCIAL_MUTATION_BASE_REVISION_REQUIRED")
+        return {
+            "status": "NOT_OBSERVED__LOCAL_BASE_SHA_NOT_PROVIDED",
+            "assurance": "NO_BUSINESS_MUTATION_REVIEW_WAS_EXECUTED",
+        }
+    if len(base) != 40 or any(char not in "0123456789abcdef" for char in base):
+        raise SystemExit("FINANCIAL_MUTATION_BASE_SHA_INVALID")
+    try:
+        raw = subprocess.check_output(
+            ["git", "diff", "--no-renames", "--name-only", "-z", base, head_sha,
+             "--", "workspaces/articles", "knowledge/METHOD_KNOWLEDGE_CATALOG.json"],
+            cwd=ROOT,
+        )
+    except subprocess.CalledProcessError as exc:
+        raise SystemExit("FINANCIAL_MUTATION_BASE_COMPARISON_FAILED") from exc
+    changed_paths = [item.decode("utf-8") for item in raw.split(b"\\0") if item]
+
+    def before_reader(rel: str) -> bytes | None:
+        key = f"{base}:{rel}"
+        exists = subprocess.run(
+            ["git", "cat-file", "-e", key], cwd=ROOT, capture_output=True,
+        )
+        if exists.returncode != 0:
+            return None
+        return subprocess.check_output(["git", "show", key], cwd=ROOT)
+
+    def after_reader(rel: str) -> bytes | None:
+        p = ROOT / rel
+        return p.read_bytes() if p.is_file() else None
+
+    result = audit_repository_business_changes(
+        changed_paths, before_reader=before_reader, after_reader=after_reader,
+    )
+    result["comparison_base_sha"] = base
+    result["comparison_head_sha"] = head_sha
+    result["all_changed_business_paths"] = changed_paths
+    if result["violations"]:
+        raise SystemExit("FINANCIAL_OWNER_EFFECT_ADMISSION_FAILED:" + ";".join(result["violations"]))
+    return result
 
 
 def main():
@@ -43,6 +90,7 @@ def main():
     # runtime receipts or the acceptance check becomes self-certifying.
     assessment = evaluate_system_acceptance(head_sha=sha, code_tests_passed=True)
     product_projection = project_whole_system(ROOT, head_sha=sha)
+    business_effects = _audit_git_business_effects(sha)
     if product_projection["structural_violations"]:
         raise SystemExit("FINANCIAL_WHOLE_SYSTEM_STRUCTURAL_VIOLATIONS:" + ";".join(product_projection["structural_violations"]))
     report = {
@@ -51,6 +99,7 @@ def main():
         "engineering_contract_tests": "PASS__UPSTREAM_CI_TEST_STEP_REQUIRED",
         "whole_system_acceptance": assessment,
         "live_product_obligation_projection": product_projection,
+        "git_revision_business_effect_admission": business_effects,
         "native_plugin": {
             "plugin_id": canonical_plugin["plugin_id"],
             "release_id": canonical_plugin["release_id"],
