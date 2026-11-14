@@ -148,19 +148,37 @@ Research Audit separately validates the admitted private brief semantically; syn
 
 The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact persisted DRAFT bytes were reread and bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
 
-### PR-13 — Focused internal pass architecture
+### PR-13 — Focused internal pass architecture and portfolio orchestration
 
-One Financial owner uses:
-`KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> PRIVATE_RESEARCH_SYNTHESIS -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
-Passes have least-context responsibilities and are not a second business state machine.
+One Financial owner uses one internal pass graph and one existing 10-stage Article Graph. Internal passes are work responsibilities, not a second business state machine.
 
-The thirteen pass names and DAG alone are not execution evidence. A legal writing run must supply each pass's real required inputs, invoke a producer for every named output, halt on missing results, and cross RESEARCH_AUDIT only after actual research review. The Financial-owned `writing_kernel.validate_pass_dataflow` rejects producer/consumer mismatches; `execute_writing_passes` is a host-callback adapter, not a substitute for an LLM or verified research.
+The shared research spine executes once:
+\`KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> PRIVATE_RESEARCH_SYNTHESIS -> THESIS_ADJUDICATION\`.
+The Research Audit boundary must then admit actual evidence before any publication branch begins.
 
-User-authored requirements must cross both Deep and Broad publication scopes. Do not reject an admitted free-text requirement merely because its ID is absent from a hard-coded whitelist. Check stage satisfaction receipts and requirement digest; unknown semantics remain UNVERIFIED, not auto-PASS. A requirement first due at DELIVERY may be pending while Word is built, but final stage transition still requires satisfaction and source readback.
+Every requested long-form product executes its own branch:
+\`STORY_ARCHITECTURE -> HEADLINE_ADJUDICATION -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS\`.
+Deep and Broad must receive separate product-scoped inputs, story blueprints, headline decisions, drafts, reviews and final candidates. Broad is not produced by shortening Deep.
+
+When the output contract includes the interaction pack, it receives a separate branch:
+\`PLATFORM_INTERACTION_ADAPTATION -> PLATFORM_INTERACTION_AUDIT\`.
+It is rewritten from the shared audited evidence and platform context, not copied or truncated from either long-form product.
+
+The 16 pass contracts, dependencies, scope partition and mapping to existing business stages are owned by \`financial_writing_agent.writing_kernel\`. The native ChatGPT model remains the active LLM orchestrator. Python callback adapters make the contract testable but do not prove that a live model executed the passes or that their content is correct.
+
+Pass names, a valid DAG, callback outputs and synthetic tests are not execution evidence. A real run must produce and reread each required product-scoped work artifact, bind it to the correct existing stage, stop on missing dependencies, and route failed work to the earliest affected stage. Research Audit must precede every publication branch.
+
+The portfolio orchestration order follows business-stage barriers, **not** one product end-to-end before the others: shared RESEARCH and RESEARCH_AUDIT, then both long-form STORY_ARCHITECTURE passes under EDITORIAL, both product headlines under TITLE, both product drafts plus retention/trim and platform adaptation under DRAFT, and only then product factual/originality/style audits and interaction audit under EDITORIAL_AUDIT. A failure cannot advance the later business stage for any product.
+
+EDITORIAL_AUDIT cannot silently rewrite already persisted DRAFT text. FINAL_SYNTHESIS aggregates the current review outcome; a material repair reopens DRAFT, repersists the revised product and invalidates old review evidence. Each returned PublicationFitness must conform to the existing eight-gate model and have final_status=PASS for an internal candidate; REVISE/invalid/missing gates stop the portfolio. Interaction output must conform to PlatformInteractionPack and its audit must have positive evidence. These are preflight contract checks only: model-supplied evidence labels, hashes or callback PASS values do not establish source truth, authentic independent review, persisted stage identity or reader acceptance. Current owner-stage admission remains obligatory.
+
+User-authored requirements must cross every applicable product scope. Do not reject an admitted free-text requirement merely because its ID is absent from a hard-coded whitelist. Check stage satisfaction receipts and requirement digest; unknown semantics remain UNVERIFIED, not auto-PASS. A requirement first due at DELIVERY may be pending while Word is built, but final stage transition still requires satisfaction and source readback.
 
 ### PR-14 — Platform/output portfolio
 
-New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`, `AUDIT_DOCX`. Historical product meanings remain immutable.
+New ordinary work defaults to \`PORTFOLIO + WORD_FILE_ONLY\`: \`FINANCE_DEEP_DOCX\`, \`FINANCE_BROAD_DOCX\`, \`PLATFORM_INTERACTION_PACK_DOCX\`, \`AUDIT_DOCX\`. Historical product meanings remain immutable.
+
+Portfolio execution reuses one audited research spine while preserving separate reader promises, story architecture, title, draft and review for each requested product. An output not present in the canonical task contract must not be fabricated; a required output must not be silently omitted.
 
 The private research brief is mandatory internal quality evidence. It may also be rendered/delivered as a private document when the user requests it, but the quality contract does not depend on publication of that internal artifact.
 
