@@ -115,7 +115,7 @@ def test_installed_package_has_no_caos_required_dependencies():
 
 def test_standalone_interface_uses_canonical_skill_paths_and_no_hosted_claim():
     interface = (ROOT / "docs/STANDALONE_INTERFACE.md").read_text(encoding="utf-8")
-    assert "canonical operating Skill source" in interface
+    assert "sole business operating Skill is" in interface
     assert "CAOS external chat governance" in interface
     assert "skills/financial-writing-agent/references/maintenance.md" in interface
     assert "skills/financial-writing-agent/skills/" not in interface
