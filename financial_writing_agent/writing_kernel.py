@@ -591,13 +591,13 @@ def _admit_interaction_result(current: Mapping[str, Any]) -> dict[str, Any]:
         )
     status = str(result["status"])
     target = result.get("revision_target")
-    if status == "REVISE":
+    if status in {"REVISE", "FAIL"}:
         try:
             require_revision_target(Stage.EDITORIAL_AUDIT, target)
         except Exception as exc:
             raise WritingPassExecutionError("PORTFOLIO_INTERACTION_REVISION_TARGET_INVALID") from exc
     elif target is not None:
-        raise WritingPassExecutionError("PORTFOLIO_INTERACTION_NON_REVISE_MUST_NOT_SET_TARGET")
+        raise WritingPassExecutionError("PORTFOLIO_INTERACTION_PASS_MUST_NOT_SET_TARGET")
     return {
         "status": status,
         "evidence_refs": list(result["evidence_refs"]),
