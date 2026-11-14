@@ -75,12 +75,18 @@ def _fitness(mode, *, revise=False, omit_gates=False):
 
 def _executor(calls, *, wrong_scope_for=None, fail_at=None,
               revise_mode=None, omit_gates_for=None,
-              cloned_bodies=False, incomplete_interaction=False):
+              cloned_bodies=False, incomplete_interaction=False,
+              rewrite_after_audit=False):
     def run(node, inputs):
         mode = inputs.get("product_mode")
         calls.append((node, mode))
         if fail_at == (node, mode):
             raise RuntimeError("deliberate adversarial failure")
+        if node == WritingPass.EDITORIAL_TRIM:
+            return {"edited_draft": {
+                "product_mode": mode,
+                "body": "same body" if cloned_bodies else f"{mode} final candidate",
+            }}
         if node in {
             WritingPass.STORY_ARCHITECTURE,
             WritingPass.HEADLINE_ADJUDICATION,
@@ -100,7 +106,11 @@ def _executor(calls, *, wrong_scope_for=None, fail_at=None,
             return {
                 "publication_candidate": {
                     "product_mode": scope,
-                    "body": "same body" if cloned_bodies else f"{mode} final candidate",
+                    "body": (
+                        f"{mode} illegitimate audit rewrite" if rewrite_after_audit
+                        else "same body" if cloned_bodies
+                        else f"{mode} final candidate"
+                    ),
                 },
                 "publication_fitness": _fitness(
                     scope, revise=(revise_mode == mode),
@@ -279,8 +289,12 @@ def test_deep_branch_failure_stops_before_broad_and_interaction_branches():
             ),
             research_audit=_research_audit([]),
         )
-    assert not any(mode == "FINANCE_BROAD" for _, mode in calls)
-    assert not any(node in INTERACTION_PRODUCT_PASSES for node, _ in calls)
+    # The shared stage barrier has already run Broad DRAFT and interaction
+    # adaptation. A Deep audit failure must prevent all later audit products.
+    assert (WritingPass.DRAFT_GENERATION, "FINANCE_BROAD") in calls
+    assert (WritingPass.PLATFORM_INTERACTION_ADAPTATION, None) in calls
+    assert (WritingPass.FINAL_SYNTHESIS, "FINANCE_BROAD") not in calls
+    assert not any(node == WritingPass.PLATFORM_INTERACTION_AUDIT for node, _ in calls)
 
 
 def test_product_scope_mismatch_is_rejected_before_another_product_is_run():
@@ -325,7 +339,7 @@ def test_invalid_publication_gate_cannot_be_hidden_behind_final_synthesis_pass()
             execute_pass=_executor(calls, omit_gates_for="FINANCE_DEEP"),
             research_audit=_research_audit([]),
         )
-    assert not any(mode == "FINANCE_BROAD" for _, mode in calls)
+    assert (WritingPass.FINAL_SYNTHESIS, "FINANCE_BROAD") not in calls
 
 
 def test_revise_gate_blocks_other_publication_products():
@@ -337,7 +351,7 @@ def test_revise_gate_blocks_other_publication_products():
             execute_pass=_executor(calls, revise_mode="FINANCE_DEEP"),
             research_audit=_research_audit([]),
         )
-    assert not any(mode == "FINANCE_BROAD" for _, mode in calls)
+    assert (WritingPass.FINAL_SYNTHESIS, "FINANCE_BROAD") not in calls
 
 
 def test_directly_cloned_deep_and_broad_final_body_is_rejected():
@@ -384,3 +398,46 @@ def test_canonical_modes_are_stable_across_five_distribution_types():
             research_audit=_research_audit([]),
         )
         assert set(result["required_output_kinds"]) == set(required)
+
+
+def test_one_business_stage_barrier_precedes_the_next_for_every_product():
+    result = execute_portfolio_writing(
+        _seed(),
+        required_outputs=[
+            "AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX",
+            "PLATFORM_INTERACTION_PACK_DOCX",
+        ],
+        execute_pass=_executor([]),
+        research_audit=_research_audit([]),
+    )
+    stages = [item["business_stage"] for item in result["trace"]]
+    assert stages[:6] == ["RESEARCH"] * 5 + ["RESEARCH_AUDIT"]
+    assert all(stages.index(stage) < stages.index(next_stage)
+               for stage, next_stage in (
+                   ("EDITORIAL", "TITLE"),
+                   ("TITLE", "DRAFT"),
+                   ("DRAFT", "EDITORIAL_AUDIT"),
+               ))
+    assert result["stage_barriers"] == [
+        {
+            "business_stage": stage,
+            "completed_product_scopes": scopes,
+            "assurance": "CALLBACK_OUTPUT_BARRIER_ONLY__OWNER_STATE_ADMISSION_OPEN",
+        }
+        for stage, scopes in (
+            ("EDITORIAL", ["FINANCE_DEEP", "FINANCE_BROAD"]),
+            ("TITLE", ["FINANCE_DEEP", "FINANCE_BROAD"]),
+            ("DRAFT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
+            ("EDITORIAL_AUDIT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
+        )
+    ]
+
+
+def test_editorial_audit_cannot_rewrite_the_draft_without_reentering_draft_stage():
+    with pytest.raises(WritingPassExecutionError, match="PORTFOLIO_AUDIT_REWROTE_DRAFT:FINANCE_DEEP"):
+        execute_portfolio_writing(
+            _seed(),
+            required_outputs=["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+            execute_pass=_executor([], rewrite_after_audit=True),
+            research_audit=_research_audit([]),
+        )
