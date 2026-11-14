@@ -222,7 +222,7 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
     interface = (root / "docs/STANDALONE_INTERFACE.md").read_text(encoding="utf-8")
     if not (
         "signed provider admission" in skill.lower()
-        and "do not direct-update `main`" in skill
+        and "do not direct-update `main`" in skill.lower()
         and "approved business execution route" in interface
         and "unprotected" in interface
         and "No direct ChatGPT" in readme
