@@ -1,6 +1,6 @@
 # CAOS Governance Entry — Financial Writing Agent
 
-Status: CANDIDATE__NOT_MERGED
+Status: ACTIVE
 Effective date: 2026-11-15
 Domain: FINANCIAL_WRITING
 Authority Context: DOMAIN:financial_writing
