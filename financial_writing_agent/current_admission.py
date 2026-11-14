@@ -637,6 +637,18 @@ def advance_state(
     review_status = kwargs.get("review_status")
     if stage == "EDITORIAL_AUDIT" and review_status in {"PASS", "REVISE"}:
         fitnesses = _parse_publication_fitnesses(state, publication_fitnesses, review_status=str(review_status))
+        if review_status == "REVISE":
+            order = ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT")
+            targets = [
+                item.revision_target for item in fitnesses
+                if item.final_status == AuditStatus.REVISE
+            ]
+            _require(bool(targets), "EDITORIAL_AUDIT REVISE requires a fitness revision target")
+            expected_target = min(targets, key=order.index)
+            _require(
+                kwargs.get("revision_target") == expected_target,
+                "EDITORIAL_AUDIT revision_target must match the earliest target in publication_fitnesses",
+            )
         dumped = [item.model_dump(mode="json") for item in fitnesses]
         quality["publication_fitnesses"] = dumped
         evidence_bindings["publication_fitnesses_sha256"] = _canonical_digest(dumped)
