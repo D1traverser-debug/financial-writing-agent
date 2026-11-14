@@ -1616,10 +1616,17 @@ def execute_portfolio_stage(
     working["shared"] = shared
     working["products"] = products
     working["interaction"] = interaction
+    reviewed_products = [
+        fitness.product_mode.value for fitness in fitnesses
+        if fitness.final_status == AuditStatus.REVISE
+    ]
+    if interaction_fitness is not None and interaction_fitness["status"] == "REVISE":
+        reviewed_products.append("PLATFORM_INTERACTION")
     working["last_stage_result"] = {
         "stage": stage,
         "status": review_status,
         "revision_target": revision_target,
+        "reviewed_products": reviewed_products,
         "requirement_satisfaction": satisfaction,
     }
     new_trace = working["trace"][trace_start:]
@@ -1766,11 +1773,8 @@ def execute_portfolio_writing(
         outcome = context["last_stage_result"]
         if outcome["status"] == "REVISE":
             if stage == "EDITORIAL_AUDIT":
-                revised_modes = [
-                    mode for mode, item in context["products"].items()
-                    if item.get("publication_fitness", {}).get("final_status") == "REVISE"
-                ]
-                mode = revised_modes[0] if revised_modes else "PORTFOLIO"
+                reviewed_products = outcome.get("reviewed_products", [])
+                mode = reviewed_products[0] if reviewed_products else "PORTFOLIO"
                 raise WritingPassExecutionError(f"PORTFOLIO_PUBLICATION_FITNESS_REVISE:{mode}")
             raise WritingPassExecutionError(f"PORTFOLIO_STAGE_REVISE:{stage}:{outcome['revision_target']}")
         if outcome["status"] == "FAIL":
