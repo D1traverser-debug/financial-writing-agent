@@ -49,7 +49,7 @@ def main():
     require(data["no_parallel_article_ledger"] is True and data["no_external_parent_runtime"] is True,"parallel state or external parent runtime enabled")
     for relative in RETIRED_ARTIFACTS: require(not (ROOT/relative).exists(),f"retired Financial artifact remains: {relative}")
     skill=(ROOT/manifest["skill_entrypoint"]).read_text(encoding="utf-8")
-    for marker in ("Independent Operating Skill","CAOS_FINANCIAL_ENTRY.md","CAOS governance","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no CAOS runtime/API parent","article","originality","create_blob","create_tree","create_commit","update_ref","expected_sha","fetch_file"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty/runtime protocol: {marker}")
+    for marker in ("Independent Operating Skill","CAOS_FINANCIAL_ENTRY.md","CAOS governance","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no runtime/API dependency or permission authority","article","originality","create_blob","create_tree","create_commit","update_ref","expected_sha","fetch_file"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty/runtime protocol: {marker}")
     from financial_writing_agent.standalone_runtime import DOMAIN_ID,OPERATIONS
     require(DOMAIN_ID=="financial_writing","Financial standalone module domain drift")
     require({"CREATE_ARTICLE","ADVANCE_STAGE","CHANGE_REQUIREMENTS","ATTACH_FEEDBACK","RESUME_BLOCKED","RECORD_PROACTIVE_RESOLUTION","REVIEW_SYSTEM_IMPACT"}<=OPERATIONS,"owner mutation operations incomplete")
