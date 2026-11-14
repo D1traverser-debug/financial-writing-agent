@@ -744,7 +744,7 @@ def _append_execution_trace(
 def _portfolio_context_payload(context: Mapping[str, Any]) -> dict[str, Any]:
     return {
         key: value for key, value in context.items()
-        if key not in {"stage_receipts", "initial_context_sha256"}
+        if key not in {"stage_receipts", "initial_context_sha256", "revision_history"}
     }
 
 
@@ -784,7 +784,11 @@ def _validate_portfolio_request(
             "PORTFOLIO_PASS_DATAFLOW_INVALID:" + ";".join(issues)
         )
 
+    if not isinstance(seed_inputs, Mapping):
+        raise WritingPassExecutionError("PORTFOLIO_SHARED_INPUTS_INVALID")
     shared = dict(seed_inputs)
+    if "task_requirement_contexts" in shared:
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_CONTEXTS_MUST_USE_AUTHORITY_BINDING")
     required_shared = {
         "topic_or_task", "knowledge_sources", "topic", "current_sources",
         "research_requirements", "reader_job", "voice_evidence", "material_sources",
@@ -803,42 +807,311 @@ def _validate_portfolio_request(
     return shared, modes, interaction_required
 
 
-def start_portfolio_context(
-    seed_inputs: Mapping[str, Any],
+def _all_requirement_scopes(modes: list[str], interaction_required: bool) -> list[str]:
+    scopes = ["ALL", "RESEARCH", "PRIVATE_RESEARCH", *modes]
+    if interaction_required:
+        scopes.append("PLATFORM_INTERACTION")
+    return sorted(set(scopes))
+
+
+def _validate_requirement_contexts(
+    requirement_contexts: Mapping[str, Any] | None,
     *,
-    required_outputs: list[str],
-    task_id: str,
+    required_scopes: list[str],
     requirement_digest: str,
-) -> dict[str, Any]:
-    """Create the serializable, task-bound context for resumable stage execution."""
-    if not isinstance(task_id, str) or not task_id.strip():
-        raise WritingPassExecutionError("PORTFOLIO_TASK_ID_REQUIRED")
-    if not isinstance(requirement_digest, str) or len(requirement_digest) != 64:
-        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
-    if any(char not in "0123456789abcdef" for char in requirement_digest):
-        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
-    shared, modes, interaction_required = _validate_portfolio_request(
-        seed_inputs, required_outputs,
-    )
-    context = {
-        "schema_version": PORTFOLIO_CONTEXT_SCHEMA_VERSION,
-        "task_id": task_id,
-        "requirement_digest": requirement_digest,
-        "required_output_kinds": sorted(set(required_outputs)),
-        "current_stage": INTERNAL_PORTFOLIO_STAGE_SEQUENCE[0],
-        "shared": shared,
-        "products": {mode: {} for mode in modes},
-        "interaction": {} if interaction_required else None,
-        "trace": [],
-        "stage_receipts": [],
+) -> dict[str, dict[str, Any]] | None:
+    if requirement_contexts is None:
+        return None
+    if not isinstance(requirement_contexts, Mapping):
+        raise WritingPassExecutionError("PORTFOLIO_TASK_REQUIREMENT_CONTEXTS_INVALID")
+    missing = set(required_scopes) - set(requirement_contexts)
+    if missing:
+        raise WritingPassExecutionError(
+            "PORTFOLIO_TASK_REQUIREMENT_CONTEXT_SCOPE_MISSING:" + ",".join(sorted(missing))
+        )
+    selected: dict[str, dict[str, Any]] = {}
+    revision: int | None = None
+    seen: dict[str, str] = {}
+    for scope in required_scopes:
+        raw = requirement_contexts[scope]
+        if (
+            not isinstance(raw, Mapping)
+            or set(raw) != {"contract_version", "revision", "digest", "requirements"}
+            or raw.get("contract_version") != "1.0"
+            or raw.get("digest") != requirement_digest
+            or not isinstance(raw.get("revision"), int)
+            or raw.get("revision") < 0
+            or not isinstance(raw.get("requirements"), list)
+        ):
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_TASK_REQUIREMENT_CONTEXT_INVALID:{scope}"
+            )
+        if revision is None:
+            revision = raw["revision"]
+        elif revision != raw["revision"]:
+            raise WritingPassExecutionError("PORTFOLIO_TASK_REQUIREMENT_CONTEXT_REVISION_MISMATCH")
+        normalized: list[dict[str, Any]] = []
+        ids: set[str] = set()
+        for item in raw["requirements"]:
+            try:
+                parsed = TaskRequirement.model_validate(item)
+            except Exception as exc:
+                raise WritingPassExecutionError(
+                    f"PORTFOLIO_TASK_REQUIREMENT_RECORD_INVALID:{scope}"
+                ) from exc
+            if scope not in parsed.scopes and "ALL" not in parsed.scopes:
+                raise WritingPassExecutionError(
+                    f"PORTFOLIO_TASK_REQUIREMENT_SCOPE_MISMATCH:{scope}:{parsed.requirement_id}"
+                )
+            if parsed.requirement_id in ids:
+                raise WritingPassExecutionError(
+                    f"PORTFOLIO_TASK_REQUIREMENT_DUPLICATE:{scope}:{parsed.requirement_id}"
+                )
+            ids.add(parsed.requirement_id)
+            dumped = parsed.model_dump(mode="json")
+            digest = _payload_sha256(dumped)
+            if parsed.requirement_id in seen and seen[parsed.requirement_id] != digest:
+                raise WritingPassExecutionError(
+                    f"PORTFOLIO_TASK_REQUIREMENT_SCOPE_CONFLICT:{parsed.requirement_id}"
+                )
+            seen[parsed.requirement_id] = digest
+            normalized.append(dumped)
+        selected[scope] = {
+            "contract_version": raw["contract_version"],
+            "revision": raw["revision"],
+            "digest": raw["digest"],
+            "requirements": normalized,
+        }
+    return selected
+
+
+def _requirement_scopes_for_stage(
+    stage: str, modes: list[str], interaction_required: bool,
+) -> list[str]:
+    if stage in {"RESEARCH", "RESEARCH_AUDIT"}:
+        return ["ALL", "RESEARCH", "PRIVATE_RESEARCH"]
+    scopes = ["ALL", *modes]
+    if interaction_required and stage in {"DRAFT", "EDITORIAL_AUDIT"}:
+        scopes.append("PLATFORM_INTERACTION")
+    return sorted(set(scopes))
+
+
+def _requirement_contexts_for_pass(
+    requirement_contexts: Mapping[str, Any] | None, scope: str,
+) -> dict[str, Any] | None:
+    if requirement_contexts is None:
+        return None
+    if scope == "SHARED":
+        names = ("ALL", "RESEARCH", "PRIVATE_RESEARCH")
+    elif scope == "PLATFORM_INTERACTION":
+        names = ("ALL", "PLATFORM_INTERACTION")
+    else:
+        names = ("ALL", scope)
+    return {
+        name: deepcopy(requirement_contexts[name])
+        for name in names if name in requirement_contexts
     }
-    context["initial_context_sha256"] = _portfolio_context_sha256(context)
-    validate_portfolio_context(context)
-    return context
+
+
+def _due_requirements_for_stage(
+    requirement_contexts: Mapping[str, Any] | None,
+    *,
+    stage: str,
+    modes: list[str],
+    interaction_required: bool,
+) -> dict[str, dict[str, Any]]:
+    if requirement_contexts is None:
+        return {}
+    due: dict[str, dict[str, Any]] = {}
+    for scope in _requirement_scopes_for_stage(stage, modes, interaction_required):
+        for item in requirement_contexts[scope]["requirements"]:
+            if item["affects_from_stage"] != stage:
+                continue
+            requirement_id = item["requirement_id"]
+            existing = due.get(requirement_id)
+            if existing is not None and existing != item:
+                raise WritingPassExecutionError(
+                    f"PORTFOLIO_TASK_REQUIREMENT_SCOPE_CONFLICT:{requirement_id}"
+                )
+            due[requirement_id] = item
+    return due
+
+
+def _normalize_stage_requirement_satisfaction(
+    raw: list[Mapping[str, Any]] | None,
+    *,
+    due: Mapping[str, Mapping[str, Any]],
+) -> list[dict[str, Any]]:
+    supplied = list(raw or [])
+    if not due:
+        if supplied:
+            raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_SATISFACTION_NOT_DUE")
+        return []
+    if not supplied:
+        raise WritingPassExecutionError(
+            "PORTFOLIO_REQUIREMENT_SATISFACTION_REQUIRED:" + ",".join(sorted(due))
+        )
+    normalized: list[dict[str, Any]] = []
+    seen: set[str] = set()
+    for item in supplied:
+        if not isinstance(item, Mapping):
+            raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_SATISFACTION_RECORD_INVALID")
+        requirement_id = str(item.get("requirement_id", "")).strip()
+        if requirement_id not in due or requirement_id in seen:
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_REQUIREMENT_SATISFACTION_ID_INVALID:{requirement_id or 'MISSING'}"
+            )
+        if item.get("result") != "SATISFIED":
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_REQUIREMENT_NOT_SATISFIED:{requirement_id}"
+            )
+        refs = item.get("evidence_refs")
+        if not isinstance(refs, list) or not refs or any(
+            not isinstance(ref, str) or not ref.strip() for ref in refs
+        ):
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_REQUIREMENT_EVIDENCE_REFS_REQUIRED:{requirement_id}"
+            )
+        if len(refs) != len(set(refs)):
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_REQUIREMENT_EVIDENCE_REFS_DUPLICATED:{requirement_id}"
+            )
+        normalized.append({
+            "requirement_id": requirement_id,
+            "result": "SATISFIED",
+            "evidence_refs": [ref.strip() for ref in refs],
+            "notes": str(item.get("notes", "")).strip(),
+        })
+        seen.add(requirement_id)
+    if seen != set(due):
+        raise WritingPassExecutionError(
+            "PORTFOLIO_REQUIREMENT_SATISFACTION_INCOMPLETE:"
+            + ",".join(sorted(set(due) - seen))
+        )
+    return sorted(normalized, key=lambda item: item["requirement_id"])
+
+
+def _append_revision_history(context: dict[str, Any], body: Mapping[str, Any]) -> dict[str, Any]:
+    previous = (
+        context["revision_history"][-1]["record_sha256"]
+        if context.get("revision_history") else None
+    )
+    record_body = {**deepcopy(dict(body)), "previous_revision_sha256": previous}
+    record = {**record_body, "record_sha256": _payload_sha256(record_body)}
+    context.setdefault("revision_history", []).append(record)
+    return record
+
+
+def _invalidate_portfolio_outputs_for_revision(
+    *,
+    target: str,
+    seed_inputs: Mapping[str, Any],
+    shared: dict[str, Any],
+    products: dict[str, dict[str, Any]],
+    interaction: dict[str, Any] | None,
+) -> tuple[dict[str, Any], dict[str, dict[str, Any]], dict[str, Any] | None]:
+    if target == "RESEARCH":
+        return (
+            deepcopy(dict(seed_inputs)),
+            {mode: {} for mode in products},
+            {} if interaction is not None else None,
+        )
+    if target == "EDITORIAL":
+        return shared, {mode: {} for mode in products}, {} if interaction is not None else None
+    if target == "TITLE":
+        return (
+            shared,
+            {
+                mode: {key: value for key, value in item.items() if key == "story_blueprint"}
+                for mode, item in products.items()
+            },
+            {} if interaction is not None else None,
+        )
+    if target == "DRAFT":
+        return (
+            shared,
+            {
+                mode: {
+                    key: value for key, value in item.items()
+                    if key in {"story_blueprint", "headline_decision"}
+                }
+                for mode, item in products.items()
+            },
+            {} if interaction is not None else None,
+        )
+    raise WritingPassExecutionError(f"PORTFOLIO_REVISION_TARGET_NOT_INTERNAL:{target}")
+
+
+def _editorial_review_outcome(
+    fitnesses: list[PublicationFitness],
+    interaction_fitness: Mapping[str, Any] | None,
+) -> tuple[str, str | None]:
+    statuses = [fitness.final_status.value for fitness in fitnesses]
+    revise_targets = [
+        fitness.revision_target for fitness in fitnesses
+        if fitness.final_status == AuditStatus.REVISE
+    ]
+    fail_targets: list[str] = []
+    if interaction_fitness is not None:
+        status = str(interaction_fitness["status"])
+        statuses.append(status)
+        if status == "REVISE":
+            revise_targets.append(interaction_fitness["revision_target"])
+        elif status == "FAIL":
+            fail_targets.append(interaction_fitness["revision_target"])
+    if "FAIL" in statuses:
+        if not fail_targets:
+            raise WritingPassExecutionError("PORTFOLIO_EDITORIAL_AUDIT_FAIL_TARGET_REQUIRED")
+        target = fail_targets[0]
+        require_revision_target(Stage.EDITORIAL_AUDIT, target)
+        return "FAIL", target
+    if "REVISE" in statuses:
+        order = ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT")
+        if not revise_targets or any(target not in order for target in revise_targets):
+            raise WritingPassExecutionError("PORTFOLIO_EDITORIAL_AUDIT_REVISE_TARGET_INVALID")
+        for target in revise_targets:
+            require_revision_target(Stage.EDITORIAL_AUDIT, target)
+        return "REVISE", min(revise_targets, key=order.index)
+    return "PASS", None
+
+
+def _portfolio_stage_receipt(context: Mapping[str, Any]) -> Mapping[str, Any]:
+    if context.get("stage_receipts"):
+        return context["stage_receipts"][-1]
+    if context.get("revision_history"):
+        return context["revision_history"][-1]["stage_receipt"]
+    raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_NOT_FOUND")
+
+
+def _validate_revision_history(context: Mapping[str, Any]) -> None:
+    history = context.get("revision_history")
+    if not isinstance(history, list):
+        raise WritingPassExecutionError("PORTFOLIO_REVISION_HISTORY_INVALID")
+    previous = None
+    for record in history:
+        if not isinstance(record, Mapping):
+            raise WritingPassExecutionError("PORTFOLIO_REVISION_RECORD_INVALID")
+        body = {key: value for key, value in record.items() if key != "record_sha256"}
+        if (
+            record.get("previous_revision_sha256") != previous
+            or _payload_sha256(body) != record.get("record_sha256")
+        ):
+            raise WritingPassExecutionError("PORTFOLIO_REVISION_HISTORY_HASH_MISMATCH")
+        if record.get("record_type") == "REVISION":
+            receipt = record.get("stage_receipt")
+            if not isinstance(receipt, Mapping):
+                raise WritingPassExecutionError("PORTFOLIO_REVISION_STAGE_RECEIPT_MISSING")
+            receipt_body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+            if _payload_sha256(receipt_body) != receipt.get("receipt_sha256"):
+                raise WritingPassExecutionError("PORTFOLIO_REVISION_STAGE_RECEIPT_HASH_MISMATCH")
+            require_revision_target(Stage(str(record["from_stage"])), str(record["target_stage"]))
+        elif record.get("record_type") != "RESUME":
+            raise WritingPassExecutionError("PORTFOLIO_REVISION_RECORD_TYPE_INVALID")
+        previous = record["record_sha256"]
 
 
 def validate_portfolio_context(context: Mapping[str, Any]) -> None:
-    """Verify task binding, stage order, pass hash chain and current context digest."""
+    """Validate task binding, requirement authority, stage generation and hash chains."""
     if not isinstance(context, Mapping):
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INVALID")
     if context.get("schema_version") != PORTFOLIO_CONTEXT_SCHEMA_VERSION:
@@ -854,88 +1127,276 @@ def validate_portfolio_context(context: Mapping[str, Any]) -> None:
         raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
 
     required = context.get("required_output_kinds")
-    if not isinstance(required, list):
-        raise WritingPassExecutionError("PORTFOLIO_REQUIRED_OUTPUTS_INVALID")
-    request_seed = dict(context.get("shared", {}))
-    request_seed.pop(RESEARCH_AUDIT_BOUNDARY_INPUT, None)
-    shared, modes, interaction_required = _validate_portfolio_request(
-        request_seed,
-        required,
-    )
-    del shared
-    if set(context.get("products", {})) != set(modes):
+    seed_inputs = context.get("seed_inputs")
+    if not isinstance(required, list) or not isinstance(seed_inputs, Mapping):
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_SEED_INVALID")
+    normalized_seed, modes, interaction_required = _validate_portfolio_request(seed_inputs, required)
+    if context.get("products", {}).keys() != {mode for mode in modes}:
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_PRODUCT_SET_MISMATCH")
     if interaction_required != (isinstance(context.get("interaction"), Mapping)):
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INTERACTION_SET_MISMATCH")
+    if not isinstance(context.get("shared"), Mapping):
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_SHARED_INVALID")
+    if context.get("requirement_contexts") is not None:
+        _validate_requirement_contexts(
+            context["requirement_contexts"],
+            required_scopes=_all_requirement_scopes(modes, interaction_required),
+            requirement_digest=requirement_digest,
+        )
+
+    initial_stage = context.get("initial_stage")
+    current_stage = context.get("current_stage")
+    if initial_stage not in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INITIAL_STAGE_INVALID")
+    if current_stage not in {*INTERNAL_PORTFOLIO_STAGE_SEQUENCE, "DELIVERY"}:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_STAGE_INVALID")
+    if not isinstance(context.get("generation"), int) or context["generation"] < 0:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_GENERATION_INVALID")
+    execution_status = context.get("execution_status")
+    if execution_status not in {"ACTIVE", "BLOCKED"}:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_EXECUTION_STATUS_INVALID")
 
     receipts = context.get("stage_receipts")
     trace = context.get("trace")
     if not isinstance(receipts, list) or not isinstance(trace, list):
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_RECEIPTS_INVALID")
-    current_stage = context.get("current_stage")
-    expected_count = (
-        INTERNAL_PORTFOLIO_STAGE_SEQUENCE.index(current_stage)
-        if current_stage in INTERNAL_PORTFOLIO_STAGE_SEQUENCE
-        else len(INTERNAL_PORTFOLIO_STAGE_SEQUENCE)
-        if current_stage == "DELIVERY"
-        else -1
-    )
-    if expected_count < 0 or len(receipts) != expected_count:
-        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_STAGE_POSITION_INVALID")
-
     initial_sha = context.get("initial_context_sha256")
     if not isinstance(initial_sha, str) or len(initial_sha) != 64:
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INITIAL_DIGEST_MISSING")
+
+    trace_by_sha: dict[str, Mapping[str, Any]] = {}
+    previous_pass_sha = None
+    for sequence, record in enumerate(trace, start=1):
+        if not isinstance(record, Mapping):
+            raise WritingPassExecutionError("PORTFOLIO_PASS_RECEIPT_INVALID")
+        body = {key: value for key, value in record.items() if key != "receipt_sha256"}
+        receipt_sha = record.get("receipt_sha256")
+        if (
+            record.get("sequence") != sequence
+            or record.get("previous_pass_receipt_sha256") != previous_pass_sha
+            or _payload_sha256(body) != receipt_sha
+            or not isinstance(receipt_sha, str)
+        ):
+            raise WritingPassExecutionError("PORTFOLIO_PASS_RECEIPT_CHAIN_MISMATCH")
+        trace_by_sha[receipt_sha] = record
+        previous_pass_sha = receipt_sha
+
+    expected_stage = initial_stage
     expected_input_sha = initial_sha
-    previous_receipt_sha = None
+    previous_stage_sha = None
+    last_status = None
     for index, receipt in enumerate(receipts):
         if not isinstance(receipt, Mapping):
             raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_INVALID")
         body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
         if _payload_sha256(body) != receipt.get("receipt_sha256"):
             raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_HASH_MISMATCH")
-        expected_stage = INTERNAL_PORTFOLIO_STAGE_SEQUENCE[index]
+        stage = receipt.get("stage")
+        status = receipt.get("status")
         if (
             receipt.get("receipt_version") != PORTFOLIO_STAGE_RECEIPT_VERSION
-            or receipt.get("stage") != expected_stage
+            or stage != expected_stage
             or receipt.get("task_id") != context["task_id"]
             or receipt.get("requirement_digest") != requirement_digest
-            or receipt.get("previous_stage_receipt_sha256") != previous_receipt_sha
+            or receipt.get("previous_stage_receipt_sha256") != previous_stage_sha
             or receipt.get("input_context_sha256") != expected_input_sha
+            or status not in {"PASS", "FAIL"}
         ):
             raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_CHAIN_MISMATCH")
+        next_stage = INTERNAL_PORTFOLIO_NEXT_STAGE[stage] if status == "PASS" else stage
+        if receipt.get("next_stage") != next_stage:
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_NEXT_STAGE_MISMATCH")
         pass_hashes = receipt.get("pass_receipt_sha256s")
         if not isinstance(pass_hashes, list):
             raise WritingPassExecutionError("PORTFOLIO_STAGE_PASS_RECEIPTS_INVALID")
-        stage_records = [
-            item for item in trace
-            if isinstance(item, Mapping) and item.get("business_stage") == expected_stage
-        ]
-        if [item.get("receipt_sha256") for item in stage_records] != pass_hashes:
-            raise WritingPassExecutionError("PORTFOLIO_STAGE_PASS_RECEIPT_SET_MISMATCH")
-        previous_receipt_sha = receipt["receipt_sha256"]
+        for pass_hash in pass_hashes:
+            pass_record = trace_by_sha.get(pass_hash)
+            if not isinstance(pass_record, Mapping) or pass_record.get("business_stage") != stage:
+                raise WritingPassExecutionError("PORTFOLIO_STAGE_PASS_RECEIPT_SET_MISMATCH")
         expected_input_sha = receipt.get("output_context_sha256")
         if not isinstance(expected_input_sha, str) or len(expected_input_sha) != 64:
             raise WritingPassExecutionError("PORTFOLIO_STAGE_OUTPUT_CONTEXT_DIGEST_INVALID")
+        previous_stage_sha = receipt["receipt_sha256"]
+        expected_stage = next_stage
+        last_status = status
+        if status == "FAIL" and index != len(receipts) - 1:
+            raise WritingPassExecutionError("PORTFOLIO_BLOCKED_STAGE_MUST_BE_LAST")
 
-    previous_pass_sha = None
-    for sequence, record in enumerate(trace, start=1):
-        if not isinstance(record, Mapping):
-            raise WritingPassExecutionError("PORTFOLIO_PASS_RECEIPT_INVALID")
-        body = {key: value for key, value in record.items() if key != "receipt_sha256"}
-        if (
-            record.get("sequence") != sequence
-            or record.get("previous_pass_receipt_sha256") != previous_pass_sha
-            or _payload_sha256(body) != record.get("receipt_sha256")
-        ):
-            raise WritingPassExecutionError("PORTFOLIO_PASS_RECEIPT_CHAIN_MISMATCH")
-        previous_pass_sha = record["receipt_sha256"]
-
+    if current_stage != expected_stage:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_STAGE_POSITION_INVALID")
+    if execution_status == "BLOCKED":
+        if last_status != "FAIL" or context.get("blocked_stage") != current_stage:
+            raise WritingPassExecutionError("PORTFOLIO_CONTEXT_BLOCKED_RECEIPT_MISMATCH")
+    elif last_status == "FAIL" or context.get("blocked_stage") is not None:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_ACTIVE_BLOCKED_MISMATCH")
     if receipts:
         if _portfolio_context_sha256(context) != expected_input_sha:
             raise WritingPassExecutionError("PORTFOLIO_CONTEXT_OUTPUT_DIGEST_MISMATCH")
     elif _portfolio_context_sha256(context) != initial_sha:
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INITIAL_DIGEST_MISMATCH")
+    _validate_revision_history(context)
+
+    last_result = context.get("last_stage_result")
+    if last_result is not None:
+        if not isinstance(last_result, Mapping) or last_result.get("stage") not in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
+            raise WritingPassExecutionError("PORTFOLIO_LAST_STAGE_RESULT_INVALID")
+        if last_result.get("status") not in {"PASS", "REVISE", "FAIL"}:
+            raise WritingPassExecutionError("PORTFOLIO_LAST_STAGE_RESULT_STATUS_INVALID")
+
+
+def start_portfolio_context(
+    seed_inputs: Mapping[str, Any],
+    *,
+    required_outputs: list[str],
+    task_id: str,
+    requirement_digest: str,
+    requirement_contexts: Mapping[str, Any] | None = None,
+    current_stage: str = "RESEARCH",
+) -> dict[str, Any]:
+    """Create a serializable task-bound context from an admitted owner stage."""
+    if not isinstance(task_id, str) or not task_id.strip():
+        raise WritingPassExecutionError("PORTFOLIO_TASK_ID_REQUIRED")
+    if not isinstance(requirement_digest, str) or len(requirement_digest) != 64:
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
+    if any(char not in "0123456789abcdef" for char in requirement_digest):
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
+    if current_stage not in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
+        raise WritingPassExecutionError("PORTFOLIO_INITIAL_STAGE_NOT_EXECUTABLE")
+    shared, modes, interaction_required = _validate_portfolio_request(
+        seed_inputs, required_outputs,
+    )
+    contexts = _validate_requirement_contexts(
+        requirement_contexts,
+        required_scopes=_all_requirement_scopes(modes, interaction_required),
+        requirement_digest=requirement_digest,
+    )
+    context = {
+        "schema_version": PORTFOLIO_CONTEXT_SCHEMA_VERSION,
+        "task_id": task_id,
+        "requirement_digest": requirement_digest,
+        "required_output_kinds": sorted(set(required_outputs)),
+        "initial_stage": current_stage,
+        "current_stage": current_stage,
+        "generation": 0,
+        "execution_status": "ACTIVE",
+        "blocked_stage": None,
+        "seed_inputs": shared,
+        "shared": shared,
+        "requirement_contexts": contexts,
+        "products": {mode: {} for mode in modes},
+        "interaction": {} if interaction_required else None,
+        "trace": [],
+        "stage_receipts": [],
+        "revision_history": [],
+        "last_stage_result": None,
+    }
+    context["initial_context_sha256"] = _portfolio_context_sha256(context)
+    validate_portfolio_context(context)
+    return context
+
+
+def rebind_portfolio_context_requirements(
+    context: Mapping[str, Any],
+    *,
+    requirement_digest: str,
+    requirement_contexts: Mapping[str, Any],
+    current_stage: str,
+) -> dict[str, Any]:
+    """Rebind changed owner requirements and invalidate from the owner-selected stage."""
+    validate_portfolio_context(context)
+    if current_stage not in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_REBIND_STAGE_INVALID")
+    working = deepcopy(dict(context))
+    modes = list(working["products"])
+    interaction_required = working["interaction"] is not None
+    contexts = _validate_requirement_contexts(
+        requirement_contexts,
+        required_scopes=_all_requirement_scopes(modes, interaction_required),
+        requirement_digest=requirement_digest,
+    )
+    shared, products, interaction = _invalidate_portfolio_outputs_for_revision(
+        target=current_stage,
+        seed_inputs=working["seed_inputs"],
+        shared=deepcopy(working["shared"]),
+        products=deepcopy(working["products"]),
+        interaction=deepcopy(working["interaction"]),
+    )
+    previous_digest = working["requirement_digest"]
+    working.update({
+        "requirement_digest": requirement_digest,
+        "requirement_contexts": contexts,
+        "shared": shared,
+        "products": products,
+        "interaction": interaction,
+        "initial_stage": current_stage,
+        "current_stage": current_stage,
+        "generation": working["generation"] + 1,
+        "execution_status": "ACTIVE",
+        "blocked_stage": None,
+        "stage_receipts": [],
+        "last_stage_result": None,
+    })
+    _append_revision_history(working, {
+        "record_type": "RESUME",
+        "reason": "TASK_REQUIREMENT_DIGEST_CHANGED",
+        "from_stage": current_stage,
+        "target_stage": current_stage,
+        "previous_requirement_digest": previous_digest,
+        "new_requirement_digest": requirement_digest,
+        "generation": working["generation"],
+    })
+    working["initial_context_sha256"] = _portfolio_context_sha256(working)
+    validate_portfolio_context(working)
+    return working
+
+
+def resume_portfolio_context(
+    context: Mapping[str, Any],
+    *,
+    owner_state: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Resume a failed review attempt only after the owner state is no longer BLOCKED."""
+    validate_portfolio_context(context)
+    if context.get("execution_status") != "BLOCKED":
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_NOT_BLOCKED")
+    if (
+        owner_state.get("status") != "IN_PROGRESS"
+        or owner_state.get("current_stage") != context.get("current_stage")
+        or owner_state.get("task_id") != context.get("task_id")
+        or owner_state.get("task_requirement_digest") != context.get("requirement_digest")
+    ):
+        raise WritingPassExecutionError("PORTFOLIO_OWNER_RESUME_STATE_MISMATCH")
+    failed = context["stage_receipts"][-1]
+    working = deepcopy(dict(context))
+    _append_revision_history(working, {
+        "record_type": "RESUME",
+        "reason": "OWNER_RESUMED_BLOCKED_STAGE",
+        "from_stage": failed["stage"],
+        "target_stage": failed["stage"],
+        "failed_stage_receipt": deepcopy(dict(failed)),
+        "generation": working["generation"] + 1,
+    })
+    stage = str(failed["stage"])
+    if stage == "RESEARCH_AUDIT":
+        working["shared"].pop("research_audit_result", None)
+        working["shared"].pop(RESEARCH_AUDIT_BOUNDARY_INPUT, None)
+    if stage == "EDITORIAL_AUDIT":
+        for item in working["products"].values():
+            item.pop("publication_fitness", None)
+        if isinstance(working["interaction"], dict):
+            working["interaction"].pop("platform_interaction_fitness", None)
+    working.update({
+        "initial_stage": stage,
+        "current_stage": stage,
+        "generation": working["generation"] + 1,
+        "execution_status": "ACTIVE",
+        "blocked_stage": None,
+        "stage_receipts": [],
+        "last_stage_result": None,
+    })
+    working["initial_context_sha256"] = _portfolio_context_sha256(working)
+    validate_portfolio_context(working)
+    return working
 
 
 def execute_portfolio_stage(
@@ -944,15 +1405,12 @@ def execute_portfolio_stage(
     stage: str,
     execute_pass: Callable[[WritingPass, Mapping[str, Any]], Mapping[str, Any]] | None = None,
     research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None = None,
+    requirement_satisfaction: list[Mapping[str, Any]] | None = None,
 ) -> dict[str, Any]:
-    """Execute exactly one current business stage and return a hash-bound resumable context.
-
-    This function does not persist or advance the Article Aggregate. The caller must
-    persist the returned context as the current stage artifact, admit that artifact
-    through the authenticated Financial owner runtime, reread it, and only then
-    supply the read-back context to the next stage.
-    """
+    """Execute one stage and return a resumable context for PASS, REVISE or FAIL."""
     validate_portfolio_context(context)
+    if context.get("execution_status") != "ACTIVE":
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_BLOCKED_REQUIRES_OWNER_RESUME")
     if stage != context.get("current_stage"):
         raise WritingPassExecutionError(
             f"PORTFOLIO_STAGE_OUT_OF_ORDER:expected={context.get('current_stage')}:actual={stage}"
@@ -966,28 +1424,86 @@ def execute_portfolio_stage(
         raise WritingPassExecutionError("PORTFOLIO_STAGE_EXECUTOR_REQUIRED")
 
     working = deepcopy(dict(context))
+    modes = list(working["products"])
+    interaction_required = working["interaction"] is not None
+    contexts = working.get("requirement_contexts")
+    if contexts is not None:
+        contexts = _validate_requirement_contexts(
+            contexts,
+            required_scopes=_all_requirement_scopes(modes, interaction_required),
+            requirement_digest=working["requirement_digest"],
+        )
+    stage_contexts = (
+        _requirement_contexts_for_pass(contexts, "SHARED")
+        if contexts is not None and stage in {"RESEARCH", "RESEARCH_AUDIT"}
+        else None
+    )
+    due = _due_requirements_for_stage(
+        contexts, stage=stage, modes=modes, interaction_required=interaction_required,
+    )
+    satisfaction = _normalize_stage_requirement_satisfaction(
+        requirement_satisfaction, due=due,
+    )
+
     input_context_sha = _portfolio_context_sha256(working)
     trace_start = len(working["trace"])
     shared = deepcopy(working["shared"])
     products = deepcopy(working["products"])
     interaction = deepcopy(working["interaction"])
-    modes = list(products)
+    review_status = "PASS"
+    revision_target: str | None = None
+    fitnesses: list[PublicationFitness] = []
+    interaction_fitness: dict[str, Any] | None = None
 
     if stage == "RESEARCH":
+        pass_shared = deepcopy(shared)
+        if stage_contexts is not None:
+            pass_shared["task_requirement_contexts"] = stage_contexts
         for node in SHARED_RESEARCH_PASSES:
             _invoke_pass(
-                node, shared, execute_pass=execute_pass,
+                node, pass_shared, execute_pass=execute_pass,
                 trace=working["trace"], scope="SHARED",
             )
+        shared = {
+            key: value for key, value in pass_shared.items()
+            if key != "task_requirement_contexts"
+        }
+        active_ids = {
+            item["requirement_id"]
+            for scope in ("ALL", "RESEARCH", "PRIVATE_RESEARCH")
+            for item in (contexts or {}).get(scope, {}).get("requirements", [])
+        }
+        if "full_universe_research_pool" in active_ids:
+            package = shared.get("research_package")
+            try:
+                ResearchPackage.model_validate(package)
+            except Exception as exc:
+                raise WritingPassExecutionError(
+                    "PORTFOLIO_FULL_UNIVERSE_RESEARCH_PACKAGE_REQUIRED"
+                ) from exc
 
     elif stage == "RESEARCH_AUDIT":
-        _admit_research_audit(
-            shared, research_audit=research_audit, trace=working["trace"],
+        audit_shared = deepcopy(shared)
+        if stage_contexts is not None:
+            audit_shared["task_requirement_contexts"] = stage_contexts
+        audit_result = _admit_research_audit(
+            audit_shared, research_audit=research_audit, trace=working["trace"],
         )
+        shared = {
+            key: value for key, value in audit_shared.items()
+            if key != "task_requirement_contexts"
+        }
+        review_status = audit_result["status"]
+        revision_target = audit_result.get("revision_target")
 
     elif stage == "EDITORIAL":
         for mode in modes:
-            branch = {**shared, **products[mode], "product_mode": mode}
+            branch = {
+                **shared, **products[mode], "product_mode": mode,
+            }
+            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            if selected_contexts is not None:
+                branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(
                 WritingPass.STORY_ARCHITECTURE, branch,
                 execute_pass=execute_pass, trace=working["trace"], scope=mode,
@@ -998,6 +1514,9 @@ def execute_portfolio_stage(
     elif stage == "TITLE":
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
+            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            if selected_contexts is not None:
+                branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(
                 WritingPass.HEADLINE_ADJUDICATION, branch,
                 execute_pass=execute_pass, trace=working["trace"], scope=mode,
@@ -1008,6 +1527,9 @@ def execute_portfolio_stage(
     elif stage == "DRAFT":
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
+            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            if selected_contexts is not None:
+                branch["task_requirement_contexts"] = selected_contexts
             for node in LONGFORM_PRODUCT_PASSES:
                 if PASS_STAGE_OWNERSHIP[node] != "DRAFT":
                     continue
@@ -1020,6 +1542,9 @@ def execute_portfolio_stage(
                 })
         if interaction is not None:
             branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
+            selected_contexts = _requirement_contexts_for_pass(contexts, "PLATFORM_INTERACTION")
+            if selected_contexts is not None:
+                branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(
                 WritingPass.PLATFORM_INTERACTION_ADAPTATION, branch,
                 execute_pass=execute_pass, trace=working["trace"],
@@ -1030,6 +1555,9 @@ def execute_portfolio_stage(
     elif stage == "EDITORIAL_AUDIT":
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
+            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            if selected_contexts is not None:
+                branch["task_requirement_contexts"] = selected_contexts
             for node in LONGFORM_PRODUCT_PASSES:
                 if PASS_STAGE_OWNERSHIP[node] != "EDITORIAL_AUDIT":
                     continue
@@ -1041,16 +1569,22 @@ def execute_portfolio_stage(
                     name: branch[name] for name in PASS_CONTRACTS[node].outputs
                 })
                 if node == WritingPass.FINAL_SYNTHESIS:
-                    _admit_longform_result(branch, mode=mode)
+                    fitnesses.append(_admit_longform_result(branch, mode=mode))
         if interaction is not None:
             branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
+            selected_contexts = _requirement_contexts_for_pass(contexts, "PLATFORM_INTERACTION")
+            if selected_contexts is not None:
+                branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(
                 WritingPass.PLATFORM_INTERACTION_AUDIT, branch,
                 execute_pass=execute_pass, trace=working["trace"],
                 scope="PLATFORM_INTERACTION",
             )
-            _admit_interaction_result(branch)
-            interaction["platform_interaction_fitness"] = branch["platform_interaction_fitness"]
+            interaction_fitness = _admit_interaction_result(branch)
+            interaction["platform_interaction_fitness"] = interaction_fitness
+        review_status, revision_target = _editorial_review_outcome(
+            fitnesses, interaction_fitness,
+        )
         if len(products) > 1:
             texts = [
                 "".join(_publication_text(item.get("publication_candidate")).split())
@@ -1059,38 +1593,139 @@ def execute_portfolio_stage(
             if len(set(texts)) != len(texts):
                 raise WritingPassExecutionError("PORTFOLIO_LONGFORM_BODY_CLONED")
 
+    if review_status == "REVISE":
+        try:
+            revision_target = require_revision_target(Stage(stage), str(revision_target)).value
+        except Exception as exc:
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_REVIEW_REVISION_TARGET_INVALID:{stage}"
+            ) from exc
+    elif review_status == "FAIL":
+        try:
+            revision_target = require_revision_target(Stage(stage), str(revision_target)).value
+        except Exception as exc:
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_REVIEW_FAIL_RECOVERY_TARGET_INVALID:{stage}"
+            ) from exc
+    elif revision_target is not None:
+        raise WritingPassExecutionError("PORTFOLIO_PASS_MUST_NOT_SET_REVISION_TARGET")
+
     working["shared"] = shared
     working["products"] = products
     working["interaction"] = interaction
-    working["current_stage"] = INTERNAL_PORTFOLIO_NEXT_STAGE[stage]
+    working["last_stage_result"] = {
+        "stage": stage,
+        "status": review_status,
+        "revision_target": revision_target,
+        "requirement_satisfaction": satisfaction,
+    }
     new_trace = working["trace"][trace_start:]
     previous_stage_sha = (
         working["stage_receipts"][-1]["receipt_sha256"]
         if working["stage_receipts"] else None
     )
-    receipt_body = {
-        "receipt_version": PORTFOLIO_STAGE_RECEIPT_VERSION,
-        "task_id": working["task_id"],
-        "requirement_digest": working["requirement_digest"],
-        "stage": stage,
-        "next_stage": working["current_stage"],
-        "previous_stage_receipt_sha256": previous_stage_sha,
-        "input_context_sha256": input_context_sha,
-        "output_context_sha256": _portfolio_context_sha256(working),
-        "pass_receipt_sha256s": [
-            item["receipt_sha256"] for item in new_trace
-        ],
-        "pass_count": len(new_trace),
-        "assurance": "HASH_BOUND_STAGE_OUTPUTS__PERSISTENCE_AND_OWNER_ADMISSION_OPEN",
-    }
-    stage_receipt = {
-        **receipt_body,
-        "receipt_sha256": _payload_sha256(receipt_body),
-    }
-    working["stage_receipts"].append(stage_receipt)
+
+    if review_status == "PASS":
+        next_stage = INTERNAL_PORTFOLIO_NEXT_STAGE[stage]
+        working["current_stage"] = next_stage
+        working["execution_status"] = "ACTIVE"
+        working["blocked_stage"] = None
+        output_context_sha = _portfolio_context_sha256(working)
+        receipt_body = {
+            "receipt_version": PORTFOLIO_STAGE_RECEIPT_VERSION,
+            "task_id": working["task_id"],
+            "requirement_digest": working["requirement_digest"],
+            "stage": stage,
+            "next_stage": next_stage,
+            "status": "PASS",
+            "revision_target": None,
+            "previous_stage_receipt_sha256": previous_stage_sha,
+            "input_context_sha256": input_context_sha,
+            "output_context_sha256": output_context_sha,
+            "pass_receipt_sha256s": [item["receipt_sha256"] for item in new_trace],
+            "pass_count": len(new_trace),
+            "requirement_satisfaction": satisfaction,
+            "assurance": "HASH_BOUND_STAGE_OUTPUTS__OWNER_ADMISSION_REQUIRED",
+        }
+        working["stage_receipts"].append({
+            **receipt_body, "receipt_sha256": _payload_sha256(receipt_body),
+        })
+
+    elif review_status == "FAIL":
+        working["current_stage"] = stage
+        working["execution_status"] = "BLOCKED"
+        working["blocked_stage"] = stage
+        output_context_sha = _portfolio_context_sha256(working)
+        receipt_body = {
+            "receipt_version": PORTFOLIO_STAGE_RECEIPT_VERSION,
+            "task_id": working["task_id"],
+            "requirement_digest": working["requirement_digest"],
+            "stage": stage,
+            "next_stage": stage,
+            "status": "FAIL",
+            "revision_target": revision_target,
+            "previous_stage_receipt_sha256": previous_stage_sha,
+            "input_context_sha256": input_context_sha,
+            "output_context_sha256": output_context_sha,
+            "pass_receipt_sha256s": [item["receipt_sha256"] for item in new_trace],
+            "pass_count": len(new_trace),
+            "requirement_satisfaction": satisfaction,
+            "assurance": "HASH_BOUND_FAILURE_EVIDENCE__OWNER_BLOCK_REQUIRED",
+        }
+        working["stage_receipts"].append({
+            **receipt_body, "receipt_sha256": _payload_sha256(receipt_body),
+        })
+
+    else:
+        target = str(revision_target)
+        revised_shared, revised_products, revised_interaction = _invalidate_portfolio_outputs_for_revision(
+            target=target,
+            seed_inputs=working["seed_inputs"],
+            shared=deepcopy(shared),
+            products=deepcopy(products),
+            interaction=deepcopy(interaction),
+        )
+        working["shared"] = revised_shared
+        working["products"] = revised_products
+        working["interaction"] = revised_interaction
+        working["current_stage"] = target
+        working["initial_stage"] = target
+        working["generation"] += 1
+        working["execution_status"] = "ACTIVE"
+        working["blocked_stage"] = None
+        working["stage_receipts"] = []
+        output_context_sha = _portfolio_context_sha256(working)
+        receipt_body = {
+            "receipt_version": PORTFOLIO_STAGE_RECEIPT_VERSION,
+            "task_id": working["task_id"],
+            "requirement_digest": working["requirement_digest"],
+            "stage": stage,
+            "next_stage": target,
+            "status": "REVISE",
+            "revision_target": target,
+            "previous_stage_receipt_sha256": previous_stage_sha,
+            "input_context_sha256": input_context_sha,
+            "output_context_sha256": output_context_sha,
+            "pass_receipt_sha256s": [item["receipt_sha256"] for item in new_trace],
+            "pass_count": len(new_trace),
+            "requirement_satisfaction": satisfaction,
+            "assurance": "HASH_BOUND_REVISION_ROUTE__OWNER_ADMISSION_REQUIRED",
+        }
+        stage_receipt = {
+            **receipt_body, "receipt_sha256": _payload_sha256(receipt_body),
+        }
+        _append_revision_history(working, {
+            "record_type": "REVISION",
+            "from_stage": stage,
+            "target_stage": target,
+            "from_generation": working["generation"] - 1,
+            "to_generation": working["generation"],
+            "stage_receipt": stage_receipt,
+        })
+        working["initial_context_sha256"] = _portfolio_context_sha256(working)
+
     validate_portfolio_context(working)
     return working
-
 
 def execute_portfolio_writing(
     seed_inputs: Mapping[str, Any],
