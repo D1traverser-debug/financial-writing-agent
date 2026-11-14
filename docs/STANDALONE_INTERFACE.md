@@ -2,7 +2,7 @@
 
 ## Business and authority
 
-Financial Writing remains the sole owner of its domain tasks, financial methodology, source checks, Word output and lifecycle. CAOS governs cross-project cognition and systemic decision method externally in the active ChatGPT session. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its sole business operating Skill is skills/financial-writing-agent/SKILL.md; its governance contract is config/CAOS_GOVERNANCE.json. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No CAOS runtime/API parent, local daemon or second task owner is required.
+Financial Writing remains the sole owner of its domain tasks, financial methodology, source checks, Word output and lifecycle. CAOS external chat governance supplies cross-project cognition and systemic decision method in the active ChatGPT session. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its sole business operating Skill is skills/financial-writing-agent/SKILL.md; its governance contract is config/CAOS_GOVERNANCE.json. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No CAOS runtime/API parent, local daemon or second task owner is required.
 
 
 
