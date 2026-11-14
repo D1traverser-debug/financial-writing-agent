@@ -5,13 +5,9 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 # Financial Writing — Independent Operating Skill
 
-Financial Writing owns its domain workflow (D1traverser-debug/financial-writing-agent@main): article state, financial research, domain analysis, writing, review, delivery and system evolution. CAOS governs cross-project cognition, complete-goal recovery, root-cause investigation, method comparison, decision rechallenge, execution discipline and independent acceptance in the active ChatGPT session. Financial retains one business owner, one article-state authority and one operating Skill; no CAOS runtime/API parent, second controller or local daemon is required.
+Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime, second controller or local daemon is required.
 
-## CAOS cross-project governance boundary
-
-For every material/systemic Financial decision and every cross-project decision, activate CAOS governance in the current ChatGPT session and read `CAOS_FINANCIAL_ENTRY.md` plus `config/CAOS_GOVERNANCE.json`. If CAOS governance is unavailable, do not claim a CAOS-governed acceptance. CAOS challenges the complete goal, root-cause layers, professional methods, alternatives, counterexamples, assumptions, rollback and verification before material action.
-
-Financial remains the sole owner of article/task identity, requirement revisions, financial evidence, Article Aggregate state, method catalog, domain execution, provider authorization and external publication boundaries. `DecisionEnvelope` is Financial-owned decision evidence/admission, not a second cross-project cognition controller. CAOS grants no Financial permissions and is not a runtime/API dependency.
+CAOS governance for material/systemic decisions and cross-project work is defined in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; it is session-level only, with no runtime/API dependency or permission authority.
 
 ## Route the actual goal
 
@@ -23,7 +19,7 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 ## Canonical files and CRUD
 
-- **Single Financial operating entry:** this Skill. The CAOS parent Skill is governance-only in the active ChatGPT session; it is not a second Financial business entry or runtime.
+- **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
 - **Article create/read/update:** create one `workspaces/articles/<task_id>/STATE.json`; read through `observe_article` and the exact task files; change requirements through the current admission path, preserving history and invalidating dependent evidence.
 - **Article workspace:** research evidence under `research/`, stage outputs under `stages/`, editorial/story assets under `editorial/`, audit receipts under `reviews/`, Word/rendered deliverables under `delivery/`, and user feedback under `feedback/`. The task's `STATE.json` binds their identities and lifecycle.
 - **Delete semantics:** do not erase accepted history or receipts. Retire a requirement/method through its lifecycle operation; remove only proven disposable temporary artifacts. A replacement must not silently rewrite an older article.
