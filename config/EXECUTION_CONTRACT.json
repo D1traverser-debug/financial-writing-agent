@@ -50,13 +50,16 @@
     "PRIVATE_RESEARCH_SYNTHESIS",
     "THESIS_ADJUDICATION",
     "STORY_ARCHITECTURE",
+    "HEADLINE_ADJUDICATION",
     "DRAFT_GENERATION",
     "READER_RETENTION_AUDIT",
     "EDITORIAL_TRIM",
     "ORIGINALITY_AUDIT",
     "FACT_INTEGRITY_AUDIT",
     "STYLE_AUDIT",
-    "FINAL_SYNTHESIS"
+    "FINAL_SYNTHESIS",
+    "PLATFORM_INTERACTION_ADAPTATION",
+    "PLATFORM_INTERACTION_AUDIT"
   ],
   "task_contract": {
     "identity_free": true,
@@ -201,7 +204,18 @@
     "internal_pass_dataflow_validator": "financial_writing_agent.writing_kernel.validate_pass_dataflow",
     "internal_pass_callback_adapter": "financial_writing_agent.writing_kernel.execute_writing_passes",
     "pass_callback_result_is_business_acceptance": false,
-    "research_audit_boundary_is_mandatory_before_story_architecture": true
+    "research_audit_boundary_is_mandatory_before_story_architecture": true,
+    "internal_pass_count": 16,
+    "portfolio_pass_orchestrator": "financial_writing_agent.writing_kernel.execute_portfolio_writing",
+    "portfolio_contract_version": "2.0",
+    "shared_research_passes_execute_once": true,
+    "deep_and_broad_use_separate_story_title_draft_review_and_synthesis_branches": true,
+    "platform_interaction_has_independent_adaptation_and_audit": true,
+    "internal_pass_stage_ownership": "financial_writing_agent.writing_kernel.PASS_STAGE_OWNERSHIP",
+    "research_audit_boundary_is_mandatory_before_any_publication_branch": true,
+    "single_product_adapter_scope": "ISOLATED_PRODUCT_TESTS_ONLY__NOT_DEFAULT_PORTFOLIO_EXECUTION",
+    "native_model_remains_active_llm_orchestrator": true,
+    "python_callback_adapters_are_not_native_llm_execution_or_business_acceptance": true
   },
   "knowledge_and_evolution": {
     "topic_and_method_knowledge_are_distinct": true,
