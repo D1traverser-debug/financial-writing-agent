@@ -1011,6 +1011,13 @@ def execute_portfolio_stage(
             )
             _admit_interaction_result(branch)
             interaction["platform_interaction_fitness"] = branch["platform_interaction_fitness"]
+        if len(products) > 1:
+            texts = [
+                "".join(_publication_text(item.get("publication_candidate")).split())
+                for item in products.values()
+            ]
+            if len(set(texts)) != len(texts):
+                raise WritingPassExecutionError("PORTFOLIO_LONGFORM_BODY_CLONED")
 
     working["shared"] = shared
     working["products"] = products
