@@ -303,3 +303,42 @@ def test_delivery_stage_user_requirement_cannot_advance_without_satisfaction_rec
     # This direct state replay does not verify real external source bytes.
     receipt = passed["execution_receipts"][-1]
     assert receipt["input_bindings"]["task_requirement_satisfaction"]
+
+
+def test_goal_projection_exposes_unsatisfied_customer_requirements_before_user_notices():
+    from financial_writing_agent.user_goal_progress import inspect_user_goal_progress
+    before = _at_delivery_with_cross_platform_requirement(affected="TITLE")
+    visible = inspect_user_goal_progress(before)
+    assert visible["active_user_requirement_count"] == 1
+    item = visible["requirement_progress"][0]
+    assert item["original_requirement"].startswith("深度文章和泛读文章")
+    assert item["stage_structural_status"] == "ADMITTED_STAGE_RECEIPT__SEMANTIC_CORRECTNESS_UNPROVEN"
+    assert item["article_semantic_satisfaction_verified"] is False
+    assert visible["output_contract_count"] == 4
+    assert len(visible["output_metadata_missing"]) == 4
+    assert visible["all_user_writing_goals_verified"] is False
+    assert visible["business_writing_pass_execution_verified"] is False
+    assert visible["current_primary_source_factual_entailment_verified"] is False
+
+    due = inspect_user_goal_progress(
+        _at_delivery_with_cross_platform_requirement(affected="DELIVERY")
+    )
+    assert due["requirement_progress"][0]["stage_structural_status"] == (
+        "DUE__STAGE_SATISFACTION_STILL_REQUIRED"
+    )
+
+
+def test_authenticated_observation_exposes_goal_progress_instead_of_only_cas_status():
+    from financial_writing_agent.standalone_runtime import observe_article
+    from test_financial_native_loop_closure_20261112 import (
+        make, TASK,
+    )
+    p = make()
+    read = observe_article(
+        TASK, state_reader=p.read, effect_receipt_reader=p.read_effect,
+    )
+    progress = read["user_goal_progress"]
+    assert progress["active_user_requirement_count"] == 0
+    assert set(progress["output_metadata_missing"]) == set(read["required_outputs"])
+    assert read["user_writing_business_outcome_verified"] is False
+    assert progress["all_user_writing_goals_verified"] is False
