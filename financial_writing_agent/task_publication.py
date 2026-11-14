@@ -60,22 +60,59 @@ def verify_task_publication_scope(
         raise TaskPublicationError(f"unsupported publication mode: {product_mode}")
     context = requirement_context_for_scope(state, product_mode)
     required_ids = {str(item["requirement_id"]) for item in context["requirements"]}
+    # Requirement admission is owned by the existing Article Aggregate. The
+    # publisher must not invent a fixed vocabulary for arbitrary user wording:
+    # stage-specific SATISFIED receipts already bind every active requirement
+    # to its source and current stage artifact. Such receipts are STRUCTURAL
+    # evidence only, not proof that a reader or editor agrees with the claim.
+    from . import current_admission, owner_guard
+
+    current_admission.validate_state(state)
+    stage = str(state["current_stage"])
+    current_index = owner_guard.STAGE_INDEX[stage]
+    unresolved: list[str] = []
+    pending_delivery: list[str] = []
+    for requirement in context["requirements"]:
+        requirement_id = str(requirement["requirement_id"])
+        affected = str(requirement["affects_from_stage"])
+        # Deep's explicitly retained-universe rule also serves as a preflight
+        # *negative* scope checker for the historical task while it is still
+        # in RESEARCH. Do not suppress its detailed truncation/identity/
+        # company-visible failure just because the due stage lies ahead.
+        if (requirement_id == FULL_UNIVERSE_REQUIREMENT
+                and product_mode == "FINANCE_DEEP"):
+            continue
+        if current_index <= owner_guard.STAGE_INDEX[affected]:
+            if stage == affected == "DELIVERY":
+                # Building Word precedes the DELIVERY transition. The final
+                # transition MUST admit and provider-read the DELIVERY receipt;
+                # pending does not mean this requirement has been satisfied.
+                pending_delivery.append(requirement_id)
+            else:
+                unresolved.append(requirement_id)
+    if unresolved:
+        raise TaskPublicationError(
+            "TASK_PUBLICATION_REQUIREMENTS_NOT_YET_ADMITTED:"
+            + ",".join(sorted(unresolved))
+        )
+
     if product_mode == "FINANCE_BROAD":
-        if required_ids:
+        if FULL_UNIVERSE_REQUIREMENT in required_ids:
             raise TaskPublicationError(
-                f"unimplemented FINANCE_BROAD task requirements cannot be silently passed: {sorted(required_ids)}"
+                "FINANCE_DEEP_FULL_UNIVERSE_REQUIREMENT_MISSCOPED_TO_BROAD"
             )
         return {
             "task_id": state["task_id"], "requirement_digest": context["digest"],
             "requirement_revision": context["revision"], "mode": product_mode,
-            "validated_requirement_ids": [], "strict_universe_visibility": False,
-            "company_names_checked": 0, "observed_stage": state["current_stage"],
+            "validated_requirement_ids": [],
+            "structurally_accounted_requirement_ids": sorted(required_ids - set(pending_delivery)),
+            "pending_delivery_requirement_ids": sorted(pending_delivery),
+            "semantic_unverified_requirement_ids": sorted(required_ids),
+            "strict_universe_visibility": False,
+            "company_names_checked": 0, "observed_stage": stage,
             "assurance": SCOPE_ASSURANCE,
         }
 
-    unknown = required_ids - {FULL_UNIVERSE_REQUIREMENT}
-    if unknown:
-        raise TaskPublicationError(f"unimplemented FINANCE_DEEP task requirements: {sorted(unknown)}")
     strict = FULL_UNIVERSE_REQUIREMENT in required_ids
     if research is None:
         raise TaskPublicationError("FINANCE_DEEP requires structured company research for scope validation")
@@ -153,7 +190,10 @@ def verify_task_publication_scope(
         "requirement_digest": context["digest"],
         "requirement_revision": context["revision"],
         "mode": product_mode,
-        "validated_requirement_ids": sorted(required_ids),
+        "validated_requirement_ids": [FULL_UNIVERSE_REQUIREMENT] if strict else [],
+        "structurally_accounted_requirement_ids": sorted(required_ids - set(pending_delivery)),
+        "pending_delivery_requirement_ids": sorted(pending_delivery),
+        "semantic_unverified_requirement_ids": sorted(required_ids - {FULL_UNIVERSE_REQUIREMENT}),
         "strict_universe_visibility": strict,
         "company_names_checked": len(seen) if strict else 0,
         "historical_universe_baseline": baseline_receipt,

@@ -2,6 +2,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass
 from enum import Enum
+from collections.abc import Callable, Mapping
+from typing import Any
 
 
 class WritingPass(str, Enum):
@@ -39,13 +41,15 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         purpose="map the full material value chain, company universe, chronology and evidence before thesis convergence",
         required_inputs=("topic", "recalled_knowledge", "current_sources"),
         forbidden_jobs=("premature thesis lock", "publication prose"),
-        outputs=("value_chain_map", "company_universe", "evidence_ledger", "candidate_hypotheses"),
+        outputs=("value_chain_map", "company_universe", "evidence_ledger", "candidate_hypotheses",
+                 "discovery_package", "source_evidence_ledger"),
     ),
     WritingPass.RESEARCH_ADVERSARIAL: PassContract(
         purpose="search for contradictions, missing chain nodes, disconfirming companies and alternative causal explanations",
         required_inputs=("discovery_package",),
         forbidden_jobs=("protect preferred thesis", "publication prose"),
-        outputs=("counterevidence", "rejected_hypotheses", "search_saturation_evidence"),
+        outputs=("counterevidence", "rejected_hypotheses", "search_saturation_evidence",
+                 "adversarial_package"),
     ),
     WritingPass.PRIVATE_RESEARCH_SYNTHESIS: PassContract(
         purpose="assemble all required evidence-bound PrivateResearchBrief 1.1 modules from full discovery and disconfirming research before selecting a publishable thesis",
@@ -55,9 +59,9 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
     ),
     WritingPass.THESIS_ADJUDICATION: PassContract(
         purpose="compare credible candidate explanations and select or merge the best evidence-bounded thesis",
-        required_inputs=("discovery_package", "adversarial_package", "private_research_brief", "decision_envelope"),
+        required_inputs=("discovery_package", "adversarial_package", "private_research_brief"),
         forbidden_jobs=("invent evidence", "draft paragraphs"),
-        outputs=("selected_thesis", "company_decision_map", "change_conditions"),
+        outputs=("selected_thesis", "company_decision_map", "change_conditions", "decision_envelope"),
     ),
     WritingPass.STORY_ARCHITECTURE: PassContract(
         purpose="turn the selected evidence into a reader journey with explicit hook, progressive payoff, company anchors and numbered structure",
@@ -159,4 +163,158 @@ def validate_kernel() -> list[str]:
 
     for node in nodes:
         walk(node)
+    if not errors:
+        errors.extend(validate_pass_dataflow())
     return errors
+
+
+# Inputs are external *work* and source boundary objects. They are never
+# inferred from the fact that a Python stage has advanced. In particular
+# audited_evidence MUST come from an actual Research Audit boundary after thesis
+# adjudication; it cannot be preseeded as the result of the writer's own pass.
+PRE_RESEARCH_EXTERNAL_INPUTS = frozenset({
+    "topic_or_task", "knowledge_sources", "topic", "current_sources",
+    "research_requirements", "reader_job", "voice_evidence", "material_sources",
+})
+RESEARCH_AUDIT_BOUNDARY_INPUT = "audited_evidence"
+
+
+class WritingPassExecutionError(ValueError):
+    """One claimed pass could not consume its inputs or produce its outputs."""
+
+
+def execution_order() -> tuple[WritingPass, ...]:
+    """Stable topological order; never iterate an unordered set of passes."""
+    ordered: list[WritingPass] = []
+    visited: set[WritingPass] = set()
+    visiting: set[WritingPass] = set()
+
+    def visit(node: WritingPass) -> None:
+        if node in visiting:
+            raise WritingPassExecutionError(f"WRITING_PASS_CYCLE:{node.value}")
+        if node in visited:
+            return
+        visiting.add(node)
+        for dep in PASS_DEPENDENCIES[node]:
+            visit(dep)
+        visiting.remove(node)
+        visited.add(node)
+        ordered.append(node)
+
+    for node in WritingPass:
+        visit(node)
+    return tuple(ordered)
+
+
+def validate_pass_dataflow() -> list[str]:
+    """Check producers/consumers, *not just* DAG cycles and node count.
+
+    Boundary-owned inputs are declared explicitly. A missing intermediate
+    product must be fixed at its actual producer; do not synthesize it in the
+    receiving pass or make every value a global, implicit input.
+    """
+    errors: list[str] = []
+    if set(PASS_CONTRACTS) != set(WritingPass) or set(PASS_DEPENDENCIES) != set(WritingPass):
+        return ["WRITING_PASS_NODE_SET_MISMATCH"]
+    available = set(PRE_RESEARCH_EXTERNAL_INPUTS)
+    produced: set[str] = set()
+    for node in execution_order():
+        if node == WritingPass.STORY_ARCHITECTURE:
+            available.add(RESEARCH_AUDIT_BOUNDARY_INPUT)
+        contract = PASS_CONTRACTS[node]
+        for required in contract.required_inputs:
+            if required not in available:
+                errors.append(f"{node.value}:UNPRODUCED_INPUT:{required}")
+        for output in contract.outputs:
+            if output in produced or output in PRE_RESEARCH_EXTERNAL_INPUTS:
+                errors.append(f"{node.value}:DUPLICATE_OR_SHADOWED_OUTPUT:{output}")
+            available.add(output)
+            produced.add(output)
+    return errors
+
+
+def execute_writing_passes(
+    seed_inputs: Mapping[str, Any],
+    *,
+    execute_pass: Callable[[WritingPass, Mapping[str, Any]], Mapping[str, Any]],
+    research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]],
+) -> dict[str, Any]:
+    """Invoke all thirteen passes against their actual dependency products.
+
+    This is a synchronous execution adapter, not an LLM or a source-of-truth
+    article state. The host is responsible for real research, writing, exact
+    artifact persistence, user instruction evidence and qualified review. A
+    callback's arbitrary return values cannot become editorial certification.
+
+    Missing inputs, passes, output keys or failed Research Audit stop execution.
+    There is no fake default output and no automatic PASS on a callback.
+    """
+    issues = validate_pass_dataflow()
+    if issues:
+        raise WritingPassExecutionError("WRITING_PASS_DATAFLOW_INVALID:" + ";".join(issues))
+    if not callable(execute_pass) or not callable(research_audit):
+        raise WritingPassExecutionError("WRITING_PASS_EXECUTOR_AND_RESEARCH_AUDIT_REQUIRED")
+    initial = dict(seed_inputs)
+    missing = PRE_RESEARCH_EXTERNAL_INPUTS - set(initial)
+    if missing:
+        raise WritingPassExecutionError(
+            "WRITING_PASS_EXTERNAL_INPUTS_MISSING:" + ",".join(sorted(missing))
+        )
+    if RESEARCH_AUDIT_BOUNDARY_INPUT in initial:
+        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_PRESEED_FORBIDDEN")
+    current = dict(initial)
+    trace: list[dict[str, Any]] = []
+    for node in execution_order():
+        if node == WritingPass.STORY_ARCHITECTURE:
+            envelope = research_audit(dict(current))
+            if (not isinstance(envelope, Mapping) or envelope.get("status") != "PASS"
+                    or not isinstance(envelope.get("evidence_refs"), list)
+                    or not envelope["evidence_refs"]
+                    or not envelope.get(RESEARCH_AUDIT_BOUNDARY_INPUT)):
+                raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_NOT_ADMITTED")
+            current[RESEARCH_AUDIT_BOUNDARY_INPUT] = envelope[RESEARCH_AUDIT_BOUNDARY_INPUT]
+            trace.append({
+                "pass": "RESEARCH_AUDIT_BOUNDARY",
+                "status": "CALLBACK_ADMITTED__REAL_SEMANTIC_SUPPORT_NOT_SELF_CERTIFIED",
+                "evidence_refs": list(envelope["evidence_refs"]),
+            })
+        contract = PASS_CONTRACTS[node]
+        missing_inputs = [name for name in contract.required_inputs if name not in current]
+        if missing_inputs:
+            raise WritingPassExecutionError(
+                f"WRITING_PASS_MISSING_INPUT:{node.value}:{','.join(missing_inputs)}"
+            )
+        provided = {name: current[name] for name in contract.required_inputs}
+        try:
+            outcome = execute_pass(node, provided)
+        except Exception as exc:
+            raise WritingPassExecutionError(
+                f"WRITING_PASS_EXECUTION_FAILED:{node.value}"
+            ) from exc
+        if not isinstance(outcome, Mapping):
+            raise WritingPassExecutionError(f"WRITING_PASS_OUTPUT_INVALID:{node.value}")
+        absent = [name for name in contract.outputs if name not in outcome
+                  or outcome[name] is None]
+        if absent:
+            raise WritingPassExecutionError(
+                f"WRITING_PASS_OUTPUT_MISSING:{node.value}:{','.join(absent)}"
+            )
+        unexpected = set(outcome) - set(contract.outputs)
+        if unexpected:
+            raise WritingPassExecutionError(
+                f"WRITING_PASS_UNDECLARED_OUTPUT:{node.value}:{','.join(sorted(unexpected))}"
+            )
+        current.update(outcome)
+        trace.append({
+            "pass": node.value,
+            "status": "EXECUTOR_CALLBACK_RETURNED_REQUIRED_OUTPUTS__SEMANTIC_QUALITY_OPEN",
+            "outputs": list(contract.outputs),
+        })
+    return {
+        "schema_version": "1.0",
+        "pass_count": len(PASS_CONTRACTS),
+        "research_audit_boundary_reached": True,
+        "trace": trace,
+        "products": current,
+        "assurance": "PASS_CALLBACK_DATAFLOW_EXECUTED__NOT_INDEPENDENT_EDITORIAL_OR_FACT_ACCEPTANCE",
+    }

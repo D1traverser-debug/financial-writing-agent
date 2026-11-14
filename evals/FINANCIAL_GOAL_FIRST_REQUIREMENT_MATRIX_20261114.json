@@ -1,0 +1,302 @@
+{
+  "schema_version": "1.0",
+  "authority": "docs/product_requirements.md",
+  "status": "USER_WRITING_OUTCOME_NOT_READY",
+  "purpose": "Goal-first backward verification: final user outcome -> real writing products -> reviews -> stage evidence -> original requirements. A green unit test alone never promotes real business quality.",
+  "generation_baseline": "Financial Writing main @ 2026-11-14 before proposed goal-driven repairs",
+  "requirements": [
+    {
+      "requirement_id": "PR-01",
+      "goal": "Direct domain operation and ownership",
+      "engineering_evidence_test": "tests/test_financial_standalone_index_20261111.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "A fresh connected ChatGPT Financial session has not been witnessed executing a full user article."
+    },
+    {
+      "requirement_id": "PR-02",
+      "goal": "Feedback classification before evolution",
+      "engineering_evidence_test": "tests/test_user_rule_calibration_20261012.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "New user corrections have not been classified against a real article and checked for semantic fidelity."
+    },
+    {
+      "requirement_id": "PR-03",
+      "goal": "Knowledge acquisition and durable reuse",
+      "engineering_evidence_test": "tests/test_financial_method_governance_20261112.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Real cross-topic retrieval with current revalidation has not produced a reader-approved writing improvement."
+    },
+    {
+      "requirement_id": "PR-04",
+      "goal": "Value-chain-first research and broad search",
+      "engineering_evidence_test": "tests/test_value_chain_and_knowledge_reuse_20261015.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Current first-party source, complete company-universe and falsification evidence have not been verified end to end."
+    },
+    {
+      "requirement_id": "PR-04A",
+      "goal": "Mandatory PrivateResearchBrief before publication planning",
+      "engineering_evidence_test": "tests/test_private_research_contract.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "PrivateResearchBrief module presence does not itself prove every user-needed research job was substantively completed."
+    },
+    {
+      "requirement_id": "PR-05",
+      "goal": "Decision Envelope for material judgments",
+      "engineering_evidence_test": "tests/test_cognition_governance_v1.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Actual competing financial theses with current primary evidence were not independently adjudicated in a live article."
+    },
+    {
+      "requirement_id": "PR-06",
+      "goal": "FINANCE_DEEP is the complete finance product, not the complete research dump",
+      "engineering_evidence_test": "tests/test_deep_research_publication_boundary_20261111.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "A current Deep article covering its user-required company comparison and economic causal chain has not passed user review."
+    },
+    {
+      "requirement_id": "PR-07",
+      "goal": "FINANCE_BROAD is selective acquisition, not shortened Deep",
+      "engineering_evidence_test": "tests/test_financial_native_ten_stage_adversarial_20261112.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Deep and Broad differ in planning and exact prose clone defenses but actual independent reader journeys remain untested."
+    },
+    {
+      "requirement_id": "PR-08",
+      "goal": "Story Blueprint before prose",
+      "engineering_evidence_test": "tests/test_story_quality_v1.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Actual final paragraphs have not been verified to deliver each blueprint promise and company causal transmission."
+    },
+    {
+      "requirement_id": "PR-09",
+      "goal": "Reader-retention outcome",
+      "engineering_evidence_test": "tests/test_user_feedback_reader_value_20261015.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "A cold reader has not verified title-to-opening-to-section-to-ending promise retention and payoff."
+    },
+    {
+      "requirement_id": "PR-10",
+      "goal": "Originality / anti-plagiarism",
+      "engineering_evidence_test": "tests/test_publication_claim_trace_20261111.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Source-by-source distinctive passage and structure overlap have not been independently audited for the new output."
+    },
+    {
+      "requirement_id": "PR-11",
+      "goal": "Natural authorial prose",
+      "engineering_evidence_test": "tests/test_writing_negative_heldout_business_evidence_20261114.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Real new-article prose has not passed negative-example-informed human/editorial voice assessment."
+    },
+    {
+      "requirement_id": "PR-12",
+      "goal": "Publication Fitness gate",
+      "engineering_evidence_test": "tests/test_editorial_review_authority_20261112.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Same-chat gate checks and synthetic independent signatures are not real expert/user publication certification."
+    },
+    {
+      "requirement_id": "PR-13",
+      "goal": "Focused internal pass architecture",
+      "engineering_evidence_test": "tests/test_financial_goal_driven_replay_20261114.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Thirteen passes were defined, not shown executing on genuine source facts with persisted work products in a user task."
+    },
+    {
+      "requirement_id": "PR-14",
+      "goal": "Platform/output portfolio",
+      "engineering_evidence_test": "tests/test_routing.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "The live task has not delivered all four distinct real article/social/audit Word products with reader acceptance."
+    },
+    {
+      "requirement_id": "PR-15",
+      "goal": "Delivery and mechanical QA",
+      "engineering_evidence_test": "tests/test_financial_native_ten_stage_adversarial_20261112.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Real article Word pages, semantic content and final user-accessible delivery have not been inspected for a real task."
+    },
+    {
+      "requirement_id": "PR-16",
+      "goal": "Evolution and promotion",
+      "engineering_evidence_test": "tests/test_quality_regression.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Feedback-led cross-topic learning and revalidation have not been proven on a real user-authorized sequence."
+    },
+    {
+      "requirement_id": "PR-17",
+      "goal": "Multi-agent is conditional, not default",
+      "engineering_evidence_test": "tests/test_writing_kernel_v1.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "Separate-agent decision has not been quantitatively justified or disconfirmed for authentic workload constraints."
+    },
+    {
+      "requirement_id": "PR-18",
+      "goal": "Post-evolution historical resume compatibility",
+      "engineering_evidence_test": "tests/test_resume_compatibility_20261016.py",
+      "engineering_proof_status": "AUTOMATED_COMPONENT_OR_SYNTHETIC_REPLAY_ONLY",
+      "real_user_business_goal_status": "OPEN",
+      "necessary_unproven_outcome": "A live post-evolution article successor has not been resumed and reviewed at the new semantic quality standard."
+    }
+  ],
+  "counterexample_scenarios": [
+    {
+      "id": "UG01",
+      "user_goal": "Complete normal current finance topic without asking owner to enumerate each stage",
+      "failure_injection": "Host has no real writer, only stage artifact callbacks",
+      "verifier": "tests/test_financial_goal_driven_replay_20261114.py",
+      "expected": "Do not infer real content or readiness from stage graph",
+      "outcome": "ENGINEERING_REPLAY_ONLY",
+      "requirement_ids": [
+        "PR-01",
+        "PR-13",
+        "PR-15"
+      ]
+    },
+    {
+      "id": "UG02",
+      "user_goal": "All-scope user instruction must survive both Deep and Broad from research to Word",
+      "failure_injection": "Non-whitelisted requirement at RESEARCH/TITLE/DRAFT/DELIVERY",
+      "verifier": "tests/test_financial_goal_driven_replay_20261114.py",
+      "expected": "No phantom PASS, no hardcoded whitelist deadlock; source/semantic status explicit",
+      "outcome": "STRUCTURAL_SATISFACTION_ONLY",
+      "requirement_ids": [
+        "PR-02",
+        "PR-06",
+        "PR-07",
+        "PR-14"
+      ]
+    },
+    {
+      "id": "UG03",
+      "user_goal": "Do not draft before full research challenge",
+      "failure_injection": "Discovery omits aggregated package, or Research Audit fails",
+      "verifier": "tests/test_financial_goal_driven_replay_20261114.py",
+      "expected": "Downstream writer must not execute",
+      "outcome": "ENGINEERING_REPLAY_ONLY",
+      "requirement_ids": [
+        "PR-04",
+        "PR-04A",
+        "PR-05",
+        "PR-13"
+      ]
+    },
+    {
+      "id": "UG04",
+      "user_goal": "Company research complete while public article remains selective",
+      "failure_injection": "3-name synthetic universe presented as 174-name complete",
+      "verifier": "tests/test_task_bound_publication_20261111.py",
+      "expected": "Task-specific universe truncation must block, ordinary publication remains selective",
+      "outcome": "STRUCTURAL_SCOPE_ONLY",
+      "requirement_ids": [
+        "PR-04",
+        "PR-06"
+      ]
+    },
+    {
+      "id": "UG05",
+      "user_goal": "Distinct Deep/Broad stories, not a shortened Deep",
+      "failure_injection": "Clone story blueprint, then deliver different-title Word with duplicated body",
+      "verifier": "tests/test_financial_native_ten_stage_adversarial_20261112.py",
+      "expected": "Reject clone, but do not claim distinct reader values",
+      "outcome": "EXACT_COPY_DETECTED_SEMANTIC_DIFFERENTIATION_OPEN",
+      "requirement_ids": [
+        "PR-07",
+        "PR-08",
+        "PR-14"
+      ]
+    },
+    {
+      "id": "UG06",
+      "user_goal": "Natural original narrative must improve rather than just satisfy formatting",
+      "failure_injection": "Real rejected sea-wind 4x3 template geometry and generic scaffolding",
+      "verifier": "tests/test_writing_negative_heldout_business_evidence_20261114.py",
+      "expected": "Flag rejected structure without false rejection on distinct rutile topic",
+      "outcome": "KNOWN_NEGATIVE_CAUGHT_REAL_NEW_PROSE_OPEN",
+      "requirement_ids": [
+        "PR-09",
+        "PR-10",
+        "PR-11"
+      ]
+    },
+    {
+      "id": "UG07",
+      "user_goal": "A false financial claim cannot gain factual authority from matching hash",
+      "failure_injection": "A contradictory trend/period/unit is attributed to a matching snapshot",
+      "verifier": "tests/test_publication_claim_trace_20261111.py",
+      "expected": "Mechanical contradictions fail, semantic fact entailment remains OPEN",
+      "outcome": "STRUCTURAL_PROVENANCE_ONLY",
+      "requirement_ids": [
+        "PR-04",
+        "PR-10",
+        "PR-12"
+      ]
+    },
+    {
+      "id": "UG08",
+      "user_goal": "Any correction must invalidate downstream content and reopen the right stage",
+      "failure_injection": "User changes a late-stage task requirement after drafting",
+      "verifier": "tests/test_task_requirement_authority_20261017.py",
+      "expected": "Reopen at earliest affected stage; stale editorial PASS invalidated",
+      "outcome": "STATE_MACHINE_REPLAY_ONLY",
+      "requirement_ids": [
+        "PR-02",
+        "PR-16",
+        "PR-18"
+      ]
+    },
+    {
+      "id": "UG09",
+      "user_goal": "Uncertified but internally reviewed Word draft may be delivered honestly",
+      "failure_injection": "No independent editor, internal QA tied to exact DRAFT bytes",
+      "verifier": "tests/test_writing_business_process_20261114.py",
+      "expected": "Draft export, not independent publication certification",
+      "outcome": "ENGINEERING_ONLY",
+      "requirement_ids": [
+        "PR-12",
+        "PR-15"
+      ]
+    },
+    {
+      "id": "UG10",
+      "user_goal": "Actual current stock/policy facts cannot be exported from stale source bytes",
+      "failure_injection": "Seven-day-old source snapshot or changed source after research",
+      "verifier": "tests/test_financial_native_ten_stage_adversarial_20261112.py",
+      "expected": "Block delivery and return to research",
+      "outcome": "SOURCE_RECENCY_RULE_ONLY",
+      "requirement_ids": [
+        "PR-03",
+        "PR-04",
+        "PR-15"
+      ]
+    }
+  ],
+  "required_live_business_outcome": [
+    "Use real current primary sources and actual article data, not fabricated provider callbacks.",
+    "Produce distinct Deep, Broad, platform short-copy and audit Word files with current article identity.",
+    "Independently verify title promise, company causal economics, originality, factual entailment, style and section-specific reader value.",
+    "Run user correction, alternate topic and mid-stage failure replay with durable readback.",
+    "Record the user's real evaluation without manufacturing an acceptance decision."
+  ],
+  "all_user_requirements_business_accepted": false,
+  "live_finance_deep_broad_four_word_user_quality_verified": false
+}

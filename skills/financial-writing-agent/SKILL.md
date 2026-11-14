@@ -69,5 +69,7 @@ Method lifecycle: candidate → revise pending → independently validate/promot
 
 Keep material failure chronology and rejected hypotheses in the problem journal; `EVOLUTION_INDEX.json` remains the only current system-status authority. Every repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and legitimate-neighbor cases, reads back the exact result and preserves remaining OPEN conditions. System engineering, live provider integration, client activation, independent review, real article quality and user-visible delivery are separate acceptance gates.
 
+Before claiming completion, replay every user goal through actual pass inputs, source evidence, Deep/Broad prose, review, revision and Word. Probe missing/changed/conflicting inputs. A pass DAG or mock PASS is not an executed article.
+
 ## Effect writes
 Owner writes need signed authorization (article v1.1; method v1.0) plus effect receipt v1.0, atomic CAS and exact reread. The authenticated adapter is `financial_writing_agent.standalone_runtime.py`; it verifies signed provider admission. No signer means no mutation; legacy history stays unbound.

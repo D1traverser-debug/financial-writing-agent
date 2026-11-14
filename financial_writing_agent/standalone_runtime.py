@@ -914,6 +914,8 @@ def observe_article(
         owner_lifecycle._blocking_recovery_cursor(state)
         if state["status"] == "BLOCKED" else None
     )
+    from .user_goal_progress import inspect_user_goal_progress
+    user_goal_progress = inspect_user_goal_progress(state)
     return {
         "contract_version": CONTRACT_VERSION, "domain_id": DOMAIN_ID,
         "task_id": task_id, "state_ref": path, "state_blob_sha": sha,
@@ -940,6 +942,8 @@ def observe_article(
         ),
         "visible_delivery_receipt": visible_delivery_receipt,
         "authorization_history": authorization_history,
+        "user_goal_progress": user_goal_progress,
+        "user_writing_business_outcome_verified": False,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
     }
