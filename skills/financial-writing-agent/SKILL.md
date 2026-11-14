@@ -48,7 +48,7 @@ Execute the legal next step: retrieve sources, research, write, challenge, rende
 
 ## Standalone runtime and trust boundary
 
-GitHub reads `main`; drafts stage on candidate branches using `fetch_file`, `create_blob`, `create_tree`, `create_commit`, `update_ref(expected_sha)`. For any owner `STATE.json`, article artifact or method catalog mutation, first use a genuinely authenticated `standalone_runtime.py` action port, or stage a PR that passes `system_acceptance_report.py`'s exact base/head **two-revision business-effect audit** with provider-signed authorization. Do not direct-update `main` as a substitute for executable `current_admission`. `update_file`/blob-tree-commit/expected-SHA/readback prove Git effects only; they do not supply owner approval. In Skill-only chat without the signer/runner, keep that business mutation OPEN and continue lawful read-only research and reversible drafting. Human confirmation is necessary but not a fake HMAC signature. System reconstruction does not authorize new article publication. See `docs/STANDALONE_INTERFACE.md`.
+GitHub reads main; drafts stage on candidate branches using fetch_file/create_blob/create_tree/create_commit/update_ref(expected_sha). Article STATE/artifact/method writes require an authenticated standalone_runtime port or a PR passing the exact base/head audit with signed owner authorization. Every new article mutation also needs a provider-signed effect receipt v1.0 atomically committed with STATE and both exact blobs reread. Never direct-update main. Git CAS is not owner approval. Without signer/runner, keep business mutation OPEN; continue read-only research and reversible drafting. Human confirmation is not a provider signature. See docs/STANDALONE_INTERFACE.md.
 
 
 ## Current research and publication evidence
@@ -69,10 +69,5 @@ Method lifecycle: candidate → revise pending → independently validate/promot
 
 Keep material failure chronology and rejected hypotheses in the problem journal; `EVOLUTION_INDEX.json` remains the only current system-status authority. Every repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and legitimate-neighbor cases, reads back the exact result and preserves remaining OPEN conditions. System engineering, live provider integration, client activation, independent review, real article quality and user-visible delivery are separate acceptance gates.
 
-## Signed action-effect receipts (2026-11-14)
-
-An action-authorization signature proves approval of the exact request and prior state SHA; it does not alone prove the exact result. Every new article-state mutation must append authorization contract v1.1 and bind a separate provider-signed action_effect receipt v1.0 at workspaces/articles/<task_id>/actions/<action_id>.effect.json. The effect claims bind action/task/operation, prior and resulting Git blob SHAs, canonical request SHA-256, exact authorization-attestation SHA-256 and the admission runtime. The same authenticated actor and provider must sign both records.
-
-Write STATE.json and its effect receipt in one atomic Git commit/CAS bundle, then read back and verify both exact blobs. Verify the complete effect chain before another mutation; the latest effect result SHA must equal the current state SHA. Never split the two writes, infer an effect from a commit URL, or manufacture a provider receipt in model text. If the authenticated effect signer, atomic bundle CAS or exact readback is unavailable, do not mutate canonical article state; continue only with safe read/research/candidate work and keep the provider gate OPEN.
-
-Historical signed authorization v1.0 remains preserved as effect-unbound history. Do not rewrite old receipts or let a new action roll an effect-bound history back to v1.0. Synthetic CI signers are test fixtures, not live provider authentication or independent acceptance.
+## Effect writes
+Article writes need signed auth v1.1 + effect receipt v1.0, atomic CAS and exact reread; no signer means no state mutation. Legacy v1.0 stays unbound.
