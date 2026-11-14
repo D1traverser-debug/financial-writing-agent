@@ -100,35 +100,20 @@ def _stage_payload(
     if not isinstance(outputs, Mapping):
         raise PortfolioCoordinatorError("PORTFOLIO_STAGE_OUTPUT_SNAPSHOT_MISSING")
 
-    if stage == "RESEARCH":
-        if _has_full_universe_requirement(state):
-            raw = outputs.get("research_package")
-            try:
-                package = ResearchPackage.model_validate(raw)
-            except Exception as exc:
-                raise PortfolioCoordinatorError(
-                    "PORTFOLIO_FULL_UNIVERSE_TYPED_RESEARCH_PACKAGE_REQUIRED"
-                ) from exc
-            return package.model_dump(mode="json")
-        return {
-            "decision_envelope": deepcopy(outputs.get("decision_envelope")),
-            "private_research_brief": deepcopy(outputs.get("private_research_brief")),
-            "research_outputs": {
-                key: deepcopy(value)
-                for key, value in outputs.items()
-                if key not in {
-                    "decision_envelope", "private_research_brief",
-                    "research_audit_result", "audited_evidence",
-                }
-            },
-        }
-    if stage == "RESEARCH_AUDIT":
-        return deepcopy(outputs.get("research_audit_result", {}))
-    if stage in {"EDITORIAL", "TITLE"}:
-        return deepcopy(dict(outputs))
-    if stage in {"DRAFT", "EDITORIAL_AUDIT"}:
-        return deepcopy(dict(outputs))
-    raise PortfolioCoordinatorError(f"PORTFOLIO_STAGE_ARTIFACT_UNSUPPORTED:{stage}")
+    # Persist the complete output map for exactly one business stage. The
+    # admission boundary can then compare it byte-for-byte with context readback.
+    normalized = deepcopy(dict(outputs))
+    if stage == "RESEARCH" and _has_full_universe_requirement(state):
+        raw = normalized.get("research_package")
+        try:
+            package = ResearchPackage.model_validate(raw)
+        except Exception as exc:
+            raise PortfolioCoordinatorError(
+                "PORTFOLIO_FULL_UNIVERSE_TYPED_RESEARCH_PACKAGE_REQUIRED"
+            ) from exc
+        normalized["research_package"] = package.model_dump(mode="json")
+    return normalized
+
 
 def _business_stage_artifact(
     context: Mapping[str, Any],
@@ -202,23 +187,91 @@ def _write_and_verify_bundle(
     context_reader: Callable[[str], Any],
     context_path: str,
 ) -> dict[str, str]:
+    """Create immutable artifacts idempotently, then trust exact provider readback.
+
+    A process may stop after the provider persisted artifacts but before the
+    owner-state CAS. Identical existing bytes are reusable on retry; conflicting
+    bytes are never overwritten.
+    """
     if not callable(writer):
         raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_WRITER_REQUIRED")
-    try:
-        issued = writer(dict(files))
-    except Exception as exc:
-        raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_WRITE_FAILED") from exc
-    if not isinstance(issued, Mapping) or not isinstance(issued.get("blob_shas"), Mapping):
-        raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_WRITE_RECEIPT_INVALID")
+    if not isinstance(files, Mapping) or not files:
+        raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_FILES_REQUIRED")
+
+    readers: dict[str, Callable[[str], Any]] = {}
+    pending: dict[str, bytes] = {}
     verified: dict[str, str] = {}
+
     for path, expected_content in files.items():
-        expected_sha = standalone_runtime._blob_sha(expected_content)
-        if issued["blob_shas"].get(path) != expected_sha:
-            raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_WRITE_SHA_MISMATCH")
+        if not isinstance(path, str) or not isinstance(expected_content, bytes):
+            raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_FILE_INVALID")
         reader = context_reader if path == context_path else artifact_reader
+        readers[path] = reader
+        try:
+            existing = reader(path)
+        except Exception as exc:
+            raise PortfolioCoordinatorError(
+                "PORTFOLIO_ARTIFACT_BUNDLE_PREWRITE_READ_FAILED"
+            ) from exc
+        expected_sha = standalone_runtime._blob_sha(expected_content)
+        if existing is None:
+            pending[path] = expected_content
+            continue
         actual_content, actual_sha = _read_provider_artifact(reader, path)
         if actual_content != expected_content or actual_sha != expected_sha:
-            raise PortfolioCoordinatorError("PORTFOLIO_ARTIFACT_BUNDLE_READBACK_MISMATCH")
+            raise PortfolioCoordinatorError(
+                "PORTFOLIO_ARTIFACT_BUNDLE_EXISTING_BYTES_CONFLICT"
+            )
+        verified[path] = actual_sha
+
+    issued = None
+    write_error: Exception | None = None
+    if pending:
+        try:
+            issued = writer(dict(pending))
+        except Exception as exc:
+            # The provider may have committed exact bytes before its response
+            # was lost. Exact readback below decides whether retry is safe.
+            write_error = exc
+
+        if issued is not None:
+            if not isinstance(issued, Mapping) or not isinstance(
+                issued.get("blob_shas"), Mapping
+            ):
+                raise PortfolioCoordinatorError(
+                    "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_RECEIPT_INVALID"
+                )
+            if set(issued["blob_shas"]) != set(pending):
+                raise PortfolioCoordinatorError(
+                    "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_RECEIPT_PATH_SET_MISMATCH"
+                )
+            for path, expected_content in pending.items():
+                if issued["blob_shas"].get(path) != standalone_runtime._blob_sha(
+                    expected_content
+                ):
+                    raise PortfolioCoordinatorError(
+                        "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_SHA_MISMATCH"
+                    )
+
+    # Re-read every object, including objects that existed before this call.
+    for path, expected_content in files.items():
+        try:
+            actual_content, actual_sha = _read_provider_artifact(
+                readers[path], path,
+            )
+        except Exception as exc:
+            if write_error is not None:
+                raise PortfolioCoordinatorError(
+                    "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_OUTCOME_UNKNOWN"
+                ) from write_error
+            raise PortfolioCoordinatorError(
+                "PORTFOLIO_ARTIFACT_BUNDLE_READBACK_MISSING"
+            ) from exc
+        expected_sha = standalone_runtime._blob_sha(expected_content)
+        if actual_content != expected_content or actual_sha != expected_sha:
+            raise PortfolioCoordinatorError(
+                "PORTFOLIO_ARTIFACT_BUNDLE_READBACK_MISMATCH"
+            )
         verified[path] = actual_sha
     return verified
 
@@ -348,21 +401,20 @@ def run_next_portfolio_stage(
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_TASK_ID_MISMATCH")
         if context.get("required_output_kinds") != sorted(required_outputs):
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OUTPUT_CONTRACT_MISMATCH")
-        if context.get("requirement_digest") != state.get("task_requirement_digest"):
+        if (
+            context.get("requirement_digest") != state.get("task_requirement_digest")
+            or context.get("requirement_contexts") != contexts
+        ):
+            # Recompute scoped requirements on every resume. A matching top-level
+            # digest alone is not proof that the persisted context carries the
+            # current per-scope projection.
             context = rebind_portfolio_context_requirements(
                 context,
                 requirement_digest=state["task_requirement_digest"],
                 requirement_contexts=contexts,
                 current_stage=owner_stage,
             )
-        elif context.get("requirement_contexts") is None:
-            context = rebind_portfolio_context_requirements(
-                context,
-                requirement_digest=state["task_requirement_digest"],
-                requirement_contexts=contexts,
-                current_stage=owner_stage,
-            )
-        elif context.get("current_stage") != owner_stage:
+        if context.get("current_stage") != owner_stage:
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
         if context.get("execution_status") == "BLOCKED":
             context = resume_portfolio_context(context, owner_state=state)
