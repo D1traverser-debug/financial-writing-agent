@@ -348,8 +348,6 @@ def run_next_portfolio_stage(
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_TASK_ID_MISMATCH")
         if context.get("required_output_kinds") != sorted(required_outputs):
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OUTPUT_CONTRACT_MISMATCH")
-        if context.get("current_stage") != owner_stage:
-            raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
         if context.get("requirement_digest") != state.get("task_requirement_digest"):
             context = rebind_portfolio_context_requirements(
                 context,
@@ -364,6 +362,8 @@ def run_next_portfolio_stage(
                 requirement_contexts=contexts,
                 current_stage=owner_stage,
             )
+        elif context.get("current_stage") != owner_stage:
+            raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
         if context.get("execution_status") == "BLOCKED":
             context = resume_portfolio_context(context, owner_state=state)
 
