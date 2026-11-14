@@ -337,7 +337,7 @@ def test_changed_provider_bytes_are_rejected_even_when_reader_claims_old_sha():
 
 
 def _serialized_owner_state(state):
-    content = json.dumps(state, ensure_ascii=False, sort_keys=True, indent=2) + "\\n"
+    content = json.dumps(state, ensure_ascii=False, sort_keys=True, indent=2) + chr(10)
     return {
         "state": state,
         "blob_sha": standalone_runtime._blob_sha(content),
