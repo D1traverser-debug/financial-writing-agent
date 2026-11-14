@@ -7,6 +7,8 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime, second controller or local daemon is required.
 
+CAOS governance for material/systemic decisions and cross-project work is defined in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; it is session-level only, with no runtime/API dependency or permission authority.
+
 ## Route the actual goal
 
 For a **whole Financial system reconstruction**, read evals/EVOLUTION_INDEX.json#active_system_assessment, the complete user goal/corrections, product requirements, current source and negative samples; do not substitute an old DELIVERED article or a structural PR for reader-quality proof. For a **specific article**, resume only its task STATE and exact requirement digest; preserve retired history. System repair does not authorize publication.
@@ -17,7 +19,7 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 ## Canonical files and CRUD
 
-- **Single operating entry:** this Skill. Do not activate a second root Skill or parent entry.
+- **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
 - **Article create/read/update:** create one `workspaces/articles/<task_id>/STATE.json`; read through `observe_article` and the exact task files; change requirements through the current admission path, preserving history and invalidating dependent evidence.
 - **Article workspace:** research evidence under `research/`, stage outputs under `stages/`, editorial/story assets under `editorial/`, audit receipts under `reviews/`, Word/rendered deliverables under `delivery/`, and user feedback under `feedback/`. The task's `STATE.json` binds their identities and lifecycle.
 - **Delete semantics:** do not erase accepted history or receipts. Retire a requirement/method through its lifecycle operation; remove only proven disposable temporary artifacts. A replacement must not silently rewrite an older article.

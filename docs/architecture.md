@@ -1,12 +1,12 @@
 # Financial Writing Agent — Architecture
 
-Version: `1.1.0 / standalone Financial operating domain`
+Version: `1.1.0 / standalone Financial domain with CAOS chat governance`
 Reviewed: `2026-11-12`
 Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
 
-Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no external parent runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is an independently executable business domain. CAOS governs cross-project cognition, complete-goal recovery, cross-layer root-cause investigation, method research, decision rechallenge and independent acceptance in the active ChatGPT session. Financial owns article identity/state, financial-domain source research and analysis, evidence/admission contracts, writing architecture, output contracts, domain knowledge/evolution and delivery. It has no external CAOS runtime/API, Host or parent-grant dependency.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
@@ -18,7 +18,7 @@ Hard invariants:
 
 ## 1A. Current standalone deployment and capability boundary
 
-Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import an external parent runtime. Retired integration stubs have been removed from the current tree.
+The sole Financial operating Skill is `skills/financial-writing-agent/SKILL.md`; CAOS governance is declared in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; Financial machine declarations remain `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import a CAOS runtime. Historical hosted-parent integration stubs remain retired.
 
 Model/web/data retrieval and document tools must actually be connected in the Financial environment; an installed Python wheel by itself does not execute LLM research or prove any native plugin connection. The real cross-border v3 task and all historic receipts remain unchanged. Full product readiness still requires independently observed financial facts, useful narrative and actual accessible Word results.
 
@@ -47,9 +47,9 @@ Internal work becomes:
 
 These are focused passes, not independent controllers. Same-model passes are structured challenge evidence, not independent certification.
 
-## 4. Financial-owned cognition and decision architecture
+## 4. CAOS cross-project cognition and Financial domain decision evidence
 
-Financial natively applies its decision and execution methods. DecisionEnvelope and evidence-grounded causal challenges are Financial-owned, with no external controller or parent authorization.
+CAOS governs cross-project cognition, material/systemic method selection, root-cause challenge and independent acceptance in the active ChatGPT session. Financial's `DecisionEnvelope` and evidence-grounded causal challenges remain Financial-owned domain evidence/admission contracts; they are not a second cross-project cognition controller. Financial remains the owner of financial research, article decisions, execution and business state.
 
 Material judgments use `DecisionEnvelope`: evidence beyond user assertion, challenged assumptions, credible alternatives, failure/fit/misfit conditions, counterexamples/rejected paths, selected rationale, search saturation, verification and remaining unknowns.
 
