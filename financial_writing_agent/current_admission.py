@@ -115,13 +115,26 @@ def _parse_publication_fitnesses(
     modes = [item.product_mode for item in parsed]
     _require(len(modes) == len(set(modes)), "publication_fitnesses must contain at most one result per product mode")
     expected = _expected_longform_modes(state)
-    _require(set(modes) == expected, f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}")
+    actual = set(modes)
+    if review_status == "PASS":
+        _require(
+            actual == expected,
+            f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in actual)}",
+        )
+    else:
+        _require(
+            actual.issubset(expected),
+            f"publication fitness modes mismatch: expected subset of={sorted(x.value for x in expected)}, actual={sorted(x.value for x in actual)}",
+        )
 
     all_pass = all(item.final_status == AuditStatus.PASS for item in parsed)
     if review_status == "PASS":
         _require(all_pass, "EDITORIAL_AUDIT cannot PASS while any publication fitness gate requires revision")
     elif review_status == "REVISE":
-        _require(not all_pass, "EDITORIAL_AUDIT REVISE requires at least one publication fitness REVISE result")
+        _require(
+            any(item.final_status == AuditStatus.REVISE for item in parsed),
+            "EDITORIAL_AUDIT REVISE requires at least one publication fitness REVISE result",
+        )
     return parsed
 
 
