@@ -35,7 +35,7 @@ Before a binding requirement change, present the complete normalized additions a
 
 For material uncertainty, rejection or recurring defect: reconstruct reader/business outcome; investigate current evidence and counterevidence; compare requirement, source, business mechanism, narrative, runtime, artifact, reader and authority hypotheses; falsify at least one plausible preferred option; compare reuse/adapt/replace/remove by reader value, risk, cost, reversibility and compatibility; then select a bounded action. Use the existing DecisionEnvelope and evidence/saturation rules, not fabricated deliberation fields.
 
-Execute the legal next step: retrieve sources, research, write, challenge, render, read back and correct. Rerun negative and valid-neighbor tests. The owner graph is INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The Python ports define the transition contracts; in Skill-only chat, enact legal changes against the task's STATE.json through GitHub CAS and readback. Do not claim to call current_admission or owner_lifecycle unless an actual Python runtime is mounted and run. Revisions invalidate downstream evidence; retired states remain historical. Recover proactively before asking the user, respecting real consent boundaries.
+Execute the legal next step: retrieve sources, research, write, challenge, render, read back and correct. Rerun negative and valid-neighbor tests. The owner graph is INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The existing Python ports are the executable transition authority. Native chat may research and stage candidates, but must not write owner STATE/method changes directly to main; use an authenticated adapter or exact-base/head branch CI admission. GitHub CAS alone is not a guard. Do not claim Python execution without a real run. Revisions invalidate downstream evidence; retired states remain historical. Recover proactively before asking the user, respecting real consent boundaries.
 
 ## Financial content contract
 
@@ -48,7 +48,8 @@ Execute the legal next step: retrieve sources, research, write, challenge, rende
 
 ## Standalone runtime and trust boundary
 
-The active chat runtime is this Skill plus the user's connected GitHub connector; no CAOS parent, local daemon or hosted Python/MCP service is required. Persist with `update_file` and the exact blob SHA, or atomically use `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`; use `fetch_file` for exact readback. The Python `standalone_runtime.py` module is an optional reference adapter, not a callable chat service. In native chat, enact its state-transition contracts against the task's `STATE.json`; never claim Python execution unless actually run. Binding requirement changes require the complete normalized change and explicit owner confirmation in the current conversation. See `docs/STANDALONE_INTERFACE.md` for full protocol and failure handling. If GitHub access is absent, continue safe read-only work and leave affected mutations OPEN.
+The native client is this Skill plus connected GitHub: it can read `main`, research, draft and stage a candidate branch. For any owner `STATE.json`, article artifact or method catalog mutation, first use a genuinely authenticated `standalone_runtime` action port, or stage a PR that passes `system_acceptance_report.py`'s exact base/head **two-revision business-effect audit** with provider-signed authorization. Do not direct-update `main` as a substitute for executable `current_admission`. `update_file`/blob-tree-commit/expected-SHA/readback prove Git effects only; they do not supply owner approval. In Skill-only chat without the signer/runner, keep that business mutation OPEN and continue lawful read-only research and reversible drafting. Human confirmation is necessary but not a fake HMAC signature. System reconstruction does not authorize new article publication. See `docs/STANDALONE_INTERFACE.md`.
+
 
 ## Current research and publication evidence
 
@@ -62,7 +63,7 @@ Required outputs: `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLAT
 
 ## Method governance and evolution
 
-Requirement changes preserve the complete original user utterance. Decompose it into scoped requirements without losing negation or exceptions. In native chat, show the complete normalized upsert/retire set and obtain explicit owner confirmation before the GitHub CAS write; the optional Python adapter retains its signed-provider contract. Suggestions remain nonbinding intent.
+Requirement changes preserve the complete original user utterance. Decompose it into scoped requirements without losing negation or exceptions. For a binding change, present the full normalized upsert/retire set and obtain the owner's explicit decision; persist only through signed provider admission, never an unsigned direct-chat CAS. Suggestions remain nonbinding intent.
 
 Method lifecycle: candidate → revise pending → independently validate/promote → challenge/suspend → soft-retire → restore as candidate → externally verify impact. Preserve provenance, scope, fit/misfit, counterexamples, version digest and revalidation triggers. Pending methods never replace active methods. Bind admitted method IDs/versions to research receipts; a changed method reopens only the earliest affected stage. Never invent impact closure or independent reviewers.
 
