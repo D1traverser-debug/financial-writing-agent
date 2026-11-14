@@ -94,7 +94,7 @@
     {
       "id": "FIN-CAOS-CHAT-GOVERNANCE-MIGRATION-20261115",
       "problem_ref": "evals/FINANCIAL_CAOS_GOVERNANCE_MIGRATION_20261115.md",
-      "status": "CANDIDATE__CI_PENDING__NOT_MERGED",
+      "status": "PROMOTED__MAINLINE_CI_VERIFIED",
       "branch": "migration/caos-chat-governance-20261115",
       "scope": "CAOS_CHAT_GOVERNED_EXTERNAL__FINANCIAL_STANDALONE_BUSINESS_RUNTIME__NO_CAOS_RUNTIME_API_HOST_OR_PERMISSION_GRANT",
       "selected_architecture": "CAOS_EXTERNAL_CHAT_GOVERNANCE__FINANCIAL_RETAINS_BUSINESS_STATE_AND_OWNER_EFFECTS",
@@ -112,7 +112,18 @@
       ],
       "business_state_changed": false,
       "historical_provenance_rewritten": false,
-      "result": "OPEN__AWAITING_EXACT_HEAD_CI_AND_INDEPENDENT_REVIEW"
+      "result": "PASS",
+      "pull_request": 85,
+      "candidate_head_sha": "c28410e3925276f3bd040acdcfba69dd5cb0d993",
+      "candidate_ci_run": 43625283711,
+      "candidate_tests_passed": 621,
+      "production_commit": "d024da5aff37dcd00cbf69467d8333e0c7d37132",
+      "production_ci_run": 43625755974,
+      "production_tests_passed": 621,
+      "production_line_coverage_percent": 89,
+      "codex_code_review": "NO_MAJOR_ISSUES",
+      "security_review": "MANUAL_AUTHORITY_AND_EFFECT_BOUNDARY_REVIEW_PASS__NO_SEPARATE_CODEX_SECURITY_RECEIPT",
+      "open_followup": "Financial live provider signing, native client activation, independent editorial acceptance and real reader outcomes remain separate NOT_READY gates."
     }
   ],
   "historical_notes": [
@@ -645,5 +656,5 @@
     "historical_provenance_rewritten": false,
     "next_action": "Run exact-head full Financial CI, static/whole-tree audits and independent code/security review; merge only after clean evidence and verify mainline CI."
   },
-  "updated_at": "2026-11-15T01:45:00+08:00"
+  "updated_at": "2026-11-15T02:22:00+08:00"
 }
