@@ -175,7 +175,10 @@ def test_publication_fitness_revise_requires_a_legal_revision_target():
         PublicationFitness(
             product_mode=ProductMode.FINANCE_DEEP,
             gates=[
-                gate.model_copy(update={"status": "REVISE"})
+                gate.model_copy(update={
+                    "status": "REVISE",
+                    "revision_actions": ["rewrite the unsupported factual span"],
+                })
                 if gate.gate == "FACT_INTEGRITY" else gate
                 for gate in _all_gates()
             ],
