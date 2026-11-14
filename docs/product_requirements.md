@@ -154,6 +154,10 @@ One Financial owner uses:
 `KNOWLEDGE_RECALL -> RESEARCH_DISCOVERY -> RESEARCH_ADVERSARIAL -> PRIVATE_RESEARCH_SYNTHESIS -> THESIS_ADJUDICATION -> STORY_ARCHITECTURE -> DRAFT_GENERATION -> READER_RETENTION_AUDIT -> EDITORIAL_TRIM -> {ORIGINALITY_AUDIT, FACT_INTEGRITY_AUDIT, STYLE_AUDIT} -> FINAL_SYNTHESIS`.
 Passes have least-context responsibilities and are not a second business state machine.
 
+The thirteen pass names and DAG alone are not execution evidence. A legal writing run must supply each pass's real required inputs, invoke a producer for every named output, halt on missing results, and cross RESEARCH_AUDIT only after actual research review. The Financial-owned `writing_kernel.validate_pass_dataflow` rejects producer/consumer mismatches; `execute_writing_passes` is a host-callback adapter, not a substitute for an LLM or verified research.
+
+User-authored requirements must cross both Deep and Broad publication scopes. Do not reject an admitted free-text requirement merely because its ID is absent from a hard-coded whitelist. Check stage satisfaction receipts and requirement digest; unknown semantics remain UNVERIFIED, not auto-PASS. A requirement first due at DELIVERY may be pending while Word is built, but final stage transition still requires satisfaction and source readback.
+
 ### PR-14 — Platform/output portfolio
 
 New ordinary work defaults to `PORTFOLIO + WORD_FILE_ONLY`: `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`, `AUDIT_DOCX`. Historical product meanings remain immutable.

@@ -121,7 +121,7 @@ def test_unknown_task_scope_cannot_be_autocertified_as_met():
             "evidence_ref": "chat://user/manual", "source_kind": "USER_EXPLICIT",
         }],
     )
-    with pytest.raises(TaskPublicationError, match="unimplemented FINANCE_DEEP task requirements"):
+    with pytest.raises(TaskPublicationError, match="TASK_PUBLICATION_REQUIREMENTS_NOT_YET_ADMITTED"):
         verify_task_publication_scope(state, _article(), _research())
 
 
