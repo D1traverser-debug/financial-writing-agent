@@ -2,7 +2,7 @@
 
 ## Status
 
-Candidate implementation in progress on financial/method-catalog-effect-binding-20261114. Baseline main: 0cabd473f4d9adaf687121a66f8f5701dfe606a2. This record does not claim merge or live provider acceptance.
+Production implementation merged through PR #74. Candidate head: 3ef40925fb017e5de92e92c2a20fcbcc67b8cbfb. Merge commit: cdeeefb64c6d8a0a85cfda59bf70850b7597e72c. Post-merge Main CI run 43565761434 passed (566 tests; 89% line coverage). Live provider acceptance remains OPEN.
 
 ## Reconstructed goal
 
@@ -50,7 +50,8 @@ A signed effect receipt does not activate a method. Independent promotion review
 
 - Baseline main SHA: 0cabd473f4d9adaf687121a66f8f5701dfe606a2.
 - Article-state effect repair PR #73: merged; merge SHA 0cabd473f4d9adaf687121a66f8f5701dfe606a2.
-- Method-catalog candidate CI: PENDING.
-- Live provider signer and atomic bundle CAS: OPEN.
+- Method-catalog candidate CI: SUCCESS (566 tests; 89% line coverage).
+- Post-merge Main CI: SUCCESS at cdeeefb64c6d8a0a85cfda59bf70850b7597e72c.
+- Live provider signer and atomic bundle CAS: OPEN; synthetic CI signers only.
 - Independent promotion/impact reviewer: OPEN.
 - Protected main / repository rulesets: OPEN.
