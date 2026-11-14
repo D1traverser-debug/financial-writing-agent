@@ -17,6 +17,8 @@ from financial_writing_agent.writing_kernel import (
 
 def _seed(*, interaction=True):
     values = {
+        "task_id": "synthetic-financial-task",
+        "requirement_digest": "a" * 64,
         "topic_or_task": "A current financial topic with a defined reader job",
         "knowledge_sources": ["knowledge://methods"],
         "topic": "current financial topic",
@@ -219,8 +221,8 @@ def test_portfolio_executes_shared_research_once_and_independent_products_separa
     assert result["longform_products"]["FINANCE_BROAD"]["story_blueprint"]["product_mode"] == "FINANCE_BROAD"
     assert result["platform_interaction"]["platform_interaction_pack"]["independent_rewrite_from_long_form"] is True
     assert result["assurance"] == (
-        "PORTFOLIO_CALLBACK_DATAFLOW_EXECUTED"
-        "__NOT_SEMANTIC_QUALITY_OR_INDEPENDENT_EDITORIAL_ACCEPTANCE"
+        "HASH_BOUND_IN_MEMORY_CALLBACK_STAGE_REPLAY"
+        "__NOT_PROVIDER_PERSISTENCE_OR_SEMANTIC_QUALITY_OR_INDEPENDENT_EDITORIAL_ACCEPTANCE"
     )
 
 
@@ -418,19 +420,22 @@ def test_one_business_stage_barrier_precedes_the_next_for_every_product():
                    ("TITLE", "DRAFT"),
                    ("DRAFT", "EDITORIAL_AUDIT"),
                ))
-    assert result["stage_barriers"] == [
-        {
-            "business_stage": stage,
-            "completed_product_scopes": scopes,
-            "assurance": "CALLBACK_OUTPUT_BARRIER_ONLY__OWNER_STATE_ADMISSION_OPEN",
-        }
-        for stage, scopes in (
-            ("EDITORIAL", ["FINANCE_DEEP", "FINANCE_BROAD"]),
-            ("TITLE", ["FINANCE_DEEP", "FINANCE_BROAD"]),
-            ("DRAFT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
-            ("EDITORIAL_AUDIT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
-        )
+    assert [
+        (item["business_stage"], item["completed_product_scopes"])
+        for item in result["stage_barriers"]
+    ] == [
+        ("RESEARCH", ["SHARED"]),
+        ("RESEARCH_AUDIT", ["SHARED"]),
+        ("EDITORIAL", ["FINANCE_DEEP", "FINANCE_BROAD"]),
+        ("TITLE", ["FINANCE_DEEP", "FINANCE_BROAD"]),
+        ("DRAFT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
+        ("EDITORIAL_AUDIT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
     ]
+    assert all(
+        len(item["stage_receipt_sha256"]) == 64
+        and item["assurance"] == "HASH_BOUND_CALLBACK_OUTPUTS__OWNER_STATE_ADMISSION_OPEN"
+        for item in result["stage_barriers"]
+    )
 
 
 def test_editorial_audit_cannot_rewrite_the_draft_without_reentering_draft_stage():

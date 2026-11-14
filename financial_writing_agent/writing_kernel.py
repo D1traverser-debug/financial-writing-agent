@@ -1,6 +1,10 @@
 from __future__ import annotations
 
+import hashlib
+import json
+import math
 from collections.abc import Callable, Mapping
+from copy import deepcopy
 from dataclasses import dataclass
 from enum import Enum
 from typing import Any
@@ -396,13 +400,15 @@ def _invoke_pass(
             + ",".join(sorted(unexpected))
         )
     current.update(outcome)
-    trace.append({
-        "pass": node.value,
-        "business_stage": PASS_STAGE_OWNERSHIP[node],
-        "product_scope": scope,
-        "status": "EXECUTOR_CALLBACK_RETURNED_REQUIRED_OUTPUTS__SEMANTIC_QUALITY_OPEN",
-        "outputs": list(contract.outputs),
-    })
+    _append_execution_trace(
+        trace,
+        pass_name=node.value,
+        business_stage=PASS_STAGE_OWNERSHIP[node],
+        product_scope=scope,
+        inputs=provided,
+        outputs={name: outcome[name] for name in contract.outputs},
+        status="EXECUTOR_CALLBACK_RETURNED_REQUIRED_OUTPUTS__SEMANTIC_QUALITY_OPEN",
+    )
 
 
 def _admit_research_audit(
@@ -411,8 +417,9 @@ def _admit_research_audit(
     research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]],
     trace: list[dict[str, Any]],
 ) -> None:
+    audit_inputs = deepcopy(dict(current))
     try:
-        envelope = research_audit(dict(current))
+        envelope = research_audit(deepcopy(audit_inputs))
     except Exception as exc:
         raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_EXECUTION_FAILED") from exc
     if (
@@ -424,13 +431,19 @@ def _admit_research_audit(
     ):
         raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_NOT_ADMITTED")
     current[RESEARCH_AUDIT_BOUNDARY_INPUT] = envelope[RESEARCH_AUDIT_BOUNDARY_INPUT]
-    trace.append({
-        "pass": "RESEARCH_AUDIT_BOUNDARY",
-        "business_stage": "RESEARCH_AUDIT",
-        "product_scope": "SHARED",
-        "status": "CALLBACK_ADMITTED__REAL_SEMANTIC_SUPPORT_NOT_SELF_CERTIFIED",
-        "evidence_refs": list(envelope["evidence_refs"]),
-    })
+    _append_execution_trace(
+        trace,
+        pass_name="RESEARCH_AUDIT_BOUNDARY",
+        business_stage="RESEARCH_AUDIT",
+        product_scope="SHARED",
+        inputs=audit_inputs,
+        outputs={
+            "status": envelope["status"],
+            "evidence_refs": list(envelope["evidence_refs"]),
+            RESEARCH_AUDIT_BOUNDARY_INPUT: envelope[RESEARCH_AUDIT_BOUNDARY_INPUT],
+        },
+        status="CALLBACK_ADMITTED__REAL_SEMANTIC_SUPPORT_NOT_SELF_CERTIFIED",
+    )
 
 
 def _scope_marker(value: Any) -> str | None:
@@ -610,21 +623,110 @@ def execute_writing_passes(
     }
 
 
-def execute_portfolio_writing(
-    seed_inputs: Mapping[str, Any],
-    *,
-    required_outputs: list[str],
-    execute_pass: Callable[[WritingPass, Mapping[str, Any]], Mapping[str, Any]],
-    research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]],
-) -> dict[str, Any]:
-    """Execute the shared research spine once, then every required product branch.
 
-    The 10-stage Article Graph remains the sole business state machine. This
-    orchestrator creates no task identity, state, receipt or persistence route.
-    Its callbacks execute work; returned values are not independent acceptance.
-    """
-    if not callable(execute_pass) or not callable(research_audit):
-        raise WritingPassExecutionError("PORTFOLIO_EXECUTOR_AND_RESEARCH_AUDIT_REQUIRED")
+INTERNAL_PORTFOLIO_STAGE_SEQUENCE = (
+    "RESEARCH",
+    "RESEARCH_AUDIT",
+    "EDITORIAL",
+    "TITLE",
+    "DRAFT",
+    "EDITORIAL_AUDIT",
+)
+INTERNAL_PORTFOLIO_NEXT_STAGE = {
+    **{
+        stage: INTERNAL_PORTFOLIO_STAGE_SEQUENCE[index + 1]
+        for index, stage in enumerate(INTERNAL_PORTFOLIO_STAGE_SEQUENCE[:-1])
+    },
+    "EDITORIAL_AUDIT": "DELIVERY",
+}
+PORTFOLIO_CONTEXT_SCHEMA_VERSION = "1.0"
+PORTFOLIO_STAGE_RECEIPT_VERSION = "1.0"
+
+
+def _json_value(value: Any) -> Any:
+    """Convert pass payloads to strict, deterministic JSON without lossy repr()."""
+    if hasattr(value, "model_dump") and callable(value.model_dump):
+        return _json_value(value.model_dump(mode="json"))
+    if isinstance(value, Enum):
+        return _json_value(value.value)
+    if isinstance(value, Mapping):
+        if any(not isinstance(key, str) for key in value):
+            raise WritingPassExecutionError("PORTFOLIO_PAYLOAD_MAPPING_KEYS_MUST_BE_STRINGS")
+        return {key: _json_value(value[key]) for key in sorted(value)}
+    if isinstance(value, (list, tuple)):
+        return [_json_value(item) for item in value]
+    if value is None or isinstance(value, (str, bool, int)):
+        return value
+    if isinstance(value, float):
+        if not math.isfinite(value):
+            raise WritingPassExecutionError("PORTFOLIO_PAYLOAD_NONFINITE_NUMBER")
+        return value
+    raise WritingPassExecutionError(
+        f"PORTFOLIO_PAYLOAD_NOT_JSON_SERIALIZABLE:{type(value).__name__}"
+    )
+
+
+def _canonical_bytes(value: Any) -> bytes:
+    try:
+        return json.dumps(
+            _json_value(value),
+            ensure_ascii=False,
+            sort_keys=True,
+            separators=(",", ":"),
+            allow_nan=False,
+        ).encode("utf-8")
+    except (TypeError, ValueError) as exc:
+        raise WritingPassExecutionError("PORTFOLIO_PAYLOAD_CANONICALIZATION_FAILED") from exc
+
+
+def _payload_sha256(value: Any) -> str:
+    return hashlib.sha256(_canonical_bytes(value)).hexdigest()
+
+
+def _append_execution_trace(
+    trace: list[dict[str, Any]],
+    *,
+    pass_name: str,
+    business_stage: str,
+    product_scope: str,
+    inputs: Mapping[str, Any],
+    outputs: Mapping[str, Any],
+    status: str,
+) -> None:
+    previous = trace[-1].get("receipt_sha256") if trace else None
+    body = {
+        "receipt_version": "1.0",
+        "sequence": len(trace) + 1,
+        "pass": pass_name,
+        "business_stage": business_stage,
+        "product_scope": product_scope,
+        "status": status,
+        "input_sha256": _payload_sha256(inputs),
+        "output_sha256": _payload_sha256(outputs),
+        "output_key_sha256": {
+            key: _payload_sha256(value) for key, value in sorted(outputs.items())
+        },
+        "previous_pass_receipt_sha256": previous,
+        "assurance": "HASH_BOUND_CALLBACK_OUTPUTS__NOT_PROVIDER_ATTESTATION",
+    }
+    trace.append({**body, "receipt_sha256": _payload_sha256(body)})
+
+
+def _portfolio_context_payload(context: Mapping[str, Any]) -> dict[str, Any]:
+    return {
+        key: value for key, value in context.items()
+        if key not in {"stage_receipts", "initial_context_sha256"}
+    }
+
+
+def _portfolio_context_sha256(context: Mapping[str, Any]) -> str:
+    return _payload_sha256(_portfolio_context_payload(context))
+
+
+def _validate_portfolio_request(
+    seed_inputs: Mapping[str, Any],
+    required_outputs: list[str],
+) -> tuple[dict[str, Any], list[str], bool]:
     if not isinstance(required_outputs, list) or len(required_outputs) != len(set(required_outputs)):
         raise WritingPassExecutionError("PORTFOLIO_REQUIRED_OUTPUTS_INVALID")
     requested = set(required_outputs)
@@ -649,17 +751,19 @@ def execute_portfolio_writing(
         active_nodes.update(INTERACTION_PRODUCT_PASSES)
     issues = validate_pass_dataflow(active_nodes)
     if issues:
-        raise WritingPassExecutionError("PORTFOLIO_PASS_DATAFLOW_INVALID:" + ";".join(issues))
+        raise WritingPassExecutionError(
+            "PORTFOLIO_PASS_DATAFLOW_INVALID:" + ";".join(issues)
+        )
 
     shared = dict(seed_inputs)
     required_shared = {
         "topic_or_task", "knowledge_sources", "topic", "current_sources",
         "research_requirements", "reader_job", "voice_evidence", "material_sources",
     }
-    missing_shared = required_shared - set(shared)
-    if missing_shared:
+    missing = required_shared - set(shared)
+    if missing:
         raise WritingPassExecutionError(
-            "PORTFOLIO_SHARED_INPUTS_MISSING:" + ",".join(sorted(missing_shared))
+            "PORTFOLIO_SHARED_INPUTS_MISSING:" + ",".join(sorted(missing))
         )
     if modes and "headline_search_evidence" not in shared:
         raise WritingPassExecutionError("PORTFOLIO_HEADLINE_SEARCH_EVIDENCE_REQUIRED")
@@ -667,82 +771,354 @@ def execute_portfolio_writing(
         raise WritingPassExecutionError("PORTFOLIO_PLATFORM_CONTEXT_REQUIRED")
     if RESEARCH_AUDIT_BOUNDARY_INPUT in shared:
         raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_PRESEED_FORBIDDEN")
+    return shared, modes, interaction_required
 
-    trace: list[dict[str, Any]] = []
-    for node in SHARED_RESEARCH_PASSES:
-        _invoke_pass(node, shared, execute_pass=execute_pass, trace=trace, scope="SHARED")
-        if node == WritingPass.THESIS_ADJUDICATION:
-            _admit_research_audit(shared, research_audit=research_audit, trace=trace)
 
-    if RESEARCH_AUDIT_BOUNDARY_INPUT not in shared:
-        raise WritingPassExecutionError("PORTFOLIO_RESEARCH_AUDIT_BOUNDARY_NOT_REACHED")
+def start_portfolio_context(
+    seed_inputs: Mapping[str, Any],
+    *,
+    required_outputs: list[str],
+    task_id: str,
+    requirement_digest: str,
+) -> dict[str, Any]:
+    """Create the serializable, task-bound context for resumable stage execution."""
+    if not isinstance(task_id, str) or not task_id.strip():
+        raise WritingPassExecutionError("PORTFOLIO_TASK_ID_REQUIRED")
+    if not isinstance(requirement_digest, str) or len(requirement_digest) != 64:
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
+    if any(char not in "0123456789abcdef" for char in requirement_digest):
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
+    shared, modes, interaction_required = _validate_portfolio_request(
+        seed_inputs, required_outputs,
+    )
+    context = {
+        "schema_version": PORTFOLIO_CONTEXT_SCHEMA_VERSION,
+        "task_id": task_id,
+        "requirement_digest": requirement_digest,
+        "required_output_kinds": sorted(set(required_outputs)),
+        "current_stage": INTERNAL_PORTFOLIO_STAGE_SEQUENCE[0],
+        "shared": shared,
+        "products": {mode: {} for mode in modes},
+        "interaction": {} if interaction_required else None,
+        "trace": [],
+        "stage_receipts": [],
+    }
+    context["initial_context_sha256"] = _portfolio_context_sha256(context)
+    validate_portfolio_context(context)
+    return context
 
-    # All product branches share the single article stage graph. Never finish
-    # Deep's editorial audit while Broad is still at story architecture.
-    stage_order = ("EDITORIAL", "TITLE", "DRAFT", "EDITORIAL_AUDIT")
-    branches = {mode: {**shared, "product_mode": mode} for mode in modes}
-    branch_traces: dict[str, list[dict[str, Any]]] = {mode: [] for mode in modes}
-    interaction_branch = {**shared, "product_scope": "PLATFORM_INTERACTION"} if interaction_required else None
-    interaction_trace: list[dict[str, Any]] = []
-    stage_barriers: list[dict[str, Any]] = []
 
-    for stage in stage_order:
+def validate_portfolio_context(context: Mapping[str, Any]) -> None:
+    """Verify task binding, stage order, pass hash chain and current context digest."""
+    if not isinstance(context, Mapping):
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INVALID")
+    if context.get("schema_version") != PORTFOLIO_CONTEXT_SCHEMA_VERSION:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_SCHEMA_VERSION_UNSUPPORTED")
+    if not isinstance(context.get("task_id"), str) or not context["task_id"].strip():
+        raise WritingPassExecutionError("PORTFOLIO_TASK_ID_REQUIRED")
+    requirement_digest = context.get("requirement_digest")
+    if (
+        not isinstance(requirement_digest, str)
+        or len(requirement_digest) != 64
+        or any(char not in "0123456789abcdef" for char in requirement_digest)
+    ):
+        raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
+
+    required = context.get("required_output_kinds")
+    if not isinstance(required, list):
+        raise WritingPassExecutionError("PORTFOLIO_REQUIRED_OUTPUTS_INVALID")
+    request_seed = dict(context.get("shared", {}))
+    request_seed.pop(RESEARCH_AUDIT_BOUNDARY_INPUT, None)
+    shared, modes, interaction_required = _validate_portfolio_request(
+        request_seed,
+        required,
+    )
+    del shared
+    if set(context.get("products", {})) != set(modes):
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_PRODUCT_SET_MISMATCH")
+    if interaction_required != (isinstance(context.get("interaction"), Mapping)):
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INTERACTION_SET_MISMATCH")
+
+    receipts = context.get("stage_receipts")
+    trace = context.get("trace")
+    if not isinstance(receipts, list) or not isinstance(trace, list):
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_RECEIPTS_INVALID")
+    current_stage = context.get("current_stage")
+    expected_count = (
+        INTERNAL_PORTFOLIO_STAGE_SEQUENCE.index(current_stage)
+        if current_stage in INTERNAL_PORTFOLIO_STAGE_SEQUENCE
+        else len(INTERNAL_PORTFOLIO_STAGE_SEQUENCE)
+        if current_stage == "DELIVERY"
+        else -1
+    )
+    if expected_count < 0 or len(receipts) != expected_count:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_STAGE_POSITION_INVALID")
+
+    initial_sha = context.get("initial_context_sha256")
+    if not isinstance(initial_sha, str) or len(initial_sha) != 64:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INITIAL_DIGEST_MISSING")
+    expected_input_sha = initial_sha
+    previous_receipt_sha = None
+    for index, receipt in enumerate(receipts):
+        if not isinstance(receipt, Mapping):
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_INVALID")
+        body = {key: value for key, value in receipt.items() if key != "receipt_sha256"}
+        if _payload_sha256(body) != receipt.get("receipt_sha256"):
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_HASH_MISMATCH")
+        expected_stage = INTERNAL_PORTFOLIO_STAGE_SEQUENCE[index]
+        if (
+            receipt.get("receipt_version") != PORTFOLIO_STAGE_RECEIPT_VERSION
+            or receipt.get("stage") != expected_stage
+            or receipt.get("task_id") != context["task_id"]
+            or receipt.get("requirement_digest") != requirement_digest
+            or receipt.get("previous_stage_receipt_sha256") != previous_receipt_sha
+            or receipt.get("input_context_sha256") != expected_input_sha
+        ):
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_RECEIPT_CHAIN_MISMATCH")
+        pass_hashes = receipt.get("pass_receipt_sha256s")
+        if not isinstance(pass_hashes, list):
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_PASS_RECEIPTS_INVALID")
+        stage_records = [
+            item for item in trace
+            if isinstance(item, Mapping) and item.get("business_stage") == expected_stage
+        ]
+        if [item.get("receipt_sha256") for item in stage_records] != pass_hashes:
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_PASS_RECEIPT_SET_MISMATCH")
+        previous_receipt_sha = receipt["receipt_sha256"]
+        expected_input_sha = receipt.get("output_context_sha256")
+        if not isinstance(expected_input_sha, str) or len(expected_input_sha) != 64:
+            raise WritingPassExecutionError("PORTFOLIO_STAGE_OUTPUT_CONTEXT_DIGEST_INVALID")
+
+    previous_pass_sha = None
+    for sequence, record in enumerate(trace, start=1):
+        if not isinstance(record, Mapping):
+            raise WritingPassExecutionError("PORTFOLIO_PASS_RECEIPT_INVALID")
+        body = {key: value for key, value in record.items() if key != "receipt_sha256"}
+        if (
+            record.get("sequence") != sequence
+            or record.get("previous_pass_receipt_sha256") != previous_pass_sha
+            or _payload_sha256(body) != record.get("receipt_sha256")
+        ):
+            raise WritingPassExecutionError("PORTFOLIO_PASS_RECEIPT_CHAIN_MISMATCH")
+        previous_pass_sha = record["receipt_sha256"]
+
+    if receipts:
+        if _portfolio_context_sha256(context) != expected_input_sha:
+            raise WritingPassExecutionError("PORTFOLIO_CONTEXT_OUTPUT_DIGEST_MISMATCH")
+    elif _portfolio_context_sha256(context) != initial_sha:
+        raise WritingPassExecutionError("PORTFOLIO_CONTEXT_INITIAL_DIGEST_MISMATCH")
+
+
+def execute_portfolio_stage(
+    context: Mapping[str, Any],
+    *,
+    stage: str,
+    execute_pass: Callable[[WritingPass, Mapping[str, Any]], Mapping[str, Any]] | None = None,
+    research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]] | None = None,
+) -> dict[str, Any]:
+    """Execute exactly one current business stage and return a hash-bound resumable context.
+
+    This function does not persist or advance the Article Aggregate. The caller must
+    persist the returned context as the current stage artifact, admit that artifact
+    through the authenticated Financial owner runtime, reread it, and only then
+    supply the read-back context to the next stage.
+    """
+    validate_portfolio_context(context)
+    if stage != context.get("current_stage"):
+        raise WritingPassExecutionError(
+            f"PORTFOLIO_STAGE_OUT_OF_ORDER:expected={context.get('current_stage')}:actual={stage}"
+        )
+    if stage not in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
+        raise WritingPassExecutionError(f"PORTFOLIO_STAGE_NOT_EXECUTABLE:{stage}")
+    if stage == "RESEARCH_AUDIT":
+        if not callable(research_audit):
+            raise WritingPassExecutionError("PORTFOLIO_RESEARCH_AUDIT_CALLBACK_REQUIRED")
+    elif not callable(execute_pass):
+        raise WritingPassExecutionError("PORTFOLIO_STAGE_EXECUTOR_REQUIRED")
+
+    working = deepcopy(dict(context))
+    input_context_sha = _portfolio_context_sha256(working)
+    trace_start = len(working["trace"])
+    shared = deepcopy(working["shared"])
+    products = deepcopy(working["products"])
+    interaction = deepcopy(working["interaction"])
+    modes = list(products)
+
+    if stage == "RESEARCH":
+        for node in SHARED_RESEARCH_PASSES:
+            _invoke_pass(
+                node, shared, execute_pass=execute_pass,
+                trace=working["trace"], scope="SHARED",
+            )
+
+    elif stage == "RESEARCH_AUDIT":
+        _admit_research_audit(
+            shared, research_audit=research_audit, trace=working["trace"],
+        )
+
+    elif stage == "EDITORIAL":
         for mode in modes:
-            branch = branches[mode]
-            for node in LONGFORM_PRODUCT_PASSES:
-                if PASS_STAGE_OWNERSHIP[node] != stage:
-                    continue
-                _invoke_pass(node, branch, execute_pass=execute_pass, trace=trace, scope=mode)
-                branch_traces[mode].append(trace[-1])
-                if node == WritingPass.STORY_ARCHITECTURE:
-                    _require_product_scope(branch, mode=mode, keys=("story_blueprint",))
-                elif node == WritingPass.HEADLINE_ADJUDICATION:
-                    _require_product_scope(branch, mode=mode, keys=("headline_decision",))
-                elif node == WritingPass.FINAL_SYNTHESIS:
-                    _admit_longform_result(branch, mode=mode)
+            branch = {**shared, **products[mode], "product_mode": mode}
+            _invoke_pass(
+                WritingPass.STORY_ARCHITECTURE, branch,
+                execute_pass=execute_pass, trace=working["trace"], scope=mode,
+            )
+            _require_product_scope(branch, mode=mode, keys=("story_blueprint",))
+            products[mode]["story_blueprint"] = branch["story_blueprint"]
 
-        if interaction_branch is not None:
-            for node in INTERACTION_PRODUCT_PASSES:
-                if PASS_STAGE_OWNERSHIP[node] != stage:
+    elif stage == "TITLE":
+        for mode in modes:
+            branch = {**shared, **products[mode], "product_mode": mode}
+            _invoke_pass(
+                WritingPass.HEADLINE_ADJUDICATION, branch,
+                execute_pass=execute_pass, trace=working["trace"], scope=mode,
+            )
+            _require_product_scope(branch, mode=mode, keys=("headline_decision",))
+            products[mode]["headline_decision"] = branch["headline_decision"]
+
+    elif stage == "DRAFT":
+        for mode in modes:
+            branch = {**shared, **products[mode], "product_mode": mode}
+            for node in LONGFORM_PRODUCT_PASSES:
+                if PASS_STAGE_OWNERSHIP[node] != "DRAFT":
                     continue
                 _invoke_pass(
-                    node, interaction_branch, execute_pass=execute_pass,
-                    trace=trace, scope="PLATFORM_INTERACTION",
+                    node, branch, execute_pass=execute_pass,
+                    trace=working["trace"], scope=mode,
                 )
-                interaction_trace.append(trace[-1])
-                if node == WritingPass.PLATFORM_INTERACTION_AUDIT:
-                    _admit_interaction_result(interaction_branch)
+                products[mode].update({
+                    name: branch[name] for name in PASS_CONTRACTS[node].outputs
+                })
+        if interaction is not None:
+            branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
+            _invoke_pass(
+                WritingPass.PLATFORM_INTERACTION_ADAPTATION, branch,
+                execute_pass=execute_pass, trace=working["trace"],
+                scope="PLATFORM_INTERACTION",
+            )
+            interaction["platform_interaction_pack"] = branch["platform_interaction_pack"]
 
-        stage_barriers.append({
-            "business_stage": stage,
-            "completed_product_scopes": [
-                *modes, *(["PLATFORM_INTERACTION"] if interaction_required and stage in ("DRAFT", "EDITORIAL_AUDIT") else []),
-            ],
-            "assurance": "CALLBACK_OUTPUT_BARRIER_ONLY__OWNER_STATE_ADMISSION_OPEN",
-        })
+    elif stage == "EDITORIAL_AUDIT":
+        for mode in modes:
+            branch = {**shared, **products[mode], "product_mode": mode}
+            for node in LONGFORM_PRODUCT_PASSES:
+                if PASS_STAGE_OWNERSHIP[node] != "EDITORIAL_AUDIT":
+                    continue
+                _invoke_pass(
+                    node, branch, execute_pass=execute_pass,
+                    trace=working["trace"], scope=mode,
+                )
+                products[mode].update({
+                    name: branch[name] for name in PASS_CONTRACTS[node].outputs
+                })
+                if node == WritingPass.FINAL_SYNTHESIS:
+                    _admit_longform_result(branch, mode=mode)
+        if interaction is not None:
+            branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
+            _invoke_pass(
+                WritingPass.PLATFORM_INTERACTION_AUDIT, branch,
+                execute_pass=execute_pass, trace=working["trace"],
+                scope="PLATFORM_INTERACTION",
+            )
+            _admit_interaction_result(branch)
+            interaction["platform_interaction_fitness"] = branch["platform_interaction_fitness"]
+        if len(products) > 1:
+            texts = [
+                "".join(_publication_text(item.get("publication_candidate")).split())
+                for item in products.values()
+            ]
+            if len(set(texts)) != len(texts):
+                raise WritingPassExecutionError("PORTFOLIO_LONGFORM_BODY_CLONED")
 
-    longform_products: dict[str, dict[str, Any]] = {}
-    for mode, branch in branches.items():
-        longform_products[mode] = {
+    working["shared"] = shared
+    working["products"] = products
+    working["interaction"] = interaction
+    working["current_stage"] = INTERNAL_PORTFOLIO_NEXT_STAGE[stage]
+    new_trace = working["trace"][trace_start:]
+    previous_stage_sha = (
+        working["stage_receipts"][-1]["receipt_sha256"]
+        if working["stage_receipts"] else None
+    )
+    receipt_body = {
+        "receipt_version": PORTFOLIO_STAGE_RECEIPT_VERSION,
+        "task_id": working["task_id"],
+        "requirement_digest": working["requirement_digest"],
+        "stage": stage,
+        "next_stage": working["current_stage"],
+        "previous_stage_receipt_sha256": previous_stage_sha,
+        "input_context_sha256": input_context_sha,
+        "output_context_sha256": _portfolio_context_sha256(working),
+        "pass_receipt_sha256s": [
+            item["receipt_sha256"] for item in new_trace
+        ],
+        "pass_count": len(new_trace),
+        "assurance": "HASH_BOUND_STAGE_OUTPUTS__PERSISTENCE_AND_OWNER_ADMISSION_OPEN",
+    }
+    stage_receipt = {
+        **receipt_body,
+        "receipt_sha256": _payload_sha256(receipt_body),
+    }
+    working["stage_receipts"].append(stage_receipt)
+    validate_portfolio_context(working)
+    return working
+
+
+def execute_portfolio_writing(
+    seed_inputs: Mapping[str, Any],
+    *,
+    required_outputs: list[str],
+    execute_pass: Callable[[WritingPass, Mapping[str, Any]], Mapping[str, Any]],
+    research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]],
+) -> dict[str, Any]:
+    """In-memory end-to-end replay wrapper; production resumes one persisted stage at a time.
+
+    This compatibility helper deliberately does not claim that owner state, stage
+    artifacts or external provider readbacks were persisted. Production callers
+    must use start_portfolio_context + execute_portfolio_stage and the authenticated
+    standalone Financial owner runtime between every stage.
+    """
+    task_id = seed_inputs.get("task_id")
+    requirement_digest = seed_inputs.get("requirement_digest")
+    external_inputs = {
+        key: value for key, value in seed_inputs.items()
+        if key not in {"task_id", "requirement_digest"}
+    }
+    context = start_portfolio_context(
+        external_inputs,
+        required_outputs=required_outputs,
+        task_id=task_id,
+        requirement_digest=requirement_digest,
+    )
+    for stage in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
+        context = execute_portfolio_stage(
+            context,
+            stage=stage,
+            execute_pass=execute_pass,
+            research_audit=research_audit if stage == "RESEARCH_AUDIT" else None,
+        )
+
+    products = context["products"]
+    longform_products = {
+        mode: {
+            **item,
             "product_mode": mode,
-            "story_blueprint": branch["story_blueprint"],
-            "headline_decision": branch["headline_decision"],
-            "draft": branch["draft"],
-            "edited_draft": branch["edited_draft"],
-            "publication_candidate": branch["publication_candidate"],
-            "publication_fitness": branch["publication_fitness"],
-            "trace": branch_traces[mode],
+            "trace": [
+                record for record in context["trace"]
+                if record.get("product_scope") == mode
+            ],
         }
-    interaction_product = None
-    if interaction_branch is not None:
-        interaction_product = {
-            "platform_interaction_pack": interaction_branch["platform_interaction_pack"],
-            "platform_interaction_fitness": interaction_branch["platform_interaction_fitness"],
-            "trace": interaction_trace,
-        }
-
-    # A copied final body is not an independently composed acquisition product.
-    # Semantic near-clones still require independent editorial review.
+        for mode, item in products.items()
+    }
+    interaction = context["interaction"]
+    interaction_product = None if interaction is None else {
+        **interaction,
+        "trace": [
+            record for record in context["trace"]
+            if record.get("product_scope") == "PLATFORM_INTERACTION"
+        ],
+    }
+    modes = list(products)
+    interaction_required = interaction_product is not None
     if len(longform_products) > 1:
         texts = [
             "".join(_publication_text(item["publication_candidate"]).split())
@@ -750,31 +1126,45 @@ def execute_portfolio_writing(
         ]
         if len(set(texts)) != len(texts):
             raise WritingPassExecutionError("PORTFOLIO_LONGFORM_BODY_CLONED")
-
-    expected_modes = set(modes)
-    if set(longform_products) != expected_modes:
-        raise WritingPassExecutionError("PORTFOLIO_LONGFORM_PRODUCT_SET_MISMATCH")
-    if interaction_required != (interaction_product is not None):
-        raise WritingPassExecutionError("PORTFOLIO_INTERACTION_PRODUCT_SET_MISMATCH")
-
+    stage_barriers = [
+        {
+            "business_stage": receipt["stage"],
+            "completed_product_scopes": (
+                ["SHARED"]
+                if receipt["stage"] in {"RESEARCH", "RESEARCH_AUDIT"}
+                else [
+                    *modes,
+                    *(
+                        ["PLATFORM_INTERACTION"]
+                        if interaction_required and receipt["stage"] in {"DRAFT", "EDITORIAL_AUDIT"}
+                        else []
+                    ),
+                ]
+            ),
+            "assurance": "HASH_BOUND_CALLBACK_OUTPUTS__OWNER_STATE_ADMISSION_OPEN",
+            "stage_receipt_sha256": receipt["receipt_sha256"],
+        }
+        for receipt in context["stage_receipts"]
+    ]
     return {
-        "schema_version": "2.0",
+        "schema_version": "3.0",
         "execution_scope": "FINANCIAL_PRODUCT_PORTFOLIO",
-        "required_output_kinds": sorted(requested),
+        "required_output_kinds": context["required_output_kinds"],
         "shared_research_pass_count": len(SHARED_RESEARCH_PASSES),
         "longform_product_modes": modes,
         "longform_products": longform_products,
         "platform_interaction": interaction_product,
-        "pass_count": (
-            len(SHARED_RESEARCH_PASSES)
-            + len(modes) * len(LONGFORM_PRODUCT_PASSES)
-            + (len(INTERACTION_PRODUCT_PASSES) if interaction_required else 0)
+        "pass_count": sum(
+            1 for item in context["trace"]
+            if item["pass"] != "RESEARCH_AUDIT_BOUNDARY"
         ),
-        "research_audit_boundary_reached": True,
+        "research_audit_boundary_reached": RESEARCH_AUDIT_BOUNDARY_INPUT in context["shared"],
         "stage_barriers": stage_barriers,
-        "trace": trace,
+        "stage_receipts": context["stage_receipts"],
+        "trace": context["trace"],
         "assurance": (
-            "PORTFOLIO_CALLBACK_DATAFLOW_EXECUTED"
-            "__NOT_SEMANTIC_QUALITY_OR_INDEPENDENT_EDITORIAL_ACCEPTANCE"
+            "HASH_BOUND_IN_MEMORY_CALLBACK_STAGE_REPLAY"
+            "__NOT_PROVIDER_PERSISTENCE_OR_SEMANTIC_QUALITY_OR_INDEPENDENT_EDITORIAL_ACCEPTANCE"
         ),
     }
+

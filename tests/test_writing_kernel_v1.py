@@ -93,5 +93,28 @@ def test_domain_execution_contract_matches_real_writing_kernel_graph():
         WritingPass.PRIVATE_RESEARCH_SYNTHESIS
     ) < declared.index(WritingPass.THESIS_ADJUDICATION)
     assert contract["execution"]["portfolio_pass_orchestrator"] == (
+        "financial_writing_agent.writing_kernel.execute_portfolio_stage"
+    )
+    assert contract["execution"]["portfolio_in_memory_replay_helper"] == (
         "financial_writing_agent.writing_kernel.execute_portfolio_writing"
     )
+    assert contract["execution"]["portfolio_stage_sequence"] == [
+        "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
+        "EDITORIAL_AUDIT",
+    ]
+    assert contract["execution"]["in_memory_replay_is_production_execution"] is False
+
+
+def test_production_execution_is_resumable_one_owner_stage_per_call():
+    from financial_writing_agent.writing_kernel import (
+        INTERNAL_PORTFOLIO_STAGE_SEQUENCE,
+        execute_portfolio_stage,
+        start_portfolio_context,
+    )
+
+    assert INTERNAL_PORTFOLIO_STAGE_SEQUENCE == (
+        "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE", "DRAFT",
+        "EDITORIAL_AUDIT",
+    )
+    assert callable(start_portfolio_context)
+    assert callable(execute_portfolio_stage)
