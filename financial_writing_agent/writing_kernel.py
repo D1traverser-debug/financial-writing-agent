@@ -5,6 +5,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
+from .models import DistributionMode, TaskContract
+from .schemas import PlatformInteractionPack
+from .story_quality import AuditStatus, PublicationFitness
+
 
 class WritingPass(str, Enum):
     KNOWLEDGE_RECALL = "KNOWLEDGE_RECALL"
@@ -460,6 +464,95 @@ def _portfolio_modes(required_outputs: set[str]) -> list[str]:
     ]
 
 
+def _canonical_task_outputs() -> set[frozenset[str]]:
+    """Use TaskContract as the one output authority, not a second output table."""
+    return {
+        frozenset(kind.value for kind in TaskContract(
+            prompt="contract-validation", distribution_mode=mode,
+        ).required_outputs)
+        for mode in DistributionMode
+    }
+
+
+def _publication_text(value: Any) -> str:
+    """Require inspectable draft/candidate prose, not merely a non-null label."""
+    if isinstance(value, str):
+        return value.strip()
+    if not isinstance(value, Mapping):
+        dump = getattr(value, "model_dump", None)
+        if callable(dump):
+            value = dump(mode="python")
+        elif hasattr(value, "blocks"):
+            value = {"blocks": getattr(value, "blocks")}
+    if not isinstance(value, Mapping):
+        return ""
+    for key in ("body", "content", "text", "markdown"):
+        item = value.get(key)
+        if isinstance(item, str) and item.strip():
+            return item.strip()
+    blocks = value.get("blocks")
+    if isinstance(blocks, (list, tuple)):
+        parts = []
+        for block in blocks:
+            if isinstance(block, Mapping):
+                text = block.get("text")
+            else:
+                text = getattr(block, "text", None)
+            if isinstance(text, str) and text.strip():
+                parts.append(text.strip())
+        return "\n".join(parts)
+    return ""
+
+
+def _admit_longform_result(current: Mapping[str, Any], *, mode: str) -> None:
+    _require_product_scope(
+        current, mode=mode,
+        keys=("story_blueprint", "headline_decision", "publication_fitness"),
+    )
+    for key in ("draft", "publication_candidate"):
+        if not _publication_text(current.get(key)):
+            raise WritingPassExecutionError(
+                f"PORTFOLIO_PRODUCT_TEXT_MISSING:{mode}:{key}"
+            )
+    try:
+        fitness = PublicationFitness.model_validate(current["publication_fitness"])
+    except Exception as exc:
+        raise WritingPassExecutionError(
+            f"PORTFOLIO_PUBLICATION_FITNESS_INVALID:{mode}"
+        ) from exc
+    if fitness.final_status != AuditStatus.PASS:
+        raise WritingPassExecutionError(
+            f"PORTFOLIO_PUBLICATION_FITNESS_REVISE:{mode}"
+        )
+    # This is schema/gate admission only. Independent publication proof and
+    # exact persisted draft readback remain external owner-stage obligations.
+
+
+def _admit_interaction_result(current: Mapping[str, Any]) -> None:
+    try:
+        pack = PlatformInteractionPack.model_validate(
+            current["platform_interaction_pack"]
+        )
+    except Exception as exc:
+        raise WritingPassExecutionError(
+            "PORTFOLIO_INTERACTION_PACK_INVALID"
+        ) from exc
+    result = current["platform_interaction_fitness"]
+    if (
+        not isinstance(result, Mapping)
+        or result.get("status") != "PASS"
+        or not isinstance(result.get("evidence_refs"), list)
+        or not result["evidence_refs"]
+    ):
+        raise WritingPassExecutionError(
+            "PORTFOLIO_INTERACTION_AUDIT_NOT_ADMITTED"
+        )
+    if not pack.independent_rewrite_from_long_form:
+        raise WritingPassExecutionError(
+            "PORTFOLIO_INTERACTION_NOT_INDEPENDENT"
+        )
+
+
 def execute_writing_passes(
     seed_inputs: Mapping[str, Any],
     *,
@@ -536,6 +629,8 @@ def execute_portfolio_writing(
         )
     if AUDIT_OUTPUT not in requested:
         raise WritingPassExecutionError("PORTFOLIO_AUDIT_DOCX_REQUIRED")
+    if requested != {AUDIT_OUTPUT} and frozenset(requested) not in _canonical_task_outputs():
+        raise WritingPassExecutionError("PORTFOLIO_OUTPUTS_NOT_CANONICAL_TASK_CONTRACT")
     modes = _portfolio_modes(requested)
     interaction_required = INTERACTION_OUTPUT in requested
     if not modes and not interaction_required:
@@ -583,10 +678,7 @@ def execute_portfolio_writing(
         branch_trace_start = len(trace)
         for node in LONGFORM_PRODUCT_PASSES:
             _invoke_pass(node, branch, execute_pass=execute_pass, trace=trace, scope=mode)
-        _require_product_scope(
-            branch, mode=mode,
-            keys=("story_blueprint", "headline_decision", "publication_fitness"),
-        )
+        _admit_longform_result(branch, mode=mode)
         longform_products[mode] = {
             "product_mode": mode,
             "story_blueprint": branch["story_blueprint"],
@@ -607,11 +699,22 @@ def execute_portfolio_writing(
                 node, branch, execute_pass=execute_pass,
                 trace=trace, scope="PLATFORM_INTERACTION",
             )
+        _admit_interaction_result(branch)
         interaction_product = {
             "platform_interaction_pack": branch["platform_interaction_pack"],
             "platform_interaction_fitness": branch["platform_interaction_fitness"],
             "trace": trace[branch_trace_start:],
         }
+
+    # A copied final body is not an independently composed acquisition product.
+    # Semantic near-clones still require independent editorial review.
+    if len(longform_products) > 1:
+        texts = [
+            "".join(_publication_text(item["publication_candidate"]).split())
+            for item in longform_products.values()
+        ]
+        if len(set(texts)) != len(texts):
+            raise WritingPassExecutionError("PORTFOLIO_LONGFORM_BODY_CLONED")
 
     expected_modes = set(modes)
     if set(longform_products) != expected_modes:
