@@ -71,3 +71,5 @@ CI also builds and installs an isolated wheel and renders Word products. Enginee
 ## Authenticated article effects
 
 New article mutations require both a signed request authorization and a separately signed effect receipt bound to the exact resulting STATE.json Git blob. The state and actions/<action_id>.effect.json receipt are written in one atomic CAS commit and independently read back. Historical signed v1.0 receipts remain explicitly effect-unbound; new writes use authorization v1.1 plus effect receipt v1.0. The live authenticated provider remains an external acceptance gate; synthetic CI does not certify it.
+
+Method-catalog writes follow the same trust boundary: each new signed method action has a detached effect receipt, atomic catalog+receipt CAS, exact readback and deterministic replay against the prior catalog. Legacy method history remains explicitly effect-unbound; promotion and impact review are separate gates.

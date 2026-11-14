@@ -18,13 +18,16 @@
     "independent_external_reviewer",
     "provider_signed_action_effect_attestation",
     "atomic_state_and_effect_receipt_bundle_cas",
-    "exact_effect_receipt_blob_readback"
+    "exact_effect_receipt_blob_readback",
+    "provider_signed_method_action_effect_attestation",
+    "atomic_method_catalog_and_effect_receipt_bundle_cas",
+    "deterministic_method_action_replay_against_prior_catalog"
   ],
   "caos_dependency": "NONE",
   "active_execution_model": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR",
   "required_companion_connector": "GITHUB_CONNECTOR_READ_WRITE",
   "custom_hosted_python_mcp_required": false,
-  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA_AND_EXACT_READBACK__STATE_AND_SIGNED_EFFECT_RECEIPT_IN_ONE_ATOMIC_COMMIT",
+  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
   "version": "0.1.2",
   "discoverability": "PRIVATE"
 }

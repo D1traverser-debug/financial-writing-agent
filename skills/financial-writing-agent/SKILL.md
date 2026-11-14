@@ -48,7 +48,7 @@ Execute the legal next step: retrieve sources, research, write, challenge, rende
 
 ## Standalone runtime and trust boundary
 
-GitHub reads main; drafts stage on candidate branches using fetch_file/create_blob/create_tree/create_commit/update_ref(expected_sha). Article STATE/artifact/method writes require an authenticated standalone_runtime port or a PR passing the exact base/head audit with signed owner authorization. Every new article mutation also needs a provider-signed effect receipt v1.0 atomically committed with STATE and both exact blobs reread. Never direct-update main. Git CAS is not owner approval. Without signer/runner, keep business mutation OPEN; continue read-only research and reversible drafting. Human confirmation is not a provider signature. See docs/STANDALONE_INTERFACE.md.
+GitHub reads main; drafts stage on candidate branches using fetch_file/create_blob/create_tree/create_commit/update_ref(expected_sha). Owner-state and method-catalog writes require signed authorization plus a provider effect receipt in one atomic CAS commit with exact readback. Do not direct-update `main`; Git CAS is not owner approval. Without signer/runner, no canonical mutation.
 
 
 ## Current research and publication evidence
@@ -70,4 +70,4 @@ Method lifecycle: candidate → revise pending → independently validate/promot
 Keep material failure chronology and rejected hypotheses in the problem journal; `EVOLUTION_INDEX.json` remains the only current system-status authority. Every repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and legitimate-neighbor cases, reads back the exact result and preserves remaining OPEN conditions. System engineering, live provider integration, client activation, independent review, real article quality and user-visible delivery are separate acceptance gates.
 
 ## Effect writes
-Article writes need signed auth v1.1 + effect receipt v1.0, atomic CAS and exact reread; no signer means no state mutation. standalone_runtime.py is the authenticated port; do not direct-update `main`. Legacy v1.0 stays unbound.
+Owner writes need signed authorization (article v1.1; method v1.0) plus effect receipt v1.0, atomic CAS and exact reread. The authenticated adapter is `financial_writing_agent.standalone_runtime.py`; it verifies signed provider admission. No signer means no mutation; legacy history stays unbound.

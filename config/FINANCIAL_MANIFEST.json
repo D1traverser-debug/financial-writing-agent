@@ -42,8 +42,8 @@
   "chatgpt_native_runtime": {
     "orchestrator": "CHATGPT_MODEL_WITH_FINANCIAL_SKILL",
     "persistence_provider": "CONNECTED_USER_GITHUB_CONNECTOR",
-    "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__STATE_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
-    "readback_protocol": "FETCH_EXACT_COMMITTED_STATE_AND_EFFECT_RECEIPT_BLOBS",
+    "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
+    "readback_protocol": "FETCH_EXACT_COMMITTED_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BLOBS",
     "requires_hosted_python_mcp": false,
     "python_adapter_role": "OPTIONAL_REFERENCE_IMPLEMENTATION_AND_CI_TEST_TARGET"
   },
@@ -54,6 +54,21 @@
     "path_pattern": "workspaces/articles/{task_id}/actions/{action_id}.effect.json",
     "atomic_bundle_with_state_json": true,
     "exact_state_and_effect_blob_readback": true,
-    "production_provider_status": "NOT_VERIFIED__SYNTHETIC_CI_ONLY"
+    "production_provider_status": "NOT_VERIFIED__SYNTHETIC_CI_ONLY",
+    "owner_state_contract": {
+      "state_authorization_contract_version": "1.1",
+      "signed_effect_receipt_contract_version": "1.0",
+      "path_pattern": "workspaces/articles/{task_id}/actions/{action_id}.effect.json",
+      "atomic_bundle_with_state_json": true,
+      "exact_state_and_effect_blob_readback": true
+    },
+    "method_catalog_contract": {
+      "method_authorization_contract_version": "1.0",
+      "signed_effect_receipt_contract_version": "1.0",
+      "path_pattern": "knowledge/actions/{action_id}.effect.json",
+      "atomic_bundle_with_catalog_json": true,
+      "exact_catalog_and_effect_blob_readback": true,
+      "deterministic_action_replay": true
+    }
   }
 }

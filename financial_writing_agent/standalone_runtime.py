@@ -25,6 +25,7 @@ from .intent_governance import (
 from .method_governance import (
     CATALOG_PATH, METHOD_ACTIONS, MethodGovernanceError,
     mutate_method_catalog, query_methods, validate_method_catalog,
+    method_effect_receipt_path, replay_method_catalog_action,
     admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
@@ -1263,11 +1264,133 @@ def admit_article_action(
     }
 
 
+def _verify_persisted_method_action_effect_history(
+    catalog: Mapping[str, Any],
+    *,
+    effect_receipt_reader: EffectReceiptReader | None,
+    current_catalog_blob_sha: str | None = None,
+) -> dict[str, Any]:
+    history = catalog.get("change_history", [])
+    _require(isinstance(history, list), "FINANCIAL_METHOD_HISTORY_INVALID")
+    seen_action_ids: set[str] = set()
+    seen_nonces: set[tuple[str, str]] = set()
+    verified_effects = 0
+    legacy_effect_unbound = 0
+    effect_seen = False
+    last_result_sha: str | None = None
+    for event in history:
+        request = event.get("authorization_request", {})
+        authorization = event.get("authorization_evidence", {})
+        action_id = event.get("authorization_action_id")
+        _require(
+            isinstance(request, Mapping) and isinstance(authorization, Mapping)
+            and isinstance(action_id, str) and action_id not in seen_action_ids
+            and request.get("action_id") == action_id,
+            "FINANCIAL_METHOD_ACTION_ID_OR_AUTHORIZATION_INVALID",
+        )
+        seen_action_ids.add(action_id)
+        auth_nonce = authorization.get("nonce")
+        provider_id = authorization.get("provider_id")
+        _require(
+            isinstance(auth_nonce, str) and len(auth_nonce) >= 16
+            and isinstance(provider_id, str)
+            and (provider_id, auth_nonce) not in seen_nonces,
+            "FINANCIAL_METHOD_ACTION_NONCE_MISSING_OR_REPLAYED",
+        )
+        seen_nonces.add((provider_id, auth_nonce))
+        version = event.get("effect_contract_version")
+        effect_ref = event.get("effect_receipt_ref")
+        if version is None:
+            _require(effect_ref is None,
+                     "FINANCIAL_METHOD_LEGACY_EVENT_HAS_EFFECT_REFERENCE")
+            _require(not effect_seen,
+                     "FINANCIAL_METHOD_EFFECT_BOUND_HISTORY_ROLLBACK")
+            legacy_effect_unbound += 1
+            continue
+        _require(version == "1.0",
+                 "FINANCIAL_METHOD_EFFECT_CONTRACT_VERSION_UNSUPPORTED")
+        effect_seen = True
+        expected_ref = method_effect_receipt_path(action_id)
+        _require(effect_ref == expected_ref,
+                 "FINANCIAL_METHOD_EFFECT_RECEIPT_PATH_MISMATCH")
+        previous_sha = request.get("expected_catalog_blob_sha")
+        _require(_valid_sha(previous_sha),
+                 "FINANCIAL_METHOD_EFFECT_PREVIOUS_SHA_INVALID")
+        if last_result_sha is not None:
+            _require(previous_sha == last_result_sha,
+                     "FINANCIAL_METHOD_EFFECT_CHAIN_DISCONTINUITY")
+        raw = _effect_bytes(effect_receipt_reader, expected_ref)
+        _require(raw is not None, "FINANCIAL_METHOD_EFFECT_RECEIPT_MISSING")
+        try:
+            effect = json.loads(raw)
+        except (ValueError, TypeError) as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_METHOD_EFFECT_RECEIPT_JSON_INVALID"
+            ) from exc
+        _require(isinstance(effect, Mapping),
+                 "FINANCIAL_METHOD_EFFECT_RECEIPT_INVALID")
+        result_sha = effect.get("resulting_catalog_blob_sha")
+        _require(_valid_sha(result_sha),
+                 "FINANCIAL_METHOD_EFFECT_RESULT_SHA_INVALID")
+        expected_claims = {
+            "approved": True,
+            "action_id": action_id,
+            "domain_id": DOMAIN_ID,
+            "catalog_ref": CATALOG_PATH,
+            "operation": event.get("operation"),
+            "knowledge_id": event.get("knowledge_id"),
+            "previous_catalog_blob_sha": previous_sha,
+            "resulting_catalog_blob_sha": result_sha,
+            "request_sha256": request_sha256(request),
+            "authorization_sha256": payload_sha256(authorization),
+            "effect_contract_version": "1.0",
+            "admission_runtime": "financial_writing_agent.standalone_runtime.admit_method_action",
+        }
+        try:
+            verified = verify_action_effect_attestation(
+                effect,
+                expected_claims=expected_claims,
+                expected_actor=str(authorization.get("authenticated_actor", "")),
+                expected_provider=str(provider_id),
+                historical=True,
+            )
+        except Exception as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_METHOD_PERSISTED_EFFECT_ATTESTATION_INVALID"
+            ) from exc
+        effect_nonce = verified.get("nonce")
+        effect_provider = verified.get("provider_id")
+        _require(
+            isinstance(effect_nonce, str) and len(effect_nonce) >= 16
+            and (effect_provider, effect_nonce) not in seen_nonces,
+            "FINANCIAL_METHOD_EFFECT_NONCE_MISSING_OR_REPLAYED",
+        )
+        seen_nonces.add((effect_provider, effect_nonce))
+        last_result_sha = result_sha
+        verified_effects += 1
+    if current_catalog_blob_sha is not None and last_result_sha is not None:
+        _require(last_result_sha == current_catalog_blob_sha,
+                 "FINANCIAL_METHOD_EFFECT_CURRENT_CATALOG_SHA_MISMATCH")
+    return {
+        "verified_effect_receipts": verified_effects,
+        "legacy_effect_unbound_receipts": legacy_effect_unbound,
+        "latest_effect_result_blob_sha": last_result_sha,
+        "assurance": (
+            "ALL_METHOD_ACTIONS_EFFECT_BOUND"
+            if legacy_effect_unbound == 0
+            else "LEGACY_METHOD_HISTORY_PRESERVED_AS_EFFECT_UNBOUND"
+        ),
+    }
+
+
 def observe_method_catalog(
-    *, catalog_reader: StateReader, knowledge_id: str | None = None,
+    *,
+    catalog_reader: StateReader,
+    effect_receipt_reader: EffectReceiptReader | None = None,
+    knowledge_id: str | None = None,
     operational_only: bool = False,
 ) -> dict[str, Any]:
-    """Read the single existing Financial method catalog; no new task ledger."""
+    """Read the single existing Financial method catalog and verify its effect chain."""
     record = _read(catalog_reader, CATALOG_PATH)
     _require(record is not None, "FINANCIAL_METHOD_CATALOG_UNAVAILABLE")
     raw, sha = record
@@ -1275,6 +1398,10 @@ def observe_method_catalog(
         catalog = validate_method_catalog(raw)
         methods = query_methods(catalog, knowledge_id=knowledge_id,
                                 operational_only=operational_only)
+        effect_history = _verify_persisted_method_action_effect_history(
+            catalog, effect_receipt_reader=effect_receipt_reader,
+            current_catalog_blob_sha=sha,
+        )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
     history = catalog.get("change_history", [])
@@ -1288,6 +1415,7 @@ def observe_method_catalog(
         "catalog_blob_sha": sha,
         "governance_revision": catalog.get("governance_revision", 0),
         "records": methods,
+        "effect_history": effect_history,
         "open_revalidation": [
             {
                 "change_revision": event["revision"],
@@ -1309,15 +1437,13 @@ def admit_method_action(
     catalog_reader: StateReader,
     catalog_cas_writer: CASWriter | None,
     authorization_verifier: AuthorizationVerifier | None,
+    catalog_bundle_cas_writer: BundleCASWriter | None = None,
+    effect_attestation_signer: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+    effect_receipt_reader: EffectReceiptReader | None = None,
     promotion_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     impact_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
 ) -> dict[str, Any]:
-    """Independent Financial-domain method CRUD via existing catalog Git CAS.
-
-    This separate *action scope* writes only knowledge/METHOD_KNOWLEDGE_CATALOG,
-    not an independent business state controller or a method Task Index.
-    It can be served by the same Financial Skill/client and trusted Git provider.
-    """
+    """Admit one method-catalog mutation with signed exact-result effect evidence."""
     _require(isinstance(request, Mapping), "FINANCIAL_METHOD_ACTION_INVALID")
     required = {"schema_version", "domain_id", "action_id", "operation",
                 "expected_catalog_blob_sha", "parameters"}
@@ -1340,8 +1466,11 @@ def admit_method_action(
         "impact_evidence",
     }
     _require(set(params).issubset(allowed), "FINANCIAL_METHOD_ACTION_PARAMS_EXCEEDED")
-    _require(callable(authorization_verifier) and callable(catalog_cas_writer),
-             "FINANCIAL_METHOD_TRUSTED_AUTH_AND_CAS_REQUIRED")
+    _require(
+        callable(authorization_verifier) and callable(catalog_bundle_cas_writer)
+        and callable(effect_attestation_signer) and callable(effect_receipt_reader),
+        "FINANCIAL_METHOD_TRUSTED_AUTH_EFFECT_AND_BUNDLE_CAS_REQUIRED",
+    )
     try:
         authorization_attestation = verify_method_action_authorization(
             authorization_verifier(deepcopy(dict(request))), request=request,
@@ -1350,7 +1479,6 @@ def admit_method_action(
         raise FinancialAdmissionError(
             "FINANCIAL_METHOD_AUTHORIZATION_ATTESTATION_NOT_VERIFIED"
         ) from exc
-    # Preserve the complete signed receipt for later append-only catalog verification.
     authorization_evidence = deepcopy(authorization_attestation)
 
     observed = _read(catalog_reader, CATALOG_PATH)
@@ -1358,6 +1486,13 @@ def admit_method_action(
     before, previous_sha = observed
     _require(previous_sha == request["expected_catalog_blob_sha"],
              "FINANCIAL_METHOD_CATALOG_CHANGED_CONCURRENTLY")
+    _verify_persisted_method_action_effect_history(
+        before, effect_receipt_reader=effect_receipt_reader,
+        current_catalog_blob_sha=previous_sha,
+    )
+    effect_ref = method_effect_receipt_path(request["action_id"])
+    _require(_effect_bytes(effect_receipt_reader, effect_ref) is None,
+             "FINANCIAL_METHOD_EFFECT_RECEIPT_ALREADY_EXISTS")
     try:
         candidate, receipt = mutate_method_catalog(
             before, operation=operation,
@@ -1377,29 +1512,98 @@ def admit_method_action(
         )
     except MethodGovernanceError as exc:
         raise FinancialAdmissionError(str(exc)) from exc
-    payload = _canonical_payload(candidate)
-    expected_new_sha = _blob_sha(payload)
+    candidate["change_history"][-1]["effect_contract_version"] = "1.0"
+    candidate["change_history"][-1]["effect_receipt_ref"] = effect_ref
     try:
-        issued = catalog_cas_writer(CATALOG_PATH, previous_sha, payload)
+        validate_method_catalog(candidate)
+    except MethodGovernanceError as exc:
+        raise FinancialAdmissionError(str(exc)) from exc
+    payload = json.dumps(candidate, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    expected_new_sha = _blob_sha(payload)
+    effect_claims = {
+        "approved": True,
+        "action_id": request["action_id"],
+        "domain_id": DOMAIN_ID,
+        "catalog_ref": CATALOG_PATH,
+        "operation": operation,
+        "knowledge_id": params.get("knowledge_id"),
+        "previous_catalog_blob_sha": previous_sha,
+        "resulting_catalog_blob_sha": expected_new_sha,
+        "request_sha256": request_sha256(request),
+        "authorization_sha256": payload_sha256(authorization_evidence),
+        "effect_contract_version": "1.0",
+        "admission_runtime": "financial_writing_agent.standalone_runtime.admit_method_action",
+    }
+    try:
+        raw_effect = effect_attestation_signer(deepcopy(effect_claims))
+        effect_evidence = verify_action_effect_attestation(
+            raw_effect,
+            expected_claims=effect_claims,
+            expected_actor=str(authorization_evidence.get("authenticated_actor", "")),
+            expected_provider=str(authorization_evidence.get("provider_id", "")),
+        )
     except Exception as exc:
-        raise FinancialEffectUnverified("FINANCIAL_METHOD_WRITE_OUTCOME_UNKNOWN") from exc
-    if not isinstance(issued, Mapping) or issued.get("blob_sha") != expected_new_sha:
+        raise FinancialAdmissionError(
+            "FINANCIAL_METHOD_ACTION_EFFECT_ATTESTATION_NOT_VERIFIED"
+        ) from exc
+    effect_payload = json.dumps(
+        effect_evidence, ensure_ascii=False, sort_keys=True, indent=2,
+    ) + "\n"
+
+    def staged_effect_reader(ref: str):
+        if ref == effect_ref:
+            return effect_payload.encode("utf-8")
+        return effect_receipt_reader(ref)
+
+    _verify_persisted_method_action_effect_history(
+        candidate, effect_receipt_reader=staged_effect_reader,
+        current_catalog_blob_sha=expected_new_sha,
+    )
+    try:
+        issued = catalog_bundle_cas_writer(
+            CATALOG_PATH, previous_sha,
+            {CATALOG_PATH: payload, effect_ref: effect_payload},
+        )
+    except Exception as exc:
+        raise FinancialEffectUnverified(
+            "FINANCIAL_METHOD_BUNDLE_WRITE_OUTCOME_UNKNOWN"
+        ) from exc
+    issued_shas = issued.get("blob_shas", {}) if isinstance(issued, Mapping) else {}
+    issued_catalog_sha = issued_shas.get(CATALOG_PATH) if isinstance(issued_shas, Mapping) else None
+    issued_effect_sha = issued_shas.get(effect_ref) if isinstance(issued_shas, Mapping) else None
+    if not isinstance(issued, Mapping) or (
+        issued_catalog_sha or issued.get("blob_sha")
+    ) != expected_new_sha:
         raise FinancialEffectUnverified("FINANCIAL_METHOD_WRITE_SHA_MISMATCH")
+    expected_effect_sha = _blob_sha(effect_payload)
+    if issued_effect_sha != expected_effect_sha:
+        raise FinancialEffectUnverified("FINANCIAL_METHOD_EFFECT_WRITE_SHA_MISMATCH")
     verified = _read(catalog_reader, CATALOG_PATH)
     if (verified is None or verified[1] != expected_new_sha
             or not _strict_json_equal(verified[0], candidate)):
         raise FinancialEffectUnverified("FINANCIAL_METHOD_CATALOG_READBACK_MISMATCH")
+    after_effect = _effect_bytes(effect_receipt_reader, effect_ref)
+    if after_effect != effect_payload.encode("utf-8") or _blob_sha(after_effect) != expected_effect_sha:
+        raise FinancialEffectUnverified("FINANCIAL_METHOD_EFFECT_READBACK_MISMATCH")
     validate_method_catalog(verified[0])
+    effect_history = _verify_persisted_method_action_effect_history(
+        verified[0], effect_receipt_reader=effect_receipt_reader,
+        current_catalog_blob_sha=verified[1],
+    )
     return {
         "contract_version": CONTRACT_VERSION, "domain_id": DOMAIN_ID,
         "catalog_ref": CATALOG_PATH, "action_id": request["action_id"],
         "operation": operation, "knowledge_id": params.get("knowledge_id"),
         "previous_catalog_blob_sha": previous_sha,
         "observed_catalog_blob_sha": expected_new_sha,
+        "effect_receipt_ref": effect_ref,
+        "observed_effect_blob_sha": expected_effect_sha,
+        "effect_history": effect_history,
         "provider_commit_ref": issued.get("commit_ref"),
         "governance_revision": candidate["governance_revision"],
         "method_change_receipt": receipt,
         "authorization_verification": authorization_evidence,
         "method_catalog_cas_verified": True,
+        "method_effect_receipt_readback_verified": True,
         "live_article_effect_verified": False,
     }

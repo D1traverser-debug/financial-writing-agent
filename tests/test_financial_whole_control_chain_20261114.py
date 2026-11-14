@@ -207,7 +207,7 @@ def test_whole_chain_requires_signed_effect_receipt_and_atomic_bundle_cas_contra
     capabilities = work / "config/FINANCIAL_CAPABILITIES.json"
     data = json.loads(capabilities.read_text(encoding="utf-8"))
     data["required_external_capabilities_at_execution"].remove(
-        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_STATE_MUTATION"
+        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_OWNER_OR_METHOD_MUTATION"
     )
     capabilities.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     report = project_whole_system(work, head_sha=HEAD)
@@ -312,4 +312,3 @@ def test_whole_control_audit_requires_signed_effect_bound_to_exact_result_bytes(
     assert rejected["status"].startswith("REJECTED")
     assert any("ARTICLE_EFFECT_RESULT_STATE_SHA_MISMATCH" in issue
                for issue in rejected["violations"])
-
