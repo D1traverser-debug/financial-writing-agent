@@ -9,9 +9,10 @@ from dataclasses import dataclass
 from enum import Enum
 from typing import Any
 
-from .models import DistributionMode, TaskContract
+from .models import DistributionMode, Stage, TaskContract
 from .schemas import PlatformInteractionPack
 from .story_quality import AuditStatus, PublicationFitness
+from .workflow_spec import pass_target_name, require_revision_target
 
 
 class WritingPass(str, Enum):
@@ -377,6 +378,8 @@ def _invoke_pass(
             f"WRITING_PASS_MISSING_INPUT:{node.value}:{','.join(missing_inputs)}"
         )
     provided = {name: current[name] for name in contract.required_inputs}
+    if "task_requirement_contexts" in current:
+        provided["task_requirement_contexts"] = current["task_requirement_contexts"]
     try:
         outcome = execute_pass(node, provided)
     except Exception as exc:
@@ -416,7 +419,7 @@ def _admit_research_audit(
     *,
     research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]],
     trace: list[dict[str, Any]],
-) -> None:
+) -> dict[str, Any]:
     audit_inputs = deepcopy(dict(current))
     try:
         envelope = research_audit(deepcopy(audit_inputs))
@@ -424,27 +427,46 @@ def _admit_research_audit(
         raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_EXECUTION_FAILED") from exc
     if (
         not isinstance(envelope, Mapping)
-        or envelope.get("status") != "PASS"
+        or envelope.get("status") not in {"PASS", "REVISE", "FAIL"}
         or not isinstance(envelope.get("evidence_refs"), list)
         or not envelope["evidence_refs"]
-        or envelope.get(RESEARCH_AUDIT_BOUNDARY_INPUT) is None
     ):
-        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_NOT_ADMITTED")
-    current[RESEARCH_AUDIT_BOUNDARY_INPUT] = envelope[RESEARCH_AUDIT_BOUNDARY_INPUT]
+        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_RESULT_INVALID")
+    status = str(envelope["status"])
+    revision_target = envelope.get("revision_target")
+    audited_evidence = envelope.get(RESEARCH_AUDIT_BOUNDARY_INPUT)
+    if status == "PASS":
+        if not isinstance(audited_evidence, Mapping):
+            raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_PASS_REQUIRES_AUDITED_EVIDENCE")
+        if revision_target is not None:
+            raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_PASS_MUST_NOT_SET_REVISION_TARGET")
+        current[RESEARCH_AUDIT_BOUNDARY_INPUT] = deepcopy(dict(audited_evidence))
+    elif status == "REVISE":
+        try:
+            require_revision_target(Stage.RESEARCH_AUDIT, revision_target)
+        except Exception as exc:
+            raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_REVISE_TARGET_INVALID") from exc
+    elif revision_target is not None:
+        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_FAIL_MUST_NOT_SET_REVISION_TARGET")
+
+    result = {
+        "status": status,
+        "evidence_refs": list(envelope["evidence_refs"]),
+        "revision_target": revision_target,
+    }
+    if isinstance(audited_evidence, Mapping):
+        result[RESEARCH_AUDIT_BOUNDARY_INPUT] = deepcopy(dict(audited_evidence))
+    current["research_audit_result"] = result
     _append_execution_trace(
         trace,
         pass_name="RESEARCH_AUDIT_BOUNDARY",
         business_stage="RESEARCH_AUDIT",
         product_scope="SHARED",
         inputs=audit_inputs,
-        outputs={
-            "status": envelope["status"],
-            "evidence_refs": list(envelope["evidence_refs"]),
-            RESEARCH_AUDIT_BOUNDARY_INPUT: envelope[RESEARCH_AUDIT_BOUNDARY_INPUT],
-        },
-        status="CALLBACK_ADMITTED__REAL_SEMANTIC_SUPPORT_NOT_SELF_CERTIFIED",
+        outputs=result,
+        status=f"RESEARCH_AUDIT_{status}__SEMANTIC_SUPPORT_NOT_SELF_CERTIFIED",
     )
-
+    return result
 
 def _scope_marker(value: Any) -> str | None:
     if isinstance(value, Mapping):
@@ -517,7 +539,7 @@ def _publication_text(value: Any) -> str:
     return ""
 
 
-def _admit_longform_result(current: Mapping[str, Any], *, mode: str) -> None:
+def _admit_longform_result(current: Mapping[str, Any], *, mode: str) -> PublicationFitness:
     _require_product_scope(
         current, mode=mode,
         keys=("story_blueprint", "headline_decision", "publication_fitness"),
@@ -534,20 +556,13 @@ def _admit_longform_result(current: Mapping[str, Any], *, mode: str) -> None:
     ):
         raise WritingPassExecutionError(f"PORTFOLIO_AUDIT_REWROTE_DRAFT:{mode}")
     try:
-        fitness = PublicationFitness.model_validate(current["publication_fitness"])
+        return PublicationFitness.model_validate(current["publication_fitness"])
     except Exception as exc:
         raise WritingPassExecutionError(
             f"PORTFOLIO_PUBLICATION_FITNESS_INVALID:{mode}"
         ) from exc
-    if fitness.final_status != AuditStatus.PASS:
-        raise WritingPassExecutionError(
-            f"PORTFOLIO_PUBLICATION_FITNESS_REVISE:{mode}"
-        )
-    # This is schema/gate admission only. Independent publication proof and
-    # exact persisted draft readback remain external owner-stage obligations.
 
-
-def _admit_interaction_result(current: Mapping[str, Any]) -> None:
+def _admit_interaction_result(current: Mapping[str, Any]) -> dict[str, Any]:
     try:
         pack = PlatformInteractionPack.model_validate(
             current["platform_interaction_pack"]
@@ -559,18 +574,31 @@ def _admit_interaction_result(current: Mapping[str, Any]) -> None:
     result = current["platform_interaction_fitness"]
     if (
         not isinstance(result, Mapping)
-        or result.get("status") != "PASS"
+        or result.get("status") not in {"PASS", "REVISE", "FAIL"}
         or not isinstance(result.get("evidence_refs"), list)
         or not result["evidence_refs"]
     ):
         raise WritingPassExecutionError(
-            "PORTFOLIO_INTERACTION_AUDIT_NOT_ADMITTED"
+            "PORTFOLIO_INTERACTION_AUDIT_RESULT_INVALID"
         )
     if not pack.independent_rewrite_from_long_form:
         raise WritingPassExecutionError(
             "PORTFOLIO_INTERACTION_NOT_INDEPENDENT"
         )
-
+    status = str(result["status"])
+    target = result.get("revision_target")
+    if status == "REVISE":
+        try:
+            require_revision_target(Stage.EDITORIAL_AUDIT, target)
+        except Exception as exc:
+            raise WritingPassExecutionError("PORTFOLIO_INTERACTION_REVISION_TARGET_INVALID") from exc
+    elif target is not None:
+        raise WritingPassExecutionError("PORTFOLIO_INTERACTION_NON_REVISE_MUST_NOT_SET_TARGET")
+    return {
+        "status": status,
+        "evidence_refs": list(result["evidence_refs"]),
+        "revision_target": target,
+    }
 
 def execute_writing_passes(
     seed_inputs: Mapping[str, Any],
