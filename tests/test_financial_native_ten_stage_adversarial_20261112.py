@@ -83,7 +83,8 @@ def _install_fake_renderer(monkeypatch):
     monkeypatch.setattr("financial_writing_agent.rendering.render_docx_pages", fake_render)
 
 
-def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
+def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None,
+                 duplicate_longform_body=False):
     """Create a canonical build + exact render receipt; all prose is synthetic."""
     from financial_writing_agent.standalone_runtime import _blob_sha
 
@@ -95,7 +96,11 @@ def _word_output(p, kind, tmp_path, monkeypatch, *, task_state=None):
             stock_names=[],
             blocks=[
                 Block(kind="h1", text="合成事实核验"),
-                Block(kind="body", text="这是**可检查语义锚点**的合成审稿文本。"),
+                Block(kind="body", text=(
+                    "这是**可检查语义锚点**的合成审稿文本。"
+                    if duplicate_longform_body
+                    else f"这是**可检查语义锚点**的合成审稿文本。{kind}有自身的财经叙述和判断。"
+                )),
             ],
         )
         source_text = "这是可检查语义锚点的合成审稿文本。"
@@ -486,3 +491,29 @@ def test_final_audit_blocks_if_research_source_bytes_changed_after_research(tmp_
         })
     assert p.states == frozen
     assert p.read(STATE_PATH)["state"]["current_stage"] == "FINAL_AUDIT"
+
+
+def test_portfolio_rejects_identical_deep_broad_core_prose_despite_different_titles(tmp_path, monkeypatch):
+    p = make()
+    _prepare_delivery(p)
+    task_state = p.read(STATE_PATH)["state"]
+    products = (
+        "FINANCE_DEEP_DOCX",
+        "FINANCE_BROAD_DOCX",
+        "PLATFORM_INTERACTION_PACK_DOCX",
+    )
+    metadata = [
+        _word_output(
+            p, kind, tmp_path, monkeypatch, task_state=task_state,
+            duplicate_longform_body=kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"},
+        )
+        for kind in products
+    ]
+    assert metadata[0]["sha256"] != metadata[1]["sha256"]
+    state_before = deepcopy(p.states)
+    with pytest.raises(Exception, match="FINANCIAL_PORTFOLIO_DEEP_BROAD_CORE_PROSE_CLONED"):
+        act(p, "ADVANCE_STAGE", {
+            **stage_artifact(p, "DELIVERY"), "delivery_artifacts": metadata,
+        })
+    assert p.states == state_before
+    assert p.read(STATE_PATH)["state"]["current_stage"] == "DELIVERY"
