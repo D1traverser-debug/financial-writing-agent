@@ -447,8 +447,11 @@ def _admit_research_audit(
             require_revision_target(Stage.RESEARCH_AUDIT, revision_target)
         except Exception as exc:
             raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_REVISE_TARGET_INVALID") from exc
-    elif revision_target is not None:
-        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_FAIL_MUST_NOT_SET_REVISION_TARGET")
+    else:
+        try:
+            require_revision_target(Stage.RESEARCH_AUDIT, revision_target)
+        except Exception as exc:
+            raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_FAIL_RECOVERY_TARGET_INVALID") from exc
 
     result = {
         "status": status,
