@@ -70,5 +70,17 @@
       "exact_catalog_and_effect_blob_readback": true,
       "deterministic_action_replay": true
     }
+  },
+  "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
+  "governance_mode": "CHAT_GOVERNED_EXTERNAL",
+  "governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+  "governance_contract": "config/CAOS_GOVERNANCE.json",
+  "governance": {
+    "system": "CAOS",
+    "mode": "CHAT_GOVERNED_EXTERNAL",
+    "runtime_dependency": false,
+    "api_dependency": false,
+    "source_mutation": "FORBIDDEN",
+    "business_state_owner": "FINANCIAL_WRITING_OWNER"
   }
 }
