@@ -94,31 +94,31 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
     ),
     WritingPass.READER_RETENTION_AUDIT: PassContract(
         purpose="locate where a cold reader would stop, skip, feel repetition or lose the promised payoff",
-        required_inputs=("draft", "story_blueprint"),
+        required_inputs=("draft", "story_blueprint", "product_mode"),
         forbidden_jobs=("defend author intent", "rubric-only PASS without excerpts"),
         outputs=("retention_findings",),
     ),
     WritingPass.EDITORIAL_TRIM: PassContract(
         purpose="remove throat-clearing, repeated conclusions, detached exposition and weak transitions while preserving evidence",
-        required_inputs=("draft", "retention_findings"),
+        required_inputs=("draft", "retention_findings", "product_mode"),
         forbidden_jobs=("generic humanizer rewrite", "fabricate anecdotes", "weaken factual boundaries"),
         outputs=("edited_draft",),
     ),
     WritingPass.ORIGINALITY_AUDIT: PassContract(
         purpose="compare distinctive wording and structure against material sources and reject patchwriting",
-        required_inputs=("edited_draft", "material_sources"),
+        required_inputs=("edited_draft", "material_sources", "product_mode"),
         forbidden_jobs=("declare zero plagiarism without evidence",),
         outputs=("originality_findings",),
     ),
     WritingPass.FACT_INTEGRITY_AUDIT: PassContract(
         purpose="recheck material current claims, numbers, causal boundaries and company comparisons against evidence",
-        required_inputs=("edited_draft", "evidence_ledger"),
+        required_inputs=("edited_draft", "evidence_ledger", "product_mode"),
         forbidden_jobs=("style editing that changes meaning",),
         outputs=("fact_findings",),
     ),
     WritingPass.STYLE_AUDIT: PassContract(
         purpose="find generic model scaffolding, register drift, unsupported abstraction and author-voice violations using excerpts",
-        required_inputs=("edited_draft", "voice_evidence"),
+        required_inputs=("edited_draft", "voice_evidence", "product_mode"),
         forbidden_jobs=("AI-detector scoring", "phrase blacklist as authorship proof"),
         outputs=("style_findings",),
     ),
@@ -133,14 +133,14 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
     WritingPass.PLATFORM_INTERACTION_ADAPTATION: PassContract(
         purpose="independently write native short-form products from audited evidence for the actual target platforms",
         required_inputs=("selected_thesis", "audited_evidence", "reader_job",
-                         "voice_evidence", "platform_context"),
+                         "voice_evidence", "platform_context", "product_scope"),
         forbidden_jobs=("truncate or paraphrase a long-form article as the interaction product",
                         "invent urgency, fake intimacy or canned engagement"),
         outputs=("platform_interaction_pack",),
     ),
     WritingPass.PLATFORM_INTERACTION_AUDIT: PassContract(
         purpose="audit the interaction product's facts, originality, platform fit, reader value and compliance",
-        required_inputs=("platform_interaction_pack", "audited_evidence", "material_sources"),
+        required_inputs=("platform_interaction_pack", "audited_evidence", "material_sources", "product_scope"),
         forbidden_jobs=("accept platform labels as proof of native fit",
                         "treat post count or engagement prompts as reader-value evidence"),
         outputs=("platform_interaction_fitness",),
@@ -302,7 +302,7 @@ def validate_pass_dataflow(nodes: set[WritingPass] | None = None) -> list[str]:
     if errors:
         return errors
 
-    available = set(PRE_RESEARCH_EXTERNAL_INPUTS) | {"product_mode"}
+    available = set(PRE_RESEARCH_EXTERNAL_INPUTS) | {"product_mode", "product_scope"}
     produced: set[str] = set()
     boundary_added = False
     try:
@@ -478,6 +478,7 @@ def execute_writing_passes(
     if not callable(execute_pass) or not callable(research_audit):
         raise WritingPassExecutionError("WRITING_PASS_EXECUTOR_AND_RESEARCH_AUDIT_REQUIRED")
     current = dict(seed_inputs)
+    current.setdefault("product_scope", "PLATFORM_INTERACTION")
     missing = (PRE_RESEARCH_EXTERNAL_INPUTS | {"product_mode"}) - set(current)
     if missing:
         raise WritingPassExecutionError(
@@ -488,7 +489,12 @@ def execute_writing_passes(
 
     trace: list[dict[str, Any]] = []
     for node in execution_order():
-        _invoke_pass(node, current, execute_pass=execute_pass, trace=trace, scope=str(current["product_mode"]))
+        scope = (
+            "PLATFORM_INTERACTION" if node in INTERACTION_PRODUCT_PASSES
+            else str(current["product_mode"]) if node in LONGFORM_PRODUCT_PASSES
+            else "SHARED"
+        )
+        _invoke_pass(node, current, execute_pass=execute_pass, trace=trace, scope=scope)
         if node == WritingPass.THESIS_ADJUDICATION:
             _admit_research_audit(current, research_audit=research_audit, trace=trace)
 
@@ -500,7 +506,7 @@ def execute_writing_passes(
         "products": current,
         "assurance": (
             "SINGLE_PRODUCT_AND_INTERACTION_CALLBACK_DATAFLOW_EXECUTED"
-            "__NOT_PORTFOLIO_OR_EDITORIAL_ACCEPTANCE"
+            "__NOT_PORTFOLIO_OR_EDITORIAL_ACCEPTANCE__NOT_INDEPENDENT_EDITORIAL"
         ),
     }
 
@@ -579,10 +585,10 @@ def execute_portfolio_writing(
             _invoke_pass(node, branch, execute_pass=execute_pass, trace=trace, scope=mode)
         _require_product_scope(
             branch, mode=mode,
-            keys=("story_blueprint", "headline_decision", "draft",
-                  "publication_candidate", "publication_fitness"),
+            keys=("story_blueprint", "headline_decision", "publication_fitness"),
         )
         longform_products[mode] = {
+            "product_mode": mode,
             "story_blueprint": branch["story_blueprint"],
             "headline_decision": branch["headline_decision"],
             "draft": branch["draft"],
@@ -594,6 +600,7 @@ def execute_portfolio_writing(
     interaction_product = None
     if interaction_required:
         branch = dict(shared)
+        branch["product_scope"] = "PLATFORM_INTERACTION"
         branch_trace_start = len(trace)
         for node in INTERACTION_PRODUCT_PASSES:
             _invoke_pass(

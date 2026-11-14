@@ -46,7 +46,10 @@ def _executor(calls, *, wrong_scope_for=None, fail_at=None):
             WritingPass.DRAFT_GENERATION,
             WritingPass.FINAL_SYNTHESIS,
         }:
-            scope = "FINANCE_DEEP" if wrong_scope_for == (node, mode) else mode
+            scope = (
+                ("FINANCE_BROAD" if mode == "FINANCE_DEEP" else "FINANCE_DEEP")
+                if wrong_scope_for == (node, mode) else mode
+            )
             if node == WritingPass.STORY_ARCHITECTURE:
                 return {"story_blueprint": {"product_mode": scope, "sections": ["story"]}}
             if node == WritingPass.HEADLINE_ADJUDICATION:
@@ -90,6 +93,13 @@ def _research_audit(calls):
             "audited_evidence": {"source_refs": ["source://primary/current"], "synthetic": True},
         }
     return audit
+
+
+def test_every_longform_pass_receives_explicit_product_mode_and_interaction_pass_receives_product_scope():
+    for node in LONGFORM_PRODUCT_PASSES:
+        assert "product_mode" in PASS_CONTRACTS[node].required_inputs
+    for node in INTERACTION_PRODUCT_PASSES:
+        assert "product_scope" in PASS_CONTRACTS[node].required_inputs
 
 
 def test_portfolio_executes_shared_research_once_and_independent_products_separately():
