@@ -744,6 +744,17 @@ def _validate_portfolio_request(
     if not modes and not interaction_required:
         raise WritingPassExecutionError("PORTFOLIO_HAS_NO_PUBLICATION_PRODUCT")
 
+    active_nodes = set(SHARED_RESEARCH_PASSES)
+    if modes:
+        active_nodes.update(LONGFORM_PRODUCT_PASSES)
+    if interaction_required:
+        active_nodes.update(INTERACTION_PRODUCT_PASSES)
+    issues = validate_pass_dataflow(active_nodes)
+    if issues:
+        raise WritingPassExecutionError(
+            "PORTFOLIO_PASS_DATAFLOW_INVALID:" + ";".join(issues)
+        )
+
     shared = dict(seed_inputs)
     required_shared = {
         "topic_or_task", "knowledge_sources", "topic", "current_sources",
