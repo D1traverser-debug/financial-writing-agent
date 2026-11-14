@@ -170,6 +170,42 @@ def test_independent_publication_fitness_is_fail_closed_without_trusted_executio
             PublicationFitness(product_mode=ProductMode.FINANCE_DEEP, gates=_all_gates(), originality_checks=_originality(), assurance="INDEPENDENT_EXECUTOR", final_status=AuditStatus.PASS, **kwargs)
 
 
+def test_publication_fitness_revise_requires_a_legal_revision_target():
+    with pytest.raises(ValidationError, match="PUBLICATION_FITNESS_REVISE_REQUIRES_REVISION_TARGET"):
+        PublicationFitness(
+            product_mode=ProductMode.FINANCE_DEEP,
+            gates=[
+                gate.model_copy(update={
+                    "status": "REVISE",
+                    "revision_actions": ["rewrite the unsupported factual span"],
+                })
+                if gate.gate == "FACT_INTEGRITY" else gate
+                for gate in _all_gates()
+            ],
+            originality_checks=_originality(),
+            assurance="CHAT_SELF_REVIEW",
+            review_scope="INTERNAL_DELIVERY_READINESS",
+            final_status=AuditStatus.REVISE,
+        )
+
+
+def test_publication_fitness_pass_cannot_carry_a_revision_target():
+    with pytest.raises(ValidationError, match="PUBLICATION_FITNESS_PASS_MUST_NOT_SET_REVISION_TARGET"):
+        PublicationFitness(
+            product_mode=ProductMode.FINANCE_DEEP,
+            gates=_all_gates(),
+            originality_checks=_originality(),
+            assurance="CHAT_SELF_REVIEW",
+            review_scope="INTERNAL_DELIVERY_READINESS",
+            audit_provenance={
+                "assurance": "CHAT_SELF_REVIEW",
+                "reviewed_article_sha256": "a" * 64,
+            },
+            final_status=AuditStatus.PASS,
+            revision_target="DRAFT",
+        )
+
+
 def test_deterministic_tripwires_find_missing_sequences_and_generic_scaffolding_clusters():
     assert publication_structure_findings(["行业变化", "二、第二节"])
     result = generic_scaffolding_findings("值得关注。需要注意。这意味着。问题在于。" * 8)

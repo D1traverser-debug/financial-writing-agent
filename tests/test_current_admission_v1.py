@@ -181,6 +181,7 @@ def _fitness(mode: str, status: str = "PASS") -> dict:
         "deterministic_findings": [],
         "assurance": "INDEPENDENT_EXECUTOR",
         "final_status": status,
+        "revision_target": "DRAFT" if status == "REVISE" else None,
         "audit_provenance": {
             "assurance": "INDEPENDENT_EXECUTOR",
             "reviewer_identity": reviewer, "author_identity": author,
@@ -197,6 +198,8 @@ def _fitness(mode: str, status: str = "PASS") -> dict:
         "deterministic_findings": fitness["deterministic_findings"],
         "final_status": fitness["final_status"],
     }
+    if fitness["final_status"] == "REVISE":
+        review_body["revision_target"] = fitness["revision_target"]
     attestation = signed_attestation(
         "independent_editorial_review", actor=reviewer,
         key_env="FINANCIAL_EDITORIAL_REVIEW_KEY",

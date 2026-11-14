@@ -80,6 +80,8 @@ def verify_external_editorial_review(
             "deterministic_findings": fitness.get("deterministic_findings", []),
             "final_status": fitness.get("final_status"),
         }
+        if fitness.get("final_status") == "REVISE":
+            review_body["revision_target"] = fitness.get("revision_target")
         review_sha = payload_sha256(review_body)
         request = {
             "task_id": state["task_id"],

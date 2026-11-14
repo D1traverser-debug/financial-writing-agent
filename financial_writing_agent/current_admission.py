@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from . import owner_guard
 from .cognition_governance import DecisionEnvelope, OperationClass, admission_errors
+from .path_identity import require_article_path
 from .private_research import (
     PRIVATE_RESEARCH_CONTRACT_VERSION,
     SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
@@ -114,13 +115,26 @@ def _parse_publication_fitnesses(
     modes = [item.product_mode for item in parsed]
     _require(len(modes) == len(set(modes)), "publication_fitnesses must contain at most one result per product mode")
     expected = _expected_longform_modes(state)
-    _require(set(modes) == expected, f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}")
+    actual = set(modes)
+    if review_status == "PASS":
+        _require(
+            actual == expected,
+            f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in actual)}",
+        )
+    else:
+        _require(
+            actual.issubset(expected),
+            f"publication fitness modes mismatch: expected subset of={sorted(x.value for x in expected)}, actual={sorted(x.value for x in actual)}",
+        )
 
     all_pass = all(item.final_status == AuditStatus.PASS for item in parsed)
     if review_status == "PASS":
         _require(all_pass, "EDITORIAL_AUDIT cannot PASS while any publication fitness gate requires revision")
     elif review_status == "REVISE":
-        _require(not all_pass, "EDITORIAL_AUDIT REVISE requires at least one publication fitness REVISE result")
+        _require(
+            any(item.final_status == AuditStatus.REVISE for item in parsed),
+            "EDITORIAL_AUDIT REVISE requires at least one publication fitness REVISE result",
+        )
     return parsed
 
 
@@ -592,6 +606,7 @@ def advance_state(
     story_blueprints: list[Mapping[str, Any]] | None = None,
     publication_fitnesses: list[Mapping[str, Any]] | None = None,
     requirement_satisfaction: list[Mapping[str, Any]] | None = None,
+    portfolio_context_ref: Mapping[str, Any] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Single public Article Aggregate transition for current writing-kernel tasks."""
@@ -637,6 +652,18 @@ def advance_state(
     review_status = kwargs.get("review_status")
     if stage == "EDITORIAL_AUDIT" and review_status in {"PASS", "REVISE"}:
         fitnesses = _parse_publication_fitnesses(state, publication_fitnesses, review_status=str(review_status))
+        if review_status == "REVISE":
+            order = ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT")
+            targets = [
+                item.revision_target for item in fitnesses
+                if item.final_status == AuditStatus.REVISE
+            ]
+            _require(bool(targets), "EDITORIAL_AUDIT REVISE requires a fitness revision target")
+            expected_target = min(targets, key=order.index)
+            _require(
+                kwargs.get("revision_target") == expected_target,
+                "EDITORIAL_AUDIT revision_target must match the earliest target in publication_fitnesses",
+            )
         dumped = [item.model_dump(mode="json") for item in fitnesses]
         quality["publication_fitnesses"] = dumped
         evidence_bindings["publication_fitnesses_sha256"] = _canonical_digest(dumped)
@@ -655,6 +682,40 @@ def advance_state(
         _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
         **kwargs,
     )
+
+    if portfolio_context_ref is not None:
+        if (
+            not isinstance(portfolio_context_ref, Mapping)
+            or set(portfolio_context_ref) != {"path", "blob_sha", "sha256", "stage", "generation"}
+        ):
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_INVALID")
+        try:
+            context_path = require_article_path(
+                portfolio_context_ref.get("path"), after["task_id"],
+            )
+        except ValueError as exc:
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_PATH_INVALID") from exc
+        if "/portfolio/contexts/" not in context_path:
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_PATH_SCOPE_INVALID")
+        blob_sha = portfolio_context_ref.get("blob_sha")
+        context_sha = portfolio_context_ref.get("sha256")
+        generation = portfolio_context_ref.get("generation")
+        if (
+            not isinstance(blob_sha, str) or len(blob_sha) != 40
+            or any(char not in "0123456789abcdef" for char in blob_sha)
+            or not isinstance(context_sha, str) or len(context_sha) != 64
+            or any(char not in "0123456789abcdef" for char in context_sha)
+            or not isinstance(generation, int) or generation < 0
+            or portfolio_context_ref.get("stage") != after["current_stage"]
+        ):
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_BINDING_INVALID")
+        evidence_bindings["portfolio_context_ref"] = {
+            "path": context_path,
+            "blob_sha": blob_sha,
+            "sha256": context_sha,
+            "stage": after["current_stage"],
+            "generation": generation,
+        }
 
     if planned_invalidated:
         missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]

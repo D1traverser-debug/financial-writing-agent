@@ -60,7 +60,7 @@ STAGE_KEYS = frozenset({
     "artifact_key", "artifact_path", "artifact_blob_sha", "review_status",
     "revision_target", "delivery_artifacts", "audit_artifact",
     "decision_envelope", "private_research_brief", "story_blueprints",
-    "publication_fitnesses", "requirement_satisfaction",
+    "publication_fitnesses", "requirement_satisfaction", "portfolio_context_ref",
     "supplemental_delivery_artifacts",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
@@ -285,14 +285,27 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         return None
     _require(reader is not None, "FINANCIAL_REQUIRED_STAGE_ARTIFACT_READER_MISSING")
     ref = candidate.get("stage_artifacts", {}).get(key)
-    _require(isinstance(ref, Mapping), "FINANCIAL_REQUIRED_STAGE_ARTIFACT_REFERENCE_MISSING")
+    expected = bindings.get("required_artifact_blob_sha")
+    artifact_path = ref.get("path") if isinstance(ref, Mapping) else None
+    if not isinstance(artifact_path, str):
+        receipt = receipts[-1]
+        output_refs = receipt.get("output_refs", [])
+        state_path = _state_path(candidate["task_id"])
+        candidates = [
+            item for item in output_refs
+            if isinstance(item, str) and item != state_path
+        ] if isinstance(output_refs, list) else []
+        artifact_path = candidates[-1] if candidates else None
     try:
-        path = require_article_path(ref.get("path"), candidate["task_id"])
+        path = require_article_path(artifact_path, candidate["task_id"])
     except ValueError as exc:
         raise FinancialAdmissionError("FINANCIAL_STAGE_ARTIFACT_PATH_INVALID") from exc
-    expected = ref.get("blob_sha")
-    _require(_valid_sha(expected) and bindings.get("required_artifact_blob_sha") == expected,
-             "FINANCIAL_STAGE_ARTIFACT_RECEIPT_SHA_INVALID")
+    _require(
+        _valid_sha(expected)
+        and bindings.get("required_artifact_blob_sha") == expected
+        and (not isinstance(ref, Mapping) or ref.get("blob_sha") == expected),
+        "FINANCIAL_STAGE_ARTIFACT_RECEIPT_SHA_INVALID",
+    )
     try:
         observed = reader(path)
     except Exception as exc:
@@ -984,6 +997,7 @@ def admit_article_action(
     effect_attestation_signer: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     effect_receipt_reader: EffectReceiptReader | None = None,
     artifact_reader: ArtifactReader | None = None,
+    portfolio_context_reader: ArtifactReader | None = None,
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
@@ -1133,6 +1147,72 @@ def admit_article_action(
             method_catalog_reader=method_catalog_reader,
         )
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    portfolio_context_readback = None
+    context_ref = action_bindings.get("portfolio_context_ref") if op == "ADVANCE_STAGE" else None
+    if context_ref is not None:
+        _require(
+            callable(portfolio_context_reader),
+            "FINANCIAL_PORTFOLIO_CONTEXT_READER_REQUIRED",
+        )
+        _require(
+            isinstance(context_ref, Mapping)
+            and set(context_ref) == {"path", "blob_sha", "sha256", "stage", "generation"},
+            "FINANCIAL_PORTFOLIO_CONTEXT_REFERENCE_INVALID",
+        )
+        try:
+            context_path = require_article_path(context_ref.get("path"), candidate["task_id"])
+        except ValueError as exc:
+            raise FinancialAdmissionError("FINANCIAL_PORTFOLIO_CONTEXT_PATH_INVALID") from exc
+        _require("/portfolio/contexts/" in context_path,
+                 "FINANCIAL_PORTFOLIO_CONTEXT_PATH_SCOPE_INVALID")
+        try:
+            observed_context = portfolio_context_reader(context_path)
+        except Exception as exc:
+            raise FinancialEffectUnverified("FINANCIAL_PORTFOLIO_CONTEXT_READ_FAILED") from exc
+        _require(isinstance(observed_context, Mapping),
+                 "FINANCIAL_PORTFOLIO_CONTEXT_BYTES_MISSING")
+        context_content = observed_context.get("content")
+        context_blob_sha = observed_context.get("blob_sha")
+        _require(
+            isinstance(context_content, (str, bytes))
+            and _valid_sha(context_blob_sha)
+            and _blob_sha(context_content) == context_blob_sha == context_ref.get("blob_sha"),
+            "FINANCIAL_PORTFOLIO_CONTEXT_BLOB_SHA_MISMATCH",
+        )
+        context_bytes = context_content.encode("utf-8") if isinstance(context_content, str) else context_content
+        _require(
+            hashlib.sha256(context_bytes).hexdigest() == context_ref.get("sha256"),
+            "FINANCIAL_PORTFOLIO_CONTEXT_SHA256_MISMATCH",
+        )
+        try:
+            context_value = json.loads(context_bytes)
+            from .writing_kernel import validate_portfolio_context
+            validate_portfolio_context(context_value)
+        except Exception as exc:
+            raise FinancialAdmissionError("FINANCIAL_PORTFOLIO_CONTEXT_INVALID") from exc
+        _require(
+            context_value.get("task_id") == candidate["task_id"]
+            and context_value.get("requirement_digest") == candidate.get("task_requirement_digest")
+            and context_value.get("current_stage") == candidate.get("current_stage")
+            and context_value.get("generation") == context_ref.get("generation")
+            and context_ref.get("stage") == candidate.get("current_stage"),
+            "FINANCIAL_PORTFOLIO_CONTEXT_OWNER_BINDING_MISMATCH",
+        )
+        expected_context_status = "BLOCKED" if candidate.get("status") == "BLOCKED" else "ACTIVE"
+        _require(
+            context_value.get("execution_status") == expected_context_status,
+            "FINANCIAL_PORTFOLIO_CONTEXT_OWNER_STATUS_MISMATCH",
+        )
+        portfolio_context_readback = {
+            "path": context_path,
+            "blob_sha": context_blob_sha,
+            "sha256": context_ref["sha256"],
+            "stage": context_ref["stage"],
+            "generation": context_ref["generation"],
+            "assurance": "EXACT_PROVIDER_BYTES_READBACK__SEMANTIC_ACCEPTANCE_OPEN",
+        }
+        action_bindings["portfolio_context_readback"] = portfolio_context_readback
+        current_admission.validate_state(candidate)
     delivery_research_freshness = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
         "DELIVERY", "FINAL_AUDIT",
@@ -1300,6 +1380,7 @@ def admit_article_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
+        "portfolio_context_readback": portfolio_context_readback,
         "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
         "delivery_research_freshness_readback": delivery_research_freshness,
