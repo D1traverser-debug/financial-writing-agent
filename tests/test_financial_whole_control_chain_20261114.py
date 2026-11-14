@@ -179,3 +179,33 @@ def test_whole_control_change_audit_rejects_method_catalog_without_append_only_e
     )
     assert receipt["status"].startswith("REJECTED")
     assert any("METHOD_MUTATION" in v for v in receipt["violations"])
+
+
+def test_whole_chain_rejects_configured_direct_main_writes_and_skill_rollback(tmp_path):
+    work = _copy_project(tmp_path)
+    path = work / "config/EXECUTION_CONTRACT.json"
+    contract = json.loads(path.read_text(encoding="utf-8"))
+    contract["chatgpt_native_execution"]["direct_main_business_mutation_without_guard_allowed"] = True
+    path.write_text(json.dumps(contract, ensure_ascii=False), encoding="utf-8")
+    skill = work / "skills/financial-writing-agent/SKILL.md"
+    skill.write_text(
+        skill.read_text(encoding="utf-8").replace(
+            "signed provider admission", "ChatGPT model discretion"
+        ),
+        encoding="utf-8",
+    )
+    report = project_whole_system(work, head_sha=HEAD)
+    assert "NATIVE_CLIENT_OWNER_EFFECT_GUARD_DRIFT" in report["structural_violations"]
+    assert "NATIVE_CLIENT_INSTRUCTIONS_EFFECT_GUARD_DRIFT" in report["structural_violations"]
+
+
+def test_whole_chain_catches_runtime_dependency_silently_dropped(tmp_path):
+    work = _copy_project(tmp_path)
+    file = work / "config/FINANCIAL_CAPABILITIES.json"
+    caps = json.loads(file.read_text(encoding="utf-8"))
+    caps["required_external_capabilities_at_execution"].remove(
+        "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION"
+    )
+    file.write_text(json.dumps(caps), encoding="utf-8")
+    report = project_whole_system(work, head_sha=HEAD)
+    assert "NATIVE_CLIENT_CAPABILITY_BOUNDARY_DRIFT" in report["structural_violations"]
