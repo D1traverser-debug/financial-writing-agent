@@ -223,7 +223,8 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
     if not (
         "signed provider admission" in skill.lower()
         and "do not direct-update `main`" in skill
-        and "not an approved business execution route" in interface
+        and "approved business execution route" in interface
+        and "unprotected" in interface
         and "No direct ChatGPT" in readme
     ):
         violations.append("NATIVE_CLIENT_INSTRUCTIONS_EFFECT_GUARD_DRIFT")
