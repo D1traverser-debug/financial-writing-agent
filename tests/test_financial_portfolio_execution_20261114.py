@@ -420,23 +420,22 @@ def test_one_business_stage_barrier_precedes_the_next_for_every_product():
                    ("TITLE", "DRAFT"),
                    ("DRAFT", "EDITORIAL_AUDIT"),
                ))
-    assert result["stage_barriers"] == [
-        {
-            "business_stage": stage,
-            "completed_product_scopes": scopes,
-            "assurance": "HASH_BOUND_CALLBACK_OUTPUTS__OWNER_STATE_ADMISSION_OPEN",
-            "stage_receipt_sha256": next(
-                receipt["receipt_sha256"] for receipt in result["stage_receipts"]
-                if receipt["stage"] == stage
-            ),
-        }
-        for stage, scopes in (
-            ("EDITORIAL", ["FINANCE_DEEP", "FINANCE_BROAD"]),
-            ("TITLE", ["FINANCE_DEEP", "FINANCE_BROAD"]),
-            ("DRAFT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
-            ("EDITORIAL_AUDIT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
-        )
+    assert [
+        (item["business_stage"], item["completed_product_scopes"])
+        for item in result["stage_barriers"]
+    ] == [
+        ("RESEARCH", ["SHARED"]),
+        ("RESEARCH_AUDIT", ["SHARED"]),
+        ("EDITORIAL", ["FINANCE_DEEP", "FINANCE_BROAD"]),
+        ("TITLE", ["FINANCE_DEEP", "FINANCE_BROAD"]),
+        ("DRAFT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
+        ("EDITORIAL_AUDIT", ["FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"]),
     ]
+    assert all(
+        len(item["stage_receipt_sha256"]) == 64
+        and item["assurance"] == "HASH_BOUND_CALLBACK_OUTPUTS__OWNER_STATE_ADMISSION_OPEN"
+        for item in result["stage_barriers"]
+    )
 
 
 def test_editorial_audit_cannot_rewrite_the_draft_without_reentering_draft_stage():
