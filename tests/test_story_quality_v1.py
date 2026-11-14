@@ -192,7 +192,12 @@ def test_publication_fitness_pass_cannot_carry_a_revision_target():
             product_mode=ProductMode.FINANCE_DEEP,
             gates=_all_gates(),
             originality_checks=_originality(),
-            assurance="INDEPENDENT_EXECUTOR",
+            assurance="CHAT_SELF_REVIEW",
+            review_scope="INTERNAL_DELIVERY_READINESS",
+            audit_provenance={
+                "assurance": "CHAT_SELF_REVIEW",
+                "reviewed_article_sha256": "a" * 64,
+            },
             final_status=AuditStatus.PASS,
             revision_target="DRAFT",
         )
