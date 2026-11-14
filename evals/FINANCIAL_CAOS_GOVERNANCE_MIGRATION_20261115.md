@@ -1,9 +1,13 @@
 # Financial Writing — CAOS Chat Governance Migration Audit
 
 Date: 2026-11-15
-Status: CANDIDATE__CI_PENDING__NOT_MERGED
+Status: PROMOTED__MAINLINE_CI_VERIFIED
 Repository: `D1traverser-debug/financial-writing-agent`
 Branch: `migration/caos-chat-governance-20261115`
+Merged PR: #85
+Merge commit: `d024da5aff37dcd00cbf69467d8333e0c7d37132`
+Candidate CI: run `43625283711` — PASS (621 tests; 89% line coverage)
+Mainline CI: run `43625755974` — PASS (621 tests; 89% line coverage)
 CAOS source: `D1traverser-debug/cognition-agent-os@main` (read-only)
 
 ## Owner goal
@@ -54,10 +58,14 @@ The old standalone runtime decision is preserved; only the governance authority 
 
 The old CAOS-hosted integration in PR #52, the standalone replacement in PR #60, the final parent-pointer cleanup in PR #62, the retired UAOS experiments and the asset-governance migration remain historical evidence. They are not current startup instructions or active runtime dependencies. This migration does not rewrite Git history or delete historical branches.
 
-## Acceptance still required
+## Acceptance — passed
 
-- Exact-head Financial full CI and static/whole-tree audits.
-- Fresh independent code and security review against the final PR head.
-- Review the actual mainline readback and post-merge CI.
-- Independently confirm no active UAOS binding, no reintroduced parent runtime and no changed article/business state.
-- Financial's real authenticated provider effects, independent editorial acceptance and real reader outcome remain separate NOT_READY gates; CAOS governance migration does not promote them.
+- Exact-head CI run `43625283711`: 621 tests passed, 89% source line coverage; static single-owner/legacy audit passed, standalone wheel/install smoke passed, DOCX render smoke passed.
+- Fresh full Codex code review on `c28410e3925276f3bd040acdcfba69dd5cb0d993`: no major issues.
+- Manual security review confirmed the PR changes only governance metadata, documentation, static audit and tests; no article business state, method catalog, signed effect history or provider runtime was changed. No CAOS runtime/API/upcall/permission grant was introduced. The GitHub integration returned no separate security-review receipt.
+- PR #85 merged to main as `d024da5aff37dcd00cbf69467d8333e0c7d37132`.
+- Mainline CI run `43625755974`: 621 tests passed, 89% source line coverage; standalone wheel/install and Word rendering smoke passed.
+- Mainline has no active `.uaos/`, `UAOS_SKILL.md`, `CAOS_SKILL.md` or `docs/CAOS_CHILD_INTERFACE.md` paths.
+- CAOS source remains read-only and unchanged.
+
+Governance migration is complete. Financial live provider signing, native client activation, independent editorial acceptance and real reader outcomes remain separate NOT_READY gates.
