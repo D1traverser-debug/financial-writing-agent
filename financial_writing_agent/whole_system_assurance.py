@@ -306,3 +306,144 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
             "CLOSE_AUTHENTICATED_EXECUTION_PATH_AND_INDEPENDENT_BUSINESS_EVIDENCE__NO_UNREQUESTED_ARTICLE_PRODUCTION"
         ),
     }
+
+
+def audit_repository_business_changes(
+    changed_paths: list[str],
+    *,
+    before_reader: Any,
+    after_reader: Any,
+) -> dict[str, Any]:
+    """Cross-entry effect audit for GitHub PR/main production comparisons.
+
+    Reads exact two-revision bytes with injected provider readers. An LLM writing
+    files on GitHub does NOT itself execute current_admission or prove owner
+    approval; newly changed owner state must carry a provider-verifiable signed
+    action and pass the canonical owner-state transition checker. Historical
+    workspaces are not mutable present-tense truth. This is an additional CI
+    detector, NOT branch-protection/independent provider attestation.
+    """
+    violations: list[str] = []
+    reviewed: list[dict[str, str]] = []
+    article_tasks: dict[str, set[str]] = {}
+    for rel in sorted(set(changed_paths)):
+        if not isinstance(rel, str) or not rel.strip() or rel.startswith("/") or ".." in Path(rel).parts:
+            violations.append("INVALID_MUTATION_PATH")
+            continue
+        path = Path(rel)
+        if path.as_posix() == "knowledge/METHOD_KNOWLEDGE_CATALOG.json":
+            old_bytes, new_bytes = before_reader(rel), after_reader(rel)
+            if not isinstance(old_bytes, bytes) or not isinstance(new_bytes, bytes):
+                violations.append("METHOD_AUTHORITY_REMOVED_OR_UNREADABLE")
+            else:
+                try:
+                    old = validate_method_catalog(json.loads(old_bytes))
+                    new = validate_method_catalog(json.loads(new_bytes))
+                    earlier = old.get("change_history", [])
+                    later = new.get("change_history", [])
+                    if not (len(later) == len(earlier) + 1
+                            and later[:-1] == earlier
+                            and new.get("governance_revision") == old.get("governance_revision", 0) + 1):
+                        violations.append("METHOD_MUTATION_HISTORY_NOT_APPEND_ONLY")
+                except (ValueError, TypeError, KeyError) as exc:
+                    violations.append("METHOD_MUTATION_NOT_PROVIDER_ADMITTED:" + str(exc)[:180])
+            reviewed.append({"path": rel, "scope": "METHOD_AUTHORITY"})
+            continue
+        if path.parts[:2] != ("workspaces", "articles"):
+            continue
+        if len(path.parts) < 4:
+            violations.append("INVALID_ARTICLE_WORKSPACE_MUTATION")
+            continue
+        article_tasks.setdefault(path.parts[2], set()).add(rel)
+
+    for task_id, touched in sorted(article_tasks.items()):
+        prefix = f"workspaces/articles/{task_id}/"
+        state_ref = prefix + "STATE.json"
+        marker_ref = prefix + "ARTIFACT_STATUS.json"
+        old_marker = before_reader(marker_ref)
+        new_marker = after_reader(marker_ref)
+        marker_raw = old_marker if old_marker is not None else new_marker
+        if marker_raw is not None:
+            try:
+                marker = json.loads(marker_raw)
+                if marker.get("workspace_lifecycle") == "MIGRATED_HISTORY":
+                    violations.append("MIGRATED_ARTICLE_HISTORY_MUTATED:" + task_id)
+                    reviewed.append({"path": prefix, "scope": "IMMUTABLE_HISTORY"})
+                    continue
+            except (ValueError, TypeError, AttributeError):
+                violations.append("ARTICLE_LIFECYCLE_MARKER_UNREADABLE:" + task_id)
+                continue
+        prior_raw = before_reader(state_ref)
+        candidate_raw = after_reader(state_ref)
+        if state_ref not in touched:
+            violations.append("ARTICLE_ARTIFACT_CHANGED_WITHOUT_STATE_REVISION:" + task_id)
+            reviewed.append({"path": state_ref, "scope": "OWNER_ARTICLE_MUTATION"})
+            continue
+        if not isinstance(candidate_raw, bytes):
+            violations.append("OWNER_ARTICLE_STATE_DELETED_OR_UNREADABLE:" + task_id)
+            continue
+        try:
+            candidate = json.loads(candidate_raw)
+            validate_current_state(candidate)
+            if candidate.get("task_id") != task_id:
+                raise ValueError("ARTICLE_ID_PATH_MISMATCH")
+            if prior_raw is None:
+                before = None
+                previous_sha = None
+                if candidate.get("current_stage") != "INTAKE" or len(candidate.get("execution_receipts", [])) != 1:
+                    raise ValueError("NEW_ARTICLE_MUST_START_AT_INTAKE")
+            else:
+                before = json.loads(prior_raw)
+                validate_current_state(before)
+                previous_sha = _git_blob_sha(prior_raw)
+                prior_receipts = before.get("execution_receipts", [])
+                next_receipts = candidate.get("execution_receipts", [])
+                if not (len(next_receipts) == len(prior_receipts) + 1
+                        and next_receipts[:-1] == prior_receipts):
+                    raise ValueError("ARTICLE_RECEIPT_HISTORY_NOT_APPEND_ONLY")
+            last_receipt = candidate["execution_receipts"][-1]
+            bindings = last_receipt.get("input_bindings", {})
+            if not (isinstance(bindings, Mapping)
+                    and bindings.get("authorization_contract_version") == "1.0"
+                    and isinstance(bindings.get("authorization_verification"), Mapping)):
+                raise ValueError("UNSIGNED_NATIVE_CHAT_ARTICLE_MUTATION_DENIED")
+            claimed_previous = bindings.get("previous_state_blob_sha")
+            if claimed_previous != ("NEW_FILE" if previous_sha is None else previous_sha):
+                raise ValueError("ARTICLE_PREVIOUS_GIT_BLOB_MISMATCH")
+            from .standalone_runtime import _verify_persisted_action_authorization_history
+            _verify_persisted_action_authorization_history(candidate)
+            operation = bindings["authorization_verification"].get("operation")
+            if before is not None:
+                from .owner_guard import validate_feedback_update, validate_transition
+                if operation == "ADVANCE_STAGE":
+                    validate_transition(
+                        before, candidate, previous_state_blob_sha=previous_sha,
+                    )
+                elif operation == "ATTACH_FEEDBACK":
+                    validate_feedback_update(
+                        before, candidate, previous_state_blob_sha=previous_sha,
+                    )
+                else:
+                    # Do not mistake a signed *intention* for a proof that
+                    # arbitrary before/after bytes equal a legal owner effect.
+                    raise ValueError("UNREPLAYED_OWNER_OPERATION_REQUIRES_EXECUTABLE_ADAPTER:" + str(operation))
+            elif operation != "CREATE_ARTICLE":
+                raise ValueError("NEW_ARTICLE_NOT_AUTHORIZED_AS_CREATE")
+        except (ValueError, KeyError, TypeError) as exc:
+            violations.append("OWNER_ARTICLE_MUTATION_NOT_ADMITTED:" + task_id + ":" + str(exc)[:240])
+        reviewed.append({"path": state_ref, "scope": "OWNER_ARTICLE_MUTATION"})
+
+    return {
+        "schema_version": "1.0",
+        "business_paths_changed": sum(
+            int(item["scope"] in {"OWNER_ARTICLE_MUTATION", "METHOD_AUTHORITY", "IMMUTABLE_HISTORY"})
+            for item in reviewed
+        ),
+        "reviewed_effect_boundaries": reviewed,
+        "violations": sorted(set(violations)),
+        "status": (
+            "REJECTED__UNTRUSTED_OR_UNREPLAYED_BUSINESS_CHANGE" if violations
+            else "NO_UNADMITTED_BUSINESS_CHANGE_OBSERVED"
+        ),
+        "assurance": "DETERMINISTIC_TWO_REVISION_AUDIT__NOT_BRANCH_PROTECTION_OR_EXTERNAL_BUSINESS_OUTCOME",
+    }
