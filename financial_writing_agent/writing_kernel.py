@@ -1763,6 +1763,18 @@ def execute_portfolio_writing(
             execute_pass=execute_pass,
             research_audit=research_audit if stage == "RESEARCH_AUDIT" else None,
         )
+        outcome = context["last_stage_result"]
+        if outcome["status"] == "REVISE":
+            if stage == "EDITORIAL_AUDIT":
+                revised_modes = [
+                    mode for mode, item in context["products"].items()
+                    if item.get("publication_fitness", {}).get("final_status") == "REVISE"
+                ]
+                mode = revised_modes[0] if revised_modes else "PORTFOLIO"
+                raise WritingPassExecutionError(f"PORTFOLIO_PUBLICATION_FITNESS_REVISE:{mode}")
+            raise WritingPassExecutionError(f"PORTFOLIO_STAGE_REVISE:{stage}:{outcome['revision_target']}")
+        if outcome["status"] == "FAIL":
+            raise WritingPassExecutionError(f"PORTFOLIO_STAGE_FAILED:{stage}")
 
     products = context["products"]
     longform_products = {
