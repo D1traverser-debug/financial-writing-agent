@@ -1101,17 +1101,28 @@ def execute_portfolio_writing(
     }
     modes = list(products)
     interaction_required = interaction_product is not None
+    if len(longform_products) > 1:
+        texts = [
+            "".join(_publication_text(item["publication_candidate"]).split())
+            for item in longform_products.values()
+        ]
+        if len(set(texts)) != len(texts):
+            raise WritingPassExecutionError("PORTFOLIO_LONGFORM_BODY_CLONED")
     stage_barriers = [
         {
             "business_stage": receipt["stage"],
-            "completed_product_scopes": [
-                *modes,
-                *(
-                    ["PLATFORM_INTERACTION"]
-                    if interaction_required and receipt["stage"] in {"DRAFT", "EDITORIAL_AUDIT"}
-                    else []
-                ),
-            ],
+            "completed_product_scopes": (
+                ["SHARED"]
+                if receipt["stage"] in {"RESEARCH", "RESEARCH_AUDIT"}
+                else [
+                    *modes,
+                    *(
+                        ["PLATFORM_INTERACTION"]
+                        if interaction_required and receipt["stage"] in {"DRAFT", "EDITORIAL_AUDIT"}
+                        else []
+                    ),
+                ]
+            ),
             "assurance": "HASH_BOUND_CALLBACK_OUTPUTS__OWNER_STATE_ADMISSION_OPEN",
             "stage_receipt_sha256": receipt["receipt_sha256"],
         }
