@@ -70,4 +70,4 @@ Method lifecycle: candidate → revise pending → independently validate/promot
 Keep material failure chronology and rejected hypotheses in the problem journal; `EVOLUTION_INDEX.json` remains the only current system-status authority. Every repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and legitimate-neighbor cases, reads back the exact result and preserves remaining OPEN conditions. System engineering, live provider integration, client activation, independent review, real article quality and user-visible delivery are separate acceptance gates.
 
 ## Effect writes
-Article writes need signed auth v1.1 + effect receipt v1.0, atomic CAS and exact reread; no signer means no state mutation. Legacy v1.0 stays unbound.
+Article writes need signed auth v1.1 + effect receipt v1.0, atomic CAS and exact reread; no signer means no state mutation. standalone_runtime.py is the authenticated port; do not direct-update `main`. Legacy v1.0 stays unbound.
