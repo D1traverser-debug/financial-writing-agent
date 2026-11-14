@@ -15,13 +15,16 @@
     "original_user_message_reader",
     "owner_semantic_verifier",
     "actual_github_provider_CAS",
-    "independent_external_reviewer"
+    "independent_external_reviewer",
+    "provider_signed_action_effect_attestation",
+    "atomic_state_and_effect_receipt_bundle_cas",
+    "exact_effect_receipt_blob_readback"
   ],
   "caos_dependency": "NONE",
   "active_execution_model": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR",
   "required_companion_connector": "GITHUB_CONNECTOR_READ_WRITE",
   "custom_hosted_python_mcp_required": false,
-  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA_AND_EXACT_READBACK",
+  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA_AND_EXACT_READBACK__STATE_AND_SIGNED_EFFECT_RECEIPT_IN_ONE_ATOMIC_COMMIT",
   "version": "0.1.2",
   "discoverability": "PRIVATE"
 }

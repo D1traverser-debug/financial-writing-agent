@@ -29,7 +29,7 @@ def main():
     require(manifest["provider_adapter"]=="financial_writing_agent.standalone_runtime","Financial reference adapter entry missing")
     native=manifest["chatgpt_native_runtime"]
     require(native["orchestrator"]=="CHATGPT_MODEL_WITH_FINANCIAL_SKILL" and native["persistence_provider"]=="CONNECTED_USER_GITHUB_CONNECTOR","native ChatGPT runtime/provider missing")
-    require(native["requires_hosted_python_mcp"] is False and native["write_protocol"]=="GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA","native GitHub CAS contract drift")
+    require(native["requires_hosted_python_mcp"] is False and native["write_protocol"]=="GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__STATE_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE","native GitHub CAS contract drift")
     require(manifest["external_parent_required"] is False and manifest["external_host_required"] is False,"external parent/Host became mandatory")
     require(caps["independent_parent_free"] is True and caps["independence_clause"]=="NO_EXTERNAL_PARENT_REPOSITORY_OR_HOST_INVOCATION","external runtime dependency declared")
     require(contract["execution"]["route_selection"]=="DIRECT_FINANCIAL_ONLY" and contract["execution"]["direct_domain_activation"] is True,"execution is no longer direct Financial")

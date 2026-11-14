@@ -44,6 +44,10 @@ def signed_action_authorization(request):
     )
 
 
+def signed_action_effect(claims):
+    return signed_attestation("action_effect", **dict(claims))
+
+
 def signed_owner_message(source_ref: str, text: str, *, source_role="user",
                          actor: str | None = None, sha256: str | None = None):
     return signed_attestation(

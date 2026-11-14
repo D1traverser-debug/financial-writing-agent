@@ -11,7 +11,8 @@ from test_financial_goal_intent_governance_20261112 import (
     Provider, SOURCE, TASK, _reader, create, requirement, _proof,
 )
 from trusted_provider_testkit import (
-    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
+    signed_action_authorization, signed_action_effect,
+    signed_owner_change_approval, signed_owner_message,
 )
 
 WRONG = "财经Deep只能保留3家公司。"
@@ -40,6 +41,9 @@ def _submit(provider, statement, *, semantic_verifier=None,
     return admit_article_action(
         proposal, state_reader=provider.read, cas_writer=provider.write,
         authorization_verifier=signed_action_authorization,
+        bundle_cas_writer=provider.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=provider.read_effect,
         artifact_reader=provider.artifact,
         source_snapshot_reader=provider.source,
         owner_instruction_reader=_reader(source),
@@ -91,7 +95,11 @@ def test_red_nonbinding_intent_cannot_quote_a_selective_substring():
                 "parameters": {"intent_evidence": proof, "summary": "selective quote"},
             },
             state_reader=p.read, cas_writer=p.write,
-            authorization_verifier=signed_action_authorization, artifact_reader=p.artifact,
+            authorization_verifier=signed_action_authorization,
+            bundle_cas_writer=p.write_bundle,
+            effect_attestation_signer=signed_action_effect,
+            effect_receipt_reader=p.read_effect,
+            artifact_reader=p.artifact,
             owner_instruction_reader=lambda ref: signed_owner_message(ref, original),
         )
     assert p.states == frozen
@@ -159,6 +167,9 @@ def test_green_one_full_owner_message_can_be_decomposed_into_multiple_confirmed_
     result = admit_article_action(
         proposal, state_reader=p.read, cas_writer=p.write,
         authorization_verifier=signed_action_authorization,
+        bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
         artifact_reader=p.artifact, source_snapshot_reader=p.source,
         owner_instruction_reader=_reader(original),
         owner_semantic_verifier=accepted_owner_approval,

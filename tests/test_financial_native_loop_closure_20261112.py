@@ -18,7 +18,7 @@ from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, _blob_sha,
     admit_article_action, observe_article,
 )
-from trusted_provider_testkit import signed_action_authorization
+from trusted_provider_testkit import signed_action_authorization, signed_action_effect
 from test_current_admission_v1 import EDITORIAL_ATTESTATIONS
 
 FIXTURE = Path(__file__).resolve().parents[1] / "evals/FINANCIAL_WRITING_KERNEL_DECISION_ENVELOPE_2026-10-15.json"
@@ -48,6 +48,26 @@ class Provider:
         self.states[path] = content
         return {"blob_sha": _blob_sha(content), "commit_ref": "synthetic-provider"}
 
+    def read_effect(self, path):
+        raw = self.states.get(path)
+        return None if raw is None else {"content": raw, "blob_sha": _blob_sha(raw)}
+
+    def write_bundle(self, path, expected, files):
+        old = self.states.get(path)
+        if expected is None:
+            if old is not None:
+                raise RuntimeError("create-only")
+        elif old is None or _blob_sha(old) != expected:
+            raise RuntimeError("CAS stale")
+        for ref in files:
+            if ref != path and ref in self.states:
+                raise RuntimeError("effect receipt already exists")
+        self.states.update(files)
+        return {
+            "blob_shas": {ref: _blob_sha(raw) for ref, raw in files.items()},
+            "commit_ref": "synthetic-provider-bundle",
+        }
+
     def artifact(self, path):
         raw = self.artifacts.get(path)
         return None if raw is None else {"content": raw, "blob_sha": _blob_sha(raw)}
@@ -68,6 +88,9 @@ def act(p, operation, params=None, *, auth=None, sha=None):
         "parameters": params or {},
     }, state_reader=p.read, cas_writer=p.write,
        authorization_verifier=auth or signed_action_authorization,
+       bundle_cas_writer=p.write_bundle,
+       effect_attestation_signer=signed_action_effect,
+       effect_receipt_reader=p.read_effect,
        artifact_reader=p.artifact, source_snapshot_reader=p.source,
        independent_editorial_verifier=editorial_verifier)
 
@@ -169,7 +192,7 @@ def into_research_audit(p):
         **stage_artifact(p, "RESEARCH"),
         "decision_envelope": decision, "private_research_brief": brief,
     })
-    assert observe_article(TASK, state_reader=p.read)["stage"] == "RESEARCH_AUDIT"
+    assert observe_article(TASK, state_reader=p.read, effect_receipt_reader=p.read_effect)["stage"] == "RESEARCH_AUDIT"
 
 
 def block(p, target="RESEARCH"):
@@ -288,7 +311,7 @@ def test_read_only_observation_reports_real_blocker_and_next_action():
     into_research_audit(p)
     block(p)
     before = deepcopy(p.states)
-    observation = observe_article(TASK, state_reader=p.read)
+    observation = observe_article(TASK, state_reader=p.read, effect_receipt_reader=p.read_effect)
     assert observation["next_action"]
     assert observation["blocked_recovery_target"] == "RESEARCH"
     assert observation["open_system_impact"] == [{"signal_id": "synthetic-open-obligation", "status": "OPEN"}]

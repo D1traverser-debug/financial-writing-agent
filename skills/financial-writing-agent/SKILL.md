@@ -48,7 +48,7 @@ Execute the legal next step: retrieve sources, research, write, challenge, rende
 
 ## Standalone runtime and trust boundary
 
-GitHub reads `main`; drafts stage on candidate branches using `fetch_file`, `create_blob`, `create_tree`, `create_commit`, `update_ref(expected_sha)`. For any owner `STATE.json`, article artifact or method catalog mutation, first use a genuinely authenticated `standalone_runtime.py` action port, or stage a PR that passes `system_acceptance_report.py`'s exact base/head **two-revision business-effect audit** with provider-signed authorization. Do not direct-update `main` as a substitute for executable `current_admission`. `update_file`/blob-tree-commit/expected-SHA/readback prove Git effects only; they do not supply owner approval. In Skill-only chat without the signer/runner, keep that business mutation OPEN and continue lawful read-only research and reversible drafting. Human confirmation is necessary but not a fake HMAC signature. System reconstruction does not authorize new article publication. See `docs/STANDALONE_INTERFACE.md`.
+GitHub reads main; drafts stage on candidate branches using fetch_file/create_blob/create_tree/create_commit/update_ref(expected_sha). Article STATE/artifact/method writes require an authenticated standalone_runtime port or a PR passing the exact base/head audit with signed owner authorization. Every new article mutation also needs a provider-signed effect receipt v1.0 atomically committed with STATE and both exact blobs reread. Never direct-update main. Git CAS is not owner approval. Without signer/runner, keep business mutation OPEN; continue read-only research and reversible drafting. Human confirmation is not a provider signature. See docs/STANDALONE_INTERFACE.md.
 
 
 ## Current research and publication evidence
@@ -68,3 +68,6 @@ Requirement changes preserve the complete original user utterance. Decompose it 
 Method lifecycle: candidate → revise pending → independently validate/promote → challenge/suspend → soft-retire → restore as candidate → externally verify impact. Preserve provenance, scope, fit/misfit, counterexamples, version digest and revalidation triggers. Pending methods never replace active methods. Bind admitted method IDs/versions to research receipts; a changed method reopens only the earliest affected stage. Never invent impact closure or independent reviewers.
 
 Keep material failure chronology and rejected hypotheses in the problem journal; `EVOLUTION_INDEX.json` remains the only current system-status authority. Every repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and legitimate-neighbor cases, reads back the exact result and preserves remaining OPEN conditions. System engineering, live provider integration, client activation, independent review, real article quality and user-visible delivery are separate acceptance gates.
+
+## Effect writes
+Article writes need signed auth v1.1 + effect receipt v1.0, atomic CAS and exact reread; no signer means no state mutation. standalone_runtime.py is the authenticated port; do not direct-update `main`. Legacy v1.0 stays unbound.

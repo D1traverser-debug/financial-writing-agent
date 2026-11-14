@@ -67,3 +67,7 @@ python scripts/whole_tree_audit.py
 ```
 
 CI also builds and installs an isolated wheel and renders Word products. Engineering PASS remains separate from real article and reader acceptance.
+
+## Authenticated article effects
+
+New article mutations require both a signed request authorization and a separately signed effect receipt bound to the exact resulting STATE.json Git blob. The state and actions/<action_id>.effect.json receipt are written in one atomic CAS commit and independently read back. Historical signed v1.0 receipts remain explicitly effect-unbound; new writes use authorization v1.1 plus effect receipt v1.0. The live authenticated provider remains an external acceptance gate; synthetic CI does not certify it.

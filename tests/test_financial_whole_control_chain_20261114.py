@@ -13,6 +13,9 @@ from financial_writing_agent.whole_system_assurance import (
     inspect_active_article,
     project_whole_system, audit_repository_business_changes,
 )
+from financial_writing_agent.current_admission import build_initial_state
+from financial_writing_agent.provider_attestation import payload_sha256, request_sha256
+from trusted_provider_testkit import signed_action_authorization, signed_action_effect
 
 ROOT = Path(__file__).resolve().parents[1]
 HEAD = "a" * 40
@@ -199,6 +202,28 @@ def test_whole_chain_rejects_configured_direct_main_writes_and_skill_rollback(tm
     assert "NATIVE_CLIENT_INSTRUCTIONS_EFFECT_GUARD_DRIFT" in report["structural_violations"]
 
 
+def test_whole_chain_requires_signed_effect_receipt_and_atomic_bundle_cas_contract(tmp_path):
+    work = _copy_project(tmp_path)
+    capabilities = work / "config/FINANCIAL_CAPABILITIES.json"
+    data = json.loads(capabilities.read_text(encoding="utf-8"))
+    data["required_external_capabilities_at_execution"].remove(
+        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_STATE_MUTATION"
+    )
+    capabilities.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    report = project_whole_system(work, head_sha=HEAD)
+    assert "NATIVE_CLIENT_CAPABILITY_BOUNDARY_DRIFT" in report["structural_violations"]
+
+    contract_root = tmp_path / "contract-drift"
+    contract_root.mkdir()
+    work = _copy_project(contract_root)
+    contract_path = work / "config/EXECUTION_CONTRACT.json"
+    contract = json.loads(contract_path.read_text(encoding="utf-8"))
+    contract["chatgpt_native_execution"]["business_effect_receipt_contract"] = "AUTHORIZATION_ONLY"
+    contract_path.write_text(json.dumps(contract, ensure_ascii=False), encoding="utf-8")
+    report = project_whole_system(work, head_sha=HEAD)
+    assert "NATIVE_CLIENT_OWNER_EFFECT_GUARD_DRIFT" in report["structural_violations"]
+
+
 def test_whole_chain_catches_runtime_dependency_silently_dropped(tmp_path):
     work = _copy_project(tmp_path)
     file = work / "config/FINANCIAL_CAPABILITIES.json"
@@ -209,3 +234,82 @@ def test_whole_chain_catches_runtime_dependency_silently_dropped(tmp_path):
     file.write_text(json.dumps(caps), encoding="utf-8")
     report = project_whole_system(work, head_sha=HEAD)
     assert "NATIVE_CLIENT_CAPABILITY_BOUNDARY_DRIFT" in report["structural_violations"]
+
+def _effect_bound_create_fixture():
+    task_id = "audit-effect-binding-001"
+    action_id = "audit-create-effect-001"
+    prompt = "Synthetic owner-authorized article task for effect-binding audit."
+    request = {
+        "schema_version": "1.0",
+        "domain_id": "financial_writing",
+        "action_id": action_id,
+        "task_id": task_id,
+        "operation": "CREATE_ARTICLE",
+        "expected_state_blob_sha": None,
+        "parameters": {"prompt": prompt, "source_refs": []},
+    }
+    state = build_initial_state(
+        task_id=task_id,
+        prompt=prompt,
+        source_refs=[],
+        executor_identity=f"financial:{action_id}",
+    )
+    effect_ref = f"workspaces/articles/{task_id}/actions/{action_id}.effect.json"
+    bindings = state["execution_receipts"][-1]["input_bindings"]
+    bindings["previous_state_blob_sha"] = "NEW_FILE"
+    bindings["authorization_contract_version"] = "1.1"
+    authorization = signed_action_authorization(request)
+    bindings["authorization_verification"] = authorization
+    bindings["effect_contract_version"] = "1.0"
+    bindings["effect_receipt_ref"] = effect_ref
+    state_raw = (json.dumps(state, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    effect = signed_action_effect({
+        "approved": True,
+        "action_id": action_id,
+        "task_id": task_id,
+        "operation": "CREATE_ARTICLE",
+        "previous_state_blob_sha": "NEW_FILE",
+        "resulting_state_blob_sha": _git_blob_sha(state_raw),
+        "request_sha256": request_sha256(request),
+        "authorization_sha256": payload_sha256(authorization),
+        "effect_contract_version": "1.0",
+        "admission_runtime": "financial_writing_agent.standalone_runtime.admit_article_action",
+    })
+    effect_raw = (json.dumps(effect, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    state_ref = f"workspaces/articles/{task_id}/STATE.json"
+    return state_ref, effect_ref, state_raw, effect_raw
+
+
+def test_whole_control_audit_requires_signed_effect_bound_to_exact_result_bytes():
+    state_ref, effect_ref, state_raw, effect_raw = _effect_bound_create_fixture()
+    files = {state_ref: state_raw, effect_ref: effect_raw}
+    accepted = audit_repository_business_changes(
+        [state_ref, effect_ref],
+        before_reader=lambda _: None,
+        after_reader=lambda ref: files.get(ref),
+    )
+    assert accepted["status"] == "NO_UNADMITTED_BUSINESS_CHANGE_OBSERVED"
+    assert accepted["violations"] == []
+
+    missing = audit_repository_business_changes(
+        [state_ref, effect_ref],
+        before_reader=lambda _: None,
+        after_reader=lambda ref: state_raw if ref == state_ref else None,
+    )
+    assert missing["status"].startswith("REJECTED")
+    assert any("ACTION_EFFECT" in issue or "EFFECT_RECEIPT" in issue
+               for issue in missing["violations"])
+
+    tampered = json.loads(state_raw)
+    tampered["next_action"] = "A_DIFFERENT_BUT_STRUCTURALLY_VALID_ACTION"
+    tampered_raw = (json.dumps(tampered, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    changed = {state_ref: tampered_raw, effect_ref: effect_raw}
+    rejected = audit_repository_business_changes(
+        [state_ref, effect_ref],
+        before_reader=lambda _: None,
+        after_reader=lambda ref: changed.get(ref),
+    )
+    assert rejected["status"].startswith("REJECTED")
+    assert any("ARTICLE_EFFECT_RESULT_STATE_SHA_MISMATCH" in issue
+               for issue in rejected["violations"])
+

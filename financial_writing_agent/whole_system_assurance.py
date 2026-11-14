@@ -117,6 +117,61 @@ def inspect_active_article(root: Path, state_path: Path) -> dict[str, Any]:
         })
         if not valid:
             errors.append(f"STAGE_ARTIFACT_READBACK_FAILED:{stage_key}")
+    effect_readbacks = []
+    state_blob_sha = _git_blob_sha(state_path.read_bytes())
+    for index, receipt in enumerate(state.get("execution_receipts", [])):
+        bindings = receipt.get("input_bindings", {}) if isinstance(receipt, Mapping) else {}
+        version = bindings.get("authorization_contract_version") if isinstance(bindings, Mapping) else None
+        if version == "1.0":
+            effect_readbacks.append({
+                "action_id": str(receipt.get("executor_identity", "")).removeprefix("financial:"),
+                "status": "LEGACY__SIGNED_AUTHORIZATION_WITHOUT_RESULT_BINDING",
+            })
+            continue
+        if version != "1.1":
+            continue
+        action_id = str(receipt.get("executor_identity", "")).removeprefix("financial:")
+        expected_effect_ref = f"workspaces/articles/{task_id}/actions/{action_id}.effect.json"
+        effect_ref = bindings.get("effect_receipt_ref")
+        if effect_ref != expected_effect_ref:
+            errors.append("ACTION_EFFECT_RECEIPT_PATH_MISMATCH")
+            effect_readbacks.append({"action_id": action_id, "status": "INVALID_PATH"})
+            continue
+        effect_path = root / expected_effect_ref
+        if not effect_path.is_file():
+            errors.append("ACTION_EFFECT_RECEIPT_MISSING")
+            effect_readbacks.append({"action_id": action_id, "status": "MISSING"})
+            continue
+        try:
+            effect = json.loads(effect_path.read_text(encoding="utf-8"))
+        except (OSError, ValueError, TypeError):
+            errors.append("ACTION_EFFECT_RECEIPT_JSON_INVALID")
+            effect_readbacks.append({"action_id": action_id, "status": "INVALID_JSON"})
+            continue
+        result_sha = effect.get("resulting_state_blob_sha") if isinstance(effect, Mapping) else None
+        structurally_valid = (
+            isinstance(effect, Mapping)
+            and effect.get("action_id") == action_id
+            and effect.get("task_id") == task_id
+            and isinstance(result_sha, str)
+            and re.fullmatch(r"[a-f0-9]{40}", result_sha) is not None
+        )
+        if not structurally_valid:
+            errors.append("ACTION_EFFECT_RECEIPT_FIELDS_INVALID")
+        if index == len(state.get("execution_receipts", [])) - 1 and result_sha != state_blob_sha:
+            errors.append("LATEST_ACTION_EFFECT_STATE_SHA_MISMATCH")
+        effect_readbacks.append({
+            "action_id": action_id,
+            "path": expected_effect_ref,
+            "resulting_state_blob_sha_matches_current": (
+                index == len(state.get("execution_receipts", [])) - 1
+                and result_sha == state_blob_sha
+            ),
+            "status": (
+                "PRESENT__STRUCTURAL_ONLY_SIGNATURE_VERIFIED_IN_REVISION_AUDIT"
+                if structurally_valid else "INVALID"
+            ),
+        })
     expected = state.get("required_outputs", [])
     delivered = state.get("delivery_artifacts", {})
     output_keys = set(delivered) if isinstance(delivered, Mapping) else set()
@@ -168,6 +223,7 @@ def inspect_active_article(root: Path, state_path: Path) -> dict[str, Any]:
         ),
         "source_readbacks": source_observations,
         "stage_artifact_readbacks": stage_readbacks,
+        "action_effect_receipt_readbacks": effect_readbacks,
         "open_obligations": open_steps,
         "structural_violations": sorted(set(errors)),
         "business_outcome": "NOT_READY__LIVE_EXTERNAL_RESULT_NOT_PROVEN",
@@ -205,6 +261,8 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
         and client.get("owner_mutation_guard")
         == "financial_writing_agent.whole_system_assurance.audit_repository_business_changes"
         and client.get("candidate_review_entry") == "scripts/system_acceptance_report.py"
+        and client.get("business_effect_receipt_contract")
+        == "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__STATE_AND_RECEIPT_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
         and client.get("native_client_signed_provider_installed_and_tested") is False
     )
     if not expected_guard:
@@ -213,17 +271,25 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
         item.get("id") for item in capability.get("capabilities", [])
         if isinstance(item, Mapping)
     }
-    if "chatgpt_native_execution_and_github_persistence" not in capability_ids or (
-            "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION"
-            not in capability.get("required_external_capabilities_at_execution", [])):
+    required_effect_capabilities = {
+        "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION",
+        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_STATE_MUTATION",
+        "ATOMIC_STATE_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK",
+    }
+    if "chatgpt_native_execution_and_github_persistence" not in capability_ids or not (
+            required_effect_capabilities.issubset(
+                set(capability.get("required_external_capabilities_at_execution", []))
+            )):
         violations.append("NATIVE_CLIENT_CAPABILITY_BOUNDARY_DRIFT")
     skill = (root / config["skill_entrypoint"]).read_text(encoding="utf-8")
     readme = (root / "README.md").read_text(encoding="utf-8")
     interface = (root / "docs/STANDALONE_INTERFACE.md").read_text(encoding="utf-8")
     if not (
         "signed provider admission" in skill.lower()
+        and "effect receipt" in skill.lower()
         and "do not direct-update `main`" in skill.lower()
         and "approved business execution route" in interface
+        and "effect receipt" in interface.lower()
         and "unprotected" in interface
         and "No direct ChatGPT" in readme
     ):
@@ -436,14 +502,41 @@ def audit_repository_business_changes(
             last_receipt = candidate["execution_receipts"][-1]
             bindings = last_receipt.get("input_bindings", {})
             if not (isinstance(bindings, Mapping)
-                    and bindings.get("authorization_contract_version") == "1.0"
+                    and bindings.get("authorization_contract_version") == "1.1"
+                    and bindings.get("effect_contract_version") == "1.0"
                     and isinstance(bindings.get("authorization_verification"), Mapping)):
-                raise ValueError("UNSIGNED_NATIVE_CHAT_ARTICLE_MUTATION_DENIED")
+                raise ValueError("UNSIGNED_OR_EFFECT_UNBOUND_NATIVE_CHAT_ARTICLE_MUTATION_DENIED")
             claimed_previous = bindings.get("previous_state_blob_sha")
-            if claimed_previous != ("NEW_FILE" if previous_sha is None else previous_sha):
+            expected_previous = "NEW_FILE" if previous_sha is None else previous_sha
+            if claimed_previous != expected_previous:
                 raise ValueError("ARTICLE_PREVIOUS_GIT_BLOB_MISMATCH")
-            from .standalone_runtime import _verify_persisted_action_authorization_history
-            _verify_persisted_action_authorization_history(candidate)
+            action_id = str(last_receipt.get("executor_identity", "")).removeprefix("financial:")
+            from .standalone_runtime import (
+                _effect_receipt_path, _verify_persisted_action_authorization_history,
+            )
+            effect_ref = bindings.get("effect_receipt_ref")
+            expected_effect_ref = _effect_receipt_path(task_id, action_id)
+            if effect_ref != expected_effect_ref or effect_ref not in touched:
+                raise ValueError("ARTICLE_EFFECT_RECEIPT_NOT_BOUND_TO_THIS_REVISION")
+            if before_reader(effect_ref) is not None:
+                raise ValueError("ARTICLE_EFFECT_RECEIPT_REPLAY_OR_REWRITE_DENIED")
+            effect_raw = after_reader(effect_ref)
+            if isinstance(effect_raw, str):
+                effect_raw = effect_raw.encode("utf-8")
+            if not isinstance(effect_raw, bytes):
+                raise ValueError("ARTICLE_EFFECT_RECEIPT_MISSING")
+            effect = json.loads(effect_raw)
+            if not isinstance(effect, Mapping):
+                raise ValueError("ARTICLE_EFFECT_RECEIPT_INVALID")
+            if effect.get("previous_state_blob_sha") != expected_previous:
+                raise ValueError("ARTICLE_EFFECT_PREVIOUS_STATE_SHA_MISMATCH")
+            if effect.get("resulting_state_blob_sha") != _git_blob_sha(candidate_raw):
+                raise ValueError("ARTICLE_EFFECT_RESULT_STATE_SHA_MISMATCH")
+            _verify_persisted_action_authorization_history(
+                candidate,
+                effect_receipt_reader=after_reader,
+                current_state_blob_sha=_git_blob_sha(candidate_raw),
+            )
             operation = bindings["authorization_verification"].get("operation")
             if before is not None:
                 from .owner_guard import validate_feedback_update, validate_transition
@@ -455,10 +548,6 @@ def audit_repository_business_changes(
                     validate_feedback_update(
                         before, candidate, previous_state_blob_sha=previous_sha,
                     )
-                else:
-                    # Do not mistake a signed *intention* for a proof that
-                    # arbitrary before/after bytes equal a legal owner effect.
-                    raise ValueError("UNREPLAYED_OWNER_OPERATION_REQUIRES_EXECUTABLE_ADAPTER:" + str(operation))
             elif operation != "CREATE_ARTICLE":
                 raise ValueError("NEW_ARTICLE_NOT_AUTHORIZED_AS_CREATE")
         except (ValueError, KeyError, TypeError) as exc:

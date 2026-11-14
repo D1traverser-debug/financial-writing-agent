@@ -331,3 +331,30 @@ def verify_persisted_method_impact_attestation(
             "verified_stages": list(challenge["stage_evidence_refs"]),
         },
     )
+
+def verify_action_effect_attestation(
+    raw: Mapping[str, Any] | None,
+    *,
+    expected_claims: Mapping[str, Any],
+    expected_actor: str,
+    expected_provider: str,
+    historical: bool = False,
+) -> dict[str, Any]:
+    """Verify the provider's signed binding between an admitted request and exact state effect.
+
+    The effect receipt is stored beside STATE.json so its signature can bind the
+    resulting Git blob SHA without creating a self-referential state hash.
+    """
+    record = verify_provider_attestation(
+        raw,
+        expected_type="action_effect",
+        expected_claims=expected_claims,
+        expected_actor=expected_actor,
+        max_age_seconds=None if historical else MAX_AGE_SECONDS,
+    )
+    if record.get("provider_id") != expected_provider:
+        raise FinancialProviderAttestationError(
+            "FINANCIAL_ACTION_EFFECT_PROVIDER_MISMATCH"
+        )
+    return record
+
