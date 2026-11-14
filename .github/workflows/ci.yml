@@ -43,7 +43,7 @@ jobs:
         env:
           FINANCIAL_PROVIDER_ATTESTATION_KEY: ${{ secrets.FINANCIAL_PROVIDER_ATTESTATION_KEY }}
           FINANCIAL_TRUSTED_PROVIDER_ID: ${{ secrets.FINANCIAL_TRUSTED_PROVIDER_ID }}
-          FINANCIAL_EXPECTED_OWNER_PRINCIPAL: ${{ secrets.FINANCIAL_EXPECTED_OWNER_PRINCIPAL }}
+          FINANCIAL_OWNER_PRINCIPAL: ${{ secrets.FINANCIAL_EXPECTED_OWNER_PRINCIPAL }}
         run: |
           mkdir -p audit
           python - <<'PY'
@@ -56,7 +56,7 @@ jobs:
               "provider": {
                   "attestation_key_configured": bool(os.environ.get("FINANCIAL_PROVIDER_ATTESTATION_KEY")),
                   "trusted_provider_id_configured": bool(os.environ.get("FINANCIAL_TRUSTED_PROVIDER_ID")),
-                  "expected_owner_principal_configured": bool(os.environ.get("FINANCIAL_EXPECTED_OWNER_PRINCIPAL")),
+                  "expected_owner_principal_configured": bool(os.environ.get("FINANCIAL_OWNER_PRINCIPAL")),
               },
               "assurance": "ENVIRONMENT_VARIABLE_PRESENCE_ONLY__SECRET_VALUES_NEVER_READ_OR_PRINTED",
           }
@@ -72,7 +72,7 @@ jobs:
           FINANCIAL_CHANGE_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           FINANCIAL_PROVIDER_ATTESTATION_KEY: ${{ secrets.FINANCIAL_PROVIDER_ATTESTATION_KEY }}
           FINANCIAL_TRUSTED_PROVIDER_ID: ${{ secrets.FINANCIAL_TRUSTED_PROVIDER_ID }}
-          FINANCIAL_EXPECTED_OWNER_PRINCIPAL: ${{ secrets.FINANCIAL_EXPECTED_OWNER_PRINCIPAL }}
+          FINANCIAL_OWNER_PRINCIPAL: ${{ secrets.FINANCIAL_EXPECTED_OWNER_PRINCIPAL }}
         run: |
           git fetch --no-tags --depth=1 origin "$FINANCIAL_CHANGE_BASE_SHA"
           python scripts/system_acceptance_report.py --assert-not-prematurely-certified --out audit/financial_system_acceptance.json
