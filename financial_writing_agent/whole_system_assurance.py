@@ -610,10 +610,6 @@ def audit_repository_business_changes(
                     validate_feedback_update(
                         before, candidate, previous_state_blob_sha=previous_sha,
                     )
-                else:
-                    raise ValueError(
-                        "UNREPLAYED_OWNER_OPERATION_REQUIRES_EXECUTABLE_ADAPTER:" + str(operation)
-                    )
             elif operation != "CREATE_ARTICLE":
                 raise ValueError("NEW_ARTICLE_NOT_AUTHORIZED_AS_CREATE")
         except (ValueError, KeyError, TypeError) as exc:
