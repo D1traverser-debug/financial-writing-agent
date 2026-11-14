@@ -6,7 +6,8 @@
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
     "evals/FINANCIAL_CROSS_BORDER_POST_REBUILD_REJECTION_20261016.md",
     "evals/FINANCIAL_METHOD_CATALOG_EFFECT_BINDING_REPAIR_20261114.md",
-    "evals/FINANCIAL_SYSTEM_CONTINUATION_AUDIT_20261114.md"
+    "evals/FINANCIAL_SYSTEM_CONTINUATION_AUDIT_20261114.md",
+    "evals/FINANCIAL_WRITING_BUSINESS_PROCESS_AUDIT_20261114.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -55,6 +56,16 @@
       "status": "MERGED__POST_MERGE_MAIN_CI_PASS",
       "scope": "SIGNED_METHOD_EFFECT_RECEIPT__ATOMIC_CATALOG_BUNDLE_CAS__EXACT_READBACK__DETERMINISTIC_OPERATION_REPLAY",
       "assurance": "SYNTHETIC_CI_VERIFIED__LIVE_PROVIDER_AND_HISTORICAL_EFFECT_MIGRATION_NOT_CLAIMED"
+    },
+    {
+      "id": "FIN-WRITING-BUSINESS-PROCESS-COHERENCE-20261114",
+      "pull_request": 76,
+      "candidate_head_sha": "59ab61d3aa7a33bbf676358b7e1b7d55262e856b",
+      "production_main_sha": "e32365943be176903de61e5c9dd6c4fe658ca76b",
+      "production_ci_run": 43568817790,
+      "status": "MERGED__PRODUCTION_STAGE_CONSISTENCY_TESTS_PASS",
+      "scope": "TEN_STAGE_INTERNAL_EDITORIAL_DRAFT_COMPLETION_AND_DEEP_BROAD_INDEPENDENCE_AND_H1_CONTRACTS_AND_ACTUAL_NEGATIVE_SAMPLE_REPLAY",
+      "assurance": "BUSINESS_PROCESS_ENGINEERING_ONLY__REAL_WRITING_QUALITY_NOT_READY"
     }
   ],
   "historical_notes": [
@@ -74,7 +85,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #73 owner-state effect binding and PR #74 method-catalog effect binding/replay are merged and post-merge Main CI passed. Do not reopen these repairs. Continue only the seven remaining external evidence gates: live authenticated owner-message/semantic approval; provider-backed article and method CRUD/effect readback; fresh-session private Skill installation/invocation; independent external adversarial review; and administrator-controlled protected-main/ruleset plus tag-first branch archival. Real article production remains outside the current system-reconstruction scope.",
+    "next_legal_phase": "Prioritize genuine Financial Writing business acceptance over seven external infrastructure controls: take an authentic currently sourced topic through complete intake/research/selection/Deep-and-Broad-distinct plans/headline/draft/factual and stylistic criticism/revision/real Word export, compare against the rejected wind and cross-topic baseline, verify each of the 19 product requirements with actual output evidence, and iterate at shared-root-cause level until real editorial outcome improves. Do not use synthetic CI to claim high-quality authored articles. Keep existing historical state and CAOS untouched.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "NO_ACTION_REQUIRED_TO_MERGE_PR_67__ALREADY_PRODUCTION_MAIN; NO_ACTION_REQUIRED_TO_MERGE_PR_73_OR_PR_74__BOTH_ARE_PRODUCTION_MAIN. Remaining external actions: fresh-session private Skill install/invocation, genuine owner-message and semantic-approval provider evidence, live GitHub CAS/effect readback, a genuinely independent reviewer, and administrator-controlled branch protection/archive controls. Do not revisit repository visibility, migration or history rewriting.",
     "not_completion_evidence": [
@@ -404,7 +415,47 @@
       "method_catalog_effect_binding": "MERGED__SYNTHETIC_CI_VERIFIED__LEGACY_HISTORY_PRESERVED_EFFECT_UNBOUND",
       "system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE",
       "historical_snapshot_note": "latest_production_verification remains the immutable PR #67 snapshot. This continuation record captures PR #73/#74 and the current production head without rewriting the earlier audit."
-    }
+    },
+    "latest_business_review_ref": "evals/FINANCIAL_WRITING_BUSINESS_PROCESS_AUDIT_20261114.md",
+    "latest_business_process_verification": {
+      "article_business_process_10_stages": "ENGINEERING_SYNTHETIC_STAGE_TRANSITION_AND_WORD_DELIVERY_VERIFIED",
+      "pull_request": 76,
+      "candidate_head_sha": "59ab61d3aa7a33bbf676358b7e1b7d55262e856b",
+      "production_main_sha": "e32365943be176903de61e5c9dd6c4fe658ca76b",
+      "post_merge_main_ci_run": 43568817790,
+      "post_merge_main_ci_conclusion": "success",
+      "tests_passed": 575,
+      "coverage_percent": 89,
+      "tracked_files": 315,
+      "python_ast_parsed": 118,
+      "json_parsed": 52,
+      "warnings": 0,
+      "errors": 0,
+      "corrected_workflow_defects": [
+        "EDITORIAL_AUDIT_SELF_REVIEW_DELIVERY_DEADLOCK_FIXED_WITH_UNCERTIFIED_DRAFT_SCOPE",
+        "DEEP_BROAD_BLUEPRINT_CLONING_EARLY_REJECT",
+        "BLUEPRINT_PUBLICATION_STRUCTURE_AND_WORD_H1_NUMBERING_UNIFIED",
+        "KNOWLEDGE_ACTION_EFFECT_GIT_DIFF_BOUNDARY_INCLUDED"
+      ],
+      "real_rejected_sample_replay": {
+        "source": "evals/artifacts/offshore-wind-2026-10-10-rejected-deep-v071.md",
+        "signal": "FOUR_CONSECUTIVE_H1_WITH_THREE_H2__TEMPLATE_SCAFFOLDING_DETECTED"
+      },
+      "cross_topic_neighbor_sample": {
+        "source": "evals/artifacts/rutile-2026-10-06-heldout-baseline.md",
+        "signal": "NO_MECHANICAL_H1_H2_GEOMETRY_ALERT"
+      },
+      "unresolved_business_outcomes": [
+        "LIVE_CURRENT_FACT_CHECK_AND_COMPANY_UNIVERSE_RESEARCH_COMPLETENESS_NOT_PROVEN",
+        "REAL_DEEP_BROAD_STORIES_HAVE_NOT_PASSED_SEMANTIC_ORIGINALITY_RETENTION_AND_READER_VALUE",
+        "LIVE_NON_SYNTHETIC_ARTICLE_AND_4_WORD_DELIVERY_WITH_USER_REVIEW_NOT_EXECUTED",
+        "AUTONOMOUS_FRESH_SESSION_CROSS_TOOL_EXECUTION_STABILITY_NOT_PROVEN"
+      ],
+      "end_to_end_user_writing_request_fully_satisfied": false,
+      "business_status": "ENGINEERING_STAGE_CONSISTENCY_IMPROVED__REAL_EDITORIAL_AND_USER_ACCEPTANCE_NOT_READY",
+      "assurance": "REAL_MAIN_CI_AND_HISTORICAL_REJECTION_STRUCTURE_REPLAY__NOT_REAL_ARTICLE_EDITORIAL_ACCEPTANCE"
+    },
+    "business_goal_priority": "USER_20261114__VERIFY_AND_REPAIR_THE_ENTIRE_WRITING_PROCESS_NOT_SEVEN_EXTERNAL_CONTROL_GATES"
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
