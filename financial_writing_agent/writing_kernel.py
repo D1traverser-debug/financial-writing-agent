@@ -1085,6 +1085,51 @@ def _editorial_review_outcome(
     return "PASS", None
 
 
+def _portfolio_stage_outputs(
+    stage: str,
+    *,
+    shared: Mapping[str, Any],
+    products: Mapping[str, Mapping[str, Any]],
+    interaction: Mapping[str, Any] | None,
+) -> dict[str, Any]:
+    if stage == "RESEARCH":
+        return deepcopy(dict(shared))
+    if stage == "RESEARCH_AUDIT":
+        return {"research_audit_result": deepcopy(shared.get("research_audit_result"))}
+    if stage == "EDITORIAL":
+        return {
+            "story_blueprints": {
+                mode: deepcopy(item.get("story_blueprint"))
+                for mode, item in products.items()
+            }
+        }
+    if stage == "TITLE":
+        return {
+            "headline_decisions": {
+                mode: deepcopy(item.get("headline_decision"))
+                for mode, item in products.items()
+            }
+        }
+    if stage == "DRAFT":
+        return {
+            "products": deepcopy(dict(products)),
+            "interaction": deepcopy(dict(interaction)) if isinstance(interaction, Mapping) else None,
+        }
+    if stage == "EDITORIAL_AUDIT":
+        return {
+            "publication_fitnesses": {
+                mode: deepcopy(item.get("publication_fitness"))
+                for mode, item in products.items()
+                if item.get("publication_fitness") is not None
+            },
+            "platform_interaction_fitness": (
+                deepcopy(interaction.get("platform_interaction_fitness"))
+                if isinstance(interaction, Mapping) else None
+            ),
+        }
+    raise WritingPassExecutionError(f"PORTFOLIO_STAGE_OUTPUTS_UNSUPPORTED:{stage}")
+
+
 def _portfolio_stage_receipt(context: Mapping[str, Any]) -> Mapping[str, Any]:
     if context.get("stage_receipts"):
         return context["stage_receipts"][-1]
@@ -1642,6 +1687,9 @@ def execute_portfolio_stage(
         "revision_target": revision_target,
         "reviewed_products": reviewed_products,
         "requirement_satisfaction": satisfaction,
+        "stage_outputs": _portfolio_stage_outputs(
+            stage, shared=shared, products=products, interaction=interaction,
+        ),
     }
     new_trace = working["trace"][trace_start:]
     previous_stage_sha = (
