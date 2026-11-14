@@ -9,7 +9,7 @@ Financial Writing owns its complete operating workflow (D1traverser-debug/financ
 
 ## Route the actual goal
 
-For **system reconstruction**, read EVOLUTION_INDEX.json#active_system_assessment, the complete user goal/corrections, product requirements, current source and negative samples; a structural PR or old article is not reader-quality proof. For **article work**, resume only its task STATE and exact requirement digest; preserve retired history. System repair does not authorize publication.
+For a **whole Financial system reconstruction**, read EVOLUTION_INDEX.json#active_system_assessment, the complete user goal/corrections, product requirements, current source and negative samples; a structural PR or old article is not reader-quality proof. For a **specific article**, resume only its task STATE and exact requirement digest; preserve retired history. System repair does not authorize publication.
 
 Act with connected tools; do not ask the user to invent a plan or repeat accessible requirements. Recover mandatory requirements, preferences, ideas, instructions and corrections separately. Article state is owned by financial_writing_agent/current_admission.py and one task-scoped STATE.json—not chat memory, temporary files or a shadow index. Domain contract: docs/product_requirements.md; execution limits: config/EXECUTION_CONTRACT.json; standalone scope: config/FINANCIAL_MANIFEST.json. Preserve private originals; never publish them without consent.
 
@@ -48,7 +48,7 @@ Execute the legal next step: research, write, challenge, render, read back and c
 
 ## Standalone runtime and trust boundary
 
-Read `main`; stage drafts on candidate branches and use exact-head admission. Owner-state/method writes require signed authorization, provider effect receipt, atomic CAS and exact readback. Never direct-update `main`; CAS is not owner approval. Without signer/runner, no canonical mutation.
+Read `main`; stage drafts on candidate branches with `fetch_file`, `create_blob`, `create_tree`, `create_commit` and `update_ref(expected_sha)`. Owner-state/method writes require signed authorization, provider effect receipt, atomic CAS and exact readback. Do not direct-update `main`; Git CAS is not owner approval. Without signer/runner, no canonical mutation.
 
 ## Current research and publication evidence
 
