@@ -10,7 +10,8 @@ from enum import Enum
 from typing import Any
 
 from .models import DistributionMode, Stage, TaskContract
-from .schemas import PlatformInteractionPack
+from .schemas import PlatformInteractionPack, ResearchPackage
+from .task_requirements import TaskRequirement
 from .story_quality import AuditStatus, PublicationFitness
 from .workflow_spec import pass_target_name, require_revision_target
 
@@ -75,7 +76,7 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         purpose="compare credible candidate explanations and select or merge the best evidence-bounded thesis",
         required_inputs=("discovery_package", "adversarial_package", "private_research_brief"),
         forbidden_jobs=("invent evidence", "draft paragraphs"),
-        outputs=("selected_thesis", "company_decision_map", "change_conditions", "decision_envelope"),
+        outputs=("selected_thesis", "company_decision_map", "change_conditions", "decision_envelope", "research_package"),
     ),
     WritingPass.STORY_ARCHITECTURE: PassContract(
         purpose="design one product-specific reader journey from the shared audited evidence",
