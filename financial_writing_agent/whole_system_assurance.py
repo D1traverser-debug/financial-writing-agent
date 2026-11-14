@@ -303,6 +303,6 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
         "next_legal_step": (
             "REPAIR_STRUCTURAL_VIOLATIONS_BEFORE_ANY_STATE_MUTATION"
             if violations else
-            "EXECUTE_AND_INDEPENDENTLY_VERIFY_ACTIVE_ARTICLE_RESEARCH__KEEP_SYSTEM_GATES_OPEN"
+            "CLOSE_AUTHENTICATED_EXECUTION_PATH_AND_INDEPENDENT_BUSINESS_EVIDENCE__NO_UNREQUESTED_ARTICLE_PRODUCTION"
         ),
     }
