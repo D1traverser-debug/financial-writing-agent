@@ -1,0 +1,59 @@
+{
+  "schema_version": "1.0",
+  "domain_id": "financial_writing",
+  "owner": "DOMAIN:financial_writing",
+  "governance": {
+    "system": "CAOS",
+    "source_repository": "D1traverser-debug/cognition-agent-os@main",
+    "mode": "CHAT_GOVERNED_EXTERNAL",
+    "entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+    "skill": "cognition-parent-chatgpt-intake",
+    "runtime_dependency": false,
+    "api_dependency": false,
+    "source_mutation": "FORBIDDEN",
+    "scope": [
+      "COMPLETE_GOAL_AND_REQUIREMENT_RECOVERY",
+      "CROSS_LAYER_ROOT_CAUSE_AND_COUNTEREXAMPLE_ANALYSIS",
+      "PROFESSIONAL_METHOD_RESEARCH_AND_ALTERNATIVE_COMPARISON",
+      "DECISION_RECHALLENGE_BEFORE_ACTION",
+      "EXECUTION_DISCIPLINE",
+      "INDEPENDENT_ACCEPTANCE",
+      "DURABLE_LEARNING_AND_CROSS_DOMAIN_TRANSFER"
+    ]
+  },
+  "business_authority": {
+    "repository": "D1traverser-debug/financial-writing-agent@main",
+    "identity": "workspaces/articles/{task_id}/STATE.json::task_id",
+    "state": "workspaces/articles/{task_id}/STATE.json",
+    "requirements": "docs/product_requirements.md + task-scoped requirement revision/digest",
+    "orchestration": "config/EXECUTION_CONTRACT.json",
+    "canonical_rules": [
+      "config/",
+      "financial_writing_agent/",
+      "skills/financial-writing-agent/"
+    ],
+    "method_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+    "evolution": "evals/EVOLUTION_INDEX.json"
+  },
+  "execution_boundary": {
+    "direct_domain_activation": true,
+    "business_owner": "FINANCIAL_WRITING_OWNER",
+    "parent_task_identity": false,
+    "parent_business_state_mirror": false,
+    "runtime_upcall": false,
+    "caos_permission_grant": false,
+    "external_parent_required": false,
+    "external_host_required": false
+  },
+  "legacy_cleanup": {
+    "active_uaos_binding": "ABSENT_FROM_CURRENT_MAIN",
+    "retired_active_paths": [
+      ".uaos/",
+      "UAOS_SKILL.md",
+      "CAOS_SKILL.md",
+      "docs/CAOS_CHILD_INTERFACE.md"
+    ],
+    "historical_provenance": "PRESERVED_IN_GIT_HISTORY_AND_DATED_AUDITS_ONLY",
+    "business_state_or_article_history_changed": false
+  }
+}
