@@ -127,11 +127,11 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         outputs=("style_findings",),
     ),
     WritingPass.FINAL_SYNTHESIS: PassContract(
-        purpose="apply evidence-backed repairs, resolve gate findings and produce one product-specific publication candidate",
+        purpose="aggregate audit conclusions for the already finalized draft; request DRAFT revision for any material repair",
         required_inputs=("edited_draft", "retention_findings", "originality_findings",
                          "fact_findings", "style_findings", "product_mode"),
         forbidden_jobs=("ignore unresolved MAJOR/CRITICAL findings", "silently change thesis",
-                        "certify another product's draft"),
+                        "rewrite after DRAFT was persisted", "certify another product's draft"),
         outputs=("publication_candidate", "publication_fitness"),
     ),
     WritingPass.PLATFORM_INTERACTION_ADAPTATION: PassContract(
@@ -221,8 +221,8 @@ PASS_STAGE_OWNERSHIP: dict[WritingPass, str] = {
     WritingPass.STORY_ARCHITECTURE: "EDITORIAL",
     WritingPass.HEADLINE_ADJUDICATION: "TITLE",
     WritingPass.DRAFT_GENERATION: "DRAFT",
-    WritingPass.READER_RETENTION_AUDIT: "EDITORIAL_AUDIT",
-    WritingPass.EDITORIAL_TRIM: "EDITORIAL_AUDIT",
+    WritingPass.READER_RETENTION_AUDIT: "DRAFT",
+    WritingPass.EDITORIAL_TRIM: "DRAFT",
     WritingPass.ORIGINALITY_AUDIT: "EDITORIAL_AUDIT",
     WritingPass.FACT_INTEGRITY_AUDIT: "EDITORIAL_AUDIT",
     WritingPass.STYLE_AUDIT: "EDITORIAL_AUDIT",
@@ -509,11 +509,17 @@ def _admit_longform_result(current: Mapping[str, Any], *, mode: str) -> None:
         current, mode=mode,
         keys=("story_blueprint", "headline_decision", "publication_fitness"),
     )
-    for key in ("draft", "publication_candidate"):
+    for key in ("draft", "edited_draft", "publication_candidate"):
         if not _publication_text(current.get(key)):
             raise WritingPassExecutionError(
                 f"PORTFOLIO_PRODUCT_TEXT_MISSING:{mode}:{key}"
             )
+    # A post-DRAFT audit is not authorized to rewrite the persisted article.
+    # Any material repair must re-enter DRAFT and invalidate old reviews.
+    if "".join(_publication_text(current["edited_draft"]).split()) != "".join(
+        _publication_text(current["publication_candidate"]).split()
+    ):
+        raise WritingPassExecutionError(f"PORTFOLIO_AUDIT_REWROTE_DRAFT:{mode}")
     try:
         fitness = PublicationFitness.model_validate(current["publication_fitness"])
     except Exception as exc:
@@ -671,39 +677,68 @@ def execute_portfolio_writing(
     if RESEARCH_AUDIT_BOUNDARY_INPUT not in shared:
         raise WritingPassExecutionError("PORTFOLIO_RESEARCH_AUDIT_BOUNDARY_NOT_REACHED")
 
+    # All product branches share the single article stage graph. Never finish
+    # Deep's editorial audit while Broad is still at story architecture.
+    stage_order = ("EDITORIAL", "TITLE", "DRAFT", "EDITORIAL_AUDIT")
+    branches = {mode: {**shared, "product_mode": mode} for mode in modes}
+    branch_traces: dict[str, list[dict[str, Any]]] = {mode: [] for mode in modes}
+    interaction_branch = {**shared, "product_scope": "PLATFORM_INTERACTION"} if interaction_required else None
+    interaction_trace: list[dict[str, Any]] = []
+    stage_barriers: list[dict[str, Any]] = []
+
+    for stage in stage_order:
+        for mode in modes:
+            branch = branches[mode]
+            for node in LONGFORM_PRODUCT_PASSES:
+                if PASS_STAGE_OWNERSHIP[node] != stage:
+                    continue
+                _invoke_pass(node, branch, execute_pass=execute_pass, trace=trace, scope=mode)
+                branch_traces[mode].append(trace[-1])
+                if node == WritingPass.STORY_ARCHITECTURE:
+                    _require_product_scope(branch, mode=mode, keys=("story_blueprint",))
+                elif node == WritingPass.HEADLINE_ADJUDICATION:
+                    _require_product_scope(branch, mode=mode, keys=("headline_decision",))
+                elif node == WritingPass.FINAL_SYNTHESIS:
+                    _admit_longform_result(branch, mode=mode)
+
+        if interaction_branch is not None:
+            for node in INTERACTION_PRODUCT_PASSES:
+                if PASS_STAGE_OWNERSHIP[node] != stage:
+                    continue
+                _invoke_pass(
+                    node, interaction_branch, execute_pass=execute_pass,
+                    trace=trace, scope="PLATFORM_INTERACTION",
+                )
+                interaction_trace.append(trace[-1])
+                if node == WritingPass.PLATFORM_INTERACTION_AUDIT:
+                    _admit_interaction_result(interaction_branch)
+
+        stage_barriers.append({
+            "business_stage": stage,
+            "completed_product_scopes": [
+                *modes, *(["PLATFORM_INTERACTION"] if interaction_required and stage in ("DRAFT", "EDITORIAL_AUDIT") else []),
+            ],
+            "assurance": "CALLBACK_OUTPUT_BARRIER_ONLY__OWNER_STATE_ADMISSION_OPEN",
+        })
+
     longform_products: dict[str, dict[str, Any]] = {}
-    for mode in modes:
-        branch = dict(shared)
-        branch["product_mode"] = mode
-        branch_trace_start = len(trace)
-        for node in LONGFORM_PRODUCT_PASSES:
-            _invoke_pass(node, branch, execute_pass=execute_pass, trace=trace, scope=mode)
-        _admit_longform_result(branch, mode=mode)
+    for mode, branch in branches.items():
         longform_products[mode] = {
             "product_mode": mode,
             "story_blueprint": branch["story_blueprint"],
             "headline_decision": branch["headline_decision"],
             "draft": branch["draft"],
+            "edited_draft": branch["edited_draft"],
             "publication_candidate": branch["publication_candidate"],
             "publication_fitness": branch["publication_fitness"],
-            "trace": trace[branch_trace_start:],
+            "trace": branch_traces[mode],
         }
-
     interaction_product = None
-    if interaction_required:
-        branch = dict(shared)
-        branch["product_scope"] = "PLATFORM_INTERACTION"
-        branch_trace_start = len(trace)
-        for node in INTERACTION_PRODUCT_PASSES:
-            _invoke_pass(
-                node, branch, execute_pass=execute_pass,
-                trace=trace, scope="PLATFORM_INTERACTION",
-            )
-        _admit_interaction_result(branch)
+    if interaction_branch is not None:
         interaction_product = {
-            "platform_interaction_pack": branch["platform_interaction_pack"],
-            "platform_interaction_fitness": branch["platform_interaction_fitness"],
-            "trace": trace[branch_trace_start:],
+            "platform_interaction_pack": interaction_branch["platform_interaction_pack"],
+            "platform_interaction_fitness": interaction_branch["platform_interaction_fitness"],
+            "trace": interaction_trace,
         }
 
     # A copied final body is not an independently composed acquisition product.
@@ -736,6 +771,7 @@ def execute_portfolio_writing(
             + (len(INTERACTION_PRODUCT_PASSES) if interaction_required else 0)
         ),
         "research_audit_boundary_reached": True,
+        "stage_barriers": stage_barriers,
         "trace": trace,
         "assurance": (
             "PORTFOLIO_CALLBACK_DATAFLOW_EXECUTED"
