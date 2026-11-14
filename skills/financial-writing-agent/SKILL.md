@@ -48,7 +48,7 @@ Execute the legal next step: retrieve sources, research, write, challenge, rende
 
 ## Standalone runtime and trust boundary
 
-GitHub reads main; drafts stage on candidate branches using fetch_file/create_blob/create_tree/create_commit/update_ref(expected_sha). Owner-state and method-catalog writes require signed authorization plus a provider effect receipt in one atomic CAS commit with exact readback. Never direct-update `main`; Git CAS is not owner approval. Without signer/runner, no canonical mutation.
+GitHub reads main; drafts stage on candidate branches using fetch_file/create_blob/create_tree/create_commit/update_ref(expected_sha). Owner-state and method-catalog writes require signed authorization plus a provider effect receipt in one atomic CAS commit with exact readback. Do not direct-update `main`; Git CAS is not owner approval. Without signer/runner, no canonical mutation.
 
 
 ## Current research and publication evidence
