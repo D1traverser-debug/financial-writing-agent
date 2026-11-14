@@ -52,6 +52,34 @@ def _read_provider_artifact(reader: Callable[[str], Any], path: str) -> tuple[by
     return content, blob_sha
 
 
+def _refresh_context_requirements(
+    context: Mapping[str, Any],
+    *,
+    requirement_digest: str,
+    requirement_contexts: Mapping[str, Any],
+    owner_stage: str,
+) -> dict[str, Any]:
+    """Rebind a resumed context whenever its scoped projection is not current."""
+    refreshed = deepcopy(dict(context))
+    if (
+        refreshed.get("requirement_digest") != requirement_digest
+        or refreshed.get("requirement_contexts") != requirement_contexts
+    ):
+        refreshed = rebind_portfolio_context_requirements(
+            refreshed,
+            requirement_digest=requirement_digest,
+            requirement_contexts=requirement_contexts,
+            current_stage=owner_stage,
+        )
+    if refreshed.get("current_stage") != owner_stage:
+        raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
+    try:
+        validate_portfolio_context(refreshed)
+    except Exception as exc:
+        raise PortfolioCoordinatorError("PORTFOLIO_REFRESHED_CONTEXT_INVALID") from exc
+    return refreshed
+
+
 def _latest_context_ref(state: Mapping[str, Any]) -> Mapping[str, Any] | None:
     receipts = state.get("execution_receipts", [])
     if not isinstance(receipts, list):
@@ -401,21 +429,15 @@ def run_next_portfolio_stage(
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_TASK_ID_MISMATCH")
         if context.get("required_output_kinds") != sorted(required_outputs):
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OUTPUT_CONTRACT_MISMATCH")
-        if (
-            context.get("requirement_digest") != state.get("task_requirement_digest")
-            or context.get("requirement_contexts") != contexts
-        ):
-            # Recompute scoped requirements on every resume. A matching top-level
-            # digest alone is not proof that the persisted context carries the
-            # current per-scope projection.
-            context = rebind_portfolio_context_requirements(
-                context,
-                requirement_digest=state["task_requirement_digest"],
-                requirement_contexts=contexts,
-                current_stage=owner_stage,
-            )
-        if context.get("current_stage") != owner_stage:
-            raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
+        # Recompute scoped requirements on every resume. A matching top-level
+        # digest alone is not proof that the persisted context carries the current
+        # per-scope projection.
+        context = _refresh_context_requirements(
+            context,
+            requirement_digest=state["task_requirement_digest"],
+            requirement_contexts=contexts,
+            owner_stage=owner_stage,
+        )
         if context.get("execution_status") == "BLOCKED":
             context = resume_portfolio_context(context, owner_state=state)
 
