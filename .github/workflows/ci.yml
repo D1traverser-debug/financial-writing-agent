@@ -39,6 +39,9 @@ jobs:
           coverage run --source=financial_writing_agent -m pytest -q
           coverage json -o audit/test_line_coverage.json
           coverage report -m --fail-under=85
+          coverage report --include='financial_writing_agent/portfolio_coordinator.py' --fail-under=70
+          coverage report --include='financial_writing_agent/standalone_runtime.py' --fail-under=80
+          coverage report --include='financial_writing_agent/writing_kernel.py' --fail-under=75
       - name: Probe native provider signer configuration without exposing secrets
         env:
           FINANCIAL_PROVIDER_ATTESTATION_KEY: ${{ secrets.FINANCIAL_PROVIDER_ATTESTATION_KEY }}
