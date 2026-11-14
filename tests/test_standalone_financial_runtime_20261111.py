@@ -15,7 +15,8 @@ from financial_writing_agent.standalone_runtime import (
     _blob_sha, admit_article_action, observe_article,
 )
 from trusted_provider_testkit import (
-    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
+    signed_action_authorization, signed_action_effect,
+    signed_owner_change_approval, signed_owner_message,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -46,6 +47,29 @@ class Provider:
             self.store[path] = content
         return {"blob_sha": _blob_sha(content), "commit_ref": "ci:mock-remote"}
 
+    def read_effect(self, path):
+        if path not in self.store:
+            return None
+        raw = self.store[path]
+        return {"content": raw, "blob_sha": _blob_sha(raw)}
+
+    def write_bundle(self, state_path, previous, files):
+        old = self.store.get(state_path)
+        if previous is None:
+            if old is not None:
+                raise RuntimeError("create-only conflict")
+        elif old is None or _blob_sha(old) != previous:
+            raise RuntimeError("conditional CAS conflict")
+        for path in files:
+            if path != state_path and path in self.store:
+                raise RuntimeError("effect receipt create-only conflict")
+        if not self.fake_write:
+            self.store.update(files)
+        return {
+            "blob_shas": {path: _blob_sha(content) for path, content in files.items()},
+            "commit_ref": "ci:mock-remote-bundle",
+        }
+
     def artifact(self, path):
         if path not in self.artifacts:
             return None
@@ -71,6 +95,9 @@ def run(p, request, auth=None, owner_reader=None):
     return admit_article_action(
         request, state_reader=p.read, cas_writer=p.write,
         authorization_verifier=auth or signed_action_authorization,
+        bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
         artifact_reader=p.artifact,
         source_snapshot_reader=p.source, owner_instruction_reader=owner_reader,
         owner_semantic_verifier=signed_owner_change_approval,
@@ -93,7 +120,9 @@ def test_standalone_can_create_and_observe_real_financial_article_without_parent
     assert "caos" not in json.dumps(created).lower()
     state = p.read(path)["state"]
     validate_state(state)
-    observation = observe_article("solo-article-01", state_reader=p.read)
+    observation = observe_article(
+        "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+    )
     assert observation["state_blob_sha"] == p.read(path)["blob_sha"]
     assert observation["required_outputs"] == [
         "AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX",
@@ -102,6 +131,11 @@ def test_standalone_can_create_and_observe_real_financial_article_without_parent
     assert observation["owner_outcome_verified"] is False
     assert observation["authorization_history"]["verified_signed_receipts"] == 1
     assert observation["authorization_history"]["legacy_self_attested_receipts"] == 0
+    assert observation["authorization_history"]["verified_effect_receipts"] == 1
+    assert created["effect_receipt_readback_verified"] is True
+    effect_raw = p.store[created["effect_receipt_ref"]]
+    effect = json.loads(effect_raw)
+    assert effect["resulting_state_blob_sha"] == created["observed_new_blob_sha"]
 
 
 def test_article_receipt_preserves_full_signed_provider_authorization_without_raw_request():
@@ -116,6 +150,8 @@ def test_article_receipt_preserves_full_signed_provider_authorization_without_ra
     assert proof["task_id"] == "solo-article-01"
     assert proof["operation"] == "CREATE_ARTICLE"
     assert proof["expected_state_blob_sha"] is None
+    assert receipt["input_bindings"]["authorization_contract_version"] == "1.1"
+    assert receipt["input_bindings"]["effect_receipt_ref"].endswith(".effect.json")
     assert len(proof["request_sha256"]) == 64
     assert len(proof["signature"]) == 64
     assert "parameters" not in proof
@@ -131,7 +167,70 @@ def test_observation_reverifies_persisted_provider_signature_and_rejects_tamperi
     proof["signature"] = "0" * 64
     p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
     with pytest.raises(FinancialAdmissionError, match="PERSISTED_ACTION_AUTHORIZATION_INVALID"):
-        observe_article("solo-article-01", state_reader=p.read)
+        observe_article("solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect)
+
+
+def test_persisted_action_effect_receipt_is_required_and_signature_bound_to_exact_state_bytes():
+    p = Provider()
+    created = create(p)
+    effect_ref = created["effect_receipt_ref"]
+    p.store.pop(effect_ref)
+    with pytest.raises(FinancialAdmissionError, match="ACTION_EFFECT_RECEIPT_MISSING"):
+        observe_article(
+            "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+        )
+
+    p = Provider()
+    created = create(p)
+    effect_ref = created["effect_receipt_ref"]
+    effect = json.loads(p.store[effect_ref])
+    effect["resulting_state_blob_sha"] = "0" * 40
+    p.store[effect_ref] = json.dumps(effect, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    with pytest.raises(FinancialAdmissionError, match="PERSISTED_ACTION_EFFECT_INVALID"):
+        observe_article(
+            "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+        )
+
+
+def test_signed_authorization_v1_0_is_preserved_as_effect_unbound_legacy_history():
+    p = Provider()
+    create(p)
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    state = p.read(path)["state"]
+    bindings = state["execution_receipts"][-1]["input_bindings"]
+    effect_ref = bindings["effect_receipt_ref"]
+    bindings["authorization_contract_version"] = "1.0"
+    bindings.pop("effect_contract_version")
+    bindings.pop("effect_receipt_ref")
+    p.store.pop(effect_ref)
+    p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    observed = observe_article(
+        "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+    )
+    assert observed["authorization_history"]["verified_signed_receipts"] == 1
+    assert observed["authorization_history"]["legacy_effect_unbound_receipts"] == 1
+    assert observed["authorization_history"]["verified_effect_receipts"] == 0
+    assert observed["authorization_history"]["assurance"].startswith("SIGNED_ACTIONS")
+
+
+def test_signed_legacy_action_cannot_be_appended_after_effect_bound_history():
+    p = Provider()
+    create(p)
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    run(p, proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"]))
+    state = p.read(path)["state"]
+    last = state["execution_receipts"][-1]
+    bindings = last["input_bindings"]
+    effect_ref = bindings["effect_receipt_ref"]
+    bindings["authorization_contract_version"] = "1.0"
+    bindings.pop("effect_contract_version")
+    bindings.pop("effect_receipt_ref")
+    p.store.pop(effect_ref)
+    p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    with pytest.raises(FinancialAdmissionError, match="EFFECT_BOUND_HISTORY_ROLLBACK"):
+        observe_article(
+            "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+        )
 
 
 def test_persisted_article_action_history_rejects_replayed_action_id_and_nonce():
@@ -143,7 +242,10 @@ def test_persisted_article_action_history_rejects_replayed_action_id_and_nonce()
     state = p.read("workspaces/articles/solo-article-01/STATE.json")["state"]
     state["execution_receipts"].append(deepcopy(state["execution_receipts"][-1]))
     with pytest.raises(FinancialAdmissionError, match="ACTION_ID_REPLAYED"):
-        _verify_persisted_action_authorization_history(state)
+        _verify_persisted_action_authorization_history(
+            state, effect_receipt_reader=p.read_effect,
+            current_state_blob_sha=p.read("workspaces/articles/solo-article-01/STATE.json")["blob_sha"],
+        )
 
 
 def test_legacy_self_attested_receipts_are_reported_as_legacy_not_signed():
@@ -154,11 +256,18 @@ def test_legacy_self_attested_receipts_are_reported_as_legacy_not_signed():
     bindings = state["execution_receipts"][-1]["input_bindings"]
     bindings.pop("authorization_contract_version")
     bindings.pop("authorization_verification")
+    bindings.pop("effect_contract_version")
+    bindings.pop("effect_receipt_ref")
+    for effect_path in [key for key in p.store if key.endswith(".effect.json")]:
+        p.store.pop(effect_path)
     p.store[path] = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
-    observed = observe_article("solo-article-01", state_reader=p.read)
+    observed = observe_article(
+        "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+    )
     assert observed["authorization_history"]["verified_signed_receipts"] == 0
     assert observed["authorization_history"]["legacy_self_attested_receipts"] == 1
-    assert observed["authorization_history"]["assurance"].startswith("SIGNED_NEW_RECEIPTS")
+    assert observed["authorization_history"]["legacy_effect_unbound_receipts"] == 0
+    assert observed["authorization_history"]["assurance"].startswith("SIGNED_ACTIONS")
 
 
 def test_direct_financial_routing_and_requirement_change_revises_article_only():
@@ -184,7 +293,9 @@ def test_direct_financial_routing_and_requirement_change_revises_article_only():
     ))
     assert result["stage"] == "INTAKE"
     assert p.read(path)["state"]["task_requirement_authority"]["revision"] == 1
-    assert observe_article("solo-article-01", state_reader=p.read)["requirement_revision"] == 1
+    assert observe_article(
+        "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
+    )["requirement_revision"] == 1
 
 
 def test_standalone_feedback_stays_on_single_current_owner_article():
@@ -330,7 +441,10 @@ def test_provider_must_return_exact_state_content_not_claimed_sha_only():
     with pytest.raises(FinancialAdmissionError, match="PROVIDER_STATE_BLOB_SHA_MISMATCH"):
         admit_article_action(
             proposal("ADVANCE_STAGE", sha=p.read("workspaces/articles/solo-article-01/STATE.json")["blob_sha"]),
-            state_reader=tampered, cas_writer=p.write, authorization_verifier=signed_action_authorization,
+            state_reader=tampered, cas_writer=p.write,
+            authorization_verifier=signed_action_authorization,
+            bundle_cas_writer=p.write_bundle, effect_attestation_signer=signed_action_effect,
+            effect_receipt_reader=p.read_effect,
         )
 
 

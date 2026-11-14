@@ -29,8 +29,9 @@ from .method_governance import (
 )
 from .path_identity import require_article_path, require_task_id
 from .provider_attestation import (
-    verify_action_authorization, verify_method_action_authorization,
-    verify_persisted_action_authorization, FinancialProviderAttestationError,
+    verify_action_authorization, verify_action_effect_attestation,
+    verify_method_action_authorization, verify_persisted_action_authorization,
+    FinancialProviderAttestationError, payload_sha256, request_sha256,
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
@@ -97,6 +98,8 @@ class FinancialEffectUnverified(RuntimeError):
 
 StateReader = Callable[[str], Mapping[str, Any] | None]
 CASWriter = Callable[[str, str | None, str], Mapping[str, Any]]
+BundleCASWriter = Callable[[str, str | None, Mapping[str, str]], Mapping[str, Any]]
+EffectReceiptReader = Callable[[str], Any]
 ArtifactReader = Callable[[str], Mapping[str, Any] | None]
 AuthorizationVerifier = Callable[[Mapping[str, Any]], Mapping[str, Any] | None]
 
@@ -118,6 +121,13 @@ def _state_path(task_id: Any) -> str:
     return f"{STATE_ROOT}/{slug}/STATE.json"
 
 
+def _effect_receipt_path(task_id: Any, action_id: Any) -> str:
+    state_path = _state_path(task_id)
+    _require(isinstance(action_id, str) and _ACTION_ID.fullmatch(action_id) is not None,
+             "FINANCIAL_ACTION_ID_INVALID")
+    return state_path.rsplit("/", 1)[0] + f"/actions/{action_id}.effect.json"
+
+
 def _canonical_payload(state: Mapping[str, Any]) -> str:
     return json.dumps(state, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
 
@@ -126,6 +136,32 @@ def _blob_sha(content: bytes | str) -> str:
     if isinstance(content, str):
         content = content.encode("utf-8")
     return hashlib.sha1(b"blob " + str(len(content)).encode("ascii") + b"\x00" + content).hexdigest()
+
+
+def _effect_bytes(reader: EffectReceiptReader | None, path: str) -> bytes | None:
+    if not callable(reader):
+        raise FinancialAdmissionError("FINANCIAL_ACTION_EFFECT_RECEIPT_READER_REQUIRED")
+    try:
+        raw = reader(path)
+    except Exception as exc:
+        raise FinancialEffectUnverified("FINANCIAL_EFFECT_RECEIPT_READ_FAILED") from exc
+    if raw is None:
+        return None
+    if isinstance(raw, bytes):
+        return raw
+    if isinstance(raw, str):
+        return raw.encode("utf-8")
+    if isinstance(raw, Mapping):
+        content = raw.get("content")
+        if isinstance(content, str):
+            content = content.encode("utf-8")
+        if not isinstance(content, bytes):
+            raise FinancialAdmissionError("FINANCIAL_EFFECT_RECEIPT_CONTENT_INVALID")
+        declared = raw.get("blob_sha")
+        if declared is not None and declared != _blob_sha(content):
+            raise FinancialAdmissionError("FINANCIAL_EFFECT_RECEIPT_BLOB_SHA_MISMATCH")
+        return content
+    raise FinancialAdmissionError("FINANCIAL_EFFECT_RECEIPT_RESPONSE_INVALID")
 
 
 def _strict_json_equal(left: Any, right: Any) -> bool:
@@ -649,26 +685,42 @@ def _verify_visible_delivery(
 
 def _verify_persisted_action_authorization_history(
     state: Mapping[str, Any],
+    *,
+    effect_receipt_reader: EffectReceiptReader | None = None,
+    current_state_blob_sha: str | None = None,
 ) -> dict[str, Any]:
-    """Verify signed receipts that declare the provider-authorization contract.
+    """Verify owner authorization and the provider's exact resulting state effect.
 
-    Earlier receipts remain immutable self-attested provenance and are counted
-    as legacy; every receipt written by the current standalone action port must
-    carry a complete, re-verifiable provider signature.
+    Contract 1.0 receipts remain signed authorization history but are explicitly
+    classified as effect-unbound legacy. Contract 1.1 requires a separately
+    signed effect receipt whose result Git blob SHA is checked against the
+    candidate revision by the repository audit.
     """
     receipts = state.get("execution_receipts", [])
     _require(isinstance(receipts, list) and receipts,
              "FINANCIAL_ACTION_RECEIPT_HISTORY_MISSING")
     verified = 0
     legacy = 0
+    legacy_effect_unbound = 0
+    effect_verified = 0
     seen_action_ids: set[str] = set()
     seen_nonces: set[tuple[str, str]] = set()
+    last_effect_result_sha: str | None = None
+    effect_seen = False
     for receipt in receipts:
         bindings = receipt.get("input_bindings", {})
-        if bindings.get("authorization_contract_version") is None:
+        version = bindings.get("authorization_contract_version")
+        if version is None:
+            _require(
+                bindings.get("effect_contract_version") is None
+                and bindings.get("effect_receipt_ref") is None,
+                "FINANCIAL_LEGACY_RECEIPT_HAS_UNAUTHENTICATED_EFFECT_FIELDS",
+            )
+            _require(not effect_seen,
+                     "FINANCIAL_ACTION_RECEIPT_UNSIGNED_AFTER_EFFECT_BOUND_ACTION")
             legacy += 1
             continue
-        _require(bindings.get("authorization_contract_version") == "1.0",
+        _require(version in {"1.0", "1.1"},
                  "FINANCIAL_ACTION_RECEIPT_AUTHORIZATION_VERSION_UNSUPPORTED")
         proof = bindings.get("authorization_verification")
         previous_sha = bindings.get("previous_state_blob_sha")
@@ -709,17 +761,94 @@ def _verify_persisted_action_authorization_history(
                 "FINANCIAL_PERSISTED_ACTION_AUTHORIZATION_INVALID"
             ) from exc
         verified += 1
+        if version == "1.0":
+            _require(
+                not effect_seen,
+                "FINANCIAL_ACTION_RECEIPT_EFFECT_BOUND_HISTORY_ROLLBACK",
+            )
+            legacy_effect_unbound += 1
+            continue
+
+        effect_seen = True
+        _require(bindings.get("effect_contract_version") == "1.0",
+                 "FINANCIAL_ACTION_EFFECT_CONTRACT_VERSION_UNSUPPORTED")
+        expected_effect_path = _effect_receipt_path(state["task_id"], action_id)
+        effect_path = bindings.get("effect_receipt_ref")
+        _require(effect_path == expected_effect_path,
+                 "FINANCIAL_ACTION_EFFECT_RECEIPT_PATH_MISMATCH")
+        effect_raw = _effect_bytes(effect_receipt_reader, expected_effect_path)
+        _require(effect_raw is not None,
+                 "FINANCIAL_ACTION_EFFECT_RECEIPT_MISSING")
+        try:
+            effect = json.loads(effect_raw)
+        except (ValueError, TypeError) as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_ACTION_EFFECT_RECEIPT_JSON_INVALID"
+            ) from exc
+        _require(isinstance(effect, Mapping),
+                 "FINANCIAL_ACTION_EFFECT_RECEIPT_INVALID")
+        result_sha = effect.get("resulting_state_blob_sha")
+        _require(_valid_sha(result_sha),
+                 "FINANCIAL_ACTION_EFFECT_RESULT_SHA_INVALID")
+        effect_previous = "NEW_FILE" if previous_sha == "NEW_FILE" else previous_sha
+        expected_effect_claims = {
+            "approved": True,
+            "action_id": action_id,
+            "task_id": state["task_id"],
+            "operation": operation,
+            "previous_state_blob_sha": effect_previous,
+            "resulting_state_blob_sha": result_sha,
+            "request_sha256": proof.get("request_sha256"),
+            "authorization_sha256": payload_sha256(proof),
+            "effect_contract_version": "1.0",
+            "admission_runtime": "financial_writing_agent.standalone_runtime.admit_article_action",
+        }
+        try:
+            verified_effect = verify_action_effect_attestation(
+                effect,
+                expected_claims=expected_effect_claims,
+                expected_actor=str(proof.get("authenticated_actor", "")),
+                expected_provider=str(provider_id),
+                historical=True,
+            )
+        except Exception as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_PERSISTED_ACTION_EFFECT_INVALID"
+            ) from exc
+        effect_nonce = verified_effect.get("nonce")
+        effect_provider = verified_effect.get("provider_id")
+        _require(isinstance(effect_nonce, str) and len(effect_nonce) >= 16
+                 and (effect_provider, effect_nonce) not in seen_nonces,
+                 "FINANCIAL_ACTION_EFFECT_NONCE_MISSING_OR_REPLAYED")
+        seen_nonces.add((effect_provider, effect_nonce))
+        if last_effect_result_sha is not None:
+            _require(effect_previous == last_effect_result_sha,
+                     "FINANCIAL_ACTION_EFFECT_CHAIN_DISCONTINUITY")
+        last_effect_result_sha = result_sha
+        effect_verified += 1
+
+    if current_state_blob_sha is not None and last_effect_result_sha is not None:
+        _require(last_effect_result_sha == current_state_blob_sha,
+                 "FINANCIAL_ACTION_EFFECT_CURRENT_STATE_SHA_MISMATCH")
     return {
         "verified_signed_receipts": verified,
         "legacy_self_attested_receipts": legacy,
+        "verified_effect_receipts": effect_verified,
+        "legacy_effect_unbound_receipts": legacy_effect_unbound,
+        "latest_effect_result_blob_sha": last_effect_result_sha,
         "assurance": (
-            "ALL_RECEIPTS_SIGNED_AND_REVERIFIED" if legacy == 0
-            else "SIGNED_NEW_RECEIPTS__LEGACY_HISTORY_RETAINED_AS_UNVERIFIED_PROVENANCE"
+            "ALL_RECEIPTS_SIGNED_AND_EFFECT_BOUND"
+            if legacy == 0 and legacy_effect_unbound == 0
+            else "SIGNED_ACTIONS__LEGACY_OR_EFFECT_UNBOUND_HISTORY_RETAINED"
         ),
     }
 
-
-def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any]:
+def observe_article(
+    task_id: str,
+    *,
+    state_reader: StateReader,
+    effect_receipt_reader: EffectReceiptReader | None = None,
+) -> dict[str, Any]:
     """Read actual child-owned business state; never imply editorial acceptance."""
     path = _state_path(task_id)
     record = _read(state_reader, path)
@@ -727,7 +856,9 @@ def observe_article(task_id: str, *, state_reader: StateReader) -> dict[str, Any
     state, sha = record
     _require(state["task_id"] == task_id, "FINANCIAL_ARTICLE_ID_MISMATCH")
     current_admission.validate_state(state)
-    authorization_history = _verify_persisted_action_authorization_history(state)
+    authorization_history = _verify_persisted_action_authorization_history(
+        state, effect_receipt_reader=effect_receipt_reader, current_state_blob_sha=sha,
+    )
     authority = state["task_requirement_authority"]
     visible_delivery_receipt = None
     for receipt in reversed(state.get("execution_receipts", [])):
@@ -807,6 +938,9 @@ def admit_article_action(
     state_reader: StateReader,
     cas_writer: CASWriter | None,
     authorization_verifier: AuthorizationVerifier | None,
+    bundle_cas_writer: BundleCASWriter | None = None,
+    effect_attestation_signer: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
+    effect_receipt_reader: EffectReceiptReader | None = None,
     artifact_reader: ArtifactReader | None = None,
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
@@ -821,8 +955,11 @@ def admit_article_action(
     parent goal id or parent service exists in this call contract.
     """
     r = _request(proposal)
-    _require(callable(authorization_verifier) and callable(cas_writer),
-             "FINANCIAL_TRUSTED_AUTH_AND_CAS_REQUIRED")
+    _require(
+        callable(authorization_verifier) and callable(bundle_cas_writer)
+        and callable(effect_attestation_signer) and callable(effect_receipt_reader),
+        "FINANCIAL_TRUSTED_AUTH_AND_EFFECT_BOUND_BUNDLE_CAS_REQUIRED",
+    )
     try:
         authorization_attestation = verify_action_authorization(
             authorization_verifier(deepcopy(r)), request=r,
@@ -891,7 +1028,10 @@ def admit_article_action(
         _require(previous_sha == r["expected_state_blob_sha"], "FINANCIAL_STATE_CHANGED_CONCURRENTLY")
         _require(state["task_id"] == r["task_id"], "FINANCIAL_ARTICLE_ID_MISMATCH")
         current_admission.validate_state(state)
-        _verify_persisted_action_authorization_history(state)
+        _verify_persisted_action_authorization_history(
+            state, effect_receipt_reader=effect_receipt_reader,
+            current_state_blob_sha=previous_sha,
+        )
         call = {
             "previous_state_blob_sha": previous_sha,
             "executor_identity": f"financial:{r['action_id']}",
@@ -928,12 +1068,22 @@ def admit_article_action(
         else:
             raise FinancialAdmissionError("FINANCIAL_ACTION_DISPATCH_UNKNOWN")
 
-    candidate["execution_receipts"][-1]["input_bindings"]["authorization_contract_version"] = "1.0"
-    candidate["execution_receipts"][-1]["input_bindings"]["authorization_verification"] = authorization_evidence
+    effect_path = _effect_receipt_path(r["task_id"], r["action_id"])
+    _require(
+        _effect_bytes(effect_receipt_reader, effect_path) is None,
+        "FINANCIAL_ACTION_EFFECT_RECEIPT_ALREADY_EXISTS",
+    )
+    action_bindings = candidate["execution_receipts"][-1]["input_bindings"]
+    action_bindings["previous_state_blob_sha"] = "NEW_FILE" if previous_sha is None else previous_sha
+    action_bindings["authorization_contract_version"] = "1.1"
+    action_bindings["authorization_verification"] = authorization_evidence
+    action_bindings["effect_contract_version"] = "1.0"
+    action_bindings["effect_receipt_ref"] = effect_path
     if owner_intent_evidence is not None:
         candidate["execution_receipts"][-1]["input_bindings"]["owner_intent_verification"] = owner_intent_evidence
     current_admission.validate_state(candidate)
-    _verify_persisted_action_authorization_history(candidate)
+    # The signed effect receipt is created after all stage-specific readbacks below.
+    # Full persisted-history verification runs once the atomic state+effect bundle exists.
     method_usage = None
     if op == "ADVANCE_STAGE" and observed is not None:
         method_usage = _verify_article_method_usage(
@@ -1024,21 +1174,79 @@ def admit_article_action(
 
     payload = _canonical_payload(candidate)
     expected_new_sha = _blob_sha(payload)
+    effect_claims = {
+        "approved": True,
+        "action_id": r["action_id"],
+        "task_id": r["task_id"],
+        "operation": op,
+        "previous_state_blob_sha": "NEW_FILE" if previous_sha is None else previous_sha,
+        "resulting_state_blob_sha": expected_new_sha,
+        "request_sha256": request_sha256(r),
+        "authorization_sha256": payload_sha256(authorization_evidence),
+        "effect_contract_version": "1.0",
+        "admission_runtime": "financial_writing_agent.standalone_runtime.admit_article_action",
+    }
     try:
-        issued = cas_writer(path, previous_sha, payload)
+        raw_effect = effect_attestation_signer(deepcopy(effect_claims))
+        effect_evidence = verify_action_effect_attestation(
+            raw_effect,
+            expected_claims=effect_claims,
+            expected_actor=str(authorization_evidence.get("authenticated_actor", "")),
+            expected_provider=str(authorization_evidence.get("provider_id", "")),
+        )
     except Exception as exc:
-        raise FinancialEffectUnverified("FINANCIAL_PROVIDER_WRITE_OUTCOME_UNKNOWN") from exc
-    if not isinstance(issued, Mapping) or issued.get("blob_sha") != expected_new_sha:
+        raise FinancialAdmissionError(
+            "FINANCIAL_ACTION_EFFECT_ATTESTATION_NOT_VERIFIED"
+        ) from exc
+    effect_payload = json.dumps(
+        effect_evidence, ensure_ascii=False, sort_keys=True, indent=2,
+    ) + "\n"
+
+    def staged_effect_reader(ref: str):
+        if ref == effect_path:
+            return effect_payload.encode("utf-8")
+        return effect_receipt_reader(ref)
+
+    current_admission.validate_state(candidate)
+    _verify_persisted_action_authorization_history(
+        candidate, effect_receipt_reader=staged_effect_reader,
+        current_state_blob_sha=expected_new_sha,
+    )
+    try:
+        issued = bundle_cas_writer(
+            path, previous_sha, {path: payload, effect_path: effect_payload},
+        )
+    except Exception as exc:
+        raise FinancialEffectUnverified("FINANCIAL_PROVIDER_BUNDLE_WRITE_OUTCOME_UNKNOWN") from exc
+    issued_shas = issued.get("blob_shas", {}) if isinstance(issued, Mapping) else {}
+    issued_state_sha = issued_shas.get(path) if isinstance(issued_shas, Mapping) else None
+    issued_effect_sha = issued_shas.get(effect_path) if isinstance(issued_shas, Mapping) else None
+    if not isinstance(issued, Mapping) or (
+        issued_state_sha or issued.get("blob_sha")
+    ) != expected_new_sha:
         raise FinancialEffectUnverified("FINANCIAL_PROVIDER_WRITE_SHA_MISMATCH")
+    expected_effect_sha = _blob_sha(effect_payload)
+    if (issued_effect_sha or issued.get("effect_blob_sha")) != expected_effect_sha:
+        raise FinancialEffectUnverified("FINANCIAL_EFFECT_RECEIPT_WRITE_SHA_MISMATCH")
     after = _read(state_reader, path)
     if after is None or after[1] != expected_new_sha or not _strict_json_equal(after[0], candidate):
         raise FinancialEffectUnverified("FINANCIAL_STATE_READBACK_MISMATCH")
+    after_effect = _effect_bytes(effect_receipt_reader, effect_path)
+    if after_effect != effect_payload.encode("utf-8") or _blob_sha(after_effect) != expected_effect_sha:
+        raise FinancialEffectUnverified("FINANCIAL_EFFECT_RECEIPT_READBACK_MISMATCH")
     current_admission.validate_state(after[0])
+    authorization_history = _verify_persisted_action_authorization_history(
+        after[0], effect_receipt_reader=effect_receipt_reader,
+        current_state_blob_sha=after[1],
+    )
     return {
         "contract_version": CONTRACT_VERSION, "domain_id": DOMAIN_ID,
         "task_id": r["task_id"], "action_id": r["action_id"], "operation": op,
         "state_ref": path, "previous_blob_sha": previous_sha,
         "observed_new_blob_sha": expected_new_sha,
+        "effect_receipt_ref": effect_path,
+        "observed_effect_blob_sha": expected_effect_sha,
+        "authorization_history": authorization_history,
         "provider_commit_ref": issued.get("commit_ref"),
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
@@ -1049,6 +1257,7 @@ def admit_article_action(
         "independent_editorial_review_readback": independent_editorial_proof,
         "visible_delivery_receipt": visible_delivery_receipt,
         "child_state_cas_verified": True,
+        "effect_receipt_readback_verified": True,
         "independent_editorial_quality_verified": False,
         "owner_outcome_verified": False,
     }

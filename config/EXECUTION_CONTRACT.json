@@ -243,12 +243,34 @@
     "external_parent_required": false,
     "decision_and_execution_loops_owner": "FINANCIAL_WRITING_OWNER",
     "current_article_action": "financial_writing_agent.standalone_runtime.admit_article_action",
-    "real_write_requirement": "EXTERNAL_USER_PERMISSION_AND_AUTHENTICATED_PROVIDER_CAS_AND_REREAD",
+    "real_write_requirement": "EXTERNAL_USER_PERMISSION_AND_AUTHENTICATED_PROVIDER_ACTION_AUTHORIZATION_PLUS_SIGNED_ACTION_EFFECT_RECEIPT_AND_ATOMIC_STATE_EFFECT_BUNDLE_CAS_AND_EXACT_REREAD",
     "current_requirement_authority": "financial_writing_agent.task_requirements",
     "financial_research_distinct_from_cognition": true,
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_ALL_FINANCIAL_BUSINESS_RULES",
     "shared_method_proposals": "DOCUMENT_WITH_SCOPE_IN_FINANCIAL_HISTORY__FINANCIAL_LOCAL_SCOPE",
-    "independent_qa_not_inferred_from_ci": true
+    "independent_qa_not_inferred_from_ci": true,
+    "action_effect_receipt_contract": {
+      "contract_version": "1.0",
+      "state_receipt_authorization_contract_version": "1.1",
+      "path_pattern": "workspaces/articles/{task_id}/actions/{action_id}.effect.json",
+      "signed_claims": [
+        "action_id",
+        "task_id",
+        "operation",
+        "previous_state_blob_sha",
+        "resulting_state_blob_sha",
+        "request_sha256",
+        "authorization_sha256",
+        "effect_contract_version",
+        "admission_runtime"
+      ],
+      "same_authenticated_actor_and_provider_as_action_authorization": true,
+      "state_and_effect_receipt_atomic_bundle_cas_required": true,
+      "exact_state_and_effect_blob_readback_required": true,
+      "legacy_signed_authorization_contract_version": "1.0",
+      "legacy_effect_unbound_history_is_preserved_not_rewritten": true,
+      "new_writes_may_not_roll_back_to_legacy_contract": true
+    }
   },
   "goal_method_governance": {
     "authority": "FINANCIAL_WRITING_OWNER",
@@ -337,6 +359,7 @@
     "owner_mutation_guard": "financial_writing_agent.whole_system_assurance.audit_repository_business_changes",
     "candidate_review_entry": "scripts/system_acceptance_report.py",
     "direct_main_business_mutation_without_guard_allowed": false,
-    "native_client_signed_provider_installed_and_tested": false
+    "native_client_signed_provider_installed_and_tested": false,
+    "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__STATE_AND_RECEIPT_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
   }
 }

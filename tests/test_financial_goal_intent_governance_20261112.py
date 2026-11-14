@@ -17,7 +17,8 @@ from financial_writing_agent.task_requirements import (
 )
 from test_financial_native_loop_closure_20261112 import Provider
 from trusted_provider_testkit import (
-    signed_action_authorization, signed_owner_change_approval, signed_owner_message,
+    signed_action_authorization, signed_action_effect,
+    signed_owner_change_approval, signed_owner_message,
 )
 
 TASK = "financial-goal-governance-sim"
@@ -38,6 +39,9 @@ def action(p, op, params, *, reader=None, sha=None):
         "parameters": params,
     }, state_reader=p.read, cas_writer=p.write,
        authorization_verifier=signed_action_authorization,
+       bundle_cas_writer=p.write_bundle,
+       effect_attestation_signer=signed_action_effect,
+       effect_receipt_reader=p.read_effect,
        artifact_reader=p.artifact, source_snapshot_reader=p.source,
        owner_instruction_reader=reader,
        owner_semantic_verifier=signed_owner_change_approval)

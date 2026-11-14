@@ -104,3 +104,18 @@ The system gate evaluator is intentionally stricter than the article action API'
 - G7 requires a complete archive manifest and final inventory digest, verified archive-tag readback, a single remaining `main` branch, active main protection, pull-request-only merges with at least one approval, stale approvals dismissed on new pushes, approval of the latest reviewable push, administrator enforcement, up-to-date `test` CI, and force-push/deletion disabled.
 
 These are externally evidenced release gates, not synthetic self-certification. CI fixtures use test-only signing keys and do not close live gates. The current main branch is still unprotected; no repository-administration setting is changed by this Python acceptance evaluator.
+
+## Signed action-effect receipt contract v1.0 (2026-11-14)
+
+A signed action-authorization receipt proves that a trusted provider authorized a request against a prior state SHA. It does **not**, by itself, prove which exact state bytes the authorized action produced. The article write path therefore uses two linked receipts:
+
+- The appended STATE.json execution receipt carries authorization_contract_version=1.1, the provider-signed authorization_verification, effect_contract_version=1.0, and the exact effect_receipt_ref.
+- workspaces/articles/<task_id>/actions/<action_id>.effect.json carries a provider-signed action_effect attestation. Its claims bind the exact action/task/operation, prior state Git blob SHA (or NEW_FILE), resulting state Git blob SHA, canonical request SHA-256, exact authorization-attestation SHA-256, contract version and admission runtime.
+
+The action-effect attestation must use the same authenticated actor and provider as the action authorization. The state and effect receipt are written in one atomic Git tree/commit/CAS operation; the provider then reads back both exact blobs. The runtime independently recomputes the state blob SHA, verifies the effect signature and claim bindings, and checks that the latest effect result SHA equals the current state SHA. A commit URL, a successful write response, a state-only readback or a model-authored receipt is not a substitute.
+
+The optional Python adapter now requires bundle_cas_writer, effect_attestation_signer and effect_receipt_reader for article mutations. The legacy single-file cas_writer callback is not sufficient to admit a state mutation. observe_article requires the effect-receipt reader whenever it encounters a v1.1 action receipt and verifies the complete persisted authorization/effect chain. A missing, altered, replayed, wrong-provider, wrong-actor or discontinuous effect receipt fails closed.
+
+Historical signed authorization contract v1.0 remains readable as legacy_effect_unbound_receipts; historical bytes are not rewritten or retroactively certified. Once an article has an effect-bound v1.1 receipt, a later v1.0 or unsigned receipt cannot roll the history back. New mutations must use v1.1 authorization plus v1.0 effect receipt.
+
+The PR audit reads the exact before/after Git blobs. A new article-state mutation must include a new, create-only effect receipt in the same candidate revision, and the signature must bind the resulting STATE.json bytes in that revision. This audit is an additional deterministic guard, not branch protection or live provider proof. Synthetic pytest signers and CI prove code behavior only; the live user-authenticated signer, atomic Git provider and independent business/editorial outcomes remain separate OPEN gates.
