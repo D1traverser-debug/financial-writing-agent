@@ -427,6 +427,50 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
     }
 
 
+def _verify_portfolio_stage_artifact_context(
+    stage_bytes: Mapping[str, Any],
+    context_value: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Cross-bind a typed stage artifact to the separately persisted context."""
+    artifact = stage_bytes.get("portfolio_stage_artifact")
+    _require(isinstance(artifact, Mapping),
+             "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_ENVELOPE_MISSING")
+    receipts = candidate.get("execution_receipts", [])
+    _require(isinstance(receipts, list) and bool(receipts),
+             "FINANCIAL_PORTFOLIO_STAGE_OWNER_RECEIPT_MISSING")
+    owner_stage_before = receipts[-1].get("stage")
+    last_stage_result = context_value.get("last_stage_result")
+    trace = context_value.get("trace", [])
+    expected_pass_receipts = [
+        item.get("receipt_sha256")
+        for item in trace
+        if isinstance(item, Mapping)
+        and item.get("business_stage") == owner_stage_before
+    ] if isinstance(trace, list) else []
+    _require(
+        artifact.get("task_id") == candidate.get("task_id")
+        and context_value.get("task_id") == candidate.get("task_id")
+        and artifact.get("stage") == owner_stage_before
+        and artifact.get("owner_state_stage_before") == owner_stage_before
+        and artifact.get("requirement_digest") == candidate.get("task_requirement_digest")
+        and artifact.get("requirement_digest") == context_value.get("requirement_digest")
+        and artifact.get("stage_result") == last_stage_result
+        and isinstance(last_stage_result, Mapping)
+        and artifact.get("payload") == last_stage_result.get("stage_outputs")
+        and artifact.get("pass_receipt_sha256s") == expected_pass_receipts
+        and bool(expected_pass_receipts),
+        "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_CONTEXT_CROSS_BINDING_MISMATCH",
+    )
+    return {
+        "path": stage_bytes.get("path"),
+        "blob_sha": stage_bytes.get("verified_blob_sha"),
+        "stage": owner_stage_before,
+        "pass_receipt_count": len(expected_pass_receipts),
+        "assurance": "EXACT_PROVIDER_BYTES_AND_CONTEXT_CROSS_BINDING",
+    }
+
+
 def _verify_requirement_satisfaction_sources(
     satisfaction: list[Mapping[str, Any]],
     research_sources: Mapping[str, Any],
@@ -1305,36 +1349,12 @@ def admit_article_action(
         }
         action_bindings["portfolio_context_readback"] = portfolio_context_readback
 
-        if stage_bytes is not None and isinstance(
-            stage_bytes.get("portfolio_stage_artifact"), Mapping
-        ):
-            stage_artifact = stage_bytes["portfolio_stage_artifact"]
-            owner_stage_before = candidate["execution_receipts"][-1].get("stage")
-            last_stage_result = context_value.get("last_stage_result")
-            expected_pass_receipts = [
-                item.get("receipt_sha256")
-                for item in context_value.get("trace", [])
-                if isinstance(item, Mapping)
-                and item.get("business_stage") == owner_stage_before
-            ]
-            _require(
-                stage_artifact.get("stage") == owner_stage_before
-                and stage_artifact.get("owner_state_stage_before") == owner_stage_before
-                and stage_artifact.get("requirement_digest") == context_value.get("requirement_digest")
-                and stage_artifact.get("stage_result") == last_stage_result
-                and isinstance(last_stage_result, Mapping)
-                and stage_artifact.get("payload") == last_stage_result.get("stage_outputs")
-                and stage_artifact.get("pass_receipt_sha256s") == expected_pass_receipts
-                and bool(expected_pass_receipts),
-                "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_CONTEXT_CROSS_BINDING_MISMATCH",
+        if stage_bytes is not None and stage_bytes.get("portfolio_stage_artifact") is not None:
+            action_bindings["portfolio_stage_artifact_readback"] = (
+                _verify_portfolio_stage_artifact_context(
+                    stage_bytes, context_value, candidate,
+                )
             )
-            action_bindings["portfolio_stage_artifact_readback"] = {
-                "path": stage_bytes["path"],
-                "blob_sha": stage_bytes["verified_blob_sha"],
-                "stage": owner_stage_before,
-                "pass_receipt_count": len(expected_pass_receipts),
-                "assurance": "EXACT_PROVIDER_BYTES_AND_CONTEXT_CROSS_BINDING",
-            }
         current_admission.validate_state(candidate)
     delivery_research_freshness = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
