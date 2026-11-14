@@ -177,3 +177,30 @@ def test_source_appendix_and_underlines_are_hard_fail(tmp_path):
     assert not result["ok"]
     assert any("end source section" in error for error in result["errors"])
     assert any("underline" in error for error in result["errors"])
+
+
+def test_word_h1_numbering_matches_blueprint_and_checker_across_16_sections(tmp_path):
+    from financial_writing_agent.structure_numbering import chinese_section_prefix
+    from financial_writing_agent.story_quality import publication_structure_findings
+
+    policy = load_packaged_policy()
+    article = ArticleDocument(
+        title="中文章节编号跨模块一致性测试",
+        blocks=[
+            item
+            for i in range(1, 17)
+            for item in (
+                Block(kind="h1", text=f"实质分析部分{i}"),
+                Block(kind="body", text=f"本节根据约束解释第{i}个链条事实，供跨阶段编号检查。"),
+            )
+        ] + [
+            Block(kind="h1", text="风险提示与免责声明"),
+            Block(kind="body", text=_risk_text()),
+        ],
+    )
+    output = build_article_docx(article, tmp_path / "16_sections.docx", policy)
+    doc = Document(output)
+    headings = [p.text for p in doc.paragraphs if p.style.name == "Heading 1"]
+    assert len(headings) == 16
+    assert publication_structure_findings(headings) == []
+    assert headings[15].startswith(chinese_section_prefix(16))
