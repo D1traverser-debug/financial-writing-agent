@@ -150,7 +150,7 @@ def test_whole_control_change_audit_rejects_artifact_only_write_without_owner_re
     receipt = audit_repository_business_changes(
         [path],
         before_reader=lambda _: None,
-        after_reader=lambda _: b"unbound draft",
+        after_reader=lambda ref: b"unbound draft" if ref == path else None,
     )
     assert f"ARTICLE_ARTIFACT_CHANGED_WITHOUT_STATE_REVISION:{TASK}" in receipt["violations"]
 
