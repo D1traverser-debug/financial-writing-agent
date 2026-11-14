@@ -3,10 +3,15 @@
   "domain_id": "financial_writing",
   "scope": "STANDALONE",
   "independent_parent_free": true,
-  "source_of_cognition": "FINANCIAL_OWN_DECISION_ENVELOPE_AND_METHODS",
+  "source_of_cognition": "CAOS_EXTERNAL_CHAT_GOVERNANCE_WITH_FINANCIAL_OWNER_NATIVE_EVIDENCE_ADMISSIONS",
   "entrypoint": "skills/financial-writing-agent/SKILL.md",
   "owner": "FINANCIAL_WRITING_OWNER",
   "capabilities": [
+    {
+      "id": "caos_cross_project_cognition_governance",
+      "source": "config/CAOS_GOVERNANCE.json + CAOS_FINANCIAL_ENTRY.md",
+      "assurance": "CHAT_GOVERNED_EXTERNAL__ACTIVE_SESSION_GOVERNANCE__NO_RUNTIME_API_HOST_OR_PERMISSION_GRANT"
+    },
     {
       "id": "goal_recovery_and_requirements",
       "source": "financial_writing_agent.task_requirements",
@@ -29,8 +34,8 @@
     },
     {
       "id": "financial_cognition_and_counterexamples",
-      "source": "financial_writing_agent.cognition_governance",
-      "assurance": "DECISION_ENVELOPE_NOT_EDITORIAL_ACCEPTANCE"
+      "source": "CAOS chat governance + financial_writing_agent.cognition_governance.DecisionEnvelope",
+      "assurance": "CAOS_OWNS_CROSS_PROJECT_COGNITION__DECISION_ENVELOPE_IS_FINANCIAL_DOMAIN_EVIDENCE_NOT_A_SECOND_CONTROLLER"
     },
     {
       "id": "story_and_content_quality",
@@ -95,7 +100,7 @@
     "ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK"
   ],
   "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS",
-  "independence_clause": "NO_EXTERNAL_PARENT_REPOSITORY_OR_HOST_INVOCATION",
+  "independence_clause": "NO_EXTERNAL_PARENT_RUNTIME_OR_HOST_INVOCATION__CAOS_CHAT_GOVERNANCE_ONLY",
   "conditional_capabilities_for_independent_acceptance": [
     "SEPARATE_INDEPENDENT_REVIEWER_FOR_EDITORIAL_ACCEPTANCE",
     "FRESH_CHAT_SESSION_WITH_FINANCIAL_SKILL_PLUGIN_INSTALLED_FOR_CLIENT_RELEASE_VERIFICATION",
@@ -107,5 +112,7 @@
     "EXTERNAL_OWNER_CONFIRMATION_ATTESTATION_PROVIDER",
     "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_OWNER_OR_METHOD_MUTATION",
     "ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK"
-  ]
+  ],
+  "caos_governance_ref": "config/CAOS_GOVERNANCE.json",
+  "caos_governance_mode": "CHAT_GOVERNED_EXTERNAL__NO_RUNTIME_OR_API_DEPENDENCY"
 }
