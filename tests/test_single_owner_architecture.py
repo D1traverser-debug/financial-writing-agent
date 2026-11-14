@@ -28,7 +28,7 @@ def test_current_authority_has_one_financial_owner_path():
     native = manifest["chatgpt_native_runtime"]
     assert native["orchestrator"] == "CHATGPT_MODEL_WITH_FINANCIAL_SKILL"
     assert native["persistence_provider"] == "CONNECTED_USER_GITHUB_CONNECTOR"
-    assert native["write_protocol"] == "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__STATE_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE"
+    assert native["write_protocol"] == "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE"
     assert native["requires_hosted_python_mcp"] is False
     assert execution["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
     assert execution["execution"]["live_parent_business_proxy_required"] is False

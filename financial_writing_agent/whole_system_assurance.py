@@ -262,7 +262,7 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
         == "financial_writing_agent.whole_system_assurance.audit_repository_business_changes"
         and client.get("candidate_review_entry") == "scripts/system_acceptance_report.py"
         and client.get("business_effect_receipt_contract")
-        == "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__STATE_AND_RECEIPT_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
+        == "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__OWNER_STATE_AND_METHOD_CATALOG_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
         and client.get("native_client_signed_provider_installed_and_tested") is False
     )
     if not expected_guard:
@@ -273,8 +273,8 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
     }
     required_effect_capabilities = {
         "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION",
-        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_STATE_MUTATION",
-        "ATOMIC_STATE_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK",
+        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_OWNER_OR_METHOD_MUTATION",
+        "ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK",
     }
     if "chatgpt_native_execution_and_github_persistence" not in capability_ids or not (
             required_effect_capabilities.issubset(
@@ -424,28 +424,19 @@ def audit_repository_business_changes(
     violations: list[str] = []
     reviewed: list[dict[str, str]] = []
     article_tasks: dict[str, set[str]] = {}
+    method_catalog_touched = False
+    method_effect_paths: set[str] = set()
     for rel in sorted(set(changed_paths)):
         if not isinstance(rel, str) or not rel.strip() or rel.startswith("/") or ".." in Path(rel).parts:
             violations.append("INVALID_MUTATION_PATH")
             continue
         path = Path(rel)
         if path.as_posix() == "knowledge/METHOD_KNOWLEDGE_CATALOG.json":
-            old_bytes, new_bytes = before_reader(rel), after_reader(rel)
-            if not isinstance(old_bytes, bytes) or not isinstance(new_bytes, bytes):
-                violations.append("METHOD_AUTHORITY_REMOVED_OR_UNREADABLE")
-            else:
-                try:
-                    old = validate_method_catalog(json.loads(old_bytes))
-                    new = validate_method_catalog(json.loads(new_bytes))
-                    earlier = old.get("change_history", [])
-                    later = new.get("change_history", [])
-                    if not (len(later) == len(earlier) + 1
-                            and later[:-1] == earlier
-                            and new.get("governance_revision") == old.get("governance_revision", 0) + 1):
-                        violations.append("METHOD_MUTATION_HISTORY_NOT_APPEND_ONLY")
-                except (ValueError, TypeError, KeyError) as exc:
-                    violations.append("METHOD_MUTATION_NOT_PROVIDER_ADMITTED:" + str(exc)[:180])
+            method_catalog_touched = True
             reviewed.append({"path": rel, "scope": "METHOD_AUTHORITY"})
+            continue
+        if path.parts[:2] == ("knowledge", "actions"):
+            method_effect_paths.add(rel)
             continue
         if path.parts[:2] != ("workspaces", "articles"):
             continue
@@ -453,6 +444,77 @@ def audit_repository_business_changes(
             violations.append("INVALID_ARTICLE_WORKSPACE_MUTATION")
             continue
         article_tasks.setdefault(path.parts[2], set()).add(rel)
+
+    if method_catalog_touched:
+        catalog_ref = "knowledge/METHOD_KNOWLEDGE_CATALOG.json"
+        old_bytes, new_bytes = before_reader(catalog_ref), after_reader(catalog_ref)
+        if not isinstance(old_bytes, bytes) or not isinstance(new_bytes, bytes):
+            violations.append("METHOD_AUTHORITY_REMOVED_OR_UNREADABLE")
+        else:
+            try:
+                from .method_governance import (
+                    method_effect_receipt_path, replay_method_catalog_action,
+                )
+                old_catalog = validate_method_catalog(json.loads(old_bytes))
+                new_catalog = validate_method_catalog(json.loads(new_bytes))
+                earlier = old_catalog.get("change_history", [])
+                later = new_catalog.get("change_history", [])
+                if not (
+                    len(later) == len(earlier) + 1
+                    and later[:-1] == earlier
+                    and new_catalog.get("governance_revision")
+                    == old_catalog.get("governance_revision", 0) + 1
+                ):
+                    raise ValueError("METHOD_MUTATION_HISTORY_NOT_APPEND_ONLY")
+                event = later[-1]
+                action_id = event.get("authorization_action_id")
+                effect_ref = method_effect_receipt_path(str(action_id or ""))
+                if event.get("effect_contract_version") != "1.0":
+                    raise ValueError("METHOD_MUTATION_EFFECT_RECEIPT_REQUIRED")
+                if event.get("effect_receipt_ref") != effect_ref:
+                    raise ValueError("METHOD_EFFECT_RECEIPT_PATH_MISMATCH")
+                if method_effect_paths != {effect_ref}:
+                    raise ValueError("METHOD_EFFECT_RECEIPT_NOT_ATOMICALLY_INCLUDED_IN_REVISION")
+                if before_reader(effect_ref) is not None:
+                    raise ValueError("METHOD_EFFECT_RECEIPT_REPLAY_OR_REWRITE_DENIED")
+                effect_raw = after_reader(effect_ref)
+                if isinstance(effect_raw, str):
+                    effect_raw = effect_raw.encode("utf-8")
+                if not isinstance(effect_raw, bytes):
+                    raise ValueError("METHOD_EFFECT_RECEIPT_MISSING")
+                effect = json.loads(effect_raw)
+                if not isinstance(effect, Mapping):
+                    raise ValueError("METHOD_EFFECT_RECEIPT_INVALID")
+                previous_sha = _git_blob_sha(old_bytes)
+                resulting_sha = _git_blob_sha(new_bytes)
+                if effect.get("previous_catalog_blob_sha") != previous_sha:
+                    raise ValueError("METHOD_EFFECT_PREVIOUS_CATALOG_SHA_MISMATCH")
+                if effect.get("resulting_catalog_blob_sha") != resulting_sha:
+                    raise ValueError("METHOD_EFFECT_RESULT_CATALOG_SHA_MISMATCH")
+                from .standalone_runtime import _verify_persisted_method_action_effect_history
+                _verify_persisted_method_action_effect_history(
+                    new_catalog,
+                    effect_receipt_reader=after_reader,
+                    current_catalog_blob_sha=resulting_sha,
+                )
+                replay_method_catalog_action(
+                    old_catalog, new_catalog,
+                    observed_catalog_blob_sha=previous_sha,
+                )
+            except Exception as exc:
+                violations.append("METHOD_MUTATION_NOT_PROVIDER_ADMITTED:" + str(exc)[:240])
+        reviewed.append({"path": catalog_ref, "scope": "METHOD_AUTHORITY"})
+        if method_effect_paths:
+            reviewed.extend(
+                {"path": ref, "scope": "METHOD_EFFECT_RECEIPT"}
+                for ref in sorted(method_effect_paths)
+            )
+    elif method_effect_paths:
+        violations.append("METHOD_EFFECT_CHANGED_WITHOUT_CATALOG_REVISION")
+        reviewed.extend(
+            {"path": ref, "scope": "METHOD_EFFECT_RECEIPT"}
+            for ref in sorted(method_effect_paths)
+        )
 
     for task_id, touched in sorted(article_tasks.items()):
         prefix = f"workspaces/articles/{task_id}/"
@@ -548,6 +610,10 @@ def audit_repository_business_changes(
                     validate_feedback_update(
                         before, candidate, previous_state_blob_sha=previous_sha,
                     )
+                else:
+                    raise ValueError(
+                        "UNREPLAYED_OWNER_OPERATION_REQUIRES_EXECUTABLE_ADAPTER:" + str(operation)
+                    )
             elif operation != "CREATE_ARTICLE":
                 raise ValueError("NEW_ARTICLE_NOT_AUTHORIZED_AS_CREATE")
         except (ValueError, KeyError, TypeError) as exc:
@@ -557,7 +623,7 @@ def audit_repository_business_changes(
     return {
         "schema_version": "1.0",
         "business_paths_changed": sum(
-            int(item["scope"] in {"OWNER_ARTICLE_MUTATION", "METHOD_AUTHORITY", "IMMUTABLE_HISTORY"})
+            int(item["scope"] in {"OWNER_ARTICLE_MUTATION", "METHOD_AUTHORITY", "METHOD_EFFECT_RECEIPT", "IMMUTABLE_HISTORY"})
             for item in reviewed
         ),
         "reviewed_effect_boundaries": reviewed,

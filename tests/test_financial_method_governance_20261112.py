@@ -11,13 +11,15 @@ from financial_writing_agent.method_governance import (
     MethodGovernanceError, _digest, mutate_method_catalog, query_methods,
     validate_method_catalog,
 )
-from financial_writing_agent.provider_attestation import request_sha256
+from financial_writing_agent.provider_attestation import payload_sha256, request_sha256
+from financial_writing_agent.whole_system_assurance import audit_repository_business_changes
 from financial_writing_agent.standalone_runtime import (
     FinancialAdmissionError, FinancialEffectUnverified, _blob_sha,
     admit_method_action, observe_method_catalog,
 )
 from trusted_provider_testkit import (
-    signed_attestation, signed_method_action_authorization, signed_method_impact, signed_method_promotion,
+    signed_attestation, signed_action_effect, signed_method_action_authorization,
+    signed_method_impact, signed_method_promotion,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -174,6 +176,10 @@ class Provider:
             return None
         return {"content": raw, "state": json.loads(raw), "blob_sha": _blob_sha(raw)}
 
+    def read_effect(self, path):
+        raw = self.store.get(path)
+        return None if raw is None else {"content": raw, "blob_sha": _blob_sha(raw)}
+
     def write(self, path, previous, content):
         raw = self.store.get(path)
         if raw is None or _blob_sha(raw) != previous:
@@ -182,19 +188,42 @@ class Provider:
             self.store[path] = content
         return {"blob_sha": _blob_sha(content), "commit_ref": "simulation://catalog"}
 
-    def request(self, operation, *, expected=None, proposed=None):
+    def write_bundle(self, path, previous, files):
+        raw = self.store.get(path)
+        if raw is None or _blob_sha(raw) != previous:
+            raise RuntimeError("stale bundle CAS")
+        for ref in files:
+            if ref != path and ref in self.store:
+                raise RuntimeError("effect receipt already exists")
+        if not self.tamper:
+            self.store.update(files)
+        return {
+            "blob_shas": {ref: _blob_sha(content) for ref, content in files.items()},
+            "commit_ref": "simulation://catalog-bundle",
+        }
+
+    def request(self, operation, *, expected=None, proposed=None,
+                promotion_evidence=None, impact_target_revision=None,
+                impact_evidence=None):
+        parameters = {
+            "knowledge_id": METHOD_ID,
+            "proposed_record": proposed,
+            "decision_envelope": decision(),
+            "evidence_refs": ["method-source://primary"],
+            "affected_stages": ["RESEARCH", "EDITORIAL"],
+        }
+        if promotion_evidence is not None:
+            parameters["promotion_evidence"] = promotion_evidence
+        if impact_target_revision is not None:
+            parameters["impact_target_revision"] = impact_target_revision
+        if impact_evidence is not None:
+            parameters["impact_evidence"] = impact_evidence
         return {
             "schema_version": "1.0", "domain_id": "financial_writing",
             "action_id": "synthetic-method-" + operation.lower(),
             "operation": operation,
             "expected_catalog_blob_sha": expected or self.read(CATALOG_PATH)["blob_sha"],
-            "parameters": {
-                "knowledge_id": METHOD_ID,
-                "proposed_record": proposed,
-                "decision_envelope": decision(),
-                "evidence_refs": ["method-source://primary"],
-                "affected_stages": ["RESEARCH", "EDITORIAL"],
-            },
+            "parameters": parameters,
         }
 
 
@@ -203,11 +232,19 @@ def test_financial_method_cas_port_reads_real_catalog_and_never_writes_caos_or_a
     before = p.read(CATALOG_PATH)["blob_sha"]
     r = admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=signed_method_action_authorization)
+                            authorization_verifier=signed_method_action_authorization,
+                            catalog_bundle_cas_writer=p.write_bundle,
+                            effect_attestation_signer=signed_action_effect,
+                            effect_receipt_reader=p.read_effect)
+    observed = observe_method_catalog(
+        catalog_reader=p.read, effect_receipt_reader=p.read_effect,
+    )
     assert r["method_catalog_cas_verified"] is True
+    assert r["method_effect_receipt_readback_verified"] is True
     assert r["previous_catalog_blob_sha"] == before
-    assert len(observe_method_catalog(catalog_reader=p.read)["records"]) == len(original()["records"]) + 1
-    assert list(p.store) == [CATALOG_PATH]
+    assert observed["effect_history"]["verified_effect_receipts"] == 1
+    assert len(observed["records"]) == len(original()["records"]) + 1
+    assert set(p.store) == {CATALOG_PATH, r["effect_receipt_ref"]}
 
 
 def test_financial_method_mutation_denies_stale_sha_auth_and_unverified_readback():
@@ -216,18 +253,27 @@ def test_financial_method_mutation_denies_stale_sha_auth_and_unverified_readback
     with pytest.raises(FinancialAdmissionError, match="AUTHORIZATION"):
         admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=lambda _: False)
+                            authorization_verifier=lambda _: False,
+                            catalog_bundle_cas_writer=p.write_bundle,
+                            effect_attestation_signer=signed_action_effect,
+                            effect_receipt_reader=p.read_effect)
     assert p.store == before
     with pytest.raises(FinancialAdmissionError, match="CHANGED_CONCURRENTLY"):
         admit_method_action(p.request("CREATE", expected="f"*40, proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=signed_method_action_authorization)
+                            authorization_verifier=signed_method_action_authorization,
+                            catalog_bundle_cas_writer=p.write_bundle,
+                            effect_attestation_signer=signed_action_effect,
+                            effect_receipt_reader=p.read_effect)
     assert p.store == before
     p.tamper = True
     with pytest.raises(FinancialEffectUnverified):
         admit_method_action(p.request("CREATE", proposed=method()),
                             catalog_reader=p.read, catalog_cas_writer=p.write,
-                            authorization_verifier=signed_method_action_authorization)
+                            authorization_verifier=signed_method_action_authorization,
+                            catalog_bundle_cas_writer=p.write_bundle,
+                            effect_attestation_signer=signed_action_effect,
+                            effect_receipt_reader=p.read_effect)
     assert p.store == before
 
 
@@ -384,3 +430,141 @@ def test_method_retirement_invalidates_prior_article_method_snapshot():
     change = method_dependency_drift(retired, snapshot)
     assert change[0]["current_lifecycle_status"] == "RETIRED"
     assert change[0]["change_revisions"] == [3]
+
+def test_method_effect_receipt_is_required_and_binds_exact_catalog_blob():
+    p = Provider()
+    result = admit_method_action(
+        p.request("CREATE", proposed=method()),
+        catalog_reader=p.read, catalog_cas_writer=p.write,
+        authorization_verifier=signed_method_action_authorization,
+        catalog_bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+    )
+    effect_ref = result["effect_receipt_ref"]
+    saved = p.store.pop(effect_ref)
+    with pytest.raises(FinancialAdmissionError, match="METHOD_EFFECT_RECEIPT_MISSING"):
+        observe_method_catalog(catalog_reader=p.read, effect_receipt_reader=p.read_effect)
+    p.store[effect_ref] = saved
+
+    effect = json.loads(saved)
+    effect["resulting_catalog_blob_sha"] = "0" * 40
+    p.store[effect_ref] = json.dumps(effect, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    with pytest.raises(FinancialAdmissionError, match="PERSISTED_EFFECT_ATTESTATION_INVALID"):
+        observe_method_catalog(catalog_reader=p.read, effect_receipt_reader=p.read_effect)
+
+
+def test_method_catalog_cannot_roll_back_to_unbound_event_after_effect_bound_history():
+    p = Provider()
+    admit_method_action(
+        p.request("CREATE", proposed=method()),
+        catalog_reader=p.read, catalog_cas_writer=p.write,
+        authorization_verifier=signed_method_action_authorization,
+        catalog_bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+    )
+    bound = p.read(CATALOG_PATH)["state"]
+    legacy, _ = mutate(bound, "CHALLENGE")
+    p.store[CATALOG_PATH] = json.dumps(legacy, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
+    with pytest.raises(FinancialAdmissionError, match="EFFECT_BOUND_HISTORY_ROLLBACK"):
+        observe_method_catalog(catalog_reader=p.read, effect_receipt_reader=p.read_effect)
+
+
+def test_method_catalog_pr_audit_requires_atomic_effect_receipt_and_replays_exact_operation():
+    p = Provider()
+    old_raw = p.store[CATALOG_PATH].encode("utf-8")
+    result = admit_method_action(
+        p.request("CREATE", proposed=method()),
+        catalog_reader=p.read, catalog_cas_writer=p.write,
+        authorization_verifier=signed_method_action_authorization,
+        catalog_bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+    )
+    new_raw = p.store[CATALOG_PATH].encode("utf-8")
+    effect_ref = result["effect_receipt_ref"]
+    files = {ref: value.encode("utf-8") for ref, value in p.store.items()}
+    accepted = audit_repository_business_changes(
+        [CATALOG_PATH, effect_ref],
+        before_reader=lambda ref: old_raw if ref == CATALOG_PATH else None,
+        after_reader=lambda ref: files.get(ref),
+    )
+    assert accepted["violations"] == []
+    assert accepted["status"] == "NO_UNADMITTED_BUSINESS_CHANGE_OBSERVED"
+
+    missing = audit_repository_business_changes(
+        [CATALOG_PATH, effect_ref],
+        before_reader=lambda ref: old_raw if ref == CATALOG_PATH else None,
+        after_reader=lambda ref: new_raw if ref == CATALOG_PATH else None,
+    )
+    assert missing["status"].startswith("REJECTED")
+    assert any("METHOD_EFFECT_RECEIPT" in issue for issue in missing["violations"])
+
+
+def test_method_catalog_pr_audit_rejects_validly_signed_but_unreplayed_lifecycle_transition():
+    p = Provider()
+    admit_method_action(
+        p.request("CREATE", proposed=method()),
+        catalog_reader=p.read, catalog_cas_writer=p.write,
+        authorization_verifier=signed_method_action_authorization,
+        catalog_bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+    )
+    admit_method_action(
+        p.request("PROMOTE", promotion_evidence={
+            "validation_refs": ["synthetic-ci://exact-change-test"],
+            "review_ref": "simulation://review",
+        }),
+        catalog_reader=p.read, catalog_cas_writer=p.write,
+        authorization_verifier=signed_method_action_authorization,
+        catalog_bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+        promotion_verifier=promotion_verifier,
+    )
+    old_raw = p.store[CATALOG_PATH].encode("utf-8")
+    challenge_result = admit_method_action(
+        p.request("CHALLENGE"),
+        catalog_reader=p.read, catalog_cas_writer=p.write,
+        authorization_verifier=signed_method_action_authorization,
+        catalog_bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+    )
+    catalog = p.read(CATALOG_PATH)["state"]
+    assert catalog["records"][-1]["lifecycle_status"] == "CHALLENGED"
+    catalog["records"][-1]["lifecycle_status"] = "RETIRED"
+    catalog["change_history"][-1]["result_record_sha256"] = _digest(catalog["records"][-1])
+    new_raw = (json.dumps(catalog, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    request = catalog["change_history"][-1]["authorization_request"]
+    authorization = catalog["change_history"][-1]["authorization_evidence"]
+    effect_ref = challenge_result["effect_receipt_ref"]
+    effect_claims = {
+        "approved": True,
+        "action_id": request["action_id"],
+        "domain_id": "financial_writing",
+        "catalog_ref": CATALOG_PATH,
+        "operation": request["operation"],
+        "knowledge_id": request["parameters"]["knowledge_id"],
+        "previous_catalog_blob_sha": request["expected_catalog_blob_sha"],
+        "resulting_catalog_blob_sha": _blob_sha(new_raw),
+        "request_sha256": request_sha256(request),
+        "authorization_sha256": payload_sha256(authorization),
+        "effect_contract_version": "1.0",
+        "admission_runtime": "financial_writing_agent.standalone_runtime.admit_method_action",
+    }
+    p.store[CATALOG_PATH] = new_raw.decode("utf-8")
+    p.store[effect_ref] = json.dumps(
+        signed_action_effect(effect_claims), ensure_ascii=False, sort_keys=True, indent=2,
+    ) + "\n"
+    files = {ref: value.encode("utf-8") for ref, value in p.store.items()}
+    rejected = audit_repository_business_changes(
+        [CATALOG_PATH, effect_ref],
+        before_reader=lambda ref: old_raw if ref == CATALOG_PATH else None,
+        after_reader=lambda ref: files.get(ref),
+    )
+    assert rejected["status"].startswith("REJECTED")
+    assert any("ACTION_REPLAY_RESULT_DIFFERS" in issue for issue in rejected["violations"])
+

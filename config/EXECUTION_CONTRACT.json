@@ -243,7 +243,7 @@
     "external_parent_required": false,
     "decision_and_execution_loops_owner": "FINANCIAL_WRITING_OWNER",
     "current_article_action": "financial_writing_agent.standalone_runtime.admit_article_action",
-    "real_write_requirement": "EXTERNAL_USER_PERMISSION_AND_AUTHENTICATED_PROVIDER_ACTION_AUTHORIZATION_PLUS_SIGNED_ACTION_EFFECT_RECEIPT_AND_ATOMIC_STATE_EFFECT_BUNDLE_CAS_AND_EXACT_REREAD",
+    "real_write_requirement": "EXTERNAL_USER_PERMISSION_AND_AUTHENTICATED_PROVIDER_ACTION_AUTHORIZATION_PLUS_SIGNED_EFFECT_RECEIPT_AND_ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_BUNDLE_CAS_AND_EXACT_REREAD",
     "current_requirement_authority": "financial_writing_agent.task_requirements",
     "financial_research_distinct_from_cognition": true,
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_ALL_FINANCIAL_BUSINESS_RULES",
@@ -270,6 +270,29 @@
       "legacy_signed_authorization_contract_version": "1.0",
       "legacy_effect_unbound_history_is_preserved_not_rewritten": true,
       "new_writes_may_not_roll_back_to_legacy_contract": true
+    },
+    "method_catalog_effect_receipt_contract": {
+      "contract_version": "1.0",
+      "path_pattern": "knowledge/actions/{action_id}.effect.json",
+      "signed_claims": [
+        "action_id",
+        "domain_id",
+        "catalog_ref",
+        "operation",
+        "knowledge_id",
+        "previous_catalog_blob_sha",
+        "resulting_catalog_blob_sha",
+        "request_sha256",
+        "authorization_sha256",
+        "effect_contract_version",
+        "admission_runtime"
+      ],
+      "same_authenticated_actor_and_provider_as_method_authorization": true,
+      "method_catalog_and_effect_receipt_atomic_bundle_cas_required": true,
+      "exact_catalog_and_effect_blob_readback_required": true,
+      "deterministic_operation_replay_required_in_pr_audit": true,
+      "legacy_method_events_remain_effect_unbound": true,
+      "new_events_may_not_roll_back_after_effect_bound_history": true
     }
   },
   "goal_method_governance": {
@@ -360,6 +383,6 @@
     "candidate_review_entry": "scripts/system_acceptance_report.py",
     "direct_main_business_mutation_without_guard_allowed": false,
     "native_client_signed_provider_installed_and_tested": false,
-    "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__STATE_AND_RECEIPT_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
+    "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__OWNER_STATE_AND_METHOD_CATALOG_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
   }
 }

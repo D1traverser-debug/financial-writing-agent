@@ -42,6 +42,11 @@ METHOD_FIELDS = frozenset({
 })
 _METHOD_ID = re.compile(r"METHOD-[A-Z0-9][A-Z0-9_-]{0,120}\Z")
 
+def method_effect_receipt_path(action_id: str) -> str:
+    if not isinstance(action_id, str) or re.fullmatch(r"[A-Za-z0-9_.:-]{1,180}", action_id) is None:
+        raise MethodGovernanceError("ACTION_EFFECT_ID_INVALID")
+    return f"knowledge/actions/{action_id}.effect.json"
+
 
 class MethodGovernanceError(ValueError):
     pass
@@ -160,6 +165,16 @@ def validate_method_catalog(raw: Mapping[str, Any]) -> dict[str, Any]:
                  and action_request.get("action_id") == item.get("authorization_action_id")
                  and action_request.get("expected_catalog_blob_sha") == item.get("authorization_expected_catalog_blob_sha"),
                  "CATALOG_ACTION_REQUEST_EVENT_BINDING_MISMATCH")
+        effect_version = item.get("effect_contract_version")
+        effect_ref = item.get("effect_receipt_ref")
+        if effect_version is None:
+            _require(effect_ref is None, "LEGACY_EVENT_HAS_UNBOUND_EFFECT_REFERENCE")
+        else:
+            _require(
+                effect_version == "1.0"
+                and effect_ref == method_effect_receipt_path(str(action_request.get("action_id", ""))),
+                "ACTION_EFFECT_RECEIPT_CONTRACT_OR_PATH_INVALID",
+            )
         try:
             expected_decision = DecisionEnvelope.model_validate(
                 params.get("decision_envelope")
@@ -332,6 +347,7 @@ def mutate_method_catalog(
     authorization_evidence: Mapping[str, Any] | None = None,
     action_request: Mapping[str, Any] | None = None,
     observed_catalog_blob_sha: str | None = None,
+    historical_authorization: bool = False,
 ) -> tuple[dict[str, Any], dict[str, Any]]:
     checked = validate_method_catalog(raw)
     _require(operation in METHOD_ACTIONS, "ACTION_UNSUPPORTED")
@@ -356,7 +372,12 @@ def mutate_method_catalog(
              "ACTION_REQUEST_PRIOR_CATALOG_SHA_NOT_CURRENT")
     _require(isinstance(authorization_evidence, Mapping), "ACTION_AUTHORIZATION_ATTESTATION_REQUIRED")
     try:
-        verify_method_action_authorization(authorization_evidence, request=action_request)
+        if historical_authorization:
+            verify_persisted_method_action_authorization(
+                authorization_evidence, request=action_request,
+            )
+        else:
+            verify_method_action_authorization(authorization_evidence, request=action_request)
     except Exception as exc:
         raise MethodGovernanceError("FINANCIAL_METHOD_ACTION_AUTHORIZATION_ATTESTATION_INVALID") from exc
     request_params = action_request["parameters"]
@@ -431,8 +452,15 @@ def mutate_method_catalog(
                 "review_ref": promotion_evidence["review_ref"],
             }
             try:
-                proof = verify_method_promotion_attestation(
-                    promotion_verifier(deepcopy(challenge)), challenge=challenge,
+                raw_promotion = promotion_verifier(deepcopy(challenge))
+                proof = (
+                    verify_persisted_method_promotion_attestation(
+                        raw_promotion, challenge=challenge,
+                    )
+                    if historical_authorization
+                    else verify_method_promotion_attestation(
+                        raw_promotion, challenge=challenge,
+                    )
                 )
             except Exception as exc:
                 raise MethodGovernanceError(
@@ -497,8 +525,15 @@ def mutate_method_catalog(
                 "stage_evidence_refs": dict(stage_refs),
             }
             try:
-                proof = verify_method_impact_attestation(
-                    impact_verifier(deepcopy(challenge)), challenge=challenge,
+                raw_impact = impact_verifier(deepcopy(challenge))
+                proof = (
+                    verify_persisted_method_impact_attestation(
+                        raw_impact, challenge=challenge,
+                    )
+                    if historical_authorization
+                    else verify_method_impact_attestation(
+                        raw_impact, challenge=challenge,
+                    )
                 )
             except Exception as exc:
                 raise MethodGovernanceError(
@@ -557,6 +592,79 @@ def mutate_method_catalog(
         "change_event_sha256": _digest(event),
         "promotion_review": promoted_proof,
     }
+
+
+def replay_method_catalog_action(
+    before: Mapping[str, Any],
+    after: Mapping[str, Any],
+    *,
+    observed_catalog_blob_sha: str,
+) -> dict[str, Any]:
+    """Recompute one signed method action and compare every non-clock result field."""
+    prior = validate_method_catalog(before)
+    candidate = validate_method_catalog(after)
+    prior_history = prior.get("change_history", [])
+    next_history = candidate.get("change_history", [])
+    _require(
+        len(next_history) == len(prior_history) + 1
+        and next_history[:-1] == prior_history,
+        "ACTION_REPLAY_HISTORY_NOT_APPEND_ONLY",
+    )
+    event = next_history[-1]
+    request = event.get("authorization_request")
+    authorization = event.get("authorization_evidence")
+    _require(isinstance(request, Mapping) and isinstance(authorization, Mapping),
+             "ACTION_REPLAY_SIGNED_REQUEST_REQUIRED")
+    _require(
+        request.get("expected_catalog_blob_sha") == observed_catalog_blob_sha
+        and event.get("authorization_expected_catalog_blob_sha") == observed_catalog_blob_sha,
+        "ACTION_REPLAY_PRIOR_CATALOG_SHA_MISMATCH",
+    )
+    params = request.get("parameters")
+    _require(isinstance(params, Mapping), "ACTION_REPLAY_PARAMETERS_INVALID")
+    promotion = event.get("promoted_proof")
+    impact = event.get("impact_verification")
+    replayed, _ = mutate_method_catalog(
+        prior,
+        operation=str(event.get("operation", "")),
+        knowledge_id=str(event.get("knowledge_id", "")),
+        proposed_record=params.get("proposed_record"),
+        decision_envelope=params.get("decision_envelope"),
+        evidence_refs=params.get("evidence_refs"),
+        affected_stages=params.get("affected_stages"),
+        promotion_evidence=params.get("promotion_evidence"),
+        promotion_verifier=(
+            (lambda _challenge: promotion.get("attestation"))
+            if isinstance(promotion, Mapping) else None
+        ),
+        impact_target_revision=params.get("impact_target_revision"),
+        impact_evidence=params.get("impact_evidence"),
+        impact_verifier=(
+            (lambda _challenge: impact.get("attestation"))
+            if isinstance(impact, Mapping) else None
+        ),
+        authorization_evidence=authorization,
+        action_request=request,
+        observed_catalog_blob_sha=observed_catalog_blob_sha,
+        historical_authorization=True,
+    )
+    replay_event = replayed["change_history"][-1]
+    replay_event["effect_contract_version"] = event.get("effect_contract_version")
+    replay_event["effect_receipt_ref"] = event.get("effect_receipt_ref")
+
+    def without_clock_fields(raw: Mapping[str, Any]) -> dict[str, Any]:
+        value = deepcopy(dict(raw))
+        value.pop("updated_at", None)
+        for history_event in value.get("change_history", []):
+            if isinstance(history_event, dict):
+                history_event.pop("recorded_at", None)
+        return value
+
+    _require(
+        without_clock_fields(replayed) == without_clock_fields(candidate),
+        "ACTION_REPLAY_RESULT_DIFFERS_FROM_AUTHORIZED_OPERATION",
+    )
+    return candidate
 
 
 def _effective_record_fingerprint(record: Mapping[str, Any]) -> str:

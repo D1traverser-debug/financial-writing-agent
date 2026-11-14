@@ -13,6 +13,7 @@ from financial_writing_agent.whole_system_assurance import (
     inspect_active_article,
     project_whole_system, audit_repository_business_changes,
 )
+from financial_writing_agent import current_admission
 from financial_writing_agent.current_admission import build_initial_state
 from financial_writing_agent.provider_attestation import payload_sha256, request_sha256
 from trusted_provider_testkit import signed_action_authorization, signed_action_effect
@@ -207,7 +208,7 @@ def test_whole_chain_requires_signed_effect_receipt_and_atomic_bundle_cas_contra
     capabilities = work / "config/FINANCIAL_CAPABILITIES.json"
     data = json.loads(capabilities.read_text(encoding="utf-8"))
     data["required_external_capabilities_at_execution"].remove(
-        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_STATE_MUTATION"
+        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_OWNER_OR_METHOD_MUTATION"
     )
     capabilities.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
     report = project_whole_system(work, head_sha=HEAD)
@@ -312,4 +313,68 @@ def test_whole_control_audit_requires_signed_effect_bound_to_exact_result_bytes(
     assert rejected["status"].startswith("REJECTED")
     assert any("ARTICLE_EFFECT_RESULT_STATE_SHA_MISMATCH" in issue
                for issue in rejected["violations"])
+
+def test_whole_control_audit_fails_closed_for_signed_effect_bound_but_unreplayed_owner_operation():
+    task_id = "audit-unsupported-operation-001"
+    action_id = "audit-unsupported-change-001"
+    prompt = "Synthetic owner-authorized article task for unsupported-operation audit."
+    before = build_initial_state(
+        task_id=task_id,
+        prompt=prompt,
+        source_refs=[],
+        executor_identity="financial:audit-create-initial",
+    )
+    state_ref = f"workspaces/articles/{task_id}/STATE.json"
+    effect_ref = f"workspaces/articles/{task_id}/actions/{action_id}.effect.json"
+    before_raw = (json.dumps(before, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    previous_sha = _git_blob_sha(before_raw)
+    candidate = current_admission.advance_state(
+        before,
+        previous_state_blob_sha=previous_sha,
+        executor_identity=f"financial:{action_id}",
+    )
+    request = {
+        "schema_version": "1.0",
+        "domain_id": "financial_writing",
+        "action_id": action_id,
+        "task_id": task_id,
+        "operation": "CHANGE_REQUIREMENTS",
+        "expected_state_blob_sha": previous_sha,
+        "parameters": {
+            "evidence_ref": "chat://owner/explicit-scoped-instruction",
+            "upserts": [],
+            "retire_ids": [],
+            "intent_evidence": {},
+        },
+    }
+    authorization = signed_action_authorization(request)
+    bindings = candidate["execution_receipts"][-1]["input_bindings"]
+    bindings["previous_state_blob_sha"] = previous_sha
+    bindings["authorization_contract_version"] = "1.1"
+    bindings["authorization_verification"] = authorization
+    bindings["effect_contract_version"] = "1.0"
+    bindings["effect_receipt_ref"] = effect_ref
+    candidate_raw = (json.dumps(candidate, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    effect = signed_action_effect({
+        "approved": True,
+        "action_id": action_id,
+        "task_id": task_id,
+        "operation": "CHANGE_REQUIREMENTS",
+        "previous_state_blob_sha": previous_sha,
+        "resulting_state_blob_sha": _git_blob_sha(candidate_raw),
+        "request_sha256": request_sha256(request),
+        "authorization_sha256": payload_sha256(authorization),
+        "effect_contract_version": "1.0",
+        "admission_runtime": "financial_writing_agent.standalone_runtime.admit_article_action",
+    })
+    effect_raw = (json.dumps(effect, ensure_ascii=False, sort_keys=True, indent=2) + "\n").encode("utf-8")
+    files = {state_ref: candidate_raw, effect_ref: effect_raw}
+    rejected = audit_repository_business_changes(
+        [state_ref, effect_ref],
+        before_reader=lambda ref: before_raw if ref == state_ref else None,
+        after_reader=lambda ref: files.get(ref),
+    )
+    assert rejected["status"].startswith("REJECTED")
+    assert any("UNREPLAYED_OWNER_OPERATION_REQUIRES_EXECUTABLE_ADAPTER:CHANGE_REQUIREMENTS"
+               in issue for issue in rejected["violations"])
 
