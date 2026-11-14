@@ -469,6 +469,7 @@ def _verify_product_word_bytes(
              "FINANCIAL_WORD_OUTPUT_MANIFEST_MISSING")
     verified: list[dict[str, str]] = []
     seen_refs: set[str] = set()
+    longform_prose_fingerprints: dict[str, str] = {}
     from docx import Document
 
     for kind, meta in sorted(outputs.items()):
@@ -500,9 +501,32 @@ def _verify_product_word_bytes(
                 _require("word/document.xml" in names and "[Content_Types].xml" in names,
                          f"FINANCIAL_WORD_DOCX_STRUCTURE_INVALID:{kind}")
                 _require(archive.testzip() is None, f"FINANCIAL_WORD_DOCX_CORRUPT:{kind}")
-            Document(BytesIO(binary))
+            document = Document(BytesIO(binary))
         except (BadZipFile, KeyError, ValueError, OSError) as exc:
             raise FinancialAdmissionError(f"FINANCIAL_WORD_DOCX_OPEN_FAILED:{kind}") from exc
+
+        if kind in {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"}:
+            # Different titles/headings/ZIP metadata must never disguise a copied
+            # Deep/Broad manuscript. Compare substantive Word paragraph text,
+            # excluding title, heading labels and the common risk disclaimer.
+            substantive: list[str] = []
+            for paragraph in document.paragraphs[1:]:
+                text_value = paragraph.text.strip()
+                if not text_value or (paragraph.style is not None
+                                      and paragraph.style.name.startswith("Heading")):
+                    continue
+                if re.match(r"^(?:[（(][0-9]+[）)]|[①-⑳])", text_value):
+                    continue
+                if text_value.startswith(("风险提示", "免责声明")):
+                    continue
+                normalized = re.sub(r"[\W_]+", "", text_value, flags=re.UNICODE)
+                if normalized:
+                    substantive.append(normalized)
+            _require(bool(substantive),
+                     f"FINANCIAL_LONGFORM_PROSE_MISSING:{kind}")
+            longform_prose_fingerprints[kind] = hashlib.sha256(
+                "\n".join(substantive).encode("utf-8")
+            ).hexdigest()
 
         # A valid ZIP/DOCX and matching hash are not sufficient for publication.
         # Require the canonical Delivery receipt, exact render/page inspection,
@@ -559,9 +583,20 @@ def _verify_product_word_bytes(
             "delivery_evidence_sha256": meta.get("delivery_evidence_sha256"),
             "rendered_page_count": render.get("rendered_page_count") if isinstance(render, Mapping) else None,
         })
+    if {"FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"} <= set(longform_prose_fingerprints):
+        _require(
+            longform_prose_fingerprints["FINANCE_DEEP_DOCX"]
+            != longform_prose_fingerprints["FINANCE_BROAD_DOCX"],
+            "FINANCIAL_PORTFOLIO_DEEP_BROAD_CORE_PROSE_CLONED",
+        )
     return {
         "assurance": "CANONICAL_BUILD__CURRENT_DRAFT_BOUND__SOURCE_TRACE__RENDERED_PAGE_READBACK__EDITORIAL_INDEPENDENCE_OPEN",
         "verified_count": len(verified), "files": verified,
+        "longform_prose_clone_guard": (
+            "DISTINCT_CORE_PROSE_BYTES_VERIFIED__READER_VALUE_NOT_CERTIFIED"
+            if len(longform_prose_fingerprints) == 2
+            else "SINGLE_OR_NO_LONGFORM_PRODUCT"
+        ),
     }
 
 
