@@ -12,6 +12,7 @@ import os
 from pathlib import Path
 
 from financial_writing_agent.acceptance_gates import evaluate_system_acceptance
+from financial_writing_agent.whole_system_assurance import project_whole_system
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -41,11 +42,15 @@ def main():
     # Never load 'verified' labels from the source repository as independent
     # runtime receipts or the acceptance check becomes self-certifying.
     assessment = evaluate_system_acceptance(head_sha=sha, code_tests_passed=True)
+    product_projection = project_whole_system(ROOT, head_sha=sha)
+    if product_projection["structural_violations"]:
+        raise SystemExit("FINANCIAL_WHOLE_SYSTEM_STRUCTURAL_VIOLATIONS:" + ";".join(product_projection["structural_violations"]))
     report = {
         "schema_version": "1.0",
         "exact_ci_head_sha": sha,
         "engineering_contract_tests": "PASS__UPSTREAM_CI_TEST_STEP_REQUIRED",
         "whole_system_acceptance": assessment,
+        "live_product_obligation_projection": product_projection,
         "native_plugin": {
             "plugin_id": canonical_plugin["plugin_id"],
             "release_id": canonical_plugin["release_id"],
@@ -80,6 +85,11 @@ def main():
         "head": sha,
         "system_status": report["release_readiness"],
         "open_gates": assessment["open_gates"],
+        "active_article_results": [
+            {"task_id": a["task_id"], "stage": a["stage"], "recorded_outputs": a["recorded_output_count"], "required_outputs": a["required_output_count"]}
+            for a in product_projection["current_articles"]
+        ],
+        "traceable_product_requirement_groups": product_projection["product_requirement_total"],
         "plugin_release_created": canonical_plugin["release_id"],
         "native_client_installed": False,
         "note": "green CI != Financial independent system acceptance",
