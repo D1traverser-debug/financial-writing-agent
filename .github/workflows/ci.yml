@@ -56,15 +56,16 @@ jobs:
               "provider": {
                   "attestation_key_configured": bool(os.environ.get("FINANCIAL_PROVIDER_ATTESTATION_KEY")),
                   "trusted_provider_id_configured": bool(os.environ.get("FINANCIAL_TRUSTED_PROVIDER_ID")),
-                  "expected_owner_principal_configured": bool(os.environ.get("FINANCIAL_OWNER_PRINCIPAL")),
+                  "owner_principal_configured": bool(os.environ.get("FINANCIAL_OWNER_PRINCIPAL")),
               },
               "assurance": "ENVIRONMENT_VARIABLE_PRESENCE_ONLY__SECRET_VALUES_NEVER_READ_OR_PRINTED",
           }
-          Path("audit/provider_capability_probe.json").write_text(
-              json.dumps(probe, ensure_ascii=False, indent=2) + "\\n",
-              encoding="utf-8",
-          )
-          print(json.dumps(probe, ensure_ascii=False, sort_keys=True))
+          path = Path("audit/provider_capability_probe.json")
+          path.write_bytes((json.dumps(probe, ensure_ascii=False, indent=2) + chr(10)).encode("utf-8"))
+          readback = json.loads(path.read_text(encoding="utf-8"))
+          if readback != probe:
+              raise SystemExit("FINANCIAL_PROVIDER_CAPABILITY_PROBE_READBACK_MISMATCH")
+          print(json.dumps(readback, ensure_ascii=False, sort_keys=True))
           PY
       - name: Whole-owner obligation and actual two-revision mutation admission
         env:
