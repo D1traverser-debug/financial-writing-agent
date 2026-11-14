@@ -321,17 +321,22 @@
       "get_repo",
       "fetch_file"
     ],
-    "single_file_write": "update_file_WITH_EXACT_CURRENT_BLOB_SHA_THEN_FETCH_READBACK",
+    "single_file_write": "CANDIDATE_BRANCH_ONLY__DIRECT_MAIN_ARTICLE_OR_METHOD_WRITE_NOT_ADMITTED",
     "atomic_multi_file_write": [
-      "create_blob_FOR_EACH_TEXT_OR_BINARY_ARTIFACT",
-      "create_tree_FROM_EXACT_CURRENT_MAIN_TREE_SHA",
-      "create_commit_PARENTED_TO_EXACT_CURRENT_MAIN_HEAD",
-      "update_ref_MAIN_WITH_EXPECTED_SHA_AND_FORCE_FALSE",
+      "create_blob_FOR_EACH_CANDIDATE_TEXT_OR_BINARY_ARTIFACT",
+      "create_tree_FROM_EXACT_CANDIDATE_BRANCH_TREE_SHA",
+      "create_commit_PARENTED_TO_EXACT_CANDIDATE_BRANCH_HEAD",
+      "update_ref_CANDIDATE_BRANCH_WITH_EXPECTED_SHA_AND_FORCE_FALSE",
+      "REQUIRE_EXACT_BASE_HEAD_CI_OWNER_EFFECT_ADMISSION_BEFORE_MAIN_MERGE",
       "fetch_EVERY_CHANGED_PATH_AT_RESULTING_COMMIT_SHA"
     ],
     "binary_artifact_write": "create_blob_ENCODING_BASE64",
     "stale_write_behavior": "STOP_REREAD_MAIN_RECONSTRUCT_AND_RECOMPUTE__NEVER_FORCE",
-    "binding_requirement_authorization": "EXPLICIT_OWNER_CONFIRMATION_IN_CURRENT_CONVERSATION_AFTER_FULL_NORMALIZED_CHANGE",
-    "python_adapter_role": "OPTIONAL_REFERENCE_IMPLEMENTATION_AND_CI_TEST_TARGET_NOT_ACTIVE_CHAT_CALL"
+    "binding_requirement_authorization": "EXPLICIT_FULL_NORMALIZED_OWNER_CONFIRMATION_PLUS_EXTERNAL_SIGNED_PROVIDER_APPROVAL_AND_EXECUTABLE_STATE_ADMISSION",
+    "python_adapter_role": "CANONICAL_EXECUTABLE_ADMISSION_NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
+    "owner_mutation_guard": "financial_writing_agent.whole_system_assurance.audit_repository_business_changes",
+    "candidate_review_entry": "scripts/system_acceptance_report.py",
+    "direct_main_business_mutation_without_guard_allowed": false,
+    "native_client_signed_provider_installed_and_tested": false
   }
 }

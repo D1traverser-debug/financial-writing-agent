@@ -39,10 +39,15 @@ jobs:
           coverage run --source=financial_writing_agent -m pytest -q
           coverage json -o audit/test_line_coverage.json
           coverage report -m --fail-under=85
-      - name: Machine-readable independent system acceptance (may remain NOT_READY)
+      - name: Whole-owner obligation and actual two-revision mutation admission
         env:
           FINANCIAL_SOURCE_HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          FINANCIAL_CHANGE_BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
+          FINANCIAL_PROVIDER_ATTESTATION_KEY: ${{ secrets.FINANCIAL_PROVIDER_ATTESTATION_KEY }}
+          FINANCIAL_TRUSTED_PROVIDER_ID: ${{ secrets.FINANCIAL_TRUSTED_PROVIDER_ID }}
+          FINANCIAL_EXPECTED_OWNER_PRINCIPAL: ${{ secrets.FINANCIAL_EXPECTED_OWNER_PRINCIPAL }}
         run: |
+          git fetch --no-tags --depth=1 origin "$FINANCIAL_CHANGE_BASE_SHA"
           python scripts/system_acceptance_report.py --assert-not-prematurely-certified --out audit/financial_system_acceptance.json
       - name: Live branch inventory and zero-mutation archive dry-run
         env:

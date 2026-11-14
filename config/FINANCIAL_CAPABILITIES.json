@@ -20,7 +20,7 @@
     {
       "id": "standalone_provider_action",
       "source": "financial_writing_agent.standalone_runtime",
-      "assurance": "OPTIONAL_SIGNED_PYTHON_ADAPTER_NOT_REQUIRED_FOR_NATIVE_CHATGPT_PATH"
+      "assurance": "SIGNED_EXECUTABLE_OWNER_ADMISSION_FOR_BUSINESS_WRITES__LIVE_CLIENT_PROVIDER_NOT_VERIFIED"
     },
     {
       "id": "source_research_and_company_universe",
@@ -70,7 +70,7 @@
     {
       "id": "owner_confirmed_semantic_requirement_change",
       "source": "financial_writing_agent.intent_governance + financial_writing_agent.standalone_runtime",
-      "assurance": "CURRENT_CHAT_EXPLICIT_CONFIRMATION_PLUS_GITHUB_CAS_READBACK__OPTIONAL_PYTHON_ADAPTER_USES_HMAC"
+      "assurance": "OWNER_EXPLICIT_CONFIRMATION_PLUS_SIGNED_FULL_ORIGINAL_AND_CANONICAL_MUTATION__DIRECT_CHAT_CAS_NOT_ENOUGH"
     },
     {
       "id": "independent_whole_system_release_gate",
@@ -80,7 +80,7 @@
     {
       "id": "chatgpt_native_execution_and_github_persistence",
       "source": "ChatGPT model + Financial Skill + connected GitHub connector",
-      "assurance": "GIT_BLOB_TREE_COMMIT_EXPECTED_SHA_AND_EXACT_FILE_READBACK"
+      "assurance": "CANDIDATE_BRANCH_CAS__EXACT_BASE_HEAD_CI_OWNER_EFFECT_AUDIT__SIGNED_PROVIDER_REQUIRED_FOR_BUSINESS_WRITES"
     }
   ],
   "required_external_capabilities_at_execution": [
@@ -89,7 +89,8 @@
     "CONNECTED_GITHUB_CONNECTOR_WITH_READ_WRITE_PERMISSION",
     "PYTHON_OR_DOCUMENT_TOOL_FOR_DOCX_GENERATION",
     "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF",
-    "EXPLICIT_OWNER_CONFIRMATION_IN_CURRENT_CHAT_FOR_BINDING_REQUIREMENT_CHANGES"
+    "EXPLICIT_OWNER_CONFIRMATION_IN_CURRENT_CHAT_FOR_BINDING_REQUIREMENT_CHANGES",
+    "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION"
   ],
   "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS",
   "independence_clause": "NO_EXTERNAL_PARENT_REPOSITORY_OR_HOST_INVOCATION",
