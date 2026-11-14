@@ -2,7 +2,7 @@
 
 ## Business and authority
 
-Only Financial Writing controls its domain tasks, methodology, source checks, Word output and lifecycle. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its canonical operating Skill source is skills/financial-writing-agent/SKILL.md. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No external parent runtime, local daemon or second task owner is required.
+Financial Writing remains the sole owner of its domain tasks, financial methodology, source checks, Word output and lifecycle. CAOS governs cross-project cognition and systemic decision method externally in the active ChatGPT session. Its canonical manifest is config/FINANCIAL_MANIFEST.json; its sole business operating Skill is skills/financial-writing-agent/SKILL.md; its governance contract is config/CAOS_GOVERNANCE.json. One current Article Aggregate per task lives at workspaces/articles/<task_id>/STATE.json. No CAOS runtime/API parent, local daemon or second task owner is required.
 
 
 
@@ -23,7 +23,7 @@ Recover the complete user request and available corrections before asking follow
 
 ## Financial native client and one executable owner-effect boundary
 
-**Read-only client:** ChatGPT following the Financial Skill can observe `main`, recover original user requirements and previous task state, retrieve sources, prepare research, draft articles and stage reversible candidate files. The GitHub connector authenticates transport permissions, **not** that Python's current-admission code executed or that the user approved the exact semantic mutation. No external CAOS parent/Host/controller is needed.
+**Read-only client:** ChatGPT following the Financial Skill, under CAOS external chat governance for material decisions, can observe `main`, recover original user requirements and previous task state, retrieve sources, prepare research, draft articles and stage reversible candidate files. The GitHub connector authenticates transport permissions, **not** that Python's current-admission code executed or that the user approved the exact semantic mutation. No CAOS runtime/API parent, Host or controller is needed.
 
 **Side effects:** Work that changes the authoritative article `STATE.json`, its bound stage files or the method catalog must be admitted by the existing `financial_writing_agent.standalone_runtime` authenticated Python port **or** be submitted on a candidate branch whose exact `base.sha` → `head.sha` data change is revalidated by `scripts/system_acceptance_report.py` in CI. The latter now uses `financial_writing_agent.whole_system_assurance.audit_repository_business_changes` and the owner validators: it forbids unsigned/self-attested state rewrites, unbound artifact-only edits and migrated-history modifications. It also requires append-only method governance evidence. A direct GitHub update to unprotected `main` is **not** an approved business execution route; CI observation is not the same as enforced branch protection.
 
@@ -61,7 +61,7 @@ This section documents the signed Python admission contract. The native Skill ro
 
 ## Independent financial business method
 
-Decision loop and execution loop are defined in the standalone Skill and skills/financial-writing-agent/references/maintenance.md. They are concrete Financial behaviors: sourced value-chain and company economics, competing causal theses, 15-module private research, reader-oriented Deep/Broad story selection, source-originality/claim checks, actual Word artifact rendering and feedback-driven improvements. These are implemented inside Financial and do not call an external parent runtime. No parent bridge is part of the active package; current Financial admission rejects legacy parent-upcall dispositions.
+CAOS governs cross-project cognition and method selection in the active ChatGPT session. Financial's owner-native `DecisionEnvelope`, recovery, research, article and provider-admission contracts remain domain execution/evidence gates, not a second cognition controller. Financial-specific behavior includes sourced value-chain and company economics, competing causal theses, 15-module private research, reader-oriented Deep/Broad story selection, source-originality/claim checks, actual Word artifact rendering and feedback-driven improvements. These are implemented inside Financial and do not call a CAOS parent runtime. No parent bridge is part of the active package; current Financial admission rejects legacy parent-upcall dispositions.
 
 ## Deployment and product acceptance
 
