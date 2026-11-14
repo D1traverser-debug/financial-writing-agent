@@ -417,8 +417,9 @@ def _admit_research_audit(
     research_audit: Callable[[Mapping[str, Any]], Mapping[str, Any]],
     trace: list[dict[str, Any]],
 ) -> None:
+    audit_inputs = deepcopy(dict(current))
     try:
-        envelope = research_audit(dict(current))
+        envelope = research_audit(deepcopy(audit_inputs))
     except Exception as exc:
         raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_EXECUTION_FAILED") from exc
     if (
@@ -435,7 +436,7 @@ def _admit_research_audit(
         pass_name="RESEARCH_AUDIT_BOUNDARY",
         business_stage="RESEARCH_AUDIT",
         product_scope="SHARED",
-        inputs=current,
+        inputs=audit_inputs,
         outputs={
             "status": envelope["status"],
             "evidence_refs": list(envelope["evidence_refs"]),
@@ -815,8 +816,10 @@ def validate_portfolio_context(context: Mapping[str, Any]) -> None:
     required = context.get("required_output_kinds")
     if not isinstance(required, list):
         raise WritingPassExecutionError("PORTFOLIO_REQUIRED_OUTPUTS_INVALID")
+    request_seed = dict(context.get("shared", {}))
+    request_seed.pop(RESEARCH_AUDIT_BOUNDARY_INPUT, None)
     shared, modes, interaction_required = _validate_portfolio_request(
-        context.get("shared", {}),
+        request_seed,
         required,
     )
     del shared
