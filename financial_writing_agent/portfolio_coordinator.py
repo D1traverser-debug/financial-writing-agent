@@ -95,13 +95,14 @@ def _stage_payload(
     stage: str,
     state: Mapping[str, Any],
 ) -> dict[str, Any]:
-    shared = context["shared"]
-    products = context["products"]
-    interaction = context["interaction"]
+    result = context.get("last_stage_result")
+    outputs = result.get("stage_outputs", {}) if isinstance(result, Mapping) else {}
+    if not isinstance(outputs, Mapping):
+        raise PortfolioCoordinatorError("PORTFOLIO_STAGE_OUTPUT_SNAPSHOT_MISSING")
 
     if stage == "RESEARCH":
         if _has_full_universe_requirement(state):
-            raw = shared.get("research_package")
+            raw = outputs.get("research_package")
             try:
                 package = ResearchPackage.model_validate(raw)
             except Exception as exc:
@@ -110,11 +111,11 @@ def _stage_payload(
                 ) from exc
             return package.model_dump(mode="json")
         return {
-            "decision_envelope": deepcopy(shared.get("decision_envelope")),
-            "private_research_brief": deepcopy(shared.get("private_research_brief")),
+            "decision_envelope": deepcopy(outputs.get("decision_envelope")),
+            "private_research_brief": deepcopy(outputs.get("private_research_brief")),
             "research_outputs": {
                 key: deepcopy(value)
-                for key, value in shared.items()
+                for key, value in outputs.items()
                 if key not in {
                     "decision_envelope", "private_research_brief",
                     "research_audit_result", "audited_evidence",
@@ -122,50 +123,12 @@ def _stage_payload(
             },
         }
     if stage == "RESEARCH_AUDIT":
-        return deepcopy(shared.get("research_audit_result", {}))
-    if stage == "EDITORIAL":
-        return {
-            "story_blueprints": {
-                mode: deepcopy(item.get("story_blueprint"))
-                for mode, item in products.items()
-            }
-        }
-    if stage == "TITLE":
-        return {
-            "headline_decisions": {
-                mode: deepcopy(item.get("headline_decision"))
-                for mode, item in products.items()
-            }
-        }
-    if stage == "DRAFT":
-        return {
-            "longform_products": {
-                mode: {
-                    key: deepcopy(item.get(key))
-                    for key in ("draft", "edited_draft", "publication_candidate")
-                    if key in item
-                }
-                for mode, item in products.items()
-            },
-            "platform_interaction_pack": (
-                deepcopy(interaction.get("platform_interaction_pack"))
-                if isinstance(interaction, Mapping) else None
-            ),
-        }
-    if stage == "EDITORIAL_AUDIT":
-        return {
-            "publication_fitnesses": {
-                mode: deepcopy(item.get("publication_fitness"))
-                for mode, item in products.items()
-                if item.get("publication_fitness") is not None
-            },
-            "platform_interaction_fitness": (
-                deepcopy(interaction.get("platform_interaction_fitness"))
-                if isinstance(interaction, Mapping) else None
-            ),
-        }
+        return deepcopy(outputs.get("research_audit_result", {}))
+    if stage in {"EDITORIAL", "TITLE"}:
+        return deepcopy(dict(outputs))
+    if stage in {"DRAFT", "EDITORIAL_AUDIT"}:
+        return deepcopy(dict(outputs))
     raise PortfolioCoordinatorError(f"PORTFOLIO_STAGE_ARTIFACT_UNSUPPORTED:{stage}")
-
 
 def _business_stage_artifact(
     context: Mapping[str, Any],
@@ -275,13 +238,14 @@ def _owner_action_parameters(
         "portfolio_context_ref": dict(context_ref),
     }
     result = context["last_stage_result"]
+    outputs = result.get("stage_outputs", {})
     if stage == "RESEARCH":
-        params["decision_envelope"] = deepcopy(context["shared"].get("decision_envelope"))
-        params["private_research_brief"] = deepcopy(context["shared"].get("private_research_brief"))
+        params["decision_envelope"] = deepcopy(outputs.get("decision_envelope"))
+        params["private_research_brief"] = deepcopy(outputs.get("private_research_brief"))
     elif stage == "EDITORIAL":
         params["story_blueprints"] = [
-            deepcopy(item["story_blueprint"])
-            for item in context["products"].values()
+            deepcopy(item)
+            for item in outputs.get("story_blueprints", {}).values()
         ]
     elif stage in {"RESEARCH_AUDIT", "EDITORIAL_AUDIT"}:
         params["review_status"] = result["status"]
@@ -289,9 +253,8 @@ def _owner_action_parameters(
             params["revision_target"] = result["revision_target"]
         if stage == "EDITORIAL_AUDIT" and result["status"] in {"PASS", "REVISE"}:
             params["publication_fitnesses"] = [
-                deepcopy(item["publication_fitness"])
-                for item in context["products"].values()
-                if item.get("publication_fitness") is not None
+                deepcopy(item)
+                for item in outputs.get("publication_fitnesses", {}).values()
             ]
     satisfaction = deepcopy(result.get("requirement_satisfaction", []))
     stage_path = artifact_ref["path"]
