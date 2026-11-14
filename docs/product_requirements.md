@@ -146,6 +146,8 @@ Each gate cites text location/excerpt/finding. MAJOR/CRITICAL findings block PAS
 
 Research Audit separately validates the admitted private brief semantically; syntactic module completion with placeholder evidence is not enough.
 
+The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact persisted DRAFT bytes were reread and bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
+
 ### PR-13 — Focused internal pass architecture
 
 One Financial owner uses:

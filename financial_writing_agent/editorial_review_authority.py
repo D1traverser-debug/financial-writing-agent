@@ -138,3 +138,65 @@ def verify_external_editorial_review(
         "reviewed_count": len(admitted),
         "source_authority_and_reader_outcome_verified": False,
     }
+
+
+def verify_internal_editorial_delivery_readiness(
+    state: Mapping[str, Any],
+    publication_fitnesses: list[Mapping[str, Any]],
+    *,
+    draft_reader: Callable[[str], Mapping[str, Any] | None] | None,
+) -> dict[str, Any] | None:
+    """Permit internally reviewed Word *draft* export, never independent PASS.
+
+    Every product must bind its self-review to the exact persisted draft bytes.
+    This is an author-level revision check only: factual truth, originality and
+    reader acceptance are not inferred from same-session review.
+    """
+    selected = [
+        item for item in publication_fitnesses
+        if item.get("review_scope") == "INTERNAL_DELIVERY_READINESS"
+    ]
+    if not selected:
+        return None
+    if len(selected) != len(publication_fitnesses):
+        raise IndependentEditorialEvidenceError(
+            "INTERNAL_READINESS_MIXED_WITH_PUBLICATION_CERTIFICATION"
+        )
+    if not callable(draft_reader):
+        raise IndependentEditorialEvidenceError("INTERNAL_READINESS_DRAFT_READER_REQUIRED")
+    draft = state.get("stage_artifacts", {}).get("DRAFT")
+    if not isinstance(draft, Mapping) or not isinstance(draft.get("path"), str):
+        raise IndependentEditorialEvidenceError("INTERNAL_READINESS_DRAFT_REFERENCE_MISSING")
+    try:
+        observed = draft_reader(draft["path"])
+    except Exception as exc:
+        raise IndependentEditorialEvidenceError("INTERNAL_READINESS_DRAFT_READ_FAILED") from exc
+    if not isinstance(observed, Mapping) or not isinstance(observed.get("content"), (str, bytes)):
+        raise IndependentEditorialEvidenceError("INTERNAL_READINESS_DRAFT_BYTES_MISSING")
+    from .standalone_runtime import _blob_sha
+    data = observed["content"]
+    binary = data.encode("utf-8") if isinstance(data, str) else data
+    if _blob_sha(binary) != draft.get("blob_sha") or observed.get("blob_sha") != draft.get("blob_sha"):
+        raise IndependentEditorialEvidenceError("INTERNAL_READINESS_DRAFT_BLOB_MISMATCH")
+    content_sha = hashlib.sha256(binary).hexdigest()
+    modes: set[str] = set()
+    for fitness in selected:
+        provenance = fitness.get("audit_provenance")
+        if not isinstance(provenance, Mapping):
+            raise IndependentEditorialEvidenceError("INTERNAL_READINESS_PROVENANCE_REQUIRED")
+        if fitness.get("assurance") != "CHAT_SELF_REVIEW" or fitness.get("final_status") != "PASS":
+            raise IndependentEditorialEvidenceError("INTERNAL_READINESS_REVIEW_NOT_CLEAR")
+        if provenance.get("assurance") != "CHAT_SELF_REVIEW" or provenance.get("reviewed_article_sha256") != content_sha:
+            raise IndependentEditorialEvidenceError("INTERNAL_READINESS_WRONG_DRAFT_VERSION")
+        mode = fitness.get("product_mode")
+        if not isinstance(mode, str) or mode in modes:
+            raise IndependentEditorialEvidenceError("INTERNAL_READINESS_MODES_INVALID")
+        modes.add(mode)
+    return {
+        "status": "WORD_DRAFT_DELIVERY_READY__INDEPENDENT_CERTIFICATION_OPEN",
+        "reviewed_draft_sha256": content_sha,
+        "reviewed_modes": sorted(modes),
+        "reviewed_count": len(modes),
+        "independent_editorial_quality_verified": False,
+        "factual_and_reader_outcomes_verified": False,
+    }

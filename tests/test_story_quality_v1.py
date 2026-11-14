@@ -1,6 +1,8 @@
 import pytest
+from copy import deepcopy
 from pydantic import ValidationError
 
+from financial_writing_agent.structure_numbering import chinese_section_prefix
 from financial_writing_agent.story_quality import (
     AuditStatus,
     GateAudit,
@@ -172,3 +174,21 @@ def test_deterministic_tripwires_find_missing_sequences_and_generic_scaffolding_
     assert publication_structure_findings(["行业变化", "二、第二节"])
     result = generic_scaffolding_findings("值得关注。需要注意。这意味着。问题在于。" * 8)
     assert result["requires_semantic_style_review"] is True
+
+
+def test_full_blueprint_and_publication_structure_share_numbering_beyond_ten_sections():
+    base = _deep().model_dump(mode="json")
+    for index in range(len(base["sections"]) + 1, 17):
+        section = deepcopy(base["sections"][-1])
+        section["sequence_label"] = chinese_section_prefix(index)
+        section["working_heading"] = f"第{index}个有必要解释的环节"
+        base["sections"].append(section)
+    parsed = StoryBlueprint.model_validate(base)
+    assert len(parsed.sections) == 16
+    headings = [item.sequence_label + item.working_heading for item in parsed.sections]
+    assert publication_structure_findings(headings) == []
+    broken = list(headings)
+    broken[10] = "十、错误复用的序号"
+    assert publication_structure_findings(broken)
+    assert chinese_section_prefix(16) == "十六、"
+    assert chinese_section_prefix(21) == "二十一、"

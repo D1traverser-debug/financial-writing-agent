@@ -80,6 +80,29 @@ def _parse_story_blueprints(state: Mapping[str, Any], raw: list[Mapping[str, Any
     _require(len(modes) == len(set(modes)), "story_blueprints must contain at most one blueprint per product mode")
     expected = _expected_longform_modes(state)
     _require(set(modes) == expected, f"story blueprint modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}")
+    if set(modes) == {ProductMode.FINANCE_DEEP, ProductMode.FINANCE_BROAD}:
+        deep = next(item for item in parsed if item.product_mode == ProductMode.FINANCE_DEEP)
+        broad = next(item for item in parsed if item.product_mode == ProductMode.FINANCE_BROAD)
+        # Exact or cosmetic Deep->Broad copying is not independent acquisition
+        # architecture. This is a clone detector, NOT an editorial-quality score.
+        dimensions = (
+            lambda item: (
+                item.reader_job, item.reader_starting_state, item.article_promise,
+                item.central_question, item.narrative_engine.value,
+                item.opening.concrete_anchor, item.opening.reader_information_gap,
+                tuple(section.working_heading for section in item.sections),
+                item.ending_payoff,
+            )
+        )
+        different = sum(
+            left != right
+            for left, right in zip(dimensions(deep), dimensions(broad))
+        )
+        _require(
+            different >= 3,
+            "FINANCE_BROAD_BLUEPRINT_NOT_INDEPENDENT_OF_DEEP:"
+            "separate reader, promise, opening, narrative path and payoff required",
+        )
     return parsed
 
 

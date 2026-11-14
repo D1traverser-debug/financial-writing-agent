@@ -36,7 +36,8 @@ def _audit_git_business_effects(head_sha: str) -> dict:
     try:
         raw = subprocess.check_output(
             ["git", "diff", "--no-renames", "--name-only", "-z", base, head_sha,
-             "--", "workspaces/articles", "knowledge/METHOD_KNOWLEDGE_CATALOG.json"],
+             "--", "workspaces/articles", "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+             "knowledge/actions"],
             cwd=ROOT,
         )
     except subprocess.CalledProcessError as exc:

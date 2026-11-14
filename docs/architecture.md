@@ -254,3 +254,14 @@ Legacy signed authorization v1.0 records remain immutable and are reported as ef
 The existing METHOD_KNOWLEDGE_CATALOG remains the sole method authority. A new method event references a detached provider-signed effect receipt under knowledge/actions/<action_id>.effect.json. The receipt binds the exact prior and resulting catalog Git blob SHAs, action/task scope, operation, knowledge ID, canonical request digest, exact authorization-attestation digest and admission runtime. Authorization and effect use the same authenticated actor/provider. Catalog and receipt are committed atomically and read back by exact blob identity.
 
 The two-revision audit verifies the prior catalog SHA against the base bytes, verifies the detached effect signature and resulting catalog SHA against candidate bytes, and replays the signed operation against the prior catalog. It compares the full resulting catalog except non-business clock fields. This closes both the stale-prior-SHA gap and the ability to alter a candidate record or lifecycle status while keeping a valid authorization event. Historical method events remain effect-unbound; after the first effect-bound event, history cannot roll back. Effect binding does not replace independent promotion review or impact revalidation.
+
+## 17. Writing-business operational consistency (2026-11-14)
+
+The ten-stage Article Aggregate is the only business cursor; internal writing passes are a DAG inside the relevant stage, not a second controller. The article's default PORTFOLIO requires two **distinct** editorial blueprints and four verifiable Word outputs. Deep/Broad must differ materially in reader job, article promise, opening, narrative path and payoff; the deterministic clone detector can reject cosmetic Deep-to-Broad copies but cannot prove reader value.
+
+EDITORIAL_AUDIT has two honest outcomes:
+
+- PUBLICATION_CERTIFICATION: the existing eight-gate PublicationFitness PASS requires independent editorial provenance and a trusted authenticated review verifier of the exact draft.
+- INTERNAL_DELIVERY_READINESS: same-chat review can mark eight internal gates PASS for Word draft export only after the current persisted DRAFT artifact bytes are reread and the reviewer-declared content SHA-256 matches. The final owner state remains DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN, and independent editorial quality/readership outcomes remain false.
+
+A missing/changed draft, REVISE gate, cloned Broad blueprint, or stale source prevents progression. This removes an operational deadlock without converting chat self-review into independent editorial acceptance. A complete writing-business outcome still requires real-source fact/quality work; synthetic transport CI only verifies the mechanism. The Git repository exact-diff audit now includes knowledge/actions detached method-effect receipt paths, preventing orphaned evidence changes from bypassing GitHub changed-path selection.

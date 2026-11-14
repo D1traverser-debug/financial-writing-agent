@@ -113,7 +113,7 @@ def _blueprint(mode: str) -> dict:
             ("三、", "第三环节", "履约为何不是稳赚", "事实3", "公司C", "fulfilment", "e3", "业务量和收入不等价", "解释履约端", "回到整条利润池"),
         ]
     ]
-    return {
+    result = {
         "product_mode": mode,
         "reader_job": "理解价值链利润如何迁移",
         "reader_starting_state": "知道行业增长但容易把公司视为一类",
@@ -135,6 +135,16 @@ def _blueprint(mode: str) -> dict:
         "ending_payoff": "形成可验证的利润池迁移模型",
         "voice_evidence_refs": ["voice-1"],
     }
+    if mode == "FINANCE_BROAD":
+        # Acquisition is authored as a separate story, not abbreviated Deep.
+        result["reader_job"] = "让非专业读者先看懂一条收入反差"
+        result["reader_starting_state"] = "读者只听说行业火热，尚未理解公司利润"
+        result["article_promise"] = "从一个公司反差揭开行业繁荣背后的成本去向"
+        result["central_question"] = "行业越热为什么有公司仍赚不到钱"
+        result["opening"]["concrete_anchor"] = "热闹市场里有一家企业利润没有跟上"
+        result["sections"][0]["working_heading"] = "先看最反常的一家企业"
+        result["ending_payoff"] = "读者得到识别行业热度与公司盈利差距的一条线索"
+    return result
 
 
 EDITORIAL_ATTESTATIONS: dict[str, dict] = {}
