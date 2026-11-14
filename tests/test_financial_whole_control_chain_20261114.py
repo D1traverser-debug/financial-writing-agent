@@ -41,7 +41,7 @@ def test_current_project_has_single_canonical_owner_and_all_19_requirement_point
     assert result["method_catalog"]["record_count"] >= 1
     assert len(result["open_system_gates"]) == 7
     assert result["whole_product_status"].startswith("NOT_READY")
-    assert result["next_legal_step"] != "REPAIR_STRUCTURAL_VIOLATIONS_BEFORE_ANY_STATE_MUTATION"
+    assert result["next_legal_step"] == "CLOSE_AUTHENTICATED_EXECUTION_PATH_AND_INDEPENDENT_BUSINESS_EVIDENCE__NO_UNREQUESTED_ARTICLE_PRODUCTION"
 
 
 def test_real_cross_border_v3_is_research_0_of_4_not_a_completed_article():
