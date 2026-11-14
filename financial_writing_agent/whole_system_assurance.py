@@ -56,7 +56,7 @@ def _json(root: Path, rel: str) -> dict[str, Any]:
 
 
 def _git_blob_sha(data: bytes) -> str:
-    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\\0" + data).hexdigest()
+    return hashlib.sha1(b"blob " + str(len(data)).encode("ascii") + b"\0" + data).hexdigest()
 
 
 def _safe_repo_ref(root: Path, reference: Any) -> tuple[str, bool]:
@@ -197,7 +197,7 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
         if plugin.get(key) != canonical_plugin.get(key):
             violations.append("PLUGIN_RELEASE_IDENTITY_DRIFT:" + key)
     requirement_text = (root / "docs/product_requirements.md").read_text(encoding="utf-8")
-    ids = set(re.findall(r"^###\\s+(PR-\\d{2}A?)\\b", requirement_text, re.M))
+    ids = set(re.findall(r"^###\s+(PR-\d{2}A?)\b", requirement_text, re.M))
     if ids != REQUIRED_PRODUCT_REQUIREMENTS:
         violations.append("PRODUCT_REQUIREMENT_HEADING_DRIFT")
     if set(REQUIREMENT_IMPLEMENTATION_PATHS) != REQUIRED_PRODUCT_REQUIREMENTS:
