@@ -4,7 +4,9 @@
   "current_problem_refs": [
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/USER_REJECTION_20261016.md",
     "workspaces/articles/cross-border-ecommerce-20261015/feedback/SYSTEM_IMPACT_20261016.json",
-    "evals/FINANCIAL_CROSS_BORDER_POST_REBUILD_REJECTION_20261016.md"
+    "evals/FINANCIAL_CROSS_BORDER_POST_REBUILD_REJECTION_20261016.md",
+    "evals/FINANCIAL_METHOD_CATALOG_EFFECT_BINDING_REPAIR_20261114.md",
+    "evals/FINANCIAL_SYSTEM_CONTINUATION_AUDIT_20261114.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -34,7 +36,27 @@
     "result": "PASS",
     "assurance": "PRODUCTION_REGRESSION_VERIFIED__LIVE_CURRENT_KERNEL_SUCCESSOR_ARTICLE_QUALITY_OBSERVATION_OPEN"
   },
-  "recent_resolved_or_promoted": [],
+  "recent_resolved_or_promoted": [
+    {
+      "id": "FIN-ARTICLE-ACTION-EFFECT-BINDING-20261114",
+      "pull_request": 73,
+      "candidate_head_sha": "d42de3922aa4f039dd5b73f45a725e1c62518862",
+      "production_main_sha": "0cabd473f4d9adaf687121a66f8f5701dfe606a2",
+      "status": "MERGED__POST_MERGE_MAIN_CI_PASS",
+      "scope": "PROVIDER_SIGNED_OWNER_ACTION_EFFECT__ATOMIC_STATE_AND_RECEIPT_BUNDLE_CAS__EXACT_READBACK",
+      "assurance": "SYNTHETIC_CI_VERIFIED__LIVE_PROVIDER_EFFECT_OPEN"
+    },
+    {
+      "id": "FIN-METHOD-CATALOG-EFFECT-BINDING-AND-REPLAY-20261114",
+      "pull_request": 74,
+      "candidate_head_sha": "3ef40925fb017e5de92e92c2a20fcbcc67b8cbfb",
+      "production_main_sha": "cdeeefb64c6d8a0a85cfda59bf70850b7597e72c",
+      "production_ci_run": 43565761434,
+      "status": "MERGED__POST_MERGE_MAIN_CI_PASS",
+      "scope": "SIGNED_METHOD_EFFECT_RECEIPT__ATOMIC_CATALOG_BUNDLE_CAS__EXACT_READBACK__DETERMINISTIC_OPERATION_REPLAY",
+      "assurance": "SYNTHETIC_CI_VERIFIED__LIVE_PROVIDER_AND_HISTORICAL_EFFECT_MIGRATION_NOT_CLAIMED"
+    }
+  ],
   "historical_notes": [
     "PR#38 and PR#39 were parallel candidates from the same production baseline; PR#40 is the explicit consolidated promotion path.",
     "Financial Writing 1.0.2 is the current production runtime after PR#42 promotion; historical article receipts remain immutable provenance rather than current-quality assurance.",
@@ -44,7 +66,7 @@
     "id": "FIN-WHOLE-SYSTEM-OWNER-ASSESSMENT-20261018",
     "status": "PRODUCTION_MAIN_CI_PASS__SYSTEM_EXTERNAL_ACCEPTANCE_NOT_READY",
     "owner": "DOMAIN:financial_writing",
-    "review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
+    "review_ref": "evals/FINANCIAL_SYSTEM_CONTINUATION_AUDIT_20261114.md",
     "baseline_main_sha": "f261367eb480c884880890513752afc77d1ef916",
     "r0_production": {
       "pr": 50,
@@ -52,18 +74,19 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #67 was merged to production main and its exact production head passed CI. Do not reopen or re-merge that candidate. Continue only the remaining evidence-gated work: native private Skill installation and fresh-session invocation; real authenticated owner-message and semantic-approval provider; real GitHub CAS/revocation and article/method effect readback; independent external adversarial review of the production head; GitHub administrator protection/rulesets and tag-first archival of non-main branches. Real article production remains outside this system-reconstruction scope.",
+    "next_legal_phase": "PR #73 owner-state effect binding and PR #74 method-catalog effect binding/replay are merged and post-merge Main CI passed. Do not reopen these repairs. Continue only the seven remaining external evidence gates: live authenticated owner-message/semantic approval; provider-backed article and method CRUD/effect readback; fresh-session private Skill installation/invocation; independent external adversarial review; and administrator-controlled protected-main/ruleset plus tag-first branch archival. Real article production remains outside the current system-reconstruction scope.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
-    "user_action_now": "NO_ACTION_REQUIRED_TO_MERGE_PR_67__ALREADY_PRODUCTION_MAIN. Remaining external actions for full acceptance: install and invoke the private Financial Skill in a fresh ChatGPT session; provide/enable genuine authenticated owner-message, semantic-approval and GitHub CAS evidence; obtain a genuinely independent reviewer; and configure GitHub administrator protection/rulesets plus reviewer-controlled branch archival. Do not revisit repository visibility, migration or history rewriting.",
+    "user_action_now": "NO_ACTION_REQUIRED_TO_MERGE_PR_73_OR_PR_74__BOTH_ARE_PRODUCTION_MAIN. Full external acceptance still requires a fresh-session private Skill install/invocation, genuine owner-message and semantic-approval provider evidence, live GitHub CAS/effect readback, a genuinely independent reviewer, and administrator-controlled branch protection/archive controls. Do not revisit repository visibility, migration or history rewriting.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
       "No real authenticated user-facing standalone Financial plugin action observed (candidate only).",
       "Standalone Git provider-adapter behavior is exercised with mocked callbacks in CI; a real user-authenticated plugin CAS effect remains unverified.",
-      "No verified real external reader outcome; current cross-border v3 remains RESEARCH."
+      "No verified real external reader outcome; current cross-border v3 remains RESEARCH.",
+      "No live provider-signed article-state or method-catalog effect receipt has been emitted and reread; synthetic CI is not production provider evidence."
     ],
     "boundary": "ONE_FINANCIAL_EVOLUTION_OWNER__NO_NEW_TASK_INDEX_OR_PARALLEL_ARTICLE_STATE",
-    "previous_review_ref": "evals/FINANCIAL_SYSTEM_REDEVELOPMENT_AUDIT_20261111.md",
+    "previous_review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
     "standalone_reconstruction": {
       "user_goal": "Financial Writing is the only operating domain and must complete its work independently.",
       "financial_only_candidate_pr": 60,
@@ -312,34 +335,45 @@
     },
     "latest_production_verification": {
       "main_branch": "main",
-      "main_sha": "2296223fa3b61a854cf2f4965fe93d96be333b4c",
-      "merged_pr": 67,
-      "merged_candidate_branch": "repair/financial-independent-acceptance-20261112",
-      "candidate_head_sha": "18421e675dd6e65acc5f6fb7a5616e56182b41f0",
-      "merged_at": "2026-11-13T16:42:08Z",
-      "production_ci_run_id": 43465361740,
+      "main_sha": "cdeeefb64c6d8a0a85cfda59bf70850b7597e72c",
+      "merged_pr": 74,
+      "prior_effect_binding_pr": 73,
+      "merged_candidate_branch": "financial/method-catalog-effect-binding-20261114",
+      "candidate_head_sha": "3ef40925fb017e5de92e92c2a20fcbcc67b8cbfb",
+      "merged_at": "2026-11-14T06:19:20Z",
+      "production_ci_run_id": 43565761434,
       "production_ci_conclusion": "success",
-      "tests_passed": 523,
-      "source_line_coverage_percent": 90,
-      "coverage_statements": 5763,
-      "coverage_missed": 572,
+      "tests_passed": 566,
+      "source_line_coverage_percent": 89,
+      "coverage_statements": 6380,
+      "coverage_missed": 682,
       "whole_tree_inventory": {
-        "tracked_files": 304,
-        "python_ast_parsed": 112,
+        "tracked_files": 310,
+        "python_ast_parsed": 115,
         "json_parsed": 52,
-        "decoded_text_lines": 41331,
+        "decoded_text_lines": 43868,
         "warnings": 0,
         "errors": 0
       },
       "current_open_pull_requests_at_observation": 0,
-      "branch_count_at_observation": 99,
-      "main_protected_at_observation": false,
-      "repository_rulesets_at_observation": 0,
+      "main_protection_status": "NOT_REVERIFIED__GITHUB_BRANCH_PROTECTION_API_RETURNED_403__LAST_RECORDED_UNPROTECTED",
+      "repository_rulesets_status": "NOT_REVERIFIED__LAST_RECORDED_ZERO_RULESETS",
       "independent_review": "NOT_OBTAINED__REQUIRES_DIFFERENT_HUMAN_OR_TRUSTED_REVIEWER",
       "private_skill_user_installation": "NOT_VERIFIED__EXPLICIT_ACTION_REQUIRED",
+      "article_action_effect_binding": "MERGED__SYNTHETIC_CI_VERIFIED__LIVE_PROVIDER_EFFECT_OPEN",
+      "method_catalog_effect_binding": "MERGED__SYNTHETIC_CI_VERIFIED__LEGACY_HISTORY_PRESERVED_EFFECT_UNBOUND",
       "system_acceptance": "NOT_READY__SEVEN_GATES_REQUIRE_REAL_EXTERNAL_EVIDENCE",
-      "historical_snapshot_note": "owner_governance_rebuild_20261112.production and independent_acceptance_candidate are immutable records of earlier audits. Consult latest_production_verification for the subsequent PR #67 production status."
-    }
+      "historical_snapshot_note": "This is the exact production verification after PR #74. Earlier nested production records remain immutable snapshots. CI verifies engineering behavior only; live provider, independent review, fresh-session plugin activation and protected-main controls remain open."
+    },
+    "remaining_open_gates": [
+      "ORIGINAL_GOAL_AND_SEMANTIC_CORRECTION",
+      "LEGAL_ARTICLE_GRAPH_AND_RECOVERY",
+      "METHOD_KNOWLEDGE_CRUD_AND_IMPACT",
+      "PROVIDER_AUTHENTICATED_RUNTIME_CAS",
+      "NATIVE_FINANCIAL_PLUGIN_CLIENT_ACTIVATION",
+      "INDEPENDENT_EXTERNAL_ADVERSARIAL_REVIEW",
+      "FINANCIAL_MAIN_BRANCH_HYGIENE"
+    ]
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
