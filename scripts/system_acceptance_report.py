@@ -12,7 +12,10 @@ import os
 from pathlib import Path
 
 from financial_writing_agent.acceptance_gates import evaluate_system_acceptance
-from financial_writing_agent.whole_system_assurance import (\n    project_whole_system, audit_repository_business_changes,\n)\n
+from financial_writing_agent.whole_system_assurance import (
+    project_whole_system, audit_repository_business_changes,
+)
+
 ROOT = Path(__file__).resolve().parents[1]
 
 
@@ -38,7 +41,7 @@ def _audit_git_business_effects(head_sha: str) -> dict:
         )
     except subprocess.CalledProcessError as exc:
         raise SystemExit("FINANCIAL_MUTATION_BASE_COMPARISON_FAILED") from exc
-    changed_paths = [item.decode("utf-8") for item in raw.split(b"\\0") if item]
+    changed_paths = [item.decode("utf-8") for item in raw.split(b"\0") if item]
 
     def before_reader(rel: str) -> bytes | None:
         key = f"{base}:{rel}"
