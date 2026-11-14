@@ -11,7 +11,7 @@ from financial_writing_agent.whole_system_assurance import (
     REQUIRED_PRODUCT_REQUIREMENTS,
     _git_blob_sha,
     inspect_active_article,
-    project_whole_system,
+    project_whole_system, audit_repository_business_changes,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -118,3 +118,64 @@ def test_unverified_owner_live_runtime_does_not_get_silent_acceptance_label():
 def test_audit_proof_must_bind_to_a_real_sha():
     with pytest.raises(ValueError, match="EXACT_SOURCE_HEAD_SHA_REQUIRED"):
         project_whole_system(ROOT, head_sha="main")
+
+
+def test_whole_control_change_audit_does_not_invent_changes():
+    receipt = audit_repository_business_changes(
+        ["docs/product_requirements.md", "financial_writing_agent/story_quality.py"],
+        before_reader=lambda _: None, after_reader=lambda _: None,
+    )
+    assert receipt["violations"] == []
+    assert receipt["business_paths_changed"] == 0
+    assert receipt["status"] == "NO_UNADMITTED_BUSINESS_CHANGE_OBSERVED"
+
+
+def test_whole_control_change_audit_rejects_chat_only_state_write():
+    ref = f"workspaces/articles/{TASK}/STATE.json"
+    raw = (ROOT / ref).read_bytes()
+    modified = json.loads(raw)
+    modified["next_action"] = "模型自称这个任务已经完成"
+    after = json.dumps(modified, ensure_ascii=False).encode("utf-8")
+    receipt = audit_repository_business_changes(
+        [ref],
+        before_reader=lambda rel: raw if rel == ref else None,
+        after_reader=lambda rel: after if rel == ref else None,
+    )
+    assert receipt["status"].startswith("REJECTED")
+    assert any("OWNER_ARTICLE_MUTATION_NOT_ADMITTED" in issue for issue in receipt["violations"])
+
+
+def test_whole_control_change_audit_rejects_artifact_only_write_without_owner_revision():
+    path = f"workspaces/articles/{TASK}/stages/DRAFT.md"
+    receipt = audit_repository_business_changes(
+        [path],
+        before_reader=lambda _: None,
+        after_reader=lambda _: b"unbound draft",
+    )
+    assert f"ARTICLE_ARTIFACT_CHANGED_WITHOUT_STATE_REVISION:{TASK}" in receipt["violations"]
+
+
+def test_whole_control_change_audit_protects_migrated_history():
+    archived = "cross-border-ecommerce-20261016-v2"
+    marker = f"workspaces/articles/{archived}/ARTIFACT_STATUS.json"
+    bytes_ = (ROOT / marker).read_bytes()
+    receipt = audit_repository_business_changes(
+        [f"workspaces/articles/{archived}/research/MASTER_UNIVERSE_FINAL_20261016.md"],
+        before_reader=lambda rel: bytes_ if rel == marker else None,
+        after_reader=lambda rel: bytes_ if rel == marker else None,
+    )
+    assert "MIGRATED_ARTICLE_HISTORY_MUTATED:" + archived in receipt["violations"]
+
+
+def test_whole_control_change_audit_rejects_method_catalog_without_append_only_event():
+    path = "knowledge/METHOD_KNOWLEDGE_CATALOG.json"
+    prior = (ROOT / path).read_bytes()
+    fake = json.loads(prior)
+    fake["records"] = []
+    receipt = audit_repository_business_changes(
+        [path],
+        before_reader=lambda _: prior,
+        after_reader=lambda _: json.dumps(fake).encode("utf-8"),
+    )
+    assert receipt["status"].startswith("REJECTED")
+    assert any("METHOD_MUTATION" in v for v in receipt["violations"])
