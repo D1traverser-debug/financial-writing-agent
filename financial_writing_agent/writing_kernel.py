@@ -438,7 +438,7 @@ def _admit_research_audit(
         or not isinstance(envelope.get("evidence_refs"), list)
         or not envelope["evidence_refs"]
     ):
-        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_RESULT_INVALID")
+        raise WritingPassExecutionError("WRITING_RESEARCH_AUDIT_NOT_ADMITTED")
     status = str(envelope["status"])
     revision_target = envelope.get("revision_target")
     audited_evidence = envelope.get(RESEARCH_AUDIT_BOUNDARY_INPUT)
@@ -1063,11 +1063,12 @@ def _editorial_review_outcome(
     fail_targets: list[str] = []
     if interaction_fitness is not None:
         status = str(interaction_fitness["status"])
-        statuses.append(status)
-        if status == "REVISE":
-            revise_targets.append(interaction_fitness["revision_target"])
-        elif status == "FAIL":
-            fail_targets.append(interaction_fitness["revision_target"])
+        if status != "PASS":
+            target = interaction_fitness.get("revision_target")
+            require_revision_target(Stage.EDITORIAL_AUDIT, str(target))
+            # The Article Aggregate has no independent interaction-fitness field yet.
+            # Fail closed instead of fabricating a long-form PublicationFitness revision.
+            return "FAIL", str(target)
     if "FAIL" in statuses:
         if not fail_targets:
             raise WritingPassExecutionError("PORTFOLIO_EDITORIAL_AUDIT_FAIL_TARGET_REQUIRED")
@@ -1562,6 +1563,7 @@ def execute_portfolio_stage(
             interaction["platform_interaction_pack"] = branch["platform_interaction_pack"]
 
     elif stage == "EDITORIAL_AUDIT":
+        stop_after_revision = False
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
             selected_contexts = _requirement_contexts_for_pass(contexts, mode)
@@ -1578,8 +1580,14 @@ def execute_portfolio_stage(
                     name: branch[name] for name in PASS_CONTRACTS[node].outputs
                 })
                 if node == WritingPass.FINAL_SYNTHESIS:
-                    fitnesses.append(_admit_longform_result(branch, mode=mode))
-        if interaction is not None:
+                    fitness = _admit_longform_result(branch, mode=mode)
+                    fitnesses.append(fitness)
+                    if fitness.final_status == AuditStatus.REVISE:
+                        stop_after_revision = True
+                        break
+            if stop_after_revision:
+                break
+        if interaction is not None and not stop_after_revision:
             branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
             selected_contexts = _requirement_contexts_for_pass(contexts, "PLATFORM_INTERACTION")
             if selected_contexts is not None:
