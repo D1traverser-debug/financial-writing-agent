@@ -41,6 +41,7 @@ class PassContract:
     required_inputs: tuple[str, ...]
     forbidden_jobs: tuple[str, ...]
     outputs: tuple[str, ...]
+    optional_outputs: tuple[str, ...] = ()
 
 
 PASS_CONTRACTS: dict[WritingPass, PassContract] = {
@@ -76,7 +77,8 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         purpose="compare credible candidate explanations and select or merge the best evidence-bounded thesis",
         required_inputs=("discovery_package", "adversarial_package", "private_research_brief"),
         forbidden_jobs=("invent evidence", "draft paragraphs"),
-        outputs=("selected_thesis", "company_decision_map", "change_conditions", "decision_envelope", "research_package"),
+        outputs=("selected_thesis", "company_decision_map", "change_conditions", "decision_envelope"),
+        optional_outputs=("research_package",),
     ),
     WritingPass.STORY_ARCHITECTURE: PassContract(
         purpose="design one product-specific reader journey from the shared audited evidence",
@@ -397,7 +399,7 @@ def _invoke_pass(
         raise WritingPassExecutionError(
             f"WRITING_PASS_OUTPUT_MISSING:{node.value}:{scope}:{','.join(absent)}"
         )
-    unexpected = set(outcome) - set(contract.outputs)
+    unexpected = set(outcome) - set(contract.outputs) - set(contract.optional_outputs)
     if unexpected:
         raise WritingPassExecutionError(
             f"WRITING_PASS_UNDECLARED_OUTPUT:{node.value}:{scope}:"
@@ -410,7 +412,11 @@ def _invoke_pass(
         business_stage=PASS_STAGE_OWNERSHIP[node],
         product_scope=scope,
         inputs=provided,
-        outputs={name: outcome[name] for name in contract.outputs},
+        outputs={
+            name: outcome[name]
+            for name in (*contract.outputs, *contract.optional_outputs)
+            if name in outcome
+        },
         status="EXECUTOR_CALLBACK_RETURNED_REQUIRED_OUTPUTS__SEMANTIC_QUALITY_OPEN",
     )
 
