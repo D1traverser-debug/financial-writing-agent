@@ -202,11 +202,11 @@
     "missing_hard_capability": "BLOCK_AFFECTED_STAGE",
     "post_write_verification": "REREAD_GITHUB_CHILD_STATE_AND_ACTUAL_NEW_ARTIFACTS__INTERNAL_DRAFT_READINESS_DISTINCT_FROM_INDEPENDENT_EDITORIAL_CERTIFICATION",
     "internal_pass_dataflow_validator": "financial_writing_agent.writing_kernel.validate_pass_dataflow",
-    "internal_pass_callback_adapter": "financial_writing_agent.writing_kernel.execute_writing_passes",
+    "internal_pass_callback_adapter": "financial_writing_agent.writing_kernel.execute_portfolio_stage",
     "pass_callback_result_is_business_acceptance": false,
     "research_audit_boundary_is_mandatory_before_story_architecture": true,
     "internal_pass_count": 16,
-    "portfolio_pass_orchestrator": "financial_writing_agent.writing_kernel.execute_portfolio_writing",
+    "portfolio_pass_orchestrator": "financial_writing_agent.writing_kernel.execute_portfolio_stage",
     "portfolio_contract_version": "2.0",
     "shared_research_passes_execute_once": true,
     "deep_and_broad_use_separate_story_title_draft_review_and_synthesis_branches": true,
@@ -217,6 +217,8 @@
     "native_model_remains_active_llm_orchestrator": true,
     "python_callback_adapters_are_not_native_llm_execution_or_business_acceptance": true,
     "portfolio_stage_barriers": [
+      "RESEARCH",
+      "RESEARCH_AUDIT",
       "EDITORIAL",
       "TITLE",
       "DRAFT",
@@ -229,7 +231,30 @@
     "publication_fitness_gate_schema": "financial_writing_agent.story_quality.PublicationFitness",
     "platform_interaction_pack_schema": "financial_writing_agent.schemas.PlatformInteractionPack",
     "portfolio_outputs_must_match": "financial_writing_agent.models.TaskContract",
-    "callback_semantic_and_owner_state_admission_still_open": true
+    "callback_semantic_and_owner_state_admission_still_open": true,
+    "portfolio_in_memory_replay_helper": "financial_writing_agent.writing_kernel.execute_portfolio_writing",
+    "portfolio_context_initializer": "financial_writing_agent.writing_kernel.start_portfolio_context",
+    "portfolio_context_validator": "financial_writing_agent.writing_kernel.validate_portfolio_context",
+    "portfolio_context_schema_version": "1.0",
+    "portfolio_stage_receipt_version": "1.0",
+    "portfolio_stage_sequence": [
+      "RESEARCH",
+      "RESEARCH_AUDIT",
+      "EDITORIAL",
+      "TITLE",
+      "DRAFT",
+      "EDITORIAL_AUDIT"
+    ],
+    "portfolio_stage_execution_policy": "ONE_CURRENT_BUSINESS_STAGE_PER_CALL__PERSIST_AND_READ_BACK_EXACT_STAGE_ARTIFACT_BEFORE_NEXT_STAGE",
+    "portfolio_stage_context_task_binding": [
+      "task_id",
+      "task_requirement_digest"
+    ],
+    "portfolio_pass_receipts": "HASH_CHAINED_INPUT_AND_OUTPUT_DIGESTS__NOT_PROVIDER_ATTESTATION",
+    "portfolio_stage_receipts": "HASH_CHAINED_CONTEXT_DIGESTS__NOT_PERSISTENCE_OR_OWNER_ADMISSION",
+    "portfolio_stage_persistence_and_owner_admission": "AUTHENTICATED_STANDALONE_RUNTIME_REQUIRED_BETWEEN_EVERY_STAGE_CALL",
+    "portfolio_research_audit_is_separate_business_stage": true,
+    "in_memory_replay_is_production_execution": false
   },
   "knowledge_and_evolution": {
     "topic_and_method_knowledge_are_distinct": true,
