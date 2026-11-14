@@ -16,7 +16,7 @@ from financial_writing_agent.current_admission import (
 )
 from financial_writing_agent.story_quality import PublicationFitness
 from financial_writing_agent.standalone_runtime import FinancialAdmissionError, observe_article
-from financial_writing_agent.models import ProductMode
+from financial_writing_agent.story_quality import ProductMode
 from test_current_admission_v1 import _blueprint, _fitness
 from test_financial_native_loop_closure_20261112 import (
     TASK, STATE_PATH, act, make, into_research_audit, stage_artifact,
