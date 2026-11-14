@@ -34,7 +34,48 @@ def _seed(*, interaction=True):
     return values
 
 
-def _executor(calls, *, wrong_scope_for=None, fail_at=None):
+def _fitness(mode, *, revise=False, omit_gates=False):
+    gates = [
+        {
+            "gate": name,
+            "status": "REVISE" if revise and name == "FACT_INTEGRITY" else "PASS",
+            "evidence": [{
+                "location": "section 1",
+                "excerpt": "source-bounded example text",
+                "finding": "Synthetic gate exercise, NOT authentic editorial evidence",
+                "severity": "INFO",
+            }],
+            "checked_items": ["test artifact claim trace"],
+            "revision_actions": ["Recheck source data"] if revise and name == "FACT_INTEGRITY" else [],
+        }
+        for name in (
+            "FACT_INTEGRITY", "RETENTION", "COMPANY_GROUNDING",
+            "STRUCTURE_NUMBERING", "ORIGINALITY", "AUTHORIAL_STYLE",
+            "COMPLIANCE", "PAYOFF",
+        )
+    ]
+    return {
+        "product_mode": mode,
+        "gates": [] if omit_gates else gates,
+        "originality_checks": [{
+            "compared_source_ref": "source://synthetic",
+            "checked_phrase_or_passage": "source-bounded example text",
+            "result": "COMMON_LANGUAGE",
+            "notes": "synthetic fixture, not independent originality review",
+        }],
+        "assurance": "CHAT_SELF_REVIEW",
+        "review_scope": "INTERNAL_DELIVERY_READINESS",
+        "audit_provenance": {
+            "assurance": "CHAT_SELF_REVIEW",
+            "reviewed_article_sha256": "a" * 64,
+        },
+        "final_status": "REVISE" if revise else "PASS",
+    }
+
+
+def _executor(calls, *, wrong_scope_for=None, fail_at=None,
+              revise_mode=None, omit_gates_for=None,
+              cloned_bodies=False, incomplete_interaction=False):
     def run(node, inputs):
         mode = inputs.get("product_mode")
         calls.append((node, mode))
@@ -57,17 +98,48 @@ def _executor(calls, *, wrong_scope_for=None, fail_at=None):
             if node == WritingPass.DRAFT_GENERATION:
                 return {"draft": {"product_mode": scope, "title": f"{mode} title", "body": "actual draft body"}}
             return {
-                "publication_candidate": {"product_mode": scope, "body": "final candidate"},
-                "publication_fitness": {"product_mode": scope, "final_status": "PASS"},
+                "publication_candidate": {
+                    "product_mode": scope,
+                    "body": "same body" if cloned_bodies else f"{mode} final candidate",
+                },
+                "publication_fitness": _fitness(
+                    scope, revise=(revise_mode == mode),
+                    omit_gates=(omit_gates_for == mode),
+                ),
             }
         if node == WritingPass.PLATFORM_INTERACTION_ADAPTATION:
             return {
                 "platform_interaction_pack": {
                     "topic": "current financial topic",
                     "posts": [
-                        {"platform_family": "WECHAT_IMAGE_TEXT", "body": "native post one"},
-                        {"platform_family": "TOUTIAO_MICRO", "body": "native post two"},
-                        {"platform_family": "GENERIC_DYNAMIC", "body": "native post three"},
+                        {
+                            "platform_family": "WECHAT_IMAGE_TEXT",
+                            "hook": "native one",
+                            "body": "native post one",
+                            "interaction_prompt": "Question one?",
+                        },
+                        {
+                            "platform_family": "TOUTIAO_MICRO",
+                            "hook": "native two",
+                            "body": "native post two",
+                            "interaction_prompt": "Question two?",
+                        },
+                        {
+                            "platform_family": "GENERIC_DYNAMIC",
+                            "hook": "native three",
+                            "body": "native post three",
+                            "interaction_prompt": "Question three?",
+                        },
+                    ][:2] if incomplete_interaction else [
+                        {
+                            "platform_family": family,
+                            "hook": f"native hook {i}",
+                            "body": f"native post {i}",
+                            "interaction_prompt": f"Reader question {i}?",
+                        }
+                        for i, family in enumerate((
+                            "WECHAT_IMAGE_TEXT", "TOUTIAO_MICRO", "GENERIC_DYNAMIC"
+                        ))
                     ],
                     "evidence_boundary": "only claims in audited evidence",
                     "independent_rewrite_from_long_form": True,
@@ -242,3 +314,73 @@ def test_portfolio_output_contract_rejects_missing_or_ambiguous_products(require
             execute_pass=_executor([]),
             research_audit=_research_audit([]),
         )
+
+
+def test_invalid_publication_gate_cannot_be_hidden_behind_final_synthesis_pass():
+    calls = []
+    with pytest.raises(WritingPassExecutionError, match="PORTFOLIO_PUBLICATION_FITNESS_INVALID:FINANCE_DEEP"):
+        execute_portfolio_writing(
+            _seed(),
+            required_outputs=["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+            execute_pass=_executor(calls, omit_gates_for="FINANCE_DEEP"),
+            research_audit=_research_audit([]),
+        )
+    assert not any(mode == "FINANCE_BROAD" for _, mode in calls)
+
+
+def test_revise_gate_blocks_other_publication_products():
+    calls = []
+    with pytest.raises(WritingPassExecutionError, match="PORTFOLIO_PUBLICATION_FITNESS_REVISE:FINANCE_DEEP"):
+        execute_portfolio_writing(
+            _seed(),
+            required_outputs=["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+            execute_pass=_executor(calls, revise_mode="FINANCE_DEEP"),
+            research_audit=_research_audit([]),
+        )
+    assert not any(mode == "FINANCE_BROAD" for _, mode in calls)
+
+
+def test_directly_cloned_deep_and_broad_final_body_is_rejected():
+    with pytest.raises(WritingPassExecutionError, match="PORTFOLIO_LONGFORM_BODY_CLONED"):
+        execute_portfolio_writing(
+            _seed(),
+            required_outputs=["AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+            execute_pass=_executor([], cloned_bodies=True),
+            research_audit=_research_audit([]),
+        )
+
+
+def test_incomplete_short_form_platform_pack_is_rejected_by_current_schema():
+    with pytest.raises(WritingPassExecutionError, match="PORTFOLIO_INTERACTION_PACK_INVALID"):
+        execute_portfolio_writing(
+            _seed(),
+            required_outputs=["AUDIT_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"],
+            execute_pass=_executor([], incomplete_interaction=True),
+            research_audit=_research_audit([]),
+        )
+
+
+def test_noncanonical_output_combinations_cannot_bypass_task_contract():
+    with pytest.raises(WritingPassExecutionError, match="PORTFOLIO_OUTPUTS_NOT_CANONICAL_TASK_CONTRACT"):
+        execute_portfolio_writing(
+            _seed(),
+            required_outputs=["AUDIT_DOCX", "PLATFORM_INTERACTION_PACK_DOCX"],
+            execute_pass=_executor([]),
+            research_audit=_research_audit([]),
+        )
+
+
+def test_canonical_modes_are_stable_across_five_distribution_types():
+    from financial_writing_agent.models import DistributionMode, TaskContract
+
+    for mode in DistributionMode:
+        required = [kind.value for kind in TaskContract(
+            prompt="canonical mode test", distribution_mode=mode,
+        ).required_outputs]
+        result = execute_portfolio_writing(
+            _seed(),
+            required_outputs=required,
+            execute_pass=_executor([]),
+            research_audit=_research_audit([]),
+        )
+        assert set(result["required_output_kinds"]) == set(required)
