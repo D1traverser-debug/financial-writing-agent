@@ -373,22 +373,22 @@ def _invoke_pass(
         outcome = execute_pass(node, provided)
     except Exception as exc:
         raise WritingPassExecutionError(
-            f"WRITING_PASS_EXECUTION_FAILED:{scope}:{node.value}"
+            f"WRITING_PASS_EXECUTION_FAILED:{node.value}:{scope}"
         ) from exc
     if not isinstance(outcome, Mapping):
-        raise WritingPassExecutionError(f"WRITING_PASS_OUTPUT_INVALID:{scope}:{node.value}")
+        raise WritingPassExecutionError(f"WRITING_PASS_OUTPUT_INVALID:{node.value}:{scope}")
     absent = [
         name for name in contract.outputs
         if name not in outcome or outcome[name] is None
     ]
     if absent:
         raise WritingPassExecutionError(
-            f"WRITING_PASS_OUTPUT_MISSING:{scope}:{node.value}:{','.join(absent)}"
+            f"WRITING_PASS_OUTPUT_MISSING:{node.value}:{scope}:{','.join(absent)}"
         )
     unexpected = set(outcome) - set(contract.outputs)
     if unexpected:
         raise WritingPassExecutionError(
-            f"WRITING_PASS_UNDECLARED_OUTPUT:{scope}:{node.value}:"
+            f"WRITING_PASS_UNDECLARED_OUTPUT:{node.value}:{scope}:"
             + ",".join(sorted(unexpected))
         )
     current.update(outcome)
