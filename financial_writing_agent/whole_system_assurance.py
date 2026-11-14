@@ -196,6 +196,37 @@ def project_whole_system(root: Path, *, head_sha: str) -> dict[str, Any]:
     for key in ("plugin_id", "release_id", "version"):
         if plugin.get(key) != canonical_plugin.get(key):
             violations.append("PLUGIN_RELEASE_IDENTITY_DRIFT:" + key)
+    # A runnable guard cannot be silently downgraded back to prompt-only
+    # direct-main CAS in one policy surface while CI reports green elsewhere.
+    execution = _json(root, "config/EXECUTION_CONTRACT.json")
+    client = execution.get("chatgpt_native_execution", {})
+    expected_guard = (
+        client.get("direct_main_business_mutation_without_guard_allowed") is False
+        and client.get("owner_mutation_guard")
+        == "financial_writing_agent.whole_system_assurance.audit_repository_business_changes"
+        and client.get("candidate_review_entry") == "scripts/system_acceptance_report.py"
+        and client.get("native_client_signed_provider_installed_and_tested") is False
+    )
+    if not expected_guard:
+        violations.append("NATIVE_CLIENT_OWNER_EFFECT_GUARD_DRIFT")
+    capability_ids = {
+        item.get("id") for item in capability.get("capabilities", [])
+        if isinstance(item, Mapping)
+    }
+    if "chatgpt_native_execution_and_github_persistence" not in capability_ids or (
+            "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION"
+            not in capability.get("required_external_capabilities_at_execution", [])):
+        violations.append("NATIVE_CLIENT_CAPABILITY_BOUNDARY_DRIFT")
+    skill = (root / config["skill_entrypoint"]).read_text(encoding="utf-8")
+    readme = (root / "README.md").read_text(encoding="utf-8")
+    interface = (root / "docs/STANDALONE_INTERFACE.md").read_text(encoding="utf-8")
+    if not (
+        "signed provider admission" in skill.lower()
+        and "do not direct-update `main`" in skill
+        and "not an approved business execution route" in interface
+        and "No direct ChatGPT" in readme
+    ):
+        violations.append("NATIVE_CLIENT_INSTRUCTIONS_EFFECT_GUARD_DRIFT")
     requirement_text = (root / "docs/product_requirements.md").read_text(encoding="utf-8")
     ids = set(re.findall(r"^###\s+(PR-\d{2}A?)\b", requirement_text, re.M))
     if ids != REQUIRED_PRODUCT_REQUIREMENTS:
