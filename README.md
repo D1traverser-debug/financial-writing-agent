@@ -2,7 +2,7 @@
 
 Financial Writing is a standalone Chinese financial research, editorial and publishing system. It owns its requirements, article state, research methods, writing workflow, reviews, Word production and system evolution.
 
-There is one operating entrypoint: [Financial Writing Skill](skills/financial-writing-agent/SKILL.md). There is no second controller, external parent runtime or parallel task ledger.
+There is one Financial operating entrypoint: [Financial Writing Skill](skills/financial-writing-agent/SKILL.md). CAOS governs cross-project cognition in the active ChatGPT session; no CAOS runtime/API parent, second controller or parallel task ledger is introduced.
 
 ## Start and operate
 
