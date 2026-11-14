@@ -3,12 +3,16 @@ from __future__ import annotations
 import json
 from types import SimpleNamespace
 
+
 import pytest
 
-from financial_writing_agent import portfolio_coordinator, standalone_runtime
+from financial_writing_agent import current_admission, portfolio_coordinator, standalone_runtime
 from financial_writing_agent.portfolio_coordinator import PortfolioCoordinatorError
 from financial_writing_agent.schemas import ResearchPackage
 from financial_writing_agent.standalone_runtime import FinancialAdmissionError
+from financial_writing_agent.writing_kernel import WritingPass
+from test_current_admission_v1 import _brief, _decision
+from test_financial_portfolio_execution_20261114 import _executor, _seed
 from test_financial_portfolio_requirement_governance_20261114 import (
     _contexts,
     _requirement,
@@ -330,3 +334,289 @@ def test_changed_provider_bytes_are_rejected_even_when_reader_claims_old_sha():
                 if requested == path else None
             ),
         )
+
+
+def _serialized_owner_state(state):
+    content = json.dumps(state, ensure_ascii=False, sort_keys=True, indent=2) + "\\n"
+    return {
+        "state": state,
+        "blob_sha": standalone_runtime._blob_sha(content),
+        "content": content,
+    }
+
+
+def _coordinator_dependencies(monkeypatch, state, admission):
+    store, artifact_reader, artifact_writer, writes = _store_provider()
+    state_path = standalone_runtime._state_path(state["task_id"])
+    state_record = _serialized_owner_state(state)
+    proposals = []
+
+    def state_reader(path):
+        return state_record if path == state_path else None
+
+    def fake_admit(proposal, **kwargs):
+        proposals.append(proposal)
+        return {
+            "task_id": proposal["task_id"],
+            "action_id": proposal["action_id"],
+            **admission,
+        }
+
+    monkeypatch.setattr(standalone_runtime, "admit_article_action", fake_admit)
+    return {
+        "state_reader": state_reader,
+        "artifact_reader": artifact_reader,
+        "portfolio_context_reader": artifact_reader,
+        "artifact_bundle_writer": artifact_writer,
+        "authorization_verifier": lambda request: None,
+        "bundle_cas_writer": lambda *args: {},
+        "effect_attestation_signer": lambda claims: None,
+        "effect_receipt_reader": lambda path: None,
+    }, store, writes, proposals
+
+
+def _valid_research_executor(calls):
+    fallback = _executor(calls)
+
+    def execute(node, inputs):
+        result = fallback(node, inputs)
+        if node == WritingPass.PRIVATE_RESEARCH_SYNTHESIS:
+            result["private_research_brief"] = _brief()
+        elif node == WritingPass.THESIS_ADJUDICATION:
+            result["decision_envelope"] = _decision()
+        return result
+
+    return execute
+
+
+def test_run_next_portfolio_stage_intake_persists_context_and_requires_owner_readback(monkeypatch):
+    task_id = "coordinator-intake-test"
+    state = current_admission.build_initial_state(
+        task_id=task_id,
+        prompt="Write a financial article",
+        source_refs=[],
+        executor_identity="test",
+    )
+    deps, store, writes, proposals = _coordinator_dependencies(
+        monkeypatch,
+        state,
+        {
+            "stage": "RESEARCH",
+            "business_status": "IN_PROGRESS",
+            "child_state_cas_verified": True,
+            "effect_receipt_readback_verified": True,
+        },
+    )
+
+    result = portfolio_coordinator.run_next_portfolio_stage(
+        task_id,
+        seed_inputs=_seed(),
+        **deps,
+    )
+
+    assert result["executed_stage"] == "INTAKE"
+    assert result["next_stage"] == "RESEARCH"
+    assert result["stage_artifact_ref"] is None
+    assert result["portfolio_context_ref"]["path"] in store
+    assert len(writes) == 1
+    assert proposals[0]["parameters"]["portfolio_context_ref"] == result["portfolio_context_ref"]
+
+
+@pytest.mark.parametrize(
+    ("admission", "message"),
+    [
+        (
+            {
+                "stage": "EDITORIAL",
+                "business_status": "IN_PROGRESS",
+                "child_state_cas_verified": True,
+                "effect_receipt_readback_verified": True,
+            },
+            "PORTFOLIO_OWNER_ADMISSION_STAGE_READBACK_MISMATCH",
+        ),
+        (
+            {
+                "stage": "RESEARCH",
+                "business_status": "IN_PROGRESS",
+                "child_state_cas_verified": True,
+                "effect_receipt_readback_verified": False,
+            },
+            "PORTFOLIO_OWNER_ADMISSION_EFFECT_READBACK_NOT_VERIFIED",
+        ),
+    ],
+)
+def test_run_next_portfolio_stage_intake_rejects_incomplete_owner_admission(
+    monkeypatch, admission, message,
+):
+    task_id = "coordinator-intake-reject"
+    state = current_admission.build_initial_state(
+        task_id=task_id,
+        prompt="Write a financial article",
+        source_refs=[],
+        executor_identity="test",
+    )
+    deps, _, _, _ = _coordinator_dependencies(monkeypatch, state, admission)
+
+    with pytest.raises(PortfolioCoordinatorError, match=message):
+        portfolio_coordinator.run_next_portfolio_stage(
+            task_id,
+            seed_inputs=_seed(),
+            **deps,
+        )
+
+
+def test_run_next_portfolio_stage_research_executes_one_stage_and_binds_both_readbacks(monkeypatch):
+    task_id = "coordinator-research-test"
+    state = current_admission.build_initial_state(
+        task_id=task_id,
+        prompt="Write a financial article",
+        source_refs=[],
+        executor_identity="test",
+    )
+    state = current_admission.advance_state(
+        state,
+        previous_state_blob_sha="s0",
+        executor_identity="test",
+    )
+    deps, store, writes, proposals = _coordinator_dependencies(
+        monkeypatch,
+        state,
+        {
+            "stage": "RESEARCH_AUDIT",
+            "business_status": "IN_PROGRESS",
+            "child_state_cas_verified": True,
+            "effect_receipt_readback_verified": True,
+        },
+    )
+    calls = []
+
+    result = portfolio_coordinator.run_next_portfolio_stage(
+        task_id,
+        seed_inputs=_seed(),
+        execute_pass=_valid_research_executor(calls),
+        **deps,
+    )
+
+    assert result["executed_stage"] == "RESEARCH"
+    assert result["next_stage"] == "RESEARCH_AUDIT"
+    assert result["stage_artifact_ref"]["path"] in store
+    assert result["portfolio_context_ref"]["path"] in store
+    assert len(writes) == 1
+    assert set(writes[0]) == {
+        result["stage_artifact_ref"]["path"],
+        result["portfolio_context_ref"]["path"],
+    }
+    assert result["owner_admission"]["child_state_cas_verified"] is True
+    assert proposals[0]["parameters"]["artifact_path"] == result["stage_artifact_ref"]["path"]
+    assert proposals[0]["parameters"]["decision_envelope"] == _decision()
+    assert proposals[0]["parameters"]["private_research_brief"] == _brief()
+    assert calls
+
+
+def test_run_next_portfolio_stage_rejects_missing_owner_state_before_any_provider_write():
+    task_id = "coordinator-missing-state"
+    _, reader, writer, writes = _store_provider()
+
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_ARTICLE_STATE_NOT_FOUND",
+    ):
+        portfolio_coordinator.run_next_portfolio_stage(
+            task_id,
+            state_reader=lambda path: None,
+            artifact_reader=reader,
+            portfolio_context_reader=reader,
+            artifact_bundle_writer=writer,
+            authorization_verifier=lambda request: None,
+            bundle_cas_writer=lambda *args: {},
+            effect_attestation_signer=lambda claims: None,
+            effect_receipt_reader=lambda path: None,
+        )
+    assert writes == []
+
+
+def test_run_next_portfolio_stage_rejects_state_task_identity_mismatch(monkeypatch):
+    task_id = "coordinator-requested-task"
+    wrong_state = {
+        "task_id": "coordinator-other-task",
+        "status": "IN_PROGRESS",
+        "current_stage": "INTAKE",
+    }
+    record = _serialized_owner_state(wrong_state)
+    _, reader, writer, _ = _store_provider()
+
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_ARTICLE_IDENTITY_MISMATCH",
+    ):
+        portfolio_coordinator.run_next_portfolio_stage(
+            task_id,
+            state_reader=lambda path: record,
+            artifact_reader=reader,
+            portfolio_context_reader=reader,
+            artifact_bundle_writer=writer,
+            authorization_verifier=lambda request: None,
+            bundle_cas_writer=lambda *args: {},
+            effect_attestation_signer=lambda claims: None,
+            effect_receipt_reader=lambda path: None,
+        )
+
+
+@pytest.mark.parametrize(
+    ("status", "message"),
+    [
+        ("BLOCKED", "PORTFOLIO_OWNER_STATE_BLOCKED_REQUIRES_EXPLICIT_RECOVERY"),
+        ("DELIVERED", "PORTFOLIO_OWNER_STATE_NOT_IN_PROGRESS"),
+    ],
+)
+def test_run_next_portfolio_stage_fails_closed_for_non_executable_owner_status(
+    monkeypatch, status, message,
+):
+    task_id = "coordinator-owner-status"
+    state = {
+        "task_id": task_id,
+        "status": status,
+        "current_stage": "RESEARCH",
+    }
+    record = _serialized_owner_state(state)
+    _, reader, writer, _ = _store_provider()
+    monkeypatch.setattr(current_admission, "validate_state", lambda candidate: None)
+
+    with pytest.raises(PortfolioCoordinatorError, match=message):
+        portfolio_coordinator.run_next_portfolio_stage(
+            task_id,
+            state_reader=lambda path: record,
+            artifact_reader=reader,
+            portfolio_context_reader=reader,
+            artifact_bundle_writer=writer,
+            authorization_verifier=lambda request: None,
+            bundle_cas_writer=lambda *args: {},
+            effect_attestation_signer=lambda claims: None,
+            effect_receipt_reader=lambda path: None,
+        )
+
+
+def test_run_next_portfolio_stage_requires_seed_for_first_intake_call(monkeypatch):
+    task_id = "coordinator-seed-required"
+    state = current_admission.build_initial_state(
+        task_id=task_id,
+        prompt="Write a financial article",
+        source_refs=[],
+        executor_identity="test",
+    )
+    deps, _, _, _ = _coordinator_dependencies(
+        monkeypatch,
+        state,
+        {
+            "stage": "RESEARCH",
+            "business_status": "IN_PROGRESS",
+            "child_state_cas_verified": True,
+            "effect_receipt_readback_verified": True,
+        },
+    )
+
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_INITIAL_SEED_INPUTS_REQUIRED",
+    ):
+        portfolio_coordinator.run_next_portfolio_stage(task_id, **deps)
