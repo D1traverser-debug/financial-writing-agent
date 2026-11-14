@@ -30,7 +30,9 @@ from test_current_admission_v1 import (
 
 
 def _seed():
-    return {name: f"actual-host-supplied:{name}" for name in PRE_RESEARCH_EXTERNAL_INPUTS}
+    seed = {name: f"actual-host-supplied:{name}" for name in PRE_RESEARCH_EXTERNAL_INPUTS}
+    seed["product_mode"] = "FINANCE_DEEP"
+    return seed
 
 
 def _executor(node, inputs):
@@ -49,18 +51,22 @@ def _research_audit(inputs):
     }
 
 
-def test_13_pass_dataflow_is_closed_from_explicit_stage_inputs_not_implicit_global_guesswork():
+def test_portfolio_pass_dataflow_is_closed_from_explicit_stage_inputs_not_implicit_global_guesswork():
     assert validate_pass_dataflow() == []
     ordered = execution_order()
-    assert len(ordered) == 13
+    assert len(ordered) == 16
     assert ordered.index(WritingPass.PRIVATE_RESEARCH_SYNTHESIS) < ordered.index(WritingPass.THESIS_ADJUDICATION)
     assert ordered.index(WritingPass.THESIS_ADJUDICATION) < ordered.index(WritingPass.STORY_ARCHITECTURE)
+    assert ordered.index(WritingPass.STORY_ARCHITECTURE) < ordered.index(WritingPass.HEADLINE_ADJUDICATION)
+    assert ordered.index(WritingPass.HEADLINE_ADJUDICATION) < ordered.index(WritingPass.DRAFT_GENERATION)
+    assert ordered.index(WritingPass.PLATFORM_INTERACTION_ADAPTATION) < ordered.index(WritingPass.PLATFORM_INTERACTION_AUDIT)
     assert "discovery_package" in PASS_CONTRACTS[WritingPass.RESEARCH_DISCOVERY].outputs
     assert "adversarial_package" in PASS_CONTRACTS[WritingPass.RESEARCH_ADVERSARIAL].outputs
     assert "decision_envelope" in PASS_CONTRACTS[WritingPass.THESIS_ADJUDICATION].outputs
+    assert PASS_CONTRACTS[WritingPass.HEADLINE_ADJUDICATION].outputs == ("headline_decision",)
 
 
-def test_full_13_pass_callbacks_execute_in_dependency_order_after_research_audit():
+def test_full_single_product_and_interaction_pass_callbacks_execute_in_dependency_order_after_research_audit():
     invoked = []
     def worker(node, inputs):
         invoked.append(node.value)
@@ -68,11 +74,11 @@ def test_full_13_pass_callbacks_execute_in_dependency_order_after_research_audit
     output = execute_writing_passes(_seed(), execute_pass=worker,
                                      research_audit=_research_audit)
     assert invoked == [item.value for item in execution_order()]
-    assert output["pass_count"] == 13
+    assert output["pass_count"] == 16
     assert output["research_audit_boundary_reached"] is True
-    assert len(output["trace"]) == 14
+    assert len(output["trace"]) == 17
     assert output["trace"][5]["pass"] == "RESEARCH_AUDIT_BOUNDARY"
-    assert "editorial" not in output["assurance"].lower().replace("not_independent_editorial", "")
+    assert "NOT_PORTFOLIO_OR_EDITORIAL_ACCEPTANCE" in output["assurance"]
     assert output["products"]["publication_candidate"].startswith("synthetic-work-product")
     assert "NOT_INDEPENDENT_EDITORIAL" in output["assurance"]
 
