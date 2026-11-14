@@ -9,6 +9,7 @@ from docx.enum.text import WD_ALIGN_PARAGRAPH
 from docx.oxml.ns import qn
 from docx.shared import Pt, RGBColor
 from pydantic import BaseModel, Field
+from .structure_numbering import chinese_section_number as _chinese_number
 
 
 DEFAULT_COMPANY_NAME_RGB = "0070C0"
@@ -80,22 +81,6 @@ def _run_color_for_company(text: str, stock_names: list[str], policy: dict) -> s
     if text in set(stock_names):
         return _company_name_color(policy)
     return None
-
-
-def _chinese_number(n: int) -> str:
-    digits = "零一二三四五六七八九"
-    if n <= 0:
-        return str(n)
-    if n < 10:
-        return digits[n]
-    if n == 10:
-        return "十"
-    if n < 20:
-        return "十" + digits[n - 10]
-    if n < 100:
-        tens, ones = divmod(n, 10)
-        return digits[tens] + "十" + (digits[ones] if ones else "")
-    return str(n)
 
 
 def _strip_heading_prefix(text: str) -> str:

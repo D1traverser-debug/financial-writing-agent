@@ -7,6 +7,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, model_validator
 
 from .schemas import AuditProvenance
+from .structure_numbering import chinese_section_prefix
 
 
 class StrictModel(BaseModel):
@@ -110,15 +111,11 @@ class StoryBlueprint(StrictModel):
 
     @model_validator(mode="after")
     def enforce_story_architecture(self):
-        expected_prefixes = [
-            "一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、",
-            "十一、", "十二、", "十三、", "十四、", "十五、",
-        ]
         labels = [section.sequence_label for section in self.sections]
         if len(labels) != len(set(labels)):
             raise ValueError("section sequence labels must be unique")
         for idx, label in enumerate(labels):
-            if idx >= len(expected_prefixes) or label != expected_prefixes[idx]:
+            if label != chinese_section_prefix(idx + 1):
                 raise ValueError("H1 section sequence must be explicit and contiguous Chinese numbering")
 
         if self.product_mode == ProductMode.FINANCE_DEEP:
@@ -217,6 +214,9 @@ class PublicationFitness(StrictModel):
     originality_checks: list[OriginalityEvidence] = Field(min_length=1)
     deterministic_findings: list[str] = Field(default_factory=list)
     assurance: Literal["CHAT_SELF_REVIEW", "INDEPENDENT_EXECUTOR"]
+    # A self-review can clear an internal delivery draft for Word export, but
+    # never upgrades it to independent publication/editorial certification.
+    review_scope: Literal["PUBLICATION_CERTIFICATION", "INTERNAL_DELIVERY_READINESS"] = "PUBLICATION_CERTIFICATION"
     audit_provenance: AuditProvenance = Field(default_factory=AuditProvenance)
     final_status: AuditStatus
 
@@ -236,7 +236,14 @@ class PublicationFitness(StrictModel):
             raise ValueError("originality overlap requiring rewrite blocks publication PASS")
         if self.audit_provenance.assurance != self.assurance:
             raise ValueError("publication fitness assurance must match audit_provenance.assurance")
-        if self.assurance == "CHAT_SELF_REVIEW" and self.final_status == AuditStatus.PASS:
+        if self.review_scope == "INTERNAL_DELIVERY_READINESS":
+            if self.assurance != "CHAT_SELF_REVIEW":
+                raise ValueError("INTERNAL_DELIVERY_READINESS_MUST_BE_CHAT_SELF_REVIEW")
+            if self.final_status == AuditStatus.PASS:
+                sha = self.audit_provenance.reviewed_article_sha256
+                if not isinstance(sha, str) or re.fullmatch(r"[a-f0-9]{64}", sha) is None:
+                    raise ValueError("INTERNAL_DELIVERY_READINESS_DRAFT_SHA_REQUIRED")
+        elif self.assurance == "CHAT_SELF_REVIEW" and self.final_status == AuditStatus.PASS:
             raise ValueError("CHAT_SELF_REVIEW_CANNOT_CERTIFY_PUBLICATION_PASS")
         # Independent provenance hashes are only an envelope. The Financial
         # runtime must verify the external provider's signature before state CAS.
@@ -255,9 +262,8 @@ _GENERIC_THROAT_CLEARING = [
 
 def publication_structure_findings(headings: list[str]) -> list[str]:
     findings: list[str] = []
-    expected = ["一、", "二、", "三、", "四、", "五、", "六、", "七、", "八、", "九、", "十、"]
     for idx, heading in enumerate(headings):
-        if idx >= len(expected) or not heading.startswith(expected[idx]):
+        if not heading.startswith(chinese_section_prefix(idx + 1)):
             findings.append(f"non-contiguous-or-missing-H1-sequence:{idx}:{heading}")
     return findings
 

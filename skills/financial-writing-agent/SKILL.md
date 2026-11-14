@@ -57,7 +57,7 @@ Research facts require exact source text, source family, retrieval time, body ha
 
 Read the Financial-owned `research.md`, `private_research.md`, `market_explanation.md`, `claim_trace.py` and `PrivateResearchBrief` contracts for detailed evidence schemas. Keep verified fact, supported mechanism, plausible interpretation and unresolved claims separate. Do not fabricate current facts, coverage, search completion or source citations.
 
-PublicationFitness has eight gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF. Same-chat critique is CHAT_SELF_REVIEW, not independent acceptance. A real reviewer must receive exact draft bytes and return verifiable review evidence; otherwise acceptance stays OPEN.
+PublicationFitness has eight gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF. Same-chat review may clear INTERNAL_DELIVERY_READINESS only against exact draft bytes; Word remains uncertified. Real publication certification needs independently verified review.
 
 Required outputs: `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, when contracted, `PRIVATE_RESEARCH_DOCX`. Verify actual DOCX bytes, PDF/PNG pages, visual inspection and current-session access. A filename, hash, PASS or CI does not prove delivery or reader quality.
 

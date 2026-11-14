@@ -36,8 +36,10 @@ from .provider_attestation import (
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
-from .editorial_review_authority import (IndependentEditorialEvidenceError,
-                                         verify_external_editorial_review)
+from .editorial_review_authority import (
+    IndependentEditorialEvidenceError, verify_external_editorial_review,
+    verify_internal_editorial_delivery_readiness,
+)
 
 DOMAIN_ID = "financial_writing"
 CONTRACT_VERSION = "1.0"
@@ -1148,8 +1150,13 @@ def admit_article_action(
             candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction_source_readback"] = satisfaction_readback
             current_admission.validate_state(candidate)
     independent_editorial_proof = None
+    internal_editorial_readiness = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "EDITORIAL_AUDIT":
         try:
+            internal_editorial_readiness = verify_internal_editorial_delivery_readiness(
+                candidate, candidate["quality_evidence"].get("publication_fitnesses", []),
+                draft_reader=artifact_reader,
+            )
             independent_editorial_proof = verify_external_editorial_review(
                 candidate, candidate["quality_evidence"].get("publication_fitnesses", []),
                 draft_reader=artifact_reader,
@@ -1159,6 +1166,9 @@ def admit_article_action(
             raise FinancialAdmissionError(str(exc)) from exc
         if independent_editorial_proof is not None:
             candidate["execution_receipts"][-1]["input_bindings"]["independent_editorial_proof"] = independent_editorial_proof
+        if internal_editorial_readiness is not None:
+            candidate["execution_receipts"][-1]["input_bindings"]["internal_editorial_readiness"] = internal_editorial_readiness
+        if independent_editorial_proof is not None or internal_editorial_readiness is not None:
             current_admission.validate_state(candidate)
     visible_delivery_receipt = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] == "FINAL_AUDIT":
@@ -1256,6 +1266,7 @@ def admit_article_action(
         "delivery_research_freshness_readback": delivery_research_freshness,
         "method_usage_readback": method_usage,
         "independent_editorial_review_readback": independent_editorial_proof,
+        "internal_editorial_delivery_readiness": internal_editorial_readiness,
         "visible_delivery_receipt": visible_delivery_receipt,
         "child_state_cas_verified": True,
         "effect_receipt_readback_verified": True,

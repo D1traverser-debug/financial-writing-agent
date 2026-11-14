@@ -140,7 +140,8 @@
     ],
     "audit_gate_requires_text_location_excerpt_and_finding": true,
     "major_or_critical_finding_blocks_pass": true,
-    "originality_patchwriting_requires_revision": true
+    "originality_patchwriting_requires_revision": true,
+    "broad_blueprint_independence": "DISTINCT_DEEP_AND_BROAD_READER_PROMISE_OPENING_NARRATIVE_PATH_AND_PAYOFF__CLONE_DETECTOR_NOT_EDITORIAL_CERTIFICATION"
   },
   "finance_deep": {
     "research_material_value_chain_coverage_required": true,
@@ -196,7 +197,7 @@
     "live_parent_business_proxy_required": false,
     "free_form_article_fallback_allowed": false,
     "missing_hard_capability": "BLOCK_AFFECTED_STAGE",
-    "post_write_verification": "REREAD_GITHUB_CHILD_STATE_AND_ACTUAL_NEW_ARTIFACTS__INDEPENDENT_EDITORIAL_EVIDENCE_FOR_READINESS"
+    "post_write_verification": "REREAD_GITHUB_CHILD_STATE_AND_ACTUAL_NEW_ARTIFACTS__INTERNAL_DRAFT_READINESS_DISTINCT_FROM_INDEPENDENT_EDITORIAL_CERTIFICATION"
   },
   "knowledge_and_evolution": {
     "topic_and_method_knowledge_are_distinct": true,
@@ -227,7 +228,16 @@
     "same_chat_semantic_review": "CHAT_SELF_REVIEW",
     "independent_claim_requires_distinct_execution_evidence": true,
     "rubric_labels_without_text_evidence_are_acceptance_evidence": false,
-    "product_documentation_alone_is_acceptance_evidence": false
+    "product_documentation_alone_is_acceptance_evidence": false,
+    "editorial_delivery_readiness": {
+      "internal_scope": "INTERNAL_DELIVERY_READINESS",
+      "exact_draft_sha256_readback_required": true,
+      "source": "financial_writing_agent.editorial_review_authority.verify_internal_editorial_delivery_readiness",
+      "can_export_word_without_independent_certification": true,
+      "public_certification_without_external_review": false,
+      "all_eight_fitness_gates_required": true,
+      "no_waiver_for_major_or_critical_findings": true
+    }
   },
   "historical_state": {
     "immutable_existing_receipts_may_contain_retired_identifiers": true,
