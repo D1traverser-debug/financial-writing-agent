@@ -75,6 +75,13 @@ def verify_task_publication_scope(
     for requirement in context["requirements"]:
         requirement_id = str(requirement["requirement_id"])
         affected = str(requirement["affects_from_stage"])
+        # Deep's explicitly retained-universe rule also serves as a preflight
+        # *negative* scope checker for the historical task while it is still
+        # in RESEARCH. Do not suppress its detailed truncation/identity/
+        # company-visible failure just because the due stage lies ahead.
+        if (requirement_id == FULL_UNIVERSE_REQUIREMENT
+                and product_mode == "FINANCE_DEEP"):
+            continue
         if current_index <= owner_guard.STAGE_INDEX[affected]:
             if stage == affected == "DELIVERY":
                 # Building Word precedes the DELIVERY transition. The final
