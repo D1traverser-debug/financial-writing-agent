@@ -28,6 +28,26 @@ class PortfolioCoordinatorError(RuntimeError):
 ArtifactBundleWriter = Callable[[Mapping[str, bytes]], Mapping[str, Any]]
 
 
+def _verify_owner_admission(
+    admission: Mapping[str, Any],
+    *,
+    task_id: str,
+    expected_stage: str,
+    expected_status: str,
+) -> None:
+    """Require the complete owner/provider receipt before returning stage success."""
+    if not isinstance(admission, Mapping) or admission.get("task_id") != task_id:
+        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_TASK_ID_MISMATCH")
+    if admission.get("stage") != expected_stage:
+        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_STAGE_READBACK_MISMATCH")
+    if admission.get("business_status") != expected_status:
+        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_STATUS_READBACK_MISMATCH")
+    if admission.get("child_state_cas_verified") is not True:
+        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_STATE_CAS_NOT_VERIFIED")
+    if admission.get("effect_receipt_readback_verified") is not True:
+        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_EFFECT_READBACK_NOT_VERIFIED")
+
+
 def _canonical_json_bytes(value: Mapping[str, Any]) -> bytes:
     return (
         json.dumps(value, ensure_ascii=False, sort_keys=True, indent=2) + "\n"
@@ -478,6 +498,15 @@ def run_next_portfolio_stage(
             owner_semantic_verifier=owner_semantic_verifier,
             method_catalog_reader=method_catalog_reader,
         )
+        expected_status = (
+            "BLOCKED" if context.get("execution_status") == "BLOCKED" else "IN_PROGRESS"
+        )
+        _verify_owner_admission(
+            admission,
+            task_id=task_id,
+            expected_stage=context["current_stage"],
+            expected_status=expected_status,
+        )
         return {
             "task_id": task_id,
             "executed_stage": "INTAKE",
@@ -564,11 +593,15 @@ def run_next_portfolio_stage(
         owner_semantic_verifier=owner_semantic_verifier,
         method_catalog_reader=method_catalog_reader,
     )
-    if admission.get("stage") != next_context.get("current_stage"):
-        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_STAGE_READBACK_MISMATCH")
-    expected_status = "BLOCKED" if next_context.get("execution_status") == "BLOCKED" else "IN_PROGRESS"
-    if admission.get("business_status") != expected_status:
-        raise PortfolioCoordinatorError("PORTFOLIO_OWNER_ADMISSION_STATUS_READBACK_MISMATCH")
+    expected_status = (
+        "BLOCKED" if next_context.get("execution_status") == "BLOCKED" else "IN_PROGRESS"
+    )
+    _verify_owner_admission(
+        admission,
+        task_id=task_id,
+        expected_stage=next_context["current_stage"],
+        expected_status=expected_status,
+    )
     return {
         "task_id": task_id,
         "executed_stage": owner_stage,
