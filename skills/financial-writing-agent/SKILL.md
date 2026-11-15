@@ -35,7 +35,7 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 ## Decision Loop and Execution Loop
 
-For uncertainty or recurring defects: reconstruct the reader/business outcome; test evidence and counterevidence; compare requirement/source/mechanism/narrative/runtime/artifact/reader/authority hypotheses; falsify preferred options; compare reuse/adapt/replace/remove by value, risk, cost, reversibility and compatibility. Use the DecisionEnvelope; choose one bounded action.
+For uncertainty or defects: recover the reader/business outcome; test evidence/counterevidence; compare requirement/source/mechanism/narrative/runtime/artifact/reader/authority hypotheses; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk, cost and reversibility. Use DecisionEnvelope; choose one bounded action.
 
 Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` coordinates one task-bound stage, persists typed artifact+context as one bundle, reads back/cross-binds them, then admits via `standalone_runtime.py`. The model supplies pass outputs; the provider authenticates/persists. `execute_portfolio_writing` is in-memory test replay. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
 
@@ -54,7 +54,7 @@ Revisions invalidate downstream evidence; preserve history. Recover before askin
 
 ## Standalone runtime and trust boundary
 
-Use GitHub connector for repository reads and code-candidate branches. Canonical owner-state/method writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py`, signed receipts, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path. Never update `main`; Git CAS is not owner approval.
+Use GitHub connector and `fetch_file` for reads; stage code only on candidate branches via `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`. Do not direct-update `main`; Git CAS is not owner approval. Canonical owner-state/method writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py`, signed provider admission, effect receipt, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path.
 
 ## Current research and publication evidence
 
