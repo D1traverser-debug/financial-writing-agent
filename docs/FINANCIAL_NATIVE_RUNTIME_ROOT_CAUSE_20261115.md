@@ -3,8 +3,8 @@
 **Date:** 2026-11-15  
 **Scope:** Financial Writing repository and its private ChatGPT Skill package only. No CAOS code, configuration, PR, plugin assets or runtime were modified.  
 **Candidate branch:** repair/financial-requirement-bound-owner-stage-coordinator-20261114  
-**Current candidate head at this continuation:** dd3dec1f09f7e9eb1687b1ef152fdf1262a3832b  
-**Latest fully green CI:** [43682430042](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682430042) — SUCCESS on 18203d8ab33febd284c020d6dbed97f6e24822a2. The latest candidate head dd3dec1 has no check runs yet; exact-head CI is NOT VERIFIED.  
+**Code/test head at latest source verification (before documentation-only refresh):** dd3dec1f09f7e9eb1687b1ef152fdf1262a3832b  
+**Latest fully green CI:** [43682430042](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682430042) — SUCCESS on 18203d8ab33febd284c020d6dbed97f6e24822a2. The latest code/test head dd3dec1 and current documentation-only branch head have no check runs; exact-head CI is NOT VERIFIED.  
 **Open candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — DRAFT, not merged.
 
 ## 1. Engineering evidence and its boundary
