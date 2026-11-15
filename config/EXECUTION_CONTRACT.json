@@ -368,7 +368,8 @@
       "deterministic_operation_replay_required_in_pr_audit": true,
       "legacy_method_events_remain_effect_unbound": true,
       "new_events_may_not_roll_back_after_effect_bound_history": true
-    }
+    },
+    "external_provider_host_required": true
   },
   "goal_method_governance": {
     "authority": "FINANCIAL_WRITING_OWNER",
@@ -436,7 +437,7 @@
   "chatgpt_native_execution": {
     "active_for_skill_sessions": true,
     "orchestrator": "CHATGPT_MODEL_WITH_FINANCIAL_SKILL",
-    "persistence_provider": "CONNECTED_USER_GITHUB_CONNECTOR",
+    "persistence_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP",
     "read_operations": [
       "get_repo",
       "fetch_file"
@@ -453,11 +454,14 @@
     "binary_artifact_write": "create_blob_ENCODING_BASE64",
     "stale_write_behavior": "STOP_REREAD_MAIN_RECONSTRUCT_AND_RECOMPUTE__NEVER_FORCE",
     "binding_requirement_authorization": "EXPLICIT_FULL_NORMALIZED_OWNER_CONFIRMATION_PLUS_EXTERNAL_SIGNED_PROVIDER_APPROVAL_AND_EXECUTABLE_STATE_ADMISSION",
-    "python_adapter_role": "CANONICAL_EXECUTABLE_ADMISSION_NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
+    "python_adapter_role": "CANONICAL_EXECUTABLE_ADMISSION_CALLED_BY_HOSTED_PROVIDER_ACTION__NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
     "owner_mutation_guard": "financial_writing_agent.whole_system_assurance.audit_repository_business_changes",
     "candidate_review_entry": "scripts/system_acceptance_report.py",
     "direct_main_business_mutation_without_guard_allowed": false,
     "native_client_signed_provider_installed_and_tested": false,
-    "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__OWNER_STATE_AND_METHOD_CATALOG_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK"
+    "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__OWNER_STATE_AND_METHOD_CATALOG_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK",
+    "required_provider_action": "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
+    "provider_action_status": "NOT_DEPLOYED",
+    "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED"
   }
 }
