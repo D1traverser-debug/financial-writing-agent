@@ -3,8 +3,8 @@
 **Date:** 2026-11-15  
 **Scope:** Financial Writing repository and its private ChatGPT Skill package only. No CAOS code, configuration, PR, plugin assets or runtime were modified.  
 **Candidate branch:** repair/financial-requirement-bound-owner-stage-coordinator-20261114  
-**Code/test head before this documentation commit:** 4972ad719aced6c3b5bcef818b8310db3fb86f77  
-**Latest fully green CI after the PR secret-isolation fix:** [43682023560](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682023560) — SUCCESS on 7ecf69044cc74622ceb0480c02c575cdc15aa862.  
+**Current candidate head at this continuation:** dd3dec1f09f7e9eb1687b1ef152fdf1262a3832b  
+**Latest fully green CI:** [43682430042](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682430042) — SUCCESS on 18203d8ab33febd284c020d6dbed97f6e24822a2. The latest candidate head dd3dec1 has no check runs yet; exact-head CI is NOT VERIFIED.  
 **Open candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — DRAFT, not merged.
 
 ## 1. Engineering evidence and its boundary
@@ -17,7 +17,7 @@ The latest fully green run after the CI security correction completed all 19 wor
 - Writing Kernel: 80%.
 - The run included the PR CI secret-isolation regression test, whole-owner/two-revision admission checks, whole-tree inventory, executable contract evaluations, standalone wheel installation, DOCX render smoke, four synthetic Word-product renders and negative-case business replay.
 
-This run is on commit 7ecf69044, not on the current code/test head 4972ad7. Subsequent changes add the hosted-provider requirement to the machine contracts, synchronize the private plugin release to 0.1.3, and add provider-boundary consistency tests. Those subsequent changes must receive an exact-head CI run before they are treated as verified.
+Run 43682430042 is on commit 18203d8, not on the current candidate head dd3dec1. It passed 675 tests at 88% total statement coverage (7,731 statements; 961 uncovered), with Portfolio Coordinator 88%, Standalone Runtime 86% and Writing Kernel 80%. Subsequent commits added the Provider Action V1 protocol, protocol-to-runtime contract tests, and corrected two case-sensitive test assertions. These latest changes have been source-inspected, but exact-head CI has not run: the current commit has no check runs and combined status is pending with no statuses. Do not treat the latest tests as passed until CI runs on dd3dec1 or a descendant.
 
 A green CI is engineering evidence only. It does not prove native ChatGPT invocation, a live trusted provider signature, a real article delivery, independent editorial acceptance or reader outcomes.
 
@@ -62,7 +62,7 @@ The Plugin Creator's default Sites MCP hosting skill/server reference is not ava
 
 The GitHub branch-protection endpoint returned 403 through the current integration and the ruleset read returned an empty list. This does not certify whether protection exists; main-branch hygiene remains OPEN. No provider write credentials may be enabled until branch-protection and the state-write policy are independently verified.
 
-See docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md for the alternatives, exact provider contract, tool surface and acceptance sequence.
+See docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md for the alternatives, exact provider contract, tool surface and acceptance sequence. The concrete MCP tool/persistence contract is now specified in docs/FINANCIAL_PROVIDER_ACTION_PROTOCOL_V1_20261115.md; it remains a draft and is not deployed.
 
 ## 5. Current business state and immutable task requirements
 
