@@ -4,8 +4,8 @@
 **Repository scope:** D1traverser-debug/financial-writing-agent only.  
 **CAOS boundary:** no CAOS repository, code, configuration, PR, plugin asset or runtime was modified.  
 **Candidate branch:** repair/financial-requirement-bound-owner-stage-coordinator-20261114  
-**Current code/test head before this documentation commit:** 4972ad719aced6c3b5bcef818b8310db3fb86f77  
-**Latest fully green CI after PR secret-isolation fix:** [43682023560](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682023560) — SUCCESS on 7ecf69044cc74622ceb0480c02c575cdc15aa862.  
+**Current candidate head at this continuation:** dd3dec1f09f7e9eb1687b1ef152fdf1262a3832b  
+**Latest fully green CI:** [43682430042](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682430042) — SUCCESS on 18203d8ab33febd284c020d6dbed97f6e24822a2. Exact current head dd3dec1 has no check runs yet.  
 **PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — OPEN, DRAFT, not merged.
 
 ## 1. Engineering status
@@ -16,7 +16,7 @@ The latest fully green run passed 675 tests with 88% total line coverage:
 - Writing Kernel: 80%.
 - All 19 CI workflow steps passed, including the PR secret-isolation regression test, whole-owner/two-revision admission checks, standalone wheel install, DOCX render smoke, four synthetic Word-product renders and negative-case replay.
 
-Important boundary: this green run is on 7ecf69044, not the current code/test head 4972ad7. The later provider-boundary machine-contract and plugin-release consistency changes require an exact-head CI run.
+Important boundary: run 43682430042 passed 675 tests at 88% total coverage on 18203d8, not on current head dd3dec1. The later Provider Action V1 protocol, runtime-signature regression test and two assertion corrections are not yet CI-verified. Current head has no check runs; exact-head CI is OPEN.
 
 ## 2. Security boundary repaired
 
@@ -36,7 +36,7 @@ Do not place production provider secrets in PR-triggered workflows that execute 
 - The Plugin Creator Sites MCP hosting skill/server reference is unavailable in the current tool catalog. The connected DigitalOcean account returned zero droplets. No paid host has been provisioned.
 - Main-branch protection is not certified: the protection endpoint returned 403 and the ruleset read returned an empty list.
 
-The selected architecture is a dedicated hosted Financial Provider Action over MCP/HTTPS. It must authenticate the owner, execute the existing Python admission/coordinator runtime, sign exact authorizations/effects, perform atomic GitHub CAS and exact readback. It is a transport/admission adapter, not a second business controller. See docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md.
+The selected architecture is a dedicated hosted Financial Provider Action over MCP/HTTPS. It must authenticate the owner, execute the existing Python admission/coordinator runtime, sign exact authorizations/effects, perform atomic GitHub CAS and exact readback. It is a transport/admission adapter, not a second business controller. See docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md. The concrete tool surface, auth/grant flow, exact stage-output mapping, CAS/readback and error contract are drafted in docs/FINANCIAL_PROVIDER_ACTION_PROTOCOL_V1_20261115.md; this protocol is NOT DEPLOYED.
 
 ## 4. Active article and immutable requirements
 
@@ -64,4 +64,4 @@ The whole-system status remains NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE. Se
 5. Resume the real article only after the provider gate passes; revalidate all current research and deliver all four Word products.
 6. Obtain independent editorial and reader/delivery evidence.
 
-PR #84 remains Draft. No merge, branch deletion, CAOS modification, paid infrastructure provisioning or article-state mutation has occurred.
+PR #84 remains Draft. The exact-head provider protocol regression assertions were corrected and manually cross-checked against the existing Python function signatures, but have not passed CI. No merge, branch deletion, CAOS modification, paid infrastructure provisioning or article-state mutation has occurred.
