@@ -19,7 +19,9 @@ def test_single_current_financial_evolution_ref_is_standalone_and_local():
     assert idx["current_operating_skill"] == m["skill_entrypoint"]
     assert "parent_governance_ref" not in idx
     assert m["external_parent_required"] is False
-    assert m["external_host_required"] is False
+    assert m["external_host_required"] is True
+    assert m["provider_action_required"] is True
+    assert m["client_skill_plugin"]["custom_hosted_service_required"] is True
     assert "active_parent_dependency" not in idx["standalone_reconstruction"]
     assert idx["standalone_reconstruction"]["production_merge_verified"] is True
     assert idx["standalone_reconstruction"]["editorial_acceptance"] == "NOT_READY"
