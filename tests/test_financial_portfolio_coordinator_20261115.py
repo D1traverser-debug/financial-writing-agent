@@ -620,3 +620,298 @@ def test_run_next_portfolio_stage_requires_seed_for_first_intake_call(monkeypatc
         match="PORTFOLIO_INITIAL_SEED_INPUTS_REQUIRED",
     ):
         portfolio_coordinator.run_next_portfolio_stage(task_id, **deps)
+
+
+@pytest.mark.parametrize(
+    ("admission", "message"),
+    [
+        (
+            {
+                "task_id": "another-task",
+                "stage": "RESEARCH",
+                "business_status": "IN_PROGRESS",
+                "child_state_cas_verified": True,
+                "effect_receipt_readback_verified": True,
+            },
+            "PORTFOLIO_OWNER_ADMISSION_TASK_ID_MISMATCH",
+        ),
+        (
+            {
+                "task_id": "expected-task",
+                "stage": "RESEARCH",
+                "business_status": "BLOCKED",
+                "child_state_cas_verified": True,
+                "effect_receipt_readback_verified": True,
+            },
+            "PORTFOLIO_OWNER_ADMISSION_STATUS_READBACK_MISMATCH",
+        ),
+        (
+            {
+                "task_id": "expected-task",
+                "stage": "RESEARCH",
+                "business_status": "IN_PROGRESS",
+                "child_state_cas_verified": False,
+                "effect_receipt_readback_verified": True,
+            },
+            "PORTFOLIO_OWNER_ADMISSION_STATE_CAS_NOT_VERIFIED",
+        ),
+    ],
+)
+def test_owner_admission_requires_task_status_and_state_cas_binding(admission, message):
+    with pytest.raises(PortfolioCoordinatorError, match=message):
+        portfolio_coordinator._verify_owner_admission(
+            admission,
+            task_id="expected-task",
+            expected_stage="RESEARCH",
+            expected_status="IN_PROGRESS",
+        )
+
+
+def test_read_provider_artifact_accepts_utf8_text_and_recomputes_blob_sha():
+    content = '{"stage":"RESEARCH"}'
+    expected = content.encode("utf-8")
+    result = portfolio_coordinator._read_provider_artifact(
+        lambda path: {
+            "content": content,
+            "blob_sha": standalone_runtime._blob_sha(expected),
+        },
+        "artifact.json",
+    )
+    assert result == (expected, standalone_runtime._blob_sha(expected))
+
+
+@pytest.mark.parametrize(
+    ("reader", "message"),
+    [
+        (
+            lambda path: (_ for _ in ()).throw(RuntimeError("provider offline")),
+            "PORTFOLIO_PROVIDER_ARTIFACT_READ_FAILED",
+        ),
+        (lambda path: None, "PORTFOLIO_PROVIDER_ARTIFACT_MISSING"),
+        (
+            lambda path: {"content": 42, "blob_sha": "abc"},
+            "PORTFOLIO_PROVIDER_ARTIFACT_RESPONSE_INVALID",
+        ),
+        (
+            lambda path: {"content": b"actual", "blob_sha": "claimed-old-sha"},
+            "PORTFOLIO_PROVIDER_ARTIFACT_BLOB_SHA_MISMATCH",
+        ),
+    ],
+)
+def test_read_provider_artifact_fails_closed_on_untrusted_provider_response(reader, message):
+    with pytest.raises(PortfolioCoordinatorError, match=message):
+        portfolio_coordinator._read_provider_artifact(reader, "artifact.json")
+
+
+def test_latest_context_ref_selects_newest_bound_receipt_and_skips_unrelated_receipts():
+    expected = {
+        "path": "workspaces/articles/task-1/portfolio/contexts/2-current.json",
+        "blob_sha": "a" * 40,
+        "sha256": "b" * 64,
+        "stage": "RESEARCH_AUDIT",
+        "generation": 2,
+    }
+    state = {
+        "execution_receipts": [
+            None,
+            {"input_bindings": "not-a-mapping"},
+            {"input_bindings": {"portfolio_context_ref": {"path": "old"}}},
+            {"input_bindings": {"portfolio_context_ref": expected}},
+        ],
+    }
+    assert portfolio_coordinator._latest_context_ref(state) == expected
+
+
+def test_latest_context_ref_rejects_invalid_history_and_returns_none_when_unbound():
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_OWNER_RECEIPT_HISTORY_INVALID",
+    ):
+        portfolio_coordinator._latest_context_ref({"execution_receipts": {}})
+    assert portfolio_coordinator._latest_context_ref({
+        "execution_receipts": [None, {"input_bindings": {}}],
+    }) is None
+
+
+def test_stage_payload_requires_mapping_outputs_and_typed_full_universe_package():
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_STAGE_OUTPUT_SNAPSHOT_MISSING",
+    ):
+        portfolio_coordinator._stage_payload(
+            {"last_stage_result": {"stage_outputs": []}},
+            stage="RESEARCH",
+            state={},
+        )
+
+    state = {
+        "task_requirement_authority": {
+            "active_requirements": [
+                {"requirement_id": "full_universe_research_pool"},
+            ],
+        },
+    }
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_FULL_UNIVERSE_TYPED_RESEARCH_PACKAGE_REQUIRED",
+    ):
+        portfolio_coordinator._stage_payload(
+            {
+                "last_stage_result": {
+                    "stage_outputs": {"research_package": {"topic": "incomplete"}},
+                },
+            },
+            stage="RESEARCH",
+            state=state,
+        )
+
+
+def test_business_stage_artifact_rejects_result_from_another_stage():
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_STAGE_RESULT_NOT_BOUND_TO_CONTEXT",
+    ):
+        portfolio_coordinator._business_stage_artifact(
+            {
+                "task_id": "task-1",
+                "requirement_digest": "a" * 64,
+                "last_stage_result": {"stage": "DRAFT", "stage_outputs": {}},
+                "trace": [],
+            },
+            stage="RESEARCH",
+            state={"current_stage": "RESEARCH"},
+        )
+
+
+def test_stage_artifact_ref_requires_a_full_sha256_receipt_binding():
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_STAGE_RECEIPT_SHA_INVALID",
+    ):
+        portfolio_coordinator._stage_artifact_ref(
+            task_id="task-1",
+            stage="RESEARCH",
+            receipt={"receipt_sha256": "short"},
+            content=b"{}",
+        )
+
+
+@pytest.mark.parametrize(
+    ("stage", "result", "expected_key"),
+    [
+        (
+            "EDITORIAL",
+            {
+                "stage_outputs": {
+                    "story_blueprints": {
+                        "FINANCE_DEEP": {"product_mode": "FINANCE_DEEP"},
+                        "FINANCE_BROAD": {"product_mode": "FINANCE_BROAD"},
+                    },
+                },
+                "requirement_satisfaction": [
+                    {"requirement_id": "deep-complete", "evidence_refs": []},
+                ],
+            },
+            "story_blueprints",
+        ),
+        (
+            "RESEARCH_AUDIT",
+            {
+                "status": "PASS",
+                "stage_outputs": {},
+                "requirement_satisfaction": [],
+            },
+            "review_status",
+        ),
+        (
+            "EDITORIAL_AUDIT",
+            {
+                "status": "REVISE",
+                "revision_target": "EDITORIAL",
+                "stage_outputs": {
+                    "publication_fitnesses": {
+                        "FINANCE_DEEP": {"final_status": "REVISE"},
+                    },
+                },
+                "requirement_satisfaction": [],
+            },
+            "publication_fitnesses",
+        ),
+    ],
+)
+def test_owner_action_parameters_preserves_stage_specific_admission_payloads(
+    stage, result, expected_key,
+):
+    artifact_path = f"workspaces/articles/task-1/stages/{stage}.json"
+    params = portfolio_coordinator._owner_action_parameters(
+        {
+            "last_stage_result": result,
+        },
+        stage=stage,
+        artifact_ref={"path": artifact_path, "blob_sha": "a" * 40},
+        context_ref={
+            "path": "workspaces/articles/task-1/portfolio/contexts/1.json",
+            "blob_sha": "b" * 40,
+            "sha256": "c" * 64,
+            "stage": "TITLE",
+            "generation": 1,
+        },
+        state={},
+    )
+    assert expected_key in params
+    assert params["portfolio_context_ref"]["generation"] == 1
+    if stage == "EDITORIAL":
+        assert params["requirement_satisfaction"][0]["evidence_refs"] == [artifact_path]
+    if stage == "EDITORIAL_AUDIT":
+        assert params["review_status"] == "REVISE"
+        assert params["revision_target"] == "EDITORIAL"
+
+
+def test_artifact_bundle_rejects_missing_writer_and_empty_file_map():
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_ARTIFACT_BUNDLE_WRITER_REQUIRED",
+    ):
+        portfolio_coordinator._write_and_verify_bundle(
+            {"workspaces/articles/task-1/a.json": b"{}"},
+            writer=None,
+            artifact_reader=lambda path: None,
+            context_reader=lambda path: None,
+            context_path="context.json",
+        )
+    with pytest.raises(
+        PortfolioCoordinatorError,
+        match="PORTFOLIO_ARTIFACT_BUNDLE_FILES_REQUIRED",
+    ):
+        portfolio_coordinator._write_and_verify_bundle(
+            {},
+            writer=lambda files: {},
+            artifact_reader=lambda path: None,
+            context_reader=lambda path: None,
+            context_path="context.json",
+        )
+
+
+@pytest.mark.parametrize(
+    ("writer", "message"),
+    [
+        (lambda files: {}, "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_RECEIPT_INVALID"),
+        (
+            lambda files: {"blob_shas": {"workspaces/articles/task-1/other.json": "x"}},
+            "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_RECEIPT_PATH_SET_MISMATCH",
+        ),
+        (
+            lambda files: {"blob_shas": {next(iter(files)): "wrong-sha"}},
+            "PORTFOLIO_ARTIFACT_BUNDLE_WRITE_SHA_MISMATCH",
+        ),
+    ],
+)
+def test_artifact_bundle_rejects_invalid_provider_write_receipts(writer, message):
+    with pytest.raises(PortfolioCoordinatorError, match=message):
+        portfolio_coordinator._write_and_verify_bundle(
+            {"workspaces/articles/task-1/a.json": b"{}"},
+            writer=writer,
+            artifact_reader=lambda path: None,
+            context_reader=lambda path: None,
+            context_path="context.json",
+        )
