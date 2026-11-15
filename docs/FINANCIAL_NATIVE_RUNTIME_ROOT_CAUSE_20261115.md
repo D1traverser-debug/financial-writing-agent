@@ -9,7 +9,7 @@
 
 ## 1. Engineering evidence and its boundary
 
-The latest fully green run after the CI security correction completed all 19 workflow steps:
+The latest fully green run after the CI security correction completed all 20 reported job steps:
 - 675 tests passed.
 - Total Python statement coverage: 88% (7,731 statements; 961 uncovered).
 - Portfolio Coordinator: 88%.
