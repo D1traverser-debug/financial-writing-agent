@@ -6,19 +6,19 @@ Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
 
-Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no external parent runtime, external Host or parent grant dependency. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no external parent runtime, second controller or parent grant dependency. Canonical owner-state and method-catalog writes require a Financial-owned hosted Provider Action as a trusted transport/admission adapter, not as a parent controller. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
 - one article identity namespace owned by Financial (no parent task ID);
 - historical state/receipts and legacy product semantics remain immutable provenance;
 - historical provenance does not imply current-quality equivalence after a semantic-generation change;
-- no external parent/Host runtime dependency for any Financial work;
+- no external parent/controller dependency; the hosted Provider Action is only the trusted transport and admission adapter for canonical mutations;
 - compliance, evidence integrity and owner-controlled mutation remain fail-closed.
 
 ## 1A. Current standalone deployment and capability boundary
 
-Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with external user authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import an external parent runtime. Retired integration stubs have been removed from the current tree.
+Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with authenticated owner authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import an external parent runtime. The Skill-only ChatGPT package cannot invoke this Python adapter; a hosted Financial Provider Action must wrap it for canonical writes. That endpoint is currently NOT DEPLOYED. Retired integration stubs have been removed from the current tree.
 
 Model/web/data retrieval and document tools must actually be connected in the Financial environment; an installed Python wheel by itself does not execute LLM research or prove any native plugin connection. The real cross-border v3 task and all historic receipts remain unchanged. Full product readiness still requires independently observed financial facts, useful narrative and actual accessible Word results.
 
@@ -235,7 +235,7 @@ Coverage is scoped to **explicit method IDs used in an admitted research decisio
 
 ## 14. Active ChatGPT-native execution runtime
 
-The current user-facing runtime is the ChatGPT model following the single Financial Skill, with the user's already-connected GitHub connector as the persistent provider and current web/document/Python tools for research and production. The Skill-only plugin is an instruction package; it neither grants GitHub access nor hosts Python/MCP. This design therefore requires no custom hosted service, local daemon or paid API.
+The current user-facing semantic runtime is the ChatGPT model following the single Financial Skill, with current web/document/Python tools for research and production. The Skill-only plugin is an instruction package; it neither grants GitHub access nor hosts Python/MCP. The connected GitHub connector remains useful for repository reads and code-candidate work, but it is not the canonical owner-state signer or admission runtime. Canonical mutations require a separate Financial Provider Action over hosted MCP/HTTPS, authenticated to the repository owner and backed by a least-privilege GitHub App. This provider is not deployed; no paid host has been provisioned.
 
 All persistent task state and artifacts remain in the existing Financial repository. Single-file writes use the current blob SHA and exact readback. Multi-file writes use Git blobs, a tree based on the current main tree, a commit parented to the exact current main head, and update_ref with expected_sha and force=false; every changed path is then read back at the resulting commit SHA. Binary Word artifacts use base64 blobs. Stale writes stop for reread and recomputation. Explicit owner confirmation in the current conversation authorizes binding requirement changes; the full source message and confirmation are preserved in the existing article intent history.
 
@@ -247,7 +247,7 @@ The article aggregate's execution receipt and the provider's effect receipt are 
 
 For each new article mutation, the runtime requires a fresh provider-signed action authorization and a provider-signed action_effect receipt with the same actor/provider. The signed claims bind action ID, task ID, operation, previous and resulting state blob SHAs, request SHA-256, authorization-attestation SHA-256, effect contract version and the canonical admission runtime. Both files are committed atomically with one conditional Git update, then reread by exact blob identity. The next action's previous-state SHA must equal the preceding effect's resulting-state SHA; the latest effect must equal the current state blob. This closes the gap between a valid authorization and an independently verifiable persisted effect.
 
-Legacy signed authorization v1.0 records remain immutable and are reported as effect-unbound history. They are not silently rewritten or treated as effect proof. New writes use authorization v1.1 plus effect receipt v1.0, and history cannot roll back to v1.0 after an effect-bound action. The optional Python adapter is still not the active ChatGPT Skill runtime; the native client cannot manufacture the provider signature. Missing live signer/CAS capability therefore remains fail-closed and keeps the external provider gate OPEN.
+Legacy signed authorization v1.0 records remain immutable and are reported as effect-unbound history. They are not silently rewritten or treated as effect proof. New writes use authorization v1.1 plus effect receipt v1.0, and history cannot roll back to v1.0 after an effect-bound action. The required Python admission runtime is not callable from the current Skill-only client. A hosted Financial Provider Action must invoke it, authenticate the owner, sign exact requests/effects and perform GitHub atomic CAS/readback. Missing live provider/client capability therefore remains fail-closed and keeps the external provider gate OPEN.
 
 ## 16. Method-catalog effect binding and operation replay
 
