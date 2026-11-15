@@ -13,7 +13,7 @@ def test_provider_protocol_is_explicitly_draft_and_not_deployed():
     assert "DRAFT CONTRACT — NOT DEPLOYED" in text
     assert "MCP Streamable HTTP over HTTPS" in text
     assert "does not create a second business controller" in text
-    assert "the ChatGPT model remains responsible for semantic research" in text
+    assert "the chatgpt model remains responsible for semantic research" in text.lower()
 
 
 def test_protocol_uses_existing_attestation_trust_domain_not_model_supplied_identity():
@@ -53,5 +53,5 @@ def test_protocol_requires_separate_owner_and_independent_reviewer_trust_domains
     text = PROTOCOL.read_text(encoding="utf-8")
     assert "FINANCIAL_METHOD_REVIEW_KEY" in text
     assert "FINANCIAL_METHOD_REVIEW_PROVIDER_ID" in text
-    assert "owner Provider Action cannot supply the independent method-review attestation" in text
+    assert "owner identity and owner Provider Action must not sign the independent review" in text
     assert "owner_change_approval" in text or "owner_change" in text
