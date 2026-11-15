@@ -210,15 +210,22 @@ def _portfolio_research_artifact():
             },
         }],
         "stage_artifacts": {"RESEARCH": {"path": path, "blob_sha": blob_sha}},
-        "task_requirement_authority": {
-            "active_requirements": [{"requirement_id": "full_universe_research_pool"}],
-        },
+        "required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX"],
+        "task_requirement_authority": {"active_requirements": []},
     }
     return artifact, content, blob_sha, path, candidate
 
 
 def test_coordinator_research_envelope_validates_nested_typed_research_package(monkeypatch):
     artifact, content, blob_sha, path, candidate = _portfolio_research_artifact()
+    candidate["task_requirement_authority"]["active_requirements"] = [{
+        "requirement_id": "full_universe_research_pool",
+        "statement": "Retain the full requested company universe.",
+        "scopes": ["FINANCE_DEEP"],
+        "affects_from_stage": "RESEARCH",
+        "evidence_ref": "owner-instruction://full-universe",
+        "source_kind": "USER_EXPLICIT",
+    }]
     captured = []
 
     def fake_model_validate(cls, value):
@@ -745,10 +752,16 @@ def test_stage_payload_requires_mapping_outputs_and_typed_full_universe_package(
         )
 
     state = {
+        "required_outputs": ["AUDIT_DOCX", "FINANCE_DEEP_DOCX"],
         "task_requirement_authority": {
-            "active_requirements": [
-                {"requirement_id": "full_universe_research_pool"},
-            ],
+            "active_requirements": [{
+                "requirement_id": "full_universe_research_pool",
+                "statement": "Retain the full requested company universe.",
+                "scopes": ["FINANCE_DEEP"],
+                "affects_from_stage": "RESEARCH",
+                "evidence_ref": "owner-instruction://full-universe",
+                "source_kind": "USER_EXPLICIT",
+            }],
         },
     }
     with pytest.raises(
@@ -942,6 +955,14 @@ def test_deep_full_universe_requirement_does_not_block_broad_only_task():
 
 def test_standalone_runtime_does_not_reconcile_unrequested_deep_universe(monkeypatch):
     _, content, blob_sha, path, candidate = _portfolio_research_artifact()
+    candidate["task_requirement_authority"]["active_requirements"] = [{
+        "requirement_id": "full_universe_research_pool",
+        "statement": "Retain the full requested company universe.",
+        "scopes": ["FINANCE_DEEP"],
+        "affects_from_stage": "RESEARCH",
+        "evidence_ref": "owner-instruction://full-universe",
+        "source_kind": "USER_EXPLICIT",
+    }]
     candidate["required_outputs"] = ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"]
     captured = []
 

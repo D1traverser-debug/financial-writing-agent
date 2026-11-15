@@ -176,7 +176,7 @@ def test_requirement_change_rejects_unrequested_product_scope_and_impossible_sta
         source_refs=[],
         executor_identity="scope-test",
         distribution_mode="FINANCE_BROAD",
-        distribution_mode_source="USER_EXPLICIT",
+        distribution_mode_source="USER_EXPLICIT_OVERRIDE",
         distribution_mode_override_evidence="Only Broad output",
     )
     with pytest.raises(CurrentAdmissionError, match="scopes do not match the requested outputs"):

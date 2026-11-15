@@ -9,7 +9,7 @@ from uuid import uuid4
 from . import current_admission, standalone_runtime
 from .path_identity import require_article_path
 from .schemas import ResearchPackage
-from .task_requirements import requirement_applies_to_task
+from .task_requirements import RequirementError, requirement_applies_to_task
 from .writing_kernel import (
     INTERNAL_PORTFOLIO_STAGE_SEQUENCE,
     _all_requirement_scopes,
@@ -132,12 +132,17 @@ def _has_full_universe_requirement(state: Mapping[str, Any]) -> bool:
     authority = state.get("task_requirement_authority", {})
     requirements = authority.get("active_requirements", []) if isinstance(authority, Mapping) else []
     required_outputs = state.get("required_outputs", [])
-    return any(
-        isinstance(item, Mapping)
-        and item.get("requirement_id") == "full_universe_research_pool"
-        and requirement_applies_to_task(item, required_outputs)
-        for item in requirements
-    )
+    try:
+        return any(
+            isinstance(item, Mapping)
+            and item.get("requirement_id") == "full_universe_research_pool"
+            and requirement_applies_to_task(item, required_outputs)
+            for item in requirements
+        )
+    except RequirementError as exc:
+        raise PortfolioCoordinatorError(
+            "PORTFOLIO_OWNER_REQUIREMENT_SCOPE_INVALID"
+        ) from exc
 
 
 def _stage_payload(

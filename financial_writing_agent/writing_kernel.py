@@ -1634,7 +1634,10 @@ def execute_portfolio_stage(
     elif stage == "TITLE":
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
-            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            selected_contexts = _requirement_contexts_for_pass(
+                contexts, mode, stage=stage, modes=modes,
+                interaction_required=interaction_required,
+            )
             if selected_contexts is not None:
                 branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(
@@ -1647,7 +1650,10 @@ def execute_portfolio_stage(
     elif stage == "DRAFT":
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
-            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            selected_contexts = _requirement_contexts_for_pass(
+                contexts, mode, stage=stage, modes=modes,
+                interaction_required=interaction_required,
+            )
             if selected_contexts is not None:
                 branch["task_requirement_contexts"] = selected_contexts
             for node in LONGFORM_PRODUCT_PASSES:
@@ -1679,7 +1685,10 @@ def execute_portfolio_stage(
         stop_after_revision = False
         for mode in modes:
             branch = {**shared, **products[mode], "product_mode": mode}
-            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            selected_contexts = _requirement_contexts_for_pass(
+                contexts, mode, stage=stage, modes=modes,
+                interaction_required=interaction_required,
+            )
             if selected_contexts is not None:
                 branch["task_requirement_contexts"] = selected_contexts
             for node in LONGFORM_PRODUCT_PASSES:
@@ -1702,7 +1711,10 @@ def execute_portfolio_stage(
                 break
         if interaction is not None and not stop_after_revision:
             branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
-            selected_contexts = _requirement_contexts_for_pass(contexts, "PLATFORM_INTERACTION")
+            selected_contexts = _requirement_contexts_for_pass(
+                contexts, "PLATFORM_INTERACTION", stage=stage, modes=modes,
+                interaction_required=interaction_required,
+            )
             if selected_contexts is not None:
                 branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(

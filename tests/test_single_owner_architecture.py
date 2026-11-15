@@ -33,27 +33,29 @@ def test_current_authority_has_one_financial_owner_path():
     assert manifest["governance_entrypoint"] == "CAOS_FINANCIAL_ENTRY.md"
     assert caps["caos_governance_ref"] == "config/CAOS_GOVERNANCE.json"
     assert caps["source_of_cognition"] == "CAOS_EXTERNAL_CHAT_GOVERNANCE_WITH_FINANCIAL_OWNER_NATIVE_EVIDENCE_ADMISSIONS"
-    assert caps["independence_clause"] == "NO_EXTERNAL_PARENT_RUNTIME_OR_HOST_INVOCATION__CAOS_CHAT_GOVERNANCE_ONLY"
+    assert caps["independence_clause"] == "NO_EXTERNAL_PARENT_REPOSITORY_OR_CONTROLLER__HOSTED_FINANCIAL_PROVIDER_ACTION_IS_ONLY_THE_TRUSTED_TRANSPORT_AND_ADMISSION_ADAPTER"
     assert execution["authority"]["governance_authority"] == "CAOS_CHAT_GOVERNED_EXTERNAL"
     assert execution["governance"]["runtime_dependency"] is False
     assert DOMAIN_ID == manifest["domain_id"] == caps["domain_id"] == execution["domain_id"]
     assert manifest["controller"] == caps["owner"] == execution["authority"]["controller"] == "FINANCIAL_WRITING_OWNER"
     assert manifest["skill_entrypoint"] == caps["entrypoint"] == "skills/financial-writing-agent/SKILL.md"
     assert manifest["external_parent_required"] is False
-    assert manifest["external_host_required"] is False
+    assert manifest["external_host_required"] is True
     assert manifest["state_authority"] == "workspaces/articles/{task_id}/STATE.json"
     assert manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime"
     native = manifest["chatgpt_native_runtime"]
     assert native["orchestrator"] == "CHATGPT_MODEL_WITH_FINANCIAL_SKILL"
-    assert native["persistence_provider"] == "CONNECTED_USER_GITHUB_CONNECTOR"
+    assert native["persistence_provider"] == "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP"
     assert native["write_protocol"] == "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE"
-    assert native["requires_hosted_python_mcp"] is False
+    assert native["requires_hosted_python_mcp"] is True
     assert execution["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
     assert execution["execution"]["live_parent_business_proxy_required"] is False
     assert execution["authority"]["alternate_business_state_authority_allowed"] is False
     assert execution["identity"]["article_id_owner"] == "FINANCIAL_WRITING"
     assert execution["identity"]["business_contract_is_identity_free"] is True
     assert execution["standalone_governance"]["external_parent_required"] is False
+    assert execution["standalone_governance"]["external_provider_host_required"] is True
+    assert manifest["provider_action_endpoint"]["status"] == "NOT_DEPLOYED"
     assert {"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"} <= OPERATIONS
     assert len({c["id"] for c in caps["capabilities"]}) == len(caps["capabilities"])
     data = _json("config/DATA_AUTHORITY.json")
