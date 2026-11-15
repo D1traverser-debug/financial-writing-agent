@@ -5,7 +5,7 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 # Financial Writing — Independent Operating Skill
 
-Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime, second controller or local daemon is required.
+Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime or second controller is required. Canonical owner-state and method-catalog mutations require a Financial-owned hosted Provider Action; this is a trusted transport/admission adapter, not a parent controller. The current Skill-only package does not provide that action endpoint.
 
 ## Route the actual goal
 
@@ -35,7 +35,7 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 For material uncertainty or recurring defects: reconstruct the reader/business outcome; investigate evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority hypotheses; falsify a preferred option; compare reuse/adapt/replace/remove by value, risk, cost, reversibility and compatibility; then choose a bounded action. Use the real DecisionEnvelope and evidence/saturation rules.
 
-Execute the legal next step: research, write, challenge, render, read back and correct; rerun negative and valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 passes use `start_portfolio_context` + `execute_portfolio_stage`, one existing stage per call, bound to `task_id` and `task_requirement_digest`. Persist each returned context as its stage artifact, provider-read it back, validate hash chains and admit the Article Aggregate transition through `standalone_runtime.py` before resuming. `RESEARCH_AUDIT` is separate. `execute_portfolio_writing` is in-memory replay/test only. Hashes detect mutation, not provider signatures, semantic proof or acceptance. Native chat may stage candidates but cannot write owner STATE/method changes; use authenticated admission, not Git CAS alone. Never claim execution, persistence or readback without a real run. Revisions invalidate downstream evidence; retired states remain historical. Recover before asking the user, respecting consent.
+Execute the legal next step: research, write, challenge, render, read back and correct; rerun negative and valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 passes use `start_portfolio_context` + `execute_portfolio_stage`, one existing stage per call, bound to `task_id` and `task_requirement_digest`. Persist each returned context as its stage artifact, provider-read it back, validate hash chains and admit the Article Aggregate transition through the hosted Financial Provider Action, which executes `standalone_runtime.py`, before resuming. `RESEARCH_AUDIT` is separate. `execute_portfolio_writing` is in-memory replay/test only. Hashes detect mutation, not provider signatures, semantic proof or acceptance. Native chat may stage code/content candidates but cannot directly write owner STATE or method-catalog changes. Canonical mutations must use the authenticated hosted Financial Provider Action; direct GitHub connector writes or Git CAS alone are not owner authorization. Never claim execution, persistence or readback without a real run. Revisions invalidate downstream evidence; retired states remain historical. Recover before asking the user, respecting consent.
 
 ## Financial content contract
 
@@ -48,7 +48,7 @@ Execute the legal next step: research, write, challenge, render, read back and c
 
 ## Standalone runtime and trust boundary
 
-Read `main`; stage drafts on candidate branches with `fetch_file`, `create_blob`, `create_tree`, `create_commit` and `update_ref(expected_sha)`. Owner-state/method writes require signed authorization, provider effect receipt, atomic CAS and exact readback. Do not direct-update `main`; Git CAS is not owner approval. Without signer/runner, no canonical mutation.
+Use the connected GitHub connector for repository reads and code-candidate branches. Canonical owner-state/method writes go only through the hosted Financial Provider Action, which authenticates the owner, invokes `standalone_runtime.py`, signs authorization/effect receipts, performs atomic CAS and reads back exact bytes. Do not direct-update `main`; Git CAS is not owner approval. Without the deployed provider signer/runner, no canonical mutation.
 
 ## Current research and publication evidence
 
