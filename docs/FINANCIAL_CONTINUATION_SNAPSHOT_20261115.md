@@ -4,15 +4,15 @@
 **Repository scope:** `D1traverser-debug/financial-writing-agent` only.  
 **CAOS boundary:** no CAOS repository, code, configuration, PR, plugin asset or runtime was modified.  
 **Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Code head verified:** `5a2f70c37bafcb7a4bdc259aad125d2de20d1c34`  
-**Exact-head CI:** [43638384060](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43638384060) — SUCCESS  
+**Latest code-and-test head verified:** `2770f3d1282e039f8fbb37f60bd63926cd960743`  
+**Exact-head CI:** [43673501899](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43673501899) — SUCCESS  
 **PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — OPEN, DRAFT, not merged.
 
 ## 1. Engineering evidence at the verified code head
 
-- 652 tests passed.
-- Total Python statement coverage: 87% (7,731 statements; 996 uncovered).
-- `financial_writing_agent/portfolio_coordinator.py`: 73%.
+- 672 tests passed.
+- Total Python statement coverage: 88% (7,731 statements; 961 uncovered).
+- `financial_writing_agent/portfolio_coordinator.py`: 88%.
 - `financial_writing_agent/standalone_runtime.py`: 86%.
 - `financial_writing_agent/writing_kernel.py`: 80%.
 - CI now enforces total coverage >=85%, Portfolio Coordinator >=70%, Standalone Runtime >=80%, and Writing Kernel >=75%.
