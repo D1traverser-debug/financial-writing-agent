@@ -51,6 +51,8 @@ def test_skill_only_plugin_is_not_misrepresented_as_a_live_provider_action():
     assert plugin["custom_hosted_python_mcp_required"] is True
     assert plugin["provider_action_status"] == "NOT_DEPLOYED"
     assert plugin["required_companion_action"] == "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS"
+    assert plugin["version"] == canonical["version"] == "0.1.3"
+    assert plugin["release_id"] == canonical["release_id"]
 
 
 def test_provider_decision_rejects_public_issue_comment_command_bus_and_paid_infra_without_approval():
