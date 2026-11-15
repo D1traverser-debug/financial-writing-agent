@@ -4,8 +4,8 @@
 **Repository scope:** D1traverser-debug/financial-writing-agent only.  
 **CAOS boundary:** no CAOS repository, code, configuration, PR, plugin asset or runtime was modified.  
 **Candidate branch:** repair/financial-requirement-bound-owner-stage-coordinator-20261114  
-**Current candidate head at this continuation:** dd3dec1f09f7e9eb1687b1ef152fdf1262a3832b  
-**Latest fully green CI:** [43682430042](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682430042) — SUCCESS on 18203d8ab33febd284c020d6dbed97f6e24822a2. Exact current head dd3dec1 has no check runs yet.  
+**Code/test head at latest source verification (before documentation-only refresh):** dd3dec1f09f7e9eb1687b1ef152fdf1262a3832b  
+**Latest fully green CI:** [43682430042](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682430042) — SUCCESS on 18203d8ab33febd284c020d6dbed97f6e24822a2. Code/test head dd3dec1 and the current documentation-only branch head have no check runs.  
 **PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — OPEN, DRAFT, not merged.
 
 ## 1. Engineering status
@@ -16,7 +16,7 @@ The latest fully green run passed 675 tests with 88% total line coverage:
 - Writing Kernel: 80%.
 - All 20 reported job steps passed, including the PR secret-isolation regression test, whole-owner/two-revision admission checks, standalone wheel install, DOCX render smoke, four synthetic Word-product renders and negative-case replay.
 
-Important boundary: run 43682430042 passed 675 tests at 88% total coverage on 18203d8, not on current head dd3dec1. The later Provider Action V1 protocol, runtime-signature regression test and two assertion corrections are not yet CI-verified. Current head has no check runs; exact-head CI is OPEN.
+Important boundary: run 43682430042 passed 675 tests at 88% total coverage on 18203d8, not on current head dd3dec1. The later Provider Action V1 protocol, runtime-signature regression test and two assertion corrections are not yet CI-verified. The code/test head and current documentation-only branch head have no check runs; exact-head CI is OPEN.
 
 ## 2. Security boundary repaired
 
