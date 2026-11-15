@@ -14,7 +14,7 @@ The latest fully green run passed 675 tests with 88% total line coverage:
 - Portfolio Coordinator: 88%.
 - Standalone Runtime: 86%.
 - Writing Kernel: 80%.
-- All 19 CI workflow steps passed, including the PR secret-isolation regression test, whole-owner/two-revision admission checks, standalone wheel install, DOCX render smoke, four synthetic Word-product renders and negative-case replay.
+- All 20 reported job steps passed, including the PR secret-isolation regression test, whole-owner/two-revision admission checks, standalone wheel install, DOCX render smoke, four synthetic Word-product renders and negative-case replay.
 
 Important boundary: run 43682430042 passed 675 tests at 88% total coverage on 18203d8, not on current head dd3dec1. The later Provider Action V1 protocol, runtime-signature regression test and two assertion corrections are not yet CI-verified. Current head has no check runs; exact-head CI is OPEN.
 
