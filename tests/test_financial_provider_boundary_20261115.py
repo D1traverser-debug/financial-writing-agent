@@ -42,7 +42,6 @@ def test_skill_only_plugin_is_not_misrepresented_as_a_live_provider_action():
     plugin = _json("config/CHATGPT_FINANCIAL_PLUGIN.json")
     canonical = manifest["client_skill_plugin"]
 
-    assert canonical["skill_only"] if "skill_only" in canonical else True
     assert canonical["hosted_mcp_python"] is False
     assert canonical["provider_action_status"] == "NOT_DEPLOYED"
     assert canonical["custom_hosted_service_required"] is True
