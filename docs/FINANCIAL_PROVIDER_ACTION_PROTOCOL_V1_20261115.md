@@ -20,6 +20,8 @@ This document defines the narrow action boundary required to make the Skill-only
 
 The provider must resolve the authenticated human identity from its OAuth session and GitHub's authenticated-user endpoint. It must compare that identity with the configured repository owner identity. It must never trust an actor ID, owner principal, approved flag, original message or confirmation claim supplied only in model tool arguments.
 
+The current verifier trust domain uses audience financial-writing-agent and requires FINANCIAL_PROVIDER_ATTESTATION_KEY, FINANCIAL_TRUSTED_PROVIDER_ID and FINANCIAL_OWNER_PRINCIPAL. The provider derives the owner principal from the authenticated OAuth identity; it does not accept that value from the model. Independent method review uses FINANCIAL_METHOD_REVIEW_KEY and FINANCIAL_METHOD_REVIEW_PROVIDER_ID in a separate trust domain.
+
 ## 2. Authentication and authorization
 
 ### 2.1 Owner session
