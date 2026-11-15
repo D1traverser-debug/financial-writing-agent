@@ -24,10 +24,12 @@
     "deterministic_method_action_replay_against_prior_catalog"
   ],
   "caos_dependency": "NONE",
-  "active_execution_model": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR",
+  "active_execution_model": "CHATGPT_SKILL_PLUS_HOSTED_FINANCIAL_PROVIDER_ACTION_PLUS_EXISTING_GITHUB_CONNECTOR",
   "required_companion_connector": "GITHUB_CONNECTOR_READ_WRITE",
-  "custom_hosted_python_mcp_required": false,
-  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
+  "custom_hosted_python_mcp_required": true,
+  "native_write_protocol": "HOSTED_PROVIDER_SIGNED_OWNER_AUTHORIZATION_AND_EFFECT__GITHUB_APP_ATOMIC_BUNDLE_CAS__EXACT_READBACK",
   "version": "0.1.2",
-  "discoverability": "PRIVATE"
+  "discoverability": "PRIVATE",
+  "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
+  "provider_action_status": "NOT_DEPLOYED"
 }
