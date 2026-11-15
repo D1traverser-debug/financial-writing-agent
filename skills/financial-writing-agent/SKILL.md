@@ -5,7 +5,9 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 # Financial Writing — Independent Operating Skill
 
-Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime or second controller is required. Canonical owner-state and method-catalog mutations require a Financial-owned hosted Provider Action; this is a trusted transport/admission adapter, not a parent controller. The current Skill-only package does not provide that action endpoint.
+Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime, second controller or local daemon is required. Canonical owner-state and method-catalog mutations require a Financial-owned hosted Provider Action as a trusted transport/admission adapter, not a parent controller; that endpoint is not deployed.
+
+CAOS governance for material/systemic decisions and cross-project work is defined in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; it is session-level only, with no runtime/API dependency or permission authority.
 
 ## Route the actual goal
 
@@ -17,7 +19,7 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 ## Canonical files and CRUD
 
-- **Single operating entry:** this Skill. Do not activate a second root Skill or parent entry.
+- **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
 - **Article create/read/update:** create one `workspaces/articles/<task_id>/STATE.json`; read through `observe_article` and the exact task files; change requirements through the current admission path, preserving history and invalidating dependent evidence.
 - **Article workspace:** research evidence under `research/`, stage outputs under `stages/`, editorial/story assets under `editorial/`, audit receipts under `reviews/`, Word/rendered deliverables under `delivery/`, and user feedback under `feedback/`. The task's `STATE.json` binds their identities and lifecycle.
 - **Delete semantics:** do not erase accepted history or receipts. Retire a requirement/method through its lifecycle operation; remove only proven disposable temporary artifacts. A replacement must not silently rewrite an older article.
@@ -35,7 +37,11 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 For material uncertainty or recurring defects: reconstruct the reader/business outcome; investigate evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority hypotheses; falsify a preferred option; compare reuse/adapt/replace/remove by value, risk, cost, reversibility and compatibility; then choose a bounded action. Use the real DecisionEnvelope and evidence/saturation rules.
 
-Execute the legal next step: research, write, challenge, render, read back and correct; rerun negative and valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 passes use `start_portfolio_context` + `execute_portfolio_stage`, one existing stage per call, bound to `task_id` and `task_requirement_digest`. Persist each returned context as its stage artifact, provider-read it back, validate hash chains and admit the Article Aggregate transition through the hosted Financial Provider Action, which executes `standalone_runtime.py`, before resuming. `RESEARCH_AUDIT` is separate. `execute_portfolio_writing` is in-memory replay/test only. Hashes detect mutation, not provider signatures, semantic proof or acceptance. Native chat may stage code/content candidates but cannot directly write owner STATE or method-catalog changes. Canonical mutations must use the authenticated hosted Financial Provider Action; direct GitHub connector writes or Git CAS alone are not owner authorization. Never claim execution, persistence or readback without a real run. Revisions invalidate downstream evidence; retired states remain historical. Recover before asking the user, respecting consent.
+Execute the legal next step: research, write, challenge, render, read back and correct; rerun negative and valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes remain model-orchestrated. The production coordinator is `financial_writing_agent.portfolio_coordinator.run_next_portfolio_stage`: one current business stage per call, bound to `task_id` and `task_requirement_digest`. It persists the typed stage artifact and resumable portfolio context as one provider bundle, reads both back, cross-binds their hashes and admits the Article Aggregate transition through `standalone_runtime.py` before the next stage. The model supplies the semantic pass outputs; the provider is not a substitute for research or editorial judgment. `execute_portfolio_writing` is in-memory replay/test only. Hashes detect mutation, not provider signatures, semantic proof or acceptance. The hosted Provider Action needed to invoke canonical admission is NOT DEPLOYED; until it is live, chat may prepare and inspect candidates but must not claim canonical durable stage execution or state mutation.
+
+Task requirements are resolved by scope and affected stage together. Active scopes derive from the task's immutable `required_outputs`; shared RESEARCH receives requirements for every requested product that affect RESEARCH, while later Deep/Broad/interaction passes receive ALL plus only their own product scope. Owner due checks and portfolio due checks use the same `task_requirements.py` stage-scope projection. Requirements for an unrequested product or an impossible scope/stage pair are rejected at admission. The full-universe typed research gate applies only when its product scope is active.
+
+Revisions invalidate downstream evidence; retired states remain historical. Recover before asking the user, respecting consent. Never claim execution, persistence or readback without a real run.
 
 ## Financial content contract
 
@@ -48,7 +54,7 @@ Execute the legal next step: research, write, challenge, render, read back and c
 
 ## Standalone runtime and trust boundary
 
-Use the connected GitHub connector for repository reads and code-candidate branches. Canonical owner-state/method writes go only through the hosted Financial Provider Action, which authenticates the owner, invokes `standalone_runtime.py`, signs authorization/effect receipts, performs atomic CAS and reads back exact bytes. Do not direct-update `main`; Git CAS is not owner approval. Without the deployed provider signer/runner, no canonical mutation.
+Read `main`; stage source changes on candidate branches with `fetch_file`, `create_blob`, `create_tree`, `create_commit` and `update_ref(expected_sha)`. Use the connected GitHub connector for repository reads and code-candidate branches only. Canonical owner-state/method writes go only through the hosted Financial Provider Action, which authenticates the owner, invokes `standalone_runtime.py`, signs authorization/effect receipts, performs atomic CAS and reads back exact bytes. Do not direct-update `main`; Git CAS is not owner approval. The provider is NOT DEPLOYED, so no canonical mutation may be claimed or attempted through a substitute path.
 
 ## Current research and publication evidence
 

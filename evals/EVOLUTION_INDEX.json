@@ -10,7 +10,8 @@
     "evals/FINANCIAL_WRITING_BUSINESS_PROCESS_AUDIT_20261114.md",
     "evals/FINANCIAL_USER_OUTCOME_BACKWARD_AUDIT_20261114.md",
     "evals/FINANCIAL_GOAL_FIRST_REQUIREMENT_MATRIX_20261114.json",
-    "evals/FINANCIAL_PORTFOLIO_STAGE_RESUMABILITY_AUDIT_20261114.md"
+    "evals/FINANCIAL_PORTFOLIO_STAGE_RESUMABILITY_AUDIT_20261114.md",
+    "evals/FINANCIAL_CAOS_GOVERNANCE_MIGRATION_20261115.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -89,6 +90,40 @@
       "status": "MERGED__POST_MERGE_MAIN_CI_PASS",
       "scope": "TASK_BOUND_SINGLE_BUSINESS_STAGE_EXECUTION__HASH_CHAINED_PASS_AND_STAGE_RECEIPTS__JSON_RESUME_AND_TAMPER_REJECTION",
       "assurance": "620_TESTS_PASS__89_PERCENT_LINE_COVERAGE__PROVIDER_PERSISTENCE_OWNER_ADMISSION_AND_REAL_WRITING_OUTCOME_OPEN"
+    },
+    {
+      "id": "FIN-CAOS-CHAT-GOVERNANCE-MIGRATION-20261115",
+      "problem_ref": "evals/FINANCIAL_CAOS_GOVERNANCE_MIGRATION_20261115.md",
+      "status": "PROMOTED__MAINLINE_CI_VERIFIED",
+      "branch": "migration/caos-chat-governance-20261115",
+      "scope": "CAOS_CHAT_GOVERNED_EXTERNAL__FINANCIAL_STANDALONE_BUSINESS_RUNTIME__NO_CAOS_RUNTIME_API_HOST_OR_PERMISSION_GRANT",
+      "selected_architecture": "CAOS_EXTERNAL_CHAT_GOVERNANCE__FINANCIAL_RETAINS_BUSINESS_STATE_AND_OWNER_EFFECTS",
+      "rejected_paths": [
+        "restore the historical CAOS-hosted runtime bridge from PR #52",
+        "keep Financial fully outside CAOS cross-project cognition governance",
+        "copy the CAOS kernel or create a second controller",
+        "move Financial article state, requirements, method catalog or permissions into CAOS"
+      ],
+      "verification_refs": [
+        "tests/test_single_owner_architecture.py",
+        "scripts/static_audit.py",
+        "config/CAOS_GOVERNANCE.json",
+        "CAOS_FINANCIAL_ENTRY.md"
+      ],
+      "business_state_changed": false,
+      "historical_provenance_rewritten": false,
+      "result": "PASS",
+      "pull_request": 85,
+      "candidate_head_sha": "c28410e3925276f3bd040acdcfba69dd5cb0d993",
+      "candidate_ci_run": 43625283711,
+      "candidate_tests_passed": 621,
+      "production_commit": "d024da5aff37dcd00cbf69467d8333e0c7d37132",
+      "production_ci_run": 43625755974,
+      "production_tests_passed": 621,
+      "production_line_coverage_percent": 89,
+      "codex_code_review": "NO_MAJOR_ISSUES",
+      "security_review": "MANUAL_AUTHORITY_AND_EFFECT_BOUNDARY_REVIEW_PASS__NO_SEPARATE_CODEX_SECURITY_RECEIPT",
+      "open_followup": "Financial live provider signing, native client activation, independent editorial acceptance and real reader outcomes remain separate NOT_READY gates."
     }
   ],
   "historical_notes": [
@@ -110,7 +145,7 @@
     },
     "next_legal_phase": "Wire fresh task-scoped requirement_context_for_scope results and requirement-satisfaction evidence into each stage; separate typed business-stage artifacts from the resumable portfolio context; add one authenticated standalone coordinator that persists and rereads both, admits the Article Aggregate transition, then resumes only from the admitted readback. Test interruption, stale digests, wrong artifact types, changed bytes, concurrency, failed review and REVISE invalidation. Only then run a real current-source finance topic end to end and independently evaluate its writing. Do not change CAOS.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
-    "user_action_now": "NO_ACTION_REQUIRED_TO_MERGE_PR_67__ALREADY_PRODUCTION_MAIN; NO_ACTION_REQUIRED_TO_MERGE_PR_73_OR_PR_74__BOTH_ARE_PRODUCTION_MAIN. Remaining external actions: fresh-session private Skill install/invocation, genuine owner-message and semantic-approval provider evidence, live GitHub CAS/effect readback, a genuinely independent reviewer, and administrator-controlled branch protection/archive controls. Do not revisit repository visibility, migration or history rewriting.",
+    "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article.",
       "General editorial quality and personalized writing DNA both NOT_READY.",
@@ -571,7 +606,8 @@
         "native client activation",
         "real article quality or independent reader outcome"
       ]
-    }
+    },
+    "scoped_owner_demand": "Financial retains its intrinsic requirements, business process, finance-domain decision evidence, execution loops, knowledge/method CRUD, failure repair and independent acceptance. CAOS governs cross-project cognition, root-cause/method comparison, decision rechallenge and cross-domain learning externally in the active ChatGPT session. No external parent runtime/API dependency is introduced."
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
@@ -599,5 +635,26 @@
       "whole_system_acceptance": "NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE",
       "article_product_readiness": "NOT_READY__0_OF_4_DELIVERABLES__0_QUALITY_EVIDENCE"
     }
-  }
+  },
+  "current_governance_candidate": {
+    "id": "FIN-CAOS-CHAT-GOVERNANCE-MIGRATION-20261115",
+    "status": "CANDIDATE__CI_PENDING__NOT_MERGED",
+    "branch": "migration/caos-chat-governance-20261115",
+    "scope": "CAOS_CHAT_GOVERNED_EXTERNAL__FINANCIAL_STANDALONE_BUSINESS_RUNTIME__NO_CAOS_RUNTIME_API_HOST_OR_PERMISSION_GRANT",
+    "governance_contract": "config/CAOS_GOVERNANCE.json",
+    "governance_entry": "CAOS_FINANCIAL_ENTRY.md",
+    "preserved_authorities": [
+      "FINANCIAL_WRITING_OWNER",
+      "workspaces/articles/{task_id}/STATE.json",
+      "task-scoped requirement revision/digest",
+      "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+      "evals/EVOLUTION_INDEX.json",
+      "financial_writing_agent.standalone_runtime"
+    ],
+    "caos_source_mutation": "FORBIDDEN",
+    "business_state_changed": false,
+    "historical_provenance_rewritten": false,
+    "next_action": "Run exact-head full Financial CI, static/whole-tree audits and independent code/security review; merge only after clean evidence and verify mainline CI."
+  },
+  "updated_at": "2026-11-15T02:22:00+08:00"
 }

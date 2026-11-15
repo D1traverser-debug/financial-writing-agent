@@ -1,12 +1,12 @@
 # Financial Writing Agent — Architecture
 
-Version: `1.1.0 / standalone Financial operating domain`
+Version: `1.1.0 / standalone Financial domain with CAOS chat governance`
 Reviewed: `2026-11-12`
 Status: `STANDALONE_ENGINEERING_CANDIDATE__REAL_EDITORIAL_PRODUCT_NOT_READY`
 
 ## 1. Product boundary
 
-Financial Writing is an independent business owner. It performs its own goal interpretation, source research, decision/execution/repair loops, model-assisted story creation, article state and independent checks; it has no external parent runtime, second controller or parent grant dependency. Canonical owner-state and method-catalog writes require a Financial-owned hosted Provider Action as a trusted transport/admission adapter, not as a parent controller. Financial Writing owns article identity/state, research semantics, writing architecture, output contracts, domain knowledge/evolution evidence and delivery.
+Financial Writing is an independently executable business domain. CAOS governs cross-project cognition, complete-goal recovery, cross-layer root-cause investigation, method research, decision rechallenge and independent acceptance in the active ChatGPT session. Financial owns article identity/state, financial-domain source research and analysis, evidence/admission contracts, writing architecture, output contracts, domain knowledge/evolution and delivery. It has no external CAOS runtime/API or parent-grant dependency. Canonical owner-state and method-catalog mutations require a Financial-owned hosted Provider Action as a trusted transport/admission adapter, not as a parent controller; that provider is not deployed.
 
 Hard invariants:
 - one Financial business owner and one article state authority;
@@ -18,7 +18,7 @@ Hard invariants:
 
 ## 1A. Current standalone deployment and capability boundary
 
-Primary Skill is `skills/financial-writing-agent/SKILL.md`; current machine declarations are `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with authenticated owner authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. It does not import an external parent runtime. The Skill-only ChatGPT package cannot invoke this Python adapter; a hosted Financial Provider Action must wrap it for canonical writes. That endpoint is currently NOT DEPLOYED. Retired integration stubs have been removed from the current tree.
+The sole Financial operating Skill is `skills/financial-writing-agent/SKILL.md`; CAOS governance is declared in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; Financial machine declarations remain `config/FINANCIAL_MANIFEST.json` and `config/FINANCIAL_CAPABILITIES.json`. The independent Python action adapter `financial_writing_agent/standalone_runtime.py` uses the existing Article Aggregate with authenticated owner authorization, exact Git provider content/SHA, conditional writes, stage artifact readback and a second state read. The Skill-only ChatGPT package cannot invoke this Python adapter; a hosted Financial Provider Action must wrap it for canonical writes. That endpoint is currently NOT DEPLOYED. The adapter does not import a CAOS runtime; historical hosted-parent integration stubs remain retired.
 
 Model/web/data retrieval and document tools must actually be connected in the Financial environment; an installed Python wheel by itself does not execute LLM research or prove any native plugin connection. The real cross-border v3 task and all historic receipts remain unchanged. Full product readiness still requires independently observed financial facts, useful narrative and actual accessible Word results.
 
@@ -47,9 +47,9 @@ Internal work becomes:
 
 These are focused passes, not independent controllers. Same-model passes are structured challenge evidence, not independent certification.
 
-## 4. Financial-owned cognition and decision architecture
+## 4. CAOS cross-project cognition and Financial domain decision evidence
 
-Financial natively applies its decision and execution methods. DecisionEnvelope and evidence-grounded causal challenges are Financial-owned, with no external controller or parent authorization.
+CAOS governs cross-project cognition, material/systemic method selection, root-cause challenge and independent acceptance in the active ChatGPT session. Financial's `DecisionEnvelope` and evidence-grounded causal challenges remain Financial-owned domain evidence/admission contracts; they are not a second cross-project cognition controller. Financial remains the owner of financial research, article decisions, execution and business state.
 
 Material judgments use `DecisionEnvelope`: evidence beyond user assertion, challenged assumptions, credible alternatives, failure/fit/misfit conditions, counterexamples/rejected paths, selected rationale, search saturation, verification and remaining unknowns.
 
@@ -235,11 +235,11 @@ Coverage is scoped to **explicit method IDs used in an admitted research decisio
 
 ## 14. Active ChatGPT-native execution runtime
 
-The current user-facing semantic runtime is the ChatGPT model following the single Financial Skill, with current web/document/Python tools for research and production. The Skill-only plugin is an instruction package; it neither grants GitHub access nor hosts Python/MCP. The connected GitHub connector remains useful for repository reads and code-candidate work, but it is not the canonical owner-state signer or admission runtime. Canonical mutations require a separate Financial Provider Action over hosted MCP/HTTPS, authenticated to the repository owner and backed by a least-privilege GitHub App. This provider is not deployed; no paid host has been provisioned.
+The current user-facing semantic runtime is the ChatGPT model following the single Financial Skill, with current web/document/Python tools for research and production. CAOS remains session-level cross-project governance; it is not a Financial runtime or business-state owner. The Skill-only plugin is an instruction package; it neither grants GitHub access nor hosts Python/MCP. The connected GitHub connector is for repository reads and code-candidate work, not the canonical owner-state signer or admission runtime. Canonical owner-state and method-catalog mutations require a separate Financial Provider Action over hosted MCP/HTTPS, authenticated to the repository owner and backed by a least-privilege GitHub App. That provider is NOT DEPLOYED; no paid host has been provisioned.
 
 All persistent task state and artifacts remain in the existing Financial repository. The hosted Provider Action performs single-file writes against the current blob SHA and exact readback; multi-file writes use Git blobs, a tree based on the current state-authority tree, a commit parented to the exact current ref, and a non-force ref update that fails on a stale parent. Every changed path is then read back at the resulting commit SHA. Binary Word artifacts use base64 blobs. Stale writes stop for reread and recomputation. Binding requirement changes require authenticated owner confirmation of the exact normalized mutation digest through the provider confirmation surface; the full original message reference and approval receipt are preserved in existing article intent history.
 
-The Python standalone_runtime module is the canonical admission implementation executed by the required hosted Financial Provider Action. It is not directly callable from the current Skill-only chat package. Its HMAC/provider gates are mandatory for canonical writes, but the provider is not yet deployed or installed as a ChatGPT action. System release acceptance, independent editorial acceptance and real article quality remain separate from basic native execution.
+The Python `standalone_runtime` module is the canonical admission implementation executed by the required hosted Financial Provider Action. It is not directly callable from the current Skill-only chat package. Its HMAC/provider gates are mandatory for canonical writes, but the provider is not yet deployed or installed as a ChatGPT action. No CAOS parent or local daemon is required; the Financial-owned Provider Action is a transport/authentication/admission adapter, not a second business controller. System release acceptance, independent editorial acceptance and real article quality remain separate from basic native execution.
 
 ## 15. Article action effect binding
 
@@ -277,3 +277,16 @@ The user-facing goal is not completion of 10 stage names or existence of 13 pass
 **Open business outcome:** a connected host has yet to demonstrate that it actually invokes every pass, persists the meaningful outputs, matches the final prose to the instructions and earns a real source-backed editorial/reader assessment across topics. Such claims remain OPEN even if synthetic CI passes.
 
 The read-only `user_goal_progress.inspect_user_goal_progress` projects every active user instruction from the canonical owner state into the live `observe_article` response, including stage due, readback-backed stage receipt visibility, current output metadata shortfall and semantic-quality OPEN. It is not a new task index, owner, approval or evidence authority. Rewound stages remain due even when old receipts exist.
+
+
+## 20. Requirement scope and stage dataflow (2026-11-16)
+
+Task requirements have two independent dimensions: product/functional scope and the earliest business stage affected. They must be evaluated together; neither the owner aggregate nor the portfolio coordinator may treat a task-wide authority list as if every item applied to every requested output.
+
+`financial_writing_agent.task_requirements` is the canonical scope resolver. Active product scopes derive from the immutable `required_outputs` contract. Shared RESEARCH receives ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope, including Deep, Broad and platform interaction, so a product-specific research constraint cannot disappear before shared research. EDITORIAL and TITLE receive ALL plus the requested longform product scopes. DRAFT and EDITORIAL_AUDIT receive ALL plus requested product scopes, including interaction. DELIVERY receives ALL, DELIVERY and all requested product scopes.
+
+The same stage-to-scope projection determines which requirements become due in `current_admission` and `writing_kernel`. Product pass inputs are separately projected: shared research receives only requirements whose affected stage is RESEARCH; a Deep/Broad branch receives ALL plus its own scope and requirements that have become effective by that stage; the interaction branch receives ALL plus PLATFORM_INTERACTION. This prevents cross-product leakage while preserving upstream product-specific research requirements.
+
+New requirement mutations fail closed when no scope matches the task's requested outputs or when an active scope cannot execute at the selected affected stage. The special `full_universe_research_pool` typed ResearchPackage/reconciliation gate applies only when its scope is active in the task. DELIVERY is part of the complete requirement-context authority even though it is not one of the six internal portfolio stages.
+
+Regression evidence: `tests/test_financial_requirement_scope_dataflow_20261116.py`, `tests/test_financial_portfolio_requirement_governance_20261114.py` and `tests/test_financial_portfolio_coordinator_20261115.py`. Candidate tests still require exact-head CI and mainline verification before promotion.

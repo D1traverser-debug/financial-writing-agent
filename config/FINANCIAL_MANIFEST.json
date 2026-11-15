@@ -27,13 +27,13 @@
   "client_skill_plugin": {
     "name": "financial-writing-agent-chatgpt",
     "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-    "release_id": "pluginrel_6af9484ec2b081919a2689deeb4902f3",
-    "verified": "PRIVATE_PACKAGE_UPDATED_AND_READBACK",
+    "release_id": "pluginrel_6af9da2cc32c81919f23fae88386dae3",
+    "verified": "PRIVATE_PACKAGE_CURRENT_RELEASE_0.1.4_READBACK_VERIFIED",
     "installed_or_live_tool_executed": "NOT_VERIFIED",
     "hosted_mcp_python": false,
     "required_companion_connector": "EXISTING_GITHUB_CONNECTOR_WITH_READ_WRITE_PERMISSION",
     "custom_hosted_service_required": true,
-    "version": "0.1.3",
+    "version": "0.1.4",
     "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
     "provider_action_status": "NOT_DEPLOYED"
   },
@@ -73,11 +73,29 @@
       "deterministic_action_replay": true
     }
   },
+  "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
+  "governance_mode": "CHAT_GOVERNED_EXTERNAL",
+  "governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+  "governance_contract": "config/CAOS_GOVERNANCE.json",
+  "governance": {
+    "system": "CAOS",
+    "mode": "CHAT_GOVERNED_EXTERNAL",
+    "runtime_dependency": false,
+    "api_dependency": false,
+    "source_mutation": "FORBIDDEN",
+    "business_state_owner": "FINANCIAL_WRITING_OWNER"
+  },
   "provider_action_required": true,
   "provider_action_endpoint": {
     "required": true,
     "protocol": "MCP_OVER_HTTPS",
     "status": "NOT_DEPLOYED",
     "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md"
+  },
+  "task_requirement_scope_contract": {
+    "source": "financial_writing_agent.task_requirements",
+    "active_scope_source": "required_outputs",
+    "owner_and_portfolio_stage_projection": "SAME_CANONICAL_FUNCTION",
+    "status": "CANDIDATE_FIX__EXACT_HEAD_CI_PENDING"
   }
 }

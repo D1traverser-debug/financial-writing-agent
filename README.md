@@ -2,7 +2,7 @@
 
 Financial Writing is a standalone Chinese financial research, editorial and publishing system. It owns its requirements, article state, research methods, writing workflow, reviews, Word production and system evolution.
 
-There is one operating entrypoint: [Financial Writing Skill](skills/financial-writing-agent/SKILL.md). There is no second controller, external parent runtime or parallel task ledger.
+There is one Financial operating entrypoint: [Financial Writing Skill](skills/financial-writing-agent/SKILL.md). CAOS governs cross-project cognition in the active ChatGPT session; no CAOS runtime/API parent, second controller or parallel task ledger is introduced.
 
 ## Start and operate
 
@@ -12,7 +12,7 @@ Do not claim that a file was written, a state transition happened or an article 
 
 ## Active ChatGPT execution path
 
-The native client is ChatGPT following the Financial Writing Skill with the user's connected GitHub provider. This client can recover the current article, research, draft, evaluate candidate alternatives, and persist candidate work on a non-authoritative branch. The Skill plugin cannot run Python or independently authenticate owner approval; the GitHub connector grants transport, not business action authorization. No CAOS parent, second controller or duplicated task ledger is required.
+The native client is ChatGPT following the Financial Writing Skill with the user's connected GitHub provider, under CAOS external chat governance for material/systemic decisions and cross-project work. Financial can recover the current article, research, draft, evaluate candidate alternatives, and persist candidate work on a non-authoritative branch. The Skill plugin cannot run Python or independently authenticate owner approval; the GitHub connector grants transport, not business action authorization. CAOS does not provide a runtime/API dependency, business-state mirror, permission grant or automatic upcall. Financial remains the sole business owner and execution authority.
 
 **Business-state effects are a separate execution boundary.** Article `STATE.json`, bound stage artifacts and `knowledge/METHOD_KNOWLEDGE_CATALOG.json` may be changed only by the authenticated `financial_writing_agent.standalone_runtime` action port or a candidate PR that passes the exact parent/head two-revision owner-effect audit implemented in `financial_writing_agent.whole_system_assurance` and called from `scripts/system_acceptance_report.py` in CI. No direct ChatGPT `update_file` or blob/tree/commit `update_ref` to `main` counts as legal owner admission. GitHub CAS plus exact readback prove the bytes written, not the semantic authorization. A binding requirement change additionally requires the complete original user message, normalized change, explicit owner confirmation and genuine external signed proof; model-generated signatures and same-session self-review are invalid.
 
@@ -24,7 +24,8 @@ See [Financial standalone interface](docs/STANDALONE_INTERFACE.md) and [whole-ch
 
 | Purpose | Canonical location |
 |---|---|
-| One operating entry | `skills/financial-writing-agent/SKILL.md` |
+| One Financial operating entry | `skills/financial-writing-agent/SKILL.md` |
+| CAOS governance contract and startup boundary | `config/CAOS_GOVERNANCE.json`, `CAOS_FINANCIAL_ENTRY.md` |
 | Domain manifest | `config/FINANCIAL_MANIFEST.json` |
 | Product and execution contract | `docs/product_requirements.md`, `config/EXECUTION_CONTRACT.json` |
 | Data authority and CRUD map | `config/DATA_AUTHORITY.json` |

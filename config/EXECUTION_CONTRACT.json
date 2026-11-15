@@ -23,7 +23,10 @@
     "knowledge_rule": "skills/financial-writing-agent/references/knowledge.md",
     "method_knowledge_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
     "alternate_business_state_authority_allowed": false,
-    "data_authority": "config/DATA_AUTHORITY.json"
+    "data_authority": "config/DATA_AUTHORITY.json",
+    "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
+    "caos_governance_contract": "config/CAOS_GOVERNANCE.json",
+    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -252,9 +255,15 @@
     ],
     "portfolio_pass_receipts": "HASH_CHAINED_INPUT_AND_OUTPUT_DIGESTS__NOT_PROVIDER_ATTESTATION",
     "portfolio_stage_receipts": "HASH_CHAINED_CONTEXT_DIGESTS__NOT_PERSISTENCE_OR_OWNER_ADMISSION",
-    "portfolio_stage_persistence_and_owner_admission": "AUTHENTICATED_STANDALONE_RUNTIME_REQUIRED_BETWEEN_EVERY_STAGE_CALL",
+    "portfolio_stage_persistence_and_owner_admission": "COORDINATOR_PERSISTS_AND_READS_BACK_STAGE_ARTIFACT_AND_CONTEXT__THEN_ADMITS_ARTICLE_AGGREGATE_THROUGH_AUTHENTICATED_STANDALONE_RUNTIME",
     "portfolio_research_audit_is_separate_business_stage": true,
-    "in_memory_replay_is_production_execution": false
+    "in_memory_replay_is_production_execution": false,
+    "portfolio_stage_coordinator": "financial_writing_agent.portfolio_coordinator.run_next_portfolio_stage",
+    "portfolio_stage_persistence": "TYPED_STAGE_ARTIFACT_AND_RESUMABLE_CONTEXT_ATOMIC_PROVIDER_BUNDLE__EXACT_READBACK__CROSS_BOUND_HASHES",
+    "task_requirement_scope_projection": "financial_writing_agent.task_requirements.requirement_scopes_for_stage",
+    "owner_requirement_due_projection": "SAME_CANONICAL_SCOPE_STAGE_FUNCTION_AS_PORTFOLIO_COORDINATOR",
+    "product_scoped_research_requirements": "ALL_REQUESTED_PRODUCT_SCOPES_ARE_INJECTED_INTO_SHARED_RESEARCH_WHEN_AFFECTED_FROM_RESEARCH",
+    "inactive_product_scope_requirements": "REJECTED_AT_NEW_REQUIREMENT_ADMISSION"
   },
   "knowledge_and_evolution": {
     "topic_and_method_knowledge_are_distinct": true,
@@ -314,15 +323,15 @@
     "candidate_rebuild_rewrites_completed_article_state": false
   },
   "standalone_governance": {
-    "source": "FINANCIAL_OWNER_NATIVELY_ADOPTED_METHODS",
+    "source": "CAOS_CHAT_GOVERNANCE_WITH_FINANCIAL_OWNER_NATIVE_DOMAIN_EXECUTION",
     "external_parent_required": false,
-    "decision_and_execution_loops_owner": "FINANCIAL_WRITING_OWNER",
+    "decision_and_execution_loops_owner": "CAOS_GOVERNS_CROSS_PROJECT_COGNITION__FINANCIAL_OWNS_DOMAIN_DECISION_EVIDENCE_AND_EXECUTION",
     "current_article_action": "financial_writing_agent.standalone_runtime.admit_article_action",
     "real_write_requirement": "EXTERNAL_USER_PERMISSION_AND_AUTHENTICATED_PROVIDER_ACTION_AUTHORIZATION_PLUS_SIGNED_EFFECT_RECEIPT_AND_ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_BUNDLE_CAS_AND_EXACT_REREAD",
     "current_requirement_authority": "financial_writing_agent.task_requirements",
     "financial_research_distinct_from_cognition": true,
     "domain_evolution_owner": "FINANCIAL_WRITING_FOR_ALL_FINANCIAL_BUSINESS_RULES",
-    "shared_method_proposals": "DOCUMENT_WITH_SCOPE_IN_FINANCIAL_HISTORY__FINANCIAL_LOCAL_SCOPE",
+    "shared_method_proposals": "FINANCIAL_LOCAL_METHODS_OWNED_HERE__CROSS_DOMAIN_TRANSFER_REVIEWED_BY_CAOS",
     "independent_qa_not_inferred_from_ci": true,
     "action_effect_receipt_contract": {
       "contract_version": "1.0",
@@ -369,6 +378,7 @@
       "legacy_method_events_remain_effect_unbound": true,
       "new_events_may_not_roll_back_after_effect_bound_history": true
     },
+    "cross_project_cognition_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
     "external_provider_host_required": true
   },
   "goal_method_governance": {
@@ -463,5 +473,32 @@
     "required_provider_action": "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
     "provider_action_status": "NOT_DEPLOYED",
     "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED"
+  },
+  "governance": {
+    "system": "CAOS",
+    "mode": "CHAT_GOVERNED_EXTERNAL",
+    "entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+    "runtime_dependency": false,
+    "api_dependency": false,
+    "business_authority": "FINANCIAL_WRITING_OWNER",
+    "no_parent_task_identity": true,
+    "no_business_state_mirror": true,
+    "no_runtime_upcall": true,
+    "no_permission_grant": true
+  },
+  "task_requirement_scope_execution": {
+    "authority": "financial_writing_agent.task_requirements",
+    "active_scope_source": "IMMUTABLE_TASK_CONTRACT_REQUIRED_OUTPUTS",
+    "stage_scope_projection": {
+      "RESEARCH": "ALL__RESEARCH__PRIVATE_RESEARCH__ALL_REQUESTED_PRODUCT_SCOPES",
+      "EDITORIAL_TITLE": "ALL__REQUESTED_FINANCE_DEEP_AND_FINANCE_BROAD_SCOPES",
+      "DRAFT_EDITORIAL_AUDIT": "ALL__REQUESTED_PRODUCT_SCOPES_INCLUDING_PLATFORM_INTERACTION",
+      "DELIVERY": "ALL__DELIVERY__ALL_REQUESTED_PRODUCT_SCOPES"
+    },
+    "pass_context_projection": "SHARED_RESEARCH_GETS_PRODUCT_SCOPED_RESEARCH_REQUIREMENTS__LATER_PRODUCT_BRANCHES_GET_ALL_PLUS_OWN_SCOPE__AFFECTED_STAGE_CUTOFF",
+    "owner_portfolio_due_projection": "IDENTICAL_CANONICAL_STAGE_SCOPE_RESOLUTION",
+    "reject_inactive_scope": "TRUE",
+    "reject_impossible_scope_stage_pair": "TRUE",
+    "full_universe_research_gate": "ACTIVE_ONLY_WHEN_REQUIREMENT_SCOPE_MATCHES_REQUESTED_OUTPUTS"
   }
 }

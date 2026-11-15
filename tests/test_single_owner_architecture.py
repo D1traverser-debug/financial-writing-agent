@@ -18,6 +18,24 @@ def test_current_authority_has_one_financial_owner_path():
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     caps = _json("config/FINANCIAL_CAPABILITIES.json")
     execution = _json("config/EXECUTION_CONTRACT.json")
+    governance = _json("config/CAOS_GOVERNANCE.json")
+    assert governance["governance"]["system"] == "CAOS"
+    assert governance["governance"]["mode"] == "CHAT_GOVERNED_EXTERNAL"
+    assert governance["governance"]["runtime_dependency"] is False
+    assert governance["governance"]["api_dependency"] is False
+    assert governance["governance"]["source_mutation"] == "FORBIDDEN"
+    assert governance["execution_boundary"]["business_owner"] == "FINANCIAL_WRITING_OWNER"
+    assert governance["execution_boundary"]["parent_task_identity"] is False
+    assert governance["execution_boundary"]["parent_business_state_mirror"] is False
+    assert governance["execution_boundary"]["runtime_upcall"] is False
+    assert governance["execution_boundary"]["caos_permission_grant"] is False
+    assert manifest["governance_authority"] == "CAOS_CHAT_GOVERNED_EXTERNAL"
+    assert manifest["governance_entrypoint"] == "CAOS_FINANCIAL_ENTRY.md"
+    assert caps["caos_governance_ref"] == "config/CAOS_GOVERNANCE.json"
+    assert caps["source_of_cognition"] == "CAOS_EXTERNAL_CHAT_GOVERNANCE_WITH_FINANCIAL_OWNER_NATIVE_EVIDENCE_ADMISSIONS"
+    assert caps["independence_clause"] == "NO_EXTERNAL_PARENT_RUNTIME_OR_HOST_INVOCATION__CAOS_CHAT_GOVERNANCE_ONLY"
+    assert execution["authority"]["governance_authority"] == "CAOS_CHAT_GOVERNED_EXTERNAL"
+    assert execution["governance"]["runtime_dependency"] is False
     assert DOMAIN_ID == manifest["domain_id"] == caps["domain_id"] == execution["domain_id"]
     assert manifest["controller"] == caps["owner"] == execution["authority"]["controller"] == "FINANCIAL_WRITING_OWNER"
     assert manifest["skill_entrypoint"] == caps["entrypoint"] == "skills/financial-writing-agent/SKILL.md"
@@ -65,6 +83,8 @@ def test_retired_parent_paths_are_historical_and_current_entry_is_financial():
     assert (ROOT / "financial_writing_agent/standalone_runtime.py").exists()
     for name in ("FINANCIAL_SKILL.md", "CAOS_SKILL.md", "UAOS_SKILL.md", ".uaos", "docs/CAOS_CHILD_INTERFACE.md"):
         assert not (ROOT / name).exists()
+    assert (ROOT / "CAOS_FINANCIAL_ENTRY.md").is_file()
+    assert (ROOT / "config/CAOS_GOVERNANCE.json").is_file()
     for path in ("continuity", "state", "TASK_INDEX.json", "references"):
         assert not (ROOT / path).exists()
 
@@ -73,7 +93,7 @@ def test_discovery_skill_is_real_operating_entry_not_second_parent_pointer():
     skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
     assert "Independent Operating Skill" in skill
     assert "standalone_runtime.py" in skill
-    for marker in ("create_blob", "create_tree", "create_commit", "update_ref", "expected_sha", "fetch_file"):
+    for marker in ("CAOS_FINANCIAL_ENTRY.md", "CAOS governance", "create_blob", "create_tree", "create_commit", "update_ref", "expected_sha", "fetch_file"):
         assert marker in skill
     assert "Decision" in skill and "Execution" in skill
     assert "PrivateResearchBrief" in skill
@@ -95,6 +115,8 @@ def test_installed_package_has_no_caos_required_dependencies():
 
 def test_standalone_interface_uses_canonical_skill_paths_and_no_hosted_claim():
     interface = (ROOT / "docs/STANDALONE_INTERFACE.md").read_text(encoding="utf-8")
-    assert "canonical operating Skill source" in interface
-    assert "skills/financial-writing-agent/references/maintenance.md" in interface
+    assert "sole business operating Skill is" in interface
+    assert "CAOS external chat governance" in interface
+    assert "skills/financial-writing-agent/references/" in interface
+    assert (ROOT / "skills/financial-writing-agent/references/maintenance.md").is_file()
     assert "skills/financial-writing-agent/skills/" not in interface

@@ -30,6 +30,29 @@ VALID_SCOPES = {
     "DELIVERY",
 }
 
+# These scopes are activated by the immutable TaskContract output set. Research
+# is shared, so every requested product scope can constrain RESEARCH; later
+# product stages consume only their own branch. DELIVERY is always a real owner
+# stage, while PRIVATE_RESEARCH is mandatory for current writing-kernel tasks.
+OUTPUT_SCOPE_MAP = {
+    "FINANCE_DEEP_DOCX": "FINANCE_DEEP",
+    "FINANCE_BROAD_DOCX": "FINANCE_BROAD",
+    "PLATFORM_INTERACTION_PACK_DOCX": "PLATFORM_INTERACTION",
+}
+ALWAYS_ACTIVE_SCOPES = {"ALL", "RESEARCH", "PRIVATE_RESEARCH", "DELIVERY"}
+ALLOWED_OUTPUT_KINDS = {
+    "AUDIT_DOCX", "PRIVATE_RESEARCH_DOCX", *OUTPUT_SCOPE_MAP,
+}
+SCOPE_AFFECTED_STAGES = {
+    "ALL": set(VALID_AFFECTED_STAGES),
+    "RESEARCH": {"RESEARCH"},
+    "PRIVATE_RESEARCH": {"RESEARCH"},
+    "FINANCE_DEEP": set(VALID_AFFECTED_STAGES),
+    "FINANCE_BROAD": set(VALID_AFFECTED_STAGES),
+    "PLATFORM_INTERACTION": {"RESEARCH", "DRAFT", "DELIVERY"},
+    "DELIVERY": {"DELIVERY"},
+}
+
 
 class RequirementError(ValueError):
     pass
@@ -196,6 +219,87 @@ def active_requirements_for_scope(raw: Mapping[str, Any], scope: str) -> list[di
         for item in authority.active_requirements
         if "ALL" in item.scopes or scope in item.scopes
     ]
+
+
+def active_task_scopes(required_outputs: Any) -> list[str]:
+    """Return the requirement scopes that can affect this immutable output contract."""
+    if not isinstance(required_outputs, (list, tuple, set)) or not required_outputs:
+        raise RequirementError("task required_outputs are required for scope resolution")
+    outputs: set[str] = set()
+    for raw in required_outputs:
+        value = getattr(raw, "value", raw)
+        if not isinstance(value, str) or not value.strip():
+            raise RequirementError("task required_outputs contain an invalid output kind")
+        outputs.add(value.strip())
+    unknown = sorted(outputs - ALLOWED_OUTPUT_KINDS)
+    if unknown:
+        raise RequirementError(f"unsupported task output kinds for requirement scope resolution: {unknown}")
+    scopes = set(ALWAYS_ACTIVE_SCOPES)
+    scopes.update(OUTPUT_SCOPE_MAP[item] for item in outputs if item in OUTPUT_SCOPE_MAP)
+    return sorted(scopes)
+
+
+def requirement_applies_to_scopes(requirement: Mapping[str, Any], scopes: Any) -> bool:
+    """Whether a requirement applies to one stage's admitted scope projection."""
+    try:
+        parsed = TaskRequirement.model_validate(requirement)
+    except ValueError as exc:
+        raise RequirementError("invalid task requirement during scope resolution") from exc
+    selected = set(scopes)
+    return "ALL" in parsed.scopes or bool(selected.intersection(parsed.scopes))
+
+
+def requirement_applies_to_task(requirement: Mapping[str, Any], required_outputs: Any) -> bool:
+    """Whether at least one scope of a requirement is active in the task's output contract."""
+    return requirement_applies_to_scopes(requirement, active_task_scopes(required_outputs))
+
+
+def requirement_scopes_for_stage(stage: str, required_outputs: Any) -> list[str]:
+    """Canonical stage-to-scope projection shared by the coordinator and owner aggregate."""
+    active = set(active_task_scopes(required_outputs))
+    product_scopes = active - ALWAYS_ACTIVE_SCOPES
+    longform_scopes = product_scopes.intersection({"FINANCE_DEEP", "FINANCE_BROAD"})
+    if stage in {"RESEARCH", "RESEARCH_AUDIT"}:
+        scopes = {"ALL", "RESEARCH", "PRIVATE_RESEARCH", *product_scopes}
+    elif stage in {"EDITORIAL", "TITLE"}:
+        scopes = {"ALL", *longform_scopes}
+    elif stage in {"DRAFT", "EDITORIAL_AUDIT"}:
+        scopes = {"ALL", *product_scopes}
+    elif stage in {"DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT"}:
+        scopes = {"ALL", "DELIVERY", *product_scopes}
+    elif stage == "INTAKE":
+        scopes = {"ALL"}
+    else:
+        raise RequirementError(f"unsupported task requirement stage: {stage}")
+    return sorted(scopes)
+
+
+def validate_requirement_applicability(
+    requirement: Mapping[str, Any],
+    required_outputs: Any,
+) -> dict[str, Any]:
+    """Reject requirements that target no requested product or an impossible scope/stage pair."""
+    try:
+        parsed = TaskRequirement.model_validate(requirement)
+    except ValueError as exc:
+        raise RequirementError(str(exc)) from exc
+    active = set(active_task_scopes(required_outputs))
+    applicable = set(parsed.scopes).intersection(active)
+    if "ALL" not in parsed.scopes and not applicable:
+        raise RequirementError(
+            f"requirement {parsed.requirement_id} scopes do not match the requested outputs"
+        )
+    if "ALL" not in parsed.scopes:
+        incompatible = sorted(
+            scope for scope in applicable
+            if parsed.affects_from_stage not in SCOPE_AFFECTED_STAGES[scope]
+        )
+        if incompatible:
+            raise RequirementError(
+                f"requirement {parsed.requirement_id} affects_from_stage "
+                f"{parsed.affects_from_stage} is incompatible with active scopes {incompatible}"
+            )
+    return parsed.model_dump(mode="json")
 
 
 def apply_requirement_changes(

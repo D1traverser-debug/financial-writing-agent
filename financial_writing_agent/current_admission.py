@@ -19,8 +19,12 @@ from .task_requirements import (
     REQUIREMENT_CONTRACT_VERSION,
     RequirementError,
     active_requirements_for_scope,
+    active_task_scopes,
     apply_requirement_changes,
     authority_digest,
+    requirement_applies_to_scopes,
+    requirement_scopes_for_stage,
+    validate_requirement_applicability,
     empty_requirement_authority,
     validate_requirement_authority,
 )
@@ -212,8 +216,16 @@ def _active_requirement_items(state: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 
 def _requirements_due_at_stage(state: Mapping[str, Any], stage: str) -> list[dict[str, Any]]:
+    try:
+        stage_scopes = requirement_scopes_for_stage(stage, state.get("required_outputs", []))
+    except RequirementError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
     return sorted(
-        [item for item in _active_requirement_items(state) if item.get("affects_from_stage") == stage],
+        [
+            item for item in _active_requirement_items(state)
+            if item.get("affects_from_stage") == stage
+            and requirement_applies_to_scopes(item, stage_scopes)
+        ],
         key=lambda item: str(item["requirement_id"]),
     )
 
@@ -260,7 +272,12 @@ def _validate_requirement_satisfaction_history(state: Mapping[str, Any]) -> None
     _require(isinstance(receipts, list), "task requirement satisfaction requires execution receipts")
     stage = str(state.get("current_stage"))
     current_index = owner_guard.STAGE_INDEX[stage]
-    for requirement in _active_requirement_items(state):
+    due_requirements = [
+        requirement
+        for affected_stage in ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY")
+        for requirement in _requirements_due_at_stage(state, affected_stage)
+    ]
+    for requirement in due_requirements:
         affected_stage = str(requirement["affects_from_stage"])
         # A requirement becomes due when the task tries to leave its affected stage.
         # If the task is still at that stage, the current stage may legitimately be unsatisfied.
@@ -413,6 +430,11 @@ def validate_state(state: Mapping[str, Any]) -> None:
 def requirement_context_for_scope(state: Mapping[str, Any], scope: str) -> dict[str, Any]:
     """Return the exact active task requirements a stage/product must consume."""
     validate_state(state)
+    try:
+        active_scopes = active_task_scopes(state.get("required_outputs", []))
+    except RequirementError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
+    _require(scope in active_scopes, f"task requirement scope is not active for requested outputs: {scope}")
     authority = validate_requirement_authority(state.get("task_requirement_authority"))
     return {
         "contract_version": REQUIREMENT_CONTRACT_VERSION,
@@ -470,6 +492,11 @@ def migrate_task_requirement_authority(
     _require(bool(str(executor_identity).strip()), "executor_identity is required")
     _require(bool(str(evidence_ref).strip()), "evidence_ref is required")
     working = deepcopy(dict(state))
+    for item in requirements or []:
+        try:
+            validate_requirement_applicability(item, working.get("required_outputs", []))
+        except RequirementError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
     authority = empty_requirement_authority()
     changed_stages: list[str] = []
     if requirements:
@@ -540,6 +567,11 @@ def apply_task_requirement_change(
     _require(bool(str(previous_state_blob_sha).strip()), "previous_state_blob_sha is required")
     _require(bool(str(executor_identity).strip()), "executor_identity is required")
     working = deepcopy(dict(state))
+    for item in upserts or []:
+        try:
+            validate_requirement_applicability(item, working.get("required_outputs", []))
+        except RequirementError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
 
     try:
         authority, changed_stages = apply_requirement_changes(

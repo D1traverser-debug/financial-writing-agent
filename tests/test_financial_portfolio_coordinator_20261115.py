@@ -915,3 +915,58 @@ def test_artifact_bundle_rejects_invalid_provider_write_receipts(writer, message
             context_reader=lambda path: None,
             context_path="context.json",
         )
+
+
+def test_deep_full_universe_requirement_does_not_block_broad_only_task():
+    state = {
+        "required_outputs": ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"],
+        "task_requirement_authority": {
+            "active_requirements": [{
+                "requirement_id": "full_universe_research_pool",
+                "statement": "Retain the full requested company universe.",
+                "scopes": ["FINANCE_DEEP"],
+                "affects_from_stage": "RESEARCH",
+                "evidence_ref": "owner-instruction://full-universe",
+                "source_kind": "USER_EXPLICIT",
+            }],
+        },
+    }
+    outputs = {"research_package": {"topic": "broad-only research fixture"}}
+    assert portfolio_coordinator._has_full_universe_requirement(state) is False
+    assert portfolio_coordinator._stage_payload(
+        {"last_stage_result": {"stage_outputs": outputs}},
+        stage="RESEARCH",
+        state=state,
+    ) == outputs
+
+
+def test_standalone_runtime_does_not_reconcile_unrequested_deep_universe(monkeypatch):
+    _, content, blob_sha, path, candidate = _portfolio_research_artifact()
+    candidate["required_outputs"] = ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"]
+    captured = []
+
+    def forbidden_model_validate(cls, value):
+        captured.append(value)
+        raise AssertionError("unrequested Deep universe must not be validated")
+
+    monkeypatch.setattr(
+        ResearchPackage, "model_validate", classmethod(forbidden_model_validate),
+    )
+    monkeypatch.setattr(
+        standalone_runtime,
+        "require_retained_universe_reconciliation",
+        lambda *args: (_ for _ in ()).throw(
+            AssertionError("unrequested Deep universe must not be reconciled")
+        ),
+    )
+
+    result = standalone_runtime._verify_stage_bytes(
+        candidate,
+        lambda requested: (
+            {"content": content, "blob_sha": blob_sha}
+            if requested == path else None
+        ),
+    )
+
+    assert captured == []
+    assert result["retained_universe_reconciliation"] is None

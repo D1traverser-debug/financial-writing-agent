@@ -23,8 +23,11 @@ def test_explicit_financial_system_review_has_durable_current_owner_ref():
     assert (ROOT / assessment["review_ref"]).is_file()
     assert assessment["existing_task_ref"].endswith("/STATE.json")
     assert _json(assessment["existing_task_ref"])["status"] == "IN_PROGRESS"
-    assert "NO_ACTION_REQUIRED_TO_MERGE_PR_67" in assessment["user_action_now"]
-    assert "Remaining external actions" in assessment["user_action_now"]
+    assert "owner explicitly reopened CAOS governance integration on 2026-11-15" in assessment["user_action_now"]
+    assert "Financial adopts only CAOS external ChatGPT-session governance" in assessment["user_action_now"]
+    assert "Do not restore the old hosted parent bridge" in assessment["user_action_now"]
+    assert "modify CAOS source" in assessment["user_action_now"]
+    assert "alter article business state" in assessment["user_action_now"]
 
 
 def test_named_system_request_does_not_route_into_a_historical_article():

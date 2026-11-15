@@ -11,7 +11,11 @@ from typing import Any
 
 from .models import DistributionMode, Stage, TaskContract
 from .schemas import PlatformInteractionPack, ResearchPackage
-from .task_requirements import TaskRequirement
+from .task_requirements import (
+    TaskRequirement,
+    active_task_scopes,
+    requirement_scopes_for_stage,
+)
 from .story_quality import AuditStatus, PublicationFitness
 from .workflow_spec import pass_target_name, require_revision_target
 
@@ -816,11 +820,21 @@ def _validate_portfolio_request(
     return shared, modes, interaction_required
 
 
-def _all_requirement_scopes(modes: list[str], interaction_required: bool) -> list[str]:
-    scopes = ["ALL", "RESEARCH", "PRIVATE_RESEARCH", *modes]
+def _portfolio_required_outputs(
+    modes: list[str], interaction_required: bool,
+) -> list[str]:
+    outputs = ["AUDIT_DOCX"]
+    if "FINANCE_DEEP" in modes:
+        outputs.append("FINANCE_DEEP_DOCX")
+    if "FINANCE_BROAD" in modes:
+        outputs.append("FINANCE_BROAD_DOCX")
     if interaction_required:
-        scopes.append("PLATFORM_INTERACTION")
-    return sorted(set(scopes))
+        outputs.append("PLATFORM_INTERACTION_PACK_DOCX")
+    return outputs
+
+
+def _all_requirement_scopes(modes: list[str], interaction_required: bool) -> list[str]:
+    return active_task_scopes(_portfolio_required_outputs(modes, interaction_required))
 
 
 def _validate_requirement_contexts(
@@ -897,29 +911,74 @@ def _validate_requirement_contexts(
 def _requirement_scopes_for_stage(
     stage: str, modes: list[str], interaction_required: bool,
 ) -> list[str]:
-    if stage in {"RESEARCH", "RESEARCH_AUDIT"}:
-        return ["ALL", "RESEARCH", "PRIVATE_RESEARCH"]
-    scopes = ["ALL", *modes]
-    if interaction_required and stage in {"DRAFT", "EDITORIAL_AUDIT"}:
-        scopes.append("PLATFORM_INTERACTION")
-    return sorted(set(scopes))
+    return requirement_scopes_for_stage(
+        stage, _portfolio_required_outputs(modes, interaction_required),
+    )
+
+
+_REQUIREMENT_STAGE_ORDER = {
+    "RESEARCH": 0,
+    "EDITORIAL": 1,
+    "TITLE": 2,
+    "DRAFT": 3,
+    "DELIVERY": 4,
+}
 
 
 def _requirement_contexts_for_pass(
-    requirement_contexts: Mapping[str, Any] | None, scope: str,
+    requirement_contexts: Mapping[str, Any] | None,
+    scope: str,
+    *,
+    stage: str,
+    modes: list[str],
+    interaction_required: bool,
 ) -> dict[str, Any] | None:
     if requirement_contexts is None:
         return None
+    effective_stage = {
+        "RESEARCH_AUDIT": "RESEARCH",
+        "EDITORIAL_AUDIT": "DRAFT",
+    }.get(stage, stage)
+    if effective_stage not in _REQUIREMENT_STAGE_ORDER:
+        raise WritingPassExecutionError(
+            f"PORTFOLIO_REQUIREMENT_CONTEXT_STAGE_UNSUPPORTED:{stage}"
+        )
     if scope == "SHARED":
-        names = ("ALL", "RESEARCH", "PRIVATE_RESEARCH")
+        names = ["ALL", "RESEARCH", "PRIVATE_RESEARCH", *modes]
+        if interaction_required:
+            names.append("PLATFORM_INTERACTION")
+        include_empty = {"ALL", "RESEARCH", "PRIVATE_RESEARCH"}
+        effective_stage = "RESEARCH"
     elif scope == "PLATFORM_INTERACTION":
-        names = ("ALL", "PLATFORM_INTERACTION")
+        names = ["ALL", "PLATFORM_INTERACTION"]
+        include_empty = {"ALL", "PLATFORM_INTERACTION"}
     else:
-        names = ("ALL", scope)
-    return {
-        name: deepcopy(requirement_contexts[name])
-        for name in names if name in requirement_contexts
-    }
+        names = ["ALL", scope]
+        include_empty = {"ALL", scope}
+    cutoff = _REQUIREMENT_STAGE_ORDER[effective_stage]
+    selected: dict[str, Any] = {}
+    for name in names:
+        raw = requirement_contexts.get(name)
+        if not isinstance(raw, Mapping):
+            continue
+        due_and_prior = [
+            deepcopy(item)
+            for item in raw.get("requirements", [])
+            if isinstance(item, Mapping)
+            and _REQUIREMENT_STAGE_ORDER.get(str(item.get("affects_from_stage")), 99) <= cutoff
+            and (
+                name == "ALL"
+                or (
+                    "ALL" not in item.get("scopes", [])
+                    and name in item.get("scopes", [])
+                )
+            )
+        ]
+        if name in include_empty or due_and_prior:
+            projected = deepcopy(dict(raw))
+            projected["requirements"] = due_and_prior
+            selected[name] = projected
+    return selected
 
 
 def _due_requirements_for_stage(
@@ -1489,7 +1548,10 @@ def execute_portfolio_stage(
             requirement_digest=working["requirement_digest"],
         )
     stage_contexts = (
-        _requirement_contexts_for_pass(contexts, "SHARED")
+        _requirement_contexts_for_pass(
+            contexts, "SHARED", stage=stage, modes=modes,
+            interaction_required=interaction_required,
+        )
         if contexts is not None and stage in {"RESEARCH", "RESEARCH_AUDIT"}
         else None
     )
@@ -1525,7 +1587,7 @@ def execute_portfolio_stage(
         }
         active_ids = {
             item["requirement_id"]
-            for scope in ("ALL", "RESEARCH", "PRIVATE_RESEARCH")
+            for scope in _all_requirement_scopes(modes, interaction_required)
             for item in (contexts or {}).get(scope, {}).get("requirements", [])
         }
         if "full_universe_research_pool" in active_ids:
@@ -1556,7 +1618,10 @@ def execute_portfolio_stage(
             branch = {
                 **shared, **products[mode], "product_mode": mode,
             }
-            selected_contexts = _requirement_contexts_for_pass(contexts, mode)
+            selected_contexts = _requirement_contexts_for_pass(
+                contexts, mode, stage=stage, modes=modes,
+                interaction_required=interaction_required,
+            )
             if selected_contexts is not None:
                 branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(
@@ -1597,7 +1662,10 @@ def execute_portfolio_stage(
                 })
         if interaction is not None:
             branch = {**shared, **interaction, "product_scope": "PLATFORM_INTERACTION"}
-            selected_contexts = _requirement_contexts_for_pass(contexts, "PLATFORM_INTERACTION")
+            selected_contexts = _requirement_contexts_for_pass(
+                contexts, "PLATFORM_INTERACTION", stage=stage, modes=modes,
+                interaction_required=interaction_required,
+            )
             if selected_contexts is not None:
                 branch["task_requirement_contexts"] = selected_contexts
             _invoke_pass(

@@ -314,3 +314,16 @@ The corresponding architecture/evidence source is `evals/FINANCIAL_GOAL_METHOD_G
 The engineering test suite is a necessary but **insufficient** acceptance gate. A valid original user source hash does not prove that an LLM-derived requirement matches the actual user's intent. Requirement mutations are blocked unless their exact change digest is confirmed through a provider-attested owner semantic decision; nonbinding ideas stay nonbinding. The independent Financial client, real user-message provider, real GitHub CAS, independent reviewer and one-main branch hygiene are external release gates; their absence means NOT_READY, even with 100% engineering tests. See `evals/FINANCIAL_INDEPENDENT_ACCEPTANCE_REAUDIT_20261112.md` and `financial_writing_agent/acceptance_gates.py`. Current private ChatGPT Skill creation is not proof of actual plugin installation.
 
 Before claiming completion or asking the user whether a requirement was remembered, `standalone_runtime.observe_article` must expose the current per-requirement progress projection from the single owner state. It includes the original user instruction, stage due, admitted evidence, pending stage work and missing Word outputs. It never promotes an execution receipt or mock review into semantic/user acceptance.
+
+
+### Requirement scope and stage binding (2026-11-16)
+
+A task requirement is applicable only when both its scope and affected stage match the task's immutable output contract. Active product scopes derive from `required_outputs`; an unrequested Deep, Broad or platform-interaction scope must not block a task that does not produce that output.
+
+The stage projection is canonical in `financial_writing_agent.task_requirements` and is shared by the owner aggregate and portfolio coordinator:
+- RESEARCH: ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope. This is deliberate: shared research must receive a Deep-only or Broad-only requirement when it affects RESEARCH.
+- EDITORIAL and TITLE: ALL plus requested Deep/Broad scopes.
+- DRAFT and EDITORIAL_AUDIT: ALL plus requested product scopes, including platform interaction.
+- DELIVERY: ALL, DELIVERY and requested product scopes.
+
+Each product pass receives ALL plus its own scope, with requirements effective at or before that stage. Shared research receives only product-scoped requirements that affect RESEARCH; later-stage requirements are not prematurely imposed. Owner requirement satisfaction and portfolio-stage satisfaction must return the same requirement IDs for the same task and stage. New requirement mutations reject scopes not represented in the requested outputs and reject active scope/stage pairs for which no corresponding pass or delivery stage exists. The `full_universe_research_pool` typed research-package gate is active only when its scope is active in the task.

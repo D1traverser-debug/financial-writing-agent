@@ -34,7 +34,7 @@ def _requirement(requirement_id, scopes, stage):
 def _contexts(digest, requirements):
     scopes = (
         "ALL", "RESEARCH", "PRIVATE_RESEARCH",
-        "FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION",
+        "FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION", "DELIVERY",
     )
     result = {}
     for scope in scopes:
@@ -73,6 +73,7 @@ def test_every_shared_pass_receives_exact_scoped_requirement_contexts():
     requirements = [
         _requirement("general-research", ["ALL"], "RESEARCH"),
         _requirement("private-research", ["PRIVATE_RESEARCH"], "RESEARCH"),
+        _requirement("deep-research", ["FINANCE_DEEP"], "RESEARCH"),
         _requirement("deep-editorial", ["FINANCE_DEEP"], "EDITORIAL"),
     ]
     context = _start(requirements)
@@ -97,12 +98,26 @@ def test_every_shared_pass_receives_exact_scoped_requirement_contexts():
                 "result": "SATISFIED",
                 "evidence_refs": ["source://private"],
             },
+            {
+                "requirement_id": "deep-research",
+                "result": "SATISFIED",
+                "evidence_refs": ["source://deep"],
+            },
         ],
     )
     assert seen
     assert all(item[1] is not None for item in seen)
-    assert all(set(item[1]) == {"ALL", "RESEARCH", "PRIVATE_RESEARCH"} for item in seen)
-    assert context["stage_receipts"][0]["requirement_satisfaction"][0]["requirement_id"] == "general-research"
+    assert all(
+        set(item[1]) == {"ALL", "RESEARCH", "PRIVATE_RESEARCH", "FINANCE_DEEP"}
+        for item in seen
+    )
+    deep_context = seen[0][1]["FINANCE_DEEP"]["requirements"]
+    assert [item["requirement_id"] for item in deep_context] == ["deep-research"]
+    satisfied = {
+        item["requirement_id"]
+        for item in context["stage_receipts"][0]["requirement_satisfaction"]
+    }
+    assert satisfied == {"general-research", "private-research", "deep-research"}
     validate_portfolio_context(json.loads(json.dumps(context)))
 
 
@@ -240,7 +255,7 @@ def test_failed_review_blocks_context_until_owner_resume_and_then_restarts_same_
 
 def test_full_universe_requirement_requires_a_typed_research_package():
     requirement = _requirement(
-        "full_universe_research_pool", ["RESEARCH"], "RESEARCH",
+        "full_universe_research_pool", ["FINANCE_DEEP"], "RESEARCH",
     )
     context = _start([requirement])
     with pytest.raises(

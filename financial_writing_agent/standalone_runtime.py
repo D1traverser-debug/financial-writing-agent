@@ -29,6 +29,7 @@ from .method_governance import (
     admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
+from .task_requirements import requirement_applies_to_task
 from .provider_attestation import (
     verify_action_authorization, verify_action_effect_attestation,
     verify_method_action_authorization, verify_persisted_action_authorization,
@@ -319,13 +320,15 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
 
     reconciliation = None
     portfolio_stage_artifact = None
-    active_ids = {
-        item.get("requirement_id")
-        for item in candidate.get("task_requirement_authority", {}).get("active_requirements", [])
-        if isinstance(item, Mapping)
-    }
+    active_requirements = candidate.get("task_requirement_authority", {}).get("active_requirements", [])
     full_universe_required = (
-        key == "RESEARCH" and "full_universe_research_pool" in active_ids
+        key == "RESEARCH"
+        and any(
+            isinstance(item, Mapping)
+            and item.get("requirement_id") == "full_universe_research_pool"
+            and requirement_applies_to_task(item, candidate.get("required_outputs", []))
+            for item in active_requirements
+        )
     )
     has_portfolio_context = bindings.get("portfolio_context_ref") is not None
 
