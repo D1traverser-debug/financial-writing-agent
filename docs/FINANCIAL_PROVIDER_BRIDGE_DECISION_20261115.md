@@ -7,7 +7,7 @@
 
 ## 1. Problem statement
 
-The current private ChatGPT release is Skill-only (0.1.2). Its package has no hosted MCP/Python action endpoint. The Skill can guide model reasoning, but it cannot invoke Python functions in financial_writing_agent.standalone_runtime or portfolio_coordinator.
+The current private ChatGPT release is Skill-only (0.1.3). Its package has no hosted MCP/Python action endpoint. The Skill can guide model reasoning, but it cannot invoke Python functions in financial_writing_agent.standalone_runtime or portfolio_coordinator.
 
 The connected GitHub connector provides repository operations. It does not execute the Financial admission runtime, authenticate the semantic owner intent, issue provider attestations, or create the atomic owner-state/effect-receipt bundle through that runtime. A Git commit SHA/CAS is concurrency evidence, not proof that the owner approved the exact semantic action.
 
@@ -71,6 +71,7 @@ No tool may report a stage as persisted or complete without provider readback an
 ## 5. Deployment and external gates
 
 - The connected DigitalOcean account returned zero droplets. This does not rule out other hosting, but no existing droplet was available through that connection.
+- The Plugin Creator guide's default Sites MCP hosting path is not available in the current tool catalog: neither the Sites skill nor its Site MCP server reference is present. Do not substitute an unapproved host.
 - No hosting target, domain, OAuth app, GitHub App installation or provider signing key is currently verified.
 - The GitHub branch-protection endpoint is not readable through the current integration (403); the ruleset read returned no rulesets. Main-branch protection therefore remains OPEN, not certified absent or present.
 - The provider must not be deployed with write credentials until owner identity, branch protection, least-privilege GitHub App permissions, secret storage and recovery behavior are verified.

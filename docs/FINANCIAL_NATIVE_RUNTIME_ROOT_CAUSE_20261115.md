@@ -1,67 +1,105 @@
 # Financial Writing native-runtime root cause and continuation record
 
 **Date:** 2026-11-15  
-**Scope:** Financial Writing repository only. No CAOS code, configuration, PR, plugin assets or runtime were changed.  
-**Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Verified candidate commit:** `aee8461abbe0aa87837854ecc55e4b55bcb563d9`  
-**Exact-head CI run:** [43637154181](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43637154181) — SUCCESS  
+**Scope:** Financial Writing repository and its private ChatGPT Skill package only. No CAOS code, configuration, PR, plugin assets or runtime were modified.  
+**Candidate branch:** repair/financial-requirement-bound-owner-stage-coordinator-20261114  
+**Code/test head before this documentation commit:** 4972ad719aced6c3b5bcef818b8310db3fb86f77  
+**Latest fully green CI after the PR secret-isolation fix:** [43682023560](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682023560) — SUCCESS on 7ecf69044cc74622ceb0480c02c575cdc15aa862.  
 **Open candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — DRAFT, not merged.
 
-## 1. What was verified
+## 1. Engineering evidence and its boundary
 
-The exact-head CI run completed all 19 workflow steps successfully. The measured Python line coverage was 85.9474% (6,636 of 7,721 statements). The run included unit/trajectory/hostile tests, exact-head verification, whole-owner and two-revision mutation admission, whole-tree audit, executable contract evaluations, static single-owner audit, standalone wheel installation, DOCX render smoke, four synthetic Word product renders, and a negative-case business replay.
+The latest fully green run after the CI security correction completed all 19 workflow steps:
+- 675 tests passed.
+- Total Python statement coverage: 88% (7,731 statements; 961 uncovered).
+- Portfolio Coordinator: 88%.
+- Standalone Runtime: 86%.
+- Writing Kernel: 80%.
+- The run included the PR CI secret-isolation regression test, whole-owner/two-revision admission checks, whole-tree inventory, executable contract evaluations, standalone wheel installation, DOCX render smoke, four synthetic Word-product renders and negative-case business replay.
 
-This is engineering evidence only. It is not evidence that the native ChatGPT client invoked the Python admission runtime, that a live provider signed an action, that a real article was produced, or that a separate editor accepted it.
+This run is on commit 7ecf69044, not on the current code/test head 4972ad7. Subsequent changes add the hosted-provider requirement to the machine contracts, synchronize the private plugin release to 0.1.3, and add provider-boundary consistency tests. Those subsequent changes must receive an exact-head CI run before they are treated as verified.
 
-The provider-capability probe was added to CI and its output was parsed back from the artifact. In the latest run, all three expected values were empty in the runner:
-- `FINANCIAL_PROVIDER_ATTESTATION_KEY`
-- `FINANCIAL_TRUSTED_PROVIDER_ID`
-- `FINANCIAL_OWNER_PRINCIPAL` (mapped from the GitHub secret `FINANCIAL_EXPECTED_OWNER_PRINCIPAL`)
+A green CI is engineering evidence only. It does not prove native ChatGPT invocation, a live trusted provider signature, a real article delivery, independent editorial acceptance or reader outcomes.
 
-The probe records only presence/absence; it never reads or prints secret values. The CI environment therefore did not demonstrate an available trusted signer or owner identity. This does not establish whether a secret was never created or was unavailable to that workflow; it establishes only that no value reached the process.
+## 2. Security finding: PR CI previously exposed a provider-secret path
 
-The owner-principal environment mapping was corrected to match `financial_writing_agent.provider_attestation.OWNER_ENV`. The probe now writes valid JSON and parses the exact persisted bytes back before passing.
+The earlier CI workflow checked out and executed pull-request-head code while passing FINANCIAL_PROVIDER_ATTESTATION_KEY, FINANCIAL_TRUSTED_PROVIDER_ID and FINANCIAL_OWNER_PRINCIPAL into the same job. One step then executed scripts/system_acceptance_report.py from that PR head. A malicious PR could have modified that script to read or exfiltrate any available secret. The earlier presence-only probe at run 43673501899 showed all three values were false in that runner; there is no evidence that a value was present or leaked.
 
-## 2. Root cause: native execution and provider admission are disconnected
+The candidate branch has corrected this trust boundary:
+- Removed the provider-secret probe from the pull_request CI workflow.
+- Removed all provider secret environment variables from the PR-executed acceptance script step.
+- Removed the branch-inventory step and its GITHUB_TOKEN from the PR CI workflow; branch administration remains in the separate manual/main-only workflow.
+- Added tests/test_ci_trust_boundary_20261115.py, which asserts that PR CI references no secrets or GITHUB_TOKEN and that the privileged archive workflow remains manual and main-only.
+- CI run 43682023560 passed this regression test.
 
-The current Financial plugin package is a private Skill-only package (v0.1.2). Its archive can be read back, but installation in the user's active client and a fresh-session invocation are not verified. The package has no hosted Python/MCP action endpoint.
+Do not reintroduce provider secrets into a workflow that checks out or executes PR-head code. The provider signing key belongs only in the dedicated trusted provider's managed secret store.
 
-The canonical Skill describes the 16-pass portfolio flow using `start_portfolio_context` and `execute_portfolio_stage`, then says to admit state changes through `standalone_runtime.py`. The candidate branch adds `portfolio_coordinator.run_next_portfolio_stage`, which can execute one stage, persist immutable stage/context artifacts, read them back, cross-bind their hashes and request Article Aggregate admission.
+## 3. Root cause: native execution and provider admission are disconnected
 
-These are Python functions, not native ChatGPT tools. The current native client path has the GitHub connector for repository reads/writes, but no callable provider action that executes these Python functions or produces their HMAC attestations. The GitHub connector's Git commit/CAS operations alone do not execute `current_admission`, authenticate the semantic owner intent, or create a trusted signed effect receipt.
+The private ChatGPT plugin was updated to version 0.1.3, release pluginrel_6af9484ec2b081919a2689deeb4902f3. Its exact files were read back and checked. It remains a Skill-only package: it has no hosted MCP/Python action endpoint. Plugin installation/live action execution is still NOT_VERIFIED; Plugin Management reported the app as not_installed.
 
-The Python verifier explicitly fails closed unless all of the following are supplied by a trusted provider:
-- `FINANCIAL_PROVIDER_ATTESTATION_KEY`
-- `FINANCIAL_TRUSTED_PROVIDER_ID`
-- `FINANCIAL_OWNER_PRINCIPAL`
+The canonical Skill describes the 16-pass portfolio flow using start_portfolio_context and execute_portfolio_stage. The candidate branch adds portfolio_coordinator.run_next_portfolio_stage, which can execute one stage, persist immutable stage/context artifacts, read them back, cross-bind hashes and request Article Aggregate admission.
 
-The coordinator therefore cannot be honestly called the live native runtime merely because its synthetic callback tests pass. The Skill-only package plus direct GitHub connector currently has no proven path to invoke the coordinator and signer.
+These are Python functions, not native ChatGPT tools. The connected GitHub connector can read repository content and make candidate code changes, but it does not execute the Financial admission runtime, authenticate semantic owner intent, issue provider attestations, or create the atomic owner-state/effect-receipt bundle through that runtime. A Git commit SHA/CAS is concurrency evidence, not proof of owner authorization.
 
-## 3. Current business state and assurance boundary
+The repository is public. An issue-comment command bus is rejected because private requests, research inputs and owner instructions could become public. The current GitHub integration exposes no workflow-dispatch action, so the manual archive workflow is not a native chat execution endpoint.
 
-The latest exact-head whole-system projection reports:
-- system status: `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`;
-- open gates: original goal/semantic correction, legal article graph/recovery, method knowledge lifecycle/impact, provider-authenticated runtime/CAS, native plugin client activation, independent external adversarial review, and main-branch hygiene;
-- active article `cross-border-ecommerce-20261016-v3`: still at `RESEARCH`, with 0 of 4 required Word products recorded;
-- negative-case replay: no reproduced weak assurance paths, but product readiness remains NOT_READY because live source authority, semantic support, independent editorial review and reader outcomes are unverified;
-- branch inventory: 118 branches and one open PR, observed in a zero-mutation dry run only.
+The previous machine declarations incorrectly said that a hosted service was unnecessary. The manifest, capability contract, execution contract, architecture and canonical Skill have now been aligned: Financial remains independent of any parent controller, but canonical state/method mutations require a Financial-owned hosted Provider Action.
 
-## 4. Decision
+## 4. Provider architecture decision
 
-Do not bypass signed admission with direct writes to owner `STATE.json` or the method catalog. Do not synthesize a provider HMAC in the model, accept Git CAS as owner authorization, or label a green CI run as production acceptance.
+The selected architecture is a dedicated hosted Financial Provider Action over MCP/HTTPS. It is a transport, authentication and deterministic admission adapter, not a second business controller.
 
-Keep PR #84 in Draft. Its coordinator and requirement-binding changes are a tested candidate, not a complete runtime integration. Do not merge it solely because CI is green.
+The provider must:
+- Authenticate the human through GitHub OAuth or equivalent identity proof; never trust owner identity or approval text supplied by the model.
+- Bind actions to the authenticated repository owner, exact task, operation, prior blob SHA, request digest, nonce and expiry.
+- Require a separate authenticated confirmation surface for binding requirement changes.
+- Execute the existing standalone_runtime and portfolio_coordinator code rather than duplicating business rules.
+- Use a least-privilege GitHub App, sign exact authorizations and effect receipts, commit state plus receipt atomically, reject stale ref updates and read back exact resulting blobs.
+- Keep all signing and OAuth secrets outside the repository, prompts, model-visible tool arguments and CI logs.
 
-The viable next integration is a trusted provider-side admission bridge. A GitHub Actions/GitHub App implementation may avoid a separate hosted Python/MCP service, but it still requires a real trusted identity boundary, protected trusted workflow source, least-privilege write authority, externally provisioned secrets, exact request binding, atomic owner-state/effect-receipt CAS and exact post-write readback. Any workflow handling a PR must execute trusted code from the protected base revision and treat PR content only as untrusted data; it must never execute code from the PR head with privileged secrets. The archive-only GitHub App must not be repurposed as a general business writer.
+The Plugin Creator's default Sites MCP hosting skill/server reference is not available in the current tool catalog. The connected DigitalOcean account returned zero droplets. No hosting target, domain, OAuth app, GitHub App installation or provider signing key has been verified. No paid infrastructure has been provisioned. The deployment path therefore remains OPEN pending an approved host and implementation.
 
-Before enabling writes, independently verify branch/ruleset protection and provider identity. Keep missing capabilities OPEN. The existing two-phase branch archive/prune process remains a separate administrative operation; this audit performed no branch deletion.
+The GitHub branch-protection endpoint returned 403 through the current integration and the ruleset read returned an empty list. This does not certify whether protection exists; main-branch hygiene remains OPEN. No provider write credentials may be enabled until branch-protection and the state-write policy are independently verified.
 
-## 5. Next legal work
+See docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md for the alternatives, exact provider contract, tool surface and acceptance sequence.
 
-1. Provision a dedicated least-privilege provider identity and the three required secrets outside the repository; confirm only their presence, never expose their values.
-2. Implement the trusted provider bridge against the existing `standalone_runtime` contracts, with replay, stale-SHA, wrong-actor, wrong-task, altered-payload, partial-write, timeout-after-commit and exact-readback tests.
-3. Verify the native Financial Skill is installed and invoke it in a fresh ChatGPT session against a real provider action; record the exact provider and state/effect receipts.
-4. Only after the action path works, run the real active article through its actual stage graph. Preserve its existing task requirements; do not publish or silently alter requirements.
-5. Obtain independent editorial/business review and actual reader/delivery evidence. Keep branch archive/prune and main protection verification separate.
+## 5. Current business state and immutable task requirements
 
-**Stop condition:** no system-completion claim until the live provider, native client, real article, independent review and remaining external gates have evidence at the exact accepted main revision.
+The active article remains:
+- Task: cross-border-ecommerce-20261016-v3.
+- State path: workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json.
+- State blob SHA at the prior observation: 17ae95d71d6147a26b90a13536374de15d90c1be.
+- Current stage at the prior observation: RESEARCH; status IN_PROGRESS.
+- Required Word products: AUDIT_DOCX, FINANCE_DEEP_DOCX, FINANCE_BROAD_DOCX and PLATFORM_INTERACTION_PACK_DOCX.
+- Recorded delivery products: 0 of 4.
+
+Requirement revision 1 has digest 641bfaee46fbce8b5a3c363a54cd364f1c318bca5102ebe70001d968302051dd. Preserve both binding requirements:
+1. Build a complete retained A-share cross-border-ecommerce research pool from multiple current concept/economic sources; deduplicate by ticker; verify inclusion; classify every retained company by economic role; compare directness, business purity, financial realization, event transmission and reversal conditions within material sub-segments.
+2. FINANCE_DEEP must visibly carry the complete retained company universe. Material companies require explicit within-segment comparison. Weak/incidental names may be grouped compactly only with an explicit reason; they must not silently disappear.
+
+The prior V2 package described 174 companies and used 2026-10-16 as its as-of date. It is historical input, not current research authority. The negative replay rejected it as stale. No current news, policy, constituent list, filings or company financial evidence was revalidated by CI.
+
+## 6. Whole-system acceptance remains NOT READY
+
+Seven gates remain OPEN:
+- Original goal and semantic correction.
+- Legal article graph and recovery.
+- Method knowledge CRUD and impact.
+- Provider-authenticated runtime CAS.
+- Native Financial plugin client activation.
+- Independent external adversarial review.
+- Financial main-branch hygiene.
+
+The negative replay reproduced no weak-assurance bypass paths. This is safety evidence, not successful business delivery.
+
+## 7. Next legal sequence
+
+1. Obtain an explicit host/platform and cost decision; do not provision paid compute or a domain without approval.
+2. Implement and test the hosted Financial Provider Action against the existing standalone_runtime contracts.
+3. Verify owner OAuth, least-privilege GitHub App installation, branch protection, secret storage, atomic CAS and exact readback.
+4. Connect/install the companion ChatGPT action and prove invocation in a fresh session.
+5. Only then resume the real article from its admitted state, revalidate all current sources and the complete retained company universe, produce all four Word products and obtain independent editorial/reader evidence.
+6. Keep PR #84 in Draft. Do not merge solely because CI is green. Do not delete branches or modify CAOS.
+
+**Stop condition:** no system-completion claim until the live provider, native client, real article, independent review and remaining gates have verifiable evidence at an accepted main revision.

@@ -1,76 +1,67 @@
 # Financial Writing continuation snapshot
 
 **Snapshot date:** 2026-11-15  
-**Repository scope:** `D1traverser-debug/financial-writing-agent` only.  
+**Repository scope:** D1traverser-debug/financial-writing-agent only.  
 **CAOS boundary:** no CAOS repository, code, configuration, PR, plugin asset or runtime was modified.  
-**Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Latest code-and-test head verified:** `2770f3d1282e039f8fbb37f60bd63926cd960743`  
-**Exact-head CI:** [43673501899](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43673501899) — SUCCESS  
+**Candidate branch:** repair/financial-requirement-bound-owner-stage-coordinator-20261114  
+**Current code/test head before this documentation commit:** 4972ad719aced6c3b5bcef818b8310db3fb86f77  
+**Latest fully green CI after PR secret-isolation fix:** [43682023560](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43682023560) — SUCCESS on 7ecf69044cc74622ceb0480c02c575cdc15aa862.  
 **PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84) — OPEN, DRAFT, not merged.
 
-## 1. Engineering evidence at the verified code head
+## 1. Engineering status
 
-- 672 tests passed.
-- Total Python statement coverage: 88% (7,731 statements; 961 uncovered).
-- `financial_writing_agent/portfolio_coordinator.py`: 88%.
-- `financial_writing_agent/standalone_runtime.py`: 86%.
-- `financial_writing_agent/writing_kernel.py`: 80%.
-- CI now enforces total coverage >=85%, Portfolio Coordinator >=70%, Standalone Runtime >=80%, and Writing Kernel >=75%.
-- All 19 workflow steps passed, including exact-head checkout verification, unit/trajectory/hostile tests, provider-capability probe, whole-owner/two-revision admission checks, whole-tree inventory, contract evaluations, standalone wheel installation, DOCX render smoke, four synthetic Word-product renders, and negative-case business replay.
+The latest fully green run passed 675 tests with 88% total line coverage:
+- Portfolio Coordinator: 88%.
+- Standalone Runtime: 86%.
+- Writing Kernel: 80%.
+- All 19 CI workflow steps passed, including the PR secret-isolation regression test, whole-owner/two-revision admission checks, standalone wheel install, DOCX render smoke, four synthetic Word-product renders and negative-case replay.
 
-This proves the tested code path and synthetic test fixtures. It does not prove that ChatGPT's native client can invoke the Python coordinator, that a trusted provider signed an action, or that a real article has completed editorial acceptance.
+Important boundary: this green run is on 7ecf69044, not the current code/test head 4972ad7. The later provider-boundary machine-contract and plugin-release consistency changes require an exact-head CI run.
 
-## 2. Provider and native-client capability result
+## 2. Security boundary repaired
 
-The exact-head CI probe read only environment-variable presence and wrote/read back a JSON record. All three were false:
-- `FINANCIAL_PROVIDER_ATTESTATION_KEY`
-- `FINANCIAL_TRUSTED_PROVIDER_ID`
-- `FINANCIAL_OWNER_PRINCIPAL` (mapped from `FINANCIAL_EXPECTED_OWNER_PRINCIPAL`)
+The earlier PR CI workflow passed provider secrets to a script executed from PR-head code. The earlier presence-only probe showed all three provider values false; there is no evidence of a secret leak. The PR workflow has now been changed to receive no provider secrets and no GITHUB_TOKEN. The branch-inventory/admin dry-run remains in a separate manual/main-only workflow. Regression tests enforce this boundary; run 43682023560 passed them.
 
-No secret values were read or logged. This proves only that no values reached the workflow process; it does not prove whether the secrets were never configured or unavailable to this workflow.
+Do not place production provider secrets in PR-triggered workflows that execute candidate code.
 
-The private Financial Skill/plugin app was checked and reported `not_installed`. The package is Skill-only and does not expose a hosted action endpoint for invoking `portfolio_coordinator.run_next_portfolio_stage` or signing provider attestations. The GitHub connector can read/write repository content, but its Git commits are not a substitute for the Financial authorization verifier, atomic owner-state/effect-receipt bundle CAS, or signed effect receipt.
+## 3. Provider and plugin status
 
-The GitHub connector in this environment exposes repository GET and content/commit operations, but no workflow-dispatch or repository-secret provisioning action. The main-branch protection endpoint returned 403 (integration permission limitation); the repository rulesets endpoint returned an empty list. Therefore main-branch protection is not independently certified by this run.
+- The private Financial Skill plugin was updated from 0.1.2 to 0.1.3.
+- New release: pluginrel_6af9484ec2b081919a2689deeb4902f3.
+- Plugin source readback confirmed the synchronized manifests and updated Skill instructions.
+- The package remains Skill-only; no hosted MCP/Python action endpoint exists.
+- Plugin installation/live tool execution remains NOT_VERIFIED; Plugin Management reported not_installed.
+- The GitHub repository is public, so issue-comment command transport is rejected.
+- The connected GitHub integration has no workflow-dispatch action.
+- The Plugin Creator Sites MCP hosting skill/server reference is unavailable in the current tool catalog. The connected DigitalOcean account returned zero droplets. No paid host has been provisioned.
+- Main-branch protection is not certified: the protection endpoint returned 403 and the ruleset read returned an empty list.
 
-## 3. Actual article and immutable user requirements
+The selected architecture is a dedicated hosted Financial Provider Action over MCP/HTTPS. It must authenticate the owner, execute the existing Python admission/coordinator runtime, sign exact authorizations/effects, perform atomic GitHub CAS and exact readback. It is a transport/admission adapter, not a second business controller. See docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md.
 
-Current authoritative article state:
-- Task: `cross-border-ecommerce-20261016-v3`
-- State path: `workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json`
-- State blob SHA at this snapshot: `17ae95d71d6147a26b90a13536374de15d90c1be`
-- Current stage: `RESEARCH`; status: `IN_PROGRESS`
-- Required Word products: `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX`
-- Recorded delivery products: 0 of 4.
+## 4. Active article and immutable requirements
 
-The active task has requirement revision 1 and digest `641bfaee46fbce8b5a3c363a54cd364f1c318bca5102ebe70001d968302051dd`. Preserve both requirements:
-1. Build a complete retained A-share cross-border-ecommerce research pool from multiple current concept/economic sources; deduplicate by ticker; verify inclusion; classify every retained company by economic role; compare directness, business purity, financial realization, event transmission and reversal conditions within material sub-segments.
-2. FINANCE_DEEP must visibly carry the complete retained company universe. Material companies require explicit within-segment comparison. Weak/incidental names may be grouped compactly only with an explicit reason; they must not silently disappear.
+- Task: cross-border-ecommerce-20261016-v3.
+- State path: workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json.
+- Last observed state blob SHA: 17ae95d71d6147a26b90a13536374de15d90c1be.
+- Last observed stage/status: RESEARCH / IN_PROGRESS.
+- Required products: AUDIT_DOCX, FINANCE_DEEP_DOCX, FINANCE_BROAD_DOCX, PLATFORM_INTERACTION_PACK_DOCX.
+- Recorded delivery: 0 of 4.
+- Requirement revision: 1.
+- Requirement digest: 641bfaee46fbce8b5a3c363a54cd364f1c318bca5102ebe70001d968302051dd.
 
-The previous V2 research package described 174 companies (170 from BK1115 plus four economic-chain additions) and used an as-of date of 2026-10-16. It is historical input, not current research authority. The negative-case replay found the old research 27 days old on 2026-11-14 and rejected it as stale. As of this snapshot it is approximately 30 days old. No current news, policy, constituent list, company filings or financial evidence was revalidated by the CI replay.
+Preserve the complete retained A-share company universe in FINANCE_DEEP, with multi-source current research, ticker deduplication, economic-role classification, within-segment comparisons and explicit reasons for any grouped weak/incidental names. The old 174-company V2 research package dated 2026-10-16 is historical input only and must be revalidated before use.
 
-## 4. Whole-system acceptance remains NOT READY
+## 5. Remaining acceptance gates
 
-The exact-head acceptance artifact reports `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE` and leaves seven gates open:
-- original goal and semantic correction;
-- legal article graph and recovery;
-- method knowledge CRUD and impact;
-- provider-authenticated runtime CAS;
-- native Financial plugin client activation;
-- independent external adversarial review;
-- Financial main-branch hygiene.
+The whole-system status remains NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE. Seven gates remain OPEN: original goal/semantic correction; legal article graph/recovery; method knowledge CRUD/impact; provider-authenticated runtime CAS; native plugin activation; independent adversarial review; Financial main-branch hygiene.
 
-The negative replay reproduced no weak-assurance bypass paths. It confirmed controls that deny unauthenticated state changes, stale research, fake/unread source references, unsupported requirement satisfaction, same-session self-certification, Word delivery without render receipts, and incomplete company identifiers. That is useful safety evidence, not a successful business delivery.
+## 6. Next sequence
 
-## 5. Governance decision and next legal sequence
+1. Obtain explicit approval of a hosting target and any associated cost.
+2. Implement and test the hosted Provider Action.
+3. Verify OAuth owner identity, GitHub App least privilege, main/state-write protection, signed receipts, CAS races, replay, timeout recovery and exact readback.
+4. Connect the companion action and verify it in a fresh ChatGPT session.
+5. Resume the real article only after the provider gate passes; revalidate all current research and deliver all four Word products.
+6. Obtain independent editorial and reader/delivery evidence.
 
-1. Keep PR #84 in Draft. Do not merge solely because CI is green.
-2. Do not write owner `STATE.json`, method catalog or article stage files directly to bypass signed admission.
-3. Do not synthesize HMAC signatures in the model or treat GitHub commit SHA/CAS as semantic owner authorization.
-4. Provision a dedicated least-privilege trusted provider identity and the three required secrets outside the repository. Confirm only their presence; never expose values.
-5. Implement and independently test the provider bridge against the existing `standalone_runtime` contract: exact request binding, authenticated actor/audience/scope, freshness and nonce, stale-SHA rejection, atomic state/effect bundle CAS, timeout-after-commit recovery, and exact post-write readback.
-6. Install the native Financial Skill/action package and verify invocation in a fresh ChatGPT session against that provider bridge.
-7. Only then resume the actual article from RESEARCH, revalidate all current sources and the full retained universe, produce all four Word binaries, and obtain independent editorial and reader/delivery evidence.
-8. Treat branch archive/prune and main-branch protection verification as separate administrative work. The current branch inventory is 118 branches and one open PR, captured in `DRY_RUN__NO_MUTATION`; no branch was deleted.
-
-**Stop condition:** no production-ready or completed-system claim until provider identity, native-client invocation, current real-article delivery, independent review, and all seven acceptance gates have verifiable evidence at an accepted main revision.
+PR #84 remains Draft. No merge, branch deletion, CAOS modification, paid infrastructure provisioning or article-state mutation has occurred.
