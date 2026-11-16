@@ -178,7 +178,13 @@ def _portfolio_research_artifact():
     digest = "a" * 64
     receipt_sha = "b" * 64
     outputs = {"research_package": {"topic": "typed package fixture"}}
-    stage_result = {"stage": "RESEARCH", "stage_outputs": outputs}
+    stage_result = {
+        "stage": "RESEARCH",
+        "status": "PASS",
+        "revision_target": None,
+        "requirement_satisfaction": [],
+        "stage_outputs": outputs,
+    }
     artifact = {
         "schema_version": "1.0",
         "artifact_type": "FINANCIAL_PORTFOLIO_BUSINESS_STAGE",
@@ -324,6 +330,118 @@ def test_portfolio_stage_artifact_readback_must_match_context_and_trace():
     ):
         standalone_runtime._verify_portfolio_stage_artifact_context(
             stage_bytes, tampered_context, candidate,
+        )
+
+
+def test_portfolio_stage_review_outcome_must_match_owner_admission():
+    task_id = "task-1"
+    digest = "a" * 64
+    pass_sha = "b" * 64
+    stage = "RESEARCH_AUDIT"
+    outputs = {"research_audit_result": {"status": "REVISE"}}
+    stage_result = {
+        "stage": stage,
+        "status": "REVISE",
+        "revision_target": "RESEARCH",
+        "requirement_satisfaction": [],
+        "stage_outputs": outputs,
+    }
+    artifact = {
+        "schema_version": "1.0",
+        "artifact_type": "FINANCIAL_PORTFOLIO_BUSINESS_STAGE",
+        "task_id": task_id,
+        "stage": stage,
+        "requirement_digest": digest,
+        "owner_state_stage_before": stage,
+        "stage_result": stage_result,
+        "payload": outputs,
+        "pass_receipt_sha256s": [pass_sha],
+        "assurance": "TYPED_STAGE_OUTPUT_ENVELOPE__OWNER_ADMISSION_AND_PROVIDER_READBACK_REQUIRED",
+    }
+    path = f"workspaces/articles/{task_id}/stages/{stage}-{pass_sha}.json"
+    stage_bytes = {
+        "path": path,
+        "verified_blob_sha": "c" * 40,
+        "portfolio_stage_artifact": artifact,
+    }
+    context = {
+        "task_id": task_id,
+        "requirement_digest": digest,
+        "last_stage_result": stage_result,
+        "trace": [{"business_stage": stage, "receipt_sha256": pass_sha}],
+    }
+    candidate = {
+        "task_id": task_id,
+        "task_requirement_digest": digest,
+        "execution_receipts": [{
+            "stage": stage,
+            "input_bindings": {"review_status": "PASS"},
+        }],
+    }
+
+    with pytest.raises(
+        FinancialAdmissionError,
+        match="FINANCIAL_PORTFOLIO_STAGE_OUTCOME_OWNER_BINDING_MISMATCH",
+    ):
+        standalone_runtime._verify_portfolio_stage_artifact_context(
+            stage_bytes, context, candidate,
+        )
+
+    candidate["execution_receipts"][-1]["input_bindings"] = {
+        "review_status": "REVISE",
+        "revision_target": "RESEARCH",
+    }
+    result = standalone_runtime._verify_portfolio_stage_artifact_context(
+        stage_bytes, context, candidate,
+    )
+    assert result["owner_outcome_verified"] is True
+
+
+def test_portfolio_stage_requirement_satisfaction_must_match_owner_receipt():
+    artifact, _, blob_sha, path, candidate = _portfolio_research_artifact()
+    stage_result = {
+        **artifact["stage_result"],
+        "requirement_satisfaction": [{
+            "requirement_id": "deep-complete",
+            "result": "SATISFIED",
+            "evidence_refs": ["source-ref://deep-complete"],
+            "notes": "checked against the retained universe",
+        }],
+    }
+    artifact["stage_result"] = stage_result
+    context = {
+        "task_id": "task-1",
+        "requirement_digest": "a" * 64,
+        "last_stage_result": stage_result,
+        "trace": [{"business_stage": "RESEARCH", "receipt_sha256": "b" * 64}],
+    }
+    stage_bytes = {
+        "path": path,
+        "verified_blob_sha": blob_sha,
+        "portfolio_stage_artifact": artifact,
+    }
+    candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction"] = [{
+        "requirement_id": "deep-complete",
+        "requirement_sha256": "d" * 64,
+        "result": "SATISFIED",
+        "evidence_refs": ["source-ref://deep-complete", path],
+        "notes": "checked against the retained universe",
+    }]
+
+    result = standalone_runtime._verify_portfolio_stage_artifact_context(
+        stage_bytes, context, candidate,
+    )
+    assert result["requirement_satisfaction_count"] == 1
+
+    candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction"][0]["evidence_refs"] = [
+        "source-ref://different-evidence", path,
+    ]
+    with pytest.raises(
+        FinancialAdmissionError,
+        match="FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_OWNER_BINDING_MISMATCH",
+    ):
+        standalone_runtime._verify_portfolio_stage_artifact_context(
+            stage_bytes, context, candidate,
         )
 
 

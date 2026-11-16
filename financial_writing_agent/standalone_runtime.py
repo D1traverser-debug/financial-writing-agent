@@ -440,14 +440,18 @@ def _verify_portfolio_stage_artifact_context(
     context_value: Mapping[str, Any],
     candidate: Mapping[str, Any],
 ) -> dict[str, Any]:
-    """Cross-bind a typed stage artifact to the separately persisted context."""
+    """Cross-bind stage bytes, pass context and the admitted owner outcome."""
     artifact = stage_bytes.get("portfolio_stage_artifact")
     _require(isinstance(artifact, Mapping),
              "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_ENVELOPE_MISSING")
     receipts = candidate.get("execution_receipts", [])
     _require(isinstance(receipts, list) and bool(receipts),
              "FINANCIAL_PORTFOLIO_STAGE_OWNER_RECEIPT_MISSING")
-    owner_stage_before = receipts[-1].get("stage")
+    owner_receipt = receipts[-1]
+    owner_stage_before = owner_receipt.get("stage")
+    owner_bindings = owner_receipt.get("input_bindings", {})
+    _require(isinstance(owner_bindings, Mapping),
+             "FINANCIAL_PORTFOLIO_STAGE_OWNER_BINDINGS_MISSING")
     last_stage_result = context_value.get("last_stage_result")
     trace = context_value.get("trace", [])
     expected_pass_receipts = [
@@ -465,18 +469,97 @@ def _verify_portfolio_stage_artifact_context(
         and artifact.get("requirement_digest") == context_value.get("requirement_digest")
         and artifact.get("stage_result") == last_stage_result
         and isinstance(last_stage_result, Mapping)
+        and last_stage_result.get("stage") == owner_stage_before
         and artifact.get("payload") == last_stage_result.get("stage_outputs")
         and artifact.get("pass_receipt_sha256s") == expected_pass_receipts
         and bool(expected_pass_receipts),
         "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_CONTEXT_CROSS_BINDING_MISMATCH",
     )
+
+    # A correctly hashed artifact is not enough: the owner transition must
+    # admit the exact PASS/REVISE/FAIL decision recorded by the stage executor.
+    owner_review_status = owner_bindings.get("review_status")
+    expected_status = owner_review_status if owner_review_status is not None else "PASS"
+    expected_revision_target = owner_bindings.get("revision_target")
+    _require(
+        expected_status in {"PASS", "REVISE", "FAIL"}
+        and last_stage_result.get("status") == expected_status
+        and last_stage_result.get("revision_target") == expected_revision_target,
+        "FINANCIAL_PORTFOLIO_STAGE_OUTCOME_OWNER_BINDING_MISMATCH",
+    )
+    if owner_review_status is None:
+        _require(
+            expected_revision_target is None,
+            "FINANCIAL_PORTFOLIO_STAGE_OUTCOME_OWNER_BINDING_MISMATCH",
+        )
+
+    # Requirement satisfaction must be the same evidence set in the persisted
+    # context and owner receipt. The owner receipt additionally binds the exact
+    # stage artifact path, so a caller cannot substitute another evidence set.
+    stage_path = stage_bytes.get("path")
+    _require(
+        isinstance(stage_path, str) and bool(stage_path.strip()),
+        "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_PATH_MISSING",
+    )
+    context_satisfaction = last_stage_result.get("requirement_satisfaction", [])
+    owner_satisfaction = owner_bindings.get("task_requirement_satisfaction", [])
+    _require(
+        isinstance(context_satisfaction, list) and isinstance(owner_satisfaction, list),
+        "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+    )
+    expected_satisfaction: list[dict[str, Any]] = []
+    for item in context_satisfaction:
+        _require(
+            isinstance(item, Mapping)
+            and isinstance(item.get("requirement_id"), str)
+            and bool(item.get("requirement_id", "").strip())
+            and item.get("result") == "SATISFIED"
+            and isinstance(item.get("evidence_refs"), list)
+            and bool(item.get("evidence_refs"))
+            and all(isinstance(ref, str) and ref.strip() for ref in item["evidence_refs"]),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
+        refs = [ref.strip() for ref in item["evidence_refs"]]
+        if stage_path not in refs:
+            refs.append(stage_path)
+        expected_satisfaction.append({
+            "requirement_id": item["requirement_id"],
+            "result": "SATISFIED",
+            "evidence_refs": refs,
+            "notes": str(item.get("notes", "")).strip(),
+        })
+    observed_satisfaction: list[dict[str, Any]] = []
+    for item in owner_satisfaction:
+        _require(
+            isinstance(item, Mapping)
+            and isinstance(item.get("requirement_id"), str)
+            and item.get("result") == "SATISFIED"
+            and isinstance(item.get("evidence_refs"), list)
+            and all(isinstance(ref, str) and ref.strip() for ref in item["evidence_refs"]),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
+        observed_satisfaction.append({
+            "requirement_id": item["requirement_id"],
+            "result": "SATISFIED",
+            "evidence_refs": [ref.strip() for ref in item["evidence_refs"]],
+            "notes": str(item.get("notes", "")).strip(),
+        })
+    expected_satisfaction.sort(key=lambda item: item["requirement_id"])
+    observed_satisfaction.sort(key=lambda item: item["requirement_id"])
+    _require(
+        observed_satisfaction == expected_satisfaction,
+        "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_OWNER_BINDING_MISMATCH",
+    )
     return {
-        "path": stage_bytes.get("path"),
+        "path": stage_path,
         "blob_sha": stage_bytes.get("verified_blob_sha"),
         "stage": owner_stage_before,
         "pass_receipt_count": len(expected_pass_receipts),
-        "assurance": "EXACT_PROVIDER_BYTES_AND_CONTEXT_CROSS_BINDING",
+        "owner_outcome_verified": True,
+        "requirement_satisfaction_count": len(expected_satisfaction),
+        "assurance": "EXACT_PROVIDER_BYTES__CONTEXT__OWNER_OUTCOME_CROSS_BINDING",
     }
+
 
 
 def _verify_requirement_satisfaction_sources(

@@ -3,7 +3,10 @@ from __future__ import annotations
 import pytest
 
 from financial_writing_agent import current_admission
-from financial_writing_agent.current_admission import CurrentAdmissionError
+from financial_writing_agent.current_admission import (
+    CurrentAdmissionError,
+    _normalize_requirement_satisfaction,
+)
 from financial_writing_agent.task_requirements import (
     active_requirements_for_scope,
     active_task_scopes,
@@ -204,3 +207,32 @@ def test_full_universe_requirement_is_active_only_when_its_product_is_requested(
     assert not requirement_applies_to_task(
         requirement, ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"],
     )
+
+
+@pytest.mark.parametrize(
+    "evidence_refs",
+    [
+        [""],
+        [None],
+        [7],
+        ["same-ref", "same-ref"],
+    ],
+)
+def test_owner_requirement_satisfaction_rejects_invalid_or_duplicate_evidence_refs(evidence_refs):
+    authority = _authority([
+        _requirement("research-proof", ["FINANCE_DEEP"], "RESEARCH"),
+    ])
+    state = {
+        "required_outputs": _outputs(),
+        "task_requirement_authority": authority,
+    }
+    with pytest.raises(CurrentAdmissionError):
+        _normalize_requirement_satisfaction(
+            state,
+            "RESEARCH",
+            [{
+                "requirement_id": "research-proof",
+                "result": "SATISFIED",
+                "evidence_refs": evidence_refs,
+            }],
+        )

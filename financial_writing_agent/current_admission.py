@@ -251,14 +251,23 @@ def _normalize_requirement_satisfaction(
         _require(requirement_id not in seen, f"duplicate requirement_satisfaction requirement_id: {requirement_id}")
         _require(entry.get("result") == "SATISFIED", f"requirement {requirement_id} must be SATISFIED before leaving {stage}")
         evidence_refs = entry.get("evidence_refs")
-        _require(isinstance(evidence_refs, list) and evidence_refs and all(bool(str(ref).strip()) for ref in evidence_refs), f"requirement {requirement_id} requires evidence_refs")
+        _require(
+            isinstance(evidence_refs, list)
+            and bool(evidence_refs)
+            and all(isinstance(ref, str) and bool(ref.strip()) for ref in evidence_refs),
+            f"requirement {requirement_id} requires nonempty string evidence_refs",
+        )
+        _require(
+            len(evidence_refs) == len(set(evidence_refs)),
+            f"requirement {requirement_id} evidence_refs must be unique",
+        )
         requirement = due_by_id[requirement_id]
         normalized.append(
             {
                 "requirement_id": requirement_id,
                 "requirement_sha256": _canonical_digest(requirement),
                 "result": "SATISFIED",
-                "evidence_refs": [str(ref).strip() for ref in evidence_refs],
+                "evidence_refs": [ref.strip() for ref in evidence_refs],
                 "notes": str(entry.get("notes", "")).strip(),
             }
         )
