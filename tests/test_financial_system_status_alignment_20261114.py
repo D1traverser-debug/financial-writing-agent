@@ -170,3 +170,16 @@ def test_current_main_head_ci_is_recorded_separately_from_last_code_merge():
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == stability["latest_main_head_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == stability["latest_main_head_ci_run"]
 
+def test_current_integration_status_candidate_has_exact_code_head_ci_and_stack_boundary():
+    index = _json("evals/EVOLUTION_INDEX.json")
+    candidate = index["current_integration_status_candidate"]
+    assert candidate["pull_request"] == 87
+    assert candidate["status"] == "DRAFT_PR__CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__STACKED_ON_PR86"
+    assert candidate["candidate_code_head_sha"] == "09d0d1ab43e2ce0c61337038ea640e08caf99f61"
+    assert candidate["exact_code_head_ci_run"] == 43840533953
+    assert candidate["exact_code_head_ci_conclusion"] == "success"
+    assert candidate["tests_passed"] == 734
+    assert candidate["source_line_coverage_percent"] == 88
+    assert candidate["base_branch"] == "repair/platform-interaction-quality-regression-20261116"
+    assert "STACKED_ON_PR86__NOT_MERGEABLE_UNTIL_BASE_PR_INTEGRATED" in candidate["limitations"]
+

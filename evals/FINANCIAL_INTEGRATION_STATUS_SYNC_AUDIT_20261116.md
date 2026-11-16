@@ -56,3 +56,8 @@ Current Financial main head is `d49c4eb7cf008bfdf1d88339d69d2353aa16ad07`; [4383
 - Financial main branch protection/hygiene remains open.
 
 The status synchronization repair does not convert engineering evidence into article-quality or product-readiness evidence.
+
+
+## 7. Candidate verification for the status-synchronization repair
+
+Draft PR #87, stacked on PR #86, records the correction without changing main. Its code candidate head is `09d0d1ab43e2ce0c61337038ea640e08caf99f61`; exact code-head CI [43840533953](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43840533953) passed 734 tests at 88% coverage. The full tree inventory reported 343 tracked files, 133 Python AST parses, 54 JSON parses, 55,776 decoded text lines, zero warnings/errors. The candidate remains Draft pending independent review and PR #86 integration.

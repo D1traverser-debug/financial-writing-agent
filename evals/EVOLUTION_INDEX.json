@@ -15,7 +15,8 @@
     "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
     "evals/PROBLEM_EVOLUTION_JOURNAL.md",
     "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
-    "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md"
+    "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+    "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -147,7 +148,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Treat Financial Writing as a system-wide product. PR #84 requirement-scope/dataflow repair and PR #85 CAOS-governance migration are merged to Financial main; exact PR/main CI receipts are recorded. PR #86 is a Draft quality-evaluator candidate whose exact head CI passes, but independent review and real Interaction quality evidence remain open. Continue with real article tasks across multiple topic families and all three products using the canonical workflow; do not infer editorial quality from CI. The Financial Provider Action is NOT_DEPLOYED, so no canonical article-state or method-catalog writes may be claimed. Do not modify CAOS.",
+    "next_legal_phase": "Treat Financial Writing as a system-wide product. PR #84 requirement-scope/dataflow repair and PR #85 CAOS-governance migration are merged to Financial main with exact CI receipts. PR #86 is a Draft quality-evaluator candidate with exact-head CI pass; PR #87 is a Draft status-synchronization candidate stacked on PR #86, also with exact code-head CI pass. Both require independent review; PR #87 must be retargeted to main only after PR #86 is integrated. Continue real article tasks across multiple topic families and all three products; do not infer editorial quality from CI. Financial Provider Action remains NOT_DEPLOYED, so no canonical article-state or method-catalog writes may be claimed. Do not modify CAOS.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -949,5 +950,40 @@
       "NO_LIVE_ARTICLE_EXECUTION_OR_READER_ACCEPTANCE"
     ],
     "next_legal_step": "INDEPENDENT_REVIEW_OF_PR86_AND_BUILD_REAL_INTERACTION_REJECTION_PLUS_TWO_HELDOUT_TOPIC_FAMILIES__NO_QUALITY_PROMOTION_FROM_SYNTHETIC_TESTS"
+  },
+  "current_integration_status_candidate": {
+    "id": "FIN-CURRENT-INTEGRATION-STATUS-SYNC-20261116",
+    "status": "DRAFT_PR__CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__STACKED_ON_PR86",
+    "branch": "repair/current-integration-status-sync-20261116",
+    "pull_request": 87,
+    "base_branch": "repair/platform-interaction-quality-regression-20261116",
+    "base_head_sha": "355d03c99247be4a151cf89be35d405f956e4e21",
+    "candidate_code_head_sha": "09d0d1ab43e2ce0c61337038ea640e08caf99f61",
+    "exact_code_head_ci_run": 43840533953,
+    "exact_code_head_ci_conclusion": "success",
+    "tests_passed": 734,
+    "source_line_coverage_percent": 88,
+    "whole_tree_inventory": {
+      "tracked_files": 343,
+      "python_ast_parsed": 133,
+      "json_parsed": 54,
+      "decoded_text_lines": 55776,
+      "warnings": 0,
+      "errors": 0
+    },
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-06",
+    "verified": [
+      "PR84_AND_PR85_CURRENT_STATUS_SYNCHRONIZED",
+      "FINANCIAL_MANIFEST_AND_EVOLUTION_INDEX_RECEIPTS_ALIGNED",
+      "PR86_CURRENT_DRAFT_CANDIDATE_RECORDED",
+      "NEXT_LEGAL_PHASE_AND_NON_COMPLETION_STATEMENTS_CORRECTED"
+    ],
+    "limitations": [
+      "STACKED_ON_PR86__NOT_MERGEABLE_UNTIL_BASE_PR_INTEGRATED",
+      "NO_INDEPENDENT_REVIEW",
+      "PROVIDER_ACTION_NOT_DEPLOYED",
+      "NO_REAL_ARTICLE_QUALITY_OR_USER_ACCEPTANCE"
+    ],
+    "next_legal_step": "INDEPENDENT_REVIEW__THEN_RETARGET_TO_MAIN_AFTER_PR86_INTEGRATION"
   }
 }

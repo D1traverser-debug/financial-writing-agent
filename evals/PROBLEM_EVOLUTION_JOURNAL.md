@@ -767,7 +767,7 @@ Status: `CANDIDATE_FIX__FINAL_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERA
 
 ## P-20261116-06 — Current integration status snapshots drifted after PR merges (2026-11-16)
 
-Status: `CANDIDATE_FIX__LIVE_GITHUB_RECEIPTS_VERIFIED__CROSS_SURFACE_ALIGNMENT_TESTS_ADDED__CI_PENDING`
+Status: `CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__STACKED_ON_PR86`
 
 **Trigger.** Continuation state still described PR #84 as Draft/unmerged and PR #85 as CI-pending, even though both had merged to Financial main and their exact mainline CI runs had passed. This could cause repeated work and incorrect next-step selection.
 
@@ -797,3 +797,5 @@ Status: `CANDIDATE_FIX__LIVE_GITHUB_RECEIPTS_VERIFIED__CROSS_SURFACE_ALIGNMENT_T
 **Remaining OPEN.** Provider Action is NOT_DEPLOYED. Independent code review, real article execution, independent editorial review and reader acceptance remain open. No CAOS repository or runtime was modified.
 
 **Next legal action.** Continue from the synchronized current state. Independently review PR #86, then obtain real mode-specific quality evidence; do not repeat PR #84/#85 implementation or claim whole-system completion from CI.
+
+**Exact code-head verification.** PR #87 code candidate head `09d0d1ab43e2ce0c61337038ea640e08caf99f61` passed [CI run 43840533953](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43840533953): 734 tests passed, 88% Python statement coverage; Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 343 tracked files, 133 Python AST parses, 54 JSON parses, 55,776 decoded text lines, zero warnings/errors. DOCX render, four synthetic Word product/page checks and negative business replay passed. The PR remains Draft and stacked on PR #86; independent review and eventual retargeting to main remain open.
