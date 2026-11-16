@@ -60,10 +60,11 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
         "P-20261116-02",
         "P-20261116-03",
         "P-20261116-04",
+        "P-20261117-02",
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `2.4`" in journal
+    assert "Journal revision: `2.6`" in journal
     assert "DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS" in journal
     assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
     assert "CI #1034" in journal

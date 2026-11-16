@@ -1,8 +1,8 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.4`
-Updated: `2026-11-16`
+Journal revision: `2.6`
+Updated: `2026-11-17`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
 Purpose: one chronological problem/repair history for Financial maintenance; prior parent/child references are provenance only and do not create a live controller or routing dependency.
