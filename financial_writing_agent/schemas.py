@@ -121,6 +121,17 @@ class CompanyFinding(StrictModel):
         "NARRATIVE_ONLY",
         "UNCLEAR",
     ] = "UNCLEAR"
+    business_purity: Literal[
+        "HIGH", "MEDIUM", "LOW", "WEAK_OR_LABEL_ONLY", "UNRESOLVED",
+    ] = "UNRESOLVED"
+    financial_realization_status: Literal[
+        "REALIZED", "PARTIAL", "PILOT", "PLANNED",
+        "NOT_DISCLOSED", "NO_MATERIAL_REALIZATION", "UNRESOLVED",
+    ] = "UNRESOLVED"
+    financial_realization_evidence: list[str] = Field(default_factory=list)
+    event_transmission_path: list[str] = Field(default_factory=list)
+    reversal_conditions: list[str] = Field(default_factory=list)
+    evidence_refs: list[str] = Field(default_factory=list)
     benefit_path: list[str] = Field(default_factory=list)
     sensitivity_basis: list[str] = Field(default_factory=list)
     realization_horizon: str = ""
@@ -149,6 +160,22 @@ class CompanyDecisionDimension(StrictModel):
         return normalized
 
 
+class SegmentCompanyComparison(StrictModel):
+    """Within-segment comparison for a material value-chain class."""
+
+    value_chain_class: str = Field(min_length=1)
+    dimensions: list[CompanyDecisionDimension] = Field(min_length=5)
+    current_comparative_verdict: str = Field(min_length=1)
+    change_conditions: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def dimensions_are_unique(self):
+        names = [item.dimension.strip() for item in self.dimensions]
+        if len(names) != len(set(names)):
+            raise ValueError("segment comparison dimensions must be unique")
+        return self
+
+
 class CompanyDecisionMap(StrictModel):
     """Evidence-bounded company differentiation, not an actionable recommendation ranking."""
 
@@ -164,6 +191,7 @@ class CompanyDecisionMap(StrictModel):
             raise ValueError("material_companies contain duplicate canonical company identities")
         return normalized
     dimensions: list[CompanyDecisionDimension] = Field(min_length=2)
+    segment_comparisons: list[SegmentCompanyComparison] = Field(default_factory=list)
     current_comparative_verdict: str = Field(min_length=1)
     strongest_current_evidence_for: list[str] = Field(min_length=1)
     weaker_or_later_evidence_for: list[str] = Field(default_factory=list)
@@ -176,6 +204,9 @@ class CompanyDecisionMap(StrictModel):
         for dimension in self.dimensions:
             if set(dimension.company_assessments) != names:
                 raise ValueError("each company-decision dimension must assess every material company")
+        segment_classes = [item.value_chain_class.strip() for item in self.segment_comparisons]
+        if len(segment_classes) != len(set(segment_classes)):
+            raise ValueError("segment company comparisons must have unique value-chain classes")
         return self
 
 
@@ -221,8 +252,10 @@ class UniverseClassCoverage(StrictModel):
 
 class UniverseCoverage(StrictModel):
     status: UniverseCoverageStatus
+    as_of: str = ""
     classes: list[UniverseClassCoverage] = Field(default_factory=list)
     recall_sources: list[str] = Field(default_factory=list)
+    recall_source_families: list[str] = Field(default_factory=list)
     exclusions: list[UniverseExclusion] = Field(default_factory=list)
     missing_classes: list[str] = Field(default_factory=list)
     stop_reason: str = Field(min_length=1)
@@ -310,6 +343,8 @@ class ResearchCoverage(StrictModel):
     sweeps_completed: int = Field(ge=2, le=10)
     coverage_status: Literal["SATURATED", "BOUNDED_WITH_GAPS"]
     material_new_items_last_sweep: int = Field(ge=0)
+    consecutive_no_delta_sweeps: int = Field(default=0, ge=0, le=10)
+    saturation_evidence_refs: list[str] = Field(default_factory=list)
     concept_coverage: str = Field(min_length=1)
     company_coverage: str = Field(min_length=1)
     source_diversity: str = Field(min_length=1)

@@ -56,10 +56,14 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
         "P-20261015-15",
         "P-20261015-16",
         "P-20261113-01",
+        "P-20261116-01",
+        "P-20261116-02",
+        "P-20261116-03",
+        "P-20261116-04",
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `1.9`" in journal
+    assert "Journal revision: `2.4`" in journal
     assert "DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS" in journal
     assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
     assert "CI #1034" in journal
@@ -81,17 +85,24 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
     assert "514 tests passed" in journal
     assert "no current action returns `PARENT_GUIDANCE_REQUIRED`" in journal
     assert "No further private article/research writes should be made" in journal
+    assert "P-20261116-01" in journal
+    assert "689 tests passed" in journal
+    assert "6551d3a2c214460ae084bcb2924c42fdd765f01a" in journal
+    assert "543887a767a9472a11782cf6f7db5b996abd24bf" in journal
+    assert "43790509745" in journal
+    assert "701 tests passed" in journal
 
 
 def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     payload = json.loads(_read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json"))
-    assert payload["revision"] == "1.9"
+    assert payload["revision"] == "2.4"
     assert payload["status"] == "HISTORICAL_PROBLEM_JOURNAL_INDEX__NOT_CURRENT_SYSTEM_STATUS"
     assert payload["system_status_authority"] == "evals/EVOLUTION_INDEX.json"
     assert "P-20261015-15" in payload["open_items_at_2026_10_15"]
     assert "P-20261015-16" in payload["open_items_at_2026_10_15"]
-    assert payload["latest_incident_id"] == "P-20261113-01"
-    assert payload["latest_incident_ref"].endswith("#P-20261113-01")
+    assert payload["latest_incident_id"] == "P-20261116-04"
+    assert payload["latest_incident_ref"].endswith("#P-20261116-04")
+    assert {"P-20261116-01", "P-20261116-02", "P-20261116-03", "P-20261116-04"} <= set(payload["open_items_at_2026_11_16"])
     assert "executable_proactive_resolution_promotion_receipt" in payload
     assert "executable_proactive_resolution_candidate" not in payload
     receipt = payload["executable_proactive_resolution_promotion_receipt"]

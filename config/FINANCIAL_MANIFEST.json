@@ -7,7 +7,7 @@
   "repository": "D1traverser-debug/financial-writing-agent@main",
   "direct_activation": true,
   "external_parent_required": false,
-  "external_host_required": false,
+  "external_host_required": true,
   "product_requirements": "docs/product_requirements.md",
   "architecture": "docs/architecture.md",
   "execution_contract": "config/EXECUTION_CONTRACT.json",
@@ -16,7 +16,7 @@
   "current_admission": "financial_writing_agent.current_admission",
   "provider_adapter": "financial_writing_agent.standalone_runtime",
   "method_evolution_authority": "evals/EVOLUTION_INDEX.json",
-  "permission_policy": "EXPLICIT_CURRENT_CHAT_OWNER_CONFIRMATION_PLUS_GITHUB_GITDATA_CAS_AND_READBACK",
+  "permission_policy": "AUTHENTICATED_FINANCIAL_PROVIDER_ACTION__EXPLICIT_OWNER_CONFIRMATION__SIGNED_ACTION_AND_EFFECT__ATOMIC_GITHUB_CAS_AND_EXACT_READBACK",
   "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE",
   "owner_intent_provenance": "financial_writing_agent.intent_governance",
   "requirement_write_authentication": "COMPLETE_CURRENT_CONVERSATION_MESSAGE_PLUS_EXPLICIT_OWNER_CONFIRMATION_OF_NORMALIZED_MUTATION",
@@ -27,27 +27,29 @@
   "client_skill_plugin": {
     "name": "financial-writing-agent-chatgpt",
     "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-    "release_id": "pluginrel_6af72ebbaef0819187235f6772cd972f",
-    "verified": "PRIVATE_PACKAGE_UPDATED_AND_READBACK",
+    "release_id": "pluginrel_6af9da2cc32c81919f23fae88386dae3",
+    "verified": "PRIVATE_PACKAGE_CURRENT_RELEASE_0.1.4_READBACK_VERIFIED",
     "installed_or_live_tool_executed": "NOT_VERIFIED",
     "hosted_mcp_python": false,
     "required_companion_connector": "EXISTING_GITHUB_CONNECTOR_WITH_READ_WRITE_PERMISSION",
-    "custom_hosted_service_required": false,
-    "version": "0.1.2"
+    "custom_hosted_service_required": true,
+    "version": "0.1.4",
+    "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
+    "provider_action_status": "NOT_DEPLOYED"
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
-  "direct_activation_semantics": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR__NO_CUSTOM_HOSTED_SERVICE_REQUIRED",
+  "direct_activation_semantics": "CHATGPT_SKILL_PLUS_FINANCIAL_PROVIDER_ACTION_PLUS_GITHUB_CONNECTOR__HOSTED_PROVIDER_REQUIRED_FOR_CANONICAL_WRITES",
   "data_authority": "config/DATA_AUTHORITY.json",
   "chatgpt_native_runtime": {
     "orchestrator": "CHATGPT_MODEL_WITH_FINANCIAL_SKILL",
-    "persistence_provider": "CONNECTED_USER_GITHUB_CONNECTOR",
+    "persistence_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP",
     "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
     "readback_protocol": "FETCH_EXACT_COMMITTED_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BLOBS",
-    "requires_hosted_python_mcp": false,
-    "python_adapter_role": "OPTIONAL_REFERENCE_IMPLEMENTATION_AND_CI_TEST_TARGET"
+    "requires_hosted_python_mcp": true,
+    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT"
   },
-  "provider_adapter_role": "OPTIONAL_REFERENCE_NOT_ACTIVE_CHAT_RUNTIME",
+  "provider_adapter_role": "REQUIRED_TRUSTED_EXECUTION_PROVIDER__NOT_DEPLOYED",
   "provider_action_effect_receipt": {
     "state_authorization_contract_version": "1.1",
     "signed_effect_receipt_contract_version": "1.0",
@@ -82,5 +84,166 @@
     "api_dependency": false,
     "source_mutation": "FORBIDDEN",
     "business_state_owner": "FINANCIAL_WRITING_OWNER"
+  },
+  "provider_action_required": true,
+  "provider_action_endpoint": {
+    "required": true,
+    "protocol": "MCP_OVER_HTTPS",
+    "status": "NOT_DEPLOYED",
+    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md"
+  },
+  "task_requirement_scope_contract": {
+    "source": "financial_writing_agent.task_requirements",
+    "active_scope_source": "required_outputs",
+    "owner_and_portfolio_stage_projection": "SAME_CANONICAL_FUNCTION",
+    "status": "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634
+  },
+  "full_universe_research_evidence_contract": {
+    "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
+    "enforced_at": [
+      "writing_kernel",
+      "portfolio_coordinator",
+      "standalone_runtime",
+      "task_publication"
+    ],
+    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634,
+    "semantic_fact_audit_remains_external": true,
+    "trigger_requirement_ids": [
+      "full_universe_research_pool",
+      "deep_complete_retained_universe"
+    ],
+    "exact_code_head_ci_conclusion": "success",
+    "tests_passed": 720,
+    "source_line_coverage_percent": 88,
+    "source_evidence_readback": {
+      "evidence_ledger_refs_must_be_bound_to_private_research_brief": true,
+      "exact_provider_body_sha_and_recency_checked": true,
+      "recall_source_family_must_match_exact_provider_readback": true,
+      "delivery_rechecks_all_bound_refs": true
+    },
+    "private_research_versions_supported": [
+      "1.0",
+      "1.1"
+    ],
+    "legacy_1_0_delivery_freshness_rechecked": true,
+    "editorial_decision_handoff": {
+      "top_level_company_decision_map_must_match_validated_package_map": true,
+      "top_level_change_conditions_must_match_validated_package_conditions": true,
+      "enforced_at": [
+        "writing_kernel",
+        "portfolio_coordinator",
+        "standalone_runtime"
+      ]
+    }
+  },
+  "research_to_editorial_dataflow": {
+    "source": "financial_writing_agent.writing_kernel.PASS_CONTRACTS[STORY_ARCHITECTURE]",
+    "required_inputs": [
+      "publication_distillation",
+      "company_decision_map",
+      "change_conditions"
+    ],
+    "enforcement": "_invoke_pass forwards only declared required_inputs",
+    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "semantic_preservation_still_requires_story_blueprint_and_editorial_audit": true,
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634,
+    "tests_passed": 720,
+    "source_line_coverage_percent": 88,
+    "company_decision_map_bound_to_validated_research_package": true
+  },
+  "general_writing_stability": {
+    "status": "OPEN__CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_YET_VERIFIED",
+    "scope": "ALL_FINANCIAL_WRITING_TASKS",
+    "contract": "config/EXECUTION_CONTRACT.json#general_writing_stability",
+    "audit": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+    "diagnostic_historical_samples": 4,
+    "diagnostic_samples_assurance": "CHAT_SELF_REVIEW",
+    "diagnostic_samples_quality_evidence": "EMPTY",
+    "diagnostic_samples_promotion_eligible": false,
+    "quality_corpus_complete_cases": 2,
+    "complete_heldout_topic_families": 1,
+    "finance_deep_status": "DIAGNOSTIC_ONLY__SECOND_HELDOUT_TOPIC_FAMILY_REQUIRED",
+    "finance_broad_status": "UNAUTHORIZED__MODE_SPECIFIC_REJECTION_AND_HELDOUT_EVIDENCE_REQUIRED",
+    "fixed_workflow": "CANONICAL_TEN_STAGE_ARTICLE_GRAPH_AND_SHARED_INTERNAL_RESEARCH_SPINE",
+    "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
+    "no_single_article_is_system_objective": true,
+    "latest_candidate_head": "612100ec7a82a783ec5ec9141db21d2c0dc34494",
+    "latest_ci_run": 43829005407,
+    "latest_ci_conclusion": "failure",
+    "latest_ci_summary": "720 passed, 3 failed due to stale legacy assertions; current test synchronization is in progress.",
+    "last_completed_ci_head": "8ba912bda37285473d41506fb72e96a6a48722a0",
+    "publishing_portfolio": {
+      "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
+      "products": [
+        {
+          "product": "ACQUISITION_LONGFORM",
+          "mode": "FINANCE_BROAD",
+          "output": "FINANCE_BROAD_DOCX",
+          "channels": [
+            "微信公众号",
+            "头条号",
+            "百家号",
+            "网易号",
+            "企鹅号"
+          ]
+        },
+        {
+          "product": "DEEP_FINANCE_REVIEW_LONGFORM",
+          "mode": "FINANCE_DEEP",
+          "output": "FINANCE_DEEP_DOCX",
+          "channels": [
+            "韭研公社",
+            "东方财富",
+            "微信公众号"
+          ]
+        },
+        {
+          "product": "SHORT_IMAGE_TEXT_DYNAMIC_INTERACTION",
+          "mode": "PLATFORM_INTERACTION",
+          "output": "PLATFORM_INTERACTION_PACK_DOCX",
+          "channels": [
+            "微信公众号",
+            "头条号",
+            "百家号",
+            "网易号"
+          ]
+        }
+      ],
+      "shared_research": "ALL_REQUESTED_PRODUCTS_DERIVE_FROM_THE_SAME_ADMITTED_AND_AUDITED_RESEARCH_PACKAGE",
+      "short_form_fact_policy": "NO_NEW_FACTS__NO_UNAUDITED_CLAIMS__ADAPT_ONLY_HOOK_COMPRESSION_AND_INTERACTION",
+      "product_independence": "EACH_PRODUCT_MUST_SERVE_ITS_OWN_READER_AND_PLATFORM_JOB__NOT_BE_A_MECHANICAL_TRUNCATION_OF_ANOTHER_PRODUCT",
+      "quality_acceptance": "EVALUATE_EACH_REQUESTED_PRODUCT_SEPARATELY__DO_NOT_INFER_INTERACTION_QUALITY_FROM_DEEP_OR_BROAD"
+    },
+    "fixed_editorial_quality_obligations": {
+      "publication_source_privacy": "SOURCE_PROVENANCE_REMAINS_IN_RESEARCH_AND_AUDIT__NOT_PUBLICATION_PROSE_UNLESS_SOURCE_IDENTITY_IS_MATERIAL_TO_THE_CLAIM",
+      "longform_reader_funnel": "TITLE_PROMISE__OPENING_ORIENTATION_AND_EARLY_PAYOFF__SECTION_CONTINUATION__COMPLETION_PAYOFF",
+      "company_comparison": "WHEN_MULTI_COMPANY_COMPARISON_IS_MATERIAL__STATE_EVIDENCE_BOUNDED_DIFFERENCES_IN_BUSINESS_PURITY__REALIZATION_STAGE_AND_SPEED__ECONOMIC_SENSITIVITY__CERTAINTY__ADVERSE_OR_CHANGE_CONDITIONS",
+      "section_transition": "WHEN_H1_CONTAINS_LOWER_LEVEL_HEADINGS__INSERT_A_SUBSTANTIVE_SECTION_LEAD_BEFORE_THE_FIRST_H2__NO_ABRUPT_H1_TO_H2_JUMP",
+      "navigation": "USE_NUMBERING_WHEN_IT_EXPOSES_REAL_INFORMATION_BRANCHES__DO_NOT_FORCE_SUBLEVELS_OR_IDENTICAL_GEOMETRY",
+      "authorial_prose": "PARAGRAPHS_MUST_ADD_FACT__MECHANISM__COMPARISON__COUNTEREVIDENCE__BOUNDARY_OR_PAYOFF__NO_MODEL_SCAFFOLDING_OR_GENERIC_HUMANIZER",
+      "interaction_copy": "HOOK__COMPACT_EVIDENCE_BOUNDED_INSIGHT__NATURAL_INTERACTION_PROMPT__NO_NEW_FACTS"
+    },
+    "portfolio_quality_readiness": {
+      "FINANCE_BROAD": "NOT_READY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
+      "FINANCE_DEEP": "DIAGNOSTIC_ONLY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
+      "PLATFORM_INTERACTION": "NOT_ASSESSED__NO_COMPLETE_INDEPENDENT_HELDOUT_CORPUS"
+    },
+    "source_privacy_gate": {
+      "status": "CANDIDATE_FIX__HISTORICAL_USER_REJECTION_REGRESSION_ADDED__EXACT_HEAD_CI_PENDING",
+      "source_file": "financial_writing_agent/checks.py::scan_publication_source_leaks",
+      "historical_regression_fixture": "workspaces/articles/huangjiu-high-end-channel-20261015/publication/FINANCE_DEEP.md",
+      "covered_patterns": [
+        "NAMED_BROKER_REPORT_FRAMING",
+        "NAMED_BROKER_ANALYST_ATTRIBUTION",
+        "RESEARCH_REPORT_ACTION_VERBS",
+        "NAMED_INDUSTRY_ASSOCIATION_RESEARCH_AND_DISCLOSURE"
+      ],
+      "semantic_exception": "SOURCE_IDENTITY_MAY_REMAIN_WHEN_MATERIAL_TO_THE_CLAIM"
+    }
   }
 }

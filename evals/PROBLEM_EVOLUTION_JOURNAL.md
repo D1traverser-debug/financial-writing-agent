@@ -1,8 +1,8 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `1.9`
-Updated: `2026-11-13`
+Journal revision: `2.4`
+Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
 Purpose: one chronological problem/repair history for Financial maintenance; prior parent/child references are provenance only and do not create a live controller or routing dependency.
@@ -603,3 +603,119 @@ A subsequent targeted code-path audit found three residual compatibility signals
 Final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99`, exact-head CI run `43404325789`: **514 tests passed**, 90% line coverage (5,759 statements; 572 missed). Whole-tree audit: 304 tracked files, 112 Python AST parses, 52 JSON parses, 40,872 decoded text lines, zero warnings and zero errors. The operating Skill is 11,848 UTF-8 bytes; the two controlled maintenance reference surfaces are byte-identical. Standalone import, clean wheel/install, single-owner/retired-artifact checks and four synthetic Word product renders passed. These remain engineering/synthetic-output evidence only.
 
 Current release boundary: PR #67 remains open and unmerged; no independent review has been submitted. The prior Codex review attempt failed on older head `0ddb200f9a7fc8eb4f1651e493b78bdda769121e` and the bot reported review usage limits; this is not a review of the current candidate. The repository is public and the candidate tree contains private article/research data, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. No further private article/research writes should be made to this public repository until the owner chooses private visibility or a private data-repository split. The last recorded GitHub inventory has 99 branches, one open PR, no repository rulesets and unprotected main; no branch/tag archive or deletion was run. All seven signed external acceptance gates remain OPEN. The cross-border v3 article remains at RESEARCH with 0/4 real delivery artifacts. No production merge, plugin update/installation or CAOS modification occurred.
+
+
+---
+
+## P-20261116-01 — Requirement scope/stage dataflow divergence and stale execution acceptance (2026-11-16)
+
+**Scope:** Financial Writing owner admission, portfolio coordination, pass-context projection, typed ResearchPackage gate, Skill execution contract and static acceptance scripts. No CAOS source or business state was modified.
+
+**Observed user consequence:** A task-specific requirement could be present in the Article Aggregate yet fail to reach the shared Research pass, or be evaluated differently by the portfolio coordinator and owner aggregate. A product-specific research constraint could be lost before downstream product branches existed. Conversely, a special Deep-only gate could block a task that did not request Deep output. The executable/static acceptance scripts also contradicted the selected Financial Provider Action architecture.
+
+**Root-cause finding:** The owner aggregate and writing kernel maintained separate stage-to-scope projections. Shared Research used a generic-only scope set; product-specific Research requirements were not included. The pass-context projection did not consistently filter by the earliest affected stage. The full-universe gate relied on a special requirement identifier rather than the requirement's actual active task scope. Legacy acceptance scripts still asserted that no hosted Provider Action was required.
+
+**Rejected repairs:** A test-only change; injecting product scopes into one callback without unifying owner/coordinator logic; treating a special identifier as globally active; reverting to direct GitHub writes; and restoring a CAOS-hosted parent runtime.
+
+**Candidate correction:** One canonical scope resolver now derives active scopes from immutable `required_outputs`. Owner and portfolio due checks call the same stage-scope projection. Shared Research receives every requested product scope when the requirement affects Research; later product passes receive ALL plus their own scope through the current stage. Inactive product-only requirements and impossible scope/stage pairs are rejected. The special typed ResearchPackage gate is scope-aware. The production coordinator persists the typed stage artifact and resumable context as a bundle, reads both back, cross-binds them and requests Article Aggregate admission through the Financial standalone runtime. Legacy static/eval scripts were aligned to the Financial-owned hosted Provider Action boundary.
+
+**Exact evidence:** Candidate PR #84, head `6551d3a2c214460ae084bcb2924c42fdd765f01a`; exact-head CI run `43780588561` SUCCESS; 689 tests passed; 88% total statement coverage; 337-file whole-tree audit with zero warnings/errors; wheel/isolated install, synthetic Word renders and real-task negative replay passed. Full report: `evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md`.
+
+**Current status:** `CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_MERGED`. PR #84 remains DRAFT. Independent current-head review and post-merge CI remain open. Provider Action remains NOT_DEPLOYED; plugin installation, real article completion and independent editorial/reader outcomes remain unverified. Whole-system status remains NOT_READY with seven external gates open.
+
+**Next legal action:** Obtain independent review of exact head `6551d3a2c214460ae084bcb2924c42fdd765f01a`. Merge only the Financial PR if accepted, then verify exact mainline CI. No CAOS modification or paid infrastructure provisioning is authorized by this repair.
+
+
+---
+
+## P-20261116-02 — Evidence-reference normalization and candidate status drift (2026-11-16)
+
+Status: `CANDIDATE_REPAIR_VERIFIED__NOT_MERGED__PRODUCTION_OBSERVATION_OPEN`
+
+**Scope:** Financial Writing requirement evidence normalization, candidate status authority and regression coverage. No CAOS repository, CAOS source/configuration, article STATE or method-catalog business record was modified.
+
+**Trigger and user consequence.** A second adversarial pass found that evidence-reference uniqueness was checked on raw strings before canonicalization. Two references such as `source-A` and ` source-A ` could be treated as distinct even though they identify the same evidence. The same review found that candidate verification status had drifted across Financial-owned records and the GitHub PR description, making it impossible to tell which code head and CI run were current without a live repository read.
+
+**Root causes.**
+1. Owner admission, pass execution and persisted-stage validation needed to reject duplicate evidence after whitespace normalization, not merely exact raw-string duplicates.
+2. Candidate evidence was manually copied into `EVOLUTION_INDEX`, the audit, the manifest, the journal and the PR description. Later commits updated some surfaces but not others; no regression bound the candidate SHA, CI run, status and journal revision across the authoritative records.
+3. The journal header/index remained at revision 2.0 while the evolution index declared 2.1; the manifest still reported the requirement-scope fix as CI-pending after exact code-head CI had passed.
+
+**Counterevidence and rejected repairs.** The stale records did not prove the candidate code was failing: live GitHub showed code head `543887a767a9472a11782cf6f7db5b996abd24bf` with exact code-head CI run `43790509745` successful. Rewriting old journal entries would destroy chronology and was rejected. Treating the PR description or an old audit snapshot as the live head was also rejected; GitHub's current PR and workflow-run readback remain the authority for the live head.
+
+**Selected Financial-only repair.** Normalize evidence references before uniqueness checks in `current_admission`, `writing_kernel` and `standalone_runtime`; retain regression coverage for whitespace-normalized duplicates. Synchronize the candidate code-head evidence across `EVOLUTION_INDEX.json`, `FINANCIAL_MANIFEST.json`, the dataflow audit, the append-only problem journal and its machine index. Add regression checks that cross-bind candidate SHA, exact CI run, manifest status, audit evidence and journal revision. Refresh the PR description only after the final live PR-head CI is known. Keep all changes on the Financial candidate branch.
+
+**Verification at the code head.** Candidate code head `543887a767a9472a11782cf6f7db5b996abd24bf`; exact code-head CI run `43790509745`: **701 tests passed**, **88%** statement coverage (7,896 statements; 928 missed). Whole-tree audit: 338 tracked files, 130 Python AST parses, 54 JSON parses, 52,793 decoded text lines, zero warnings and zero errors. The status-consistency assertions are included in the follow-up status refresh and must pass in the final live PR-head CI before the PR description is updated.
+
+**Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent review has been obtained and no explicit owner merge authorization is established. The hosted Financial Provider Action is NOT_DEPLOYED. Native client installation/fresh-session invocation is unverified. The cross-border v3 task remains RESEARCH with 0/4 real deliverables. The original full article prompt is not independently recovered; V2 research references are historical fixtures and require current-source revalidation. Real factual quality, editorial acceptance and reader outcome remain unverified. No paid host or CAOS modification is authorized.
+
+**Next legal action.** Re-read the live PR head and exact CI from GitHub, obtain independent review, and do not merge without explicit owner authorization. Provider hosting/cost approval is a separate decision.
+
+
+---
+
+## P-20261116-03 — Research provenance bypass and editorial handoff omission (2026-11-16)
+
+Status: CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_PROMOTED__REAL_ARTICLE_OUTCOME_OPEN
+
+**Trigger and user consequence.** A follow-up root-cause audit traced the full-universe research package through actual provider readback and then traced private research outputs into the Story Architecture callback. It found that a source could be recorded in a company's ResearchPackage evidence ledger without being among the PrivateResearchBrief references fetched by the external source reader. Separately, Story Architecture was expected by editorial rules to use the publication distillation and company comparisons, but the actual callback did not receive those fields.
+
+**Root causes.**
+1. The full-universe validator proved that company evidence references existed in the ResearchPackage evidence ledger, while the source reader independently verified only PrivateResearchBrief module references. No invariant joined those two sets or matched declared recall-source families to the provider's actual family for each recall source.
+2. PrivateResearch source readback selected a fixed 1.1 module set despite owner-state compatibility for 1.0. Delivery freshness then skipped 1.0 entirely.
+3. The shared context contained publication_distillation, company_decision_map and change_conditions, but STORY_ARCHITECTURE.required_inputs omitted them. _invoke_pass forwards only declared required inputs, so context presence was incorrectly mistaken for model availability.
+4. The validated ResearchPackage.company_decision_map and the separate top-level company_decision_map/change_conditions passed to Story Architecture were not cross-bound, allowing two decision representations to diverge.
+
+**Rejected repairs.** Counting two source families globally without checking the actual universe-recall sources; treating a ledger entry as proof its bytes were fetched; retaining a 1.1-only verifier while claiming 1.0 compatibility; and adding editorial guidance without changing the executable pass contract.
+
+**Selected Financial-only correction.**
+- Require every ResearchPackage evidence-ledger source to appear in an APPLICABLE PrivateResearchBrief module.
+- Read back all bound sources, verify exact body SHA and retrieval freshness, and compare each universe-recall source's actual provider family with its declared family.
+- Select the source-module set from the persisted PrivateResearch contract version and recheck both 1.0 and 1.1 at delivery.
+- Add publication_distillation, company_decision_map and change_conditions to Story Architecture's required inputs, so omission blocks before the model callback.
+- Require the top-level company_decision_map and change_conditions to match the validated ResearchPackage map at kernel, coordinator and provider-readback boundaries.
+- Synchronize the executable contract, Skill reference mirror, manifest and candidate audit.
+
+**Verification.** Candidate head 4bf06f63fdf7e228b3153ec909a38abe8596f272; exact-head CI run 43819176634: **720 tests passed**, 88% statement coverage (8,178 statements; 980 missed). Portfolio Coordinator 91% (255; 24 missed), Standalone Runtime 89% (939; 100 missed), Writing Kernel 81% (924; 176 missed). Whole-tree audit: 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,278 decoded text lines, zero warnings/errors. Wheel/isolated install, DOCX render, four synthetic Word product renders and negative business replay passed.
+
+**Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent current-head review has been obtained. Provider Action is NOT_DEPLOYED. The cross-border v3 task remains RESEARCH with 0/4 real deliverables, no quality evidence and no Research-stage artifact. Its prompt is only 跨境电商; V2 sources are historical fixtures and require current-source revalidation. Source-byte readback is not factual entailment. Real article quality, editorial acceptance and reader outcomes remain unverified. No CAOS source or configuration was changed.
+
+**Next legal action.** Review the exact live PR #84 head and its exact CI; keep the candidate separate from main until the repository's review and promotion requirements are satisfied. Provider hosting and real article execution are separate decisions.
+
+
+---
+
+## P-20261116-04 — System-wide writing stability was incorrectly narrowed to one article task (2026-11-16)
+
+Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
+
+**User correction.** The cross-border-ecommerce article/task was one example that exposed Financial Writing defects; it is not the product objective. The actual requirement is that every Financial Writing task should be as stable as possible. Most of the process is reusable and fixed; narrative form and expression remain open because they depend on the topic, material and reader.
+
+**Root causes.**
+1. The previous continuation treated the current article's task state as the next system objective, so a single task-specific blocker was repeatedly surfaced as if it defined the Financial Writing product.
+2. Engineering verification had more detail than cross-topic editorial evidence. The current quality corpus has only two complete cases: one real user rejection and one external held-out benchmark, with only one held-out topic family and only FINANCE_DEEP represented.
+3. Four historical article workspaces cover different topic families, but their editorial audits are CHAT_SELF_REVIEW and their owner states have empty quality_evidence. They are useful diagnostic samples, not independent quality acceptance. They contain Deep/Broad outputs only; the user's third product, short image-text/dynamic interaction, is already modeled by TaskContract but has no complete independent held-out quality corpus in these samples.
+4. Prior Financial evolution already showed that fixed opening, sentence and rhetorical geometry can make one machine template replace another. Reintroducing rigid expression rules would damage the actual goal.
+
+**Selected system-wide correction.**
+- Define one stable Financial workflow and shared research spine for every topic; preserve task-specific requirements and evidence depth without changing the canonical process.
+- Explicitly cover the three publishing products: acquisition long-form (Broad), deep finance/review long-form (Deep), and short image-text/dynamic interaction. All derive from the same audited research package; interaction copy adds no new facts and receives separate quality evaluation.
+- Make topic-specific research modules conditional on actual user scope and material relevance. Full-universe requirements remain task-scoped.
+- Keep narrative engine, title angle, opening strategy, section order, paragraph rhythm, technical depth and voice content-led. No universal article template or prose quotas.
+- Harvest four existing cross-topic Deep/Broad pairs as immutable diagnostic samples, explicitly marked CHAT_SELF_REVIEW with empty quality evidence and ineligible for promotion.
+- Add executable regression tests that prove topic changes do not alter the canonical business workflow, expression remains non-template-driven, and diagnostic samples cannot be mistaken for independent promotion cases.
+- Define cross-topic, per-content-mode quality acceptance without treating one article as the system objective.
+
+**Evidence inventory.** Existing diagnostic topic families: technology/security sector event; consumer beverage/channel transformation; consumer tourism/industry multi-company; technology event/enterprise application mapping. All four existing tasks reached FINAL_AUDIT and have Deep/Broad outputs, but their audits are CHAT_SELF_REVIEW and quality_evidence is empty. The corpus remains NOT_READY: two complete cases, one held-out family; FINANCE_BROAD remains unauthorized for quality promotion.
+
+**Verification target.** Base PR head before this revision: \`dfced20fc5fa594cd9f6df753f906b875e5fa6b2\`; exact-head CI run \`43820293511\` passed 720 tests. The first exact-head CI for this revision was run on `886c210eb16b126b89cef483ae722ebc9129ae65` (run `43828598568`): 720 tests passed and 3 failed because legacy tests still asserted the prior candidate status and Journal 2.3. A follow-up sync commit `8ba912bda37285473d41506fb72e96a6a48722a0` reran 720 tests with the same three stale assertions. The test suite is being corrected to keep the prior verified code candidate separate from the new system-wide stability candidate. No pass is pre-claimed.
+
+**Remaining OPEN conditions.** Real blind independent quality review across multiple held-out topic families and every target content mode; user-approved positive samples for personalized writing DNA; live model execution and provider-backed stage persistence; independent current-head review; Provider Action deployment. No CAOS source or configuration was changed.
+
+**Next legal action.** Continue Financial Writing as a system-wide product. Execute and independently evaluate real articles across multiple topic families and each target content mode using the same workflow and content-led expression. Do not anchor completion to any single article task.
+
+
+**Verification follow-up (2026-11-16).** The assertion-sync commit \`612100ec7a82a783ec5ec9141db21d2c0dc34494\` separates the previously verified requirement-scope code candidate from the new system-wide stability candidate. The exact-head run \`43829005407\` is still the prior-head failure (720 passed, 3 stale assertions); this new head requires its own CI. The journal and system status must not claim a pass until that run completes.
+
+
+**Concrete shared-gate defect reproduced (2026-11-16).** The rejected Huangjiu publication used "方正证券…行业深度报告", "方正证券进一步指出", "研报给出的…" and "中国酒业协会…研究/披露" source-framing forms. The existing source scanner did not detect these variants, although it already guarded narrower phrases such as "研报指出" and "公开资料显示". The resulting gap let a real user-rejected source-privacy violation pass the same-session editorial/mechanical route. The scanner now covers named broker report framing, analyst attribution, report verbs, and named association research/disclosure; the actual Huangjiu article is a regression fixture with positive controls for ordinary company facts. This is a concrete runtime gate correction, not a new prose template.

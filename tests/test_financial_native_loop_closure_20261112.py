@@ -14,6 +14,7 @@ from pathlib import Path
 import pytest
 
 from financial_writing_agent.private_research import REQUIRED_MODULES
+from financial_writing_agent.current_admission import build_initial_state
 from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, _blob_sha,
     admit_article_action, observe_article,
@@ -153,10 +154,25 @@ def test_requirement_satisfaction_must_bind_the_actual_current_stage_artifact():
     assert proof["semantic_support_verified"] is False
 
 
-def make():
-    p = Provider()
-    act(p, "CREATE_ARTICLE", {"prompt": "Synthetic financial systems transition replay"})
+def seed_legacy_state(p, *, task_id=TASK, prompt="Synthetic financial systems transition replay"):
+    """Seed a pre-coordinator aggregate for legacy owner-transition adversarial tests."""
+    state = build_initial_state(
+        task_id=task_id,
+        prompt=prompt,
+        source_refs=[],
+        executor_identity="legacy-transition-test-fixture",
+    )
+    state.pop("portfolio_execution_contract_version")
+    state["execution_receipts"][-1]["input_bindings"].pop(
+        "portfolio_execution_contract_version"
+    )
+    raw = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
+    p.states[f"workspaces/articles/{task_id}/STATE.json"] = raw
     return p
+
+
+def make():
+    return seed_legacy_state(Provider())
 
 
 def stage_artifact(p, name):

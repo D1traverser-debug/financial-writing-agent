@@ -2,10 +2,10 @@
   "schema_version": "1.0",
   "name": "financial-writing-agent-chatgpt",
   "plugin_id": "plugins_6af591b19a708191a3879e94a7ce8742",
-  "release_id": "pluginrel_6af72ebbaef0819187235f6772cd972f",
+  "release_id": "pluginrel_6af9da2cc32c81919f23fae88386dae3",
   "plugin_url": "https://chatgpt.com/plugins/plugins_6af591b19a708191a3879e94a7ce8742",
   "scope": "USER",
-  "created_and_archive_readback": "VERIFIED_WITH_PLUGIN_CREATOR",
+  "created_and_archive_readback": "PRIVATE_PACKAGE_CURRENT_RELEASE_0.1.4_READBACK_VERIFIED",
   "user_installation": "NOT_VERIFIED__EXPLICIT_ACTION_REQUIRED",
   "skill_only": true,
   "has_hosted_mcp_or_python_action_endpoint": false,
@@ -23,11 +23,13 @@
     "atomic_method_catalog_and_effect_receipt_bundle_cas",
     "deterministic_method_action_replay_against_prior_catalog"
   ],
-  "caos_dependency": "NONE",
-  "active_execution_model": "CHATGPT_SKILL_PLUS_EXISTING_GITHUB_CONNECTOR",
+  "caos_dependency": "NO_RUNTIME_OR_API_DEPENDENCY__SESSION_LEVEL_GOVERNANCE_EXTERNAL",
+  "active_execution_model": "CHATGPT_SKILL_PLUS_REQUIRED_FINANCIAL_PROVIDER_ACTION_PLUS_EXISTING_GITHUB_CONNECTOR__PROVIDER_NOT_DEPLOYED",
   "required_companion_connector": "GITHUB_CONNECTOR_READ_WRITE",
-  "custom_hosted_python_mcp_required": false,
-  "native_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
-  "version": "0.1.2",
-  "discoverability": "PRIVATE"
+  "custom_hosted_python_mcp_required": true,
+  "native_write_protocol": "HOSTED_PROVIDER_SIGNED_OWNER_AUTHORIZATION_AND_EFFECT__GITHUB_APP_ATOMIC_BUNDLE_CAS__EXACT_READBACK",
+  "version": "0.1.4",
+  "discoverability": "PRIVATE",
+  "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
+  "provider_action_status": "NOT_DEPLOYED"
 }

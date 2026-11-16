@@ -10,19 +10,21 @@ from financial_writing_agent.current_research_sources import (
     CurrentResearchEvidenceError,
     verify_current_research_sources,
 )
-from financial_writing_agent.private_research import REQUIRED_MODULES
+from financial_writing_agent.private_research import REQUIRED_MODULES, V1_0_REQUIRED_MODULES
+from financial_writing_agent.standalone_runtime import _verify_delivery_research_freshness
 
 ROOT = Path(__file__).resolve().parents[1]
 
 
-def _brief(as_of):
+def _brief(as_of, version="1.1"):
+    modules = REQUIRED_MODULES if version == "1.1" else V1_0_REQUIRED_MODULES
     return {
-        "contract_version": "1.1", "as_of": as_of,
+        "contract_version": version, "as_of": as_of,
         "coverage_state": "COMPLETE", "unresolved_gaps": [],
         "modules": {
             name: {"status": "APPLICABLE", "summary": f"synthetic module {i}",
                    "evidence_refs": [f"source://{i}"]}
-            for i, name in enumerate(REQUIRED_MODULES)
+            for i, name in enumerate(modules)
         },
     }
 
@@ -90,3 +92,131 @@ def test_provider_snapshot_stale_does_not_get_falsely_refreshed_by_a_new_brief()
         return row
     with pytest.raises(CurrentResearchEvidenceError, match="SNAPSHOT_STALE"):
         verify_current_research_sources(_brief(now.isoformat()), source_reader=stale, as_of=now)
+
+
+
+def test_legacy_1_0_private_research_uses_its_original_module_set_for_source_readback():
+    now = datetime(2026, 11, 12, 12, tzinfo=timezone.utc)
+    brief = _brief(now.isoformat(), version="1.0")
+    proof = verify_current_research_sources(
+        brief,
+        source_reader=lambda ref: _source(ref, now),
+        as_of=now,
+    )
+    assert proof["private_research_contract_version"] == "1.0"
+    assert proof["source_snapshots_observed"] == len(V1_0_REQUIRED_MODULES) == 12
+
+
+def _package_source(ref, now, family):
+    text = f"用于全股票池证据链集成测试的来源正文，引用标识为 {ref}，仅验证读取绑定。"
+    return {
+        "text": text,
+        "sha256": hashlib.sha256(text.encode("utf-8")).hexdigest(),
+        "retrieved_at": now.isoformat(),
+        "source_family": family,
+    }
+
+
+def _research_package_sources():
+    return {
+        "evidence_ledger": [
+            {"source": "source://eastmoney"},
+            {"source": "source://tonghuashun"},
+            {"source": "source://company-filing"},
+        ],
+        "universe_coverage": {
+            "recall_sources": ["source://eastmoney", "source://tonghuashun"],
+            "recall_source_families": ["EASTMONEY", "TONGHUASHUN"],
+        },
+    }
+
+
+def _brief_with_package_sources(now):
+    brief = _brief(now.isoformat())
+    brief["modules"][REQUIRED_MODULES[0]]["evidence_refs"].extend([
+        "source://eastmoney",
+        "source://tonghuashun",
+        "source://company-filing",
+    ])
+    return brief
+
+
+def test_full_universe_company_evidence_sources_are_read_back_via_private_brief_binding():
+    now = datetime(2026, 11, 12, 12, tzinfo=timezone.utc)
+    brief = _brief_with_package_sources(now)
+    package = _research_package_sources()
+
+    def reader(ref):
+        families = {
+            "source://eastmoney": "EASTMONEY",
+            "source://tonghuashun": "TONGHUASHUN",
+            "source://company-filing": "ISSUER_FILINGS",
+        }
+        if ref in families:
+            return _package_source(ref, now, families[ref])
+        return _source(ref, now)
+
+    proof = verify_current_research_sources(
+        brief, source_reader=reader, research_package=package, as_of=now,
+    )
+    assert proof["source_snapshots_observed"] == len(REQUIRED_MODULES) + 3
+    assert proof["universe_recall_source_families"] == ["eastmoney", "tonghuashun"]
+
+
+def test_full_universe_package_company_evidence_not_in_private_brief_is_rejected():
+    now = datetime(2026, 11, 12, 12, tzinfo=timezone.utc)
+    brief = _brief(now.isoformat())
+    with pytest.raises(
+        CurrentResearchEvidenceError,
+        match="PACKAGE_EVIDENCE_NOT_BOUND_TO_PRIVATE_BRIEF",
+    ):
+        verify_current_research_sources(
+            brief,
+            source_reader=lambda ref: _source(ref, now),
+            research_package=_research_package_sources(),
+            as_of=now,
+        )
+
+
+def test_full_universe_declared_recall_families_must_match_provider_readback():
+    now = datetime(2026, 11, 12, 12, tzinfo=timezone.utc)
+    brief = _brief_with_package_sources(now)
+    package = _research_package_sources()
+
+    def reader(ref):
+        families = {
+            "source://eastmoney": "EASTMONEY",
+            "source://tonghuashun": "EASTMONEY",
+            "source://company-filing": "ISSUER_FILINGS",
+        }
+        if ref in families:
+            return _package_source(ref, now, families[ref])
+        return _source(ref, now)
+
+    with pytest.raises(
+        CurrentResearchEvidenceError,
+        match="RECALL_SOURCE_FAMILY_MISMATCH",
+    ):
+        verify_current_research_sources(
+            brief, source_reader=reader, research_package=package, as_of=now,
+        )
+
+
+def test_legacy_1_0_delivery_rechecks_source_freshness_instead_of_skipping():
+    now = datetime.now(timezone.utc)
+    brief = _brief(now.isoformat(), version="1.0")
+    reader = lambda ref: _source(ref, now)
+    readback = verify_current_research_sources(
+        brief, source_reader=reader, as_of=now,
+    )
+    candidate = {
+        "private_research_contract_version": "1.0",
+        "quality_evidence": {"private_research_brief": brief},
+        "execution_receipts": [{
+            "stage": "RESEARCH",
+            "input_bindings": {"research_source_readback": readback},
+        }],
+    }
+    proof = _verify_delivery_research_freshness(candidate, reader)
+    assert proof["source_set_unchanged"] is True
+    assert proof["source_body_bytes_unchanged"] is True

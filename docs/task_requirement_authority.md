@@ -76,3 +76,50 @@ The user does not need to manually request invalidation. The requirement transac
 ## Assurance boundary
 
 This control closes a Financial-domain authority gap. It does not prove native ChatGPT host-level non-bypassable pre-send mediation; that remains parent/common scope when required.
+
+
+## Full-universe research evidence contract
+
+The linked explicit requirements "full_universe_research_pool" and
+"deep_complete_retained_universe" activate a stricter ResearchPackage contract.
+Research admission, portfolio coordination and standalone owner admission use
+the first requirement; final Deep publication uses the second. This is
+task-scoped and does not force exhaustive-universe research on ordinary
+Financial assignments.
+
+For every retained company, the structured finding must carry a unique canonical
+ticker, business stage, exposure type, business-purity classification, current
+financial-realization status and evidence, event-transmission path, reversal
+conditions, and dated evidence references linked to the package evidence ledger.
+Material companies require at least two dated evidence references; secondary and
+reference-only companies require an explicit reason for their weaker treatment.
+
+The universe itself must be complete as of an explicit date, reconcile exactly
+with the included-company classification ledger, and cite at least two distinct
+current source families. Research saturation must record two consecutive no-delta
+sweeps and dated evidence references. Every material value-chain class containing
+two or more material companies must include a within-class comparison across
+exposure directness, business purity, financial realization, event transmission
+and reversal conditions.
+
+A package that merely contains a list of company names, or whose company-level
+fields are empty/defaulted, is not evidence of complete research. Structural
+admission verifies completeness and provenance bindings; a separate research
+audit must still assess whether the claims and comparisons are factually sound.
+
+
+The full-universe source chain has an additional readback invariant: every
+ResearchPackage evidence-ledger source must also appear in at least one
+APPLICABLE PrivateResearchBrief module. The source reader must fetch and hash
+those exact source bodies, verify retrieval freshness, and confirm that each
+declared universe-recall source family matches the provider-returned family for
+that exact source. A source merely listed in the ResearchPackage ledger is not
+treated as externally read back.
+
+
+For full-universe tasks, the separate top-level company_decision_map and
+change_conditions passed to Story Architecture must exactly match the
+evidence-bearing ResearchPackage.company_decision_map and its change conditions.
+A divergence blocks the Research stage before editorial work. The coordinator
+persists the canonical validated map, rather than allowing a second decision
+representation to become the editorial authority.

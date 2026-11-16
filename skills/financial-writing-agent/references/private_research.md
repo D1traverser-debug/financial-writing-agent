@@ -261,3 +261,57 @@ Prefer free or already-available authoritative sources/tools when they can suppl
 For marker-enabled new tasks, `financial_writing_agent.current_admission` persists the validated brief in `quality_evidence.private_research_brief` and binds its digest in the RESEARCH execution receipt. A side file or chat statement is not equivalent.
 
 Revision back to RESEARCH invalidates the admitted brief together with downstream research quality evidence. A materially changed catalyst, company universe, market structure, policy phase or new counterexample requires the affected private-research modules to be refreshed before re-admission.
+
+
+## Explicit full-universe task evidence contract
+
+This stricter contract is activated only when the current owner task explicitly
+admits the full-universe research requirement. It is not a default for ordinary
+Financial articles.
+
+Every retained CompanyFinding must contain:
+- a unique canonical ticker and a non-empty business-stage assessment;
+- exposure type and business-purity classification;
+- current financial-realization status plus a factual realization-evidence note;
+- an event-transmission path, including an explicit no-direct-path statement when appropriate;
+- reversal conditions, not merely generic risk labels;
+- dated evidence references that resolve to the package evidence ledger.
+
+Material companies require at least two dated evidence references. Secondary and
+reference-only companies require an explicit reason for their weaker treatment.
+An unresolved or not-disclosed classification is allowed only when the reason is
+recorded; empty/default fields are not a completed assessment.
+
+The universe coverage record must state an as-of date, reconcile exactly with the
+included-company classification ledger, and map at least two distinct current
+source families to dated evidence references. A list containing two URLs from
+the same provider is not source-family diversity.
+
+Research saturation must record at least two consecutive no-delta sweeps, zero
+material additions on the last sweep, and dated evidence references supporting
+the stop decision.
+
+For every value-chain class with two or more material companies, the
+CompanyDecisionMap must include a within-class comparison on all five axes:
+exposure directness, business purity, financial realization, event transmission,
+and reversal conditions. Each axis must assess every material company in that
+class and cite dated evidence.
+
+A ResearchPackage that only lists company names, even if the names reconcile
+with the retained universe, is insufficient. This structural contract prevents
+false admission; a separate research audit must still challenge the truth,
+recency, source independence, and economic meaning of the underlying claims.
+
+
+For full-universe tasks, every ResearchPackage evidence-ledger source must also
+be present in an APPLICABLE PrivateResearchBrief module's evidence_refs. The
+external source reader fetches every bound source, verifies exact body SHA and
+retrieval freshness, and matches each universe-recall source's declared family
+to the actual provider-returned family. Evidence-ledger presence alone is not
+provider readback.
+
+
+For full-universe tasks, the company_decision_map and change_conditions handed
+to Story Architecture must exactly match the validated ResearchPackage map.
+The validated package map is the evidence-bearing authority; a divergent
+top-level Thesis Adjudication output is rejected before editorial work.

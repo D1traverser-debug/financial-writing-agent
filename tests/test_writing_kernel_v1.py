@@ -118,3 +118,24 @@ def test_production_execution_is_resumable_one_owner_stage_per_call():
     )
     assert callable(start_portfolio_context)
     assert callable(execute_portfolio_stage)
+
+
+
+def test_story_architecture_consumes_private_research_distillation_and_adjudicated_comparisons():
+    architecture_inputs = set(
+        PASS_CONTRACTS[WritingPass.STORY_ARCHITECTURE].required_inputs
+    )
+    assert {
+        "publication_distillation",
+        "company_decision_map",
+        "change_conditions",
+    } <= architecture_inputs
+    assert "publication_distillation" in PASS_CONTRACTS[
+        WritingPass.PRIVATE_RESEARCH_SYNTHESIS
+    ].outputs
+    assert {
+        "company_decision_map", "change_conditions",
+    } <= set(PASS_CONTRACTS[WritingPass.THESIS_ADJUDICATION].outputs)
+    # _invoke_pass forwards exactly required_inputs, so these are real model inputs,
+    # not merely data that happens to remain in the surrounding shared context.
+    assert validate_kernel() == []

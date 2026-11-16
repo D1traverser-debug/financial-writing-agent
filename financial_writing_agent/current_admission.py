@@ -7,6 +7,7 @@ from typing import Any, Mapping
 
 from . import owner_guard
 from .cognition_governance import DecisionEnvelope, OperationClass, admission_errors
+from .path_identity import require_article_path
 from .private_research import (
     PRIVATE_RESEARCH_CONTRACT_VERSION,
     SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS,
@@ -18,8 +19,12 @@ from .task_requirements import (
     REQUIREMENT_CONTRACT_VERSION,
     RequirementError,
     active_requirements_for_scope,
+    active_task_scopes,
     apply_requirement_changes,
     authority_digest,
+    requirement_applies_to_scopes,
+    requirement_scopes_for_stage,
+    validate_requirement_applicability,
     empty_requirement_authority,
     validate_requirement_authority,
 )
@@ -28,6 +33,11 @@ WRITING_KERNEL_VERSION = "1.0"
 QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 REQUIREMENT_CAPABILITY_ID = "github_chat_requirement_governance"
 REQUIREMENT_SATISFACTION_VERSION = "1.0"
+PORTFOLIO_EXECUTION_CONTRACT_VERSION = "1.0"
+PORTFOLIO_COORDINATED_STAGES = frozenset({
+    "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL",
+    "TITLE", "DRAFT", "EDITORIAL_AUDIT",
+})
 
 
 class CurrentAdmissionError(ValueError):
@@ -114,13 +124,26 @@ def _parse_publication_fitnesses(
     modes = [item.product_mode for item in parsed]
     _require(len(modes) == len(set(modes)), "publication_fitnesses must contain at most one result per product mode")
     expected = _expected_longform_modes(state)
-    _require(set(modes) == expected, f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in set(modes))}")
+    actual = set(modes)
+    if review_status == "PASS":
+        _require(
+            actual == expected,
+            f"publication fitness modes mismatch: expected={sorted(x.value for x in expected)}, actual={sorted(x.value for x in actual)}",
+        )
+    else:
+        _require(
+            actual.issubset(expected),
+            f"publication fitness modes mismatch: expected subset of={sorted(x.value for x in expected)}, actual={sorted(x.value for x in actual)}",
+        )
 
     all_pass = all(item.final_status == AuditStatus.PASS for item in parsed)
     if review_status == "PASS":
         _require(all_pass, "EDITORIAL_AUDIT cannot PASS while any publication fitness gate requires revision")
     elif review_status == "REVISE":
-        _require(not all_pass, "EDITORIAL_AUDIT REVISE requires at least one publication fitness REVISE result")
+        _require(
+            any(item.final_status == AuditStatus.REVISE for item in parsed),
+            "EDITORIAL_AUDIT REVISE requires at least one publication fitness REVISE result",
+        )
     return parsed
 
 
@@ -189,6 +212,13 @@ def bind_current_governance_receipt(state: dict[str, Any]) -> None:
     if private_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
         bindings["private_research_contract_version"] = str(private_version)
     bindings["quality_admission_path"] = QUALITY_ADMISSION_PATH
+    portfolio_version = state.get("portfolio_execution_contract_version")
+    if portfolio_version is not None:
+        _require(
+            portfolio_version == PORTFOLIO_EXECUTION_CONTRACT_VERSION,
+            "unsupported portfolio_execution_contract_version",
+        )
+        bindings["portfolio_execution_contract_version"] = portfolio_version
     _bind_requirement_receipt(state)
 
 
@@ -198,8 +228,16 @@ def _active_requirement_items(state: Mapping[str, Any]) -> list[dict[str, Any]]:
 
 
 def _requirements_due_at_stage(state: Mapping[str, Any], stage: str) -> list[dict[str, Any]]:
+    try:
+        stage_scopes = requirement_scopes_for_stage(stage, state.get("required_outputs", []))
+    except RequirementError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
     return sorted(
-        [item for item in _active_requirement_items(state) if item.get("affects_from_stage") == stage],
+        [
+            item for item in _active_requirement_items(state)
+            if item.get("affects_from_stage") == stage
+            and requirement_applies_to_scopes(item, stage_scopes)
+        ],
         key=lambda item: str(item["requirement_id"]),
     )
 
@@ -225,14 +263,24 @@ def _normalize_requirement_satisfaction(
         _require(requirement_id not in seen, f"duplicate requirement_satisfaction requirement_id: {requirement_id}")
         _require(entry.get("result") == "SATISFIED", f"requirement {requirement_id} must be SATISFIED before leaving {stage}")
         evidence_refs = entry.get("evidence_refs")
-        _require(isinstance(evidence_refs, list) and evidence_refs and all(bool(str(ref).strip()) for ref in evidence_refs), f"requirement {requirement_id} requires evidence_refs")
+        _require(
+            isinstance(evidence_refs, list)
+            and bool(evidence_refs)
+            and all(isinstance(ref, str) and bool(ref.strip()) for ref in evidence_refs),
+            f"requirement {requirement_id} requires evidence_refs as nonempty strings",
+        )
+        normalized_refs = [ref.strip() for ref in evidence_refs]
+        _require(
+            len(normalized_refs) == len(set(normalized_refs)),
+            f"requirement {requirement_id} evidence_refs must be unique after normalization",
+        )
         requirement = due_by_id[requirement_id]
         normalized.append(
             {
                 "requirement_id": requirement_id,
                 "requirement_sha256": _canonical_digest(requirement),
                 "result": "SATISFIED",
-                "evidence_refs": [str(ref).strip() for ref in evidence_refs],
+                "evidence_refs": normalized_refs,
                 "notes": str(entry.get("notes", "")).strip(),
             }
         )
@@ -246,7 +294,12 @@ def _validate_requirement_satisfaction_history(state: Mapping[str, Any]) -> None
     _require(isinstance(receipts, list), "task requirement satisfaction requires execution receipts")
     stage = str(state.get("current_stage"))
     current_index = owner_guard.STAGE_INDEX[stage]
-    for requirement in _active_requirement_items(state):
+    due_requirements = [
+        requirement
+        for affected_stage in ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT", "DELIVERY")
+        for requirement in _requirements_due_at_stage(state, affected_stage)
+    ]
+    for requirement in due_requirements:
         affected_stage = str(requirement["affects_from_stage"])
         # A requirement becomes due when the task tries to leave its affected stage.
         # If the task is still at that stage, the current stage may legitimately be unsatisfied.
@@ -367,6 +420,7 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     state["task_requirement_contract_version"] = REQUIREMENT_CONTRACT_VERSION
     state["task_requirement_authority"] = empty_requirement_authority()
     state["task_requirement_digest"] = authority_digest(state["task_requirement_authority"])
+    state["portfolio_execution_contract_version"] = PORTFOLIO_EXECUTION_CONTRACT_VERSION
     bind_current_governance_receipt(state)
     validate_state(state)
     return state
@@ -384,6 +438,40 @@ def _validate_pre_requirement_migration_state(state: Mapping[str, Any]) -> None:
     _validate_persisted_quality_evidence(state)
 
 
+def portfolio_context_required_for_stage(state: Mapping[str, Any]) -> bool:
+    """New/current tasks must advance portfolio-owned stages through the coordinator."""
+    return (
+        state.get("portfolio_execution_contract_version")
+        == PORTFOLIO_EXECUTION_CONTRACT_VERSION
+        and state.get("current_stage") in PORTFOLIO_COORDINATED_STAGES
+    )
+
+
+def _validate_portfolio_execution_binding(state: Mapping[str, Any]) -> None:
+    version = state.get("portfolio_execution_contract_version")
+    receipts = state.get("execution_receipts", [])
+    latest_bindings = (
+        receipts[-1].get("input_bindings", {})
+        if isinstance(receipts, list) and receipts and isinstance(receipts[-1], Mapping)
+        else {}
+    )
+    bound_version = (
+        latest_bindings.get("portfolio_execution_contract_version")
+        if isinstance(latest_bindings, Mapping) else None
+    )
+    if version is None:
+        _require(
+            bound_version is None,
+            "portfolio execution contract marker cannot be removed from an admitted task",
+        )
+        return
+    _require(
+        version == PORTFOLIO_EXECUTION_CONTRACT_VERSION
+        and bound_version == version,
+        "portfolio execution contract must be bound by the latest owner receipt",
+    )
+
+
 def validate_state(state: Mapping[str, Any]) -> None:
     owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
@@ -394,11 +482,17 @@ def validate_state(state: Mapping[str, Any]) -> None:
     )
     _validate_persisted_quality_evidence(state)
     _validate_requirement_binding(state)
+    _validate_portfolio_execution_binding(state)
 
 
 def requirement_context_for_scope(state: Mapping[str, Any], scope: str) -> dict[str, Any]:
     """Return the exact active task requirements a stage/product must consume."""
     validate_state(state)
+    try:
+        active_scopes = active_task_scopes(state.get("required_outputs", []))
+    except RequirementError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
+    _require(scope in active_scopes, f"task requirement scope is not active for requested outputs: {scope}")
     authority = validate_requirement_authority(state.get("task_requirement_authority"))
     return {
         "contract_version": REQUIREMENT_CONTRACT_VERSION,
@@ -456,6 +550,11 @@ def migrate_task_requirement_authority(
     _require(bool(str(executor_identity).strip()), "executor_identity is required")
     _require(bool(str(evidence_ref).strip()), "evidence_ref is required")
     working = deepcopy(dict(state))
+    for item in requirements or []:
+        try:
+            validate_requirement_applicability(item, working.get("required_outputs", []))
+        except RequirementError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
     authority = empty_requirement_authority()
     changed_stages: list[str] = []
     if requirements:
@@ -526,6 +625,11 @@ def apply_task_requirement_change(
     _require(bool(str(previous_state_blob_sha).strip()), "previous_state_blob_sha is required")
     _require(bool(str(executor_identity).strip()), "executor_identity is required")
     working = deepcopy(dict(state))
+    for item in upserts or []:
+        try:
+            validate_requirement_applicability(item, working.get("required_outputs", []))
+        except RequirementError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
 
     try:
         authority, changed_stages = apply_requirement_changes(
@@ -592,6 +696,7 @@ def advance_state(
     story_blueprints: list[Mapping[str, Any]] | None = None,
     publication_fitnesses: list[Mapping[str, Any]] | None = None,
     requirement_satisfaction: list[Mapping[str, Any]] | None = None,
+    portfolio_context_ref: Mapping[str, Any] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Single public Article Aggregate transition for current writing-kernel tasks."""
@@ -637,6 +742,18 @@ def advance_state(
     review_status = kwargs.get("review_status")
     if stage == "EDITORIAL_AUDIT" and review_status in {"PASS", "REVISE"}:
         fitnesses = _parse_publication_fitnesses(state, publication_fitnesses, review_status=str(review_status))
+        if review_status == "REVISE":
+            order = ("RESEARCH", "EDITORIAL", "TITLE", "DRAFT")
+            targets = [
+                item.revision_target for item in fitnesses
+                if item.final_status == AuditStatus.REVISE
+            ]
+            _require(bool(targets), "EDITORIAL_AUDIT REVISE requires a fitness revision target")
+            expected_target = min(targets, key=order.index)
+            _require(
+                kwargs.get("revision_target") == expected_target,
+                "EDITORIAL_AUDIT revision_target must match the earliest target in publication_fitnesses",
+            )
         dumped = [item.model_dump(mode="json") for item in fitnesses]
         quality["publication_fitnesses"] = dumped
         evidence_bindings["publication_fitnesses_sha256"] = _canonical_digest(dumped)
@@ -655,6 +772,45 @@ def advance_state(
         _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
         **kwargs,
     )
+
+    if portfolio_context_ref is not None:
+        if (
+            not isinstance(portfolio_context_ref, Mapping)
+            or set(portfolio_context_ref) != {"path", "blob_sha", "sha256", "stage", "generation"}
+        ):
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_INVALID")
+        try:
+            context_path = require_article_path(
+                portfolio_context_ref.get("path"), after["task_id"],
+            )
+        except ValueError as exc:
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_PATH_INVALID") from exc
+        if "/portfolio/contexts/" not in context_path:
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_PATH_SCOPE_INVALID")
+        blob_sha = portfolio_context_ref.get("blob_sha")
+        context_sha = portfolio_context_ref.get("sha256")
+        generation = portfolio_context_ref.get("generation")
+        if (
+            not isinstance(blob_sha, str) or len(blob_sha) != 40
+            or any(char not in "0123456789abcdef" for char in blob_sha)
+            or not isinstance(context_sha, str) or len(context_sha) != 64
+            or any(char not in "0123456789abcdef" for char in context_sha)
+            or not isinstance(generation, int) or generation < 0
+            or portfolio_context_ref.get("stage") != after["current_stage"]
+        ):
+            raise CurrentAdmissionError("PORTFOLIO_CONTEXT_REFERENCE_BINDING_INVALID")
+        evidence_bindings["portfolio_context_ref"] = {
+            "path": context_path,
+            "blob_sha": blob_sha,
+            "sha256": context_sha,
+            "stage": after["current_stage"],
+            "generation": generation,
+        }
+        # A legacy task is promoted to the coordinator contract only when its
+        # first typed context is bound to the owner transition.
+        after["portfolio_execution_contract_version"] = (
+            PORTFOLIO_EXECUTION_CONTRACT_VERSION
+        )
 
     if planned_invalidated:
         missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]

@@ -72,6 +72,7 @@ def _fitness(mode, *, revise=False, omit_gates=False):
             "reviewed_article_sha256": "a" * 64,
         },
         "final_status": "REVISE" if revise else "PASS",
+        "revision_target": "DRAFT" if revise else None,
     }
 
 

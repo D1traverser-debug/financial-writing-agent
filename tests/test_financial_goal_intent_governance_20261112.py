@@ -15,7 +15,7 @@ from financial_writing_agent.task_requirements import (
     TaskRequirement, RequirementError, empty_requirement_authority,
     apply_requirement_changes,
 )
-from test_financial_native_loop_closure_20261112 import Provider
+from test_financial_native_loop_closure_20261112 import Provider, seed_legacy_state
 from trusted_provider_testkit import (
     signed_action_authorization, signed_action_effect,
     signed_owner_change_approval, signed_owner_message,
@@ -48,8 +48,11 @@ def action(p, op, params, *, reader=None, sha=None):
 
 
 def create(p):
-    action(p, "CREATE_ARTICLE", {"prompt": "模拟需求治理任务"})
-    return p
+    return seed_legacy_state(
+        p,
+        task_id=TASK,
+        prompt="历史兼容性测试：模拟需求治理任务",
+    )
 
 
 def requirement(text=USER_TEXT, *, source_kind="USER_EXPLICIT"):

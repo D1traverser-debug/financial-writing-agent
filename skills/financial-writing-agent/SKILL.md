@@ -5,7 +5,7 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 # Financial Writing — Independent Operating Skill
 
-Financial Writing owns its complete operating workflow (D1traverser-debug/financial-writing-agent@main): goal interpretation, article state, research, decisions, writing, review, delivery and system evolution. It has one business owner, one article-state authority and one operating Skill. No external parent runtime, second controller or local daemon is required.
+Financial Writing owns its complete workflow: goal, article state, research, decisions, writing, review, delivery and evolution. It has one business owner, one article-state authority and one Skill. No CAOS runtime, parent controller or local daemon is required. Canonical owner-state/method writes require a Financial-owned hosted Provider Action (transport/admission only, not a parent controller); it is NOT_DEPLOYED.
 
 CAOS governance for material/systemic decisions and cross-project work is defined in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; it is session-level only, with no runtime/API dependency or permission authority.
 
@@ -35,9 +35,13 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 ## Decision Loop and Execution Loop
 
-For material uncertainty or recurring defects: reconstruct the reader/business outcome; investigate evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority hypotheses; falsify a preferred option; compare reuse/adapt/replace/remove by value, risk, cost, reversibility and compatibility; then choose a bounded action. Use the real DecisionEnvelope and evidence/saturation rules.
+For defects: recover the reader outcome; test evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk and reversibility. Use DecisionEnvelope; choose a bounded action.
 
-Execute the legal next step: research, write, challenge, render, read back and correct; rerun negative and valid-neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 passes use `start_portfolio_context` + `execute_portfolio_stage`, one existing stage per call, bound to `task_id` and `task_requirement_digest`. Persist each returned context as its stage artifact, provider-read it back, validate hash chains and admit the Article Aggregate transition through `standalone_runtime.py` before resuming. `RESEARCH_AUDIT` is separate. `execute_portfolio_writing` is in-memory replay/test only. Hashes detect mutation, not provider signatures, semantic proof or acceptance. Native chat may stage candidates but cannot write owner STATE/method changes; use authenticated admission, not Git CAS alone. Never claim execution, persistence or readback without a real run. Revisions invalidate downstream evidence; retired states remain historical. Recover before asking the user, respecting consent.
+Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
+
+Scopes derive from `required_outputs`. RESEARCH receives ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope; EDITORIAL/TITLE receive ALL+Deep/Broad; DRAFT/audit receive ALL+requested products; DELIVERY receives ALL+DELIVERY+requested products. Owner/portfolio due checks share one projection. Product passes get ALL+own scope through the current stage. Reject inactive scopes and impossible stage pairs; apply the full-universe gate only to its requested product.
+
+Revisions invalidate downstream evidence; preserve history. Recover first; respect consent. Never claim persistence/readback without a real run.
 
 ## Financial content contract
 
@@ -50,7 +54,7 @@ Execute the legal next step: research, write, challenge, render, read back and c
 
 ## Standalone runtime and trust boundary
 
-Read `main`; stage drafts on candidate branches with `fetch_file`, `create_blob`, `create_tree`, `create_commit` and `update_ref(expected_sha)`. Owner-state/method writes require signed authorization, provider effect receipt, atomic CAS and exact readback. Do not direct-update `main`; Git CAS is not owner approval. Without signer/runner, no canonical mutation.
+Use GitHub connector and `fetch_file` for reads; stage code only on candidate branches via `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`. Do not direct-update `main`; Git CAS is not owner approval. Canonical owner-state/method writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py`, signed provider admission, effect receipt, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path.
 
 ## Current research and publication evidence
 
@@ -66,7 +70,7 @@ Method lifecycle: candidate → revise pending → independent validation/promot
 
 `EVOLUTION_INDEX.json` is the sole current system-status authority; keep failure chronology and rejected hypotheses in the problem journal. Each repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and valid-neighbor cases, reads back exact results and preserves OPEN conditions. Engineering, provider integration, client activation, independent review, article quality and delivery are separate gates.
 
-Before claiming completion, replay every user goal through actual pass inputs, source evidence, Deep/Broad prose, review, revision and Word. Probe missing/changed/conflicting inputs. A pass DAG or mock PASS is not an executed article. For resumable execution, also prove each stage artifact was persisted, provider-read back, matched to its task/requirement digest and admitted by the single Article Aggregate before continuing. A complete in-memory pass trace is not a persisted workflow.
+Before claiming completion, replay each goal through actual research, Deep/Broad prose, review, revision and Word; probe missing/changed/conflicting inputs. For system-wide stability, evaluate multiple topic families and prior accepted/rejected artifacts: keep the core workflow fixed while story form and voice remain content-led. A pass DAG/mock PASS is not an article; each resumable stage artifact must be persisted, provider-read back, digest-matched and owner-admitted.
 
 ## Effect writes
 `financial_writing_agent.standalone_runtime.py` verifies signed provider admission (article v1.1; method v1.0), effect receipt v1.0, atomic CAS and exact reread. No signer means no mutation; legacy history stays unbound.

@@ -219,6 +219,7 @@ class PublicationFitness(StrictModel):
     review_scope: Literal["PUBLICATION_CERTIFICATION", "INTERNAL_DELIVERY_READINESS"] = "PUBLICATION_CERTIFICATION"
     audit_provenance: AuditProvenance = Field(default_factory=AuditProvenance)
     final_status: AuditStatus
+    revision_target: Literal["RESEARCH", "EDITORIAL", "TITLE", "DRAFT"] | None = None
 
     @model_validator(mode="after")
     def require_all_named_gates(self):
@@ -232,6 +233,10 @@ class PublicationFitness(StrictModel):
         expected = AuditStatus.PASS if all(g.status == AuditStatus.PASS for g in self.gates) else AuditStatus.REVISE
         if self.final_status != expected:
             raise ValueError(f"final_status must be {expected.value} for supplied gate decisions")
+        if self.final_status == AuditStatus.REVISE and self.revision_target is None:
+            raise ValueError("PUBLICATION_FITNESS_REVISE_REQUIRES_REVISION_TARGET")
+        if self.final_status == AuditStatus.PASS and self.revision_target is not None:
+            raise ValueError("PUBLICATION_FITNESS_PASS_MUST_NOT_SET_REVISION_TARGET")
         if any(item.result == "NEEDS_REWRITE" for item in self.originality_checks) and self.final_status == AuditStatus.PASS:
             raise ValueError("originality overlap requiring rewrite blocks publication PASS")
         if self.audit_provenance.assurance != self.assurance:

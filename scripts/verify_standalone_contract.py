@@ -15,7 +15,10 @@ def main() -> None:
     contract = json.loads((ROOT / "config/EXECUTION_CONTRACT.json").read_text(encoding="utf-8"))
     assert manifest["controller"] == capabilities["owner"] == contract["authority"]["controller"] == "FINANCIAL_WRITING_OWNER"
     assert manifest["external_parent_required"] is False
-    assert manifest["external_host_required"] is False
+    assert manifest["external_host_required"] is True
+    assert manifest["provider_action_required"] is True
+    assert manifest["client_skill_plugin"]["custom_hosted_service_required"] is True
+    assert manifest["provider_action_endpoint"]["status"] == "NOT_DEPLOYED"
     assert manifest["direct_activation"] is True
     assert capabilities["independent_parent_free"] is True
     assert contract["execution"]["route_selection"] == "DIRECT_FINANCIAL_ONLY"
@@ -37,7 +40,7 @@ def main() -> None:
     from financial_writing_agent.models import TaskContract
     assert len(TaskContract(prompt="isolated Financial").required_outputs) == 4
     print("PASS: direct Financial imports, native owner state, Skill, core writer and "
-          "standalone capability contracts initialize without any external parent runtime")
+          "Financial remains parent-independent; canonical writes require a separately hosted Provider Action")
 
 
 if __name__ == "__main__":

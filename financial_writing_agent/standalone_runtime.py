@@ -29,12 +29,18 @@ from .method_governance import (
     admitted_method_usage_snapshot, method_dependency_drift,
 )
 from .path_identity import require_article_path, require_task_id
+from .task_requirements import RequirementError, requirement_applies_to_task
 from .provider_attestation import (
     verify_action_authorization, verify_action_effect_attestation,
     verify_method_action_authorization, verify_persisted_action_authorization,
     FinancialProviderAttestationError, payload_sha256, request_sha256,
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
+from .full_universe_research import (
+    validate_full_universe_decision_handoff,
+    validate_full_universe_research_package,
+)
+from .private_research import SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (
     IndependentEditorialEvidenceError, verify_external_editorial_review,
@@ -60,7 +66,7 @@ STAGE_KEYS = frozenset({
     "artifact_key", "artifact_path", "artifact_blob_sha", "review_status",
     "revision_target", "delivery_artifacts", "audit_artifact",
     "decision_envelope", "private_research_brief", "story_blueprints",
-    "publication_fitnesses", "requirement_satisfaction",
+    "publication_fitnesses", "requirement_satisfaction", "portfolio_context_ref",
     "supplemental_delivery_artifacts",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
@@ -285,14 +291,27 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         return None
     _require(reader is not None, "FINANCIAL_REQUIRED_STAGE_ARTIFACT_READER_MISSING")
     ref = candidate.get("stage_artifacts", {}).get(key)
-    _require(isinstance(ref, Mapping), "FINANCIAL_REQUIRED_STAGE_ARTIFACT_REFERENCE_MISSING")
+    expected = bindings.get("required_artifact_blob_sha")
+    artifact_path = ref.get("path") if isinstance(ref, Mapping) else None
+    if not isinstance(artifact_path, str):
+        receipt = receipts[-1]
+        output_refs = receipt.get("output_refs", [])
+        state_path = _state_path(candidate["task_id"])
+        candidates = [
+            item for item in output_refs
+            if isinstance(item, str) and item != state_path
+        ] if isinstance(output_refs, list) else []
+        artifact_path = candidates[-1] if candidates else None
     try:
-        path = require_article_path(ref.get("path"), candidate["task_id"])
+        path = require_article_path(artifact_path, candidate["task_id"])
     except ValueError as exc:
         raise FinancialAdmissionError("FINANCIAL_STAGE_ARTIFACT_PATH_INVALID") from exc
-    expected = ref.get("blob_sha")
-    _require(_valid_sha(expected) and bindings.get("required_artifact_blob_sha") == expected,
-             "FINANCIAL_STAGE_ARTIFACT_RECEIPT_SHA_INVALID")
+    _require(
+        _valid_sha(expected)
+        and bindings.get("required_artifact_blob_sha") == expected
+        and (not isinstance(ref, Mapping) or ref.get("blob_sha") == expected),
+        "FINANCIAL_STAGE_ARTIFACT_RECEIPT_SHA_INVALID",
+    )
     try:
         observed = reader(path)
     except Exception as exc:
@@ -303,23 +322,262 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
              "FINANCIAL_STAGE_ARTIFACT_BYTES_INVALID")
     _require(_blob_sha(content) == claimed_sha == expected,
              "FINANCIAL_STAGE_ARTIFACT_BYTES_SHA_MISMATCH")
+
     reconciliation = None
-    active_ids = {
-        item.get("requirement_id")
-        for item in candidate.get("task_requirement_authority", {}).get("active_requirements", [])
-        if isinstance(item, Mapping)
-    }
-    if key == "RESEARCH" and "full_universe_research_pool" in active_ids:
-        from .schemas import ResearchPackage
+    portfolio_stage_artifact = None
+    research_package = None
+    active_requirements = candidate.get("task_requirement_authority", {}).get("active_requirements", [])
+    try:
+        full_universe_required = (
+            key == "RESEARCH"
+            and any(
+                isinstance(item, Mapping)
+                and item.get("requirement_id") == "full_universe_research_pool"
+                and requirement_applies_to_task(item, candidate.get("required_outputs", []))
+                for item in active_requirements
+            )
+        )
+    except RequirementError as exc:
+        raise FinancialAdmissionError(
+            "FINANCIAL_TASK_REQUIREMENT_SCOPE_INVALID"
+        ) from exc
+    has_portfolio_context = bindings.get("portfolio_context_ref") is not None
+
+    if has_portfolio_context:
         try:
             parsed = json.loads(content)
-            research = ResearchPackage.model_validate(parsed)
-            reconciliation = require_retained_universe_reconciliation(candidate["task_id"], research)
+        except (ValueError, TypeError) as exc:
+            raise FinancialAdmissionError(
+                "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_JSON_INVALID"
+            ) from exc
+        _require(isinstance(parsed, Mapping),
+                 "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_ENVELOPE_INVALID")
+        expected_fields = {
+            "schema_version", "artifact_type", "task_id", "stage",
+            "requirement_digest", "owner_state_stage_before", "stage_result",
+            "payload", "pass_receipt_sha256s", "assurance",
+        }
+        _require(set(parsed) == expected_fields,
+                 "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_FIELDS_INVALID")
+        _require(
+            parsed.get("schema_version") == "1.0"
+            and parsed.get("artifact_type") == "FINANCIAL_PORTFOLIO_BUSINESS_STAGE",
+            "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_TYPE_INVALID",
+        )
+        owner_stage_before = receipts[-1].get("stage")
+        _require(
+            parsed.get("task_id") == candidate.get("task_id")
+            and parsed.get("stage") == key
+            and parsed.get("requirement_digest") == candidate.get("task_requirement_digest")
+            and parsed.get("owner_state_stage_before") == owner_stage_before,
+            "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_OWNER_BINDING_MISMATCH",
+        )
+        stage_result = parsed.get("stage_result")
+        payload = parsed.get("payload")
+        _require(
+            isinstance(stage_result, Mapping)
+            and stage_result.get("stage") == key
+            and isinstance(stage_result.get("stage_outputs"), Mapping)
+            and isinstance(payload, Mapping)
+            and payload == stage_result.get("stage_outputs"),
+            "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_PAYLOAD_MISMATCH",
+        )
+        pass_receipts = parsed.get("pass_receipt_sha256s")
+        _require(
+            isinstance(pass_receipts, list)
+            and bool(pass_receipts)
+            and all(
+                isinstance(item, str)
+                and len(item) == 64
+                and all(char in "0123456789abcdef" for char in item)
+                for item in pass_receipts
+            ),
+            "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_PASS_RECEIPTS_INVALID",
+        )
+        _require(
+            parsed.get("assurance")
+            == "TYPED_STAGE_OUTPUT_ENVELOPE__OWNER_ADMISSION_AND_PROVIDER_READBACK_REQUIRED",
+            "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_ASSURANCE_INVALID",
+        )
+        portfolio_stage_artifact = deepcopy(dict(parsed))
+        if full_universe_required:
+            research_package = deepcopy(payload.get("research_package"))
+            try:
+                research = validate_full_universe_decision_handoff(
+                    research_package,
+                    payload.get("company_decision_map"),
+                    payload.get("change_conditions"),
+                )
+                reconciliation = require_retained_universe_reconciliation(
+                    candidate["task_id"], research,
+                )
+            except (ValueError, TypeError, CompanyIdentityError) as exc:
+                raise FinancialAdmissionError(
+                    "FINANCIAL_RESEARCH_UNIVERSE_NOT_RECONCILED"
+                ) from exc
+            _require(reconciliation is not None,
+                     "FINANCIAL_TASK_RESEARCH_BASELINE_NOT_CONFIGURED")
+    elif full_universe_required:
+        # Legacy direct-stage actions retain their historical raw ResearchPackage
+        # contract. New portfolio-coordinator actions must use the typed envelope.
+        try:
+            parsed = json.loads(content)
+            research_package = deepcopy(parsed)
+            research = validate_full_universe_research_package(research_package)
+            reconciliation = require_retained_universe_reconciliation(
+                candidate["task_id"], research,
+            )
         except (ValueError, TypeError, CompanyIdentityError) as exc:
-            raise FinancialAdmissionError("FINANCIAL_RESEARCH_UNIVERSE_NOT_RECONCILED") from exc
-        _require(reconciliation is not None, "FINANCIAL_TASK_RESEARCH_BASELINE_NOT_CONFIGURED")
-    return {"artifact_key": key, "path": path, "verified_blob_sha": expected,
-            "retained_universe_reconciliation": reconciliation}
+            raise FinancialAdmissionError(
+                "FINANCIAL_RESEARCH_UNIVERSE_NOT_RECONCILED"
+            ) from exc
+        _require(reconciliation is not None,
+                 "FINANCIAL_TASK_RESEARCH_BASELINE_NOT_CONFIGURED")
+
+    return {
+        "artifact_key": key,
+        "path": path,
+        "verified_blob_sha": expected,
+        "retained_universe_reconciliation": reconciliation,
+        "portfolio_stage_artifact": portfolio_stage_artifact,
+        "research_package": research_package,
+    }
+
+
+def _verify_portfolio_stage_artifact_context(
+    stage_bytes: Mapping[str, Any],
+    context_value: Mapping[str, Any],
+    candidate: Mapping[str, Any],
+) -> dict[str, Any]:
+    """Cross-bind stage bytes, pass context and the admitted owner outcome."""
+    artifact = stage_bytes.get("portfolio_stage_artifact")
+    _require(isinstance(artifact, Mapping),
+             "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_ENVELOPE_MISSING")
+    receipts = candidate.get("execution_receipts", [])
+    _require(isinstance(receipts, list) and bool(receipts),
+             "FINANCIAL_PORTFOLIO_STAGE_OWNER_RECEIPT_MISSING")
+    owner_receipt = receipts[-1]
+    owner_stage_before = owner_receipt.get("stage")
+    owner_bindings = owner_receipt.get("input_bindings", {})
+    _require(isinstance(owner_bindings, Mapping),
+             "FINANCIAL_PORTFOLIO_STAGE_OWNER_BINDINGS_MISSING")
+    last_stage_result = context_value.get("last_stage_result")
+    trace = context_value.get("trace", [])
+    expected_pass_receipts = [
+        item.get("receipt_sha256")
+        for item in trace
+        if isinstance(item, Mapping)
+        and item.get("business_stage") == owner_stage_before
+    ] if isinstance(trace, list) else []
+    _require(
+        artifact.get("task_id") == candidate.get("task_id")
+        and context_value.get("task_id") == candidate.get("task_id")
+        and artifact.get("stage") == owner_stage_before
+        and artifact.get("owner_state_stage_before") == owner_stage_before
+        and artifact.get("requirement_digest") == candidate.get("task_requirement_digest")
+        and artifact.get("requirement_digest") == context_value.get("requirement_digest")
+        and artifact.get("stage_result") == last_stage_result
+        and isinstance(last_stage_result, Mapping)
+        and last_stage_result.get("stage") == owner_stage_before
+        and artifact.get("payload") == last_stage_result.get("stage_outputs")
+        and artifact.get("pass_receipt_sha256s") == expected_pass_receipts
+        and bool(expected_pass_receipts),
+        "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_CONTEXT_CROSS_BINDING_MISMATCH",
+    )
+
+    # A correctly hashed artifact is not enough: the owner transition must
+    # admit the exact PASS/REVISE/FAIL decision recorded by the stage executor.
+    owner_review_status = owner_bindings.get("review_status")
+    expected_status = owner_review_status if owner_review_status is not None else "PASS"
+    expected_revision_target = owner_bindings.get("revision_target")
+    _require(
+        expected_status in {"PASS", "REVISE", "FAIL"}
+        and last_stage_result.get("status") == expected_status
+        and last_stage_result.get("revision_target") == expected_revision_target,
+        "FINANCIAL_PORTFOLIO_STAGE_OUTCOME_OWNER_BINDING_MISMATCH",
+    )
+    if owner_review_status is None:
+        _require(
+            expected_revision_target is None,
+            "FINANCIAL_PORTFOLIO_STAGE_OUTCOME_OWNER_BINDING_MISMATCH",
+        )
+
+    # Requirement satisfaction must be the same evidence set in the persisted
+    # context and owner receipt. The owner receipt additionally binds the exact
+    # stage artifact path, so a caller cannot substitute another evidence set.
+    stage_path = stage_bytes.get("path")
+    _require(
+        isinstance(stage_path, str) and bool(stage_path.strip()),
+        "FINANCIAL_PORTFOLIO_STAGE_ARTIFACT_PATH_MISSING",
+    )
+    context_satisfaction = last_stage_result.get("requirement_satisfaction", [])
+    owner_satisfaction = owner_bindings.get("task_requirement_satisfaction", [])
+    _require(
+        isinstance(context_satisfaction, list) and isinstance(owner_satisfaction, list),
+        "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+    )
+    expected_satisfaction: list[dict[str, Any]] = []
+    for item in context_satisfaction:
+        _require(
+            isinstance(item, Mapping)
+            and isinstance(item.get("requirement_id"), str)
+            and bool(item.get("requirement_id", "").strip())
+            and item.get("result") == "SATISFIED"
+            and isinstance(item.get("evidence_refs"), list)
+            and bool(item.get("evidence_refs"))
+            and all(isinstance(ref, str) and ref.strip() for ref in item["evidence_refs"]),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
+        refs = [ref.strip() for ref in item["evidence_refs"]]
+        _require(
+            len(refs) == len(set(refs)),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
+        if stage_path not in refs:
+            refs.append(stage_path)
+        expected_satisfaction.append({
+            "requirement_id": item["requirement_id"],
+            "result": "SATISFIED",
+            "evidence_refs": refs,
+            "notes": str(item.get("notes", "")).strip(),
+        })
+    observed_satisfaction: list[dict[str, Any]] = []
+    for item in owner_satisfaction:
+        _require(
+            isinstance(item, Mapping)
+            and isinstance(item.get("requirement_id"), str)
+            and item.get("result") == "SATISFIED"
+            and isinstance(item.get("evidence_refs"), list)
+            and all(isinstance(ref, str) and ref.strip() for ref in item["evidence_refs"]),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
+        owner_refs = [ref.strip() for ref in item["evidence_refs"]]
+        _require(
+            len(owner_refs) == len(set(owner_refs)),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
+        observed_satisfaction.append({
+            "requirement_id": item["requirement_id"],
+            "result": "SATISFIED",
+            "evidence_refs": owner_refs,
+            "notes": str(item.get("notes", "")).strip(),
+        })
+    expected_satisfaction.sort(key=lambda item: item["requirement_id"])
+    observed_satisfaction.sort(key=lambda item: item["requirement_id"])
+    _require(
+        observed_satisfaction == expected_satisfaction,
+        "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_OWNER_BINDING_MISMATCH",
+    )
+    return {
+        "path": stage_path,
+        "blob_sha": stage_bytes.get("verified_blob_sha"),
+        "stage": owner_stage_before,
+        "pass_receipt_count": len(expected_pass_receipts),
+        "owner_outcome_verified": True,
+        "requirement_satisfaction_count": len(expected_satisfaction),
+        "assurance": "EXACT_PROVIDER_BYTES__CONTEXT__OWNER_OUTCOME_CROSS_BINDING",
+    }
+
 
 
 def _verify_requirement_satisfaction_sources(
@@ -395,7 +653,7 @@ def _verify_delivery_research_freshness(
     source_reader: Callable[[str], Mapping[str, Any] | None] | None,
 ) -> dict[str, Any] | None:
     """Recheck current research freshness and source-byte stability before delivery."""
-    if candidate.get("private_research_contract_version") != "1.1":
+    if candidate.get("private_research_contract_version") not in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
         return None
     try:
         current = verify_current_research_sources(
@@ -984,6 +1242,7 @@ def admit_article_action(
     effect_attestation_signer: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     effect_receipt_reader: EffectReceiptReader | None = None,
     artifact_reader: ArtifactReader | None = None,
+    portfolio_context_reader: ArtifactReader | None = None,
     source_snapshot_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
     independent_editorial_verifier: Callable[[Mapping[str, Any]], Mapping[str, Any] | None] | None = None,
     owner_instruction_reader: Callable[[str], Mapping[str, Any] | None] | None = None,
@@ -1074,6 +1333,14 @@ def admit_article_action(
             state, effect_receipt_reader=effect_receipt_reader,
             current_state_blob_sha=previous_sha,
         )
+        if (
+            op == "ADVANCE_STAGE"
+            and current_admission.portfolio_context_required_for_stage(state)
+        ):
+            _require(
+                isinstance(params.get("portfolio_context_ref"), Mapping),
+                "FINANCIAL_PORTFOLIO_CONTEXT_REQUIRED_FOR_CURRENT_TASK",
+            )
         call = {
             "previous_state_blob_sha": previous_sha,
             "executor_identity": f"financial:{r['action_id']}",
@@ -1133,6 +1400,79 @@ def admit_article_action(
             method_catalog_reader=method_catalog_reader,
         )
     stage_bytes = _verify_stage_bytes(candidate, artifact_reader) if op == "ADVANCE_STAGE" else None
+    portfolio_context_readback = None
+    context_ref = action_bindings.get("portfolio_context_ref") if op == "ADVANCE_STAGE" else None
+    if context_ref is not None:
+        _require(
+            callable(portfolio_context_reader),
+            "FINANCIAL_PORTFOLIO_CONTEXT_READER_REQUIRED",
+        )
+        _require(
+            isinstance(context_ref, Mapping)
+            and set(context_ref) == {"path", "blob_sha", "sha256", "stage", "generation"},
+            "FINANCIAL_PORTFOLIO_CONTEXT_REFERENCE_INVALID",
+        )
+        try:
+            context_path = require_article_path(context_ref.get("path"), candidate["task_id"])
+        except ValueError as exc:
+            raise FinancialAdmissionError("FINANCIAL_PORTFOLIO_CONTEXT_PATH_INVALID") from exc
+        _require("/portfolio/contexts/" in context_path,
+                 "FINANCIAL_PORTFOLIO_CONTEXT_PATH_SCOPE_INVALID")
+        try:
+            observed_context = portfolio_context_reader(context_path)
+        except Exception as exc:
+            raise FinancialEffectUnverified("FINANCIAL_PORTFOLIO_CONTEXT_READ_FAILED") from exc
+        _require(isinstance(observed_context, Mapping),
+                 "FINANCIAL_PORTFOLIO_CONTEXT_BYTES_MISSING")
+        context_content = observed_context.get("content")
+        context_blob_sha = observed_context.get("blob_sha")
+        _require(
+            isinstance(context_content, (str, bytes))
+            and _valid_sha(context_blob_sha)
+            and _blob_sha(context_content) == context_blob_sha == context_ref.get("blob_sha"),
+            "FINANCIAL_PORTFOLIO_CONTEXT_BLOB_SHA_MISMATCH",
+        )
+        context_bytes = context_content.encode("utf-8") if isinstance(context_content, str) else context_content
+        _require(
+            hashlib.sha256(context_bytes).hexdigest() == context_ref.get("sha256"),
+            "FINANCIAL_PORTFOLIO_CONTEXT_SHA256_MISMATCH",
+        )
+        try:
+            context_value = json.loads(context_bytes)
+            from .writing_kernel import validate_portfolio_context
+            validate_portfolio_context(context_value)
+        except Exception as exc:
+            raise FinancialAdmissionError("FINANCIAL_PORTFOLIO_CONTEXT_INVALID") from exc
+        _require(
+            context_value.get("task_id") == candidate["task_id"]
+            and context_value.get("requirement_digest") == candidate.get("task_requirement_digest")
+            and context_value.get("current_stage") == candidate.get("current_stage")
+            and context_value.get("generation") == context_ref.get("generation")
+            and context_ref.get("stage") == candidate.get("current_stage"),
+            "FINANCIAL_PORTFOLIO_CONTEXT_OWNER_BINDING_MISMATCH",
+        )
+        expected_context_status = "BLOCKED" if candidate.get("status") == "BLOCKED" else "ACTIVE"
+        _require(
+            context_value.get("execution_status") == expected_context_status,
+            "FINANCIAL_PORTFOLIO_CONTEXT_OWNER_STATUS_MISMATCH",
+        )
+        portfolio_context_readback = {
+            "path": context_path,
+            "blob_sha": context_blob_sha,
+            "sha256": context_ref["sha256"],
+            "stage": context_ref["stage"],
+            "generation": context_ref["generation"],
+            "assurance": "EXACT_PROVIDER_BYTES_READBACK__SEMANTIC_ACCEPTANCE_OPEN",
+        }
+        action_bindings["portfolio_context_readback"] = portfolio_context_readback
+
+        if stage_bytes is not None and stage_bytes.get("portfolio_stage_artifact") is not None:
+            action_bindings["portfolio_stage_artifact_readback"] = (
+                _verify_portfolio_stage_artifact_context(
+                    stage_bytes, context_value, candidate,
+                )
+            )
+        current_admission.validate_state(candidate)
     delivery_research_freshness = None
     if op == "ADVANCE_STAGE" and observed is not None and observed[0]["current_stage"] in {
         "DELIVERY", "FINAL_AUDIT",
@@ -1157,6 +1497,10 @@ def admit_article_action(
             research_sources = verify_current_research_sources(
                 candidate["quality_evidence"]["private_research_brief"],
                 source_reader=source_snapshot_reader,
+                research_package=(
+                    stage_bytes.get("research_package")
+                    if isinstance(stage_bytes, Mapping) else None
+                ),
             )
         except CurrentResearchEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
@@ -1300,6 +1644,8 @@ def admit_article_action(
         "provider_commit_ref": issued.get("commit_ref"),
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
+        "portfolio_context_readback": portfolio_context_readback,
+        "portfolio_stage_artifact_readback": action_bindings.get("portfolio_stage_artifact_readback"),
         "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
         "delivery_research_freshness_readback": delivery_research_freshness,
