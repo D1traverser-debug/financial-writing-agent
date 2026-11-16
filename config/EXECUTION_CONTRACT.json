@@ -699,7 +699,7 @@
     },
     "execution_profile": {
       "name": "WritingExecutionProfile",
-      "schema_version": "1.0",
+      "schema_version": "1.1",
       "portfolio_context_schema": "1.1",
       "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
       "whole_task_classifier": "NONE",
@@ -707,7 +707,16 @@
       "original_prompt_binding": "SHA256",
       "pass_binding": "ALL_SEMANTIC_PASSES",
       "requirement_revision": "REFRESH_PROFILE_AND_INVALIDATE_AFFECTED_DOWNSTREAM_EVIDENCE",
-      "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE"
+      "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE",
+      "decision_domain_binding_contract": {
+        "representation": "SCOPED_DECISION_DOMAIN_BINDINGS",
+        "locked_requires": "ACTIVE_USER_EXPLICIT_OR_USER_CORRECTION_REQUIREMENT_IDS",
+        "open_requires": "NO_HARD_REQUIREMENT_IDS__PREFERENCES_MAY_GUIDE",
+        "coverage": "EVERY_ACTIVE_FIXED_AND_PREFERENCE_REQUIREMENT_ID_MUST_MAP_TO_A_DOMAIN",
+        "scope": "DOMAIN_BINDING_MUST_NOT_EXCEED_OR_NARROW_THE_REFERENCED_REQUIREMENT_SCOPE",
+        "overlap": "SAME_DOMAIN_CANNOT_HAVE_OVERLAPPING_LOCKED_AND_OPEN_SCOPES",
+        "authority": "TASK_REQUIREMENT_AUTHORITY_REMAINS_SOLE_BINDING_REQUIREMENT_SOURCE"
+      }
     }
   }
 }

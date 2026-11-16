@@ -836,3 +836,31 @@ Status: `MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__REAL_EDITORIAL_ACCEPTANCE_OP
 **Current status.** The fixed-workflow/adaptive-expression execution profile is now in Financial main. The three PRs did not produce a real article, independent editorial verdict or user acceptance. Interaction quality remains NOT_READY until real mode-specific rejection and held-out evidence exist; Deep and Broad also retain their own cross-topic quality gates. Financial Provider Action remains NOT_DEPLOYED. No CAOS repository or runtime was modified.
 
 **Next legal action.** Use actual current Financial Writing tasks across different topic families and requested products; trace user requirements into delivered text, evaluate factual causality, originality, retention and authorial prose with independent review, and repair any remaining root causes. Do not repeat the merged engineering work or infer quality from CI.
+
+
+---
+
+## P-20261117-02 — Locked/open execution domains were not traceable to requirement authority (2026-11-17)
+
+Status: `CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN`
+
+**Trigger.** The merged WritingExecutionProfile 1.0 verified the original prompt hash and exact active fixed/preference requirement ID sets, but represented locked and open editorial domains as unbound string lists.
+
+**Root cause.** The validator proved that requirement IDs were present, but not that a `LOCKED` domain was justified by an active explicit/corrective requirement, that an `OPEN` domain had no hard requirement, or that every active requirement/preference was represented in the domain map. A profile could mark COMPANY_SCOPE as locked with no user requirement, or leave an explicit scope unbound, and still pass. The free-text execution rationale did not close that gap.
+
+**Competing mechanisms.**
+1. Keep the string lists and add more prose — rejected because the authority relationship remains unverifiable.
+2. Add a rule-based whole-prompt classifier — rejected because it would turn open editorial decisions into brittle keyword routing and recreate the whole-task taxonomy defect.
+3. Bind scoped decision-domain records to existing TaskRequirementAuthority IDs — selected because it preserves one workflow and one requirement authority while making lock/open distinctions auditable.
+
+**Selected correction candidate.**
+- Introduce WritingExecutionProfile 1.1 scoped `decision_domains` records.
+- `LOCKED` requires active USER_EXPLICIT/USER_CORRECTION IDs.
+- `OPEN` cannot carry hard requirement IDs; preferences may guide without locking.
+- Map every active fixed and preference ID to at least one domain.
+- Verify domain scopes do not exceed the scopes of their cited requirement IDs.
+- Permit one domain to be locked for one product and open for another only when scopes do not overlap.
+- Preserve TaskRequirementAuthority as the only binding authority; no new router, workflow or requirement store.
+- Add diagnostic examples from Ice/Snow, Huangjiu channel transformation, Meta Muse Wonder and AI-security prompts. These are semantic reference fixtures, not proof of live model execution or independent quality acceptance.
+
+**Acceptance boundary.** Unit tests can prove schema and authority-binding invariants. They cannot prove that the model correctly interprets every user prompt, that open editorial choices are good, or that a real article is reader-approved. Real-task profile replay and independent review remain OPEN. Financial Provider Action remains NOT_DEPLOYED. No CAOS source or runtime is modified.

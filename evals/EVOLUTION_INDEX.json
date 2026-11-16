@@ -16,7 +16,8 @@
     "evals/PROBLEM_EVOLUTION_JOURNAL.md",
     "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
     "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
-    "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md"
+    "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
+    "evals/FINANCIAL_EXECUTION_PROFILE_DECISION_BINDING_AUDIT_20261117.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -160,6 +161,14 @@
       "status": "MERGED_TO_MAIN__MAIN_CI_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN",
       "scope": "ONE_INVARIANT_TEN_STAGE_WORKFLOW__PROMPT_BOUND_EXECUTION_PROFILE__ADAPTIVE_EDITORIAL_DECISIONS",
       "assurance": "ENGINEERING_AND_DATAFLOW_VERIFIED__REAL_ARTICLE_ACCEPTANCE_OPEN"
+    },
+    {
+      "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
+      "branch": "repair/execution-profile-decision-binding-20261117",
+      "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
+      "status": "CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN",
+      "scope": "SCOPED_LOCKED_OPEN_DOMAIN_BINDINGS_TO_TASK_REQUIREMENT_AUTHORITY",
+      "assurance": "SCHEMA_AND_DIAGNOSTIC_FIXTURES_ONLY__NO_LIVE_MODEL_SEMANTIC_ACCEPTANCE"
     }
   ],
   "historical_notes": [
@@ -179,7 +188,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #84 requirement-scope/dataflow, PR #85 CAOS-governance migration, PR #86 Interaction quality-evaluator repair, PR #87 integration-status synchronization and PR #88 fixed-workflow/adaptive-editorial refactor are all merged to Financial main in dependency order. PR #88 merged main SHA 3fea4dd079785cd534827d24e72898c9e8c793c4 passed exact main CI run 43908728749: 746 tests, 88% Python statement coverage, whole-tree audit zero warnings/errors. The runtime now carries one prompt-bound WritingExecutionProfile while retaining the canonical ten-stage workflow. This is the latest independently validated functional mainline commit; subsequent status/evidence-only updates are separately tested. Continue with real current article production across multiple topic families and all requested products, independent editorial review and user acceptance; CI is not proof of writing quality. Financial Provider Action remains NOT_DEPLOYED, so no live canonical article-state or method-catalog writes may be claimed. Do not modify CAOS.",
+    "next_legal_phase": "PR #84 requirement-scope/dataflow, PR #85 CAOS-governance migration, PR #86 Interaction evaluator repair, PR #87 integration-status synchronization and PR #88 fixed-workflow/adaptive-editorial refactor remain merged to Financial main. New candidate branch repair/execution-profile-decision-binding-20261117 addresses the remaining profile traceability gap: every scoped LOCKED/OPEN decision domain must map to the existing TaskRequirementAuthority. Run exact-head CI and inspect cross-topic semantic fixtures; obtain independent technical review before merge. Real article quality, independent blind editorial review, reader acceptance and live Provider Action remain OPEN. Do not modify CAOS.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -723,7 +732,7 @@
       "exact_main_ci_tests_passed": 727
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.5",
+    "problem_journal_revision": "2.6",
     "general_writing_stability": {
       "status": "OPEN__SYSTEM_WIDE_CROSS_TOPIC_QUALITY_NOT_VERIFIED",
       "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
@@ -822,6 +831,22 @@
         "status": "MERGED_TO_MAIN__ENGINEERING_PASS__EDITORIAL_ACCEPTANCE_OPEN"
       },
       "latest_candidate_head": "3fea4dd079785cd534827d24e72898c9e8c793c4"
+    },
+    "current_execution_profile_decision_binding_candidate": {
+      "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
+      "status": "CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN",
+      "branch": "repair/execution-profile-decision-binding-20261117",
+      "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
+      "schema_version": "1.1",
+      "scope": "SCOPED_LOCKED_OPEN_DOMAIN_BINDINGS_TO_TASK_REQUIREMENT_AUTHORITY",
+      "assurance": "SCHEMA_AND_DIAGNOSTIC_FIXTURES_ONLY__NO_LIVE_MODEL_SEMANTIC_ACCEPTANCE",
+      "limitations": [
+        "NO_LIVE_PROVIDER_ACTION",
+        "NO_REAL_MODEL_EXECUTION_PROFILE_REPLAY",
+        "NO_INDEPENDENT_EDITORIAL_OR_READER_ACCEPTANCE",
+        "NO_FINANCIAL_PROVIDER_ACTION_DEPLOYMENT"
+      ],
+      "next_legal_step": "Run exact-head CI; inspect semantic fixtures across vague, thesis-led and named-candidate prompts; obtain independent technical review before merge. Do not claim live model semantic classification is proven."
     }
   },
   "system_engineering_simulation_20261112": {
@@ -1094,5 +1119,21 @@
     "exact_main_ci_run": 43908728749,
     "exact_main_ci_conclusion": "success",
     "exact_main_ci_tests_passed": 746
+  },
+  "current_execution_profile_decision_binding_candidate": {
+    "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
+    "status": "CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN",
+    "branch": "repair/execution-profile-decision-binding-20261117",
+    "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
+    "schema_version": "1.1",
+    "scope": "SCOPED_LOCKED_OPEN_DOMAIN_BINDINGS_TO_TASK_REQUIREMENT_AUTHORITY",
+    "assurance": "SCHEMA_AND_DIAGNOSTIC_FIXTURES_ONLY__NO_LIVE_MODEL_SEMANTIC_ACCEPTANCE",
+    "limitations": [
+      "NO_LIVE_PROVIDER_ACTION",
+      "NO_REAL_MODEL_EXECUTION_PROFILE_REPLAY",
+      "NO_INDEPENDENT_EDITORIAL_OR_READER_ACCEPTANCE",
+      "NO_FINANCIAL_PROVIDER_ACTION_DEPLOYMENT"
+    ],
+    "next_legal_step": "Run exact-head CI; inspect semantic fixtures across vague, thesis-led and named-candidate prompts; obtain independent technical review before merge. Do not claim live model semantic classification is proven."
   }
 }

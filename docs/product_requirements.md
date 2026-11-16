@@ -364,11 +364,13 @@ The following remain deliberately adaptive: narrative engine, title angle, openi
 Do not classify the whole request into separate task types or route it to different workflows. Every article follows the same canonical ten-stage business graph. The task-bound `WritingExecutionProfile` is a derived execution context containing:
 - the invariant `FINANCIAL_ARTICLE_10_STAGE_V1` workflow contract;
 - exact active explicit/corrective requirement IDs and separately weighted preference IDs;
-- editorial decision domains locked by the user versus those left open;
+- scoped `decision_domains` bindings that identify which user requirements lock a domain and which decisions remain open;
 - only research/editorial modules material to the current task;
 - a binding to the original prompt and current requirement projection.
 
-TaskRequirementAuthority remains the sole source of binding user requirements; the profile is not another authority, router or state machine. Every semantic pass receives the same profile. Explicit/corrective requirements remain binding, preferences remain preferences, and unprescribed decisions—thesis, angle, narrative engine, opening, title, section order, rhythm, technical depth and voice—are selected from evidence, material and reader needs. Requirement changes refresh the profile and invalidate affected downstream evidence.
+Every `LOCKED` domain must cite one or more active `USER_EXPLICIT`/`USER_CORRECTION` requirement IDs. An `OPEN` domain cannot cite a hard requirement, though it may cite preferences. Every active hard requirement and preference must map to at least one domain, and a domain binding cannot exceed the scopes of its cited requirements. A preference never becomes a lock. The same domain may be locked for one product and open for another only when their scopes do not overlap.
+
+TaskRequirementAuthority remains the sole source of binding user requirements; the profile is not another authority, router or state machine. Every semantic pass receives the same profile. Unprescribed decisions—thesis, angle, narrative engine, opening, title, section order, rhythm, technical depth and voice—are selected from evidence, material and reader needs. A user-supplied thesis or company list may lock the research focus/candidate set without locking the final causal conclusion or publication selection. Requirement changes refresh the profile and invalidate affected downstream evidence.
 
 Acceptance verifies both invariants across topics and product modes: the required process is never skipped, while research depth and editorial form adapt to the actual task. Schema validation and synthetic fixtures establish execution contracts only; they do not prove correct semantic interpretation or reader acceptance.
  

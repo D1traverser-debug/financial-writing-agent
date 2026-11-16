@@ -47,7 +47,7 @@ Revisions invalidate downstream evidence; preserve history. Recover first; respe
 
 ### Fixed workflow, adaptive expression
 
-All article tasks use the same ten-stage workflow. A prompt-bound `writing_execution_profile` in Portfolio Context 1.1 records the invariant workflow contract, exact explicit/corrective requirement IDs, separate preferences, locked/open editorial domains and material conditional modules. It is execution context—not a task classifier, router or authority. TaskRequirementAuthority remains authoritative; every semantic pass receives the same profile. Requirement changes refresh it and invalidate affected evidence. Context 1.0 remains readable.
+All article tasks use the same ten-stage workflow. A prompt-bound `writing_execution_profile` in Portfolio Context 1.1 records the invariant workflow, exact requirements/preferences and scoped locked/open decision-domain bindings. Derive it with `references/execution_profile.md`: LOCKED requires active explicit/corrective IDs; OPEN carries no hard IDs. It is context, not a router or authority. TaskRequirementAuthority remains authoritative; every semantic pass receives the same profile. Requirement changes refresh it and invalidate affected evidence. Context 1.0 remains readable.
 
 1. Research material value-chain and company economics from current issuer, regulator and filing sources; distinguish direct financial exposure from theme association and preserve counterevidence.
 2. Complete the fifteen applicable PrivateResearchBrief 1.1 modules; keep evidence gaps, uncertainty and rejected hypotheses visible.
