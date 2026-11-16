@@ -54,8 +54,9 @@ def test_current_system_candidate_records_exact_requirement_scope_repair_evidenc
 
     journal_index = _json("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
     assert journal_index["revision"] == index["active_system_assessment"]["problem_journal_revision"]
-    assert journal_index["latest_incident_id"] == "P-20261116-04"
-    assert journal_index["latest_incident_ref"].endswith("#P-20261116-04")
+    latest_incident_id = journal_index["latest_incident_id"]
+    assert latest_incident_id.startswith("P-")
+    assert journal_index["latest_incident_ref"].endswith(f"#{latest_incident_id}")
     journal = (ROOT / "evals/PROBLEM_EVOLUTION_JOURNAL.md").read_text(encoding="utf-8")
     assert candidate["problem_ref"].rsplit("#", 1)[-1] in journal
     assert journal_index["latest_incident_id"] in journal

@@ -143,3 +143,22 @@ A regression test reads the actual rejected Huangjiu article from the repository
 - Exact main merge-head CI: [43833864946](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43833864946) — 727 tests passed; 88% Python statement coverage; every workflow step passed.
 
 The source-provenance regression is now integrated and CI-verified on main. The **overall Financial Writing quality status remains OPEN**: deterministic engineering checks do not replace independent blind article evaluation across multiple topic families and all three publishing products.
+
+## 13. Platform Interaction quality-evaluator coverage correction
+
+The product contract already defines `PLATFORM_INTERACTION` as a first-class, separately evaluated publishing mode. Its platform contract requires an information-bearing hook, a compact fact-to-financial-consequence chain, a natural interaction prompt, source privacy, and the same factual/uncertainty boundaries as long-form products.
+
+**Root cause found in implementation.** `financial_writing_agent.quality_regression._MODES` accepted only `FINANCE_DEEP` and `FINANCE_BROAD`. The evaluator therefore rejected any complete Interaction rejection or held-out case as an invalid content mode. Delivery and Word-render tests covered the interaction pack, but the cross-topic quality evaluator was not tested against every product mode declared by the manifest.
+
+**Selected correction.** Reuse the existing generic mode-scoped corpus, candidate-distillation, immutable case-binding, blind pairwise, position-swap, and hard-invariant regression machinery. Add `PLATFORM_INTERACTION` to the accepted mode set. Do not create a second evaluator or weaken the per-mode rejection and held-out requirements.
+
+**Regression evidence.** PR #86 adds:
+- a positive Interaction-mode corpus/distillation/promotion path;
+- a negative test proving Deep evidence cannot satisfy Interaction's rejection and two-held-out-family requirements;
+- a cross-contract test that every publishing mode declared by `FINANCIAL_MANIFEST.json` is accepted by the quality-regression schema.
+
+**Exact-head engineering verification.** The code-only candidate commit `7d7095f3c53899752ab3ac01cbaf5a7f43435aef` passed run [43837219690](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43837219690): 730 tests passed, 88% Python statement coverage (8,178 statements; 980 missed), Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%.
+
+A documentation/journal follow-up at `d58038056068ee4bbe45127a9d5296a971b27b03` exposed two stale assertions that hard-coded P-04 as the latest incident (728 passed, 2 failed). The tests were corrected to validate the current latest-incident pointer/reference dynamically while retaining P-01 through P-04 as historical open items. Final candidate head `5b6aec5415c7cdce8288f29175c3724260184a45` passed exact-head run [43838436832](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43838436832): 730 tests passed; 88% statement coverage; Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 342 tracked files, 133 Python AST parses, 54 JSON parses, 55,446 decoded text lines, zero warnings/errors. DOCX render, four synthetic Word product binaries/page checks, and negative business replay passed.
+
+**Quality status remains OPEN.** No Interaction real-user rejection or two-family held-out corpus was added. The new unit fixtures are synthetic contract tests, not editorial evidence. No blind external reader evaluation, live article production, provider-backed persistence, or user acceptance is claimed. PR #86 remains a Draft candidate pending independent review and exact-head follow-up after any further change.

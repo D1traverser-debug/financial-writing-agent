@@ -722,3 +722,43 @@ Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
 
 
 **Main integration and exact-head verification (2026-11-16).** PR #84, "stabilize cross-topic portfolio writing and evidence flow", was squash-merged as \`7dbde945e98712856d7d6a19b8fe06b2efc500ab\`. The source-provenance scanner regression and complete stability-contract candidate passed exact implementation-head CI run \`43833247888\` (727 tests; 88% statement coverage) and exact main-head CI run \`43833864946\` (727 tests; 88% statement coverage). This verifies the code integration, not independent editorial quality. Cross-topic quality acceptance remains OPEN for FINANCE_DEEP, FINANCE_BROAD and PLATFORM_INTERACTION.
+
+---
+
+## P-20261116-05 — Platform Interaction was excluded from the quality-regression evaluator (2026-11-16)
+
+Status: `CANDIDATE_FIX__FINAL_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERACTION_QUALITY_EVIDENCE_OPEN`
+
+**Trigger.** The Financial product contract and manifest define three independently evaluated publishing modes, but the quality-regression implementation did not accept the third mode.
+
+**Competing explanations examined.**
+1. Interaction might intentionally be outside quality promotion because it is not a long-form article. Rejected: the current product contract explicitly defines it as a first-class product with its own reader job and separate quality acceptance; the shared evaluator models a generic `content_mode` rather than only article length.
+2. Interaction might require a separate evaluator. Rejected for now: corpus readiness, candidate distillation, mode-specific rejection/held-out checks, immutable artifact binding, blind pairwise review, position swap and hard-invariant regression are already mode-generic. A second evaluator would duplicate the same trust boundary.
+3. The missing corpus alone might explain the unassessed status. Incomplete: the corpus is indeed absent, but the code also rejected the mode before any real case could be admitted.
+
+**Root cause.**
+- The product-mode registry in `quality_regression.py` was narrower than the authoritative publishing portfolio in `FINANCIAL_MANIFEST.json`.
+- Existing tests verified that the Interaction Word pack could be built and that the manifest declared the third product, but did not verify that every declared product mode could enter the quality evaluator.
+- Consequently, the system had a product that could be rendered but could not participate in the same quality-promotion contract.
+
+**Selected correction.**
+- Add `PLATFORM_INTERACTION` to the existing supported-mode set.
+- Parameterize quality-test fixtures by mode.
+- Add a positive test for Interaction corpus readiness, candidate distillation and blind-pairwise promotion.
+- Add a negative test proving Deep evidence cannot satisfy Interaction's mode-specific rejection and two-held-out-family requirements.
+- Add a manifest-to-evaluator regression test for every declared publishing product.
+- Record the actual Interaction evidence gap. Do not fabricate cases, reviewer results or user acceptance.
+
+**Implementation and verification.**
+- Draft PR: [#86](https://github.com/D1traverser-debug/financial-writing-agent/pull/86).
+- Candidate head: `7d7095f3c53899752ab3ac01cbaf5a7f43435aef`.
+- Exact-head CI: [43837219690](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43837219690) — success; 730 tests passed; 88% Python statement coverage.
+- Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%.
+- Whole-tree audit: 342 tracked files, 133 Python AST parses, 54 JSON parses, 55,387 decoded text lines, zero warnings/errors.
+- DOCX render, four synthetic Word product/page checks and negative business replay passed.
+
+**Remaining OPEN.** Interaction quality remains NOT_READY because there is no complete real-user rejection and no two complete held-out topic families for this mode. Deep and Broad retain their own independent evidence requirements. The synthetic unit tests prove evaluator behavior only; they are not blind editorial evidence. Independent review of PR #86, live provider-backed article execution and real reader acceptance remain open. No CAOS source or configuration was modified.
+
+**Next legal action.** Obtain genuine Interaction rejection/held-out artifacts through real work, bind each immutable artifact, and conduct independent blind pairwise evaluation. Do not promote the mode based on the engineering fix alone.
+
+**Verification follow-up — stale latest-incident assertions (2026-11-16).** The first documentation follow-up at head `d58038056068ee4bbe45127a9d5296a971b27b03` failed two tests after the journal index correctly advanced its latest pointer from P-04 to P-05: `test_financial_standalone_index_20261111.py` and `test_proactive_resolution_problem_journal_20261015.py` treated the mutable latest-incident ID as a fixed historical constant. The tests were corrected to validate the current ID/ref relationship and retain the historical P-01–P-04 open-item assertions. Final candidate head `5b6aec5415c7cdce8288f29175c3724260184a45` passed exact-head CI run `43838436832`: 730 tests, 88% coverage, all workflow steps successful; whole-tree audit had zero warnings/errors. This follow-up also records the separate status-index lifecycle defect; it does not change the Interaction quality evidence gap or authorize a quality promotion.

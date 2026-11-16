@@ -100,9 +100,11 @@ def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     assert payload["system_status_authority"] == "evals/EVOLUTION_INDEX.json"
     assert "P-20261015-15" in payload["open_items_at_2026_10_15"]
     assert "P-20261015-16" in payload["open_items_at_2026_10_15"]
-    assert payload["latest_incident_id"] == "P-20261116-04"
-    assert payload["latest_incident_ref"].endswith("#P-20261116-04")
+    latest_incident_id = payload["latest_incident_id"]
+    assert latest_incident_id.startswith("P-")
+    assert payload["latest_incident_ref"].endswith(f"#{latest_incident_id}")
     assert {"P-20261116-01", "P-20261116-02", "P-20261116-03", "P-20261116-04"} <= set(payload["open_items_at_2026_11_16"])
+    assert latest_incident_id in payload["open_items_at_2026_11_16"]
     assert "executable_proactive_resolution_promotion_receipt" in payload
     assert "executable_proactive_resolution_candidate" not in payload
     receipt = payload["executable_proactive_resolution_promotion_receipt"]

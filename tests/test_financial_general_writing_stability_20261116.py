@@ -157,3 +157,38 @@ def test_source_provenance_patterns_cover_known_failure_forms_without_banning_co
 
     ordinary_company_fact = "会稽山2026年上半年中高端黄酒销售收入5.95亿元，同比增长14.17%。"
     assert scan_publication_source_leaks(ordinary_company_fact) == []
+
+def test_every_declared_product_mode_is_supported_by_quality_regression():
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    modes = {
+        item["mode"]
+        for item in manifest["general_writing_stability"]["publishing_portfolio"]["products"]
+    }
+
+    cases = []
+    for mode in sorted(modes):
+        prefix = mode.lower()
+        for case_id, source_kind, split, family in (
+            (f"{prefix}-rejection", "REAL_USER_REJECTION", "REGRESSION", f"{prefix}-rejection-family"),
+            (f"{prefix}-heldout-a", "EXTERNAL_BENCHMARK", "HELD_OUT", f"{prefix}-heldout-family-a"),
+            (f"{prefix}-heldout-b", "EXTERNAL_BENCHMARK", "HELD_OUT", f"{prefix}-heldout-family-b"),
+        ):
+            ref = f"artifact://{case_id}"
+            cases.append({
+                "case_id": case_id,
+                "source_kind": source_kind,
+                "split": split,
+                "topic_family": family,
+                "content_mode": mode,
+                "evidence_status": "COMPLETE",
+                "artifact_refs": [ref],
+                "artifact_bindings": [{
+                    "ref": ref,
+                    "identity_type": "CONTENT_SHA256",
+                    "identity": f"sha-{case_id}",
+                }],
+            })
+
+    readiness = evaluate_corpus_readiness({"cases": cases})
+    assert readiness.status == "PROMOTION_READY"
+

@@ -10,13 +10,13 @@ def seed():
     return json.loads((ROOT / "evals/quality_regression.json").read_text(encoding="utf-8"))
 
 
-def _case(case_id, source_kind, split, family):
+def _case(case_id, source_kind, split, family, mode="FINANCE_DEEP"):
     return {
         "case_id": case_id,
         "source_kind": source_kind,
         "split": split,
         "topic_family": family,
-        "content_mode": "FINANCE_DEEP",
+        "content_mode": mode,
         "evidence_status": "COMPLETE",
         "artifact_refs": [f"artifact://{case_id}"],
         "artifact_bindings": [
@@ -29,15 +29,15 @@ def _case(case_id, source_kind, split, family):
     }
 
 
-def cases(include_positive=True, two_heldout=True):
+def cases(include_positive=True, two_heldout=True, mode="FINANCE_DEEP"):
     out = [
-        _case("rejected-1", "REAL_USER_REJECTION", "REGRESSION", "sector-event"),
-        _case("heldout-1", "EXTERNAL_BENCHMARK", "HELD_OUT", "macro-policy"),
+        _case("rejected-1", "REAL_USER_REJECTION", "REGRESSION", "sector-event", mode=mode),
+        _case("heldout-1", "EXTERNAL_BENCHMARK", "HELD_OUT", "macro-policy", mode=mode),
     ]
     if two_heldout:
-        out.append(_case("heldout-2", "EXTERNAL_BENCHMARK", "HELD_OUT", "supply-chain-cycle"))
+        out.append(_case("heldout-2", "EXTERNAL_BENCHMARK", "HELD_OUT", "supply-chain-cycle", mode=mode))
     if include_positive:
-        out.append(_case("accepted-1", "REAL_USER_ACCEPTANCE", "REGRESSION", "company-deep-dive"))
+        out.append(_case("accepted-1", "REAL_USER_ACCEPTANCE", "REGRESSION", "company-deep-dive", mode=mode))
     return {"cases": out}
 
 
@@ -82,12 +82,12 @@ def verify_regression(regression, package):
     return regression.get("candidate_id") == package.get("candidate_id") and regression.get("candidate_change_ref") == package.get("candidate_change_ref") and regression.get("result") == "PASS"
 
 
-def bundle(personal=False):
+def bundle(personal=False, mode="FINANCE_DEEP"):
     rows = [run("rejected-1","A","A"),run("rejected-1","B","B"),run("heldout-1","A","A"),run("heldout-1","B","B"),run("heldout-2","A","TIE"),run("heldout-2","B","TIE")]
     if personal:
         rows += [run("accepted-1","A","TIE"),run("accepted-1","B","TIE")]
     return {
-        "candidate_distillation":distillation("PERSONALIZED_WRITING_DNA" if personal else "GENERAL_EDITORIAL_QUALITY"),
+        "candidate_distillation":distillation("PERSONALIZED_WRITING_DNA" if personal else "GENERAL_EDITORIAL_QUALITY", modes=[mode]),
         "hard_invariant_regressions":[],
         "hard_invariant_regression_run":{
             "candidate_id":"quality-candidate-1",
@@ -237,3 +237,35 @@ def test_hard_invariant_regression_blocks_promotion():
 def test_unverified_trace_blocks_promotion():
     result = promote(cases(), bundle(personal=True), personal=True, ref=lambda ref: verify_ref(ref) and ref != "trace://heldout-1/B")
     assert any(x.startswith("unverified_evidence_ref:") for x in result.errors)
+
+def test_platform_interaction_is_a_first_class_quality_regression_mode():
+    corpus = cases(include_positive=False, mode="PLATFORM_INTERACTION")
+    readiness = evaluate_corpus_readiness(corpus)
+    assert readiness.status == "PROMOTION_READY"
+
+    distilled = evaluate_candidate_distillation(
+        corpus,
+        distillation(modes=["PLATFORM_INTERACTION"]),
+        evidence_verifier=verify_ref,
+        candidate_evidence_verifier=verify_candidate,
+    )
+    assert distilled.status == "PASS"
+    assert distilled.target_content_modes == ("PLATFORM_INTERACTION",)
+
+    promoted = promote(corpus, bundle(mode="PLATFORM_INTERACTION"))
+    assert promoted.status == "PASS"
+    assert set(promoted.evaluated_case_ids) == {"rejected-1", "heldout-1", "heldout-2"}
+
+
+def test_deep_evidence_cannot_substitute_for_platform_interaction_quality_evidence():
+    deep_corpus = cases(include_positive=False, mode="FINANCE_DEEP")
+    result = evaluate_candidate_distillation(
+        deep_corpus,
+        distillation(modes=["PLATFORM_INTERACTION"]),
+        evidence_verifier=verify_ref,
+        candidate_evidence_verifier=verify_candidate,
+    )
+    assert "target_mode_missing_real_rejection:PLATFORM_INTERACTION" in result.errors
+    assert "target_mode_missing_heldout:PLATFORM_INTERACTION" in result.errors
+    assert "target_mode_requires_two_heldout_topic_families:PLATFORM_INTERACTION" in result.errors
+
