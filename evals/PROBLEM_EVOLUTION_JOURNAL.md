@@ -727,7 +727,7 @@ Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
 
 ## P-20261116-05 — Platform Interaction was excluded from the quality-regression evaluator (2026-11-16)
 
-Status: `CANDIDATE_FIX__EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERACTION_QUALITY_EVIDENCE_OPEN`
+Status: `CANDIDATE_FIX__FINAL_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERACTION_QUALITY_EVIDENCE_OPEN`
 
 **Trigger.** The Financial product contract and manifest define three independently evaluated publishing modes, but the quality-regression implementation did not accept the third mode.
 
@@ -760,3 +760,5 @@ Status: `CANDIDATE_FIX__EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERA
 **Remaining OPEN.** Interaction quality remains NOT_READY because there is no complete real-user rejection and no two complete held-out topic families for this mode. Deep and Broad retain their own independent evidence requirements. The synthetic unit tests prove evaluator behavior only; they are not blind editorial evidence. Independent review of PR #86, live provider-backed article execution and real reader acceptance remain open. No CAOS source or configuration was modified.
 
 **Next legal action.** Obtain genuine Interaction rejection/held-out artifacts through real work, bind each immutable artifact, and conduct independent blind pairwise evaluation. Do not promote the mode based on the engineering fix alone.
+
+**Verification follow-up — stale latest-incident assertions (2026-11-16).** The first documentation follow-up at head `d58038056068ee4bbe45127a9d5296a971b27b03` failed two tests after the journal index correctly advanced its latest pointer from P-04 to P-05: `test_financial_standalone_index_20261111.py` and `test_proactive_resolution_problem_journal_20261015.py` treated the mutable latest-incident ID as a fixed historical constant. The tests were corrected to validate the current ID/ref relationship and retain the historical P-01–P-04 open-item assertions. Final candidate head `5b6aec5415c7cdce8288f29175c3724260184a45` passed exact-head CI run `43838436832`: 730 tests, 88% coverage, all workflow steps successful; whole-tree audit had zero warnings/errors. This follow-up also records the separate status-index lifecycle defect; it does not change the Interaction quality evidence gap or authorize a quality promotion.
