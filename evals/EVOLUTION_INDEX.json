@@ -696,11 +696,11 @@
       "heldout_topic_families": 1,
       "finance_broad_authorized_for_quality_promotion": false,
       "system_completion_can_be_inferred_from_one_article": false,
-      "stability_candidate_head": "612100ec7a82a783ec5ec9141db21d2c0dc34494",
-      "latest_ci_run": 43829005407,
-      "latest_ci_conclusion": "failure",
-      "latest_ci_summary": "720 passed, 3 failed due to stale legacy assertions; current test synchronization is in progress.",
-      "last_completed_ci_head": "8ba912bda37285473d41506fb72e96a6a48722a0",
+      "stability_candidate_head": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+      "latest_ci_run": 43833864946,
+      "latest_ci_conclusion": "success",
+      "latest_ci_summary": "727 passed; 88% Python statement coverage; all main-head CI steps passed.",
+      "last_completed_ci_head": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
       "publishing_portfolio": {
         "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
         "products": [
@@ -756,6 +756,15 @@
         "FINANCE_BROAD": "NOT_READY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
         "FINANCE_DEEP": "DIAGNOSTIC_ONLY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
         "PLATFORM_INTERACTION": "NOT_ASSESSED__NO_COMPLETE_INDEPENDENT_HELDOUT_CORPUS"
+      },
+      "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+      "merged_pull_request": 84,
+      "source_privacy_gate": {
+        "status": "CODE_FIX_VERIFIED",
+        "code_head_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+        "ci_run": 43833864946,
+        "tests_passed": 727,
+        "coverage_percent": 88
       }
     }
   },

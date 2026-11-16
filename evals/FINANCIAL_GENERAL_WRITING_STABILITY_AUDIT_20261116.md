@@ -133,3 +133,13 @@ The source scanner has now been expanded to detect:
 - named industry-association/research attribution and disclosure framing.
 
 A regression test reads the actual rejected Huangjiu article from the repository and asserts these failures are detected. Separate positive controls verify that ordinary company financial facts are not flagged. The scanner remains a deterministic trigger; source identity exceptions still require semantic justification. This repairs a concrete shared gate defect, not just the documentation.
+
+
+## 12. Exact-head verification and integration
+
+- Source/privacy scanner implementation head: \`8c8dc0595aae9f63c889363db6a78216b81af6fe\`.
+- Exact implementation-head CI: [43833247888](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43833247888) — 727 tests passed; 88% Python statement coverage; every workflow step passed.
+- PR #84 was squash-merged to \`main\` as \`7dbde945e98712856d7d6a19b8fe06b2efc500ab\`.
+- Exact main merge-head CI: [43833864946](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43833864946) — 727 tests passed; 88% Python statement coverage; every workflow step passed.
+
+The source-provenance regression is now integrated and CI-verified on main. The **overall Financial Writing quality status remains OPEN**: deterministic engineering checks do not replace independent blind article evaluation across multiple topic families and all three publishing products.
