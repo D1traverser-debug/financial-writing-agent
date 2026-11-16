@@ -762,3 +762,38 @@ Status: `CANDIDATE_FIX__FINAL_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERA
 **Next legal action.** Obtain genuine Interaction rejection/held-out artifacts through real work, bind each immutable artifact, and conduct independent blind pairwise evaluation. Do not promote the mode based on the engineering fix alone.
 
 **Verification follow-up — stale latest-incident assertions (2026-11-16).** The first documentation follow-up at head `d58038056068ee4bbe45127a9d5296a971b27b03` failed two tests after the journal index correctly advanced its latest pointer from P-04 to P-05: `test_financial_standalone_index_20261111.py` and `test_proactive_resolution_problem_journal_20261015.py` treated the mutable latest-incident ID as a fixed historical constant. The tests were corrected to validate the current ID/ref relationship and retain the historical P-01–P-04 open-item assertions. Final candidate head `5b6aec5415c7cdce8288f29175c3724260184a45` passed exact-head CI run `43838436832`: 730 tests, 88% coverage, all workflow steps successful; whole-tree audit had zero warnings/errors. This follow-up also records the separate status-index lifecycle defect; it does not change the Interaction quality evidence gap or authorize a quality promotion.
+
+---
+
+## P-20261116-06 — Current integration status snapshots drifted after PR merges (2026-11-16)
+
+Status: `CANDIDATE_FIX__LIVE_GITHUB_RECEIPTS_VERIFIED__CROSS_SURFACE_ALIGNMENT_TESTS_ADDED__CI_PENDING`
+
+**Trigger.** Continuation state still described PR #84 as Draft/unmerged and PR #85 as CI-pending, even though both had merged to Financial main and their exact mainline CI runs had passed. This could cause repeated work and incorrect next-step selection.
+
+**Competing hypotheses.**
+1. GitHub had not completed the merges — falsified by live PR readback and merge commit IDs.
+2. The records were intentionally historical — falsified because the stale fields were named and consumed as current candidate and next-phase pointers.
+3. The code merged without mainline CI — falsified by exact mainline runs 43833864946 (PR #84) and 43626092503 (PR #85), both successful.
+4. No owner merge authorization existed — falsified by completed merges and the user's standing instruction to proceed with repository work; independent technical review remains a separate open assurance item.
+
+**Root cause.** Mutable integration status was duplicated across the top-level and nested EVOLUTION_INDEX candidate records, Financial manifest contracts, and next-phase prose. The previous synchronization test covered PR #67 but not the live PR #84/#85 records. A partial status update therefore left contradictory current snapshots.
+
+**Selected repair.**
+- Synchronize PR #84 final PR head, merge commit and exact PR/main CI into both current candidate records and the Financial manifest.
+- Synchronize PR #85 merge status and exact main CI while preserving the CAOS source-mutation prohibition.
+- Separate the last code merge from the latest docs-only main head and its CI receipt.
+- Record PR #86 as a distinct Draft Interaction evaluator candidate with its own exact head and CI; do not mark it merged or editorially accepted.
+- Update next-legal-phase and non-completion statements.
+- Add tests binding PR #84/#85/#86 receipts and manifest/index equality.
+- Preserve the historical dataflow audit as a point-in-time record and append a post-merge readback.
+
+**Live readback.**
+- PR #84: final PR head `8c8dc0595aae9f63c889363db6a78216b81af6fe`; merged as `7dbde945e98712856d7d6a19b8fe06b2efc500ab`; exact main CI run 43833864946 passed.
+- PR #85: final PR head `c28410e3925276f3bd040acdcfba69dd5cb0d993`; merged as `d024da5aff37dcd00cbf69467d8333e0c7d37132`; exact main CI run 43626092503 passed.
+- Current main head `d49c4eb7cf008bfdf1d88339d69d2353aa16ad07`; main CI 43834173578 passed.
+- PR #86: Draft candidate head `355d03c99247be4a151cf89be35d405f956e4e21`; exact-head CI 43838790518 passed 730 tests at 88% coverage.
+
+**Remaining OPEN.** Provider Action is NOT_DEPLOYED. Independent code review, real article execution, independent editorial review and reader acceptance remain open. No CAOS repository or runtime was modified.
+
+**Next legal action.** Continue from the synchronized current state. Independently review PR #86, then obtain real mode-specific quality evidence; do not repeat PR #84/#85 implementation or claim whole-system completion from CI.

@@ -96,9 +96,14 @@
     "source": "financial_writing_agent.task_requirements",
     "active_scope_source": "required_outputs",
     "owner_and_portfolio_stage_projection": "SAME_CANONICAL_FUNCTION",
-    "status": "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
-    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-    "exact_code_head_ci_run": 43819176634
+    "status": "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "8c8dc0595aae9f63c889363db6a78216b81af6fe",
+    "exact_code_head_ci_run": 43833247888,
+    "exact_code_head_ci_conclusion": "success",
+    "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+    "exact_main_ci_run": 43833864946,
+    "exact_main_ci_conclusion": "success",
+    "tests_passed": 727
   },
   "full_universe_research_evidence_contract": {
     "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
@@ -108,16 +113,16 @@
       "standalone_runtime",
       "task_publication"
     ],
-    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
-    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-    "exact_code_head_ci_run": 43819176634,
+    "status": "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "8c8dc0595aae9f63c889363db6a78216b81af6fe",
+    "exact_code_head_ci_run": 43833247888,
     "semantic_fact_audit_remains_external": true,
     "trigger_requirement_ids": [
       "full_universe_research_pool",
       "deep_complete_retained_universe"
     ],
     "exact_code_head_ci_conclusion": "success",
-    "tests_passed": 720,
+    "tests_passed": 727,
     "source_line_coverage_percent": 88,
     "source_evidence_readback": {
       "evidence_ledger_refs_must_be_bound_to_private_research_brief": true,
@@ -138,7 +143,10 @@
         "portfolio_coordinator",
         "standalone_runtime"
       ]
-    }
+    },
+    "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+    "exact_main_ci_run": 43833864946,
+    "exact_main_ci_conclusion": "success"
   },
   "research_to_editorial_dataflow": {
     "source": "financial_writing_agent.writing_kernel.PASS_CONTRACTS[STORY_ARCHITECTURE]",
@@ -148,13 +156,17 @@
       "change_conditions"
     ],
     "enforcement": "_invoke_pass forwards only declared required_inputs",
-    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "status": "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN",
     "semantic_preservation_still_requires_story_blueprint_and_editorial_audit": true,
-    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-    "exact_code_head_ci_run": 43819176634,
-    "tests_passed": 720,
+    "verified_code_head_sha": "8c8dc0595aae9f63c889363db6a78216b81af6fe",
+    "exact_code_head_ci_run": 43833247888,
+    "tests_passed": 727,
     "source_line_coverage_percent": 88,
-    "company_decision_map_bound_to_validated_research_package": true
+    "company_decision_map_bound_to_validated_research_package": true,
+    "exact_code_head_ci_conclusion": "success",
+    "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+    "exact_main_ci_run": 43833864946,
+    "exact_main_ci_conclusion": "success"
   },
   "general_writing_stability": {
     "status": "OPEN__CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_YET_VERIFIED",
@@ -176,7 +188,7 @@
     "latest_ci_run": 43833864946,
     "latest_ci_conclusion": "success",
     "latest_ci_summary": "727 passed; 88% Python statement coverage; main merge commit exact-head CI completed successfully.",
-    "last_completed_ci_head": "8ba912bda37285473d41506fb72e96a6a48722a0",
+    "last_completed_ci_head": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
     "publishing_portfolio": {
       "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
       "products": [
@@ -245,6 +257,9 @@
       "pull_request": 84,
       "pull_request_merged": true,
       "semantic_exception": "SOURCE_IDENTITY_MAY_REMAIN_WHEN_MATERIAL_TO_THE_CLAIM"
-    }
+    },
+    "latest_main_head_sha": "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07",
+    "latest_main_head_ci_run": 43834173578,
+    "latest_main_head_ci_conclusion": "success"
   }
 }

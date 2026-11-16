@@ -13,7 +13,9 @@
     "evals/FINANCIAL_PORTFOLIO_STAGE_RESUMABILITY_AUDIT_20261114.md",
     "evals/FINANCIAL_CAOS_GOVERNANCE_MIGRATION_20261115.md",
     "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "evals/PROBLEM_EVOLUTION_JOURNAL.md"
+    "evals/PROBLEM_EVOLUTION_JOURNAL.md",
+    "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
+    "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -145,15 +147,15 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Treat Financial Writing as a system-wide product, not an individual article task. Execute and independently evaluate real writing tasks across multiple topic families and every target content mode using the same canonical workflow while allowing content-led narrative and voice. Harvest historical outputs as diagnostics only unless independent evidence exists. Do not modify CAOS. PR #84 remains Draft; Provider Action deployment and independent review remain separate.",
+    "next_legal_phase": "Treat Financial Writing as a system-wide product. PR #84 requirement-scope/dataflow repair and PR #85 CAOS-governance migration are merged to Financial main; exact PR/main CI receipts are recorded. PR #86 is a Draft quality-evaluator candidate whose exact head CI passes, but independent review and real Interaction quality evidence remain open. Continue with real article tasks across multiple topic families and all three products using the canonical workflow; do not infer editorial quality from CI. The Financial Provider Action is NOT_DEPLOYED, so no canonical article-state or method-catalog writes may be claimed. Do not modify CAOS.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
       "No independently admitted current-kernel end-to-end article; active cross-border v3 remains RESEARCH with 0/4 real deliverables.",
       "General editorial quality and personalized writing DNA remain NOT_READY.",
       "No real authenticated user-facing Financial Provider Action is deployed or observed.",
-      "PR #84 candidate has implemented typed stage/context bundle persistence, exact readback and Article Aggregate admission, but the candidate is not merged and the live provider endpoint is NOT_DEPLOYED.",
-      "PR #84 candidate injects scoped task requirements into shared Research and product branches; this is exact-head CI evidence only, not proof of a live article pass execution.",
+      "PR #84 is merged to main with exact PR-head and main CI passing; its typed stage/context bundle persistence and Article Aggregate admission remain code-level evidence only because the live provider endpoint is NOT_DEPLOYED.",
+      "PR #84's scoped task requirements are merged and exact-head CI-verified; this remains engineering evidence only, not proof of live article-pass execution or editorial quality.",
       "No verified real external reader outcome; current article quality and delivery remain unverified.",
       "No live provider-signed article-state or method-catalog effect receipt has been emitted and reread; synthetic CI is not production provider evidence.",
       "The original full user article prompt is not independently recovered from the current task record; only the two scoped full-universe corrections are currently source-linked.",
@@ -612,15 +614,15 @@
     "scoped_owner_demand": "Financial retains its intrinsic requirements, business process, finance-domain decision evidence, execution loops, knowledge/method CRUD, failure repair and independent acceptance. CAOS governs cross-project cognition, root-cause/method comparison, decision rechallenge and cross-domain learning externally in the active ChatGPT session. No external parent runtime/API dependency is introduced.",
     "latest_requirement_scope_dataflow_candidate": {
       "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
-      "status": "CANDIDATE__EXACT_CODE_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN",
+      "status": "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_ARTICLE_QUALITY_OPEN",
       "branch": "repair/financial-requirement-bound-owner-stage-coordinator-20261114",
       "pull_request": 84,
       "base_branch": "main",
       "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-      "candidate_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-      "exact_head_ci_run": 43819176634,
+      "candidate_head_sha": "8c8dc0595aae9f63c889363db6a78216b81af6fe",
+      "exact_head_ci_run": 43833247888,
       "exact_head_ci_conclusion": "success",
-      "tests_passed": 720,
+      "tests_passed": 727,
       "source_line_coverage_percent": 88,
       "coverage_statements": 8178,
       "coverage_missed": 980,
@@ -630,10 +632,10 @@
         "writing_kernel_percent": 81
       },
       "whole_tree_inventory": {
-        "tracked_files": 340,
-        "python_ast_parsed": 132,
+        "tracked_files": 342,
+        "python_ast_parsed": 133,
         "json_parsed": 54,
-        "decoded_text_lines": 54278,
+        "decoded_text_lines": 55296,
         "warnings": 0,
         "errors": 0
       },
@@ -661,7 +663,8 @@
         "LEGACY_PRIVATE_RESEARCH_1_0_DELIVERY_FRESHNESS_IS_RECHECKED",
         "STORY_ARCHITECTURE_RECEIVES_PUBLICATION_DISTILLATION_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS",
         "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS",
-        "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE"
+        "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE",
+        "PR84_MERGED_TO_MAIN__EXACT_MAIN_CI_PASS"
       ],
       "limitations": [
         "PROVIDER_ACTION_NOT_DEPLOYED",
@@ -669,7 +672,6 @@
         "INDEPENDENT_CURRENT_HEAD_REVIEW_NOT_OBTAINED",
         "REAL_ARTICLE_FACTUAL_AND_EDITORIAL_QUALITY_NOT_VERIFIED",
         "FINANCIAL_MAIN_BRANCH_HYGIENE_OPEN",
-        "NO_EXPLICIT_OWNER_MERGE_AUTHORIZATION_ESTABLISHED",
         "RESEARCH_PACKAGE_EVIDENCE_REFS_ARE_NOW_PROVIDER_READ_BACK__FACT_ENTAILMENT_REMAINS_SEMANTIC",
         "STORY_ARCHITECTURE_DATAFLOW_IS_NOW_DECLARED_AND_ENFORCED__REAL_MODEL_QUALITY_REMAINS_UNVERIFIED",
         "CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_VERIFIED",
@@ -680,8 +682,13 @@
       ],
       "audit_ref": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
       "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-03",
-      "next_legal_step": "INDEPENDENT_REVIEW_OF_LIVE_PR_84_HEAD__NO_MAINLINE_PROMOTION_CLAIM_WITHOUT_AUTHORIZED_REVIEW_AND_EXACT_MAIN_CI__PROVIDER_ACTION_AND_REAL_ARTICLE_EXECUTION_REMAIN_SEPARATE",
-      "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB"
+      "next_legal_step": "POST_MERGE_MAINLINE_READBACK_VERIFIED__INDEPENDENT_REVIEW_AND_LIVE_PROVIDER_EXECUTION_REMAIN_OPEN",
+      "candidate_head_semantics": "FINAL_PR_HEAD_SHA_AND_EXACT_PR_CI_VERIFIED__MERGED_MAIN_SHA_AND_MAIN_CI_ARE_SEPARATE_RECEIPTS",
+      "merged_at": "2026-11-16T08:45:38Z",
+      "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+      "exact_main_ci_run": 43833864946,
+      "exact_main_ci_conclusion": "success",
+      "exact_main_ci_tests_passed": 727
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
     "problem_journal_revision": "2.4",
@@ -755,7 +762,7 @@
       "portfolio_quality_readiness": {
         "FINANCE_BROAD": "NOT_READY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
         "FINANCE_DEEP": "DIAGNOSTIC_ONLY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
-        "PLATFORM_INTERACTION": "NOT_ASSESSED__NO_COMPLETE_INDEPENDENT_HELDOUT_CORPUS"
+        "PLATFORM_INTERACTION": "NOT_READY__MODE_SUPPORTED__MODE_SPECIFIC_REJECTION_AND_TWO_HELDOUT_FAMILIES_MISSING"
       },
       "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
       "merged_pull_request": 84,
@@ -765,7 +772,11 @@
         "ci_run": 43833864946,
         "tests_passed": 727,
         "coverage_percent": 88
-      }
+      },
+      "latest_main_head_sha": "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07",
+      "latest_main_head_ci_run": 43834173578,
+      "latest_main_head_ci_conclusion": "success",
+      "latest_main_head_ci_semantics": "DOCS_ONLY_FOLLOWUP_AFTER_MERGED_PR84__CODE_CANDIDATE_CI_REMAINS_7DBDE945"
     }
   },
   "system_engineering_simulation_20261112": {
@@ -797,7 +808,7 @@
   },
   "current_governance_candidate": {
     "id": "FIN-CAOS-CHAT-GOVERNANCE-MIGRATION-20261115",
-    "status": "CANDIDATE__CI_PENDING__NOT_MERGED",
+    "status": "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__CAOS_SOURCE_UNMODIFIED",
     "branch": "migration/caos-chat-governance-20261115",
     "scope": "CAOS_CHAT_GOVERNED_EXTERNAL__FINANCIAL_STANDALONE_BUSINESS_RUNTIME__NO_CAOS_RUNTIME_API_HOST_OR_PERMISSION_GRANT",
     "governance_contract": "config/CAOS_GOVERNANCE.json",
@@ -813,20 +824,27 @@
     "caos_source_mutation": "FORBIDDEN",
     "business_state_changed": false,
     "historical_provenance_rewritten": false,
-    "next_action": "Run exact-head full Financial CI, static/whole-tree audits and independent code/security review; merge only after clean evidence and verify mainline CI."
+    "next_action": "CAOS governance entry and contract are integrated into Financial main. Continue using CAOS only as external session-level governance; do not modify or deploy CAOS code/runtime.",
+    "pull_request": 85,
+    "candidate_head_sha": "c28410e3925276f3bd040acdcfba69dd5cb0d993",
+    "merged_at": "2026-11-14T18:17:17Z",
+    "merge_commit_sha": "d024da5aff37dcd00cbf69467d8333e0c7d37132",
+    "exact_main_ci_head_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
+    "exact_main_ci_run": 43626092503,
+    "exact_main_ci_conclusion": "success"
   },
   "updated_at": "2026-11-16",
   "current_system_candidate": {
     "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
-    "status": "CANDIDATE__EXACT_CODE_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN",
+    "status": "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_ARTICLE_QUALITY_OPEN",
     "branch": "repair/financial-requirement-bound-owner-stage-coordinator-20261114",
     "pull_request": 84,
     "base_branch": "main",
     "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-    "candidate_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-    "exact_head_ci_run": 43819176634,
+    "candidate_head_sha": "8c8dc0595aae9f63c889363db6a78216b81af6fe",
+    "exact_head_ci_run": 43833247888,
     "exact_head_ci_conclusion": "success",
-    "tests_passed": 720,
+    "tests_passed": 727,
     "source_line_coverage_percent": 88,
     "coverage_statements": 8178,
     "coverage_missed": 980,
@@ -836,10 +854,10 @@
       "writing_kernel_percent": 81
     },
     "whole_tree_inventory": {
-      "tracked_files": 340,
-      "python_ast_parsed": 132,
+      "tracked_files": 342,
+      "python_ast_parsed": 133,
       "json_parsed": 54,
-      "decoded_text_lines": 54278,
+      "decoded_text_lines": 55296,
       "warnings": 0,
       "errors": 0
     },
@@ -867,7 +885,8 @@
       "LEGACY_PRIVATE_RESEARCH_1_0_DELIVERY_FRESHNESS_IS_RECHECKED",
       "STORY_ARCHITECTURE_RECEIVES_PUBLICATION_DISTILLATION_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS",
       "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS",
-      "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE"
+      "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE",
+      "PR84_MERGED_TO_MAIN__EXACT_MAIN_CI_PASS"
     ],
     "limitations": [
       "PROVIDER_ACTION_NOT_DEPLOYED",
@@ -875,7 +894,6 @@
       "INDEPENDENT_CURRENT_HEAD_REVIEW_NOT_OBTAINED",
       "REAL_ARTICLE_FACTUAL_AND_EDITORIAL_QUALITY_NOT_VERIFIED",
       "FINANCIAL_MAIN_BRANCH_HYGIENE_OPEN",
-      "NO_EXPLICIT_OWNER_MERGE_AUTHORIZATION_ESTABLISHED",
       "RESEARCH_PACKAGE_EVIDENCE_REFS_ARE_NOW_PROVIDER_READ_BACK__FACT_ENTAILMENT_REMAINS_SEMANTIC",
       "STORY_ARCHITECTURE_DATAFLOW_IS_NOW_DECLARED_AND_ENFORCED__REAL_MODEL_QUALITY_REMAINS_UNVERIFIED",
       "CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_VERIFIED",
@@ -886,7 +904,50 @@
     ],
     "audit_ref": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
     "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-03",
-    "next_legal_step": "INDEPENDENT_REVIEW_OF_LIVE_PR_84_HEAD__NO_MAINLINE_PROMOTION_CLAIM_WITHOUT_AUTHORIZED_REVIEW_AND_EXACT_MAIN_CI__PROVIDER_ACTION_AND_REAL_ARTICLE_EXECUTION_REMAIN_SEPARATE",
-    "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB"
+    "next_legal_step": "POST_MERGE_MAINLINE_READBACK_VERIFIED__INDEPENDENT_REVIEW_AND_LIVE_PROVIDER_EXECUTION_REMAIN_OPEN",
+    "candidate_head_semantics": "FINAL_PR_HEAD_SHA_AND_EXACT_PR_CI_VERIFIED__MERGED_MAIN_SHA_AND_MAIN_CI_ARE_SEPARATE_RECEIPTS",
+    "merged_at": "2026-11-16T08:45:38Z",
+    "merged_main_sha": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+    "exact_main_ci_run": 43833864946,
+    "exact_main_ci_conclusion": "success",
+    "exact_main_ci_tests_passed": 727
+  },
+  "current_quality_evaluator_candidate": {
+    "id": "FIN-PLATFORM-INTERACTION-QUALITY-MODE-20261116",
+    "status": "DRAFT_PR__EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_INTERACTION_QUALITY_EVIDENCE_MISSING",
+    "branch": "repair/platform-interaction-quality-regression-20261116",
+    "pull_request": 86,
+    "base_branch": "main",
+    "base_sha": "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07",
+    "candidate_head_sha": "355d03c99247be4a151cf89be35d405f956e4e21",
+    "exact_head_ci_run": 43838790518,
+    "exact_head_ci_conclusion": "success",
+    "tests_passed": 730,
+    "source_line_coverage_percent": 88,
+    "coverage_statements": 8178,
+    "coverage_missed": 980,
+    "whole_tree_inventory": {
+      "tracked_files": 342,
+      "python_ast_parsed": 133,
+      "json_parsed": 54,
+      "decoded_text_lines": 55450,
+      "warnings": 0,
+      "errors": 0
+    },
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-05",
+    "verified": [
+      "PLATFORM_INTERACTION_ACCEPTED_BY_QUALITY_EVALUATOR",
+      "MODE_SCOPED_REJECTION_AND_TWO_HELDOUT_REQUIREMENTS_ENFORCED",
+      "DEEP_EVIDENCE_CANNOT_SUBSTITUTE_FOR_INTERACTION_EVIDENCE",
+      "MANIFEST_DECLARED_MODES_CROSS_CHECKED_AGAINST_EVALUATOR"
+    ],
+    "limitations": [
+      "NO_REAL_INTERACTION_USER_REJECTION_CASE",
+      "NO_TWO_COMPLETE_INTERACTION_HELDOUT_TOPIC_FAMILIES",
+      "NO_INDEPENDENT_BLIND_EDITORIAL_REVIEW",
+      "PROVIDER_ACTION_NOT_DEPLOYED",
+      "NO_LIVE_ARTICLE_EXECUTION_OR_READER_ACCEPTANCE"
+    ],
+    "next_legal_step": "INDEPENDENT_REVIEW_OF_PR86_AND_BUILD_REAL_INTERACTION_REJECTION_PLUS_TWO_HELDOUT_TOPIC_FAMILIES__NO_QUALITY_PROMOTION_FROM_SYNTHETIC_TESTS"
   }
 }
