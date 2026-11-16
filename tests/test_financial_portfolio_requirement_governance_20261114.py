@@ -343,13 +343,32 @@ def test_rebind_requires_a_refreshed_work_profile_when_requirements_change():
         )
 
     profile = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
         "source_prompt_sha256": context["seed_inputs"]["source_prompt_sha256"],
         "fixed_requirement_ids": ["new-fixed-title"],
         "preference_requirement_ids": [],
-        "locked_decision_domains": ["TITLE"],
-        "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE"],
+        "decision_domains": [
+            {
+                "domain": "TITLE",
+                "disposition": "LOCKED",
+                "scopes": ["ALL"],
+                "requirement_ids": ["new-fixed-title"],
+                "preference_ids": [],
+                "rationale": "The exact title is fixed by the active user requirement.",
+            },
+            *[
+                {
+                    "domain": name,
+                    "disposition": "OPEN",
+                    "scopes": ["ALL"],
+                    "requirement_ids": [],
+                    "preference_ids": [],
+                    "rationale": "No binding user requirement fixes this editorial decision.",
+                }
+                for name in ("THESIS", "ANGLE", "NARRATIVE_ENGINE")
+            ],
+        ],
         "conditional_modules": ["COMPANY_UNIVERSE"],
         "execution_rationale": "The exact title is fixed; thesis and narrative decisions remain open.",
     }
