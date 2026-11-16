@@ -189,3 +189,18 @@ The new task-scoped handoff validator requires:
 - the invariant to hold at Writing Kernel research completion, portfolio stage artifact creation, and standalone provider artifact readback.
 
 The coordinator persists the canonical validated map and conditions, so Story Architecture receives the admitted version. A mismatch blocks the research stage before editorial work can start. Three targeted tests cover matching, divergent maps and divergent change conditions.
+
+---
+
+## 10. Post-merge live status readback (2026-11-16)
+
+Sections 5–7 above are a point-in-time audit snapshot written before PR #84 merged. Their statements that PR #84 remained Draft/unmerged and that main was at `b2098e6` are superseded by this live readback; the historical audit chronology is preserved.
+
+- PR #84 final head: `8c8dc0595aae9f63c889363db6a78216b81af6fe`; exact PR-head CI [43833247888](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43833247888): success, 727 tests, 88% statement coverage.
+- PR #84 merged at `2026-11-16T08:45:38Z` as main commit `7dbde945e98712856d7d6a19b8fe06b2efc500ab`; exact main CI [43833864946](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43833864946): success.
+- PR #85 CAOS-governance migration final head: `c28410e3925276f3bd040acdcfba69dd5cb0d993`; merged at `2026-11-14T18:17:17Z` as `d024da5aff37dcd00cbf69467d8333e0c7d37132`; main CI [43626092503](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43626092503): success. CAOS source, code, configuration, PRs and runtime remain unmodified.
+- Current Financial main head: `d49c4eb7cf008bfdf1d88339d69d2353aa16ad07`; docs-follow-up main CI [43834173578](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43834173578): success.
+- The current top-level and nested candidate records, Financial manifest contracts, and next-legal-phase pointer are synchronized to these receipts. The status-alignment regression tests now cover PR #84, PR #85 and the current PR #86 candidate.
+- PR #86 Interaction quality-evaluator candidate is still Draft; exact head `355d03c99247be4a151cf89be35d405f956e4e21`, exact-head CI [43838790518](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43838790518): success, 730 tests, 88% coverage. It is not merged and does not supply real Interaction quality evidence.
+
+**Remaining boundary.** The Provider Action remains NOT_DEPLOYED; no canonical article-state or method-catalog mutation is claimed. Independent code review and real article/reader quality evidence remain open. Engineering status and editorial readiness are separate.
