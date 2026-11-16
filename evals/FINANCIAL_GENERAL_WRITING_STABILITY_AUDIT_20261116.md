@@ -194,3 +194,10 @@ Tests must verify:
 - historical context 1.0 remains readable.
 
 These are engineering/dataflow checks only. They do not prove the model always interprets the request correctly or that generated articles satisfy readers. Cross-topic, per-product, independently reviewed real article evidence and actual user acceptance remain OPEN.
+
+
+### 14.3 Exact-head engineering verification
+
+PR #88 head `6a1445dd766f2e0d0d8aebac03c4eb516dfa059a` passed [GitHub Actions run 43906504480](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43906504480): 745 tests passed; 88% Python statement coverage (8,330 statements, 1,020 missed); Portfolio Coordinator 90%, Standalone Runtime 89%, Writing Kernel 81%, WritingExecutionProfile 81%. Whole-tree audit: 346 tracked files, 136 Python AST parses, 54 JSON parses, 56,358 decoded text lines, zero warnings/errors. Wheel/install, DOCX render, four synthetic Word product/page checks and negative Financial workflow replay passed. The Financial Skill is 11,403 UTF-8 bytes, below the 12,000-byte router limit.
+
+**This is engineering evidence only.** It does not certify real article quality, independent editorial review, reader acceptance, live provider persistence or system completion. PR #88 remains stacked on PR #87 and PR #86; merge in dependency order.

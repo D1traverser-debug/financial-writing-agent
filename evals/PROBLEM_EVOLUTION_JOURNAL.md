@@ -799,3 +799,33 @@ Status: `CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__STACKE
 **Next legal action.** Continue from the synchronized current state. Independently review PR #86, then obtain real mode-specific quality evidence; do not repeat PR #84/#85 implementation or claim whole-system completion from CI.
 
 **Exact code-head verification.** PR #87 code candidate head `09d0d1ab43e2ce0c61337038ea640e08caf99f61` passed [CI run 43840533953](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43840533953): 734 tests passed, 88% Python statement coverage; Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 343 tracked files, 133 Python AST parses, 54 JSON parses, 55,776 decoded text lines, zero warnings/errors. DOCX render, four synthetic Word product/page checks and negative business replay passed. The PR remains Draft and stacked on PR #86; independent review and eventual retargeting to main remain open.
+
+
+---
+
+## P-20261117-01 — Whole-task taxonomy conflated invariant process with open editorial decisions (2026-11-17)
+
+Status: `CANDIDATE_FIX__EXACT_HEAD_CI_PASS__MERGE_PENDING__REAL_EDITORIAL_ACCEPTANCE_OPEN`
+
+**Trigger.** The first PR #88 candidate represented writing requests as FIXED_WORKFLOW, OPEN_ENDED or HYBRID task shapes and made the quality evaluator require those labels. This contradicted the product requirement: every article retains one fixed business workflow, while research depth is conditional and editorial expression follows evidence and reader purpose.
+
+**Competing hypotheses.**
+1. Topic diversity alone proves generalization — rejected; different topics can still use the same default task contract and do not test requirement fidelity or editorial adaptation.
+2. Three whole-task categories are needed to choose how the workflow runs — rejected; the workflow itself does not change. User constraints and open editorial decisions are separate dimensions within the same lifecycle.
+3. Missing task-shape labels are a quality-evaluator defect — rejected; per-product editorial quality should not depend on an extra task taxonomy.
+
+**Root cause.** The candidate conflated the invariant business process with task-specific user constraints and open content decisions. It also made synthetic classification labels look like a new quality-evidence dimension, without improving actual article evaluation.
+
+**Selected correction.**
+- Replace TaskWorkProfile with a prompt-bound WritingExecutionProfile inside the existing Portfolio Context.
+- Preserve one FINANCIAL_ARTICLE_10_STAGE_V1 business workflow and the existing owner, requirement and decision authorities.
+- Bind explicit/corrective requirement IDs exactly; preserve preferences separately; record only locked/open editorial domains and material conditional modules.
+- Propagate the same profile to every semantic pass. When scoped requirements change, require a refreshed profile and invalidate affected downstream evidence.
+- Restore the per-product quality-regression contract; do not require task-shape labels.
+- Keep historical Portfolio Context 1.0 readable and keep the Skill under its 12,000-byte router budget.
+
+**Exact-head verification.** PR #88 head `6a1445dd766f2e0d0d8aebac03c4eb516dfa059a` passed [CI run 43906504480](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43906504480): 745 tests passed; 88% Python statement coverage (8,330 statements, 1,020 missed); Portfolio Coordinator 90%, Standalone Runtime 89%, Writing Kernel 81%, WritingExecutionProfile 81%. Whole-tree audit: 346 tracked files, 136 Python AST parses, 54 JSON parses, 56,358 decoded text lines, zero warnings/errors. Wheel/install, DOCX render, four synthetic Word product/page checks and negative Financial workflow replay passed. Skill size: 11,403 UTF-8 bytes.
+
+**Remaining OPEN.** This proves engineering and dataflow behavior only. No real cross-topic article, independent blind editorial review, user acceptance or post-publication performance evidence is supplied by these tests. Financial Provider Action remains NOT_DEPLOYED. PR #88 is stacked on PR #87, which is stacked on PR #86.
+
+**Next legal action.** Integrate PR #86, then retarget and integrate PR #87, then retarget and integrate PR #88. Preserve the separate real-article and independent-editorial acceptance gates. No CAOS repository or runtime is modified.
