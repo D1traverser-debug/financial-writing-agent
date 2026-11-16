@@ -232,6 +232,18 @@
       "FINANCE_BROAD": "NOT_READY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
       "FINANCE_DEEP": "DIAGNOSTIC_ONLY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
       "PLATFORM_INTERACTION": "NOT_ASSESSED__NO_COMPLETE_INDEPENDENT_HELDOUT_CORPUS"
+    },
+    "source_privacy_gate": {
+      "status": "CANDIDATE_FIX__HISTORICAL_USER_REJECTION_REGRESSION_ADDED__EXACT_HEAD_CI_PENDING",
+      "source_file": "financial_writing_agent/checks.py::scan_publication_source_leaks",
+      "historical_regression_fixture": "workspaces/articles/huangjiu-high-end-channel-20261015/publication/FINANCE_DEEP.md",
+      "covered_patterns": [
+        "NAMED_BROKER_REPORT_FRAMING",
+        "NAMED_BROKER_ANALYST_ATTRIBUTION",
+        "RESEARCH_REPORT_ACTION_VERBS",
+        "NAMED_INDUSTRY_ASSOCIATION_RESEARCH_AND_DISCLOSURE"
+      ],
+      "semantic_exception": "SOURCE_IDENTITY_MAY_REMAIN_WHEN_MATERIAL_TO_THE_CLAIM"
     }
   }
 }

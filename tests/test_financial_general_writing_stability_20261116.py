@@ -121,3 +121,39 @@ def test_system_wide_editorial_obligations_are_fixed_but_content_led():
     assert "SUBSTANTIVE_SECTION_LEAD" in obligations["section_transition"]
     assert "NO_NEW_FACTS" in obligations["interaction_copy"]
     assert stability["expression_policy"].startswith("CONTENT_LED")
+
+
+
+def test_real_huangjiu_user_rejection_source_provenance_is_caught_as_regression():
+    from financial_writing_agent.checks import scan_publication_source_leaks
+
+    article = (
+        ROOT / "workspaces/articles/huangjiu-high-end-channel-20261015/"
+        "publication/FINANCE_DEEP.md"
+    ).read_text(encoding="utf-8")
+    findings = set(scan_publication_source_leaks(article))
+    assert {
+        "named_broker_report_framing",
+        "named_broker_analyst_attribution",
+        "research_report_attribution",
+        "named_industry_research_attribution",
+        "named_industry_actor_attribution",
+    } <= findings
+
+
+def test_source_provenance_patterns_cover_known_failure_forms_without_banning_company_facts():
+    from financial_writing_agent.checks import scan_publication_source_leaks
+
+    rejected_forms = [
+        "方正证券10月12日发布的黄酒行业深度报告提出了一个观点。",
+        "方正证券进一步指出，渠道利润空间正在收窄。",
+        "研报给出的渠道逻辑很直接。",
+        "中国酒业协会公开研究显示，行业规模约200亿元。",
+        "中国酒业协会此前披露，2024年黄酒销售额约200亿元。",
+        "公开资料显示，行业库存仍然偏高。",
+    ]
+    for sentence in rejected_forms:
+        assert scan_publication_source_leaks(sentence), sentence
+
+    ordinary_company_fact = "会稽山2026年上半年中高端黄酒销售收入5.95亿元，同比增长14.17%。"
+    assert scan_publication_source_leaks(ordinary_company_fact) == []

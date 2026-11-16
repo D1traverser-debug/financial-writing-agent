@@ -29,11 +29,33 @@ _TEMPLATE_SIGNAL_PATTERNS: dict[str, re.Pattern[str]] = {
 # Research/audit artifacts retain exact provenance. Subject/actor attribution remains
 # a semantic judgment, but source-framing language below is a deterministic hard gate.
 _PUBLICATION_SOURCE_PATTERNS: dict[str, re.Pattern[str]] = {
-    "research_report_attribution": re.compile(r"(?:研报|研究报告)[^。！？\n]{0,18}(?:指出|认为|显示|测算|预计|提到|称)"),
-    "broker_research_attribution": re.compile(r"(?:证券|券商|研究所|机构)[^。！？\n]{0,18}(?:研报|研究报告)[^。！？\n]{0,18}(?:指出|认为|显示|测算|预计|提到|称)?"),
+    "research_report_attribution": re.compile(
+        r"(?:研报|研究报告|券商报告|机构报告|行业深度报告)[^。！？\n]{0,18}"
+        r"(?:指出|认为|显示|测算|预计|提到|称|估算|提出|给出|披露|梳理)"
+    ),
+    "named_broker_report_framing": re.compile(
+        r"(?:[\u4e00-\u9fff]{2,10}(?:证券|券商|研究所|研究院))[^。！？\n]{0,30}"
+        r"(?:研报|研究报告|深度报告|行业报告|报告)"
+    ),
+    "named_broker_analyst_attribution": re.compile(
+        r"(?:[\u4e00-\u9fff]{2,10}(?:证券|券商|研究所|研究院))[^。！？\n]{0,20}"
+        r"(?:指出|认为|测算|预计|提到|称|估算|提出|给出)"
+    ),
+    "named_industry_research_attribution": re.compile(
+        r"(?:[\u4e00-\u9fff]{2,10}(?:行业协会|协会|研究机构|研究院|机构))[^。！？\n]{0,20}"
+        r"(?:公开)?(?:研究|报告|测算|估算|梳理)[^。！？\n]{0,12}"
+        r"(?:显示|指出|认为|测算|预计|提到|称|估算|提出|给出)"
+    ),
+    "named_industry_actor_attribution": re.compile(
+        r"(?:[\u4e00-\u9fff]{2,10}(?:行业协会|协会|研究机构|研究院|机构))[^。！？\n]{0,20}"
+        r"(?:此前|近日|去年|今年)?(?:披露|发布|公布|显示|指出|认为|测算|预计|提到|称|估算|提出|给出|梳理)"
+    ),
     "according_to_report": re.compile(r"据[^，。！？\n]{1,30}(?:报道|消息|资料|数据|研报|研究报告)"),
-    "public_material_framing": re.compile(r"公开(?:资料|报道|信息|数据)[^。！？\n]{0,12}(?:显示|指出|提到|称|梳理)?"),
-    "material_shows": re.compile(r"(?:资料|报道)显示"),
+    "public_material_framing": re.compile(
+        r"公开(?:资料|报道|信息|数据|研究)[^。！？\n]{0,12}"
+        r"(?:显示|指出|提到|称|梳理|估算|测算)?"
+    ),
+    "material_shows": re.compile(r"(?:资料|报道|研究)显示"),
 }
 
 _GENERIC_DECISION_CONDITIONAL = re.compile(r"谁(?:能|先|可以)[^。！？\n]{0,28}(?:就|才)[^。！？\n]{0,36}")

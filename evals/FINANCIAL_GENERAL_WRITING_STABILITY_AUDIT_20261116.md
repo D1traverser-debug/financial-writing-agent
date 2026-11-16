@@ -120,3 +120,16 @@ The 2026-10-15 Huangjiu feedback is not a one-off article instruction. It explic
 The current repository already models \`FINANCE_DEEP\`, \`FINANCE_BROAD\` and \`PLATFORM_INTERACTION\` outputs in \`TaskContract\`. This revision makes all three explicit in the system-wide stability contract. The interaction product must derive from the same audited research package, introduce no new facts, and receive its own quality evaluation. The four historical article workspaces currently provide Deep/Broad diagnostics only; they do not provide interaction-product quality evidence.
 
 These are quality obligations, not a fixed writing formula. Applicability depends on product and material; narrative engine and expression remain content-led.
+
+
+## 11. Concrete historical failure reproduced and repaired
+
+The Huangjiu user-rejected article contains several source-framing constructions in publication prose: a named broker's "行业深度报告", the broker "进一步指出", a "研报给出的" logic, association research framing, and an association disclosure lead-in. The previous deterministic source scanner did not cover these forms. This explains how the article could pass a same-session editorial/mechanical route while still violating the user's explicit publication-source privacy requirement.
+
+The source scanner has now been expanded to detect:
+- named broker report framing (including "深度报告");
+- named broker/analyst attribution verbs;
+- report/研报 verbs such as "给出、估算、提出、梳理";
+- named industry-association/research attribution and disclosure framing.
+
+A regression test reads the actual rejected Huangjiu article from the repository and asserts these failures are detected. Separate positive controls verify that ordinary company financial facts are not flagged. The scanner remains a deterministic trigger; source identity exceptions still require semantic justification. This repairs a concrete shared gate defect, not just the documentation.

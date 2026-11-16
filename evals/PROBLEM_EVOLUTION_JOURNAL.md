@@ -716,3 +716,6 @@ Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
 
 
 **Verification follow-up (2026-11-16).** The assertion-sync commit \`612100ec7a82a783ec5ec9141db21d2c0dc34494\` separates the previously verified requirement-scope code candidate from the new system-wide stability candidate. The exact-head run \`43829005407\` is still the prior-head failure (720 passed, 3 stale assertions); this new head requires its own CI. The journal and system status must not claim a pass until that run completes.
+
+
+**Concrete shared-gate defect reproduced (2026-11-16).** The rejected Huangjiu publication used "方正证券…行业深度报告", "方正证券进一步指出", "研报给出的…" and "中国酒业协会…研究/披露" source-framing forms. The existing source scanner did not detect these variants, although it already guarded narrower phrases such as "研报指出" and "公开资料显示". The resulting gap let a real user-rejected source-privacy violation pass the same-session editorial/mechanical route. The scanner now covers named broker report framing, analyst attribution, report verbs, and named association research/disclosure; the actual Huangjiu article is a regression fixture with positive controls for ordinary company facts. This is a concrete runtime gate correction, not a new prose template.
