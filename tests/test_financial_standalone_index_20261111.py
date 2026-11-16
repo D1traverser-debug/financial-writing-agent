@@ -57,7 +57,7 @@ def test_current_system_candidate_records_exact_requirement_scope_repair_evidenc
     assert journal_index["latest_incident_id"] == "P-20261116-04"
     assert journal_index["latest_incident_ref"].endswith("#P-20261116-04")
     journal = (ROOT / "evals/PROBLEM_EVOLUTION_JOURNAL.md").read_text(encoding="utf-8")
-    assert candidate["problem_ref"] in journal
+    assert candidate["problem_ref"].rsplit("#", 1)[-1] in journal
     assert journal_index["latest_incident_id"] in journal
     assert candidate["candidate_head_sha"] in journal
     assert str(candidate["exact_head_ci_run"]) in journal

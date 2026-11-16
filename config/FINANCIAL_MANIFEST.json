@@ -176,6 +176,62 @@
     "latest_ci_run": 43829005407,
     "latest_ci_conclusion": "failure",
     "latest_ci_summary": "720 passed, 3 failed due to stale legacy assertions; current test synchronization is in progress.",
-    "last_completed_ci_head": "8ba912bda37285473d41506fb72e96a6a48722a0"
+    "last_completed_ci_head": "8ba912bda37285473d41506fb72e96a6a48722a0",
+    "publishing_portfolio": {
+      "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
+      "products": [
+        {
+          "product": "ACQUISITION_LONGFORM",
+          "mode": "FINANCE_BROAD",
+          "output": "FINANCE_BROAD_DOCX",
+          "channels": [
+            "微信公众号",
+            "头条号",
+            "百家号",
+            "网易号",
+            "企鹅号"
+          ]
+        },
+        {
+          "product": "DEEP_FINANCE_REVIEW_LONGFORM",
+          "mode": "FINANCE_DEEP",
+          "output": "FINANCE_DEEP_DOCX",
+          "channels": [
+            "韭研公社",
+            "东方财富",
+            "微信公众号"
+          ]
+        },
+        {
+          "product": "SHORT_IMAGE_TEXT_DYNAMIC_INTERACTION",
+          "mode": "PLATFORM_INTERACTION",
+          "output": "PLATFORM_INTERACTION_PACK_DOCX",
+          "channels": [
+            "微信公众号",
+            "头条号",
+            "百家号",
+            "网易号"
+          ]
+        }
+      ],
+      "shared_research": "ALL_REQUESTED_PRODUCTS_DERIVE_FROM_THE_SAME_ADMITTED_AND_AUDITED_RESEARCH_PACKAGE",
+      "short_form_fact_policy": "NO_NEW_FACTS__NO_UNAUDITED_CLAIMS__ADAPT_ONLY_HOOK_COMPRESSION_AND_INTERACTION",
+      "product_independence": "EACH_PRODUCT_MUST_SERVE_ITS_OWN_READER_AND_PLATFORM_JOB__NOT_BE_A_MECHANICAL_TRUNCATION_OF_ANOTHER_PRODUCT",
+      "quality_acceptance": "EVALUATE_EACH_REQUESTED_PRODUCT_SEPARATELY__DO_NOT_INFER_INTERACTION_QUALITY_FROM_DEEP_OR_BROAD"
+    },
+    "fixed_editorial_quality_obligations": {
+      "publication_source_privacy": "SOURCE_PROVENANCE_REMAINS_IN_RESEARCH_AND_AUDIT__NOT_PUBLICATION_PROSE_UNLESS_SOURCE_IDENTITY_IS_MATERIAL_TO_THE_CLAIM",
+      "longform_reader_funnel": "TITLE_PROMISE__OPENING_ORIENTATION_AND_EARLY_PAYOFF__SECTION_CONTINUATION__COMPLETION_PAYOFF",
+      "company_comparison": "WHEN_MULTI_COMPANY_COMPARISON_IS_MATERIAL__STATE_EVIDENCE_BOUNDED_DIFFERENCES_IN_BUSINESS_PURITY__REALIZATION_STAGE_AND_SPEED__ECONOMIC_SENSITIVITY__CERTAINTY__ADVERSE_OR_CHANGE_CONDITIONS",
+      "section_transition": "WHEN_H1_CONTAINS_LOWER_LEVEL_HEADINGS__INSERT_A_SUBSTANTIVE_SECTION_LEAD_BEFORE_THE_FIRST_H2__NO_ABRUPT_H1_TO_H2_JUMP",
+      "navigation": "USE_NUMBERING_WHEN_IT_EXPOSES_REAL_INFORMATION_BRANCHES__DO_NOT_FORCE_SUBLEVELS_OR_IDENTICAL_GEOMETRY",
+      "authorial_prose": "PARAGRAPHS_MUST_ADD_FACT__MECHANISM__COMPARISON__COUNTEREVIDENCE__BOUNDARY_OR_PAYOFF__NO_MODEL_SCAFFOLDING_OR_GENERIC_HUMANIZER",
+      "interaction_copy": "HOOK__COMPACT_EVIDENCE_BOUNDED_INSIGHT__NATURAL_INTERACTION_PROMPT__NO_NEW_FACTS"
+    },
+    "portfolio_quality_readiness": {
+      "FINANCE_BROAD": "NOT_READY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
+      "FINANCE_DEEP": "DIAGNOSTIC_ONLY__INDEPENDENT_CROSS_TOPIC_EVIDENCE_INSUFFICIENT",
+      "PLATFORM_INTERACTION": "NOT_ASSESSED__NO_COMPLETE_INDEPENDENT_HELDOUT_CORPUS"
+    }
   }
 }

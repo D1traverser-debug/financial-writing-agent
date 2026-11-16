@@ -3,7 +3,7 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
-from financial_writing_agent.models import TaskContract
+from financial_writing_agent.models import DistributionMode, TaskContract
 from financial_writing_agent.quality_regression import evaluate_corpus_readiness
 from financial_writing_agent.story_quality import NarrativeEngine
 from financial_writing_agent.workflow_spec import BUSINESS_STAGE_NAMES
@@ -81,3 +81,43 @@ def test_historical_cross_topic_samples_are_diagnostic_not_quality_promotion_cas
         "offshore-wind-2026-10-10-real-user-rejection-01",
         "rutile-2026-10-06-cross-topic-heldout-01",
     }
+
+
+
+def test_three_publishing_products_share_one_task_contract_but_keep_separate_outputs():
+    portfolio = TaskContract(prompt="测试同一研究包下的三类财经内容产品")
+    assert [item.value for item in portfolio.required_outputs] == [
+        "AUDIT_DOCX", "FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX",
+        "PLATFORM_INTERACTION_PACK_DOCX",
+    ]
+
+    acquisition = TaskContract(
+        prompt="测试获客长文",
+        distribution_mode=DistributionMode.ACQUISITION,
+    )
+    assert [item.value for item in acquisition.required_outputs] == [
+        "AUDIT_DOCX", "FINANCE_BROAD_DOCX", "PLATFORM_INTERACTION_PACK_DOCX",
+    ]
+
+    deep = TaskContract(
+        prompt="测试深度财经长文",
+        distribution_mode=DistributionMode.FINANCE_DEEP,
+    )
+    assert [item.value for item in deep.required_outputs] == [
+        "AUDIT_DOCX", "FINANCE_DEEP_DOCX",
+    ]
+
+
+def test_system_wide_editorial_obligations_are_fixed_but_content_led():
+    contract = _json("config/EXECUTION_CONTRACT.json")
+    stability = contract["general_writing_stability"]
+    products = stability["publishing_portfolio"]["products"]
+    assert {item["mode"] for item in products} == {
+        "FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION",
+    }
+    obligations = stability["fixed_editorial_quality_obligations"]
+    assert "SOURCE_PROVENANCE" in obligations["publication_source_privacy"]
+    assert "EVIDENCE_BOUNDED" in obligations["company_comparison"]
+    assert "SUBSTANTIVE_SECTION_LEAD" in obligations["section_transition"]
+    assert "NO_NEW_FACTS" in obligations["interaction_copy"]
+    assert stability["expression_policy"].startswith("CONTENT_LED")

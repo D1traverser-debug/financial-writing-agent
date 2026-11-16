@@ -389,3 +389,29 @@ A defect found in one article must be traced to its shared root cause and tested
 - a one-off user instruction or article-specific correction.
 
 Do not turn a single task's topic, source list, company universe, wording, narrative engine or status into the definition of Financial Writing.
+
+
+### 11.6 The complete publishing portfolio is part of system stability
+
+Financial Writing is not only two long-form article modes. The user's publishing portfolio contains three distinct products, all derived from the same admitted and audited research package:
+
+| Product | Product job | Output | Target channels |
+|---|---|---|---|
+| Acquisition long-form | Broad-reader acquisition and first-read conversion | \`FINANCE_BROAD_DOCX\` | 微信公众号、头条号、百家号、网易号、企鹅号 |
+| Deep finance/review long-form | Detailed company economics, evidence comparison and investment-research utility | \`FINANCE_DEEP_DOCX\` | 韭研公社、东方财富、微信公众号 |
+| Short image-text / dynamic interaction | Standalone short-form distribution and reader interaction | \`PLATFORM_INTERACTION_PACK_DOCX\` | 微信公众号、头条号、百家号、网易号 |
+
+The interaction product is a first-class output, not an optional afterthought or a mechanical shortening of Deep/Broad. It uses the same admitted evidence base, adds no new facts, and adapts hook, compression and interaction prompt to the channel. Evaluate it independently; Deep/Broad acceptance does not imply interaction-copy acceptance.
+
+### 11.7 General editorial obligations without a fixed prose template
+
+The following are reusable quality obligations, with conditional applicability:
+
+- **Publication source privacy:** provenance stays in research/audit. Do not narrate “研报指出/据报道/公开资料显示” merely to demonstrate diligence. Preserve attribution when the identity of the issuer/speaker is itself material.
+- **Reader funnel:** long-form title, opening orientation, early promise payoff, section continuation and completion payoff must work together. The opening should deliver the promised financial stake early; retention must not be manufactured by withholding the answer.
+- **Comparative judgment:** when material multi-company analysis exists, explain evidence-bounded differences in business purity, realization stage/speed, economic sensitivity, certainty, adverse conditions and what would change the ranking. Do not replace judgment with empty conditional phrases; do not manufacture a winner when evidence cannot support one.
+- **Section transitions:** when an H1 contains H2/H3 subdivisions, add a substantive section-lead/bridge paragraph between the H1 and first lower-level heading. It must advance the argument, not repeat the heading. Preserve the user's image-safe insertion space where the publishing layout requires it.
+- **Navigation and density:** numbering exposes real information branches and comparison structure; it is not a mandatory geometric pattern. Use meaningful detail and remove low-value repetition.
+- **Authorial prose:** paragraphs contribute evidence, mechanism, comparison, counterevidence, boundary or payoff. Remove model scaffolding, abstract staging and generic conditional conclusions. Do not simulate humanity with slang or cosmetic sentence randomization.
+
+These obligations do not prescribe a single opening, story engine, section order, paragraph length, tone or narrative rhythm. The selected form still follows the topic, evidence and reader.

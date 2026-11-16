@@ -694,11 +694,12 @@ Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
 **Root causes.**
 1. The previous continuation treated the current article's task state as the next system objective, so a single task-specific blocker was repeatedly surfaced as if it defined the Financial Writing product.
 2. Engineering verification had more detail than cross-topic editorial evidence. The current quality corpus has only two complete cases: one real user rejection and one external held-out benchmark, with only one held-out topic family and only FINANCE_DEEP represented.
-3. Four historical article workspaces cover different topic families, but their editorial audits are CHAT_SELF_REVIEW and their owner states have empty quality_evidence. They are useful diagnostic samples, not independent quality acceptance.
+3. Four historical article workspaces cover different topic families, but their editorial audits are CHAT_SELF_REVIEW and their owner states have empty quality_evidence. They are useful diagnostic samples, not independent quality acceptance. They contain Deep/Broad outputs only; the user's third product, short image-text/dynamic interaction, is already modeled by TaskContract but has no complete independent held-out quality corpus in these samples.
 4. Prior Financial evolution already showed that fixed opening, sentence and rhetorical geometry can make one machine template replace another. Reintroducing rigid expression rules would damage the actual goal.
 
 **Selected system-wide correction.**
 - Define one stable Financial workflow and shared research spine for every topic; preserve task-specific requirements and evidence depth without changing the canonical process.
+- Explicitly cover the three publishing products: acquisition long-form (Broad), deep finance/review long-form (Deep), and short image-text/dynamic interaction. All derive from the same audited research package; interaction copy adds no new facts and receives separate quality evaluation.
 - Make topic-specific research modules conditional on actual user scope and material relevance. Full-universe requirements remain task-scoped.
 - Keep narrative engine, title angle, opening strategy, section order, paragraph rhythm, technical depth and voice content-led. No universal article template or prose quotas.
 - Harvest four existing cross-topic Deep/Broad pairs as immutable diagnostic samples, explicitly marked CHAT_SELF_REVIEW with empty quality evidence and ineligible for promotion.

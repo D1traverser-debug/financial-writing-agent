@@ -90,16 +90,33 @@ A task passes only when applicable user requirements are visibly satisfied or ex
 
 - Added the general writing stability contract to Product Requirements and the executable contract.
 - Clarified in the operating Skill that system-wide stability must be assessed across topic families while keeping expression content-led.
-- Harvested four historical Deep/Broad pairs into a diagnostic-only inventory with immutable Git blob bindings.
+- Harvested four historical Deep/Broad pairs into a diagnostic-only inventory with immutable Git blob bindings; incorporated the user's previously recorded cross-product editorial feedback and explicitly included the third interaction product.
 - Added regression tests for topic-independent workflow, adaptive expression and non-promotion of self-reviewed samples.
 - Updated system status and the problem journal to make cross-topic quality—not any one article—the next business objective.
 
 ## 9. Remaining OPEN work
 
-- Run real, current, end-to-end writing tasks across multiple topic families and each target content mode.
+- Run real, current, end-to-end writing tasks across multiple topic families and all three target products (Deep, Broad and Platform Interaction); current historical samples cover only Deep/Broad.
 - Obtain independent blind editorial judgments; do not reuse same-session self-review as independent evidence.
 - Add complete held-out cases until each mode meets the existing quality promotion contract.
 - Verify the live model and provider-backed stage persistence path separately from deterministic CI.
 - Complete independent review of PR #84 and the separate Provider Action deployment decision.
 
 **Conclusion:** The common workflow is already defined. The missing proof is that it consistently produces strong real articles across different topics. The correct next step is cross-topic business validation and targeted root-cause repair—not another single-article-specific rebuild.
+
+
+## 10. Existing user-feedback evidence now included in the general contract
+
+The 2026-10-15 Huangjiu feedback is not a one-off article instruction. It explicitly called for system-level correction and identifies cross-product requirements that apply conditionally across the Financial Writing portfolio:
+
+- keep source provenance in research/audit rather than narrating it in publication copy;
+- remove model-like rhetorical molds and abstract staging without imposing a generic humanizer;
+- optimize the long-form reader funnel from title and opening through section continuation and completion payoff;
+- require explicit, evidence-bounded company comparison when multiple companies materially differ;
+- bridge H1 to lower-level headings with a substantive section lead when nested headings are used;
+- use meaningful numbering and information density where they improve navigation;
+- treat short image-text/dynamic interaction as a third first-class publishing product.
+
+The current repository already models \`FINANCE_DEEP\`, \`FINANCE_BROAD\` and \`PLATFORM_INTERACTION\` outputs in \`TaskContract\`. This revision makes all three explicit in the system-wide stability contract. The interaction product must derive from the same audited research package, introduce no new facts, and receive its own quality evaluation. The four historical article workspaces currently provide Deep/Broad diagnostics only; they do not provide interaction-product quality evidence.
+
+These are quality obligations, not a fixed writing formula. Applicability depends on product and material; narrative engine and expression remain content-led.
