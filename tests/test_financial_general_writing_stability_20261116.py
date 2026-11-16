@@ -196,41 +196,59 @@ def test_general_writing_execution_profile_keeps_workflow_fixed_and_expression_a
     from financial_writing_agent.writing_execution_profile import WritingExecutionProfile
 
     common = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
         "source_prompt_sha256": "a" * 64,
         "fixed_requirement_ids": [],
         "preference_requirement_ids": [],
-        "locked_decision_domains": [],
         "conditional_modules": ["COMPANY_UNIVERSE"],
         "execution_rationale": "One article workflow is retained; the argument and form follow the material and reader.",
     }
+
+    def open_domains(names):
+        return [
+            {
+                "domain": name,
+                "disposition": "OPEN",
+                "scopes": ["ALL"],
+                "requirement_ids": [],
+                "preference_ids": [],
+                "rationale": f"No user requirement fixes {name}.",
+            }
+            for name in names
+        ]
+
     event_led = WritingExecutionProfile.model_validate({
         **common,
-        "open_decision_domains": ["THESIS", "EVENT_TRANSMISSION", "COMPANY_COMPARISON", "TITLE"],
+        "decision_domains": open_domains(
+            ["THESIS", "EVENT_TRANSMISSION", "COMPANY_COMPARISON", "TITLE"],
+        ),
     })
     company_cycle = WritingExecutionProfile.model_validate({
         **common,
-        "open_decision_domains": ["THESIS", "VALUATION_GAP", "COMPANY_DIVERGENCE", "NARRATIVE_ENGINE"],
+        "decision_domains": open_domains(
+            ["THESIS", "VALUATION_GAP", "COMPANY_DIVERGENCE", "NARRATIVE_ENGINE"],
+        ),
     })
     assert event_led.workflow_contract == company_cycle.workflow_contract
-    assert event_led.open_decision_domains != company_cycle.open_decision_domains
+    assert event_led.decision_domains != company_cycle.decision_domains
 
 
 def test_execution_profile_contract_is_identical_between_manifest_and_execution_contract():
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     contract = _json("config/EXECUTION_CONTRACT.json")
-    expected = {
-        "name": "WritingExecutionProfile",
-        "schema_version": "1.0",
-        "portfolio_context_schema": "1.1",
-        "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
-        "whole_task_classifier": "NONE",
-        "requirement_authority": "TaskRequirementAuthority",
-        "original_prompt_binding": "SHA256",
-        "pass_binding": "ALL_SEMANTIC_PASSES",
-        "requirement_revision": "REFRESH_PROFILE_AND_INVALIDATE_AFFECTED_DOWNSTREAM_EVIDENCE",
-        "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE",
-    }
-    assert manifest["general_writing_stability"]["execution_profile"] == expected
-    assert contract["general_writing_stability"]["execution_profile"] == expected
+    profile = manifest["general_writing_stability"]["execution_profile"]
+    assert profile == contract["general_writing_stability"]["execution_profile"]
+    assert profile["name"] == "WritingExecutionProfile"
+    assert profile["schema_version"] == "1.1"
+    assert profile["whole_task_classifier"] == "NONE"
+    assert profile["requirement_authority"] == "TaskRequirementAuthority"
+    assert profile["decision_domain_binding_contract"]["locked_requires"] == (
+        "ACTIVE_USER_EXPLICIT_OR_USER_CORRECTION_REQUIREMENT_IDS"
+    )
+    assert profile["decision_domain_binding_contract"]["open_requires"] == (
+        "NO_HARD_REQUIREMENT_IDS__PREFERENCES_MAY_GUIDE"
+    )
+    assert profile["decision_domain_binding_contract"]["coverage"] == (
+        "EVERY_ACTIVE_FIXED_AND_PREFERENCE_REQUIREMENT_ID_MUST_MAP_TO_A_DOMAIN"
+    )

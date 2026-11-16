@@ -64,15 +64,46 @@ def _start(requirements=()):
             item["requirement_id"] for item in requirements
             if item["source_kind"] == "USER_PREFERENCE"
         ]
+        decision_domains = []
+        for item in requirements:
+            requirement_id = item["requirement_id"]
+            if item["source_kind"] in {"USER_EXPLICIT", "USER_CORRECTION"}:
+                decision_domains.append({
+                    "domain": "REQUIREMENT_" + requirement_id.upper().replace("-", "_"),
+                    "disposition": "LOCKED",
+                    "scopes": item["scopes"],
+                    "requirement_ids": [requirement_id],
+                    "preference_ids": [],
+                    "rationale": item["statement"],
+                })
+            else:
+                decision_domains.append({
+                    "domain": "PREFERENCE_" + requirement_id.upper().replace("-", "_"),
+                    "disposition": "OPEN",
+                    "scopes": item["scopes"],
+                    "requirement_ids": [],
+                    "preference_ids": [requirement_id],
+                    "rationale": item["statement"],
+                })
+        decision_domains.extend([
+            {
+                "domain": name,
+                "disposition": "OPEN",
+                "scopes": ["ALL"],
+                "requirement_ids": [],
+                "preference_ids": [],
+                "rationale": "No binding user requirement fixes this editorial decision.",
+            }
+            for name in ("THESIS", "ANGLE", "NARRATIVE_ENGINE", "TITLE", "SECTION_ORDER")
+        ])
         seed["writing_execution_profile"] = {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
             "fixed_requirement_ids": fixed_ids,
             "preference_requirement_ids": preference_ids,
-            "locked_decision_domains": ["RESEARCH_SCOPE"] if fixed_ids else [],
-            "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE", "TITLE", "SECTION_ORDER"],
+            "decision_domains": decision_domains,
             "conditional_modules": ["COMPANY_UNIVERSE"],
-            "execution_rationale": "The article workflow remains fixed; explicit requirements lock their domains while other editorial decisions remain evidence-led.",
+            "execution_rationale": "The article workflow remains fixed; each locked/open domain is linked to the existing requirement authority.",
         }
     return start_portfolio_context(
         seed,
@@ -312,13 +343,32 @@ def test_rebind_requires_a_refreshed_work_profile_when_requirements_change():
         )
 
     profile = {
-        "schema_version": "1.0",
+        "schema_version": "1.1",
         "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
         "source_prompt_sha256": context["seed_inputs"]["source_prompt_sha256"],
         "fixed_requirement_ids": ["new-fixed-title"],
         "preference_requirement_ids": [],
-        "locked_decision_domains": ["TITLE"],
-        "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE"],
+        "decision_domains": [
+            {
+                "domain": "TITLE",
+                "disposition": "LOCKED",
+                "scopes": ["ALL"],
+                "requirement_ids": ["new-fixed-title"],
+                "preference_ids": [],
+                "rationale": "The exact title is fixed by the active user requirement.",
+            },
+            *[
+                {
+                    "domain": name,
+                    "disposition": "OPEN",
+                    "scopes": ["ALL"],
+                    "requirement_ids": [],
+                    "preference_ids": [],
+                    "rationale": "No binding user requirement fixes this editorial decision.",
+                }
+                for name in ("THESIS", "ANGLE", "NARRATIVE_ENGINE")
+            ],
+        ],
         "conditional_modules": ["COMPANY_UNIVERSE"],
         "execution_rationale": "The exact title is fixed; thesis and narrative decisions remain open.",
     }
