@@ -252,3 +252,53 @@ def test_one_domain_can_be_locked_and_open_only_in_non_overlapping_product_scope
         profile, _contexts([requirement]),
         source_prompt_sha256=profile["source_prompt_sha256"],
     )
+
+
+def test_every_active_fixed_requirement_must_be_mapped_to_a_decision_domain():
+    prompt = "only compare three companies"
+    requirement = {
+        "requirement_id": "three-company-only",
+        "statement": "Only compare the three named companies.",
+        "scopes": ["RESEARCH", "FINANCE_DEEP"],
+        "affects_from_stage": "RESEARCH",
+        "evidence_ref": "owner-instruction://three-company-only",
+        "source_kind": "USER_EXPLICIT",
+    }
+    profile = _profile(prompt, [requirement], [{
+        "domain": "THESIS",
+        "disposition": "OPEN",
+        "scopes": ["ALL"],
+        "requirement_ids": [],
+        "preference_ids": [],
+        "rationale": "No binding requirement is mapped here.",
+    }])
+    with pytest.raises(WritingExecutionProfileError, match="do not map every active fixed requirement"):
+        validate_writing_execution_profile(
+            profile, _contexts([requirement]),
+            source_prompt_sha256=profile["source_prompt_sha256"],
+        )
+
+
+def test_every_active_preference_must_be_mapped_without_becoming_a_lock():
+    prompt = "I prefer concise prose."
+    preference = {
+        "requirement_id": "concise-preference",
+        "statement": "Prefer concise prose.",
+        "scopes": ["ALL"],
+        "affects_from_stage": "DRAFT",
+        "evidence_ref": "owner-preference://concise",
+        "source_kind": "USER_PREFERENCE",
+    }
+    profile = _profile(prompt, [preference], [{
+        "domain": "VOICE",
+        "disposition": "OPEN",
+        "scopes": ["ALL"],
+        "requirement_ids": [],
+        "preference_ids": [],
+        "rationale": "No preference is mapped to this domain.",
+    }])
+    with pytest.raises(WritingExecutionProfileError, match="do not map every active preference"):
+        validate_writing_execution_profile(
+            profile, _contexts([preference]),
+            source_prompt_sha256=profile["source_prompt_sha256"],
+        )
