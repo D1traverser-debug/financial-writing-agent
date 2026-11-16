@@ -62,12 +62,13 @@
     "P-20261015-13",
     "P-20261015-14"
   ],
-  "latest_incident_id": "P-20261116-04",
-  "latest_incident_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-04",
+  "latest_incident_id": "P-20261116-05",
+  "latest_incident_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-05",
   "open_items_at_2026_11_16": [
     "P-20261116-01",
     "P-20261116-02",
     "P-20261116-03",
-    "P-20261116-04"
+    "P-20261116-04",
+    "P-20261116-05"
   ]
 }
