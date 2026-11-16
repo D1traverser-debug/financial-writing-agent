@@ -17,7 +17,7 @@ from .task_requirements import (
     active_task_scopes,
     requirement_scopes_for_stage,
 )
-from .task_work_profile import TaskWorkProfile, validate_task_work_profile
+from .writing_execution_profile import WritingExecutionProfile, validate_writing_execution_profile
 from .story_quality import AuditStatus, PublicationFitness
 from .workflow_spec import pass_target_name, require_revision_target
 
@@ -48,7 +48,7 @@ class PassContract:
     forbidden_jobs: tuple[str, ...]
     outputs: tuple[str, ...]
     optional_outputs: tuple[str, ...] = ()
-    optional_inputs: tuple[str, ...] = ("task_work_profile",)
+    optional_inputs: tuple[str, ...] = ("writing_execution_profile",)
 
 
 PASS_CONTRACTS: dict[WritingPass, PassContract] = {
@@ -780,7 +780,7 @@ def _validate_portfolio_request(
     seed_inputs: Mapping[str, Any],
     required_outputs: list[str],
     *,
-    require_task_work_profile: bool = False,
+    require_writing_execution_profile: bool = False,
 ) -> tuple[dict[str, Any], list[str], bool]:
     if not isinstance(required_outputs, list) or len(required_outputs) != len(set(required_outputs)):
         raise WritingPassExecutionError("PORTFOLIO_REQUIRED_OUTPUTS_INVALID")
@@ -824,14 +824,14 @@ def _validate_portfolio_request(
         raise WritingPassExecutionError(
             "PORTFOLIO_SHARED_INPUTS_MISSING:" + ",".join(sorted(missing))
         )
-    if require_task_work_profile and "task_work_profile" not in shared:
-        raise WritingPassExecutionError("PORTFOLIO_TASK_WORK_PROFILE_REQUIRED")
-    if "task_work_profile" in shared:
+    if require_writing_execution_profile and "writing_execution_profile" not in shared:
+        raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_REQUIRED")
+    if "writing_execution_profile" in shared:
         try:
-            TaskWorkProfile.model_validate(shared["task_work_profile"])
+            WritingExecutionProfile.model_validate(shared["writing_execution_profile"])
         except Exception as exc:
-            raise WritingPassExecutionError("PORTFOLIO_TASK_WORK_PROFILE_INVALID") from exc
-    if require_task_work_profile:
+            raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_INVALID") from exc
+    if require_writing_execution_profile:
         prompt_sha = shared.get("source_prompt_sha256")
         if (
             not isinstance(prompt_sha, str)
@@ -1260,7 +1260,7 @@ def validate_portfolio_context(context: Mapping[str, Any]) -> None:
     context_schema = context.get("schema_version")
     if context_schema not in {LEGACY_PORTFOLIO_CONTEXT_SCHEMA_VERSION, PORTFOLIO_CONTEXT_SCHEMA_VERSION}:
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_SCHEMA_VERSION_UNSUPPORTED")
-    require_task_work_profile = context_schema == PORTFOLIO_CONTEXT_SCHEMA_VERSION
+    require_writing_execution_profile = context_schema == PORTFOLIO_CONTEXT_SCHEMA_VERSION
     if not isinstance(context.get("task_id"), str) or not context["task_id"].strip():
         raise WritingPassExecutionError("PORTFOLIO_TASK_ID_REQUIRED")
     requirement_digest = context.get("requirement_digest")
@@ -1276,7 +1276,7 @@ def validate_portfolio_context(context: Mapping[str, Any]) -> None:
     if not isinstance(required, list) or not isinstance(seed_inputs, Mapping):
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_SEED_INVALID")
     normalized_seed, modes, interaction_required = _validate_portfolio_request(
-        seed_inputs, required, require_task_work_profile=require_task_work_profile,
+        seed_inputs, required, require_writing_execution_profile=require_writing_execution_profile,
     )
     if context.get("products", {}).keys() != {mode for mode in modes}:
         raise WritingPassExecutionError("PORTFOLIO_CONTEXT_PRODUCT_SET_MISMATCH")
@@ -1291,13 +1291,16 @@ def validate_portfolio_context(context: Mapping[str, Any]) -> None:
             required_scopes=_all_requirement_scopes(modes, interaction_required),
             requirement_digest=requirement_digest,
         )
-    if require_task_work_profile:
+    if require_writing_execution_profile:
         try:
-            validate_task_work_profile(
-                seed_inputs["task_work_profile"], validated_requirement_contexts,
+            normalized_profile = validate_writing_execution_profile(
+                seed_inputs["writing_execution_profile"], validated_requirement_contexts,
+                source_prompt_sha256=seed_inputs["source_prompt_sha256"],
             )
+            if context["shared"].get("writing_execution_profile") != normalized_profile:
+                raise ValueError("seed/shared execution profile mismatch")
         except Exception as exc:
-            raise WritingPassExecutionError("PORTFOLIO_TASK_WORK_PROFILE_REQUIREMENT_BINDING_INVALID") from exc
+            raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_REQUIREMENT_BINDING_INVALID") from exc
 
     initial_stage = context.get("initial_stage")
     current_stage = context.get("current_stage")
@@ -1417,8 +1420,24 @@ def start_portfolio_context(
         raise WritingPassExecutionError("PORTFOLIO_REQUIREMENT_DIGEST_INVALID")
     if current_stage not in INTERNAL_PORTFOLIO_STAGE_SEQUENCE:
         raise WritingPassExecutionError("PORTFOLIO_INITIAL_STAGE_NOT_EXECUTABLE")
+    normalized_seed = dict(seed_inputs) if isinstance(seed_inputs, Mapping) else seed_inputs
+    if isinstance(normalized_seed, dict):
+        prompt_sha = normalized_seed.get("source_prompt_sha256")
+        if (
+            not isinstance(prompt_sha, str) or len(prompt_sha) != 64
+            or any(char not in "0123456789abcdef" for char in prompt_sha)
+        ):
+            raise WritingPassExecutionError("PORTFOLIO_TASK_PROMPT_BINDING_REQUIRED")
+        raw_profile = normalized_seed.get("writing_execution_profile")
+        if isinstance(raw_profile, Mapping):
+            profile_payload = dict(raw_profile)
+            existing_prompt_sha = profile_payload.get("source_prompt_sha256")
+            if existing_prompt_sha not in (None, prompt_sha):
+                raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_PROMPT_BINDING_MISMATCH")
+            profile_payload["source_prompt_sha256"] = prompt_sha
+            normalized_seed["writing_execution_profile"] = profile_payload
     shared, modes, interaction_required = _validate_portfolio_request(
-        seed_inputs, required_outputs, require_task_work_profile=True,
+        normalized_seed, required_outputs, require_writing_execution_profile=True,
     )
     contexts = _validate_requirement_contexts(
         requirement_contexts,
@@ -1426,9 +1445,12 @@ def start_portfolio_context(
         requirement_digest=requirement_digest,
     )
     try:
-        validate_task_work_profile(shared["task_work_profile"], contexts)
+        shared["writing_execution_profile"] = validate_writing_execution_profile(
+            shared["writing_execution_profile"], contexts,
+            source_prompt_sha256=shared["source_prompt_sha256"],
+        )
     except Exception as exc:
-        raise WritingPassExecutionError("PORTFOLIO_TASK_WORK_PROFILE_REQUIREMENT_BINDING_INVALID") from exc
+        raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_REQUIREMENT_BINDING_INVALID") from exc
     context = {
         "schema_version": PORTFOLIO_CONTEXT_SCHEMA_VERSION,
         "task_id": task_id,
@@ -1460,7 +1482,7 @@ def rebind_portfolio_context_requirements(
     requirement_digest: str,
     requirement_contexts: Mapping[str, Any],
     current_stage: str,
-    task_work_profile: Mapping[str, Any] | None = None,
+    writing_execution_profile: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Rebind changed owner requirements and invalidate from the owner-selected stage."""
     validate_portfolio_context(context)
@@ -1482,19 +1504,26 @@ def rebind_portfolio_context_requirements(
         interaction=deepcopy(working["interaction"]),
     )
     previous_digest = working["requirement_digest"]
-    requirements_changed = (
-        previous_digest != requirement_digest
-        or working.get("requirement_contexts") != contexts
-    )
+    digest_changed = previous_digest != requirement_digest
+    requirement_projection_changed = working.get("requirement_contexts") != contexts
+    requirements_changed = digest_changed or requirement_projection_changed
     if requirements_changed and working.get("schema_version") == PORTFOLIO_CONTEXT_SCHEMA_VERSION:
-        if task_work_profile is None:
-            raise WritingPassExecutionError("PORTFOLIO_TASK_WORK_PROFILE_REFRESH_REQUIRED")
+        if writing_execution_profile is None:
+            raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_REFRESH_REQUIRED")
         try:
-            normalized_profile = validate_task_work_profile(task_work_profile, contexts)
+            prompt_sha = working["seed_inputs"]["source_prompt_sha256"]
+            profile_payload = dict(writing_execution_profile)
+            existing_prompt_sha = profile_payload.get("source_prompt_sha256")
+            if existing_prompt_sha not in (None, prompt_sha):
+                raise ValueError("execution profile prompt binding mismatch")
+            profile_payload["source_prompt_sha256"] = prompt_sha
+            normalized_profile = validate_writing_execution_profile(
+                profile_payload, contexts, source_prompt_sha256=prompt_sha,
+            )
         except Exception as exc:
-            raise WritingPassExecutionError("PORTFOLIO_TASK_WORK_PROFILE_REQUIREMENT_BINDING_INVALID") from exc
-        working["seed_inputs"]["task_work_profile"] = normalized_profile
-        shared["task_work_profile"] = normalized_profile
+            raise WritingPassExecutionError("PORTFOLIO_WRITING_EXECUTION_PROFILE_REQUIREMENT_BINDING_INVALID") from exc
+        working["seed_inputs"]["writing_execution_profile"] = normalized_profile
+        shared["writing_execution_profile"] = normalized_profile
     working.update({
         "requirement_digest": requirement_digest,
         "requirement_contexts": contexts,
@@ -1511,11 +1540,13 @@ def rebind_portfolio_context_requirements(
     })
     _append_revision_history(working, {
         "record_type": "RESUME",
-        "reason": "TASK_REQUIREMENT_DIGEST_CHANGED",
+        "reason": "TASK_REQUIREMENTS_REBOUND",
         "from_stage": current_stage,
         "target_stage": current_stage,
         "previous_requirement_digest": previous_digest,
         "new_requirement_digest": requirement_digest,
+        "requirement_digest_changed": digest_changed,
+        "requirement_projection_changed": requirement_projection_changed,
         "generation": working["generation"],
     })
     working["initial_context_sha256"] = _portfolio_context_sha256(working)

@@ -79,7 +79,7 @@ def _refresh_context_requirements(
     requirement_digest: str,
     requirement_contexts: Mapping[str, Any],
     owner_stage: str,
-    task_work_profile: Mapping[str, Any] | None = None,
+    writing_execution_profile: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Rebind a resumed context whenever its scoped projection is not current."""
     refreshed = deepcopy(dict(context))
@@ -92,7 +92,7 @@ def _refresh_context_requirements(
             requirement_digest=requirement_digest,
             requirement_contexts=requirement_contexts,
             current_stage=owner_stage,
-            task_work_profile=task_work_profile,
+            writing_execution_profile=writing_execution_profile,
         )
     if refreshed.get("current_stage") != owner_stage:
         raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
@@ -486,8 +486,8 @@ def run_next_portfolio_stage(
             requirement_digest=state["task_requirement_digest"],
             requirement_contexts=contexts,
             owner_stage=owner_stage,
-            task_work_profile=(
-                seed_inputs.get("task_work_profile")
+            writing_execution_profile=(
+                seed_inputs.get("writing_execution_profile")
                 if isinstance(seed_inputs, Mapping) else None
             ),
         )

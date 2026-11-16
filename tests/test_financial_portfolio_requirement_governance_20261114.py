@@ -64,14 +64,15 @@ def _start(requirements=()):
             item["requirement_id"] for item in requirements
             if item["source_kind"] == "USER_PREFERENCE"
         ]
-        seed["task_work_profile"] = {
+        seed["writing_execution_profile"] = {
             "schema_version": "1.0",
-            "task_shape": "HYBRID" if fixed_ids else "OPEN_ENDED",
+            "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
             "fixed_requirement_ids": fixed_ids,
             "preference_requirement_ids": preference_ids,
-            "open_decision_domains": ["THESIS", "ANGLE", "STORY_STRUCTURE", "TITLE"],
+            "locked_decision_domains": ["RESEARCH_SCOPE"] if fixed_ids else [],
+            "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE", "TITLE", "SECTION_ORDER"],
             "conditional_modules": ["COMPANY_UNIVERSE"],
-            "classification_rationale": "Explicit task requirements remain fixed while unprovided editorial decisions remain open.",
+            "execution_rationale": "The article workflow remains fixed; explicit requirements lock their domains while other editorial decisions remain evidence-led.",
         }
     return start_portfolio_context(
         seed,
@@ -98,7 +99,7 @@ def test_every_shared_pass_receives_exact_scoped_requirement_contexts():
     seen = []
 
     def execute(node, inputs):
-        seen.append((node.value, inputs.get("task_requirement_contexts")))
+        seen.append((node.value, inputs.get("task_requirement_contexts"), inputs.get("writing_execution_profile")))
         return _executor([])(node, inputs)
 
     context = execute_portfolio_stage(
@@ -125,6 +126,7 @@ def test_every_shared_pass_receives_exact_scoped_requirement_contexts():
     )
     assert seen
     assert all(item[1] is not None for item in seen)
+    assert all(item[2] == context["shared"]["writing_execution_profile"] for item in seen)
     assert all(
         set(item[1]) == {"ALL", "RESEARCH", "PRIVATE_RESEARCH", "FINANCE_DEEP"}
         for item in seen
@@ -300,7 +302,7 @@ def test_rebind_requires_a_refreshed_work_profile_when_requirements_change():
     contexts = _contexts(digest, requirements)
     with pytest.raises(
         WritingPassExecutionError,
-        match="PORTFOLIO_TASK_WORK_PROFILE_REFRESH_REQUIRED",
+        match="PORTFOLIO_WRITING_EXECUTION_PROFILE_REFRESH_REQUIRED",
     ):
         rebind_portfolio_context_requirements(
             context,
@@ -311,28 +313,30 @@ def test_rebind_requires_a_refreshed_work_profile_when_requirements_change():
 
     profile = {
         "schema_version": "1.0",
-        "task_shape": "HYBRID",
+        "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+        "source_prompt_sha256": context["seed_inputs"]["source_prompt_sha256"],
         "fixed_requirement_ids": ["new-fixed-title"],
         "preference_requirement_ids": [],
-        "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE"],
+        "locked_decision_domains": ["TITLE"],
+        "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE"],
         "conditional_modules": ["COMPANY_UNIVERSE"],
-        "classification_rationale": "The exact title is fixed; thesis and narrative decisions remain open.",
+        "execution_rationale": "The exact title is fixed; thesis and narrative decisions remain open.",
     }
     rebound = rebind_portfolio_context_requirements(
         context,
         requirement_digest=digest,
         requirement_contexts=contexts,
         current_stage="RESEARCH",
-        task_work_profile=profile,
+        writing_execution_profile=profile,
     )
-    assert rebound["seed_inputs"]["task_work_profile"] == profile
-    assert rebound["shared"]["task_work_profile"] == profile
+    assert rebound["seed_inputs"]["writing_execution_profile"] == profile
+    assert rebound["shared"]["writing_execution_profile"] == profile
     validate_portfolio_context(rebound)
 
 
-def test_every_writing_pass_accepts_the_bound_task_work_profile_as_optional_context():
+def test_every_writing_pass_accepts_the_bound_writing_execution_profile_as_optional_context():
     from financial_writing_agent.writing_kernel import PASS_CONTRACTS, WritingPass
 
     assert set(PASS_CONTRACTS) == set(WritingPass)
-    assert all("task_work_profile" in contract.optional_inputs for contract in PASS_CONTRACTS.values())
+    assert all("writing_execution_profile" in contract.optional_inputs for contract in PASS_CONTRACTS.values())
 
