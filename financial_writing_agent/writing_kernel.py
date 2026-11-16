@@ -10,7 +10,8 @@ from enum import Enum
 from typing import Any
 
 from .models import DistributionMode, Stage, TaskContract
-from .schemas import PlatformInteractionPack, ResearchPackage
+from .schemas import PlatformInteractionPack
+from .full_universe_research import validate_full_universe_research_package
 from .task_requirements import (
     TaskRequirement,
     active_task_scopes,
@@ -1594,10 +1595,10 @@ def execute_portfolio_stage(
         if "full_universe_research_pool" in active_ids:
             package = shared.get("research_package")
             try:
-                ResearchPackage.model_validate(package)
+                validate_full_universe_research_package(package)
             except Exception as exc:
                 raise WritingPassExecutionError(
-                    "PORTFOLIO_FULL_UNIVERSE_RESEARCH_PACKAGE_REQUIRED"
+                    "PORTFOLIO_FULL_UNIVERSE_RESEARCH_EVIDENCE_CONTRACT_REQUIRED"
                 ) from exc
 
     elif stage == "RESEARCH_AUDIT":

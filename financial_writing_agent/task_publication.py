@@ -13,6 +13,7 @@ from .checks import check_deep_company_grounding, paragraph_has_named_economic_c
 from .company_identity import (CompanyIdentityError, canonical_company_name,
                                require_retained_universe_reconciliation)
 from .current_admission import requirement_context_for_scope
+from .full_universe_research import validate_full_universe_research_package
 
 # This is a supported *specific task invariant*, not a vocabulary of arbitrary
 # user requests to silently infer from their English/Chinese phrasing.
@@ -131,6 +132,10 @@ def verify_task_publication_scope(
     if strict:
         if not universe:
             findings.append("full-universe task cannot pass with empty retained universe")
+        try:
+            validate_full_universe_research_package(research)
+        except (ValueError, TypeError) as exc:
+            findings.append(f"full-universe research evidence contract failed: {exc}")
         coverage = _field(research, "universe_coverage")
         if _field(coverage, "status") != "COMPLETE":
             findings.append("full-universe task requires research.universe_coverage.status=COMPLETE")

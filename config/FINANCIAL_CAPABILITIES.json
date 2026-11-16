@@ -29,8 +29,13 @@
     },
     {
       "id": "source_research_and_company_universe",
-      "source": "financial_writing_agent.private_research",
-      "assurance": "STRUCTURAL_WITH_EXTERNAL_SOURCE_AUDIT"
+      "source": "financial_writing_agent.private_research + financial_writing_agent.full_universe_research",
+      "assurance": "TASK_SCOPED_PER_COMPANY_EVIDENCE_AND_SOURCE_FAMILY_BINDING__EXTERNAL_FACT_AUDIT_REQUIRED"
+    },
+    {
+      "id": "full_universe_research_evidence_contract",
+      "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
+      "assurance": "UNIQUE_TICKERS__DATED_COMPANY_EVIDENCE_LINKAGE__TWO_DISTINCT_SOURCE_FAMILIES__SATURATION__WITHIN_SEGMENT_FIVE_AXIS_COMPARISON__TASK_SCOPED"
     },
     {
       "id": "financial_cognition_and_counterexamples",

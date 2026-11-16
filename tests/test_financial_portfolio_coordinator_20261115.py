@@ -8,7 +8,6 @@ import pytest
 
 from financial_writing_agent import current_admission, portfolio_coordinator, standalone_runtime
 from financial_writing_agent.portfolio_coordinator import PortfolioCoordinatorError
-from financial_writing_agent.schemas import ResearchPackage
 from financial_writing_agent.standalone_runtime import FinancialAdmissionError
 from financial_writing_agent.writing_kernel import WritingPass
 from test_current_admission_v1 import _brief, _decision
@@ -234,12 +233,12 @@ def test_coordinator_research_envelope_validates_nested_typed_research_package(m
     }]
     captured = []
 
-    def fake_model_validate(cls, value):
+    def fake_validate(value):
         captured.append(value)
         return SimpleNamespace(value=value)
 
     monkeypatch.setattr(
-        ResearchPackage, "model_validate", classmethod(fake_model_validate),
+        standalone_runtime, "validate_full_universe_research_package", fake_validate,
     )
     monkeypatch.setattr(
         standalone_runtime,
@@ -895,7 +894,7 @@ def test_stage_payload_requires_mapping_outputs_and_typed_full_universe_package(
     }
     with pytest.raises(
         PortfolioCoordinatorError,
-        match="PORTFOLIO_FULL_UNIVERSE_TYPED_RESEARCH_PACKAGE_REQUIRED",
+        match="PORTFOLIO_FULL_UNIVERSE_RESEARCH_EVIDENCE_CONTRACT_REQUIRED",
     ):
         portfolio_coordinator._stage_payload(
             {
@@ -1095,12 +1094,12 @@ def test_standalone_runtime_does_not_reconcile_unrequested_deep_universe(monkeyp
     candidate["required_outputs"] = ["AUDIT_DOCX", "FINANCE_BROAD_DOCX"]
     captured = []
 
-    def forbidden_model_validate(cls, value):
+    def forbidden_validate(value):
         captured.append(value)
         raise AssertionError("unrequested Deep universe must not be validated")
 
     monkeypatch.setattr(
-        ResearchPackage, "model_validate", classmethod(forbidden_model_validate),
+        standalone_runtime, "validate_full_universe_research_package", forbidden_validate,
     )
     monkeypatch.setattr(
         standalone_runtime,

@@ -76,3 +76,31 @@ The user does not need to manually request invalidation. The requirement transac
 ## Assurance boundary
 
 This control closes a Financial-domain authority gap. It does not prove native ChatGPT host-level non-bypassable pre-send mediation; that remains parent/common scope when required.
+
+
+## Full-universe research evidence contract
+
+The explicit task requirement "full_universe_research_pool" activates a stricter
+ResearchPackage contract at Research admission, portfolio coordination,
+standalone owner admission and final Deep publication. This is task-scoped; it
+does not force exhaustive-universe research on ordinary Financial assignments.
+
+For every retained company, the structured finding must carry a unique canonical
+ticker, business stage, exposure type, business-purity classification, current
+financial-realization status and evidence, event-transmission path, reversal
+conditions, and dated evidence references linked to the package evidence ledger.
+Material companies require at least two dated evidence references; secondary and
+reference-only companies require an explicit reason for their weaker treatment.
+
+The universe itself must be complete as of an explicit date, reconcile exactly
+with the included-company classification ledger, and cite at least two distinct
+current source families. Research saturation must record two consecutive no-delta
+sweeps and dated evidence references. Every material value-chain class containing
+two or more material companies must include a within-class comparison across
+exposure directness, business purity, financial realization, event transmission
+and reversal conditions.
+
+A package that merely contains a list of company names, or whose company-level
+fields are empty/defaulted, is not evidence of complete research. Structural
+admission verifies completeness and provenance bindings; a separate research
+audit must still assess whether the claims and comparisons are factually sound.

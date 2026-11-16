@@ -161,7 +161,45 @@
     "omitted_research_class_requires_evidence_and_rationale": true,
     "material_company_grounding_required_for_selected_sections": true,
     "default_word_count_ceiling": null,
-    "compression_rule": "SELECT_THE_DECISIVE_STORY_FROM_COMPLETE_RESEARCH__REMOVE_REDUNDANCY__DO_NOT_DUMP_THE_RESEARCH_MAP"
+    "compression_rule": "SELECT_THE_DECISIVE_STORY_FROM_COMPLETE_RESEARCH__REMOVE_REDUNDANCY__DO_NOT_DUMP_THE_RESEARCH_MAP",
+    "full_universe_research_contract": {
+      "trigger_requirement_id": "full_universe_research_pool",
+      "validator": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
+      "enforced_at": [
+        "financial_writing_agent.writing_kernel",
+        "financial_writing_agent.portfolio_coordinator",
+        "financial_writing_agent.standalone_runtime",
+        "financial_writing_agent.task_publication"
+      ],
+      "company_fields": [
+        "canonical_ticker",
+        "business_stage",
+        "exposure_type",
+        "business_purity",
+        "financial_realization_status",
+        "financial_realization_evidence",
+        "event_transmission_path",
+        "reversal_conditions",
+        "dated_evidence_refs"
+      ],
+      "source_family_minimum": 2,
+      "material_company_evidence_ref_minimum": 2,
+      "non_material_company_evidence_ref_minimum": 1,
+      "complete_class_accounting_required": true,
+      "saturation": {
+        "coverage_status": "SATURATED",
+        "consecutive_no_delta_sweeps_minimum": 2,
+        "material_new_items_last_sweep": 0
+      },
+      "within_segment_comparison_dimensions": [
+        "exposure_directness",
+        "business_purity",
+        "financial_realization",
+        "event_transmission",
+        "reversal_conditions"
+      ],
+      "factual_and_source_independence_audit_remains_required": true
+    }
   },
   "finance_broad": {
     "independent_acquisition_rebuild": true,

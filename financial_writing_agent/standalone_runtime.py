@@ -36,6 +36,7 @@ from .provider_attestation import (
     FinancialProviderAttestationError, payload_sha256, request_sha256,
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
+from .full_universe_research import validate_full_universe_research_package
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (
     IndependentEditorialEvidenceError, verify_external_editorial_review,
@@ -395,9 +396,8 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         )
         portfolio_stage_artifact = deepcopy(dict(parsed))
         if full_universe_required:
-            from .schemas import ResearchPackage
             try:
-                research = ResearchPackage.model_validate(
+                research = validate_full_universe_research_package(
                     payload.get("research_package")
                 )
                 reconciliation = require_retained_universe_reconciliation(
@@ -412,10 +412,9 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
     elif full_universe_required:
         # Legacy direct-stage actions retain their historical raw ResearchPackage
         # contract. New portfolio-coordinator actions must use the typed envelope.
-        from .schemas import ResearchPackage
         try:
             parsed = json.loads(content)
-            research = ResearchPackage.model_validate(parsed)
+            research = validate_full_universe_research_package(parsed)
             reconciliation = require_retained_universe_reconciliation(
                 candidate["task_id"], research,
             )

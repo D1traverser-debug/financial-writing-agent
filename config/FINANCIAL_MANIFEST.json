@@ -99,5 +99,19 @@
     "status": "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
     "verified_code_head_sha": "543887a767a9472a11782cf6f7db5b996abd24bf",
     "exact_code_head_ci_run": 43790509745
+  },
+  "full_universe_research_evidence_contract": {
+    "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
+    "trigger_requirement_id": "full_universe_research_pool",
+    "enforced_at": [
+      "writing_kernel",
+      "portfolio_coordinator",
+      "standalone_runtime",
+      "task_publication"
+    ],
+    "status": "CANDIDATE_CI_PENDING",
+    "verified_code_head_sha": null,
+    "exact_code_head_ci_run": null,
+    "semantic_fact_audit_remains_external": true
   }
 }
