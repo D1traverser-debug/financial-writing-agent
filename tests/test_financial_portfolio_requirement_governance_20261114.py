@@ -55,6 +55,24 @@ def _start(requirements=()):
     seed = _seed()
     task_id = seed.pop("task_id")
     digest = seed.pop("requirement_digest")
+    if requirements:
+        fixed_ids = [
+            item["requirement_id"] for item in requirements
+            if item["source_kind"] in {"USER_EXPLICIT", "USER_CORRECTION"}
+        ]
+        preference_ids = [
+            item["requirement_id"] for item in requirements
+            if item["source_kind"] == "USER_PREFERENCE"
+        ]
+        seed["task_work_profile"] = {
+            "schema_version": "1.0",
+            "task_shape": "HYBRID" if fixed_ids else "OPEN_ENDED",
+            "fixed_requirement_ids": fixed_ids,
+            "preference_requirement_ids": preference_ids,
+            "open_decision_domains": ["THESIS", "ANGLE", "STORY_STRUCTURE", "TITLE"],
+            "conditional_modules": ["COMPANY_UNIVERSE"],
+            "classification_rationale": "Explicit task requirements remain fixed while unprovided editorial decisions remain open.",
+        }
     return start_portfolio_context(
         seed,
         required_outputs=[
@@ -272,3 +290,49 @@ def test_full_universe_requirement_requires_a_typed_research_package():
                 "evidence_refs": ["source://universe"],
             }],
         )
+
+def test_rebind_requires_a_refreshed_work_profile_when_requirements_change():
+    from financial_writing_agent.writing_kernel import rebind_portfolio_context_requirements
+
+    context = _start()
+    digest = "b" * 64
+    requirements = [_requirement("new-fixed-title", ["ALL"], "TITLE")]
+    contexts = _contexts(digest, requirements)
+    with pytest.raises(
+        WritingPassExecutionError,
+        match="PORTFOLIO_TASK_WORK_PROFILE_REFRESH_REQUIRED",
+    ):
+        rebind_portfolio_context_requirements(
+            context,
+            requirement_digest=digest,
+            requirement_contexts=contexts,
+            current_stage="RESEARCH",
+        )
+
+    profile = {
+        "schema_version": "1.0",
+        "task_shape": "HYBRID",
+        "fixed_requirement_ids": ["new-fixed-title"],
+        "preference_requirement_ids": [],
+        "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE"],
+        "conditional_modules": ["COMPANY_UNIVERSE"],
+        "classification_rationale": "The exact title is fixed; thesis and narrative decisions remain open.",
+    }
+    rebound = rebind_portfolio_context_requirements(
+        context,
+        requirement_digest=digest,
+        requirement_contexts=contexts,
+        current_stage="RESEARCH",
+        task_work_profile=profile,
+    )
+    assert rebound["seed_inputs"]["task_work_profile"] == profile
+    assert rebound["shared"]["task_work_profile"] == profile
+    validate_portfolio_context(rebound)
+
+
+def test_every_writing_pass_accepts_the_bound_task_work_profile_as_optional_context():
+    from financial_writing_agent.writing_kernel import PASS_CONTRACTS, WritingPass
+
+    assert set(PASS_CONTRACTS) == set(WritingPass)
+    assert all("task_work_profile" in contract.optional_inputs for contract in PASS_CONTRACTS.values())
+

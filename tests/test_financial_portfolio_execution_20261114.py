@@ -19,6 +19,16 @@ def _seed(*, interaction=True):
     values = {
         "task_id": "synthetic-financial-task",
         "requirement_digest": "a" * 64,
+        "source_prompt_sha256": "a" * 64,
+        "task_work_profile": {
+            "schema_version": "1.0",
+            "task_shape": "OPEN_ENDED",
+            "fixed_requirement_ids": [],
+            "preference_requirement_ids": [],
+            "open_decision_domains": ["THESIS", "ANGLE", "STORY_STRUCTURE", "TITLE", "VOICE"],
+            "conditional_modules": ["COMPANY_UNIVERSE", "CAUSAL_TRANSMISSION"],
+            "classification_rationale": "The user provides a topic and reader job while leaving editorial choices open.",
+        },
         "topic_or_task": "A current financial topic with a defined reader job",
         "knowledge_sources": ["knowledge://methods"],
         "topic": "current financial topic",

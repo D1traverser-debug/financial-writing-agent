@@ -79,6 +79,7 @@ def _refresh_context_requirements(
     requirement_digest: str,
     requirement_contexts: Mapping[str, Any],
     owner_stage: str,
+    task_work_profile: Mapping[str, Any] | None = None,
 ) -> dict[str, Any]:
     """Rebind a resumed context whenever its scoped projection is not current."""
     refreshed = deepcopy(dict(context))
@@ -91,6 +92,7 @@ def _refresh_context_requirements(
             requirement_digest=requirement_digest,
             requirement_contexts=requirement_contexts,
             current_stage=owner_stage,
+            task_work_profile=task_work_profile,
         )
     if refreshed.get("current_stage") != owner_stage:
         raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OWNER_STAGE_MISMATCH")
@@ -441,6 +443,9 @@ def run_next_portfolio_stage(
             key: value for key, value in seed_inputs.items()
             if key not in {"task_id", "requirement_digest", "task_requirement_contexts"}
         }
+        normalized_seed["source_prompt_sha256"] = hashlib.sha256(
+            str(state.get("prompt", "")).encode("utf-8")
+        ).hexdigest()
         context = start_portfolio_context(
             normalized_seed,
             required_outputs=required_outputs,
@@ -465,6 +470,12 @@ def run_next_portfolio_stage(
             raise PortfolioCoordinatorError("PORTFOLIO_PERSISTED_CONTEXT_INVALID") from exc
         if context.get("task_id") != task_id:
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_TASK_ID_MISMATCH")
+        if context.get("schema_version") == "1.1":
+            expected_prompt_sha = hashlib.sha256(
+                str(state.get("prompt", "")).encode("utf-8")
+            ).hexdigest()
+            if context.get("seed_inputs", {}).get("source_prompt_sha256") != expected_prompt_sha:
+                raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_PROMPT_BINDING_MISMATCH")
         if context.get("required_output_kinds") != sorted(required_outputs):
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OUTPUT_CONTRACT_MISMATCH")
         # Recompute scoped requirements on every resume. A matching top-level
@@ -475,6 +486,10 @@ def run_next_portfolio_stage(
             requirement_digest=state["task_requirement_digest"],
             requirement_contexts=contexts,
             owner_stage=owner_stage,
+            task_work_profile=(
+                seed_inputs.get("task_work_profile")
+                if isinstance(seed_inputs, Mapping) else None
+            ),
         )
         if context.get("execution_status") == "BLOCKED":
             context = resume_portfolio_context(context, owner_state=state)
