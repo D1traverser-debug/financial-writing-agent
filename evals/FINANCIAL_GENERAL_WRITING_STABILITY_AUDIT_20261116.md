@@ -162,3 +162,35 @@ The product contract already defines `PLATFORM_INTERACTION` as a first-class, se
 A documentation/journal follow-up at `d58038056068ee4bbe45127a9d5296a971b27b03` exposed two stale assertions that hard-coded P-04 as the latest incident (728 passed, 2 failed). The tests were corrected to validate the current latest-incident pointer/reference dynamically while retaining P-01 through P-04 as historical open items. Final candidate head `5b6aec5415c7cdce8288f29175c3724260184a45` passed exact-head run [43838436832](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43838436832): 730 tests passed; 88% statement coverage; Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 342 tracked files, 133 Python AST parses, 54 JSON parses, 55,446 decoded text lines, zero warnings/errors. DOCX render, four synthetic Word product binaries/page checks, and negative business replay passed.
 
 **Quality status remains OPEN.** No Interaction real-user rejection or two-family held-out corpus was added. The new unit fixtures are synthetic contract tests, not editorial evidence. No blind external reader evaluation, live article production, provider-backed persistence, or user acceptance is claimed. PR #86 remains a Draft candidate pending independent review and exact-head follow-up after any further change.
+
+---
+
+## 14. Root cause: topic variation was mistaken for task-shape generalization
+
+The existing general-writing contract correctly described invariant workflow, conditional research modules and open content-led expression. The runtime did not encode that distinction in a durable task-bound profile. The stability test varied topics while retaining one default TaskContract and one article task shape. This was topic coverage, not proof of fixed-process, open-ended and hybrid task handling.
+
+### 14.1 Runtime correction candidate
+
+Draft PR #88 adds:
+- a typed `TaskWorkProfile` with `FIXED_WORKFLOW`, `OPEN_ENDED` and `HYBRID`;
+- exact classification of active explicit/corrective requirements versus preferences;
+- explicit open editorial decision domains and conditional research modules;
+- persistence in the existing Portfolio Context, with no new owner or state machine;
+- optional profile propagation to all semantic passes;
+- prompt-hash binding for new contexts;
+- refreshed-profile requirement when active task requirements change;
+- read compatibility for historical Portfolio Context 1.0.
+
+### 14.2 Acceptance boundary
+
+The task profile must be tested across fixed, open-ended and hybrid requests. Tests must verify:
+- no explicit/corrective requirement is omitted or invented;
+- preferences are not promoted to hard requirements;
+- fixed tasks preserve the requested process/format/scope;
+- open tasks actually compare alternatives and choose form from evidence and reader needs;
+- hybrid tasks preserve fixed constraints while leaving the remaining editorial decisions adaptive;
+- changing requirements invalidates/rebuilds the profile and downstream evidence;
+- all semantic passes receive the same task-bound profile;
+- historical context read/validation remains compatible.
+
+This candidate's schema and dataflow tests are engineering evidence only. It does not prove that a model classifies every real user request correctly or that the resulting articles are reader-accepted. Real fixed/open/hybrid tasks, held-out topic families, independent editorial review and actual user acceptance remain OPEN.

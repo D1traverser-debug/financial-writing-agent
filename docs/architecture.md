@@ -290,3 +290,24 @@ The same stage-to-scope projection determines which requirements become due in `
 New requirement mutations fail closed when no scope matches the task's requested outputs or when an active scope cannot execute at the selected affected stage. The special `full_universe_research_pool` typed ResearchPackage/reconciliation gate applies only when its scope is active in the task. DELIVERY is part of the complete requirement-context authority even though it is not one of the six internal portfolio stages.
 
 Regression evidence: `tests/test_financial_requirement_scope_dataflow_20261116.py`, `tests/test_financial_portfolio_requirement_governance_20261114.py` and `tests/test_financial_portfolio_coordinator_20261115.py`. Candidate tests still require exact-head CI and mainline verification before promotion.
+
+## 21. Task-shape execution profile and adaptive editorial control (2026-11-16)
+
+Financial Writing keeps one owner state authority, one Article Aggregate, one canonical ten-stage business graph and the existing TaskRequirementAuthority. The system does not create a second controller or a separate fixed/open workflow engine.
+
+New Portfolio Context schema 1.1 stores a typed `task_work_profile` projection with three shapes:
+
+- `FIXED_WORKFLOW`: all task-specific decisions are fixed by active user requirements.
+- `OPEN_ENDED`: the user gives a goal/topic while editorial decisions remain open.
+- `HYBRID`: explicit/corrective requirements remain locked while other editorial decisions remain open.
+
+The profile classifies every active requirement ID by provenance: explicit/corrective requirements are hard constraints; preferences remain weighted preferences. It also records open editorial decision domains and conditional research modules. It is not a new authority: TaskRequirementAuthority remains the source of user requirements, DecisionEnvelope remains the authority for material editorial judgments, and the original prompt remains the task-intent source.
+
+The profile is persisted inside the existing task-bound Portfolio Context and included in the context digest. Every semantic pass receives it as optional context, so historical schema 1.0 contexts remain readable and can continue on their legacy contract. New contexts require the profile and a prompt hash. A change to active requirements on a 1.1 context requires a refreshed profile that exactly matches the new requirement contexts; otherwise the rebind fails closed.
+
+This separates three things that must not be conflated:
+1. **Fixed business lifecycle:** the ten article stages and evidence/QA obligations remain stable.
+2. **Task-specific constraints:** explicit user instructions/corrections remain binding; preferences remain preferences.
+3. **Open editorial decisions:** thesis, angle, narrative engine, structure, title, voice, depth and length are selected for the material and reader.
+
+The profile is a routing/execution aid, not proof that the model classified the user's intent correctly. Semantic classification and actual article quality still require independent task-shape evaluation and real editorial evidence.

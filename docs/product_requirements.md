@@ -359,6 +359,18 @@ The stable invariants are:
 
 The following remain deliberately adaptive: narrative engine, title angle, opening strategy, section order, paragraph rhythm, degree of technical explanation, level of detail, tone and voice. **Form follows content and reader purpose.** A StoryBlueprint is a planning aid, not a prose template. Do not impose one universal opening, sentence geometry, rhetorical pattern, paragraph length or slang style.
 
+### 11.2A Fixed, open-ended and hybrid task shapes
+
+Task shape is an execution dimension, not a product mode or topic category:
+
+- **FIXED_WORKFLOW:** task-specific requirements and process/format decisions are prescribed. Execute them exactly; do not substitute a preferred method or expand scope.
+- **OPEN_ENDED:** the user supplies an objective, topic and reader outcome while leaving material editorial choices open. Use the decision loop to explore alternatives and choose the thesis, angle, narrative form and structure.
+- **HYBRID:** preserve all explicit/corrective requirements and weighted preferences, while using evidence and reader value to decide the genuinely open parts.
+
+The canonical ten-stage article graph remains the fixed business lifecycle. Task shape controls how its stages reason and decide; it does not create another state machine. The typed `TaskWorkProfile` is a derived projection stored in the existing Portfolio Context. TaskRequirementAuthority remains the sole source of binding user requirements; the profile must classify all active requirement IDs without omissions or inventions. Preferences are recorded separately and never silently hardened.
+
+A new task is not adequately covered merely because its topic differs from another task. System-wide evaluation must include fixed, open-ended and hybrid requests, and verify both correct preservation of fixed requirements and appropriate freedom on open editorial decisions. A single profile label, synthetic fixture or successful CI run does not prove semantic classification quality.
+ 
 ### 11.3 What “stable” means
 
 Stability means that different tasks reliably meet the same substantive quality obligations while making different editorial choices when their material and readers differ. It does not mean identical wording or article structure.
