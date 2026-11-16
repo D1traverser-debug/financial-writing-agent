@@ -37,9 +37,28 @@ def test_current_system_candidate_records_exact_requirement_scope_repair_evidenc
     assert candidate["exact_head_ci_conclusion"] == "success"
     assert isinstance(candidate["tests_passed"], int) and candidate["tests_passed"] > 0
     assert candidate["source_line_coverage_percent"] >= 0
-    assert candidate["status"] == "CANDIDATE__EXACT_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN"
+    assert candidate["status"] == "CANDIDATE__EXACT_CODE_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN"
     assert "PROVIDER_ACTION_NOT_DEPLOYED" in candidate["limitations"]
     assert index["active_system_assessment"]["latest_requirement_scope_dataflow_candidate"] == candidate
+
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    scope_contract = manifest["task_requirement_scope_contract"]
+    assert scope_contract["status"] == "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN"
+    assert scope_contract["verified_code_head_sha"] == candidate["candidate_head_sha"]
+    assert scope_contract["exact_code_head_ci_run"] == candidate["exact_head_ci_run"]
+
+    audit = (ROOT / candidate["audit_ref"]).read_text(encoding="utf-8")
+    assert f"**Verified candidate code head:** `{candidate['candidate_head_sha']}`" in audit
+    assert f"**Exact code-head CI:** [{candidate['exact_head_ci_run']}]" in audit
+
+    journal_index = _json("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json")
+    assert journal_index["revision"] == index["active_system_assessment"]["problem_journal_revision"]
+    assert journal_index["latest_incident_ref"] == candidate["problem_ref"]
+    assert journal_index["latest_incident_id"] == candidate["problem_ref"].rsplit("#", 1)[-1]
+    journal = (ROOT / "evals/PROBLEM_EVOLUTION_JOURNAL.md").read_text(encoding="utf-8")
+    assert journal_index["latest_incident_id"] in journal
+    assert candidate["candidate_head_sha"] in journal
+    assert str(candidate["exact_head_ci_run"]) in journal
 
 
 def test_product_version_tracks_independent_package_not_prior_child_era():

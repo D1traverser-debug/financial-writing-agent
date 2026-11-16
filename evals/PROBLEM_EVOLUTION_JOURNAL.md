@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.0`
+Journal revision: `2.1`
 Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -624,3 +624,29 @@ Current release boundary: PR #67 remains open and unmerged; no independent revie
 **Current status:** `CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_MERGED`. PR #84 remains DRAFT. Independent current-head review and post-merge CI remain open. Provider Action remains NOT_DEPLOYED; plugin installation, real article completion and independent editorial/reader outcomes remain unverified. Whole-system status remains NOT_READY with seven external gates open.
 
 **Next legal action:** Obtain independent review of exact head `6551d3a2c214460ae084bcb2924c42fdd765f01a`. Merge only the Financial PR if accepted, then verify exact mainline CI. No CAOS modification or paid infrastructure provisioning is authorized by this repair.
+
+
+---
+
+## P-20261116-02 — Evidence-reference normalization and candidate status drift (2026-11-16)
+
+Status: `CANDIDATE_REPAIR_VERIFIED__NOT_MERGED__PRODUCTION_OBSERVATION_OPEN`
+
+**Scope:** Financial Writing requirement evidence normalization, candidate status authority and regression coverage. No CAOS repository, CAOS source/configuration, article STATE or method-catalog business record was modified.
+
+**Trigger and user consequence.** A second adversarial pass found that evidence-reference uniqueness was checked on raw strings before canonicalization. Two references such as `source-A` and ` source-A ` could be treated as distinct even though they identify the same evidence. The same review found that candidate verification status had drifted across Financial-owned records and the GitHub PR description, making it impossible to tell which code head and CI run were current without a live repository read.
+
+**Root causes.**
+1. Owner admission, pass execution and persisted-stage validation needed to reject duplicate evidence after whitespace normalization, not merely exact raw-string duplicates.
+2. Candidate evidence was manually copied into `EVOLUTION_INDEX`, the audit, the manifest, the journal and the PR description. Later commits updated some surfaces but not others; no regression bound the candidate SHA, CI run, status and journal revision across the authoritative records.
+3. The journal header/index remained at revision 2.0 while the evolution index declared 2.1; the manifest still reported the requirement-scope fix as CI-pending after exact code-head CI had passed.
+
+**Counterevidence and rejected repairs.** The stale records did not prove the candidate code was failing: live GitHub showed code head `543887a767a9472a11782cf6f7db5b996abd24bf` with exact code-head CI run `43790509745` successful. Rewriting old journal entries would destroy chronology and was rejected. Treating the PR description or an old audit snapshot as the live head was also rejected; GitHub's current PR and workflow-run readback remain the authority for the live head.
+
+**Selected Financial-only repair.** Normalize evidence references before uniqueness checks in `current_admission`, `writing_kernel` and `standalone_runtime`; retain regression coverage for whitespace-normalized duplicates. Synchronize the candidate code-head evidence across `EVOLUTION_INDEX.json`, `FINANCIAL_MANIFEST.json`, the dataflow audit, the append-only problem journal and its machine index. Add regression checks that cross-bind candidate SHA, exact CI run, manifest status, audit evidence and journal revision. Refresh the PR description only after the final live PR-head CI is known. Keep all changes on the Financial candidate branch.
+
+**Verification at the code head.** Candidate code head `543887a767a9472a11782cf6f7db5b996abd24bf`; exact code-head CI run `43790509745`: **701 tests passed**, **88%** statement coverage (7,896 statements; 928 missed). Whole-tree audit: 338 tracked files, 130 Python AST parses, 54 JSON parses, 52,793 decoded text lines, zero warnings and zero errors. The status-consistency assertions are included in the follow-up status refresh and must pass in the final live PR-head CI before the PR description is updated.
+
+**Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent review has been obtained and no explicit owner merge authorization is established. The hosted Financial Provider Action is NOT_DEPLOYED. Native client installation/fresh-session invocation is unverified. The cross-border v3 task remains RESEARCH with 0/4 real deliverables. The original full article prompt is not independently recovered; V2 research references are historical fixtures and require current-source revalidation. Real factual quality, editorial acceptance and reader outcome remain unverified. No paid host or CAOS modification is authorized.
+
+**Next legal action.** Re-read the live PR head and exact CI from GitHub, obtain independent review, and do not merge without explicit owner authorization. Provider hosting/cost approval is a separate decision.

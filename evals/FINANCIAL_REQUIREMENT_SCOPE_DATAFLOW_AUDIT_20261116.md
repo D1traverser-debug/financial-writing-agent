@@ -4,8 +4,8 @@
 **Repository:** `D1traverser-debug/financial-writing-agent`  
 **Candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84)  
 **Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Exact candidate head:** `494c9c0d86a862c7bd192581389c37d8506f5d3c`  
-**Exact-head CI:** [43787407518](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43787407518) — SUCCESS  
+**Verified candidate code head:** `543887a767a9472a11782cf6f7db5b996abd24bf`  
+**Exact code-head CI:** [43790509745](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43790509745) — SUCCESS  
 **CAOS boundary:** no CAOS repository, code, configuration, plugin, PR or runtime was modified.
 
 ## 1. Original business problem
@@ -94,17 +94,19 @@ The first pass fixed requirement-scope divergence but did not close the full exe
 2. **Requirement evidence could diverge at the owner boundary.** The persisted context's satisfaction set was not required to equal the evidence set admitted by the Owner Receipt. The runtime now validates nonempty unique string references, binds the exact stage-artifact path into the evidence set, and compares normalized requirement IDs, results, notes and references across both records. `current_admission` rejects invalid or duplicate evidence references before the owner transition.
 3. **New tasks could bypass coordinator routing.** New tasks now bind `portfolio_execution_contract_version=1.0` into the initial Owner Receipt. The marker cannot be removed from an admitted task. For coordinated stages, direct `ADVANCE_STAGE` without a portfolio context reference is rejected. Legacy states remain distinguishable and retain historical transition behavior; the coordinator may promote a legacy task only when its first context is bound in an owner transition.
 
+4. **Evidence-reference uniqueness was checked before canonicalization.** Raw references such as `source-A` and ` source-A ` could be treated as distinct even though they identify the same evidence. `current_admission`, `writing_kernel` and `standalone_runtime` now normalize and validate references before duplicate checks; regression coverage rejects whitespace-normalized duplicates at the owner, pass and persisted-stage boundaries.
+
 Integration fixtures now distinguish actual new/current tasks from historical pre-coordinator states. Compatibility tests no longer use a current-task fixture to simulate a legacy direct transition.
 
-### Exact-head verification
+### Verified code-head verification
 
-Exact candidate head `494c9c0d86a862c7bd192581389c37d8506f5d3c`; CI run [43787407518](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43787407518) completed successfully:
-- **698 tests passed**.
-- Total Python statement coverage: **88%** (7,891 statements; 929 missed).
+Verified candidate code head `543887a767a9472a11782cf6f7db5b996abd24bf`; CI run [43790509745](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43790509745) completed successfully:
+- **701 tests passed**.
+- Total Python statement coverage: **88%** (7,896 statements; 928 missed).
 - Portfolio Coordinator: **91%** (253 statements; 22 missed).
 - Standalone Runtime: **89%** (933 statements; 100 missed).
 - Writing Kernel: **81%** (920 statements; 175 missed).
-- Whole-tree audit: **338 tracked files**, 130 Python AST parses, 54 JSON parses, 52,710 decoded text lines, **0 warnings and 0 errors**.
+- Whole-tree audit: **338 tracked files**, 130 Python AST parses, 54 JSON parses, 52,793 decoded text lines, **0 warnings and 0 errors**.
 - Executable contract eval, static single-owner/legacy-quarantine audit, standalone contract, wheel build and isolated install all passed.
 - DOCX render smoke passed; all four synthetic Word product binaries opened, rendered and passed byte/signature/page checks.
 - Real-task negative replay completed with `reproduced_weak_assurance_paths = []`. This is negative-path assurance, not a live article or factual-quality certification.
@@ -115,7 +117,7 @@ Intermediate exact-head CI attempts exposed integration defects in fixture migra
 
 The exact-head CI is engineering evidence, not complete Financial product acceptance.
 
-The active task `cross-border-ecommerce-20261016-v3` remains at RESEARCH / IN_PROGRESS with **0 of 4** real deliverables and no quality evidence. Its task requirement digest remains `641bfaee46fbce8b5a3c363a54cd364f1c318bca5102ebe70001d968302051dd`.
+The active task `cross-border-ecommerce-20261016-v3` remains at RESEARCH / IN_PROGRESS with **0 of 4** real deliverables and no quality evidence. Its task requirement digest remains `641bfaee46fbce8b5a3c363a54cd364f1c318bca5102ebe70001d968302051dd`. The task record currently exposes two scoped full-universe requirements, but the original full article prompt is not independently recovered. Its V2 source references are historical fixtures (`KEEP_FIXTURE`), not current factual evidence; all material policy, company and market claims must be revalidated before a current article is written.
 
 The whole-system acceptance status remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`. Seven gates remain open:
 1. original goal and semantic correction;
@@ -126,10 +128,16 @@ The whole-system acceptance status remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_
 6. independent external adversarial review; and
 7. Financial main-branch hygiene.
 
-The synthetic Word renders do not certify real article quality. The negative replay does not revalidate live news, policy, filings or company facts. The plugin package is private Skill-only release 0.1.4; actual installation/fresh-session invocation is NOT_VERIFIED. The hosted Provider Action is NOT_DEPLOYED. No independent reviewer has reviewed this exact candidate head.
+The synthetic Word renders do not certify real article quality. The negative replay does not revalidate live news, policy, filings or company facts. The plugin package is private Skill-only release 0.1.4; actual installation/fresh-session invocation is NOT_VERIFIED. The hosted Provider Action is NOT_DEPLOYED. No independent reviewer has reviewed the live exact PR head.
 
 ## 7. Promotion decision and next legal step
 
-PR #84 remains DRAFT and unmerged. The current `main` head remains `b2098e69367f78c452e0a595bf95d86388d6a449`; candidate head `494c9c0d86a862c7bd192581389c37d8506f5d3c` has exact-head CI success.
+PR #84 remains DRAFT and unmerged. The production `main` head remains `b2098e69367f78c452e0a595bf95d86388d6a449`. The verified code head recorded by this audit is `543887a767a9472a11782cf6f7db5b996abd24bf`, with exact code-head CI run `43790509745` passing 701 tests. A later status-only commit may change the live PR HEAD; always re-read the current PR head and exact CI from GitHub before review or reporting.
 
-The next legal step is an independent review of the this exact candidate head. If that review accepts the change, merge only the Financial Writing PR and verify post-merge main CI. Do not modify CAOS. Do not provision paid infrastructure without explicit owner approval. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.
+No independent reviewer has reviewed the current live PR head. The next legal step is independent review of that live exact head. **Do not merge without explicit owner authorization.** Provider Action deployment requires a separate host/cost decision and owner approval. Do not modify CAOS. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.
+
+## 8. Status-evidence consistency
+
+The second-pass audit found that status evidence had drifted across the repository and GitHub: the audit and evolution index pinned code head `494c9c0` / CI `43787407518` / 698 tests; the chronological journal's prior entry pinned `6551d3a` / CI `43780588561` / 689 tests; the PR body still reported `3b5e4b2` / CI `43781721412` / 690 tests; the live branch was at `543887a` with CI `43790509745` / 701 tests; and the Financial manifest still said the scope fix was CI-pending. The journal header/index also remained at revision 2.0 while the evolution index claimed 2.1.
+
+The root cause was manual duplication of mutable candidate evidence without a cross-authority consistency regression. This update synchronizes the Financial-owned index, manifest, audit, problem journal and journal index, and adds regression checks that bind their code-head SHA, CI run, status and journal revision. The live PR head remains a GitHub readback fact and is refreshed separately after the final status commit; no recursive self-reference is stored in the evolution index.

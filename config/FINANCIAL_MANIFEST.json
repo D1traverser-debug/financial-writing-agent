@@ -96,6 +96,8 @@
     "source": "financial_writing_agent.task_requirements",
     "active_scope_source": "required_outputs",
     "owner_and_portfolio_stage_projection": "SAME_CANONICAL_FUNCTION",
-    "status": "CANDIDATE_FIX__EXACT_HEAD_CI_PENDING"
+    "status": "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "543887a767a9472a11782cf6f7db5b996abd24bf",
+    "exact_code_head_ci_run": 43790509745
   }
 }
