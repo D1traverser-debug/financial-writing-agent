@@ -174,7 +174,7 @@ def test_resume_refreshes_scoped_requirement_projection_even_when_digest_is_unch
             },
             *[
                 item for item in context["seed_inputs"]["writing_execution_profile"]["decision_domains"]
-                if item["domain"] != "RESEARCH_SCOPE"
+                if item["disposition"] == "OPEN"
             ],
         ],
         "execution_rationale": "The refreshed user requirement locks research scope while other editorial decisions remain evidence-led.",
