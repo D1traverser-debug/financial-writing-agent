@@ -95,7 +95,8 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
 
 def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     payload = json.loads(_read("evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json"))
-    assert payload["revision"] == "2.4"
+    evolution = json.loads(_read("evals/EVOLUTION_INDEX.json"))
+    assert payload["revision"] == evolution["active_system_assessment"]["problem_journal_revision"]
     assert payload["status"] == "HISTORICAL_PROBLEM_JOURNAL_INDEX__NOT_CURRENT_SYSTEM_STATUS"
     assert payload["system_status_authority"] == "evals/EVOLUTION_INDEX.json"
     assert "P-20261015-15" in payload["open_items_at_2026_10_15"]
