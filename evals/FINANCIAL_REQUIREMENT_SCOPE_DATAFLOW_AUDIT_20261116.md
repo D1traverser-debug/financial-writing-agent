@@ -4,8 +4,8 @@
 **Repository:** `D1traverser-debug/financial-writing-agent`  
 **Candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84)  
 **Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Exact candidate head:** `6551d3a2c214460ae084bcb2924c42fdd765f01a`  
-**Exact-head CI:** [43780588561](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43780588561) — SUCCESS  
+**Exact candidate head:** `494c9c0d86a862c7bd192581389c37d8506f5d3c`  
+**Exact-head CI:** [43787407518](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43787407518) — SUCCESS  
 **CAOS boundary:** no CAOS repository, code, configuration, plugin, PR or runtime was modified.
 
 ## 1. Original business problem
@@ -79,19 +79,37 @@ New and updated tests cover:
 - rejection of an unrequested product-only requirement;
 - rejection of an impossible scope/stage pair;
 - the full-universe gate being conditional on the requirement's actual task scope;
-- candidate artifact/context/state cross-binding and exact readback; and
-- provider boundary and static acceptance consistency.
+- typed stage/context artifact bundle persistence, exact provider readback and Article Aggregate admission;
+- owner outcome/status and revision-target cross-binding;
+- requirement-satisfaction evidence-set equality between persisted context and Owner Receipt;
+- rejection of empty, non-string and duplicate evidence references;
+- mandatory coordinator routing for new/current tasks at coordinated stages; and
+- preservation of legacy owner-state transition compatibility without weakening the current-task route.
 
-Exact-head CI on `6551d3a2c214460ae084bcb2924c42fdd765f01a` completed successfully:
-- **689 tests passed**.
-- Total Python statement coverage: **88%** (7,840 statements; 975 missed).
-- Portfolio Coordinator: **87%**.
-- Standalone Runtime: **86%**.
-- Writing Kernel: **81%**.
-- Whole-tree audit: **337 tracked files**, 130 Python AST parses, 54 JSON parses, 51,989 decoded text lines, **0 warnings and 0 errors**.
+### Second-pass root-cause findings and corrections
+
+The first pass fixed requirement-scope divergence but did not close the full execution/authority chain. A second adversarial pass found three additional defects:
+
+1. **Stage outcome was not owner-bound.** Stage artifact and portfolio context hashes could match while their PASS / REVISE / FAIL outcome or revision target differed from the owner transition. `standalone_runtime._verify_portfolio_stage_artifact_context` now compares the exact stage result with the latest Owner Receipt's review status and revision target. A correctly hashed artifact alone is no longer sufficient.
+2. **Requirement evidence could diverge at the owner boundary.** The persisted context's satisfaction set was not required to equal the evidence set admitted by the Owner Receipt. The runtime now validates nonempty unique string references, binds the exact stage-artifact path into the evidence set, and compares normalized requirement IDs, results, notes and references across both records. `current_admission` rejects invalid or duplicate evidence references before the owner transition.
+3. **New tasks could bypass coordinator routing.** New tasks now bind `portfolio_execution_contract_version=1.0` into the initial Owner Receipt. The marker cannot be removed from an admitted task. For coordinated stages, direct `ADVANCE_STAGE` without a portfolio context reference is rejected. Legacy states remain distinguishable and retain historical transition behavior; the coordinator may promote a legacy task only when its first context is bound in an owner transition.
+
+Integration fixtures now distinguish actual new/current tasks from historical pre-coordinator states. Compatibility tests no longer use a current-task fixture to simulate a legacy direct transition.
+
+### Exact-head verification
+
+Exact candidate head `494c9c0d86a862c7bd192581389c37d8506f5d3c`; CI run [43787407518](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43787407518) completed successfully:
+- **698 tests passed**.
+- Total Python statement coverage: **88%** (7,891 statements; 929 missed).
+- Portfolio Coordinator: **91%** (253 statements; 22 missed).
+- Standalone Runtime: **89%** (933 statements; 100 missed).
+- Writing Kernel: **81%** (920 statements; 175 missed).
+- Whole-tree audit: **338 tracked files**, 130 Python AST parses, 54 JSON parses, 52,710 decoded text lines, **0 warnings and 0 errors**.
 - Executable contract eval, static single-owner/legacy-quarantine audit, standalone contract, wheel build and isolated install all passed.
-- DOCX render smoke and all four synthetic Word product binaries rendered and passed byte/signature/page checks.
-- Real-task negative replay completed with `reproduced_weak_assurance_paths = []`. It reproduced the expected blocks for unauthenticated mutation, stale research, fabricated/unread source references, same-session editorial self-pass, and Word delivery without a render receipt.
+- DOCX render smoke passed; all four synthetic Word product binaries opened, rendered and passed byte/signature/page checks.
+- Real-task negative replay completed with `reproduced_weak_assurance_paths = []`. This is negative-path assurance, not a live article or factual-quality certification.
+
+Intermediate exact-head CI attempts exposed integration defects in fixture migration, a stale helper import, a mismatched helper argument, newline serialization and readback assertion placement. Those failures were corrected before the successful run above and are not counted as passing evidence.
 
 ## 6. What this evidence does not prove
 
@@ -112,6 +130,6 @@ The synthetic Word renders do not certify real article quality. The negative rep
 
 ## 7. Promotion decision and next legal step
 
-PR #84 remains DRAFT and unmerged. The current `main` head remains `b2098e69367f78c452e0a595bf95d86388d6a449`; candidate head `6551d3a2c214460ae084bcb2924c42fdd765f01a` has exact-head CI success.
+PR #84 remains DRAFT and unmerged. The current `main` head remains `b2098e69367f78c452e0a595bf95d86388d6a449`; candidate head `494c9c0d86a862c7bd192581389c37d8506f5d3c` has exact-head CI success.
 
-The next legal step is an independent review of the exact candidate head. If that review accepts the change, merge only the Financial Writing PR and verify post-merge main CI. Do not modify CAOS. Do not provision paid infrastructure without explicit owner approval. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.
+The next legal step is an independent review of the this exact candidate head. If that review accepts the change, merge only the Financial Writing PR and verify post-merge main CI. Do not modify CAOS. Do not provision paid infrastructure without explicit owner approval. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.

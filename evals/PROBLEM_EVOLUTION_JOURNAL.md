@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.0`
+Journal revision: `2.1`
 Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -619,8 +619,12 @@ Current release boundary: PR #67 remains open and unmerged; no independent revie
 
 **Candidate correction:** One canonical scope resolver now derives active scopes from immutable `required_outputs`. Owner and portfolio due checks call the same stage-scope projection. Shared Research receives every requested product scope when the requirement affects Research; later product passes receive ALL plus their own scope through the current stage. Inactive product-only requirements and impossible scope/stage pairs are rejected. The special typed ResearchPackage gate is scope-aware. The production coordinator persists the typed stage artifact and resumable context as a bundle, reads both back, cross-binds them and requests Article Aggregate admission through the Financial standalone runtime. Legacy static/eval scripts were aligned to the Financial-owned hosted Provider Action boundary.
 
-**Exact evidence:** Candidate PR #84, head `6551d3a2c214460ae084bcb2924c42fdd765f01a`; exact-head CI run `43780588561` SUCCESS; 689 tests passed; 88% total statement coverage; 337-file whole-tree audit with zero warnings/errors; wheel/isolated install, synthetic Word renders and real-task negative replay passed. Full report: `evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md`.
+**Second-pass findings and corrections:** The follow-up adversarial pass found that matching artifact/context hashes did not bind the stage PASS/REVISE/FAIL outcome and revision target to the Owner Receipt; requirement-satisfaction evidence could differ between context and owner admission; and new tasks could reach lower-level stage admission without proving coordinator routing. The candidate now binds the owner outcome and revision target, compares the exact requirement evidence set across context and owner receipt, validates evidence references, and receipt-binds a coordinator contract marker for new tasks. Legacy states remain explicitly distinguishable and retain historical compatibility.
+
+**Verification failures preserved:** Intermediate exact-head CI attempts exposed a stale helper import in the method-dependency suite, a mismatched coordinator helper argument, legacy fixture serialization that emitted a literal backslash-n rather than a line break, and a missing stage-readback field/assertion at the correct response level. These were corrected before the final successful run; none is counted as a passing run.
+
+**Exact evidence:** Candidate PR #84, head `494c9c0d86a862c7bd192581389c37d8506f5d3c`; exact-head CI run `43787407518` SUCCESS; 698 tests passed; 88% total statement coverage (7,891 statements; 929 missed); Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%; 338 tracked files, 130 Python AST parses, 54 JSON parses, 52,710 decoded text lines, zero warnings/errors. Wheel/isolated install, synthetic Word rendering and real-task negative replay passed. Full report: `evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md`.
 
 **Current status:** `CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_MERGED`. PR #84 remains DRAFT. Independent current-head review and post-merge CI remain open. Provider Action remains NOT_DEPLOYED; plugin installation, real article completion and independent editorial/reader outcomes remain unverified. Whole-system status remains NOT_READY with seven external gates open.
 
-**Next legal action:** Obtain independent review of exact head `6551d3a2c214460ae084bcb2924c42fdd765f01a`. Merge only the Financial PR if accepted, then verify exact mainline CI. No CAOS modification or paid infrastructure provisioning is authorized by this repair.
+**Next legal action:** Obtain independent review of exact head `494c9c0d86a862c7bd192581389c37d8506f5d3c`. Merge only the Financial PR if accepted, then verify exact mainline CI. No CAOS modification or paid infrastructure provisioning is authorized by this repair.
