@@ -118,7 +118,8 @@
         "a concrete candidate-distillation package comparing at least two mechanisms with semantically verified change/counterexample evidence after corpus readiness is restored",
         "a verified hard-invariant regression execution bound to the exact candidate change",
         "verified blind pairwise candidate-vs-baseline judge evidence with case-binding and judge-run semantic verification for any concrete FINANCE_DEEP system change",
-        "FINANCE_BROAD complete real-rejection evidence plus at least two held-out topic families before any FINANCE_BROAD quality claim"
+        "FINANCE_BROAD complete real-rejection evidence plus at least two held-out topic families before any FINANCE_BROAD quality claim",
+        "PLATFORM_INTERACTION complete real-rejection evidence plus at least two held-out topic families before any interaction quality claim"
       ]
     },
     "PERSONALIZED_WRITING_DNA": {
