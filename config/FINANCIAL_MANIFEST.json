@@ -184,11 +184,11 @@
     "fixed_workflow": "CANONICAL_TEN_STAGE_ARTICLE_GRAPH_AND_SHARED_INTERNAL_RESEARCH_SPINE",
     "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
     "no_single_article_is_system_objective": true,
-    "latest_candidate_head": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
-    "latest_ci_run": 43833864946,
+    "latest_candidate_head": "3fea4dd079785cd534827d24e72898c9e8c793c4",
+    "latest_ci_run": 43908728749,
     "latest_ci_conclusion": "success",
-    "latest_ci_summary": "727 passed; 88% Python statement coverage; main merge commit exact-head CI completed successfully.",
-    "last_completed_ci_head": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
+    "latest_ci_summary": "746 passed; 88% Python statement coverage; main merge commit exact-head CI completed successfully.",
+    "last_completed_ci_head": "3fea4dd079785cd534827d24e72898c9e8c793c4",
     "publishing_portfolio": {
       "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
       "products": [
@@ -258,8 +258,8 @@
       "pull_request_merged": true,
       "semantic_exception": "SOURCE_IDENTITY_MAY_REMAIN_WHEN_MATERIAL_TO_THE_CLAIM"
     },
-    "latest_main_head_sha": "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07",
-    "latest_main_head_ci_run": 43834173578,
+    "latest_main_head_sha": "3fea4dd079785cd534827d24e72898c9e8c793c4",
+    "latest_main_head_ci_run": 43908728749,
     "latest_main_head_ci_conclusion": "success",
     "execution_profile": {
       "name": "WritingExecutionProfile",
@@ -272,6 +272,14 @@
       "pass_binding": "ALL_SEMANTIC_PASSES",
       "requirement_revision": "REFRESH_PROFILE_AND_INVALIDATE_AFFECTED_DOWNSTREAM_EVIDENCE",
       "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE"
+    },
+    "execution_profile_implementation": {
+      "pull_request": 88,
+      "candidate_head_sha": "fa09b5b981d10bfcd68396bbcc7c8f3ec8b92e57",
+      "merged_main_sha": "3fea4dd079785cd534827d24e72898c9e8c793c4",
+      "exact_head_ci_run": 43908350311,
+      "exact_main_ci_run": 43908728749,
+      "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
     }
   }
 }

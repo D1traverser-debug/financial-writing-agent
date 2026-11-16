@@ -201,3 +201,15 @@ These are engineering/dataflow checks only. They do not prove the model always i
 PR #88 head `6a1445dd766f2e0d0d8aebac03c4eb516dfa059a` passed [GitHub Actions run 43906504480](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43906504480): 745 tests passed; 88% Python statement coverage (8,330 statements, 1,020 missed); Portfolio Coordinator 90%, Standalone Runtime 89%, Writing Kernel 81%, WritingExecutionProfile 81%. Whole-tree audit: 346 tracked files, 136 Python AST parses, 54 JSON parses, 56,358 decoded text lines, zero warnings/errors. Wheel/install, DOCX render, four synthetic Word product/page checks and negative Financial workflow replay passed. The Financial Skill is 11,403 UTF-8 bytes, below the 12,000-byte router limit.
 
 **This is engineering evidence only.** It does not certify real article quality, independent editorial review, reader acceptance, live provider persistence or system completion. PR #88 remains stacked on PR #87 and PR #86; merge in dependency order.
+
+
+### 14.4 Mainline integration and exact readback
+
+The PR dependency chain was integrated in order:
+- PR #86 merged as `56527db2461cc54ee04165cfae7e1c692662d700`;
+- PR #87 merged as `01a8eace63cd0a60c6351e7db8584031a1503d3c`;
+- PR #88 merged as `3fea4dd079785cd534827d24e72898c9e8c793c4`.
+
+PR #88 candidate head `fa09b5b981d10bfcd68396bbcc7c8f3ec8b92e57` passed exact-head CI run 43908350311. The merged main SHA `3fea4dd079785cd534827d24e72898c9e8c793c4` passed exact mainline CI [run 43908728749](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43908728749): 746 tests passed, 88% Python statement coverage; Portfolio Coordinator 90%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 346 tracked files, 136 Python AST parses, 54 JSON parses, 56,510 decoded text lines, zero warnings/errors. Wheel/install, DOCX render, four synthetic Word product/page checks and negative Financial workflow replay passed.
+
+The implementation is merged. **General editorial quality remains OPEN**: no real cross-topic article, independent blind editorial review, user acceptance or post-publication performance evidence is established by these CI runs. Interaction remains not ready for quality promotion without its own real rejection case and two held-out topic families. Financial Provider Action remains NOT_DEPLOYED. No CAOS repository or runtime was modified.

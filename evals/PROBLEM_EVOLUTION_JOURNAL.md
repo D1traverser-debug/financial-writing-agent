@@ -805,7 +805,7 @@ Status: `CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__STACKE
 
 ## P-20261117-01 — Whole-task taxonomy conflated invariant process with open editorial decisions (2026-11-17)
 
-Status: `CANDIDATE_FIX__EXACT_HEAD_CI_PASS__MERGE_PENDING__REAL_EDITORIAL_ACCEPTANCE_OPEN`
+Status: `MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN`
 
 **Trigger.** The first PR #88 candidate represented writing requests as FIXED_WORKFLOW, OPEN_ENDED or HYBRID task shapes and made the quality evaluator require those labels. This contradicted the product requirement: every article retains one fixed business workflow, while research depth is conditional and editorial expression follows evidence and reader purpose.
 
@@ -829,3 +829,10 @@ Status: `CANDIDATE_FIX__EXACT_HEAD_CI_PASS__MERGE_PENDING__REAL_EDITORIAL_ACCEPT
 **Remaining OPEN.** This proves engineering and dataflow behavior only. No real cross-topic article, independent blind editorial review, user acceptance or post-publication performance evidence is supplied by these tests. Financial Provider Action remains NOT_DEPLOYED. PR #88 is stacked on PR #87, which is stacked on PR #86.
 
 **Next legal action.** Integrate PR #86, then retarget and integrate PR #87, then retarget and integrate PR #88. Preserve the separate real-article and independent-editorial acceptance gates. No CAOS repository or runtime is modified.
+
+
+**Mainline integration follow-up (2026-11-17).** The dependency chain is now integrated in order: PR #86 merged as `56527db2461cc54ee04165cfae7e1c692662d700`; PR #87 merged as `01a8eace63cd0a60c6351e7db8584031a1503d3c`; PR #88 merged as `3fea4dd079785cd534827d24e72898c9e8c793c4`. PR #88 exact-head run 43908350311 passed 746 tests; exact mainline run [43908728749](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43908728749) also passed 746 tests at 88% statement coverage. Mainline whole-tree audit: 346 tracked files, 136 Python AST parses, 54 JSON parses, 56,510 decoded text lines, zero warnings/errors.
+
+**Current status.** The fixed-workflow/adaptive-expression execution profile is now in Financial main. The three PRs did not produce a real article, independent editorial verdict or user acceptance. Interaction quality remains NOT_READY until real mode-specific rejection and held-out evidence exist; Deep and Broad also retain their own cross-topic quality gates. Financial Provider Action remains NOT_DEPLOYED. No CAOS repository or runtime was modified.
+
+**Next legal action.** Use actual current Financial Writing tasks across different topic families and requested products; trace user requirements into delivered text, evaluate factual causality, originality, retention and authorial prose with independent review, and repair any remaining root causes. Do not repeat the merged engineering work or infer quality from CI.

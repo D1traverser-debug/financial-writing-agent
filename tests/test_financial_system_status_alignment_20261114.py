@@ -86,6 +86,9 @@ def test_pr86_interaction_quality_evaluator_candidate_is_ci_verified_but_not_pro
     assert candidate["exact_head_ci_conclusion"] == "success"
     assert candidate["tests_passed"] == 730
     assert candidate["source_line_coverage_percent"] == 88
+    assert candidate["merged_main_sha"] == "56527db2461cc54ee04165cfae7e1c692662d700"
+    assert candidate["exact_main_ci_run"] == 43908127624
+    assert candidate["exact_main_ci_conclusion"] == "success"
     assert "NO_REAL_INTERACTION_USER_REJECTION_CASE" in candidate["limitations"]
     assert "NO_TWO_COMPLETE_INTERACTION_HELDOUT_TOPIC_FAMILIES" in candidate["limitations"]
     assert manifest["general_writing_stability"]["portfolio_quality_readiness"]["PLATFORM_INTERACTION"] == "NOT_READY__MODE_SUPPORTED__MODE_SPECIFIC_REJECTION_AND_TWO_HELDOUT_FAMILIES_MISSING"
@@ -95,8 +98,8 @@ def test_current_main_head_ci_is_recorded_separately_from_last_code_merge():
     index = _json("evals/EVOLUTION_INDEX.json")
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     stability = index["active_system_assessment"]["general_writing_stability"]
-    assert stability["latest_main_head_sha"] == "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07"
-    assert stability["latest_main_head_ci_run"] == 43834173578
+    assert stability["latest_main_head_sha"] == "3fea4dd079785cd534827d24e72898c9e8c793c4"
+    assert stability["latest_main_head_ci_run"] == 43908728749
     assert stability["latest_main_head_ci_conclusion"] == "success"
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == stability["latest_main_head_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == stability["latest_main_head_ci_run"]
@@ -174,12 +177,32 @@ def test_current_integration_status_candidate_has_exact_code_head_ci_and_stack_b
     index = _json("evals/EVOLUTION_INDEX.json")
     candidate = index["current_integration_status_candidate"]
     assert candidate["pull_request"] == 87
-    assert candidate["status"] == "DRAFT_PR__CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__STACKED_ON_PR86"
+    assert candidate["status"] == "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__LIVE_EDITORIAL_QUALITY_OPEN"
     assert candidate["candidate_code_head_sha"] == "09d0d1ab43e2ce0c61337038ea640e08caf99f61"
     assert candidate["exact_code_head_ci_run"] == 43840533953
     assert candidate["exact_code_head_ci_conclusion"] == "success"
-    assert candidate["tests_passed"] == 734
+    assert candidate["tests_passed"] == 735
     assert candidate["source_line_coverage_percent"] == 88
-    assert candidate["base_branch"] == "repair/platform-interaction-quality-regression-20261116"
-    assert "STACKED_ON_PR86__NOT_MERGEABLE_UNTIL_BASE_PR_INTEGRATED" in candidate["limitations"]
+    assert candidate["base_branch"] == "main"
+    assert candidate["base_head_sha"] == "56527db2461cc54ee04165cfae7e1c692662d700"
+    assert candidate["merged_main_sha"] == "01a8eace63cd0a60c6351e7db8584031a1503d3c"
+    assert candidate["exact_main_ci_run"] == 43908127624
+    assert candidate["exact_main_ci_conclusion"] == "success"
 
+
+
+def test_pr88_execution_profile_candidate_is_merged_with_exact_main_ci():
+    index = _json("evals/EVOLUTION_INDEX.json")
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    candidate = index["current_writing_execution_profile_candidate"]
+    assert candidate["pull_request"] == 88
+    assert candidate["status"] == "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
+    assert candidate["candidate_head_sha"] == "fa09b5b981d10bfcd68396bbcc7c8f3ec8b92e57"
+    assert candidate["exact_head_ci_run"] == 43908350311
+    assert candidate["exact_head_ci_conclusion"] == "success"
+    assert candidate["tests_passed"] == 746
+    assert candidate["merged_main_sha"] == "3fea4dd079785cd534827d24e72898c9e8c793c4"
+    assert candidate["exact_main_ci_run"] == 43908728749
+    assert candidate["exact_main_ci_conclusion"] == "success"
+    assert manifest["general_writing_stability"]["execution_profile_implementation"]["merged_main_sha"] == candidate["merged_main_sha"]
+    assert candidate["skill_utf8_bytes"] == 11403
