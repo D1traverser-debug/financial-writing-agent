@@ -1,6 +1,7 @@
 import pytest
 
 from financial_writing_agent.full_universe_research import (
+    validate_full_universe_decision_handoff,
     validate_full_universe_research_package,
 )
 from financial_writing_agent.schemas import ResearchPackage
@@ -287,3 +288,45 @@ def test_full_universe_contract_rejects_unresolved_purity_without_reason():
     payload["universe"][2]["why_not"] = []
     with pytest.raises(ValueError, match="FULL_UNIVERSE_WEAK_COMPANY_RATIONALE_MISSING"):
         validate_full_universe_research_package(payload)
+
+
+
+def test_full_universe_decision_handoff_accepts_the_same_validated_company_map():
+    payload = _package()
+    package = validate_full_universe_decision_handoff(
+        payload,
+        payload["company_decision_map"],
+        payload["company_decision_map"]["change_conditions"],
+    )
+    assert package.company_decision_map is not None
+
+
+def test_full_universe_decision_handoff_rejects_divergent_top_level_company_map():
+    payload = _package()
+    handoff_map = dict(payload["company_decision_map"])
+    handoff_map["current_comparative_verdict"] = (
+        "A contradictory top-level verdict that was not admitted in the research package."
+    )
+    with pytest.raises(
+        ValueError,
+        match="FULL_UNIVERSE_TOP_LEVEL_COMPANY_DECISION_MAP_DIVERGED_FROM_RESEARCH_PACKAGE",
+    ):
+        validate_full_universe_decision_handoff(
+            payload, handoff_map,
+            payload["company_decision_map"]["change_conditions"],
+        )
+
+
+def test_full_universe_decision_handoff_rejects_divergent_change_conditions():
+    payload = _package()
+    changed_conditions = [
+        *payload["company_decision_map"]["change_conditions"],
+        "An extra unreviewed condition.",
+    ]
+    with pytest.raises(
+        ValueError,
+        match="FULL_UNIVERSE_TOP_LEVEL_CHANGE_CONDITIONS_DIVERGED_FROM_RESEARCH_PACKAGE",
+    ):
+        validate_full_universe_decision_handoff(
+            payload, payload["company_decision_map"], changed_conditions,
+        )

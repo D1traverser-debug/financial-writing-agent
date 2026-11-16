@@ -11,7 +11,7 @@ from typing import Any
 
 from .models import DistributionMode, Stage, TaskContract
 from .schemas import PlatformInteractionPack
-from .full_universe_research import validate_full_universe_research_package
+from .full_universe_research import validate_full_universe_decision_handoff
 from .task_requirements import (
     TaskRequirement,
     active_task_scopes,
@@ -1599,7 +1599,17 @@ def execute_portfolio_stage(
         if "full_universe_research_pool" in active_ids:
             package = shared.get("research_package")
             try:
-                validate_full_universe_research_package(package)
+                validated_package = validate_full_universe_decision_handoff(
+                    package,
+                    shared.get("company_decision_map"),
+                    shared.get("change_conditions"),
+                )
+                shared["company_decision_map"] = (
+                    validated_package.company_decision_map.model_dump(mode="json")
+                )
+                shared["change_conditions"] = list(
+                    validated_package.company_decision_map.change_conditions
+                )
             except Exception as exc:
                 raise WritingPassExecutionError(
                     "PORTFOLIO_FULL_UNIVERSE_RESEARCH_EVIDENCE_CONTRACT_REQUIRED"

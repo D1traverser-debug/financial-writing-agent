@@ -8,7 +8,7 @@ from uuid import uuid4
 
 from . import current_admission, standalone_runtime
 from .path_identity import require_article_path
-from .full_universe_research import validate_full_universe_research_package
+from .full_universe_research import validate_full_universe_decision_handoff
 from .task_requirements import RequirementError, requirement_applies_to_task
 from .writing_kernel import (
     INTERNAL_PORTFOLIO_STAGE_SEQUENCE,
@@ -162,12 +162,22 @@ def _stage_payload(
     if stage == "RESEARCH" and _has_full_universe_requirement(state):
         raw = normalized.get("research_package")
         try:
-            package = validate_full_universe_research_package(raw)
+            package = validate_full_universe_decision_handoff(
+                raw,
+                normalized.get("company_decision_map"),
+                normalized.get("change_conditions"),
+            )
         except Exception as exc:
             raise PortfolioCoordinatorError(
                 "PORTFOLIO_FULL_UNIVERSE_RESEARCH_EVIDENCE_CONTRACT_REQUIRED"
             ) from exc
         normalized["research_package"] = package.model_dump(mode="json")
+        normalized["company_decision_map"] = (
+            package.company_decision_map.model_dump(mode="json")
+        )
+        normalized["change_conditions"] = list(
+            package.company_decision_map.change_conditions
+        )
     return normalized
 
 

@@ -7,7 +7,7 @@ from collections import defaultdict
 from typing import Any
 
 from .company_identity import canonical_company_name, canonical_ticker
-from .schemas import ResearchPackage
+from .schemas import CompanyDecisionMap, ResearchPackage
 
 
 REQUIRED_SEGMENT_COMPARISON_DIMENSIONS = frozenset({
@@ -298,4 +298,50 @@ def validate_full_universe_research_package(raw: Any) -> ResearchPackage:
                 for ref in dimension.evidence_refs:
                     require_dated_source(ref, "FULL_UNIVERSE_SEGMENT_COMPARISON_EVIDENCE_NOT_IN_LEDGER")
 
+    return package
+
+
+
+def validate_full_universe_decision_handoff(
+    raw_research_package: Any,
+    raw_company_decision_map: Any,
+    raw_change_conditions: Any,
+) -> ResearchPackage:
+    """Bind the actual Story Architecture inputs to the validated research map.
+
+    The package's company map is the evidence-bearing authority. Thesis
+    adjudication also emits a top-level map and change-condition list that are
+    passed to Story Architecture. For full-universe tasks those values must be
+    the same decision, not two independently mutable representations.
+    """
+    package = validate_full_universe_research_package(raw_research_package)
+    package_map = package.company_decision_map
+    if package_map is None:
+        raise ValueError("FULL_UNIVERSE_COMPANY_DECISION_MAP_REQUIRED")
+    try:
+        handoff_map = CompanyDecisionMap.model_validate(raw_company_decision_map)
+    except Exception as exc:
+        raise ValueError(
+            f"FULL_UNIVERSE_TOP_LEVEL_COMPANY_DECISION_MAP_INVALID: {exc}"
+        ) from exc
+    if handoff_map.model_dump(mode="json") != package_map.model_dump(mode="json"):
+        raise ValueError(
+            "FULL_UNIVERSE_TOP_LEVEL_COMPANY_DECISION_MAP_DIVERGED_FROM_RESEARCH_PACKAGE"
+        )
+
+    if not isinstance(raw_change_conditions, list):
+        raise ValueError("FULL_UNIVERSE_TOP_LEVEL_CHANGE_CONDITIONS_INVALID")
+    handoff_conditions = [
+        item.strip() if isinstance(item, str) else ""
+        for item in raw_change_conditions
+    ]
+    package_conditions = [item.strip() for item in package_map.change_conditions]
+    if (
+        not handoff_conditions
+        or any(not item for item in handoff_conditions)
+        or handoff_conditions != package_conditions
+    ):
+        raise ValueError(
+            "FULL_UNIVERSE_TOP_LEVEL_CHANGE_CONDITIONS_DIVERGED_FROM_RESEARCH_PACKAGE"
+        )
     return package

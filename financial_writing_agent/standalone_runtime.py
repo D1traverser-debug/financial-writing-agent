@@ -36,7 +36,10 @@ from .provider_attestation import (
     FinancialProviderAttestationError, payload_sha256, request_sha256,
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
-from .full_universe_research import validate_full_universe_research_package
+from .full_universe_research import (
+    validate_full_universe_decision_handoff,
+    validate_full_universe_research_package,
+)
 from .private_research import SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (
@@ -400,8 +403,10 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         if full_universe_required:
             research_package = deepcopy(payload.get("research_package"))
             try:
-                research = validate_full_universe_research_package(
-                    research_package
+                research = validate_full_universe_decision_handoff(
+                    research_package,
+                    payload.get("company_decision_map"),
+                    payload.get("change_conditions"),
                 )
                 reconciliation = require_retained_universe_reconciliation(
                     candidate["task_id"], research,

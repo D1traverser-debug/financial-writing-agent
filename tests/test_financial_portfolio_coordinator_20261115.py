@@ -176,7 +176,11 @@ def _portfolio_research_artifact():
     task_id = "task-1"
     digest = "a" * 64
     receipt_sha = "b" * 64
-    outputs = {"research_package": {"topic": "typed package fixture"}}
+    outputs = {
+        "research_package": {"topic": "typed package fixture"},
+        "company_decision_map": {"fixture": "same admitted decision"},
+        "change_conditions": ["fixture condition"],
+    }
     stage_result = {
         "stage": "RESEARCH",
         "status": "PASS",
@@ -233,12 +237,18 @@ def test_coordinator_research_envelope_validates_nested_typed_research_package(m
     }]
     captured = []
 
-    def fake_validate(value):
-        captured.append(value)
-        return SimpleNamespace(value=value)
+    def fake_validate(value, company_decision_map, change_conditions):
+        captured.append((value, company_decision_map, change_conditions))
+        return SimpleNamespace(
+            value=value,
+            company_decision_map=SimpleNamespace(
+                model_dump=lambda mode: company_decision_map,
+                change_conditions=change_conditions,
+            ),
+        )
 
     monkeypatch.setattr(
-        standalone_runtime, "validate_full_universe_research_package", fake_validate,
+        standalone_runtime, "validate_full_universe_decision_handoff", fake_validate,
     )
     monkeypatch.setattr(
         standalone_runtime,
@@ -254,7 +264,11 @@ def test_coordinator_research_envelope_validates_nested_typed_research_package(m
         ),
     )
 
-    assert captured == [artifact["payload"]["research_package"]]
+    assert captured == [(
+        artifact["payload"]["research_package"],
+        artifact["payload"]["company_decision_map"],
+        artifact["payload"]["change_conditions"],
+    )]
     assert result["retained_universe_reconciliation"] == {
         "task_id": "task-1",
         "verified": True,
@@ -1099,7 +1113,7 @@ def test_standalone_runtime_does_not_reconcile_unrequested_deep_universe(monkeyp
         raise AssertionError("unrequested Deep universe must not be validated")
 
     monkeypatch.setattr(
-        standalone_runtime, "validate_full_universe_research_package", forbidden_validate,
+        standalone_runtime, "validate_full_universe_decision_handoff", forbidden_validate,
     )
     monkeypatch.setattr(
         standalone_runtime,
