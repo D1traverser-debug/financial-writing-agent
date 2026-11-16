@@ -1,0 +1,483 @@
+{
+  "schema_version": "1.0",
+  "purpose": "Cross-topic diagnostic reference cases for distinguishing fixed workflow, user-locked decision domains, preferences and open editorial decisions.",
+  "assurance": "CHAT_SELF_REVIEW_DIAGNOSTIC_ONLY",
+  "promotion_eligible": false,
+  "note": "Prompts are copied from actual Financial article STATE.json records. Expected profiles are manually annotated reference expectations; they are not live model execution, independent editorial review or reader acceptance.",
+  "cases": [
+    {
+      "case_id": "ice-snow-economy-20261013",
+      "source_ref": "workspaces/articles/ice-snow-economy-20261013/STATE.json#prompt",
+      "original_prompt": "冰雪经济\n\n你做吧",
+      "requirements": [
+        {
+          "requirement_id": "topic-focus",
+          "statement": "The task subject is the ice-and-snow economy.",
+          "scopes": [
+            "ALL"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/ice-snow-economy-20261013/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        }
+      ],
+      "expected_decision_domains": [
+        {
+          "domain": "TOPIC_SCOPE",
+          "disposition": "LOCKED",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [
+            "topic-focus"
+          ],
+          "preference_ids": [],
+          "rationale": "The user fixed the subject, not the company universe, thesis or narrative form."
+        },
+        {
+          "domain": "THESIS",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "No binding user requirement fixes this editorial decision."
+        },
+        {
+          "domain": "COMPANY_UNIVERSE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "No binding user requirement fixes this editorial decision."
+        },
+        {
+          "domain": "NARRATIVE_ENGINE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "No binding user requirement fixes this editorial decision."
+        },
+        {
+          "domain": "TITLE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "No binding user requirement fixes this editorial decision."
+        },
+        {
+          "domain": "SECTION_ORDER",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "No binding user requirement fixes this editorial decision."
+        },
+        {
+          "domain": "VOICE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "No binding user requirement fixes this editorial decision."
+        }
+      ]
+    },
+    {
+      "case_id": "huangjiu-high-end-channel-20261015",
+      "source_ref": "workspaces/articles/huangjiu-high-end-channel-20261015/STATE.json#prompt",
+      "original_prompt": "从30元佐餐酒到1959元“国酿1959”，黄酒价格天花板被撬开，高端化第一步是让大商愿意卖\n\n2026/10/13 19:22\n\n方正证券研报指出，黄酒要翻身了，但靠的不是酒厂自己，是“白酒大商”来帮它卖。白酒这几年渠道利润被压得太狠——产量连降九年、价格倒挂、酒厂还一直压打款，大商手里有钱、有人脉、有品鉴团队，却找不到新东西卖。黄酒正好接住：认知度低、价格不透明，渠道毛利能到20%—30%，高端价格带还没被定义，等于“谁先来谁定规则”。酒厂也乐意：黄酒不缺品质，缺的是高端饭局上的“上桌机会”，大商正好能带它进高净值圈子。价格天花板已经打开：古越龙山“国酿1959”卖1959元/瓶、会稽山“大师兰亭”上千元，产地、年份、手工冬酿、不加焦糖色，可能成为高端黄酒的新标准。\n\n你做吧",
+      "requirements": [
+        {
+          "requirement_id": "topic-and-channel-focus",
+          "statement": "Investigate Huangjiu high-end positioning and distributor/channel economics.",
+          "scopes": [
+            "ALL"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/huangjiu-high-end-channel-20261015/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        },
+        {
+          "requirement_id": "working-hypothesis-to-test",
+          "statement": "Test the supplied hypothesis that liquor distributors may help Huangjiu high-end products reach premium channels; do not treat the thesis as proven.",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/huangjiu-high-end-channel-20261015/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        }
+      ],
+      "expected_decision_domains": [
+        {
+          "domain": "TOPIC_AND_CHANNEL_FOCUS",
+          "disposition": "LOCKED",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [
+            "topic-and-channel-focus"
+          ],
+          "preference_ids": [],
+          "rationale": "The subject and high-end channel angle are user-directed."
+        },
+        {
+          "domain": "WORKING_HYPOTHESIS",
+          "disposition": "LOCKED",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "requirement_ids": [
+            "working-hypothesis-to-test"
+          ],
+          "preference_ids": [],
+          "rationale": "The supplied causal story is the question to investigate, not an accepted conclusion."
+        },
+        {
+          "domain": "FINAL_CAUSAL_CONCLUSION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Evidence and reader needs determine the final conclusion and editorial choices."
+        },
+        {
+          "domain": "COMPANY_UNIVERSE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Evidence and reader needs determine the final conclusion and editorial choices."
+        },
+        {
+          "domain": "PUBLICATION_SELECTION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Evidence and reader needs determine the final conclusion and editorial choices."
+        },
+        {
+          "domain": "NARRATIVE_ENGINE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Evidence and reader needs determine the final conclusion and editorial choices."
+        },
+        {
+          "domain": "TITLE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Evidence and reader needs determine the final conclusion and editorial choices."
+        },
+        {
+          "domain": "SECTION_ORDER",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Evidence and reader needs determine the final conclusion and editorial choices."
+        }
+      ]
+    },
+    {
+      "case_id": "meta-muse-wonder-ai-20261013",
+      "source_ref": "workspaces/articles/meta-muse-wonder-ai-20261013/STATE.json#prompt",
+      "original_prompt": "Meta推出具备前沿级能力的Muse Wonder AI模型\nMeta称历经14个月攻坚，发布了一款名为Muse Wonder的全新人工智能模型，该公司表示，这是对其前代模型的一次重大跨越式升级。据称这款模型具备“前沿级能力”，在代码编写、处理金融或法律类问题等场景下，已经能和OpenAI的ChatGPT、Anthropic PBC的Claude等其他头部模型处于同一水准。开发者目前可通过Meta模型API和Muse Code接口调用Muse Wonder，该模型很快也将为Meta个人AI助手Muse的订阅版本提供底层算力支持。\nAI代码：新炬网络、金现代、卓易信息、普元信息\nAI金融：中科金财\nAI法律：金桥信息\n（来自韭研公社APP）\n根据这个立意吧",
+      "requirements": [
+        {
+          "requirement_id": "topic-event",
+          "statement": "Cover Meta Muse Wonder and its implications for AI applications.",
+          "scopes": [
+            "ALL"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/meta-muse-wonder-ai-20261013/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        },
+        {
+          "requirement_id": "research-candidates",
+          "statement": "Research the user-supplied A-share company candidates; their labels and publication inclusion remain evidence-dependent.",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/meta-muse-wonder-ai-20261013/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        },
+        {
+          "requirement_id": "research-focus",
+          "statement": "Investigate the supplied direction linking model capability, code/finance/legal workflows and A-share application companies.",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/meta-muse-wonder-ai-20261013/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        }
+      ],
+      "expected_decision_domains": [
+        {
+          "domain": "TOPIC_EVENT",
+          "disposition": "LOCKED",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [
+            "topic-event"
+          ],
+          "preference_ids": [],
+          "rationale": "The event is explicitly supplied."
+        },
+        {
+          "domain": "RESEARCH_CANDIDATES",
+          "disposition": "LOCKED",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "requirement_ids": [
+            "research-candidates"
+          ],
+          "preference_ids": [],
+          "rationale": "The named candidates must be investigated, but not automatically all published."
+        },
+        {
+          "domain": "RESEARCH_FOCUS",
+          "disposition": "LOCKED",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "requirement_ids": [
+            "research-focus"
+          ],
+          "preference_ids": [],
+          "rationale": "The supplied direction defines the research question, not the final conclusion."
+        },
+        {
+          "domain": "COMPANY_CLASSIFICATION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Classification, conclusions and story form remain evidence-led."
+        },
+        {
+          "domain": "FINAL_CAUSAL_CONCLUSION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Classification, conclusions and story form remain evidence-led."
+        },
+        {
+          "domain": "PUBLICATION_SELECTION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Classification, conclusions and story form remain evidence-led."
+        },
+        {
+          "domain": "NARRATIVE_ENGINE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Classification, conclusions and story form remain evidence-led."
+        },
+        {
+          "domain": "TITLE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Classification, conclusions and story form remain evidence-led."
+        },
+        {
+          "domain": "SECTION_ORDER",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "Classification, conclusions and story form remain evidence-led."
+        }
+      ]
+    },
+    {
+      "case_id": "fw-20261012-ai-security-6dd14859",
+      "source_ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/STATE.json#prompt",
+      "original_prompt": "AI数据中心逼着传统防火墙集体换代，海外网安业绩持续超预期，国内AI安全业绩开始写进报表\n\n2026/10/11 15:55\n\n海外网安厂商最新一个季度业绩持续验证，Fortinet产品收入增速远超其总营收，CrowdStrike营收创下史上最佳。AI没有挤占安全预算，反而推动安全支出加速，模型厂开始为安全买单、需求前移到发布之前，国内AI安全也正从订单走向报表。关注：深信服、绿盟科技、启明星辰。",
+      "requirements": [
+        {
+          "requirement_id": "topic-security-ai",
+          "statement": "Cover AI data-center/network security upgrades and domestic AI-security commercialization.",
+          "scopes": [
+            "ALL"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        },
+        {
+          "requirement_id": "security-company-candidates",
+          "statement": "Investigate 深信服、绿盟科技 and 启明星辰 as named research candidates.",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        },
+        {
+          "requirement_id": "security-spending-question",
+          "statement": "Test the supplied thesis that AI expands or accelerates security spending rather than simply displacing it.",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "affects_from_stage": "RESEARCH",
+          "evidence_ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/STATE.json#prompt",
+          "source_kind": "USER_EXPLICIT"
+        }
+      ],
+      "expected_decision_domains": [
+        {
+          "domain": "TOPIC_SCOPE",
+          "disposition": "LOCKED",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [
+            "topic-security-ai"
+          ],
+          "preference_ids": [],
+          "rationale": "The topic and event frame are explicit."
+        },
+        {
+          "domain": "RESEARCH_CANDIDATES",
+          "disposition": "LOCKED",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "requirement_ids": [
+            "security-company-candidates"
+          ],
+          "preference_ids": [],
+          "rationale": "The named companies are required research anchors, not an exclusive publication universe."
+        },
+        {
+          "domain": "RESEARCH_QUESTION",
+          "disposition": "LOCKED",
+          "scopes": [
+            "RESEARCH"
+          ],
+          "requirement_ids": [
+            "security-spending-question"
+          ],
+          "preference_ids": [],
+          "rationale": "The user supplied the question to test; the answer must still be determined by evidence."
+        },
+        {
+          "domain": "FINAL_CAUSAL_CONCLUSION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "The final answer and editorial form remain evidence-led."
+        },
+        {
+          "domain": "COMPANY_CLASSIFICATION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "The final answer and editorial form remain evidence-led."
+        },
+        {
+          "domain": "PUBLICATION_SELECTION",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "The final answer and editorial form remain evidence-led."
+        },
+        {
+          "domain": "NARRATIVE_ENGINE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "The final answer and editorial form remain evidence-led."
+        },
+        {
+          "domain": "TITLE",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "The final answer and editorial form remain evidence-led."
+        },
+        {
+          "domain": "SECTION_ORDER",
+          "disposition": "OPEN",
+          "scopes": [
+            "ALL"
+          ],
+          "requirement_ids": [],
+          "preference_ids": [],
+          "rationale": "The final answer and editorial form remain evidence-led."
+        }
+      ]
+    }
+  ]
+}
