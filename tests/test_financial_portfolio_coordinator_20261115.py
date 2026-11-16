@@ -163,7 +163,20 @@ def test_resume_refreshes_scoped_requirement_projection_even_when_digest_is_unch
     refreshed_profile = {
         **context["seed_inputs"]["writing_execution_profile"],
         "fixed_requirement_ids": ["new-scope-rule"],
-        "locked_decision_domains": ["RESEARCH_SCOPE"],
+        "decision_domains": [
+            {
+                "domain": "RESEARCH_SCOPE",
+                "disposition": "LOCKED",
+                "scopes": ["RESEARCH"],
+                "requirement_ids": ["new-scope-rule"],
+                "preference_ids": [],
+                "rationale": "The refreshed user requirement locks research scope.",
+            },
+            *[
+                item for item in context["seed_inputs"]["writing_execution_profile"]["decision_domains"]
+                if item["domain"] != "RESEARCH_SCOPE"
+            ],
+        ],
         "execution_rationale": "The refreshed user requirement locks research scope while other editorial decisions remain evidence-led.",
     }
     with pytest.raises(

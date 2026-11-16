@@ -21,12 +21,21 @@ def _seed(*, interaction=True):
         "requirement_digest": "a" * 64,
         "source_prompt_sha256": "a" * 64,
         "writing_execution_profile": {
-            "schema_version": "1.0",
+            "schema_version": "1.1",
             "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
             "fixed_requirement_ids": [],
             "preference_requirement_ids": [],
-            "locked_decision_domains": [],
-            "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE", "OPENING", "TITLE", "SECTION_ORDER", "VOICE"],
+            "decision_domains": [
+                {
+                    "domain": name,
+                    "disposition": "OPEN",
+                    "scopes": ["ALL"],
+                    "requirement_ids": [],
+                    "preference_ids": [],
+                    "rationale": "No binding user requirement fixes this editorial decision.",
+                }
+                for name in ("THESIS", "ANGLE", "NARRATIVE_ENGINE", "OPENING", "TITLE", "SECTION_ORDER", "VOICE")
+            ],
             "conditional_modules": ["COMPANY_UNIVERSE", "CAUSAL_TRANSMISSION"],
             "execution_rationale": "The article workflow is invariant; editorial decisions remain open to evidence and reader needs.",
         },
