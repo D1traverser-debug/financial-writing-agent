@@ -44,7 +44,7 @@ def test_current_system_candidate_records_exact_requirement_scope_repair_evidenc
 
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     scope_contract = manifest["task_requirement_scope_contract"]
-    assert scope_contract["status"] == "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN"
+    assert scope_contract["status"] == "CANDIDATE_FIX__GENERAL_STABILITY_CONTRACT_PENDING_EXACT_HEAD_CI"
     assert scope_contract["verified_code_head_sha"] == candidate["candidate_head_sha"]
     assert scope_contract["exact_code_head_ci_run"] == candidate["exact_head_ci_run"]
 

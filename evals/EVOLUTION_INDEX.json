@@ -757,11 +757,11 @@
     "pull_request": 84,
     "base_branch": "main",
     "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-    "candidate_head_sha": "dfced20fc5fa594cd9f6df753f906b875e5fa6b2",
-    "exact_head_ci_run": 43820293511,
-    "exact_head_ci_conclusion": "success",
+    "candidate_head_sha": "886c210eb16b126b89cef483ae722ebc9129ae65",
+    "exact_head_ci_run": 43828598568,
+    "exact_head_ci_conclusion": "failure",
     "tests_passed": 720,
-    "source_line_coverage_percent": 88,
+    "source_line_coverage_percent": 0,
     "coverage_statements": 8178,
     "coverage_missed": 980,
     "module_coverage": {
@@ -825,6 +825,9 @@
     "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
     "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-04",
     "next_legal_step": "RUN_CROSS_TOPIC_REAL_ARTICLE_QUALITY_EVALUATION_ACROSS_MULTIPLE_TOPIC_FAMILIES_AND_EACH_TARGET_CONTENT_MODE__DO_NOT_ANCHOR_SYSTEM_COMPLETION_TO_ONE_ARTICLE",
-    "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB"
+    "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB",
+    "tests_failed": 3,
+    "base_pr_head_before_revision": "dfced20fc5fa594cd9f6df753f906b875e5fa6b2",
+    "base_pr_head_ci_run": 43820293511
   }
 }
