@@ -102,7 +102,6 @@
   },
   "full_universe_research_evidence_contract": {
     "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
-    "trigger_requirement_id": "full_universe_research_pool",
     "enforced_at": [
       "writing_kernel",
       "portfolio_coordinator",
@@ -112,6 +111,10 @@
     "status": "CANDIDATE_CI_PENDING",
     "verified_code_head_sha": null,
     "exact_code_head_ci_run": null,
-    "semantic_fact_audit_remains_external": true
+    "semantic_fact_audit_remains_external": true,
+    "trigger_requirement_ids": [
+      "full_universe_research_pool",
+      "deep_complete_retained_universe"
+    ]
   }
 }

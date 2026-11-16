@@ -260,7 +260,7 @@ def test_full_universe_requirement_requires_a_typed_research_package():
     context = _start([requirement])
     with pytest.raises(
         WritingPassExecutionError,
-        match="PORTFOLIO_FULL_UNIVERSE_RESEARCH_PACKAGE_REQUIRED",
+        match="PORTFOLIO_FULL_UNIVERSE_RESEARCH_EVIDENCE_CONTRACT_REQUIRED",
     ):
         execute_portfolio_stage(
             context,

@@ -163,7 +163,6 @@
     "default_word_count_ceiling": null,
     "compression_rule": "SELECT_THE_DECISIVE_STORY_FROM_COMPLETE_RESEARCH__REMOVE_REDUNDANCY__DO_NOT_DUMP_THE_RESEARCH_MAP",
     "full_universe_research_contract": {
-      "trigger_requirement_id": "full_universe_research_pool",
       "validator": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
       "enforced_at": [
         "financial_writing_agent.writing_kernel",
@@ -198,7 +197,11 @@
         "event_transmission",
         "reversal_conditions"
       ],
-      "factual_and_source_independence_audit_remains_required": true
+      "factual_and_source_independence_audit_remains_required": true,
+      "trigger_requirement_ids": [
+        "full_universe_research_pool",
+        "deep_complete_retained_universe"
+      ]
     }
   },
   "finance_broad": {

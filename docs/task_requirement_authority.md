@@ -80,10 +80,12 @@ This control closes a Financial-domain authority gap. It does not prove native C
 
 ## Full-universe research evidence contract
 
-The explicit task requirement "full_universe_research_pool" activates a stricter
-ResearchPackage contract at Research admission, portfolio coordination,
-standalone owner admission and final Deep publication. This is task-scoped; it
-does not force exhaustive-universe research on ordinary Financial assignments.
+The linked explicit requirements "full_universe_research_pool" and
+"deep_complete_retained_universe" activate a stricter ResearchPackage contract.
+Research admission, portfolio coordination and standalone owner admission use
+the first requirement; final Deep publication uses the second. This is
+task-scoped and does not force exhaustive-universe research on ordinary
+Financial assignments.
 
 For every retained company, the structured finding must carry a unique canonical
 ticker, business stage, exposure type, business-purity classification, current

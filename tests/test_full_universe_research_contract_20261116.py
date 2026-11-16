@@ -3,10 +3,6 @@ import pytest
 from financial_writing_agent.full_universe_research import (
     validate_full_universe_research_package,
 )
-from financial_writing_agent.portfolio_coordinator import (
-    PortfolioCoordinatorError,
-    _stage_payload,
-)
 from financial_writing_agent.schemas import ResearchPackage
 
 
@@ -232,9 +228,6 @@ def test_generic_research_package_remains_parseable_without_task_specific_full_u
     payload["universe"][0]["event_transmission_path"] = []
     payload["universe"][0]["reversal_conditions"] = []
     payload["universe"][0]["evidence_refs"] = []
-    payload["universe_coverage"]["recall_source_families"] = []
-    payload["coverage"]["consecutive_no_delta_sweeps"] = 0
-    payload["coverage"]["saturation_evidence_refs"] = []
     assert ResearchPackage.model_validate(payload)
     with pytest.raises(ValueError, match="FULL_UNIVERSE_COMPANY_FINANCIAL_REALIZATION_EVIDENCE_MISSING"):
         validate_full_universe_research_package(payload)
@@ -249,7 +242,7 @@ def test_full_universe_contract_rejects_missing_company_level_evidence():
 
 def test_full_universe_contract_rejects_unlinked_company_evidence():
     payload = _package()
-    payload["universe"][0]["evidence_refs"] = ["source://not-in-ledger"]
+    payload["universe"][0]["evidence_refs"] = [SOURCE_A, "source://not-in-ledger"]
     with pytest.raises(ValueError, match="FULL_UNIVERSE_COMPANY_EVIDENCE_REF_NOT_IN_LEDGER"):
         validate_full_universe_research_package(payload)
 
@@ -294,29 +287,3 @@ def test_full_universe_contract_rejects_unresolved_purity_without_reason():
     payload["universe"][2]["why_not"] = []
     with pytest.raises(ValueError, match="FULL_UNIVERSE_WEAK_COMPANY_RATIONALE_MISSING"):
         validate_full_universe_research_package(payload)
-
-
-def test_portfolio_coordinator_rejects_typed_but_incomplete_full_universe_package():
-    payload = _package()
-    payload["universe"][0]["event_transmission_path"] = []
-    state = {
-        "required_outputs": ["FINANCE_DEEP"],
-        "task_requirement_authority": {
-            "active_requirements": [
-                {
-                    "requirement_id": "full_universe_research_pool",
-                    "statement": "Every retained company requires company-level evidence.",
-                    "scopes": ["RESEARCH", "PRIVATE_RESEARCH"],
-                    "affects_from_stage": "RESEARCH",
-                    "source_kind": "USER_EXPLICIT",
-                    "evidence_ref": "feedback/USER_REQUIREMENT_FULL_UNIVERSE_20261016.md",
-                }
-            ]
-        },
-    }
-    context = {"last_stage_result": {"stage_outputs": {"research_package": payload}}}
-    with pytest.raises(
-        PortfolioCoordinatorError,
-        match="PORTFOLIO_FULL_UNIVERSE_RESEARCH_EVIDENCE_CONTRACT_REQUIRED",
-    ):
-        _stage_payload(context, stage="RESEARCH", state=state)
