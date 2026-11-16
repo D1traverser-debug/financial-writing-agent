@@ -95,3 +95,10 @@ Close the central question with a usable mental model, distinction, verification
 ## Editorial admission
 
 Current-kernel tasks cannot leave `EDITORIAL` without required Deep/Broad StoryBlueprint(s). For selective Deep publication, omitted research classes require explicit scope accounting. For `EVENT_TO_COMPANY`, missing causal transmission blocks admission. Story planning is executable evidence, not a style-guide paragraph.
+
+
+For full-universe tasks, Story Architecture receives the same company decision
+map and change conditions that passed ResearchPackage admission. The top-level
+handoff is checked for exact consistency at the kernel, coordinator and provider
+readback boundaries; the editorial pass must not receive a second, divergent
+company comparison.

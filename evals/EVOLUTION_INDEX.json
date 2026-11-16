@@ -145,7 +145,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Independently review the live PR #84 head b60a1873914777cf7ed6463040d1ead0236504a2 after re-reading exact GitHub head and CI. PR #84 remains Draft. Provider Action deployment requires a separate host and owner approval. The active cross-border v3 article remains RESEARCH with 0/4 real deliverables; its V2 source references are historical and require current-source revalidation. Do not modify CAOS.",
+    "next_legal_phase": "Independently review the live PR #84 head after re-reading exact GitHub head and CI. Verified code head 4bf06f63fdf7e228b3153ec909a38abe8596f272 passed exact-head CI 43819176634 with 720 tests. PR #84 remains Draft. Provider Action deployment requires a separate host and owner approval. The active cross-border v3 article remains RESEARCH with 0/4 real deliverables; its V2 source references are historical and require current-source revalidation. Do not modify CAOS.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -617,13 +617,13 @@
       "pull_request": 84,
       "base_branch": "main",
       "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-      "candidate_head_sha": "b60a1873914777cf7ed6463040d1ead0236504a2",
-      "exact_head_ci_run": 43816915533,
+      "candidate_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+      "exact_head_ci_run": 43819176634,
       "exact_head_ci_conclusion": "success",
-      "tests_passed": 717,
+      "tests_passed": 720,
       "source_line_coverage_percent": 88,
-      "coverage_statements": 8156,
-      "coverage_missed": 972,
+      "coverage_statements": 8178,
+      "coverage_missed": 980,
       "module_coverage": {
         "portfolio_coordinator_percent": 91,
         "standalone_runtime_percent": 89,
@@ -633,7 +633,7 @@
         "tracked_files": 340,
         "python_ast_parsed": 132,
         "json_parsed": 54,
-        "decoded_text_lines": 54005,
+        "decoded_text_lines": 54278,
         "warnings": 0,
         "errors": 0
       },
@@ -660,7 +660,8 @@
         "PRIVATE_RESEARCH_1_0_AND_1_1_USE_VERSION_SPECIFIC_SOURCE_MODULE_SETS",
         "LEGACY_PRIVATE_RESEARCH_1_0_DELIVERY_FRESHNESS_IS_RECHECKED",
         "STORY_ARCHITECTURE_RECEIVES_PUBLICATION_DISTILLATION_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS",
-        "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS"
+        "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS",
+        "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE"
       ],
       "limitations": [
         "PROVIDER_ACTION_NOT_DEPLOYED",
@@ -681,7 +682,7 @@
       "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB"
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.2"
+    "problem_journal_revision": "2.3"
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
@@ -738,13 +739,13 @@
     "pull_request": 84,
     "base_branch": "main",
     "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-    "candidate_head_sha": "b60a1873914777cf7ed6463040d1ead0236504a2",
-    "exact_head_ci_run": 43816915533,
+    "candidate_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_head_ci_run": 43819176634,
     "exact_head_ci_conclusion": "success",
-    "tests_passed": 717,
+    "tests_passed": 720,
     "source_line_coverage_percent": 88,
-    "coverage_statements": 8156,
-    "coverage_missed": 972,
+    "coverage_statements": 8178,
+    "coverage_missed": 980,
     "module_coverage": {
       "portfolio_coordinator_percent": 91,
       "standalone_runtime_percent": 89,
@@ -754,7 +755,7 @@
       "tracked_files": 340,
       "python_ast_parsed": 132,
       "json_parsed": 54,
-      "decoded_text_lines": 54005,
+      "decoded_text_lines": 54278,
       "warnings": 0,
       "errors": 0
     },
@@ -781,7 +782,8 @@
       "PRIVATE_RESEARCH_1_0_AND_1_1_USE_VERSION_SPECIFIC_SOURCE_MODULE_SETS",
       "LEGACY_PRIVATE_RESEARCH_1_0_DELIVERY_FRESHNESS_IS_RECHECKED",
       "STORY_ARCHITECTURE_RECEIVES_PUBLICATION_DISTILLATION_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS",
-      "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS"
+      "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS",
+      "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE"
     ],
     "limitations": [
       "PROVIDER_ACTION_NOT_DEPLOYED",

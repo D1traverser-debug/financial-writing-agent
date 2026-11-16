@@ -97,8 +97,8 @@
     "active_scope_source": "required_outputs",
     "owner_and_portfolio_stage_projection": "SAME_CANONICAL_FUNCTION",
     "status": "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
-    "verified_code_head_sha": "b60a1873914777cf7ed6463040d1ead0236504a2",
-    "exact_code_head_ci_run": 43816915533
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634
   },
   "full_universe_research_evidence_contract": {
     "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
@@ -109,15 +109,15 @@
       "task_publication"
     ],
     "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
-    "verified_code_head_sha": "b60a1873914777cf7ed6463040d1ead0236504a2",
-    "exact_code_head_ci_run": 43816915533,
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634,
     "semantic_fact_audit_remains_external": true,
     "trigger_requirement_ids": [
       "full_universe_research_pool",
       "deep_complete_retained_universe"
     ],
     "exact_code_head_ci_conclusion": "success",
-    "tests_passed": 717,
+    "tests_passed": 720,
     "source_line_coverage_percent": 88,
     "source_evidence_readback": {
       "evidence_ledger_refs_must_be_bound_to_private_research_brief": true,
@@ -129,7 +129,16 @@
       "1.0",
       "1.1"
     ],
-    "legacy_1_0_delivery_freshness_rechecked": true
+    "legacy_1_0_delivery_freshness_rechecked": true,
+    "editorial_decision_handoff": {
+      "top_level_company_decision_map_must_match_validated_package_map": true,
+      "top_level_change_conditions_must_match_validated_package_conditions": true,
+      "enforced_at": [
+        "writing_kernel",
+        "portfolio_coordinator",
+        "standalone_runtime"
+      ]
+    }
   },
   "research_to_editorial_dataflow": {
     "source": "financial_writing_agent.writing_kernel.PASS_CONTRACTS[STORY_ARCHITECTURE]",
@@ -141,9 +150,10 @@
     "enforcement": "_invoke_pass forwards only declared required_inputs",
     "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
     "semantic_preservation_still_requires_story_blueprint_and_editorial_audit": true,
-    "verified_code_head_sha": "b60a1873914777cf7ed6463040d1ead0236504a2",
-    "exact_code_head_ci_run": 43816915533,
-    "tests_passed": 717,
-    "source_line_coverage_percent": 88
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634,
+    "tests_passed": 720,
+    "source_line_coverage_percent": 88,
+    "company_decision_map_bound_to_validated_research_package": true
   }
 }

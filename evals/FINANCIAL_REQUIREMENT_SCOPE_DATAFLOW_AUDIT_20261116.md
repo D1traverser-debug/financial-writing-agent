@@ -4,8 +4,8 @@
 **Repository:** `D1traverser-debug/financial-writing-agent`  
 **Candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84)  
 **Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Verified candidate code head:** `b60a1873914777cf7ed6463040d1ead0236504a2`  
-**Exact code-head CI:** [43816915533](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43816915533) — SUCCESS  
+**Verified candidate code head:** `4bf06f63fdf7e228b3153ec909a38abe8596f272`  
+**Exact code-head CI:** [43819176634](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43819176634) — SUCCESS  
 **CAOS boundary:** no CAOS repository, code, configuration, plugin, PR or runtime was modified.
 
 ## 1. Original business problem
@@ -100,13 +100,13 @@ Integration fixtures now distinguish actual new/current tasks from historical pr
 
 ### Verified code-head verification
 
-Verified candidate code head b60a1873914777cf7ed6463040d1ead0236504a2; exact-head CI run [43816915533](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43816915533) completed successfully:
-- **717 tests passed**.
-- Total Python statement coverage: **88%** (8,156 statements; 972 missed).
-- Portfolio Coordinator: **91%** (253 statements; 22 missed).
+Verified candidate code head 4bf06f63fdf7e228b3153ec909a38abe8596f272; exact-head CI run [43819176634](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43819176634) completed successfully:
+- **720 tests passed**.
+- Total Python statement coverage: **88%** (8,178 statements; 980 missed).
+- Portfolio Coordinator: **91%** (255 statements; 24 missed).
 - Standalone Runtime: **89%** (939 statements; 100 missed).
-- Writing Kernel: **81%** (922 statements; 174 missed).
-- Whole-tree audit: **340 tracked files**, 132 Python AST parses, 54 JSON parses, 54,005 decoded text lines, **0 warnings and 0 errors**.
+- Writing Kernel: **81%** (924 statements; 176 missed).
+- Whole-tree audit: **340 tracked files**, 132 Python AST parses, 54 JSON parses, 54,278 decoded text lines, **0 warnings and 0 errors**.
 - Executable contract eval, static single-owner/legacy-quarantine audit, standalone contract, wheel build and isolated install passed.
 - DOCX render smoke passed; all four synthetic Word product binaries opened, rendered and passed byte/signature/page checks.
 - Real-task negative replay completed with reproduced_weak_assurance_paths = []. This is negative-path assurance, not a live article or factual-quality certification.
@@ -131,7 +131,7 @@ The synthetic Word renders do not certify real article quality. The negative rep
 
 ## 7. Promotion decision and next legal step
 
-PR #84 remains DRAFT and unmerged. The production main head remains b2098e69367f78c452e0a595bf95d86388d6a449. The current candidate head is b60a1873914777cf7ed6463040d1ead0236504a2, with exact code-head CI run 43816915533 passing 717 tests. Always re-read the live PR head and exact CI from GitHub before review or reporting.
+PR #84 remains DRAFT and unmerged. The production main head remains b2098e69367f78c452e0a595bf95d86388d6a449. The current candidate code head is 4bf06f63fdf7e228b3153ec909a38abe8596f272, with exact code-head CI run 43819176634 passing 720 tests. Always re-read the live PR head and exact CI from GitHub before review or reporting.
 
 No independent reviewer has reviewed the current live PR head. The next review step is independent review of that exact head. Provider Action deployment requires a separate host/cost decision and owner approval. Do not modify CAOS. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.
 ## 8. Status-evidence consistency
@@ -171,10 +171,21 @@ The correction adds all three as required inputs to STORY_ARCHITECTURE. Missing 
 
 ### 9.4 Exact-head verification
 
-Candidate head b60a1873914777cf7ed6463040d1ead0236504a2; exact-head CI run 43816915533: **717 tests passed**, 88% total statement coverage; whole-tree audit 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,005 decoded text lines, zero warnings and zero errors. Wheel/install, DOCX rendering, four synthetic Word products and negative business replay passed.
+Candidate head 4bf06f63fdf7e228b3153ec909a38abe8596f272; exact-head CI run 43819176634: **720 tests passed**, 88% total statement coverage; whole-tree audit 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,278 decoded text lines, zero warnings and zero errors. Wheel/install, DOCX rendering, four synthetic Word products and negative business replay passed.
 
 ### 9.5 Remaining business evidence
 
 The active task cross-border-ecommerce-20261016-v3 remains RESEARCH / IN_PROGRESS, with **0/4** real deliverables, empty quality evidence and no persisted Research-stage artifact. Its stored prompt is only 跨境电商; its V2 source references are historical fixtures, not current factual evidence. No real research, article draft or Word deliverable has been generated by this follow-up.
 
 PR #84 remains DRAFT and unmerged. The live Provider Action is NOT_DEPLOYED; independent current-head review, real source-provider execution, factual entailment, editorial acceptance and reader outcome remain open. No CAOS source or configuration was changed.
+
+### 9.6 Validated company map is now the exact editorial handoff
+
+A final consistency check found that the ResearchPackage's CompanyDecisionMap was structurally validated, while Thesis Adjudication emitted a separate top-level company_decision_map and change_conditions list for Story Architecture. Without a binding, the editorial pass could receive a different comparison from the one admitted in the evidence-bearing research package.
+
+The new task-scoped handoff validator requires:
+- the top-level company_decision_map to validate against the same strict CompanyDecisionMap schema and exactly match ResearchPackage.company_decision_map;
+- the top-level change_conditions list to match the package map's admitted change conditions;
+- the invariant to hold at Writing Kernel research completion, portfolio stage artifact creation, and standalone provider artifact readback.
+
+The coordinator persists the canonical validated map and conditions, so Story Architecture receives the admitted version. A mismatch blocks the research stage before editorial work can start. Three targeted tests cover matching, divergent maps and divergent change conditions.

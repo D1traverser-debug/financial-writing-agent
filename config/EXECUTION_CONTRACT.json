@@ -212,7 +212,16 @@
         "1.0",
         "1.1"
       ],
-      "legacy_1_0_delivery_freshness_rechecked": true
+      "legacy_1_0_delivery_freshness_rechecked": true,
+      "decision_handoff": {
+        "top_level_company_decision_map_must_equal_validated_research_package_company_decision_map": true,
+        "top_level_change_conditions_must_equal_validated_research_package_conditions": true,
+        "enforced_at": [
+          "writing_kernel",
+          "portfolio_coordinator",
+          "standalone_runtime"
+        ]
+      }
     }
   },
   "finance_broad": {
@@ -334,7 +343,8 @@
       },
       "enforcement": "PassContract.required_inputs__AND__writing_kernel._invoke_pass",
       "missing_input_behavior": "BLOCK_EDITORIAL_PASS_BEFORE_MODEL_CALLBACK",
-      "purpose": "Preserve private-research publication choices and company-level comparative judgments into product-specific Deep/Broad StoryBlueprints"
+      "purpose": "Preserve private-research publication choices and company-level comparative judgments into product-specific Deep/Broad StoryBlueprints",
+      "company_decision_map_binding": "TOP_LEVEL_MAP_AND_CHANGE_CONDITIONS_MUST_MATCH_VALIDATED_RESEARCH_PACKAGE"
     }
   },
   "knowledge_and_evolution": {

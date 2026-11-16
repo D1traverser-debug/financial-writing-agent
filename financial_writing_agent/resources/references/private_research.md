@@ -309,3 +309,9 @@ external source reader fetches every bound source, verifies exact body SHA and
 retrieval freshness, and matches each universe-recall source's declared family
 to the actual provider-returned family. Evidence-ledger presence alone is not
 provider readback.
+
+
+For full-universe tasks, the company_decision_map and change_conditions handed
+to Story Architecture must exactly match the validated ResearchPackage map.
+The validated package map is the evidence-bearing authority; a divergent
+top-level Thesis Adjudication output is rejected before editorial work.

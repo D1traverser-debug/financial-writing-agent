@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.2`
+Journal revision: `2.3`
 Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -664,6 +664,7 @@ Status: CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_PROMOTED__REAL_ARTICLE_OUTCOME_
 1. The full-universe validator proved that company evidence references existed in the ResearchPackage evidence ledger, while the source reader independently verified only PrivateResearchBrief module references. No invariant joined those two sets or matched declared recall-source families to the provider's actual family for each recall source.
 2. PrivateResearch source readback selected a fixed 1.1 module set despite owner-state compatibility for 1.0. Delivery freshness then skipped 1.0 entirely.
 3. The shared context contained publication_distillation, company_decision_map and change_conditions, but STORY_ARCHITECTURE.required_inputs omitted them. _invoke_pass forwards only declared required inputs, so context presence was incorrectly mistaken for model availability.
+4. The validated ResearchPackage.company_decision_map and the separate top-level company_decision_map/change_conditions passed to Story Architecture were not cross-bound, allowing two decision representations to diverge.
 
 **Rejected repairs.** Counting two source families globally without checking the actual universe-recall sources; treating a ledger entry as proof its bytes were fetched; retaining a 1.1-only verifier while claiming 1.0 compatibility; and adding editorial guidance without changing the executable pass contract.
 
@@ -672,9 +673,10 @@ Status: CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_PROMOTED__REAL_ARTICLE_OUTCOME_
 - Read back all bound sources, verify exact body SHA and retrieval freshness, and compare each universe-recall source's actual provider family with its declared family.
 - Select the source-module set from the persisted PrivateResearch contract version and recheck both 1.0 and 1.1 at delivery.
 - Add publication_distillation, company_decision_map and change_conditions to Story Architecture's required inputs, so omission blocks before the model callback.
+- Require the top-level company_decision_map and change_conditions to match the validated ResearchPackage map at kernel, coordinator and provider-readback boundaries.
 - Synchronize the executable contract, Skill reference mirror, manifest and candidate audit.
 
-**Verification.** Candidate head b60a1873914777cf7ed6463040d1ead0236504a2; exact-head CI run 43816915533: **717 tests passed**, 88% statement coverage (8,156 statements; 972 missed). Portfolio Coordinator 91% (253; 22 missed), Standalone Runtime 89% (939; 100 missed), Writing Kernel 81% (922; 174 missed). Whole-tree audit: 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,005 decoded text lines, zero warnings/errors. Wheel/isolated install, DOCX render, four synthetic Word product renders and negative business replay passed.
+**Verification.** Candidate head 4bf06f63fdf7e228b3153ec909a38abe8596f272; exact-head CI run 43819176634: **720 tests passed**, 88% statement coverage (8,178 statements; 980 missed). Portfolio Coordinator 91% (255; 24 missed), Standalone Runtime 89% (939; 100 missed), Writing Kernel 81% (924; 176 missed). Whole-tree audit: 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,278 decoded text lines, zero warnings/errors. Wheel/isolated install, DOCX render, four synthetic Word product renders and negative business replay passed.
 
 **Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent current-head review has been obtained. Provider Action is NOT_DEPLOYED. The cross-border v3 task remains RESEARCH with 0/4 real deliverables, no quality evidence and no Research-stage artifact. Its prompt is only 跨境电商; V2 sources are historical fixtures and require current-source revalidation. Source-byte readback is not factual entailment. Real article quality, editorial acceptance and reader outcomes remain unverified. No CAOS source or configuration was changed.
 

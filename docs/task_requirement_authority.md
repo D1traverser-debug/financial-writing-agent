@@ -115,3 +115,11 @@ those exact source bodies, verify retrieval freshness, and confirm that each
 declared universe-recall source family matches the provider-returned family for
 that exact source. A source merely listed in the ResearchPackage ledger is not
 treated as externally read back.
+
+
+For full-universe tasks, the separate top-level company_decision_map and
+change_conditions passed to Story Architecture must exactly match the
+evidence-bearing ResearchPackage.company_decision_map and its change conditions.
+A divergence blocks the Research stage before editorial work. The coordinator
+persists the canonical validated map, rather than allowing a second decision
+representation to become the editorial authority.

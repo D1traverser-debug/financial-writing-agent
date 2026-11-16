@@ -35,7 +35,7 @@
     {
       "id": "full_universe_research_evidence_contract",
       "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
-      "assurance": "UNIQUE_TICKERS__DATED_COMPANY_EVIDENCE_LINKAGE__PRIVATE_BRIEF_AND_PROVIDER_READBACK_BINDING__TWO_DISTINCT_RECALL_FAMILIES_MATCHED_TO_PROVIDER__SATURATION__WITHIN_SEGMENT_FIVE_AXIS_COMPARISON__TASK_SCOPED"
+      "assurance": "UNIQUE_TICKERS__DATED_COMPANY_EVIDENCE_LINKAGE__PRIVATE_BRIEF_AND_PROVIDER_READBACK_BINDING__RECALL_FAMILIES_MATCH_PROVIDER__SATURATION__WITHIN_SEGMENT_FIVE_AXIS_COMPARISON__TOP_LEVEL_EDITORIAL_DECISION_MAP_BOUND_TO_VALIDATED_PACKAGE__TASK_SCOPED"
     },
     {
       "id": "financial_cognition_and_counterexamples",
@@ -100,7 +100,7 @@
     {
       "id": "research_to_editorial_dataflow",
       "source": "financial_writing_agent.writing_kernel.PASS_CONTRACTS[STORY_ARCHITECTURE]",
-      "assurance": "PUBLICATION_DISTILLATION__COMPANY_DECISION_MAP__CHANGE_CONDITIONS_ARE_REQUIRED_MODEL_CALLBACK_INPUTS"
+      "assurance": "PUBLICATION_DISTILLATION__COMPANY_DECISION_MAP__CHANGE_CONDITIONS_ARE_REQUIRED_MODEL_CALLBACK_INPUTS__FULL_UNIVERSE_MAP_MUST_MATCH_VALIDATED_RESEARCH_PACKAGE"
     }
   ],
   "required_external_capabilities_at_execution": [

@@ -39,6 +39,7 @@ def test_current_system_candidate_records_exact_requirement_scope_repair_evidenc
     assert candidate["source_line_coverage_percent"] >= 0
     assert candidate["status"] == "CANDIDATE__EXACT_CODE_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN"
     assert "PROVIDER_ACTION_NOT_DEPLOYED" in candidate["limitations"]
+    assert "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE" in candidate["verified"]
     assert index["active_system_assessment"]["latest_requirement_scope_dataflow_candidate"] == candidate
 
     manifest = _json("config/FINANCIAL_MANIFEST.json")
