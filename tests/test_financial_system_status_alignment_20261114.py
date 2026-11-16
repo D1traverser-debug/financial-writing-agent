@@ -160,4 +160,4 @@ def test_pr89_decision_domain_binding_is_merged_with_exact_pr_and_main_ci():
     assert implementation["exact_main_ci_run"] == candidate["exact_main_ci_run"]
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == candidate["merged_main_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == candidate["exact_main_ci_run"]
-    assert manifest["execution_profile"]["schema_version"] == "1.1"
+    assert manifest["general_writing_stability"]["execution_profile"]["schema_version"] == "1.1"
