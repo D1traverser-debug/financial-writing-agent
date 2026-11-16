@@ -137,7 +137,7 @@ def create_legacy(p):
     state["execution_receipts"][-1]["input_bindings"].pop(
         "portfolio_execution_contract_version"
     )
-    raw = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\\n"
+    raw = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
     p.store["workspaces/articles/solo-article-01/STATE.json"] = raw
     return {
         "operation": "LEGACY_FIXTURE",

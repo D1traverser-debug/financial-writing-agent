@@ -96,7 +96,7 @@ def test_used_method_has_exact_catalog_provenance_receipt_and_unrelated_edit_doe
         research_audit=_research_audit([]),
     )
     assert advanced["next_stage"] == "EDITORIAL"
-    assert advanced["method_usage_readback"]["stale_methods"] == []
+    assert advanced["owner_admission"]["method_usage_readback"]["stale_methods"] == []
 
 
 def test_retired_method_prevents_stale_work_and_reopens_earliest_affected_stage():

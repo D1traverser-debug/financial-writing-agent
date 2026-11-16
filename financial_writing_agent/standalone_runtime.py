@@ -1623,6 +1623,7 @@ def admit_article_action(
         "stage": after[0]["current_stage"], "business_status": after[0]["status"],
         "required_stage_artifact_verified": stage_bytes,
         "portfolio_context_readback": portfolio_context_readback,
+        "portfolio_stage_artifact_readback": action_bindings.get("portfolio_stage_artifact_readback"),
         "product_word_binary_readback": word_bytes,
         "research_source_readback": research_sources,
         "delivery_research_freshness_readback": delivery_research_freshness,

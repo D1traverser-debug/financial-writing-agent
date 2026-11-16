@@ -166,7 +166,7 @@ def seed_legacy_state(p, *, task_id=TASK, prompt="Synthetic financial systems tr
     state["execution_receipts"][-1]["input_bindings"].pop(
         "portfolio_execution_contract_version"
     )
-    raw = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\\n"
+    raw = json.dumps(state, ensure_ascii=False, sort_keys=True) + "\n"
     p.states[f"workspaces/articles/{task_id}/STATE.json"] = raw
     return p
 
