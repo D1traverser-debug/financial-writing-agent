@@ -255,7 +255,7 @@ def _normalize_requirement_satisfaction(
             isinstance(evidence_refs, list)
             and bool(evidence_refs)
             and all(isinstance(ref, str) and bool(ref.strip()) for ref in evidence_refs),
-            f"requirement {requirement_id} requires nonempty string evidence_refs",
+            f"requirement {requirement_id} requires evidence_refs as nonempty strings",
         )
         _require(
             len(evidence_refs) == len(set(evidence_refs)),

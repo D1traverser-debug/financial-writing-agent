@@ -317,7 +317,7 @@ def test_portfolio_stage_artifact_readback_must_match_context_and_trace():
     )
     assert result["stage"] == "RESEARCH"
     assert result["pass_receipt_count"] == 1
-    assert result["assurance"] == "EXACT_PROVIDER_BYTES_AND_CONTEXT_CROSS_BINDING"
+    assert result["assurance"] == "EXACT_PROVIDER_BYTES__CONTEXT__OWNER_OUTCOME_CROSS_BINDING"
 
     tampered_context = dict(context)
     tampered_context["trace"] = [{
