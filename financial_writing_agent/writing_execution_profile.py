@@ -107,21 +107,29 @@ def _active_requirement_sources(
         for raw in requirements:
             if not isinstance(raw, Mapping):
                 raise WritingExecutionProfileError(f"requirement record invalid: {scope}")
-            requirement_id = str(raw.get("requirement_id", "")).strip()
-            source_kind = str(raw.get("source_kind", "")).strip()
+            raw_requirement_id = raw.get("requirement_id")
+            raw_source_kind = raw.get("source_kind")
             raw_scopes = raw.get("scopes")
-            evidence_ref = str(raw.get("evidence_ref", "")).strip()
+            raw_evidence_ref = raw.get("evidence_ref")
             if (
-                not requirement_id
-                or source_kind not in {"USER_EXPLICIT", "USER_CORRECTION", "USER_PREFERENCE"}
+                not isinstance(raw_requirement_id, str)
+                or not raw_requirement_id.strip()
+                or not isinstance(raw_source_kind, str)
+                or raw_source_kind not in {"USER_EXPLICIT", "USER_CORRECTION", "USER_PREFERENCE"}
                 or not isinstance(raw_scopes, list)
                 or not raw_scopes
+                or any(not isinstance(item, str) for item in raw_scopes)
+                or len(raw_scopes) != len(set(raw_scopes))
                 or not set(raw_scopes) <= VALID_SCOPES
-                or not evidence_ref
+                or not isinstance(raw_evidence_ref, str)
+                or not raw_evidence_ref.strip()
             ):
                 raise WritingExecutionProfileError(
                     f"requirement identity/source/scope/evidence invalid: {scope}"
                 )
+            requirement_id = raw_requirement_id.strip()
+            source_kind = raw_source_kind
+            evidence_ref = raw_evidence_ref.strip()
             current = {
                 "source_kind": source_kind,
                 "scopes": set(raw_scopes),
