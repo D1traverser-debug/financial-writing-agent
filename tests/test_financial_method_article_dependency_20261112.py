@@ -10,7 +10,7 @@ from financial_writing_agent.standalone_runtime import (
 )
 from trusted_provider_testkit import signed_action_authorization, signed_action_effect
 from test_standalone_financial_runtime_20261111 import (
-    Provider, create, run, proposal, _run_portfolio_stage,
+    Provider, create, create_legacy, run, proposal, _run_portfolio_stage,
     _portfolio_research_executor, _prepare_sources, _decision,
 )
 from test_financial_portfolio_execution_20261114 import (
@@ -107,7 +107,10 @@ def test_retired_method_prevents_stale_work_and_reopens_earliest_affected_stage(
     _catalog_write(p, retired)
     frozen = deepcopy(p.store)
     with pytest.raises(FinancialAdmissionError, match="METHOD_DEPENDENCY_STALE"):
-        _native_action(p, "ADVANCE_STAGE", parameters=_review_artifact(p))
+        _run_portfolio_stage(
+            p,
+            research_audit=_research_audit([]),
+        )
     assert p.store == frozen
     with pytest.raises(FinancialAdmissionError, match="AUTHORIZATION"):
         _native_action(p, "REOPEN_METHOD_DEPENDENCY", grant=False)
