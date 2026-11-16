@@ -104,7 +104,7 @@ def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     assert latest_incident_id.startswith("P-")
     assert payload["latest_incident_ref"].endswith(f"#{latest_incident_id}")
     assert {"P-20261116-01", "P-20261116-02", "P-20261116-03", "P-20261116-04"} <= set(payload["open_items_at_2026_11_16"])
-    assert latest_incident_id in payload["open_items_at_2026_11_16"]
+    assert latest_incident_id in payload["open_items_at_2026_11_17"]
     assert "executable_proactive_resolution_promotion_receipt" in payload
     assert "executable_proactive_resolution_candidate" not in payload
     receipt = payload["executable_proactive_resolution_promotion_receipt"]

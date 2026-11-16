@@ -260,6 +260,18 @@
     },
     "latest_main_head_sha": "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07",
     "latest_main_head_ci_run": 43834173578,
-    "latest_main_head_ci_conclusion": "success"
+    "latest_main_head_ci_conclusion": "success",
+    "execution_profile": {
+      "name": "WritingExecutionProfile",
+      "schema_version": "1.0",
+      "portfolio_context_schema": "1.1",
+      "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+      "whole_task_classifier": "NONE",
+      "requirement_authority": "TaskRequirementAuthority",
+      "original_prompt_binding": "SHA256",
+      "pass_binding": "ALL_SEMANTIC_PASSES",
+      "requirement_revision": "REFRESH_PROFILE_AND_INVALIDATE_AFFECTED_DOWNSTREAM_EVIDENCE",
+      "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE"
+    }
   }
 }
