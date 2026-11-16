@@ -359,6 +359,19 @@ The stable invariants are:
 
 The following remain deliberately adaptive: narrative engine, title angle, opening strategy, section order, paragraph rhythm, degree of technical explanation, level of detail, tone and voice. **Form follows content and reader purpose.** A StoryBlueprint is a planning aid, not a prose template. Do not impose one universal opening, sentence geometry, rhetorical pattern, paragraph length or slang style.
 
+### 11.2A One workflow, task-bound execution context
+
+Do not classify the whole request into separate task types or route it to different workflows. Every article follows the same canonical ten-stage business graph. The task-bound `WritingExecutionProfile` is a derived execution context containing:
+- the invariant `FINANCIAL_ARTICLE_10_STAGE_V1` workflow contract;
+- exact active explicit/corrective requirement IDs and separately weighted preference IDs;
+- editorial decision domains locked by the user versus those left open;
+- only research/editorial modules material to the current task;
+- a binding to the original prompt and current requirement projection.
+
+TaskRequirementAuthority remains the sole source of binding user requirements; the profile is not another authority, router or state machine. Every semantic pass receives the same profile. Explicit/corrective requirements remain binding, preferences remain preferences, and unprescribed decisions—thesis, angle, narrative engine, opening, title, section order, rhythm, technical depth and voice—are selected from evidence, material and reader needs. Requirement changes refresh the profile and invalidate affected downstream evidence.
+
+Acceptance verifies both invariants across topics and product modes: the required process is never skipped, while research depth and editorial form adapt to the actual task. Schema validation and synthetic fixtures establish execution contracts only; they do not prove correct semantic interpretation or reader acceptance.
+ 
 ### 11.3 What “stable” means
 
 Stability means that different tasks reliably meet the same substantive quality obligations while making different editorial choices when their material and readers differ. It does not mean identical wording or article structure.

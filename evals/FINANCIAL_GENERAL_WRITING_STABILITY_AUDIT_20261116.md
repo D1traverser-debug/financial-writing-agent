@@ -162,3 +162,42 @@ The product contract already defines `PLATFORM_INTERACTION` as a first-class, se
 A documentation/journal follow-up at `d58038056068ee4bbe45127a9d5296a971b27b03` exposed two stale assertions that hard-coded P-04 as the latest incident (728 passed, 2 failed). The tests were corrected to validate the current latest-incident pointer/reference dynamically while retaining P-01 through P-04 as historical open items. Final candidate head `5b6aec5415c7cdce8288f29175c3724260184a45` passed exact-head run [43838436832](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43838436832): 730 tests passed; 88% statement coverage; Portfolio Coordinator 91%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 342 tracked files, 133 Python AST parses, 54 JSON parses, 55,446 decoded text lines, zero warnings/errors. DOCX render, four synthetic Word product binaries/page checks, and negative business replay passed.
 
 **Quality status remains OPEN.** No Interaction real-user rejection or two-family held-out corpus was added. The new unit fixtures are synthetic contract tests, not editorial evidence. No blind external reader evaluation, live article production, provider-backed persistence, or user acceptance is claimed. PR #86 remains a Draft candidate pending independent review and exact-head follow-up after any further change.
+
+---
+
+## 14. Root cause: the invariant workflow and open editorial decisions were not bound to each execution
+
+The product requirements already define one stable ten-stage workflow, conditional research depth and content-led expression. The runtime did not persist one prompt-bound execution profile for all semantic passes. Topic-diverse tests therefore did not prove that the same process and mandatory QA obligations were retained while editorial decisions adapted to material and reader needs.
+
+### 14.1 Runtime correction candidate
+
+Draft PR #88 replaces whole-task classification with:
+- a typed `WritingExecutionProfile` carrying the invariant `FINANCIAL_ARTICLE_10_STAGE_V1` contract;
+- exact binding of active explicit/corrective requirements and separately weighted preferences to TaskRequirementAuthority;
+- locked versus open editorial decision domains and material conditional modules;
+- persistence in the existing Portfolio Context and propagation to every semantic pass;
+- original-prompt hash binding and mandatory profile refresh when requirements change;
+- read compatibility for historical Portfolio Context 1.0.
+
+No parallel workflow or whole-task taxonomy is introduced.
+
+### 14.2 Acceptance boundary
+
+Tests must verify:
+- the same canonical business graph and mandatory QA obligations remain present;
+- explicit/corrective requirements are neither omitted nor invented;
+- preferences are not hardened into requirements;
+- locked editorial decisions are preserved while open decisions remain content-led;
+- specialist research modules activate only when material;
+- every semantic pass receives the same prompt-bound profile;
+- requirement changes refresh the profile and invalidate dependent evidence;
+- historical context 1.0 remains readable.
+
+These are engineering/dataflow checks only. They do not prove the model always interprets the request correctly or that generated articles satisfy readers. Cross-topic, per-product, independently reviewed real article evidence and actual user acceptance remain OPEN.
+
+
+### 14.3 Exact-head engineering verification
+
+PR #88 head `6a1445dd766f2e0d0d8aebac03c4eb516dfa059a` passed [GitHub Actions run 43906504480](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43906504480): 745 tests passed; 88% Python statement coverage (8,330 statements, 1,020 missed); Portfolio Coordinator 90%, Standalone Runtime 89%, Writing Kernel 81%, WritingExecutionProfile 81%. Whole-tree audit: 346 tracked files, 136 Python AST parses, 54 JSON parses, 56,358 decoded text lines, zero warnings/errors. Wheel/install, DOCX render, four synthetic Word product/page checks and negative Financial workflow replay passed. The Financial Skill is 11,403 UTF-8 bytes, below the 12,000-byte router limit.
+
+**This is engineering evidence only.** It does not certify real article quality, independent editorial review, reader acceptance, live provider persistence or system completion. PR #88 remains stacked on PR #87 and PR #86; merge in dependency order.

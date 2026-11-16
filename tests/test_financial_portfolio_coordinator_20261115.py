@@ -9,7 +9,7 @@ import pytest
 from financial_writing_agent import current_admission, portfolio_coordinator, standalone_runtime
 from financial_writing_agent.portfolio_coordinator import PortfolioCoordinatorError
 from financial_writing_agent.standalone_runtime import FinancialAdmissionError
-from financial_writing_agent.writing_kernel import WritingPass
+from financial_writing_agent.writing_kernel import WritingPass, WritingPassExecutionError
 from test_current_admission_v1 import _brief, _decision
 from test_financial_portfolio_execution_20261114 import _executor, _seed
 from test_financial_portfolio_requirement_governance_20261114 import (
@@ -160,16 +160,36 @@ def test_resume_refreshes_scoped_requirement_projection_even_when_digest_is_unch
     digest = context["requirement_digest"]
     fresh_contexts = _contexts(digest, [new_requirement])
 
+    refreshed_profile = {
+        **context["seed_inputs"]["writing_execution_profile"],
+        "fixed_requirement_ids": ["new-scope-rule"],
+        "locked_decision_domains": ["RESEARCH_SCOPE"],
+        "execution_rationale": "The refreshed user requirement locks research scope while other editorial decisions remain evidence-led.",
+    }
+    with pytest.raises(
+        WritingPassExecutionError,
+        match="PORTFOLIO_WRITING_EXECUTION_PROFILE_REFRESH_REQUIRED",
+    ):
+        portfolio_coordinator._refresh_context_requirements(
+            context,
+            requirement_digest=digest,
+            requirement_contexts=fresh_contexts,
+            owner_stage="RESEARCH",
+        )
+
     refreshed = portfolio_coordinator._refresh_context_requirements(
         context,
         requirement_digest=digest,
         requirement_contexts=fresh_contexts,
         owner_stage="RESEARCH",
+        writing_execution_profile=refreshed_profile,
     )
 
     assert refreshed["requirement_digest"] == digest
     assert refreshed["requirement_contexts"] == fresh_contexts
     assert refreshed["requirement_contexts"] != context["requirement_contexts"]
+    assert refreshed["seed_inputs"]["writing_execution_profile"]["fixed_requirement_ids"] == ["new-scope-rule"]
+    assert refreshed["shared"]["writing_execution_profile"] == refreshed["seed_inputs"]["writing_execution_profile"]
 
 
 def _portfolio_research_artifact():

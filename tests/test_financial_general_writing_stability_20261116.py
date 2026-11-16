@@ -192,3 +192,45 @@ def test_every_declared_product_mode_is_supported_by_quality_regression():
     readiness = evaluate_corpus_readiness({"cases": cases})
     assert readiness.status == "PROMOTION_READY"
 
+def test_general_writing_execution_profile_keeps_workflow_fixed_and_expression_adaptive():
+    from financial_writing_agent.writing_execution_profile import WritingExecutionProfile
+
+    common = {
+        "schema_version": "1.0",
+        "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+        "source_prompt_sha256": "a" * 64,
+        "fixed_requirement_ids": [],
+        "preference_requirement_ids": [],
+        "locked_decision_domains": [],
+        "conditional_modules": ["COMPANY_UNIVERSE"],
+        "execution_rationale": "One article workflow is retained; the argument and form follow the material and reader.",
+    }
+    event_led = WritingExecutionProfile.model_validate({
+        **common,
+        "open_decision_domains": ["THESIS", "EVENT_TRANSMISSION", "COMPANY_COMPARISON", "TITLE"],
+    })
+    company_cycle = WritingExecutionProfile.model_validate({
+        **common,
+        "open_decision_domains": ["THESIS", "VALUATION_GAP", "COMPANY_DIVERGENCE", "NARRATIVE_ENGINE"],
+    })
+    assert event_led.workflow_contract == company_cycle.workflow_contract
+    assert event_led.open_decision_domains != company_cycle.open_decision_domains
+
+
+def test_execution_profile_contract_is_identical_between_manifest_and_execution_contract():
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    contract = _json("config/EXECUTION_CONTRACT.json")
+    expected = {
+        "name": "WritingExecutionProfile",
+        "schema_version": "1.0",
+        "portfolio_context_schema": "1.1",
+        "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+        "whole_task_classifier": "NONE",
+        "requirement_authority": "TaskRequirementAuthority",
+        "original_prompt_binding": "SHA256",
+        "pass_binding": "ALL_SEMANTIC_PASSES",
+        "requirement_revision": "REFRESH_PROFILE_AND_INVALIDATE_AFFECTED_DOWNSTREAM_EVIDENCE",
+        "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE",
+    }
+    assert manifest["general_writing_stability"]["execution_profile"] == expected
+    assert contract["general_writing_stability"]["execution_profile"] == expected

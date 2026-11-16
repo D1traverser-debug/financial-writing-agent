@@ -290,3 +290,18 @@ The same stage-to-scope projection determines which requirements become due in `
 New requirement mutations fail closed when no scope matches the task's requested outputs or when an active scope cannot execute at the selected affected stage. The special `full_universe_research_pool` typed ResearchPackage/reconciliation gate applies only when its scope is active in the task. DELIVERY is part of the complete requirement-context authority even though it is not one of the six internal portfolio stages.
 
 Regression evidence: `tests/test_financial_requirement_scope_dataflow_20261116.py`, `tests/test_financial_portfolio_requirement_governance_20261114.py` and `tests/test_financial_portfolio_coordinator_20261115.py`. Candidate tests still require exact-head CI and mainline verification before promotion.
+
+## 21. Fixed workflow and adaptive editorial execution profile (2026-11-16)
+
+Financial Writing retains one owner state authority, one Article Aggregate, one canonical ten-stage business graph and the existing TaskRequirementAuthority. No whole-task classifier, second controller or parallel state machine is introduced.
+
+New Portfolio Context schema 1.1 stores a prompt-bound `WritingExecutionProfile`. It records:
+- the invariant `FINANCIAL_ARTICLE_10_STAGE_V1` workflow contract;
+- exact active explicit/corrective requirement IDs and separately weighted preference IDs;
+- editorial decision domains locked by the user versus decisions left open;
+- only research/editorial modules material to the task;
+- the original prompt hash and current requirement projection.
+
+TaskRequirementAuthority remains the sole source of binding user requirements; DecisionEnvelope remains the authority for material editorial judgments. Every semantic pass receives the same persisted profile. Requirement changes require a refreshed profile and invalidate dependent evidence. Historical Portfolio Context 1.0 remains readable; new contexts use 1.1. The profile is a derived execution projection, not proof that the model interpreted the user's intent correctly.
+
+The system invariant is **fixed process, adaptive content**: every article task follows the same business lifecycle and evidence/QA obligations; research depth and specialist modules are conditional on materiality; thesis, angle, narrative engine, opening, title, section order, paragraph rhythm, technical depth and voice remain content-led unless explicitly locked by the user.

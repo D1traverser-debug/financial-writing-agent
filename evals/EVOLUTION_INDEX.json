@@ -148,7 +148,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Treat Financial Writing as a system-wide product. PR #84 requirement-scope/dataflow repair and PR #85 CAOS-governance migration are merged to Financial main with exact CI receipts. PR #86 is a Draft quality-evaluator candidate with exact-head CI pass; PR #87 is a Draft status-synchronization candidate stacked on PR #86, also with exact code-head CI pass. Both require independent review; PR #87 must be retargeted to main only after PR #86 is integrated. Continue real article tasks across multiple topic families and all three products; do not infer editorial quality from CI. Financial Provider Action remains NOT_DEPLOYED, so no canonical article-state or method-catalog writes may be claimed. Do not modify CAOS.",
+    "next_legal_phase": "PR #84 requirement-scope/dataflow and PR #85 CAOS-governance migration remain merged to Financial main with exact CI receipts; do not modify CAOS. PR #86 Interaction quality-evaluator repair and PR #87 current-status synchronization have now been merged to main in dependency order. PR #88 is retargeted to main; its latest documentation/index follow-up exposed two stale status assertions and is being corrected before final exact-head CI. After PR #88 passes, merge it and verify mainline CI. Real cross-topic articles, independent editorial review and reader acceptance remain OPEN. Financial Provider Action remains NOT_DEPLOYED, so no live canonical article-state or method-catalog writes may be claimed.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -692,7 +692,7 @@
       "exact_main_ci_tests_passed": 727
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.4",
+    "problem_journal_revision": "2.5",
     "general_writing_stability": {
       "status": "OPEN__SYSTEM_WIDE_CROSS_TOPIC_QUALITY_NOT_VERIFIED",
       "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
@@ -777,7 +777,16 @@
       "latest_main_head_sha": "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07",
       "latest_main_head_ci_run": 43834173578,
       "latest_main_head_ci_conclusion": "success",
-      "latest_main_head_ci_semantics": "DOCS_ONLY_FOLLOWUP_AFTER_MERGED_PR84__CODE_CANDIDATE_CI_REMAINS_7DBDE945"
+      "latest_main_head_ci_semantics": "DOCS_ONLY_FOLLOWUP_AFTER_MERGED_PR84__CODE_CANDIDATE_CI_REMAINS_7DBDE945",
+      "execution_profile_candidate": {
+        "pull_request": 88,
+        "candidate_head_sha": "6a1445dd766f2e0d0d8aebac03c4eb516dfa059a",
+        "exact_head_ci_run": 43906504480,
+        "exact_head_ci_conclusion": "success",
+        "tests_passed": 745,
+        "source_line_coverage_percent": 88,
+        "status": "CANDIDATE_ONLY__NO_EDITORIAL_ACCEPTANCE"
+      }
     }
   },
   "system_engineering_simulation_20261112": {
@@ -834,7 +843,7 @@
     "exact_main_ci_run": 43626092503,
     "exact_main_ci_conclusion": "success"
   },
-  "updated_at": "2026-11-16",
+  "updated_at": "2026-11-17",
   "current_system_candidate": {
     "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
     "status": "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_ARTICLE_QUALITY_OPEN",
@@ -985,5 +994,58 @@
       "NO_REAL_ARTICLE_QUALITY_OR_USER_ACCEPTANCE"
     ],
     "next_legal_step": "INDEPENDENT_REVIEW__THEN_RETARGET_TO_MAIN_AFTER_PR86_INTEGRATION"
+  },
+  "current_writing_execution_profile_candidate": {
+    "id": "FIN-WRITING-EXECUTION-PROFILE-20261116",
+    "status": "DRAFT_PR__EXACT_HEAD_CI_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN__STACKED_ON_PR87",
+    "branch": "architecture/universal-task-shape-generalization-20261116",
+    "pull_request": 88,
+    "base_branch": "repair/current-integration-status-sync-20261116",
+    "base_sha": "747cf5706890b976bd7dd8f2f53ce6d516874186",
+    "candidate_head_sha": "6a1445dd766f2e0d0d8aebac03c4eb516dfa059a",
+    "exact_head_ci_run": 43906504480,
+    "exact_head_ci_conclusion": "success",
+    "tests_passed": 745,
+    "source_line_coverage_percent": 88,
+    "coverage_statements": 8330,
+    "coverage_missed": 1020,
+    "module_coverage": {
+      "portfolio_coordinator_percent": 90,
+      "standalone_runtime_percent": 89,
+      "writing_kernel_percent": 81,
+      "writing_execution_profile_percent": 81
+    },
+    "whole_tree_inventory": {
+      "tracked_files": 346,
+      "python_ast_parsed": 136,
+      "json_parsed": 54,
+      "decoded_text_lines": 56358,
+      "warnings": 0,
+      "errors": 0
+    },
+    "skill_utf8_bytes": 11403,
+    "verified": [
+      "ONE_CANONICAL_TEN_STAGE_WORKFLOW_REMAINS_INVARIANT",
+      "NO_WHOLE_TASK_FIXED_OPEN_HYBRID_CLASSIFIER_OR_PARALLEL_ROUTER",
+      "PROMPT_BOUND_WRITING_EXECUTION_PROFILE_PERSISTED_IN_PORTFOLIO_CONTEXT_1_1",
+      "ACTIVE_EXPLICIT_AND_CORRECTIVE_REQUIREMENT_IDS_MATCH_TASK_REQUIREMENT_AUTHORITY",
+      "USER_PREFERENCES_REMAIN_SEPARATE_FROM_HARD_REQUIREMENTS",
+      "LOCKED_AND_OPEN_EDITORIAL_DECISION_DOMAINS_ARE_SEPARATED",
+      "SAME_EXECUTION_PROFILE_PROPAGATES_TO_ALL_SEMANTIC_PASSES",
+      "REQUIREMENT_PROJECTION_CHANGES_REQUIRE_PROFILE_REFRESH_AND_DOWNSTREAM_INVALIDATION",
+      "HISTORICAL_PORTFOLIO_CONTEXT_1_0_READ_COMPATIBILITY_RETAINED",
+      "QUALITY_REGRESSION_REMAINS_SCOPED_TO_THE_THREE_PUBLISHING_PRODUCTS",
+      "SKILL_ROUTER_BUDGET_AND_DOCX_WORD_PRODUCT_SMOKES_PASS"
+    ],
+    "limitations": [
+      "NO_REAL_CROSS_TOPIC_ARTICLE_ACCEPTANCE_FROM_THIS_CI",
+      "NO_INDEPENDENT_BLIND_EDITORIAL_REVIEW",
+      "NO_REAL_USER_ACCEPTANCE_OR_POST_PUBLICATION_PERFORMANCE_EVIDENCE",
+      "FINANCIAL_PROVIDER_ACTION_NOT_DEPLOYED",
+      "PR86_PR87_PR88_STACKED_INTEGRATION_NOT_YET_COMPLETED"
+    ],
+    "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261117-01",
+    "next_legal_step": "INTEGRATE_PR86_THEN_RETARGET_AND_INTEGRATE_PR87_THEN_PR88__PRESERVE_REAL_EDITORIAL_QUALITY_AS_OPEN"
   }
 }

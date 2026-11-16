@@ -696,6 +696,18 @@
       "navigation": "USE_NUMBERING_WHEN_IT_EXPOSES_REAL_INFORMATION_BRANCHES__DO_NOT_FORCE_SUBLEVELS_OR_IDENTICAL_GEOMETRY",
       "authorial_prose": "PARAGRAPHS_MUST_ADD_FACT__MECHANISM__COMPARISON__COUNTEREVIDENCE__BOUNDARY_OR_PAYOFF__NO_MODEL_SCAFFOLDING_OR_GENERIC_HUMANIZER",
       "interaction_copy": "HOOK__COMPACT_EVIDENCE_BOUNDED_INSIGHT__NATURAL_INTERACTION_PROMPT__NO_NEW_FACTS"
+    },
+    "execution_profile": {
+      "name": "WritingExecutionProfile",
+      "schema_version": "1.0",
+      "portfolio_context_schema": "1.1",
+      "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+      "whole_task_classifier": "NONE",
+      "requirement_authority": "TaskRequirementAuthority",
+      "original_prompt_binding": "SHA256",
+      "pass_binding": "ALL_SEMANTIC_PASSES",
+      "requirement_revision": "REFRESH_PROFILE_AND_INVALIDATE_AFFECTED_DOWNSTREAM_EVIDENCE",
+      "legacy_portfolio_context_schema": "1.0_READ_COMPATIBLE"
     }
   }
 }
