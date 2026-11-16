@@ -359,17 +359,18 @@ The stable invariants are:
 
 The following remain deliberately adaptive: narrative engine, title angle, opening strategy, section order, paragraph rhythm, degree of technical explanation, level of detail, tone and voice. **Form follows content and reader purpose.** A StoryBlueprint is a planning aid, not a prose template. Do not impose one universal opening, sentence geometry, rhetorical pattern, paragraph length or slang style.
 
-### 11.2A Fixed, open-ended and hybrid task shapes
+### 11.2A One workflow, task-bound execution context
 
-Task shape is an execution dimension, not a product mode or topic category:
+Do not classify the whole request into separate task types or route it to different workflows. Every article follows the same canonical ten-stage business graph. The task-bound `WritingExecutionProfile` is a derived execution context containing:
+- the invariant `FINANCIAL_ARTICLE_10_STAGE_V1` workflow contract;
+- exact active explicit/corrective requirement IDs and separately weighted preference IDs;
+- editorial decision domains locked by the user versus those left open;
+- only research/editorial modules material to the current task;
+- a binding to the original prompt and current requirement projection.
 
-- **FIXED_WORKFLOW:** task-specific requirements and process/format decisions are prescribed. Execute them exactly; do not substitute a preferred method or expand scope.
-- **OPEN_ENDED:** the user supplies an objective, topic and reader outcome while leaving material editorial choices open. Use the decision loop to explore alternatives and choose the thesis, angle, narrative form and structure.
-- **HYBRID:** preserve all explicit/corrective requirements and weighted preferences, while using evidence and reader value to decide the genuinely open parts.
+TaskRequirementAuthority remains the sole source of binding user requirements; the profile is not another authority, router or state machine. Every semantic pass receives the same profile. Explicit/corrective requirements remain binding, preferences remain preferences, and unprescribed decisions—thesis, angle, narrative engine, opening, title, section order, rhythm, technical depth and voice—are selected from evidence, material and reader needs. Requirement changes refresh the profile and invalidate affected downstream evidence.
 
-The canonical ten-stage article graph remains the fixed business lifecycle. Task shape controls how its stages reason and decide; it does not create another state machine. The typed `TaskWorkProfile` is a derived projection stored in the existing Portfolio Context. TaskRequirementAuthority remains the sole source of binding user requirements; the profile must classify all active requirement IDs without omissions or inventions. Preferences are recorded separately and never silently hardened.
-
-A new task is not adequately covered merely because its topic differs from another task. System-wide evaluation must include fixed, open-ended and hybrid requests, and verify both correct preservation of fixed requirements and appropriate freedom on open editorial decisions. A single profile label, synthetic fixture or successful CI run does not prove semantic classification quality.
+Acceptance verifies both invariants across topics and product modes: the required process is never skipped, while research depth and editorial form adapt to the actual task. Schema validation and synthetic fixtures establish execution contracts only; they do not prove correct semantic interpretation or reader acceptance.
  
 ### 11.3 What “stable” means
 

@@ -192,43 +192,26 @@ def test_every_declared_product_mode_is_supported_by_quality_regression():
     readiness = evaluate_corpus_readiness({"cases": cases})
     assert readiness.status == "PROMOTION_READY"
 
-def test_task_work_profile_distinguishes_fixed_open_and_hybrid_requests_without_changing_the_article_graph():
-    from financial_writing_agent.task_work_profile import TaskWorkProfile
-    from financial_writing_agent.workflow_spec import BUSINESS_STAGE_NAMES
+def test_general_writing_execution_profile_keeps_workflow_fixed_and_expression_adaptive():
+    from financial_writing_agent.writing_execution_profile import WritingExecutionProfile
 
-    fixed = TaskWorkProfile.model_validate({
+    common = {
         "schema_version": "1.0",
-        "task_shape": "FIXED_WORKFLOW",
-        "fixed_requirement_ids": ["user-fixed-outline"],
-        "preference_requirement_ids": [],
-        "open_decision_domains": [],
-        "conditional_modules": [],
-        "classification_rationale": "The user supplied a complete fixed procedure and outline.",
-    })
-    open_ended = TaskWorkProfile.model_validate({
-        "schema_version": "1.0",
-        "task_shape": "OPEN_ENDED",
+        "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+        "source_prompt_sha256": "a" * 64,
         "fixed_requirement_ids": [],
         "preference_requirement_ids": [],
-        "open_decision_domains": ["THESIS", "ANGLE", "STRUCTURE", "VOICE"],
+        "locked_decision_domains": [],
         "conditional_modules": ["COMPANY_UNIVERSE"],
-        "classification_rationale": "The user gave the goal but left editorial choices open.",
+        "execution_rationale": "One article workflow is retained; the argument and form follow the material and reader.",
+    }
+    event_led = WritingExecutionProfile.model_validate({
+        **common,
+        "open_decision_domains": ["THESIS", "EVENT_TRANSMISSION", "COMPANY_COMPARISON", "TITLE"],
     })
-    hybrid = TaskWorkProfile.model_validate({
-        "schema_version": "1.0",
-        "task_shape": "HYBRID",
-        "fixed_requirement_ids": ["user-fixed-title"],
-        "preference_requirement_ids": ["user-preferred-tone"],
-        "open_decision_domains": ["THESIS", "ANGLE", "STRUCTURE"],
-        "conditional_modules": ["POLICY_TRANSMISSION"],
-        "classification_rationale": "The title is fixed while the argument and narrative remain open.",
+    company_cycle = WritingExecutionProfile.model_validate({
+        **common,
+        "open_decision_domains": ["THESIS", "VALUATION_GAP", "COMPANY_DIVERGENCE", "NARRATIVE_ENGINE"],
     })
-
-    assert fixed.task_shape == "FIXED_WORKFLOW"
-    assert open_ended.task_shape == "OPEN_ENDED"
-    assert hybrid.task_shape == "HYBRID"
-    assert BUSINESS_STAGE_NAMES == (
-        "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE",
-        "DRAFT", "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT",
-    )
-
+    assert event_led.workflow_contract == company_cycle.workflow_contract
+    assert event_led.open_decision_domains != company_cycle.open_decision_domains

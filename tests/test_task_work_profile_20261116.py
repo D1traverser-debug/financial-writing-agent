@@ -2,115 +2,106 @@ from __future__ import annotations
 
 import pytest
 
-from financial_writing_agent.task_work_profile import (
-    TaskWorkProfile,
-    TaskWorkProfileError,
-    validate_task_work_profile,
+from financial_writing_agent.writing_execution_profile import (
+    WritingExecutionProfile,
+    WritingExecutionProfileError,
+    validate_writing_execution_profile,
 )
 
 
 def _contexts(requirements=()):
     scopes = ("ALL", "RESEARCH", "PRIVATE_RESEARCH", "FINANCE_DEEP", "FINANCE_BROAD")
-    return {
-        scope: {"requirements": [dict(item) for item in requirements]}
-        for scope in scopes
-    }
+    return {scope: {"requirements": [dict(item) for item in requirements]} for scope in scopes}
 
 
 def _requirement(requirement_id, source_kind="USER_EXPLICIT"):
-    return {
-        "requirement_id": requirement_id,
-        "source_kind": source_kind,
-    }
+    return {"requirement_id": requirement_id, "source_kind": source_kind}
 
 
 def _profile(**overrides):
     value = {
         "schema_version": "1.0",
-        "task_shape": "OPEN_ENDED",
+        "workflow_contract": "FINANCIAL_ARTICLE_10_STAGE_V1",
+        "source_prompt_sha256": "a" * 64,
         "fixed_requirement_ids": [],
         "preference_requirement_ids": [],
-        "open_decision_domains": ["THESIS", "ANGLE", "STORY_STRUCTURE", "TITLE", "VOICE"],
+        "locked_decision_domains": [],
+        "open_decision_domains": ["THESIS", "ANGLE", "NARRATIVE_ENGINE", "TITLE", "VOICE"],
         "conditional_modules": ["COMPANY_UNIVERSE"],
-        "classification_rationale": "The user gives a goal and topic while leaving editorial decisions open.",
+        "execution_rationale": "The business workflow remains fixed while unspecified editorial choices follow evidence and reader needs.",
     }
     value.update(overrides)
     return value
 
 
-def test_open_ended_profile_preserves_editorial_freedom_without_inventing_fixed_requirements():
-    profile = validate_task_work_profile(_profile(), _contexts())
-    assert profile["task_shape"] == "OPEN_ENDED"
-    assert profile["fixed_requirement_ids"] == []
-    assert profile["open_decision_domains"]
+def test_one_workflow_contract_supports_different_content_led_editorial_decisions():
+    event_led = WritingExecutionProfile.model_validate(_profile(
+        open_decision_domains=["THESIS", "EVENT_TRANSMISSION", "COMPANY_COMPARISON", "TITLE"],
+    ))
+    company_cycle = WritingExecutionProfile.model_validate(_profile(
+        open_decision_domains=["THESIS", "VALUATION_GAP", "COMPANY_DIVERGENCE", "NARRATIVE_ENGINE"],
+    ))
+    assert event_led.workflow_contract == company_cycle.workflow_contract
+    assert event_led.open_decision_domains != company_cycle.open_decision_domains
 
 
-def test_fixed_workflow_profile_requires_every_explicit_requirement_and_no_open_decisions():
-    requirements = [_requirement("exact-outline"), _requirement("fixed-title", "USER_CORRECTION")]
-    profile = _profile(
-        task_shape="FIXED_WORKFLOW",
-        fixed_requirement_ids=["exact-outline", "fixed-title"],
-        open_decision_domains=[],
-    )
-    result = validate_task_work_profile(profile, _contexts(requirements))
-    assert result["task_shape"] == "FIXED_WORKFLOW"
-    assert set(result["fixed_requirement_ids"]) == {"exact-outline", "fixed-title"}
-
-
-def test_hybrid_profile_separates_locked_requirements_from_open_editorial_decisions():
+def test_all_active_explicit_requirements_and_preferences_are_bound_exactly():
     requirements = [
-        _requirement("fixed-word-count"),
+        _requirement("fixed-outline"),
+        _requirement("corrected-title", "USER_CORRECTION"),
         _requirement("preferred-tone", "USER_PREFERENCE"),
     ]
     profile = _profile(
-        task_shape="HYBRID",
-        fixed_requirement_ids=["fixed-word-count"],
+        fixed_requirement_ids=["fixed-outline", "corrected-title"],
         preference_requirement_ids=["preferred-tone"],
-        open_decision_domains=["THESIS", "ANGLE", "STORY_STRUCTURE"],
+        locked_decision_domains=["TITLE", "OUTPUT_FORMAT"],
+        open_decision_domains=["THESIS", "ANGLE", "NARRATIVE_ENGINE"],
     )
-    result = validate_task_work_profile(profile, _contexts(requirements))
-    assert result["task_shape"] == "HYBRID"
-    assert result["fixed_requirement_ids"] == ["fixed-word-count"]
+    result = validate_writing_execution_profile(
+        profile, _contexts(requirements), source_prompt_sha256="a" * 64,
+    )
+    assert set(result["fixed_requirement_ids"]) == {"fixed-outline", "corrected-title"}
     assert result["preference_requirement_ids"] == ["preferred-tone"]
-    assert result["open_decision_domains"] == ["THESIS", "ANGLE", "STORY_STRUCTURE"]
 
 
-def test_profile_cannot_omit_or_invent_active_fixed_requirements():
+def test_missing_or_invented_requirement_ids_fail_closed():
     requirements = [_requirement("fixed-title")]
-    omitted = _profile(task_shape="OPEN_ENDED", open_decision_domains=["THESIS"])
-    with pytest.raises(TaskWorkProfileError, match="fixed requirement ids"):
-        validate_task_work_profile(omitted, _contexts(requirements))
-
-    invented = _profile(
-        task_shape="HYBRID",
-        fixed_requirement_ids=["not-an-active-requirement"],
-        open_decision_domains=["THESIS"],
-    )
-    with pytest.raises(TaskWorkProfileError, match="fixed requirement ids"):
-        validate_task_work_profile(invented, _contexts(requirements))
+    with pytest.raises(WritingExecutionProfileError, match="fixed requirement ids"):
+        validate_writing_execution_profile(
+            _profile(), _contexts(requirements), source_prompt_sha256="a" * 64,
+        )
+    with pytest.raises(WritingExecutionProfileError, match="fixed requirement ids"):
+        validate_writing_execution_profile(
+            _profile(fixed_requirement_ids=["invented-id"]),
+            _contexts(requirements), source_prompt_sha256="a" * 64,
+        )
 
 
-def test_profile_cannot_misclassify_preferences_as_hard_requirements():
+def test_preferences_cannot_be_promoted_to_hard_requirements():
     requirements = [_requirement("preferred-tone", "USER_PREFERENCE")]
-    profile = _profile(
-        task_shape="HYBRID",
-        fixed_requirement_ids=["preferred-tone"],
-        open_decision_domains=["THESIS"],
-    )
-    with pytest.raises(TaskWorkProfileError, match="fixed requirement ids"):
-        validate_task_work_profile(profile, _contexts(requirements))
+    profile = _profile(fixed_requirement_ids=["preferred-tone"])
+    with pytest.raises(WritingExecutionProfileError, match="fixed requirement ids"):
+        validate_writing_execution_profile(
+            profile, _contexts(requirements), source_prompt_sha256="a" * 64,
+        )
 
 
-@pytest.mark.parametrize(
-    "profile",
-    [
-        _profile(task_shape="FIXED_WORKFLOW"),
-        _profile(task_shape="HYBRID"),
-        _profile(open_decision_domains=[]),
-        _profile(open_decision_domains=["THESIS", "THESIS"]),
-        _profile(conditional_modules=["COMPANY_UNIVERSE", "COMPANY_UNIVERSE"]),
-    ],
-)
-def test_internally_inconsistent_task_shapes_fail_closed(profile):
-    with pytest.raises(ValueError):
-        TaskWorkProfile.model_validate(profile)
+def test_locked_and_open_decision_domains_cannot_overlap():
+    with pytest.raises(ValueError, match="both locked and open"):
+        WritingExecutionProfile.model_validate(_profile(
+            locked_decision_domains=["TITLE"],
+            open_decision_domains=["TITLE", "THESIS"],
+        ))
+
+
+def test_execution_profile_must_be_bound_to_the_exact_original_prompt():
+    with pytest.raises(WritingExecutionProfileError, match="prompt binding mismatch"):
+        validate_writing_execution_profile(
+            _profile(), _contexts(), source_prompt_sha256="b" * 64,
+        )
+
+
+def test_execution_profile_has_no_whole_task_shape_classifier():
+    profile = WritingExecutionProfile.model_validate(_profile())
+    assert profile.workflow_contract == "FINANCIAL_ARTICLE_10_STAGE_V1"
+    assert not hasattr(profile, "task_shape")

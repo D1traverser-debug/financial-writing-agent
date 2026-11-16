@@ -165,32 +165,32 @@ A documentation/journal follow-up at `d58038056068ee4bbe45127a9d5296a971b27b03` 
 
 ---
 
-## 14. Root cause: topic variation was mistaken for task-shape generalization
+## 14. Root cause: the invariant workflow and open editorial decisions were not bound to each execution
 
-The existing general-writing contract correctly described invariant workflow, conditional research modules and open content-led expression. The runtime did not encode that distinction in a durable task-bound profile. The stability test varied topics while retaining one default TaskContract and one article task shape. This was topic coverage, not proof of fixed-process, open-ended and hybrid task handling.
+The product requirements already define one stable ten-stage workflow, conditional research depth and content-led expression. The runtime did not persist one prompt-bound execution profile for all semantic passes. Topic-diverse tests therefore did not prove that the same process and mandatory QA obligations were retained while editorial decisions adapted to material and reader needs.
 
 ### 14.1 Runtime correction candidate
 
-Draft PR #88 adds:
-- a typed `TaskWorkProfile` with `FIXED_WORKFLOW`, `OPEN_ENDED` and `HYBRID`;
-- exact classification of active explicit/corrective requirements versus preferences;
-- explicit open editorial decision domains and conditional research modules;
-- persistence in the existing Portfolio Context, with no new owner or state machine;
-- optional profile propagation to all semantic passes;
-- prompt-hash binding for new contexts;
-- refreshed-profile requirement when active task requirements change;
+Draft PR #88 replaces whole-task classification with:
+- a typed `WritingExecutionProfile` carrying the invariant `FINANCIAL_ARTICLE_10_STAGE_V1` contract;
+- exact binding of active explicit/corrective requirements and separately weighted preferences to TaskRequirementAuthority;
+- locked versus open editorial decision domains and material conditional modules;
+- persistence in the existing Portfolio Context and propagation to every semantic pass;
+- original-prompt hash binding and mandatory profile refresh when requirements change;
 - read compatibility for historical Portfolio Context 1.0.
+
+No parallel workflow or whole-task taxonomy is introduced.
 
 ### 14.2 Acceptance boundary
 
-The task profile must be tested across fixed, open-ended and hybrid requests. Tests must verify:
-- no explicit/corrective requirement is omitted or invented;
-- preferences are not promoted to hard requirements;
-- fixed tasks preserve the requested process/format/scope;
-- open tasks actually compare alternatives and choose form from evidence and reader needs;
-- hybrid tasks preserve fixed constraints while leaving the remaining editorial decisions adaptive;
-- changing requirements invalidates/rebuilds the profile and downstream evidence;
-- all semantic passes receive the same task-bound profile;
-- historical context read/validation remains compatible.
+Tests must verify:
+- the same canonical business graph and mandatory QA obligations remain present;
+- explicit/corrective requirements are neither omitted nor invented;
+- preferences are not hardened into requirements;
+- locked editorial decisions are preserved while open decisions remain content-led;
+- specialist research modules activate only when material;
+- every semantic pass receives the same prompt-bound profile;
+- requirement changes refresh the profile and invalidate dependent evidence;
+- historical context 1.0 remains readable.
 
-This candidate's schema and dataflow tests are engineering evidence only. It does not prove that a model classifies every real user request correctly or that the resulting articles are reader-accepted. Real fixed/open/hybrid tasks, held-out topic families, independent editorial review and actual user acceptance remain OPEN.
+These are engineering/dataflow checks only. They do not prove the model always interprets the request correctly or that generated articles satisfy readers. Cross-topic, per-product, independently reviewed real article evidence and actual user acceptance remain OPEN.
