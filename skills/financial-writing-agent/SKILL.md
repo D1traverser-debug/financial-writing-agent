@@ -35,13 +35,13 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 ## Decision Loop and Execution Loop
 
-For uncertainty or defects: recover the reader/business outcome; test evidence/counterevidence; compare requirement/source/mechanism/narrative/runtime/artifact/reader/authority hypotheses; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk, cost and reversibility. Use DecisionEnvelope; choose one bounded action.
+For defects: recover the reader outcome; test evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk and reversibility. Use DecisionEnvelope; choose a bounded action.
 
-Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` coordinates one task-bound stage, persists typed artifact+context as one bundle, reads back/cross-binds them, then admits via `standalone_runtime.py`. The model supplies pass outputs; the provider authenticates/persists. `execute_portfolio_writing` is in-memory test replay. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
+Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
 
-Scopes derive from `required_outputs`. RESEARCH receives ALL, RESEARCH, PRIVATE_RESEARCH and all requested product scopes; EDITORIAL/TITLE receive ALL+Deep/Broad; DRAFT/audit receive ALL+requested products; DELIVERY receives ALL+DELIVERY+requested products. Owner and portfolio due checks share one projection. Product passes get ALL+own scope and prior/current-stage requirements. Reject unrequested scopes and impossible scope/stage pairs; the full-universe gate applies only when its scope is requested.
+Scopes derive from `required_outputs`. RESEARCH receives ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope; EDITORIAL/TITLE receive ALL+Deep/Broad; DRAFT/audit receive ALL+requested products; DELIVERY receives ALL+DELIVERY+requested products. Owner/portfolio due checks share one projection. Product passes get ALL+own scope through the current stage. Reject inactive scopes and impossible stage pairs; apply the full-universe gate only to its requested product.
 
-Revisions invalidate downstream evidence; preserve history. Recover before asking; respect consent. Never claim persistence/readback without a real run.
+Revisions invalidate downstream evidence; preserve history. Recover first; respect consent. Never claim persistence/readback without a real run.
 
 ## Financial content contract
 
