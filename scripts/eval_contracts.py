@@ -32,7 +32,12 @@ def main() -> None:
     assert DOMAIN_ID == manifest["domain_id"] == caps["domain_id"] == "financial_writing"
     assert manifest["controller"] == caps["owner"] == execution["authority"]["controller"] == "FINANCIAL_WRITING_OWNER"
     assert manifest["external_parent_required"] is False
-    assert manifest["external_host_required"] is False
+    assert manifest["external_host_required"] is True
+    assert manifest["provider_action_required"] is True
+    assert manifest["provider_action_endpoint"]["protocol"] == "MCP_OVER_HTTPS"
+    assert manifest["provider_action_endpoint"]["status"] == "NOT_DEPLOYED"
+    assert manifest["chatgpt_native_runtime"]["persistence_provider"] == "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP"
+    assert manifest["chatgpt_native_runtime"]["requires_hosted_python_mcp"] is True
     assert manifest["skill_entrypoint"] == "skills/financial-writing-agent/SKILL.md"
     assert manifest["provider_adapter"] == "financial_writing_agent.standalone_runtime"
     assert {"CREATE_ARTICLE", "CHANGE_REQUIREMENTS", "ADVANCE_STAGE", "ATTACH_FEEDBACK"} <= OPERATIONS
