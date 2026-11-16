@@ -1040,14 +1040,15 @@ def _normalize_stage_requirement_satisfaction(
             raise WritingPassExecutionError(
                 f"PORTFOLIO_REQUIREMENT_EVIDENCE_REFS_REQUIRED:{requirement_id}"
             )
-        if len(refs) != len(set(refs)):
+        normalized_refs = [ref.strip() for ref in refs]
+        if len(normalized_refs) != len(set(normalized_refs)):
             raise WritingPassExecutionError(
                 f"PORTFOLIO_REQUIREMENT_EVIDENCE_REFS_DUPLICATED:{requirement_id}"
             )
         normalized.append({
             "requirement_id": requirement_id,
             "result": "SATISFIED",
-            "evidence_refs": [ref.strip() for ref in refs],
+            "evidence_refs": normalized_refs,
             "notes": str(item.get("notes", "")).strip(),
         })
         seen.add(requirement_id)

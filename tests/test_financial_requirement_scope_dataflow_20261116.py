@@ -17,7 +17,9 @@ from financial_writing_agent.task_requirements import (
     validate_requirement_applicability,
 )
 from financial_writing_agent.writing_kernel import (
+    WritingPassExecutionError,
     _due_requirements_for_stage,
+    _normalize_stage_requirement_satisfaction,
     _requirement_contexts_for_pass,
 )
 
@@ -301,3 +303,30 @@ def test_legacy_task_is_upgraded_only_when_first_coordinator_context_is_owner_bo
         "portfolio_execution_contract_version"
     ] == "1.0"
     assert current_admission.portfolio_context_required_for_stage(upgraded) is True
+
+
+@pytest.mark.parametrize(
+    "evidence_refs",
+    [
+        ["source-ref", "source-ref"],
+        ["source-ref", " source-ref "],
+    ],
+)
+def test_portfolio_stage_rejects_duplicate_evidence_refs_after_normalization(evidence_refs):
+    due = {
+        "research-proof": _requirement(
+            "research-proof", ["FINANCE_DEEP"], "RESEARCH",
+        ),
+    }
+    with pytest.raises(
+        WritingPassExecutionError,
+        match="PORTFOLIO_REQUIREMENT_EVIDENCE_REFS_DUPLICATED:research-proof",
+    ):
+        _normalize_stage_requirement_satisfaction(
+            [{
+                "requirement_id": "research-proof",
+                "result": "SATISFIED",
+                "evidence_refs": evidence_refs,
+            }],
+            due=due,
+        )
