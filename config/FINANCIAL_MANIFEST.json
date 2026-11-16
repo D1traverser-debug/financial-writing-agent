@@ -172,9 +172,10 @@
     "fixed_workflow": "CANONICAL_TEN_STAGE_ARTICLE_GRAPH_AND_SHARED_INTERNAL_RESEARCH_SPINE",
     "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
     "no_single_article_is_system_objective": true,
-    "latest_candidate_head": "8ba912bda37285473d41506fb72e96a6a48722a0",
+    "latest_candidate_head": "612100ec7a82a783ec5ec9141db21d2c0dc34494",
     "latest_ci_run": 43829005407,
     "latest_ci_conclusion": "failure",
-    "latest_ci_summary": "720 passed, 3 failed; stale candidate/journal test assertions, now being corrected"
+    "latest_ci_summary": "720 passed, 3 failed due to stale legacy assertions; current test synchronization is in progress.",
+    "last_completed_ci_head": "8ba912bda37285473d41506fb72e96a6a48722a0"
   }
 }

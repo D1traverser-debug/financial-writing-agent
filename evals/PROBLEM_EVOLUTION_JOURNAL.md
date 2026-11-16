@@ -712,3 +712,6 @@ Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
 **Remaining OPEN conditions.** Real blind independent quality review across multiple held-out topic families and every target content mode; user-approved positive samples for personalized writing DNA; live model execution and provider-backed stage persistence; independent current-head review; Provider Action deployment. No CAOS source or configuration was changed.
 
 **Next legal action.** Continue Financial Writing as a system-wide product. Execute and independently evaluate real articles across multiple topic families and each target content mode using the same workflow and content-led expression. Do not anchor completion to any single article task.
+
+
+**Verification follow-up (2026-11-16).** The assertion-sync commit \`612100ec7a82a783ec5ec9141db21d2c0dc34494\` separates the previously verified requirement-scope code candidate from the new system-wide stability candidate. The exact-head run \`43829005407\` is still the prior-head failure (720 passed, 3 stale assertions); this new head requires its own CI. The journal and system status must not claim a pass until that run completes.
