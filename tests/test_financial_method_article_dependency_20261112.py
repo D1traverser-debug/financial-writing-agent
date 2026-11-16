@@ -10,7 +10,11 @@ from financial_writing_agent.standalone_runtime import (
 )
 from trusted_provider_testkit import signed_action_authorization, signed_action_effect
 from test_standalone_financial_runtime_20261111 import (
-    Provider, create, run, proposal, research_proposal,
+    Provider, create, run, proposal, _run_portfolio_stage,
+    _portfolio_research_executor, _prepare_sources, _decision,
+)
+from test_financial_portfolio_execution_20261114 import (
+    _seed, _research_audit,
 )
 from test_financial_method_governance_20261112 import (
     METHOD_ID, original, method, mutate, promotion_verifier,
@@ -51,20 +55,15 @@ def _used_method_state():
     p = Provider()
     create(p)
     _catalog_write(p, _active_catalog())
-    run(p, proposal("ADVANCE_STAGE", sha=p.read(STATE_PATH)["blob_sha"], task_id=ARTICLE))
-    research = research_proposal(p)
-    research["parameters"]["decision_envelope"]["learned_items"] = [METHOD_ID]
-    observed = admit_article_action(
-        research,
-        state_reader=p.read, cas_writer=p.write,
-        authorization_verifier=signed_action_authorization,
-        bundle_cas_writer=p.write_bundle,
-        effect_attestation_signer=signed_action_effect,
-        effect_receipt_reader=p.read_effect,
-        artifact_reader=p.artifact, source_snapshot_reader=p.source,
-        method_catalog_reader=p.read,
+    _run_portfolio_stage(p, seed_inputs=_seed())
+    _prepare_sources(p)
+    decision = deepcopy(_decision())
+    decision["learned_items"] = [METHOD_ID]
+    observed = _run_portfolio_stage(
+        p,
+        execute_pass=_portfolio_research_executor(decision),
     )
-    assert observed["stage"] == "RESEARCH_AUDIT"
+    assert observed["next_stage"] == "RESEARCH_AUDIT"
     return p
 
 
@@ -92,8 +91,11 @@ def test_used_method_has_exact_catalog_provenance_receipt_and_unrelated_edit_doe
     different["knowledge_id"] = "METHOD-SYNTHETIC-UNRELATED"
     cat, _ = mutate(cat, "CREATE", method_id=different["knowledge_id"], proposed=different)
     _catalog_write(p, cat)
-    advanced = _native_action(p, "ADVANCE_STAGE", parameters=_review_artifact(p))
-    assert advanced["stage"] == "EDITORIAL"
+    advanced = _run_portfolio_stage(
+        p,
+        research_audit=_research_audit([]),
+    )
+    assert advanced["next_stage"] == "EDITORIAL"
     assert advanced["method_usage_readback"]["stale_methods"] == []
 
 
@@ -124,18 +126,15 @@ def test_retired_method_prevents_stale_work_and_reopens_earliest_affected_stage(
 def test_method_catalog_omission_cannot_be_bypassed_when_knowledge_is_claimed_in_research():
     p = Provider()
     create(p)
-    run(p, proposal("ADVANCE_STAGE", sha=p.read(STATE_PATH)["blob_sha"], task_id=ARTICLE))
-    research = research_proposal(p)
-    research["parameters"]["decision_envelope"]["learned_items"] = [METHOD_ID]
+    _run_portfolio_stage(p, seed_inputs=_seed())
+    _prepare_sources(p)
+    decision = deepcopy(_decision())
+    decision["learned_items"] = [METHOD_ID]
     frozen = deepcopy(p.store)
     with pytest.raises(FinancialAdmissionError, match="METHOD_CATALOG"):
-        admit_article_action(
-            research, state_reader=p.read, cas_writer=p.write,
-            authorization_verifier=signed_action_authorization,
-            bundle_cas_writer=p.write_bundle,
-            effect_attestation_signer=signed_action_effect,
-            effect_receipt_reader=p.read_effect,
-            artifact_reader=p.artifact, source_snapshot_reader=p.source,
+        _run_portfolio_stage(
+            p,
+            execute_pass=_portfolio_research_executor(decision),
             method_catalog_reader=None,
         )
     assert p.store == frozen

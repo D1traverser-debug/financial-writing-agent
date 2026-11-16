@@ -125,13 +125,19 @@ def create(p):
     }))
 
 
-def _run_portfolio_stage(p, *, seed_inputs=None, execute_pass=None):
+def _run_portfolio_stage(
+    p, *, seed_inputs=None, execute_pass=None, research_audit=None,
+    method_catalog_reader=True,
+):
     path = "workspaces/articles/solo-article-01/STATE.json"
+    if method_catalog_reader is True:
+        method_catalog_reader = p.read
     return portfolio_coordinator.run_next_portfolio_stage(
         "solo-article-01",
         expected_state_blob_sha=p.read(path)["blob_sha"],
         seed_inputs=seed_inputs,
         execute_pass=execute_pass,
+        research_audit=research_audit,
         state_reader=p.read,
         artifact_reader=p.artifact,
         portfolio_context_reader=p.artifact,
@@ -141,10 +147,11 @@ def _run_portfolio_stage(p, *, seed_inputs=None, execute_pass=None):
         effect_attestation_signer=signed_action_effect,
         effect_receipt_reader=p.read_effect,
         source_snapshot_reader=p.source,
+        method_catalog_reader=method_catalog_reader,
     )
 
 
-def _portfolio_research_executor():
+def _portfolio_research_executor(decision_envelope=None):
     calls = []
     fallback = _executor(calls)
 
@@ -153,7 +160,9 @@ def _portfolio_research_executor():
         if node == WritingPass.PRIVATE_RESEARCH_SYNTHESIS:
             result["private_research_brief"] = _brief()
         elif node == WritingPass.THESIS_ADJUDICATION:
-            result["decision_envelope"] = _decision()
+            result["decision_envelope"] = deepcopy(
+                decision_envelope if decision_envelope is not None else _decision()
+            )
         return result
 
     return execute
