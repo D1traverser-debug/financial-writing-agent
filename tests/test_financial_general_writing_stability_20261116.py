@@ -194,7 +194,7 @@ def test_every_declared_product_mode_is_supported_by_quality_regression():
 
 def test_task_work_profile_distinguishes_fixed_open_and_hybrid_requests_without_changing_the_article_graph():
     from financial_writing_agent.task_work_profile import TaskWorkProfile
-    from financial_writing_agent.workflow_spec import CANONICAL_STAGE_ORDER
+    from financial_writing_agent.workflow_spec import BUSINESS_STAGE_NAMES
 
     fixed = TaskWorkProfile.model_validate({
         "schema_version": "1.0",
@@ -227,7 +227,7 @@ def test_task_work_profile_distinguishes_fixed_open_and_hybrid_requests_without_
     assert fixed.task_shape == "FIXED_WORKFLOW"
     assert open_ended.task_shape == "OPEN_ENDED"
     assert hybrid.task_shape == "HYBRID"
-    assert CANONICAL_STAGE_ORDER == (
+    assert BUSINESS_STAGE_NAMES == (
         "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE",
         "DRAFT", "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT", "FINAL_AUDIT",
     )
