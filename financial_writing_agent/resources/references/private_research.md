@@ -301,3 +301,11 @@ A ResearchPackage that only lists company names, even if the names reconcile
 with the retained universe, is insufficient. This structural contract prevents
 false admission; a separate research audit must still challenge the truth,
 recency, source independence, and economic meaning of the underlying claims.
+
+
+For full-universe tasks, every ResearchPackage evidence-ledger source must also
+be present in an APPLICABLE PrivateResearchBrief module's evidence_refs. The
+external source reader fetches every bound source, verifies exact body SHA and
+retrieval freshness, and matches each universe-recall source's declared family
+to the actual provider-returned family. Evidence-ledger presence alone is not
+provider readback.

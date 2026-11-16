@@ -106,3 +106,12 @@ A package that merely contains a list of company names, or whose company-level
 fields are empty/defaulted, is not evidence of complete research. Structural
 admission verifies completeness and provenance bindings; a separate research
 audit must still assess whether the claims and comparisons are factually sound.
+
+
+The full-universe source chain has an additional readback invariant: every
+ResearchPackage evidence-ledger source must also appear in at least one
+APPLICABLE PrivateResearchBrief module. The source reader must fetch and hash
+those exact source bodies, verify retrieval freshness, and confirm that each
+declared universe-recall source family matches the provider-returned family for
+that exact source. A source merely listed in the ResearchPackage ledger is not
+treated as externally read back.

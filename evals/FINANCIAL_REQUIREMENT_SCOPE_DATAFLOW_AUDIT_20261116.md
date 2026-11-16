@@ -4,8 +4,8 @@
 **Repository:** `D1traverser-debug/financial-writing-agent`  
 **Candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84)  
 **Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
-**Verified candidate code head:** `543887a767a9472a11782cf6f7db5b996abd24bf`  
-**Exact code-head CI:** [43790509745](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43790509745) — SUCCESS  
+**Verified candidate code head:** `b60a1873914777cf7ed6463040d1ead0236504a2`  
+**Exact code-head CI:** [43816915533](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43816915533) — SUCCESS  
 **CAOS boundary:** no CAOS repository, code, configuration, plugin, PR or runtime was modified.
 
 ## 1. Original business problem
@@ -100,19 +100,18 @@ Integration fixtures now distinguish actual new/current tasks from historical pr
 
 ### Verified code-head verification
 
-Verified candidate code head `543887a767a9472a11782cf6f7db5b996abd24bf`; CI run [43790509745](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43790509745) completed successfully:
-- **701 tests passed**.
-- Total Python statement coverage: **88%** (7,896 statements; 928 missed).
+Verified candidate code head b60a1873914777cf7ed6463040d1ead0236504a2; exact-head CI run [43816915533](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43816915533) completed successfully:
+- **717 tests passed**.
+- Total Python statement coverage: **88%** (8,156 statements; 972 missed).
 - Portfolio Coordinator: **91%** (253 statements; 22 missed).
-- Standalone Runtime: **89%** (933 statements; 100 missed).
-- Writing Kernel: **81%** (920 statements; 175 missed).
-- Whole-tree audit: **338 tracked files**, 130 Python AST parses, 54 JSON parses, 52,793 decoded text lines, **0 warnings and 0 errors**.
-- Executable contract eval, static single-owner/legacy-quarantine audit, standalone contract, wheel build and isolated install all passed.
+- Standalone Runtime: **89%** (939 statements; 100 missed).
+- Writing Kernel: **81%** (922 statements; 174 missed).
+- Whole-tree audit: **340 tracked files**, 132 Python AST parses, 54 JSON parses, 54,005 decoded text lines, **0 warnings and 0 errors**.
+- Executable contract eval, static single-owner/legacy-quarantine audit, standalone contract, wheel build and isolated install passed.
 - DOCX render smoke passed; all four synthetic Word product binaries opened, rendered and passed byte/signature/page checks.
-- Real-task negative replay completed with `reproduced_weak_assurance_paths = []`. This is negative-path assurance, not a live article or factual-quality certification.
+- Real-task negative replay completed with reproduced_weak_assurance_paths = []. This is negative-path assurance, not a live article or factual-quality certification.
 
-Intermediate exact-head CI attempts exposed integration defects in fixture migration, a stale helper import, a mismatched helper argument, newline serialization and readback assertion placement. Those failures were corrected before the successful run above and are not counted as passing evidence.
-
+The CI proves the candidate's deterministic code and synthetic artifact paths at this exact head. It does not prove that a real model callback will make sound financial judgments, that source claims entail the facts asserted, or that a human reader will accept the resulting article.
 ## 6. What this evidence does not prove
 
 The exact-head CI is engineering evidence, not complete Financial product acceptance.
@@ -132,12 +131,50 @@ The synthetic Word renders do not certify real article quality. The negative rep
 
 ## 7. Promotion decision and next legal step
 
-PR #84 remains DRAFT and unmerged. The production `main` head remains `b2098e69367f78c452e0a595bf95d86388d6a449`. The verified code head recorded by this audit is `543887a767a9472a11782cf6f7db5b996abd24bf`, with exact code-head CI run `43790509745` passing 701 tests. A later status-only commit may change the live PR HEAD; always re-read the current PR head and exact CI from GitHub before review or reporting.
+PR #84 remains DRAFT and unmerged. The production main head remains b2098e69367f78c452e0a595bf95d86388d6a449. The current candidate head is b60a1873914777cf7ed6463040d1ead0236504a2, with exact code-head CI run 43816915533 passing 717 tests. Always re-read the live PR head and exact CI from GitHub before review or reporting.
 
-No independent reviewer has reviewed the current live PR head. The next legal step is independent review of that live exact head. **Do not merge without explicit owner authorization.** Provider Action deployment requires a separate host/cost decision and owner approval. Do not modify CAOS. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.
-
+No independent reviewer has reviewed the current live PR head. The next review step is independent review of that exact head. Provider Action deployment requires a separate host/cost decision and owner approval. Do not modify CAOS. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.
 ## 8. Status-evidence consistency
 
 The second-pass audit found that status evidence had drifted across the repository and GitHub: the audit and evolution index pinned code head `494c9c0` / CI `43787407518` / 698 tests; the chronological journal's prior entry pinned `6551d3a` / CI `43780588561` / 689 tests; the PR body still reported `3b5e4b2` / CI `43781721412` / 690 tests; the live branch was at `543887a` with CI `43790509745` / 701 tests; and the Financial manifest still said the scope fix was CI-pending. The journal header/index also remained at revision 2.0 while the evolution index claimed 2.1.
 
 The root cause was manual duplication of mutable candidate evidence without a cross-authority consistency regression. This update synchronizes the Financial-owned index, manifest, audit, problem journal and journal index, and adds regression checks that bind their code-head SHA, CI run, status and journal revision. The live PR head remains a GitHub readback fact and is refreshed separately after the final status commit; no recursive self-reference is stored in the evolution index.
+
+
+---
+
+## 9. Further root-cause closure — research provenance and editorial handoff (2026-11-16)
+
+The follow-up did not stop at a green test run. It traced two additional failure paths through the actual execution callbacks.
+
+### 9.1 ResearchPackage evidence was not fully covered by provider readback
+
+The full-universe validator required company evidence references to resolve into the ResearchPackage evidence ledger, but the external source reader previously fetched only references listed by PrivateResearchBrief modules. There was no enforced binding between those two sets. A company-specific source could therefore exist in the ResearchPackage ledger without being among the sources whose bytes and freshness were actually checked.
+
+The correction:
+- every ResearchPackage evidence-ledger source must appear in at least one APPLICABLE PrivateResearchBrief module;
+- every such source is then read by the external source reader, with body SHA and retrieval freshness checked;
+- each declared universe-recall source family must match the actual provider-returned source_family for that exact source, not merely the aggregate family count;
+- the verified research readback is persisted into the Research-stage owner receipt; delivery re-reads the same module references and rejects changed source sets, bytes or provider families.
+
+This does not prove that the source is authoritative or that its text entails a financial claim. Those remain explicit semantic and domain-review duties.
+
+### 9.2 Historical PrivateResearch 1.0 compatibility was inconsistent
+
+Owner admission retained support for historical 1.0 briefs, while the source reader hard-coded 1.1 modules and delivery freshness skipped 1.0 entirely. The reader now selects the required module set from the persisted contract version, and delivery freshness rechecks both supported versions. A legacy 1.0 task is no longer silently exempt from source freshness merely because it predates 1.1.
+
+### 9.3 Research-to-editorial handoff omitted decisive fields
+
+PRIVATE_RESEARCH_SYNTHESIS produced publication_distillation; THESIS_ADJUDICATION produced company_decision_map and change_conditions. But STORY_ARCHITECTURE did not declare those as required inputs. Since _invoke_pass forwards only PassContract.required_inputs, those fields were not actually delivered to the Story Architecture model callback even though they remained in shared context.
+
+The correction adds all three as required inputs to STORY_ARCHITECTURE. Missing fields now block the pass before the model callback. The editorial reference and executable contract describe the same handoff.
+
+### 9.4 Exact-head verification
+
+Candidate head b60a1873914777cf7ed6463040d1ead0236504a2; exact-head CI run 43816915533: **717 tests passed**, 88% total statement coverage; whole-tree audit 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,005 decoded text lines, zero warnings and zero errors. Wheel/install, DOCX rendering, four synthetic Word products and negative business replay passed.
+
+### 9.5 Remaining business evidence
+
+The active task cross-border-ecommerce-20261016-v3 remains RESEARCH / IN_PROGRESS, with **0/4** real deliverables, empty quality evidence and no persisted Research-stage artifact. Its stored prompt is only 跨境电商; its V2 source references are historical fixtures, not current factual evidence. No real research, article draft or Word deliverable has been generated by this follow-up.
+
+PR #84 remains DRAFT and unmerged. The live Provider Action is NOT_DEPLOYED; independent current-head review, real source-provider execution, factual entailment, editorial acceptance and reader outcome remain open. No CAOS source or configuration was changed.

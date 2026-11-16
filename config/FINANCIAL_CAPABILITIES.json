@@ -30,12 +30,12 @@
     {
       "id": "source_research_and_company_universe",
       "source": "financial_writing_agent.private_research + financial_writing_agent.full_universe_research",
-      "assurance": "TASK_SCOPED_PER_COMPANY_EVIDENCE_AND_SOURCE_FAMILY_BINDING__EXTERNAL_FACT_AUDIT_REQUIRED"
+      "assurance": "TASK_SCOPED_PER_COMPANY_EVIDENCE__EVIDENCE_LEDGER_BOUND_TO_PRIVATE_BRIEF__EXACT_PROVIDER_BYTES_AND_RECALL_FAMILY_READBACK__EXTERNAL_FACT_ENTAILMENT_AUDIT_REQUIRED"
     },
     {
       "id": "full_universe_research_evidence_contract",
       "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
-      "assurance": "UNIQUE_TICKERS__DATED_COMPANY_EVIDENCE_LINKAGE__TWO_DISTINCT_SOURCE_FAMILIES__SATURATION__WITHIN_SEGMENT_FIVE_AXIS_COMPARISON__TASK_SCOPED"
+      "assurance": "UNIQUE_TICKERS__DATED_COMPANY_EVIDENCE_LINKAGE__PRIVATE_BRIEF_AND_PROVIDER_READBACK_BINDING__TWO_DISTINCT_RECALL_FAMILIES_MATCHED_TO_PROVIDER__SATURATION__WITHIN_SEGMENT_FIVE_AXIS_COMPARISON__TASK_SCOPED"
     },
     {
       "id": "financial_cognition_and_counterexamples",
@@ -96,6 +96,11 @@
       "id": "requirement_scope_and_stage_dataflow",
       "source": "financial_writing_agent.task_requirements + financial_writing_agent.current_admission + financial_writing_agent.writing_kernel",
       "assurance": "ONE_CANONICAL_SCOPE_STAGE_PROJECTION__OWNER_AND_PORTFOLIO_DUE_IDS_MATCH__CANDIDATE_REGRESSION_TESTS"
+    },
+    {
+      "id": "research_to_editorial_dataflow",
+      "source": "financial_writing_agent.writing_kernel.PASS_CONTRACTS[STORY_ARCHITECTURE]",
+      "assurance": "PUBLICATION_DISTILLATION__COMPANY_DECISION_MAP__CHANGE_CONDITIONS_ARE_REQUIRED_MODEL_CALLBACK_INPUTS"
     }
   ],
   "required_external_capabilities_at_execution": [

@@ -201,7 +201,18 @@
       "trigger_requirement_ids": [
         "full_universe_research_pool",
         "deep_complete_retained_universe"
-      ]
+      ],
+      "source_readback": {
+        "every_evidence_ledger_source_must_be_in_applicable_private_research_module": true,
+        "exact_provider_body_sha_and_retrieval_freshness_required": true,
+        "recall_source_declared_family_must_match_actual_provider_family": true,
+        "delivery_rechecks_all_brief_bound_package_sources": true
+      },
+      "private_research_versions_supported": [
+        "1.0",
+        "1.1"
+      ],
+      "legacy_1_0_delivery_freshness_rechecked": true
     }
   },
   "finance_broad": {

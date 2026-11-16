@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.1`
+Journal revision: `2.2`
 Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -650,3 +650,32 @@ Status: `CANDIDATE_REPAIR_VERIFIED__NOT_MERGED__PRODUCTION_OBSERVATION_OPEN`
 **Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent review has been obtained and no explicit owner merge authorization is established. The hosted Financial Provider Action is NOT_DEPLOYED. Native client installation/fresh-session invocation is unverified. The cross-border v3 task remains RESEARCH with 0/4 real deliverables. The original full article prompt is not independently recovered; V2 research references are historical fixtures and require current-source revalidation. Real factual quality, editorial acceptance and reader outcome remain unverified. No paid host or CAOS modification is authorized.
 
 **Next legal action.** Re-read the live PR head and exact CI from GitHub, obtain independent review, and do not merge without explicit owner authorization. Provider hosting/cost approval is a separate decision.
+
+
+---
+
+## P-20261116-03 — Research provenance bypass and editorial handoff omission (2026-11-16)
+
+Status: CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_PROMOTED__REAL_ARTICLE_OUTCOME_OPEN
+
+**Trigger and user consequence.** A follow-up root-cause audit traced the full-universe research package through actual provider readback and then traced private research outputs into the Story Architecture callback. It found that a source could be recorded in a company's ResearchPackage evidence ledger without being among the PrivateResearchBrief references fetched by the external source reader. Separately, Story Architecture was expected by editorial rules to use the publication distillation and company comparisons, but the actual callback did not receive those fields.
+
+**Root causes.**
+1. The full-universe validator proved that company evidence references existed in the ResearchPackage evidence ledger, while the source reader independently verified only PrivateResearchBrief module references. No invariant joined those two sets or matched declared recall-source families to the provider's actual family for each recall source.
+2. PrivateResearch source readback selected a fixed 1.1 module set despite owner-state compatibility for 1.0. Delivery freshness then skipped 1.0 entirely.
+3. The shared context contained publication_distillation, company_decision_map and change_conditions, but STORY_ARCHITECTURE.required_inputs omitted them. _invoke_pass forwards only declared required inputs, so context presence was incorrectly mistaken for model availability.
+
+**Rejected repairs.** Counting two source families globally without checking the actual universe-recall sources; treating a ledger entry as proof its bytes were fetched; retaining a 1.1-only verifier while claiming 1.0 compatibility; and adding editorial guidance without changing the executable pass contract.
+
+**Selected Financial-only correction.**
+- Require every ResearchPackage evidence-ledger source to appear in an APPLICABLE PrivateResearchBrief module.
+- Read back all bound sources, verify exact body SHA and retrieval freshness, and compare each universe-recall source's actual provider family with its declared family.
+- Select the source-module set from the persisted PrivateResearch contract version and recheck both 1.0 and 1.1 at delivery.
+- Add publication_distillation, company_decision_map and change_conditions to Story Architecture's required inputs, so omission blocks before the model callback.
+- Synchronize the executable contract, Skill reference mirror, manifest and candidate audit.
+
+**Verification.** Candidate head b60a1873914777cf7ed6463040d1ead0236504a2; exact-head CI run 43816915533: **717 tests passed**, 88% statement coverage (8,156 statements; 972 missed). Portfolio Coordinator 91% (253; 22 missed), Standalone Runtime 89% (939; 100 missed), Writing Kernel 81% (922; 174 missed). Whole-tree audit: 340 tracked files, 132 Python AST parses, 54 JSON parses, 54,005 decoded text lines, zero warnings/errors. Wheel/isolated install, DOCX render, four synthetic Word product renders and negative business replay passed.
+
+**Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent current-head review has been obtained. Provider Action is NOT_DEPLOYED. The cross-border v3 task remains RESEARCH with 0/4 real deliverables, no quality evidence and no Research-stage artifact. Its prompt is only 跨境电商; V2 sources are historical fixtures and require current-source revalidation. Source-byte readback is not factual entailment. Real article quality, editorial acceptance and reader outcomes remain unverified. No CAOS source or configuration was changed.
+
+**Next legal action.** Review the exact live PR #84 head and its exact CI; keep the candidate separate from main until the repository's review and promotion requirements are satisfied. Provider hosting and real article execution are separate decisions.
