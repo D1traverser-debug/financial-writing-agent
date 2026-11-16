@@ -70,7 +70,8 @@
         "subhead_information_value",
         "reader_value_density"
       ],
-      "evidence_note": "The rejected DOCX was rediscovered in ChatGPT Library and the complete extracted publication text is snapshotted under evals/artifacts. Promotion must verify the pinned repository blob rather than trusting the path string alone."
+      "evidence_note": "The rejected DOCX was rediscovered in ChatGPT Library and the complete extracted publication text is snapshotted under evals/artifacts. Promotion must verify the pinned repository blob rather than trusting the path string alone.",
+      "task_shape": "LEGACY_UNCLASSIFIED"
     },
     {
       "case_id": "rutile-2026-10-06-cross-topic-heldout-01",
@@ -100,7 +101,8 @@
         "section_nonredundancy",
         "subhead_information_value",
         "reader_value_density"
-      ]
+      ],
+      "task_shape": "LEGACY_UNCLASSIFIED"
     }
   ],
   "current_readiness": {
@@ -346,5 +348,16 @@
       "SHORT_IMAGE_TEXT_AND_DYNAMIC_INTERACTION_IS_A_FIRST_CLASS_PRODUCT_NOT_AN_AFTERTHOUGHT"
     ],
     "caveat": "These are quality obligations, not a universal prose template. Applicability is conditional on product and content; narrative form remains open."
+  },
+  "task_shape_generalization_contract": {
+    "required_shapes": [
+      "FIXED_WORKFLOW",
+      "OPEN_ENDED",
+      "HYBRID"
+    ],
+    "evidence_rule": "For every targeted task shape, require one complete real-user rejection case and at least two complete held-out topic families with immutable artifact bindings.",
+    "legacy_handling": "LEGACY_UNCLASSIFIED historical cases remain diagnostic-only and cannot satisfy any task-shape promotion gate.",
+    "runtime_projection": "TaskWorkProfile is a derived projection in Portfolio Context 1.1; TaskRequirementAuthority remains the sole user-requirement authority.",
+    "status": "NOT_READY__NO_REAL_FIXED_OPEN_HYBRID_CORPUS_YET"
   }
 }

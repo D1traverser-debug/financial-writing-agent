@@ -25,6 +25,7 @@ class CandidateDistillationResult:
     status: str
     candidate_id: str | None
     target_content_modes: tuple[str, ...]
+    target_task_shapes: tuple[str, ...]
     errors: tuple[str, ...]
 
 
@@ -44,6 +45,8 @@ _SPLITS = {"CALIBRATION", "REGRESSION", "HELD_OUT"}
 _STATUS = {"PARTIAL", "COMPLETE"}
 _SCOPES = {"GENERAL_EDITORIAL_QUALITY", "PERSONALIZED_WRITING_DNA"}
 _MODES = {"FINANCE_DEEP", "FINANCE_BROAD", "PLATFORM_INTERACTION"}
+_TASK_SHAPES = {"FIXED_WORKFLOW", "OPEN_ENDED", "HYBRID", "LEGACY_UNCLASSIFIED"}
+_PROMOTION_TASK_SHAPES = {"FIXED_WORKFLOW", "OPEN_ENDED", "HYBRID"}
 _BINDING_TYPES = {"GIT_BLOB_SHA", "PROVIDER_IMMUTABLE_VERSION", "CONTENT_SHA256"}
 _MIN_HELDOUT_FAMILIES = 2
 
@@ -125,6 +128,7 @@ def evaluate_corpus_readiness(corpus: Mapping[str, Any], *, promotion_scope: str
         status = str(case.get("evidence_status", "")).strip()
         family = str(case.get("topic_family", "")).strip()
         mode = str(case.get("content_mode", "")).strip()
+        task_shape = str(case.get("task_shape", "")).strip()
         refs = case.get("artifact_refs")
         if source not in _SOURCE:
             errors.append(f"invalid_source_kind:{cid}:{source}")
@@ -136,6 +140,8 @@ def evaluate_corpus_readiness(corpus: Mapping[str, Any], *, promotion_scope: str
             errors.append(f"missing_topic_family:{cid}")
         if mode not in _MODES:
             errors.append(f"invalid_content_mode:{cid}:{mode or 'MISSING'}")
+        if task_shape not in _TASK_SHAPES:
+            errors.append(f"invalid_task_shape:{cid}:{task_shape or 'MISSING'}")
         if not isinstance(refs, list):
             errors.append(f"invalid_artifact_refs:{cid}")
             refs = []
@@ -174,13 +180,13 @@ def evaluate_candidate_distillation(
     promotion_scope: str = "GENERAL_EDITORIAL_QUALITY",
 ) -> CandidateDistillationResult:
     if package is None:
-        return CandidateDistillationResult("FAIL", None, (), ("missing_candidate_distillation",))
+        return CandidateDistillationResult("FAIL", None, (), (), ("missing_candidate_distillation",))
     if not isinstance(package, Mapping):
-        return CandidateDistillationResult("FAIL", None, (), ("invalid_candidate_distillation",))
+        return CandidateDistillationResult("FAIL", None, (), (), ("invalid_candidate_distillation",))
     if evidence_verifier is None:
-        return CandidateDistillationResult("FAIL", None, (), ("evidence_verifier_required",))
+        return CandidateDistillationResult("FAIL", None, (), (), ("evidence_verifier_required",))
     if candidate_evidence_verifier is None:
-        return CandidateDistillationResult("FAIL", None, (), ("candidate_evidence_semantic_verifier_required",))
+        return CandidateDistillationResult("FAIL", None, (), (), ("candidate_evidence_semantic_verifier_required",))
 
     errors: list[str] = []
     cid = str(package.get("candidate_id", "")).strip()
@@ -200,6 +206,14 @@ def evaluate_candidate_distillation(
     for mode in modes:
         if mode not in _MODES:
             errors.append(f"invalid_target_content_mode:{mode}")
+
+    raw_shapes = package.get("target_task_shapes")
+    shapes = tuple(dict.fromkeys(str(x).strip() for x in raw_shapes if isinstance(x, str) and x.strip())) if isinstance(raw_shapes, list) else ()
+    if not shapes:
+        errors.append("missing_target_task_shapes")
+    for shape in shapes:
+        if shape not in _PROMOTION_TASK_SHAPES:
+            errors.append(f"invalid_target_task_shape:{shape}")
 
     raw_sources = package.get("source_case_ids")
     source_ids = tuple(dict.fromkeys(str(x).strip() for x in raw_sources if isinstance(x, str) and x.strip())) if isinstance(raw_sources, list) else ()
@@ -267,9 +281,20 @@ def evaluate_candidate_distillation(
         if len(families) < _MIN_HELDOUT_FAMILIES:
             errors.append(f"target_mode_requires_two_heldout_topic_families:{mode}")
 
+    for shape in shapes:
+        shape_cases = [c for c in complete.values() if str(c.get("task_shape", "")).strip() == shape]
+        if not any(c.get("source_kind") == "REAL_USER_REJECTION" for c in shape_cases):
+            errors.append(f"target_task_shape_missing_real_rejection:{shape}")
+        heldout = [c for c in shape_cases if c.get("split") == "HELD_OUT"]
+        if not heldout:
+            errors.append(f"target_task_shape_missing_heldout:{shape}")
+        families = {str(c.get("topic_family", "")).strip() for c in heldout if str(c.get("topic_family", "")).strip()}
+        if len(families) < _MIN_HELDOUT_FAMILIES:
+            errors.append(f"target_task_shape_requires_two_heldout_topic_families:{shape}")
+
     if not errors and not _semantic_verified(candidate_evidence_verifier, package, corpus):
         errors.append("candidate_evidence_semantics_not_verified")
-    return CandidateDistillationResult("PASS" if not errors else "FAIL", cid or None, modes, tuple(errors))
+    return CandidateDistillationResult("PASS" if not errors else "FAIL", cid or None, modes, shapes, tuple(errors))
 
 
 def _normalized(position: str, preference: str) -> str:
@@ -330,12 +355,14 @@ def evaluate_quality_promotion(
     assert isinstance(package, Mapping)
 
     modes = set(distilled.target_content_modes)
+    shapes = set(distilled.target_task_shapes)
     cases = {
         str(c["case_id"]): c
         for c in corpus["cases"]
         if c.get("evidence_status") == "COMPLETE"
         and c.get("split") in {"REGRESSION", "HELD_OUT"}
         and str(c.get("content_mode", "")).strip() in modes
+        and str(c.get("task_shape", "")).strip() in shapes
     }
     errors: list[str] = []
     for case_id, case in cases.items():
