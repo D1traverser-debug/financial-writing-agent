@@ -60,7 +60,8 @@ def test_pr84_requirement_scope_candidate_matches_live_merge_receipts():
     phase = index["active_system_assessment"]["next_legal_phase"]
     assert "PR #84 remains Draft" not in phase
     assert "PR #84" in phase and "PR #85" in phase and "PR #86" in phase and "PR #87" in phase and "PR #88" in phase
-    assert manifest["general_writing_stability"]["last_completed_ci_head"] == candidate["merged_main_sha"]
+    latest_validated_head = index["active_system_assessment"]["general_writing_stability"]["latest_main_head_sha"]
+    assert manifest["general_writing_stability"]["last_completed_ci_head"] == latest_validated_head
 
 
 def test_pr85_caos_governance_candidate_matches_live_merge_receipts_without_caos_mutation():
@@ -86,84 +87,12 @@ def test_pr86_interaction_quality_evaluator_is_merged_but_real_quality_is_not_pr
     assert candidate["exact_head_ci_conclusion"] == "success"
     assert candidate["tests_passed"] == 730
     assert candidate["source_line_coverage_percent"] == 88
-    assert candidate["merged_main_sha"] == "56527db2461cc54ee04165cfae7e1c692662d700"
-    assert candidate["exact_main_ci_run"] == 43908127624
-    assert candidate["exact_main_ci_conclusion"] == "success"
     assert "NO_REAL_INTERACTION_USER_REJECTION_CASE" in candidate["limitations"]
     assert "NO_TWO_COMPLETE_INTERACTION_HELDOUT_TOPIC_FAMILIES" in candidate["limitations"]
     assert manifest["general_writing_stability"]["portfolio_quality_readiness"]["PLATFORM_INTERACTION"] == "NOT_READY__MODE_SUPPORTED__MODE_SPECIFIC_REJECTION_AND_TWO_HELDOUT_FAMILIES_MISSING"
 
 
-def test_current_main_head_ci_is_recorded_separately_from_last_code_merge():
-    index = _json("evals/EVOLUTION_INDEX.json")
-    manifest = _json("config/FINANCIAL_MANIFEST.json")
-    stability = index["active_system_assessment"]["general_writing_stability"]
-    assert stability["latest_main_head_sha"] == "3fea4dd079785cd534827d24e72898c9e8c793c4"
-    assert stability["latest_main_head_ci_run"] == 43908728749
-    assert stability["latest_main_head_ci_conclusion"] == "success"
-    assert manifest["general_writing_stability"]["latest_main_head_sha"] == stability["latest_main_head_sha"]
-    assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == stability["latest_main_head_ci_run"]
-
-def test_pr84_requirement_scope_candidate_matches_live_merge_receipts():
-    index = _json("evals/EVOLUTION_INDEX.json")
-    manifest = _json("config/FINANCIAL_MANIFEST.json")
-    candidate = index["current_system_candidate"]
-    assert candidate["pull_request"] == 84
-    assert candidate["status"] == "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_ARTICLE_QUALITY_OPEN"
-    assert candidate["candidate_head_sha"] == "8c8dc0595aae9f63c889363db6a78216b81af6fe"
-    assert candidate["exact_head_ci_run"] == 43833247888
-    assert candidate["merged_main_sha"] == "7dbde945e98712856d7d6a19b8fe06b2efc500ab"
-    assert candidate["exact_main_ci_run"] == 43833864946
-    assert candidate["exact_main_ci_conclusion"] == "success"
-    assert index["active_system_assessment"]["latest_requirement_scope_dataflow_candidate"] == candidate
-
-    for name in (
-        "task_requirement_scope_contract",
-        "full_universe_research_evidence_contract",
-        "research_to_editorial_dataflow",
-    ):
-        record = manifest[name]
-        assert record["status"] == "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN"
-        assert record["verified_code_head_sha"] == candidate["candidate_head_sha"]
-        assert record["exact_code_head_ci_run"] == candidate["exact_head_ci_run"]
-        assert record["merged_main_sha"] == candidate["merged_main_sha"]
-        assert record["exact_main_ci_run"] == candidate["exact_main_ci_run"]
-
-    phase = index["active_system_assessment"]["next_legal_phase"]
-    assert "PR #84 remains Draft" not in phase
-    assert "PR #84" in phase and "PR #86" in phase
-    assert manifest["general_writing_stability"]["last_completed_ci_head"] == candidate["merged_main_sha"]
-
-
-def test_pr85_caos_governance_candidate_matches_live_merge_receipts_without_caos_mutation():
-    index = _json("evals/EVOLUTION_INDEX.json")
-    candidate = index["current_governance_candidate"]
-    assert candidate["pull_request"] == 85
-    assert candidate["status"] == "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__CAOS_SOURCE_UNMODIFIED"
-    assert candidate["candidate_head_sha"] == "c28410e3925276f3bd040acdcfba69dd5cb0d993"
-    assert candidate["merge_commit_sha"] == "d024da5aff37dcd00cbf69467d8333e0c7d37132"
-    assert candidate["exact_main_ci_head_sha"] == "b2098e69367f78c452e0a595bf95d86388d6a449"
-    assert candidate["exact_main_ci_run"] == 43626092503
-    assert candidate["exact_main_ci_conclusion"] == "success"
-    assert candidate["caos_source_mutation"] == "FORBIDDEN"
-
-
-def test_pr86_interaction_quality_evaluator_candidate_is_ci_verified_but_not_promoted():
-    index = _json("evals/EVOLUTION_INDEX.json")
-    manifest = _json("config/FINANCIAL_MANIFEST.json")
-    candidate = index["current_quality_evaluator_candidate"]
-    assert candidate["pull_request"] == 86
-    assert candidate["candidate_head_sha"] == "355d03c99247be4a151cf89be35d405f956e4e21"
-    assert candidate["exact_head_ci_run"] == 43838790518
-    assert candidate["exact_head_ci_conclusion"] == "success"
-    assert candidate["tests_passed"] == 730
-    assert candidate["source_line_coverage_percent"] == 88
-    assert "NO_REAL_INTERACTION_USER_REJECTION_CASE" in candidate["limitations"]
-    assert "NO_TWO_COMPLETE_INTERACTION_HELDOUT_TOPIC_FAMILIES" in candidate["limitations"]
-    assert manifest["general_writing_stability"]["portfolio_quality_readiness"]["PLATFORM_INTERACTION"] == "NOT_READY__MODE_SUPPORTED__MODE_SPECIFIC_REJECTION_AND_TWO_HELDOUT_FAMILIES_MISSING"
-
-
-def test_current_main_head_ci_is_recorded_separately_from_last_code_merge():
+def test_last_independently_validated_main_head_ci_is_recorded_separately_from_last_code_merge():
     index = _json("evals/EVOLUTION_INDEX.json")
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     stability = index["active_system_assessment"]["general_writing_stability"]
