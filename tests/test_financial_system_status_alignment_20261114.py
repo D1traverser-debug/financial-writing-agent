@@ -59,7 +59,7 @@ def test_pr84_requirement_scope_candidate_matches_live_merge_receipts():
 
     phase = index["active_system_assessment"]["next_legal_phase"]
     assert "PR #84 remains Draft" not in phase
-    assert "PR #84" in phase and "PR #86" in phase
+    assert "PR #84" in phase and "PR #85" in phase and "PR #86" in phase and "PR #87" in phase and "PR #88" in phase
     assert manifest["general_writing_stability"]["last_completed_ci_head"] == candidate["merged_main_sha"]
 
 
@@ -76,7 +76,7 @@ def test_pr85_caos_governance_candidate_matches_live_merge_receipts_without_caos
     assert candidate["caos_source_mutation"] == "FORBIDDEN"
 
 
-def test_pr86_interaction_quality_evaluator_candidate_is_ci_verified_but_not_promoted():
+def test_pr86_interaction_quality_evaluator_is_merged_but_real_quality_is_not_promoted():
     index = _json("evals/EVOLUTION_INDEX.json")
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     candidate = index["current_quality_evaluator_candidate"]
@@ -167,8 +167,8 @@ def test_current_main_head_ci_is_recorded_separately_from_last_code_merge():
     index = _json("evals/EVOLUTION_INDEX.json")
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     stability = index["active_system_assessment"]["general_writing_stability"]
-    assert stability["latest_main_head_sha"] == "d49c4eb7cf008bfdf1d88339d69d2353aa16ad07"
-    assert stability["latest_main_head_ci_run"] == 43834173578
+    assert stability["latest_main_head_sha"] == "3fea4dd079785cd534827d24e72898c9e8c793c4"
+    assert stability["latest_main_head_ci_run"] == 43908728749
     assert stability["latest_main_head_ci_conclusion"] == "success"
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == stability["latest_main_head_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == stability["latest_main_head_ci_run"]
@@ -181,8 +181,9 @@ def test_current_integration_status_candidate_has_exact_code_head_ci_and_stack_b
     assert candidate["candidate_code_head_sha"] == "09d0d1ab43e2ce0c61337038ea640e08caf99f61"
     assert candidate["exact_code_head_ci_run"] == 43840533953
     assert candidate["exact_code_head_ci_conclusion"] == "success"
-    assert candidate["tests_passed"] == 735
+    assert candidate["tests_passed"] == 734
     assert candidate["source_line_coverage_percent"] == 88
+    assert candidate["exact_main_ci_tests_passed"] == 735
     assert candidate["base_branch"] == "main"
     assert candidate["base_head_sha"] == "56527db2461cc54ee04165cfae7e1c692662d700"
     assert candidate["merged_main_sha"] == "01a8eace63cd0a60c6351e7db8584031a1503d3c"

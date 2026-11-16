@@ -280,6 +280,7 @@
       "exact_head_ci_run": 43908350311,
       "exact_main_ci_run": 43908728749,
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
-    }
+    },
+    "latest_main_head_ci_semantics": "LATEST_INDEPENDENTLY_VALIDATED_FUNCTIONAL_MAINLINE_COMMIT__STATUS_EVIDENCE_FOLLOWUPS_ARE_SEPARATELY_TESTED"
   }
 }
