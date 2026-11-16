@@ -86,8 +86,12 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         optional_outputs=("research_package",),
     ),
     WritingPass.STORY_ARCHITECTURE: PassContract(
-        purpose="design one product-specific reader journey from the shared audited evidence",
-        required_inputs=("selected_thesis", "audited_evidence", "reader_job", "voice_evidence", "product_mode"),
+        purpose="design one product-specific reader journey from audited evidence, the private publication distillation and the adjudicated company decision map",
+        required_inputs=(
+            "selected_thesis", "company_decision_map", "change_conditions",
+            "publication_distillation", "audited_evidence", "reader_job",
+            "voice_evidence", "product_mode",
+        ),
         forbidden_jobs=("reuse the other product's blueprint as a substitute",
                         "full prose drafting", "new factual research except explicit gap repair"),
         outputs=("story_blueprint",),

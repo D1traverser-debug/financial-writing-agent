@@ -304,7 +304,27 @@
     "task_requirement_scope_projection": "financial_writing_agent.task_requirements.requirement_scopes_for_stage",
     "owner_requirement_due_projection": "SAME_CANONICAL_SCOPE_STAGE_FUNCTION_AS_PORTFOLIO_COORDINATOR",
     "product_scoped_research_requirements": "ALL_REQUESTED_PRODUCT_SCOPES_ARE_INJECTED_INTO_SHARED_RESEARCH_WHEN_AFFECTED_FROM_RESEARCH",
-    "inactive_product_scope_requirements": "REJECTED_AT_NEW_REQUIREMENT_ADMISSION"
+    "inactive_product_scope_requirements": "REJECTED_AT_NEW_REQUIREMENT_ADMISSION",
+    "research_to_editorial_dataflow": {
+      "story_architecture_required_inputs": [
+        "selected_thesis",
+        "company_decision_map",
+        "change_conditions",
+        "publication_distillation",
+        "audited_evidence",
+        "reader_job",
+        "voice_evidence",
+        "product_mode"
+      ],
+      "produced_by": {
+        "publication_distillation": "PRIVATE_RESEARCH_SYNTHESIS",
+        "company_decision_map": "THESIS_ADJUDICATION",
+        "change_conditions": "THESIS_ADJUDICATION"
+      },
+      "enforcement": "PassContract.required_inputs__AND__writing_kernel._invoke_pass",
+      "missing_input_behavior": "BLOCK_EDITORIAL_PASS_BEFORE_MODEL_CALLBACK",
+      "purpose": "Preserve private-research publication choices and company-level comparative judgments into product-specific Deep/Broad StoryBlueprints"
+    }
   },
   "knowledge_and_evolution": {
     "topic_and_method_knowledge_are_distinct": true,

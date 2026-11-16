@@ -1,6 +1,6 @@
 # Editorial — Story Architecture Before Prose
 
-Status: `CURRENT_CANDIDATE_1.0.3`
+Status: `CURRENT_CANDIDATE_1.0.4`
 Owner: `DOMAIN:financial_writing`
 
 ## Purpose
@@ -40,7 +40,9 @@ Select by thesis contribution and reader value, not by the size of the research 
 
 For material multi-company or multi-branch research, Deep should preferentially publish the decisive comparison rather than a sequence of isolated company descriptions.
 
-Use the admitted PrivateResearchBrief's within-segment comparison and `cross_segment_global_selection` to decide what comparison the reader actually needs. Typical forms include:
+Use the admitted PrivateResearchBrief's within-segment comparison and `cross_segment_global_selection` to decide what comparison the reader actually needs. The executable Story Architecture pass must receive `publication_distillation`, `company_decision_map` and `change_conditions` as declared required inputs, alongside the selected thesis and audited evidence. The kernel passes only declared required inputs to the model callback; leaving one of these fields out of the pass contract means it is not available to the model, even if it remains in shared context. Missing inputs must block the pass rather than silently degrade into generic story planning.
+
+Typical forms include:
 - same catalyst, different business stage: why A has realized revenue/profit while B is still planning/testing;
 - same branch, different economics: why A has stronger pricing power, purity, order visibility, margin or cash conversion than B;
 - different branches under one policy: why B2B/warehouse/payment/brand receives a stronger or weaker first-order transmission;
