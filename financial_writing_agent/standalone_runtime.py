@@ -37,6 +37,7 @@ from .provider_attestation import (
 )
 from .current_research_sources import CurrentResearchEvidenceError, verify_current_research_sources
 from .full_universe_research import validate_full_universe_research_package
+from .private_research import SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS
 from .company_identity import CompanyIdentityError, require_retained_universe_reconciliation
 from .editorial_review_authority import (
     IndependentEditorialEvidenceError, verify_external_editorial_review,
@@ -321,6 +322,7 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
 
     reconciliation = None
     portfolio_stage_artifact = None
+    research_package = None
     active_requirements = candidate.get("task_requirement_authority", {}).get("active_requirements", [])
     try:
         full_universe_required = (
@@ -396,9 +398,10 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         )
         portfolio_stage_artifact = deepcopy(dict(parsed))
         if full_universe_required:
+            research_package = deepcopy(payload.get("research_package"))
             try:
                 research = validate_full_universe_research_package(
-                    payload.get("research_package")
+                    research_package
                 )
                 reconciliation = require_retained_universe_reconciliation(
                     candidate["task_id"], research,
@@ -414,7 +417,8 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         # contract. New portfolio-coordinator actions must use the typed envelope.
         try:
             parsed = json.loads(content)
-            research = validate_full_universe_research_package(parsed)
+            research_package = deepcopy(parsed)
+            research = validate_full_universe_research_package(research_package)
             reconciliation = require_retained_universe_reconciliation(
                 candidate["task_id"], research,
             )
@@ -431,6 +435,7 @@ def _verify_stage_bytes(candidate: Mapping[str, Any], reader: ArtifactReader | N
         "verified_blob_sha": expected,
         "retained_universe_reconciliation": reconciliation,
         "portfolio_stage_artifact": portfolio_stage_artifact,
+        "research_package": research_package,
     }
 
 
@@ -643,7 +648,7 @@ def _verify_delivery_research_freshness(
     source_reader: Callable[[str], Mapping[str, Any] | None] | None,
 ) -> dict[str, Any] | None:
     """Recheck current research freshness and source-byte stability before delivery."""
-    if candidate.get("private_research_contract_version") != "1.1":
+    if candidate.get("private_research_contract_version") not in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
         return None
     try:
         current = verify_current_research_sources(
@@ -1487,6 +1492,10 @@ def admit_article_action(
             research_sources = verify_current_research_sources(
                 candidate["quality_evidence"]["private_research_brief"],
                 source_reader=source_snapshot_reader,
+                research_package=(
+                    stage_bytes.get("research_package")
+                    if isinstance(stage_bytes, Mapping) else None
+                ),
             )
         except CurrentResearchEvidenceError as exc:
             raise FinancialAdmissionError(str(exc)) from exc
