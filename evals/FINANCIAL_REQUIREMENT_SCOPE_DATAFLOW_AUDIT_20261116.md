@@ -1,0 +1,117 @@
+# Financial Writing — Requirement Scope and Stage Dataflow Audit
+
+**Date:** 2026-11-16  
+**Repository:** `D1traverser-debug/financial-writing-agent`  
+**Candidate PR:** [#84](https://github.com/D1traverser-debug/financial-writing-agent/pull/84)  
+**Candidate branch:** `repair/financial-requirement-bound-owner-stage-coordinator-20261114`  
+**Exact candidate head:** `6551d3a2c214460ae084bcb2924c42fdd765f01a`  
+**Exact-head CI:** [43780588561](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43780588561) — SUCCESS  
+**CAOS boundary:** no CAOS repository, code, configuration, plugin, PR or runtime was modified.
+
+## 1. Original business problem
+
+A task requirement is not merely a sentence stored on the Article Aggregate. It must remain visible to every relevant research and production pass, become due at the correct business stage, be satisfied with evidence, and be checked consistently by the owner-state admission and the portfolio coordinator.
+
+The failure mode under investigation was a divergence between:
+- the owner aggregate's task-requirement due-stage projection;
+- the portfolio coordinator's stage-requirement projection;
+- the contexts injected into shared Research and product-specific passes; and
+- special typed research gates that had to respect the requirement's actual scope.
+
+This is a dataflow/authority defect, not a test-count or documentation defect.
+
+## 2. Root cause
+
+Two independently maintained scope projections had drifted.
+
+1. `current_admission._requirements_due_at_stage` resolved due requirements against the task's stage and output contract.
+2. `writing_kernel._requirement_scopes_for_stage` used a separate simplified rule. Shared Research previously received only ALL, RESEARCH and PRIVATE_RESEARCH. A Deep-, Broad- or platform-interaction-specific requirement affecting RESEARCH could therefore be absent from the one shared Research pass.
+3. Product branches received their own contexts, but the context projection did not consistently apply the stage cutoff. A later-stage requirement could be injected too early, while a product-specific Research requirement could be missed upstream.
+4. The full-universe typed ResearchPackage gate was selected by a special requirement ID without consistently checking whether that requirement applied to the task's requested outputs. A Deep-only requirement could therefore leak into a Broad-only task.
+5. The older executable/static acceptance scripts still encoded the previous no-host execution model. That contradicted the already selected Financial-owned Provider Action boundary and made the architecture internally inconsistent.
+
+The underlying problem was duplicated authority logic: owner admission and portfolio execution were not guaranteed to interpret the same requirement in the same way.
+
+## 3. Rejected approaches
+
+- **Tests-only repair:** rejected. It would make fixtures pass without repairing the production dataflow.
+- **Add Deep/Broad scopes only to one Research callback:** rejected. It would leave owner satisfaction and portfolio due checks with separate definitions.
+- **Treat every special requirement ID as globally active:** rejected. A special typed gate must be activated by the requirement's actual task scope, not by its identifier alone.
+- **Revert to direct GitHub connector writes because the provider is not deployed:** rejected. Git CAS proves concurrency, not authenticated owner intent or signed effect admission.
+- **Restore a CAOS-hosted parent runtime:** rejected. CAOS remains session-level governance; Financial retains its own business state and admission authority.
+
+## 4. Selected correction
+
+### Canonical scope authority
+
+`financial_writing_agent.task_requirements` now owns:
+- `active_task_scopes(required_outputs)`;
+- `requirement_scopes_for_stage(stage, required_outputs)`;
+- `requirement_applies_to_scopes` and `requirement_applies_to_task`; and
+- `validate_requirement_applicability`.
+
+Active product scopes derive from the immutable task output contract. Shared Research receives ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope. EDITORIAL/TITLE receive ALL plus requested Deep/Broad scopes. DRAFT/audit receive ALL plus requested product scopes, including interaction. DELIVERY receives ALL, DELIVERY and requested product scopes.
+
+The owner aggregate and portfolio coordinator now use the same stage-to-scope function. New requirement mutations reject scopes that do not apply to the task's outputs and reject product scope/stage combinations that have no corresponding business pass.
+
+### Pass-context projection
+
+- Shared Research receives only requirements whose affected stage is RESEARCH, including product-specific research constraints for every requested product.
+- Each later product branch receives ALL plus its own scope and only requirements effective by the current stage.
+- The platform-interaction branch receives ALL plus PLATFORM_INTERACTION.
+- The special full-universe ResearchPackage/reconciliation gate is activated only when the corresponding requirement applies to the task's actual output contract.
+
+### Persisted stage and owner admission
+
+The production coordinator `portfolio_coordinator.run_next_portfolio_stage` executes one task-bound stage, persists the typed stage artifact and resumable context as one artifact bundle, reads both back, cross-binds their hashes and then requests Article Aggregate admission through `standalone_runtime.py`. The owner transition binds the context reference and the stage artifact reference. This is deterministic code and test evidence; it is not evidence that a live provider endpoint exists.
+
+### Execution boundary
+
+The Skill-only plugin cannot call the Python admission runtime or sign canonical owner effects. Canonical owner-state and method-catalog mutations therefore require a Financial-owned hosted Provider Action over MCP/HTTPS, using authenticated owner identity, a least-privilege GitHub App, signed authorization/effect receipts, atomic CAS and exact readback. This is an adapter, not a second business controller. The endpoint remains NOT_DEPLOYED; no paid host has been provisioned.
+
+## 5. Regression evidence
+
+New and updated tests cover:
+- equality of owner and portfolio due-requirement IDs for RESEARCH, EDITORIAL, TITLE, DRAFT and DELIVERY;
+- product-scoped Research requirements reaching the shared Research pass;
+- later-stage requirements not being imposed prematurely;
+- Deep/Broad/interaction isolation in downstream branches;
+- rejection of an unrequested product-only requirement;
+- rejection of an impossible scope/stage pair;
+- the full-universe gate being conditional on the requirement's actual task scope;
+- candidate artifact/context/state cross-binding and exact readback; and
+- provider boundary and static acceptance consistency.
+
+Exact-head CI on `6551d3a2c214460ae084bcb2924c42fdd765f01a` completed successfully:
+- **689 tests passed**.
+- Total Python statement coverage: **88%** (7,840 statements; 975 missed).
+- Portfolio Coordinator: **87%**.
+- Standalone Runtime: **86%**.
+- Writing Kernel: **81%**.
+- Whole-tree audit: **337 tracked files**, 130 Python AST parses, 54 JSON parses, 51,989 decoded text lines, **0 warnings and 0 errors**.
+- Executable contract eval, static single-owner/legacy-quarantine audit, standalone contract, wheel build and isolated install all passed.
+- DOCX render smoke and all four synthetic Word product binaries rendered and passed byte/signature/page checks.
+- Real-task negative replay completed with `reproduced_weak_assurance_paths = []`. It reproduced the expected blocks for unauthenticated mutation, stale research, fabricated/unread source references, same-session editorial self-pass, and Word delivery without a render receipt.
+
+## 6. What this evidence does not prove
+
+The exact-head CI is engineering evidence, not complete Financial product acceptance.
+
+The active task `cross-border-ecommerce-20261016-v3` remains at RESEARCH / IN_PROGRESS with **0 of 4** real deliverables and no quality evidence. Its task requirement digest remains `641bfaee46fbce8b5a3c363a54cd364f1c318bca5102ebe70001d968302051dd`.
+
+The whole-system acceptance status remains `NOT_READY__REQUIRES_SIGNED_EXTERNAL_EVIDENCE`. Seven gates remain open:
+1. original goal and semantic correction;
+2. legal article graph and recovery;
+3. method knowledge CRUD and impact;
+4. provider-authenticated runtime CAS;
+5. native Financial plugin client activation;
+6. independent external adversarial review; and
+7. Financial main-branch hygiene.
+
+The synthetic Word renders do not certify real article quality. The negative replay does not revalidate live news, policy, filings or company facts. The plugin package is private Skill-only release 0.1.4; actual installation/fresh-session invocation is NOT_VERIFIED. The hosted Provider Action is NOT_DEPLOYED. No independent reviewer has reviewed this exact candidate head.
+
+## 7. Promotion decision and next legal step
+
+PR #84 remains DRAFT and unmerged. The current `main` head remains `b2098e69367f78c452e0a595bf95d86388d6a449`; candidate head `6551d3a2c214460ae084bcb2924c42fdd765f01a` has exact-head CI success.
+
+The next legal step is an independent review of the exact candidate head. If that review accepts the change, merge only the Financial Writing PR and verify post-merge main CI. Do not modify CAOS. Do not provision paid infrastructure without explicit owner approval. Do not claim live owner-state execution, article completion, editorial acceptance or reader success until their separate evidence exists.

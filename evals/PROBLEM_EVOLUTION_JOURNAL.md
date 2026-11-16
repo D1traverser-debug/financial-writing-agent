@@ -1,8 +1,8 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `1.9`
-Updated: `2026-11-13`
+Journal revision: `2.0`
+Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
 Purpose: one chronological problem/repair history for Financial maintenance; prior parent/child references are provenance only and do not create a live controller or routing dependency.
@@ -603,3 +603,24 @@ A subsequent targeted code-path audit found three residual compatibility signals
 Final code candidate `0440c5c8bd315825fa8e14500782b8bae6f53f99`, exact-head CI run `43404325789`: **514 tests passed**, 90% line coverage (5,759 statements; 572 missed). Whole-tree audit: 304 tracked files, 112 Python AST parses, 52 JSON parses, 40,872 decoded text lines, zero warnings and zero errors. The operating Skill is 11,848 UTF-8 bytes; the two controlled maintenance reference surfaces are byte-identical. Standalone import, clean wheel/install, single-owner/retired-artifact checks and four synthetic Word product renders passed. These remain engineering/synthetic-output evidence only.
 
 Current release boundary: PR #67 remains open and unmerged; no independent review has been submitted. The prior Codex review attempt failed on older head `0ddb200f9a7fc8eb4f1651e493b78bdda769121e` and the bot reported review usage limits; this is not a review of the current candidate. The repository is public and the candidate tree contains private article/research data, including `workspaces/articles/cross-border-ecommerce-20261016-v2/research/PRIVATE_RESEARCH_BRIEF_1_1_20261016.json`. No further private article/research writes should be made to this public repository until the owner chooses private visibility or a private data-repository split. The last recorded GitHub inventory has 99 branches, one open PR, no repository rulesets and unprotected main; no branch/tag archive or deletion was run. All seven signed external acceptance gates remain OPEN. The cross-border v3 article remains at RESEARCH with 0/4 real delivery artifacts. No production merge, plugin update/installation or CAOS modification occurred.
+
+
+---
+
+## P-20261116-01 — Requirement scope/stage dataflow divergence and stale execution acceptance (2026-11-16)
+
+**Scope:** Financial Writing owner admission, portfolio coordination, pass-context projection, typed ResearchPackage gate, Skill execution contract and static acceptance scripts. No CAOS source or business state was modified.
+
+**Observed user consequence:** A task-specific requirement could be present in the Article Aggregate yet fail to reach the shared Research pass, or be evaluated differently by the portfolio coordinator and owner aggregate. A product-specific research constraint could be lost before downstream product branches existed. Conversely, a special Deep-only gate could block a task that did not request Deep output. The executable/static acceptance scripts also contradicted the selected Financial Provider Action architecture.
+
+**Root-cause finding:** The owner aggregate and writing kernel maintained separate stage-to-scope projections. Shared Research used a generic-only scope set; product-specific Research requirements were not included. The pass-context projection did not consistently filter by the earliest affected stage. The full-universe gate relied on a special requirement identifier rather than the requirement's actual active task scope. Legacy acceptance scripts still asserted that no hosted Provider Action was required.
+
+**Rejected repairs:** A test-only change; injecting product scopes into one callback without unifying owner/coordinator logic; treating a special identifier as globally active; reverting to direct GitHub writes; and restoring a CAOS-hosted parent runtime.
+
+**Candidate correction:** One canonical scope resolver now derives active scopes from immutable `required_outputs`. Owner and portfolio due checks call the same stage-scope projection. Shared Research receives every requested product scope when the requirement affects Research; later product passes receive ALL plus their own scope through the current stage. Inactive product-only requirements and impossible scope/stage pairs are rejected. The special typed ResearchPackage gate is scope-aware. The production coordinator persists the typed stage artifact and resumable context as a bundle, reads both back, cross-binds them and requests Article Aggregate admission through the Financial standalone runtime. Legacy static/eval scripts were aligned to the Financial-owned hosted Provider Action boundary.
+
+**Exact evidence:** Candidate PR #84, head `6551d3a2c214460ae084bcb2924c42fdd765f01a`; exact-head CI run `43780588561` SUCCESS; 689 tests passed; 88% total statement coverage; 337-file whole-tree audit with zero warnings/errors; wheel/isolated install, synthetic Word renders and real-task negative replay passed. Full report: `evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md`.
+
+**Current status:** `CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_MERGED`. PR #84 remains DRAFT. Independent current-head review and post-merge CI remain open. Provider Action remains NOT_DEPLOYED; plugin installation, real article completion and independent editorial/reader outcomes remain unverified. Whole-system status remains NOT_READY with seven external gates open.
+
+**Next legal action:** Obtain independent review of exact head `6551d3a2c214460ae084bcb2924c42fdd765f01a`. Merge only the Financial PR if accepted, then verify exact mainline CI. No CAOS modification or paid infrastructure provisioning is authorized by this repair.

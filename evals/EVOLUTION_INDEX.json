@@ -11,7 +11,9 @@
     "evals/FINANCIAL_USER_OUTCOME_BACKWARD_AUDIT_20261114.md",
     "evals/FINANCIAL_GOAL_FIRST_REQUIREMENT_MATRIX_20261114.json",
     "evals/FINANCIAL_PORTFOLIO_STAGE_RESUMABILITY_AUDIT_20261114.md",
-    "evals/FINANCIAL_CAOS_GOVERNANCE_MIGRATION_20261115.md"
+    "evals/FINANCIAL_CAOS_GOVERNANCE_MIGRATION_20261115.md",
+    "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
+    "evals/PROBLEM_EVOLUTION_JOURNAL.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -143,19 +145,17 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Wire fresh task-scoped requirement_context_for_scope results and requirement-satisfaction evidence into each stage; separate typed business-stage artifacts from the resumable portfolio context; add one authenticated standalone coordinator that persists and rereads both, admits the Article Aggregate transition, then resumes only from the admitted readback. Test interruption, stale digests, wrong artifact types, changed bytes, concurrency, failed review and REVISE invalidation. Only then run a real current-source finance topic end to end and independently evaluate its writing. Do not change CAOS.",
+    "next_legal_phase": "Independently review exact candidate PR #84 head 6551d3a2c214460ae084bcb2924c42fdd765f01a. If accepted, merge only Financial Writing and verify exact post-merge main CI. Keep live Provider Action, native client activation, independent article review, real article delivery and branch hygiene open until separately evidenced. Do not modify CAOS or provision paid infrastructure without owner approval.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
-      "No independently admitted current-kernel end-to-end article.",
-      "General editorial quality and personalized writing DNA both NOT_READY.",
-      "No real authenticated user-facing standalone Financial plugin action observed (candidate only).",
-      "Standalone Git provider-adapter behavior is exercised with mocked callbacks in CI; a real user-authenticated plugin CAS effect remains unverified.",
-      "No verified real external reader outcome; current cross-border v3 remains RESEARCH.",
-      "No live provider-signed article-state or method-catalog effect receipt has been emitted and reread; synthetic CI is not production provider evidence.",
-      "The new portfolio stage executor does not itself persist provider artifacts or admit Article Aggregate transitions.",
-      "Fresh scoped task requirement contexts and newly-due requirement satisfaction evidence are not yet injected into every internal pass.",
-      "The resumable context is not interchangeable with typed stage artifacts; RESEARCH may require a validated ResearchPackage artifact."
+      "No independently admitted current-kernel end-to-end article; active cross-border v3 remains RESEARCH with 0/4 real deliverables.",
+      "General editorial quality and personalized writing DNA remain NOT_READY.",
+      "No real authenticated user-facing Financial Provider Action is deployed or observed.",
+      "PR #84 candidate has implemented typed stage/context bundle persistence, exact readback and Article Aggregate admission, but the candidate is not merged and the live provider endpoint is NOT_DEPLOYED.",
+      "PR #84 candidate injects scoped task requirements into shared Research and product branches; this is exact-head CI evidence only, not proof of a live article pass execution.",
+      "No verified real external reader outcome; current article quality and delivery remain unverified.",
+      "No live provider-signed article-state or method-catalog effect receipt has been emitted and reread; synthetic CI is not production provider evidence."
     ],
     "boundary": "ONE_FINANCIAL_EVOLUTION_OWNER__NO_NEW_TASK_INDEX_OR_PARALLEL_ARTICLE_STATE",
     "previous_review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
@@ -607,7 +607,57 @@
         "real article quality or independent reader outcome"
       ]
     },
-    "scoped_owner_demand": "Financial retains its intrinsic requirements, business process, finance-domain decision evidence, execution loops, knowledge/method CRUD, failure repair and independent acceptance. CAOS governs cross-project cognition, root-cause/method comparison, decision rechallenge and cross-domain learning externally in the active ChatGPT session. No external parent runtime/API dependency is introduced."
+    "scoped_owner_demand": "Financial retains its intrinsic requirements, business process, finance-domain decision evidence, execution loops, knowledge/method CRUD, failure repair and independent acceptance. CAOS governs cross-project cognition, root-cause/method comparison, decision rechallenge and cross-domain learning externally in the active ChatGPT session. No external parent runtime/API dependency is introduced.",
+    "latest_requirement_scope_dataflow_candidate": {
+      "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
+      "status": "CANDIDATE__EXACT_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN",
+      "branch": "repair/financial-requirement-bound-owner-stage-coordinator-20261114",
+      "pull_request": 84,
+      "base_branch": "main",
+      "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
+      "candidate_head_sha": "6551d3a2c214460ae084bcb2924c42fdd765f01a",
+      "exact_head_ci_run": 43780588561,
+      "exact_head_ci_conclusion": "success",
+      "tests_passed": 689,
+      "source_line_coverage_percent": 88,
+      "coverage_statements": 7840,
+      "coverage_missed": 975,
+      "module_coverage": {
+        "portfolio_coordinator_percent": 87,
+        "standalone_runtime_percent": 86,
+        "writing_kernel_percent": 81
+      },
+      "whole_tree_inventory": {
+        "tracked_files": 337,
+        "python_ast_parsed": 130,
+        "json_parsed": 54,
+        "decoded_text_lines": 51989,
+        "warnings": 0,
+        "errors": 0
+      },
+      "verified": [
+        "OWNER_AND_PORTFOLIO_DUE_REQUIREMENT_IDS_MATCH_FOR_ALL_BUSINESS_STAGES",
+        "PRODUCT_SCOPED_RESEARCH_REQUIREMENTS_REACH_SHARED_RESEARCH",
+        "LATER_PRODUCT_PASSES_RECEIVE_ONLY_OWN_SCOPE_AND_EFFECTIVE_REQUIREMENTS",
+        "UNREQUESTED_PRODUCT_ONLY_REQUIREMENT_REJECTED",
+        "IMPOSSIBLE_SCOPE_STAGE_PAIR_REJECTED",
+        "FULL_UNIVERSE_RESEARCH_GATE_IS_TASK_SCOPE_AWARE",
+        "TYPED_STAGE_ARTIFACT_AND_CONTEXT_BUNDLE_READBACK_AND_OWNER_ADMISSION_CONTRACT_TESTED",
+        "WHOLE_TREE_STATIC_WHEEL_DOCX_AND_NEGATIVE_REPLAY_CI_PASS"
+      ],
+      "limitations": [
+        "PROVIDER_ACTION_NOT_DEPLOYED",
+        "PRIVATE_SKILL_PLUGIN_INSTALLATION_AND_FRESH_SESSION_INVOCATION_NOT_VERIFIED",
+        "INDEPENDENT_CURRENT_HEAD_REVIEW_NOT_OBTAINED",
+        "CURRENT_REAL_ARTICLE_REMAINS_RESEARCH_0_OF_4_DELIVERABLES",
+        "REAL_ARTICLE_FACTUAL_AND_EDITORIAL_QUALITY_NOT_VERIFIED",
+        "FINANCIAL_MAIN_BRANCH_HYGIENE_OPEN"
+      ],
+      "audit_ref": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
+      "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-01",
+      "next_legal_step": "INDEPENDENT_REVIEW_OF_EXACT_HEAD__THEN_FINANCIAL_ONLY_MERGE_IF_ACCEPTED__POST_MERGE_MAIN_CI"
+    },
+    "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md"
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
@@ -656,5 +706,54 @@
     "historical_provenance_rewritten": false,
     "next_action": "Run exact-head full Financial CI, static/whole-tree audits and independent code/security review; merge only after clean evidence and verify mainline CI."
   },
-  "updated_at": "2026-11-15T02:22:00+08:00"
+  "updated_at": "2026-11-16T08:37:11+08:00",
+  "current_system_candidate": {
+    "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
+    "status": "CANDIDATE__EXACT_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN",
+    "branch": "repair/financial-requirement-bound-owner-stage-coordinator-20261114",
+    "pull_request": 84,
+    "base_branch": "main",
+    "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
+    "candidate_head_sha": "6551d3a2c214460ae084bcb2924c42fdd765f01a",
+    "exact_head_ci_run": 43780588561,
+    "exact_head_ci_conclusion": "success",
+    "tests_passed": 689,
+    "source_line_coverage_percent": 88,
+    "coverage_statements": 7840,
+    "coverage_missed": 975,
+    "module_coverage": {
+      "portfolio_coordinator_percent": 87,
+      "standalone_runtime_percent": 86,
+      "writing_kernel_percent": 81
+    },
+    "whole_tree_inventory": {
+      "tracked_files": 337,
+      "python_ast_parsed": 130,
+      "json_parsed": 54,
+      "decoded_text_lines": 51989,
+      "warnings": 0,
+      "errors": 0
+    },
+    "verified": [
+      "OWNER_AND_PORTFOLIO_DUE_REQUIREMENT_IDS_MATCH_FOR_ALL_BUSINESS_STAGES",
+      "PRODUCT_SCOPED_RESEARCH_REQUIREMENTS_REACH_SHARED_RESEARCH",
+      "LATER_PRODUCT_PASSES_RECEIVE_ONLY_OWN_SCOPE_AND_EFFECTIVE_REQUIREMENTS",
+      "UNREQUESTED_PRODUCT_ONLY_REQUIREMENT_REJECTED",
+      "IMPOSSIBLE_SCOPE_STAGE_PAIR_REJECTED",
+      "FULL_UNIVERSE_RESEARCH_GATE_IS_TASK_SCOPE_AWARE",
+      "TYPED_STAGE_ARTIFACT_AND_CONTEXT_BUNDLE_READBACK_AND_OWNER_ADMISSION_CONTRACT_TESTED",
+      "WHOLE_TREE_STATIC_WHEEL_DOCX_AND_NEGATIVE_REPLAY_CI_PASS"
+    ],
+    "limitations": [
+      "PROVIDER_ACTION_NOT_DEPLOYED",
+      "PRIVATE_SKILL_PLUGIN_INSTALLATION_AND_FRESH_SESSION_INVOCATION_NOT_VERIFIED",
+      "INDEPENDENT_CURRENT_HEAD_REVIEW_NOT_OBTAINED",
+      "CURRENT_REAL_ARTICLE_REMAINS_RESEARCH_0_OF_4_DELIVERABLES",
+      "REAL_ARTICLE_FACTUAL_AND_EDITORIAL_QUALITY_NOT_VERIFIED",
+      "FINANCIAL_MAIN_BRANCH_HYGIENE_OPEN"
+    ],
+    "audit_ref": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-01",
+    "next_legal_step": "INDEPENDENT_REVIEW_OF_EXACT_HEAD__THEN_FINANCIAL_ONLY_MERGE_IF_ACCEPTED__POST_MERGE_MAIN_CI"
+  }
 }

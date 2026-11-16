@@ -27,6 +27,21 @@ def test_single_current_financial_evolution_ref_is_standalone_and_local():
     assert idx["standalone_reconstruction"]["editorial_acceptance"] == "NOT_READY"
 
 
+def test_current_system_candidate_records_exact_requirement_scope_repair_evidence():
+    index = _json("evals/EVOLUTION_INDEX.json")
+    candidate = index["current_system_candidate"]
+    assert candidate["id"] == "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116"
+    assert candidate["pull_request"] == 84
+    assert candidate["candidate_head_sha"] == "6551d3a2c214460ae084bcb2924c42fdd765f01a"
+    assert candidate["exact_head_ci_run"] == 43780588561
+    assert candidate["exact_head_ci_conclusion"] == "success"
+    assert candidate["tests_passed"] == 689
+    assert candidate["source_line_coverage_percent"] == 88
+    assert candidate["status"] == "CANDIDATE__EXACT_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN"
+    assert "PROVIDER_ACTION_NOT_DEPLOYED" in candidate["limitations"]
+    assert index["active_system_assessment"]["latest_requirement_scope_dataflow_candidate"] == candidate
+
+
 def test_product_version_tracks_independent_package_not_prior_child_era():
     package = tomllib.loads((ROOT / "pyproject.toml").read_text(encoding="utf-8"))
     requirements = (ROOT / "docs/product_requirements.md").read_text(encoding="utf-8")
