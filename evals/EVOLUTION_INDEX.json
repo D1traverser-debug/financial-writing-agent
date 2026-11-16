@@ -166,9 +166,14 @@
       "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
       "branch": "repair/execution-profile-decision-binding-20261117",
       "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
-      "status": "CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN",
+      "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
       "scope": "SCOPED_LOCKED_OPEN_DOMAIN_BINDINGS_TO_TASK_REQUIREMENT_AUTHORITY",
-      "assurance": "SCHEMA_AND_DIAGNOSTIC_FIXTURES_ONLY__NO_LIVE_MODEL_SEMANTIC_ACCEPTANCE"
+      "assurance": "SCHEMA_AND_DIAGNOSTIC_FIXTURES_ONLY__NO_LIVE_MODEL_SEMANTIC_ACCEPTANCE",
+      "pull_request": 89,
+      "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
+      "exact_head_ci_run": 43921123751,
+      "tests_passed": 758,
+      "source_line_coverage_percent": 88
     }
   ],
   "historical_notes": [
@@ -188,7 +193,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #84 requirement-scope/dataflow, PR #85 CAOS-governance migration, PR #86 Interaction evaluator repair, PR #87 integration-status synchronization and PR #88 fixed-workflow/adaptive-editorial refactor remain merged to Financial main. New candidate branch repair/execution-profile-decision-binding-20261117 addresses the remaining profile traceability gap: every scoped LOCKED/OPEN decision domain must map to the existing TaskRequirementAuthority. Run exact-head CI and inspect cross-topic semantic fixtures; obtain independent technical review before merge. Real article quality, independent blind editorial review, reader acceptance and live Provider Action remain OPEN. Do not modify CAOS.",
+    "next_legal_phase": "PR #89 (scoped WritingExecutionProfile 1.1 decision-domain binding) candidate code head d7db51af2b7d9c91489b489929528ce39cd6c951 passed exact-head CI run 43921123751: 758 tests, 88% statement coverage, whole-tree parse audit zero warnings/errors. Independent technical review remains OPEN before merge. Real model semantic profile replay, independent blind editorial review, reader acceptance and live Financial Provider Action remain OPEN. No CAOS source or runtime was modified.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -834,7 +839,7 @@
     },
     "current_execution_profile_decision_binding_candidate": {
       "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
-      "status": "CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN",
+      "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
       "branch": "repair/execution-profile-decision-binding-20261117",
       "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
       "schema_version": "1.1",
@@ -846,7 +851,21 @@
         "NO_INDEPENDENT_EDITORIAL_OR_READER_ACCEPTANCE",
         "NO_FINANCIAL_PROVIDER_ACTION_DEPLOYMENT"
       ],
-      "next_legal_step": "Run exact-head CI; inspect semantic fixtures across vague, thesis-led and named-candidate prompts; obtain independent technical review before merge. Do not claim live model semantic classification is proven."
+      "next_legal_step": "Obtain independent technical review of PR #89; then run real model profile replays across representative prompt families. Do not claim semantic profile classification or article quality is proven by schema fixtures/CI.",
+      "pull_request": 89,
+      "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
+      "exact_head_ci_run": 43921123751,
+      "exact_head_ci_conclusion": "success",
+      "tests_passed": 758,
+      "source_line_coverage_percent": 88,
+      "whole_tree_inventory": {
+        "tracked_files": 351,
+        "python_ast_parsed": 137,
+        "json_parsed": 55,
+        "decoded_text_lines": 57919,
+        "warnings": 0,
+        "errors": 0
+      }
     }
   },
   "system_engineering_simulation_20261112": {
@@ -1122,7 +1141,7 @@
   },
   "current_execution_profile_decision_binding_candidate": {
     "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
-    "status": "CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN",
+    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
     "branch": "repair/execution-profile-decision-binding-20261117",
     "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
     "schema_version": "1.1",
@@ -1134,6 +1153,20 @@
       "NO_INDEPENDENT_EDITORIAL_OR_READER_ACCEPTANCE",
       "NO_FINANCIAL_PROVIDER_ACTION_DEPLOYMENT"
     ],
-    "next_legal_step": "Run exact-head CI; inspect semantic fixtures across vague, thesis-led and named-candidate prompts; obtain independent technical review before merge. Do not claim live model semantic classification is proven."
+    "next_legal_step": "Obtain independent technical review of PR #89; then run real model profile replays across representative prompt families. Do not claim semantic profile classification or article quality is proven by schema fixtures/CI.",
+    "pull_request": 89,
+    "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
+    "exact_head_ci_run": 43921123751,
+    "exact_head_ci_conclusion": "success",
+    "tests_passed": 758,
+    "source_line_coverage_percent": 88,
+    "whole_tree_inventory": {
+      "tracked_files": 351,
+      "python_ast_parsed": 137,
+      "json_parsed": 55,
+      "decoded_text_lines": 57919,
+      "warnings": 0,
+      "errors": 0
+    }
   }
 }
