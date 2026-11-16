@@ -2,7 +2,7 @@
   "schema_version": "1.4",
   "journal": "evals/PROBLEM_EVOLUTION_JOURNAL.md",
   "owner": "DOMAIN:financial_writing",
-  "revision": "2.1",
+  "revision": "2.0",
   "backfill_window": {
     "from": "2026-10-10",
     "through": "2026-10-15"
