@@ -49,3 +49,10 @@ The TaskRequirementAuthority remains the sole source of binding requirements. Co
 ## 6. Evidence boundary
 
 CI and schema tests can prove structural authority bindings. They cannot prove that the model correctly classifies every user prompt, that the selected editorial strategy is effective, or that real articles are independently accepted. Live Financial Provider Action remains NOT_DEPLOYED. Real article execution, blind review and reader acceptance remain OPEN.
+
+
+## 7. Mainline integration and exact-head verification
+
+PR #89 was squash-merged to Financial `main` as `44eeaea6f871ed4006d7e98a36dd9375a5fc87ea`. The final PR head `fabdd6a0b41ffeaf509350720f3b8e370525bcb0` passed exact-head CI run [43922363378](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43922363378): 758 tests, 88% Python statement coverage. The merged main SHA passed exact main CI run [43924128311](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43924128311): 758 tests, 88% coverage; Portfolio Coordinator 90%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 351 tracked files, 137 Python AST parses, 55 JSON parses, 57,952 decoded text lines, zero warnings/errors.
+
+No separate external technical review was obtained. The merge is an engineering integration, not independent acceptance. The four cross-topic profiles remain CHAT_SELF_REVIEW diagnostics. Real model semantic replay, independent editorial/reader review, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified.

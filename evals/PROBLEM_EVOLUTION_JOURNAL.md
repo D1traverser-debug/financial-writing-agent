@@ -842,7 +842,7 @@ Status: `MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__REAL_EDITORIAL_ACCEPTANCE_OP
 
 ## P-20261117-02 — Locked/open execution domains were not traceable to requirement authority (2026-11-17)
 
-Status: `CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN`
+Status: `MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN`
 
 **Trigger.** The merged WritingExecutionProfile 1.0 verified the original prompt hash and exact active fixed/preference requirement ID sets, but represented locked and open editorial domains as unbound string lists.
 
@@ -853,7 +853,7 @@ Status: `CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN`
 2. Add a rule-based whole-prompt classifier — rejected because it would turn open editorial decisions into brittle keyword routing and recreate the whole-task taxonomy defect.
 3. Bind scoped decision-domain records to existing TaskRequirementAuthority IDs — selected because it preserves one workflow and one requirement authority while making lock/open distinctions auditable.
 
-**Selected correction candidate.**
+**Selected correction (merged).**
 - Introduce WritingExecutionProfile 1.1 scoped `decision_domains` records.
 - `LOCKED` requires active USER_EXPLICIT/USER_CORRECTION IDs.
 - `OPEN` cannot carry hard requirement IDs; preferences may guide without locking.
@@ -864,3 +864,8 @@ Status: `CANDIDATE_OPEN__CI_PENDING__INDEPENDENT_REVIEW_OPEN`
 - Add diagnostic examples from Ice/Snow, Huangjiu channel transformation, Meta Muse Wonder and AI-security prompts. These are semantic reference fixtures, not proof of live model execution or independent quality acceptance.
 
 **Acceptance boundary.** Unit tests can prove schema and authority-binding invariants. They cannot prove that the model correctly interprets every user prompt, that open editorial choices are good, or that a real article is reader-approved. Real-task profile replay and independent review remain OPEN. Financial Provider Action remains NOT_DEPLOYED. No CAOS source or runtime is modified.
+
+
+**Mainline integration (2026-11-17).** PR #89 was squash-merged to main as `44eeaea6f871ed4006d7e98a36dd9375a5fc87ea`. Final PR head `fabdd6a0b41ffeaf509350720f3b8e370525bcb0` passed exact-head CI run [43922363378](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43922363378): 758 tests, 88% statement coverage. The merged main SHA passed exact main CI run [43924128311](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43924128311): 758 tests, 88% statement coverage; whole-tree audit: 351 tracked files, 137 Python AST parses, 55 JSON parses, 57,952 decoded text lines, zero warnings/errors.
+
+**Current status.** The schema-level authority-binding defect is integrated. No separate external technical reviewer submitted a review; the merge is engineering integration only. Real model profile replay, independent technical/editorial review, reader acceptance and live Financial Provider Action remain OPEN. No CAOS source or runtime was modified.

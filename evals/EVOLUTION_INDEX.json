@@ -193,7 +193,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order; PR #88 merged main SHA 3fea4dd079785cd534827d24e72898c9e8c793c4 passed exact main CI run 43908728749. Current candidate PR #89 (scoped WritingExecutionProfile 1.1 decision-domain binding) code head d7db51af2b7d9c91489b489929528ce39cd6c951 passed exact-head CI run 43921123751: 758 tests, 88% statement coverage, whole-tree parse audit zero warnings/errors. A later status/evidence-only follow-up commit 2f018e299a938972cd53938701198206f212cb3b triggered exact-head CI run 43921643612, which exposed one stale historical status-alignment assertion (1 failed, 757 passed); no implementation failure was identified in that run. Reconcile the historical assertion, rerun exact-head CI, and obtain independent technical review before merge. Real model semantic profile replay, independent blind editorial review, reader acceptance and live Financial Provider Action remain OPEN. No CAOS source or runtime was modified.",
+    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order. PR #89 (WritingExecutionProfile 1.1 scoped decision-domain binding) is also merged: final PR head fabdd6a0b41ffeaf509350720f3b8e370525bcb0 passed exact PR CI run 43922363378 (758 tests, 88% statement coverage); merged main SHA 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea passed exact main CI run 43924128311 (758 tests, 88% statement coverage). No separate external technical review was obtained; this merge is engineering integration only. The next business step is real model profile replay across representative prompt families and independent cross-topic article evaluation. Real reader acceptance, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -750,10 +750,10 @@
       "finance_broad_authorized_for_quality_promotion": false,
       "system_completion_can_be_inferred_from_one_article": false,
       "stability_candidate_head": "7dbde945e98712856d7d6a19b8fe06b2efc500ab",
-      "latest_ci_run": 43908728749,
+      "latest_ci_run": 43924128311,
       "latest_ci_conclusion": "success",
-      "latest_ci_summary": "746 passed; 88% Python statement coverage; main merge commit exact-head CI completed successfully.",
-      "last_completed_ci_head": "3fea4dd079785cd534827d24e72898c9e8c793c4",
+      "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully.",
+      "last_completed_ci_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
       "publishing_portfolio": {
         "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
         "products": [
@@ -819,10 +819,10 @@
         "tests_passed": 727,
         "coverage_percent": 88
       },
-      "latest_main_head_sha": "3fea4dd079785cd534827d24e72898c9e8c793c4",
-      "latest_main_head_ci_run": 43908728749,
+      "latest_main_head_sha": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+      "latest_main_head_ci_run": 43924128311,
       "latest_main_head_ci_conclusion": "success",
-      "latest_main_head_ci_semantics": "DOCS_ONLY_FOLLOWUP_AFTER_MERGED_PR84__CODE_CANDIDATE_CI_REMAINS_7DBDE945",
+      "latest_main_head_ci_semantics": "PR89_MERGED_MAIN_EXACT_HEAD_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW_AND_REAL_EDITORIAL_ACCEPTANCE_OPEN",
       "execution_profile_candidate": {
         "pull_request": 88,
         "candidate_head_sha": "fa09b5b981d10bfcd68396bbcc7c8f3ec8b92e57",
@@ -835,11 +835,11 @@
         "source_line_coverage_percent": 88,
         "status": "MERGED_TO_MAIN__ENGINEERING_PASS__EDITORIAL_ACCEPTANCE_OPEN"
       },
-      "latest_candidate_head": "3fea4dd079785cd534827d24e72898c9e8c793c4"
+      "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea"
     },
     "current_execution_profile_decision_binding_candidate": {
       "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
-      "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
+      "status": "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
       "branch": "repair/execution-profile-decision-binding-20261117",
       "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
       "schema_version": "1.1",
@@ -851,10 +851,10 @@
         "NO_INDEPENDENT_EDITORIAL_OR_READER_ACCEPTANCE",
         "NO_FINANCIAL_PROVIDER_ACTION_DEPLOYMENT"
       ],
-      "next_legal_step": "Obtain independent technical review of PR #89; then run real model profile replays across representative prompt families. Do not claim semantic profile classification or article quality is proven by schema fixtures/CI.",
+      "next_legal_step": "Run real model profile replays across representative prompt families; obtain independent technical review and independent editorial/reader evidence. Do not infer semantic classification or article quality from schema fixtures or CI.",
       "pull_request": 89,
       "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
-      "exact_head_ci_run": 43921123751,
+      "exact_head_ci_run": 43922363378,
       "exact_head_ci_conclusion": "success",
       "tests_passed": 758,
       "source_line_coverage_percent": 88,
@@ -865,7 +865,14 @@
         "decoded_text_lines": 57919,
         "warnings": 0,
         "errors": 0
-      }
+      },
+      "final_pr_head_sha": "fabdd6a0b41ffeaf509350720f3b8e370525bcb0",
+      "exact_head_tests_passed": 758,
+      "merged_main_sha": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+      "exact_main_ci_run": 43924128311,
+      "exact_main_ci_conclusion": "success",
+      "exact_main_ci_tests_passed": 758,
+      "merged_at": "2026-11-16T17:59:36Z"
     }
   },
   "system_engineering_simulation_20261112": {
@@ -1141,7 +1148,7 @@
   },
   "current_execution_profile_decision_binding_candidate": {
     "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
-    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
+    "status": "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN",
     "branch": "repair/execution-profile-decision-binding-20261117",
     "base_main_sha": "7b3200c321a55c641354196992734081f2b795b3",
     "schema_version": "1.1",
@@ -1153,10 +1160,10 @@
       "NO_INDEPENDENT_EDITORIAL_OR_READER_ACCEPTANCE",
       "NO_FINANCIAL_PROVIDER_ACTION_DEPLOYMENT"
     ],
-    "next_legal_step": "Obtain independent technical review of PR #89; then run real model profile replays across representative prompt families. Do not claim semantic profile classification or article quality is proven by schema fixtures/CI.",
+    "next_legal_step": "Run real model profile replays across representative prompt families; obtain independent technical review and independent editorial/reader evidence. Do not infer semantic classification or article quality from schema fixtures or CI.",
     "pull_request": 89,
     "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
-    "exact_head_ci_run": 43921123751,
+    "exact_head_ci_run": 43922363378,
     "exact_head_ci_conclusion": "success",
     "tests_passed": 758,
     "source_line_coverage_percent": 88,
@@ -1167,6 +1174,13 @@
       "decoded_text_lines": 57919,
       "warnings": 0,
       "errors": 0
-    }
+    },
+    "final_pr_head_sha": "fabdd6a0b41ffeaf509350720f3b8e370525bcb0",
+    "exact_head_tests_passed": 758,
+    "merged_main_sha": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+    "exact_main_ci_run": 43924128311,
+    "exact_main_ci_conclusion": "success",
+    "exact_main_ci_tests_passed": 758,
+    "merged_at": "2026-11-16T17:59:36Z"
   }
 }

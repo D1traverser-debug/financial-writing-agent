@@ -184,11 +184,11 @@
     "fixed_workflow": "CANONICAL_TEN_STAGE_ARTICLE_GRAPH_AND_SHARED_INTERNAL_RESEARCH_SPINE",
     "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
     "no_single_article_is_system_objective": true,
-    "latest_candidate_head": "3fea4dd079785cd534827d24e72898c9e8c793c4",
-    "latest_ci_run": 43908728749,
+    "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+    "latest_ci_run": 43924128311,
     "latest_ci_conclusion": "success",
-    "latest_ci_summary": "746 passed; 88% Python statement coverage; main merge commit exact-head CI completed successfully.",
-    "last_completed_ci_head": "3fea4dd079785cd534827d24e72898c9e8c793c4",
+    "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully.",
+    "last_completed_ci_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
     "publishing_portfolio": {
       "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
       "products": [
@@ -258,8 +258,8 @@
       "pull_request_merged": true,
       "semantic_exception": "SOURCE_IDENTITY_MAY_REMAIN_WHEN_MATERIAL_TO_THE_CLAIM"
     },
-    "latest_main_head_sha": "3fea4dd079785cd534827d24e72898c9e8c793c4",
-    "latest_main_head_ci_run": 43908728749,
+    "latest_main_head_sha": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+    "latest_main_head_ci_run": 43924128311,
     "latest_main_head_ci_conclusion": "success",
     "execution_profile": {
       "name": "WritingExecutionProfile",
@@ -290,6 +290,29 @@
       "exact_main_ci_run": 43908728749,
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
     },
-    "latest_main_head_ci_semantics": "LATEST_INDEPENDENTLY_VALIDATED_FUNCTIONAL_MAINLINE_COMMIT__STATUS_EVIDENCE_FOLLOWUPS_ARE_SEPARATELY_TESTED"
+    "latest_main_head_ci_semantics": "LATEST_INDEPENDENTLY_VALIDATED_FUNCTIONAL_MAINLINE_COMMIT__STATUS_EVIDENCE_FOLLOWUPS_ARE_SEPARATELY_TESTED",
+    "execution_profile_decision_binding_implementation": {
+      "pull_request": 89,
+      "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
+      "final_pr_head_sha": "fabdd6a0b41ffeaf509350720f3b8e370525bcb0",
+      "merged_main_sha": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+      "exact_head_ci_run": 43922363378,
+      "exact_head_ci_conclusion": "success",
+      "exact_main_ci_run": 43924128311,
+      "exact_main_ci_conclusion": "success",
+      "tests_passed": 758,
+      "source_line_coverage_percent": 88,
+      "whole_tree_inventory": {
+        "tracked_files": 351,
+        "python_ast_parsed": 137,
+        "json_parsed": 55,
+        "decoded_text_lines": 57952,
+        "warnings": 0,
+        "errors": 0
+      },
+      "independent_technical_review": "NOT_OBTAINED",
+      "real_model_semantic_acceptance": "OPEN",
+      "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN"
+    }
   }
 }

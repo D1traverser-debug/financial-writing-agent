@@ -96,8 +96,8 @@ def test_last_independently_validated_main_head_ci_is_recorded_separately_from_l
     index = _json("evals/EVOLUTION_INDEX.json")
     manifest = _json("config/FINANCIAL_MANIFEST.json")
     stability = index["active_system_assessment"]["general_writing_stability"]
-    assert stability["latest_main_head_sha"] == "3fea4dd079785cd534827d24e72898c9e8c793c4"
-    assert stability["latest_main_head_ci_run"] == 43908728749
+    assert stability["latest_main_head_sha"] == "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea"
+    assert stability["latest_main_head_ci_run"] == 43924128311
     assert stability["latest_main_head_ci_conclusion"] == "success"
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == stability["latest_main_head_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == stability["latest_main_head_ci_run"]
@@ -136,3 +136,28 @@ def test_pr88_execution_profile_candidate_is_merged_with_exact_main_ci():
     assert candidate["exact_main_ci_conclusion"] == "success"
     assert manifest["general_writing_stability"]["execution_profile_implementation"]["merged_main_sha"] == candidate["merged_main_sha"]
     assert candidate["skill_utf8_bytes"] == 11403
+
+
+def test_pr89_decision_domain_binding_is_merged_with_exact_pr_and_main_ci():
+    index = _json("evals/EVOLUTION_INDEX.json")
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    candidate = index["current_execution_profile_decision_binding_candidate"]
+    assert candidate == index["active_system_assessment"]["current_execution_profile_decision_binding_candidate"]
+    assert candidate["pull_request"] == 89
+    assert candidate["status"] == "MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW_OPEN__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN"
+    assert candidate["candidate_code_head_sha"] == "d7db51af2b7d9c91489b489929528ce39cd6c951"
+    assert candidate["final_pr_head_sha"] == "fabdd6a0b41ffeaf509350720f3b8e370525bcb0"
+    assert candidate["exact_head_ci_run"] == 43922363378
+    assert candidate["exact_head_ci_conclusion"] == "success"
+    assert candidate["exact_head_tests_passed"] == 758
+    assert candidate["merged_main_sha"] == "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea"
+    assert candidate["exact_main_ci_run"] == 43924128311
+    assert candidate["exact_main_ci_conclusion"] == "success"
+    assert candidate["exact_main_ci_tests_passed"] == 758
+    implementation = manifest["general_writing_stability"]["execution_profile_decision_binding_implementation"]
+    assert implementation["merged_main_sha"] == candidate["merged_main_sha"]
+    assert implementation["exact_head_ci_run"] == candidate["exact_head_ci_run"]
+    assert implementation["exact_main_ci_run"] == candidate["exact_main_ci_run"]
+    assert manifest["general_writing_stability"]["latest_main_head_sha"] == candidate["merged_main_sha"]
+    assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == candidate["exact_main_ci_run"]
+    assert manifest["execution_profile"]["schema_version"] == "1.1"
