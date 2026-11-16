@@ -96,10 +96,9 @@
     "source": "financial_writing_agent.task_requirements",
     "active_scope_source": "required_outputs",
     "owner_and_portfolio_stage_projection": "SAME_CANONICAL_FUNCTION",
-    "status": "CANDIDATE_FIX__GENERAL_STABILITY_CONTRACT_PENDING_EXACT_HEAD_CI",
-    "verified_code_head_sha": "886c210eb16b126b89cef483ae722ebc9129ae65",
-    "exact_code_head_ci_run": 43828598568,
-    "exact_code_head_ci_conclusion": "failure"
+    "status": "CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634
   },
   "full_universe_research_evidence_contract": {
     "source": "financial_writing_agent.full_universe_research.validate_full_universe_research_package",
@@ -109,15 +108,15 @@
       "standalone_runtime",
       "task_publication"
     ],
-    "status": "CANDIDATE__GENERAL_STABILITY_CONTRACT_PENDING_EXACT_HEAD_CI",
-    "verified_code_head_sha": "886c210eb16b126b89cef483ae722ebc9129ae65",
-    "exact_code_head_ci_run": 43828598568,
+    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634,
     "semantic_fact_audit_remains_external": true,
     "trigger_requirement_ids": [
       "full_universe_research_pool",
       "deep_complete_retained_universe"
     ],
-    "exact_code_head_ci_conclusion": "failure",
+    "exact_code_head_ci_conclusion": "success",
     "tests_passed": 720,
     "source_line_coverage_percent": 88,
     "source_evidence_readback": {
@@ -149,14 +148,13 @@
       "change_conditions"
     ],
     "enforcement": "_invoke_pass forwards only declared required_inputs",
-    "status": "CANDIDATE__GENERAL_STABILITY_CONTRACT_PENDING_EXACT_HEAD_CI",
+    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN",
     "semantic_preservation_still_requires_story_blueprint_and_editorial_audit": true,
-    "verified_code_head_sha": "886c210eb16b126b89cef483ae722ebc9129ae65",
-    "exact_code_head_ci_run": 43828598568,
+    "verified_code_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
+    "exact_code_head_ci_run": 43819176634,
     "tests_passed": 720,
     "source_line_coverage_percent": 88,
-    "company_decision_map_bound_to_validated_research_package": true,
-    "exact_code_head_ci_conclusion": "failure"
+    "company_decision_map_bound_to_validated_research_package": true
   },
   "general_writing_stability": {
     "status": "OPEN__CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_YET_VERIFIED",
@@ -173,6 +171,10 @@
     "finance_broad_status": "UNAUTHORIZED__MODE_SPECIFIC_REJECTION_AND_HELDOUT_EVIDENCE_REQUIRED",
     "fixed_workflow": "CANONICAL_TEN_STAGE_ARTICLE_GRAPH_AND_SHARED_INTERNAL_RESEARCH_SPINE",
     "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
-    "no_single_article_is_system_objective": true
+    "no_single_article_is_system_objective": true,
+    "latest_candidate_head": "8ba912bda37285473d41506fb72e96a6a48722a0",
+    "latest_ci_run": 43829005407,
+    "latest_ci_conclusion": "failure",
+    "latest_ci_summary": "720 passed, 3 failed; stale candidate/journal test assertions, now being corrected"
   }
 }
