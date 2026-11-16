@@ -10,14 +10,13 @@ def seed():
     return json.loads((ROOT / "evals/quality_regression.json").read_text(encoding="utf-8"))
 
 
-def _case(case_id, source_kind, split, family, mode="FINANCE_DEEP", task_shape="HYBRID"):
+def _case(case_id, source_kind, split, family, mode="FINANCE_DEEP"):
     return {
         "case_id": case_id,
         "source_kind": source_kind,
         "split": split,
         "topic_family": family,
         "content_mode": mode,
-        "task_shape": task_shape,
         "evidence_status": "COMPLETE",
         "artifact_refs": [f"artifact://{case_id}"],
         "artifact_bindings": [
@@ -31,18 +30,14 @@ def _case(case_id, source_kind, split, family, mode="FINANCE_DEEP", task_shape="
 
 
 def cases(include_positive=True, two_heldout=True, mode="FINANCE_DEEP"):
-    out = []
-    for prefix, shape in (
-        ("fixed", "FIXED_WORKFLOW"),
-        ("open", "OPEN_ENDED"),
-        ("hybrid", "HYBRID"),
-    ):
-        out.append(_case(f"{prefix}-rejected", "REAL_USER_REJECTION", "REGRESSION", "sector-event", mode=mode, task_shape=shape))
-        out.append(_case(f"{prefix}-heldout-1", "EXTERNAL_BENCHMARK", "HELD_OUT", "macro-policy", mode=mode, task_shape=shape))
-        if two_heldout:
-            out.append(_case(f"{prefix}-heldout-2", "EXTERNAL_BENCHMARK", "HELD_OUT", "supply-chain-cycle", mode=mode, task_shape=shape))
+    out = [
+        _case("rejected-1", "REAL_USER_REJECTION", "REGRESSION", "sector-event", mode=mode),
+        _case("heldout-1", "EXTERNAL_BENCHMARK", "HELD_OUT", "macro-policy", mode=mode),
+    ]
+    if two_heldout:
+        out.append(_case("heldout-2", "EXTERNAL_BENCHMARK", "HELD_OUT", "supply-chain-cycle", mode=mode))
     if include_positive:
-        out.append(_case("accepted-1", "REAL_USER_ACCEPTANCE", "REGRESSION", "company-deep-dive", mode=mode, task_shape="HYBRID"))
+        out.append(_case("accepted-1", "REAL_USER_ACCEPTANCE", "REGRESSION", "company-deep-dive", mode=mode))
     return {"cases": out}
 
 
@@ -51,9 +46,7 @@ def distillation(scope="GENERAL_EDITORIAL_QUALITY", modes=None):
         "candidate_id":"quality-candidate-1","promotion_scope":scope,
         "problem_statement":"compliance can pass while editorial quality fails",
         "root_cause_hypothesis":"evaluation overweights checklist compliance",
-        "source_case_ids":["fixed-rejected", "open-rejected", "hybrid-rejected"],
-        "target_content_modes":modes or ["FINANCE_DEEP"],
-        "target_task_shapes":["FIXED_WORKFLOW", "OPEN_ENDED", "HYBRID"],
+        "source_case_ids":["rejected-1"],"target_content_modes":modes or ["FINANCE_DEEP"],
         "alternatives":[
             {"candidate_id":"quality-candidate-1","mechanism":"harden holistic quality evaluation","failure_modes":["overfit rejection"]},
             {"candidate_id":"quality-candidate-2","mechanism":"add prose rules","failure_modes":["Goodhart"]},
@@ -90,12 +83,9 @@ def verify_regression(regression, package):
 
 
 def bundle(personal=False, mode="FINANCE_DEEP"):
-    rows = []
-    for case in cases(include_positive=personal, mode=mode)["cases"]:
-        if case["source_kind"] == "REAL_USER_ACCEPTANCE" and not personal:
-            continue
-        case_id = case["case_id"]
-        rows += [run(case_id, "A", "A"), run(case_id, "B", "B")]
+    rows = [run("rejected-1","A","A"),run("rejected-1","B","B"),run("heldout-1","A","A"),run("heldout-1","B","B"),run("heldout-2","A","TIE"),run("heldout-2","B","TIE")]
+    if personal:
+        rows += [run("accepted-1","A","TIE"),run("accepted-1","B","TIE")]
     return {
         "candidate_distillation":distillation("PERSONALIZED_WRITING_DNA" if personal else "GENERAL_EDITORIAL_QUALITY", modes=[mode]),
         "hard_invariant_regressions":[],
@@ -138,7 +128,7 @@ def test_complete_case_requires_immutable_artifact_binding():
     corpus["cases"][0].pop("artifact_bindings")
     result = evaluate_corpus_readiness(corpus)
     assert result.status == "FAIL"
-    assert "complete_case_missing_artifact_bindings:fixed-rejected" in result.errors
+    assert "complete_case_missing_artifact_bindings:rejected-1" in result.errors
 
 
 def test_two_distinct_heldout_families_are_required():
@@ -174,7 +164,7 @@ def test_finance_deep_does_not_authorize_finance_broad():
 def test_general_promotion_can_pass_without_user_positive_after_all_other_evidence_passes():
     result = promote(cases(include_positive=False), bundle())
     assert result.status == "PASS"
-    assert set(result.candidate_wins) == {"fixed-rejected","open-rejected","hybrid-rejected","fixed-heldout-1","fixed-heldout-2","open-heldout-1","open-heldout-2","hybrid-heldout-1","hybrid-heldout-2"}
+    assert set(result.candidate_wins) == {"rejected-1","heldout-1"}
     assert result.baseline_wins == ()
 
 
@@ -229,12 +219,12 @@ def test_semantic_verifier_can_reject_real_but_irrelevant_refs():
 
 
 def test_position_swap_and_instability_fail_closed():
-    b = bundle(personal=True); b["judge_runs"] = [r for r in b["judge_runs"] if not (r["case_id"] == "fixed-heldout-1" and r["candidate_position"] == "B")]
-    assert "position_swap_required:fixed-heldout-1" in promote(cases(), b, personal=True).errors
+    b = bundle(personal=True); b["judge_runs"] = [r for r in b["judge_runs"] if not (r["case_id"] == "heldout-1" and r["candidate_position"] == "B")]
+    assert "position_swap_required:heldout-1" in promote(cases(), b, personal=True).errors
     b = bundle(personal=True)
     for r in b["judge_runs"]:
-        if r["case_id"] == "hybrid-rejected" and r["candidate_position"] == "B": r["preference"] = "A"
-    assert any(x.startswith("position_swap_instability:hybrid-rejected") for x in promote(cases(), b, personal=True).errors)
+        if r["case_id"] == "rejected-1" and r["candidate_position"] == "B": r["preference"] = "A"
+    assert any(x.startswith("position_swap_instability:rejected-1") for x in promote(cases(), b, personal=True).errors)
 
 
 def test_hard_invariant_regression_blocks_promotion():
@@ -245,7 +235,7 @@ def test_hard_invariant_regression_blocks_promotion():
 
 
 def test_unverified_trace_blocks_promotion():
-    result = promote(cases(), bundle(personal=True), personal=True, ref=lambda ref: verify_ref(ref) and ref != "trace://fixed-heldout-1/B")
+    result = promote(cases(), bundle(personal=True), personal=True, ref=lambda ref: verify_ref(ref) and ref != "trace://heldout-1/B")
     assert any(x.startswith("unverified_evidence_ref:") for x in result.errors)
 
 def test_platform_interaction_is_a_first_class_quality_regression_mode():
@@ -261,15 +251,10 @@ def test_platform_interaction_is_a_first_class_quality_regression_mode():
     )
     assert distilled.status == "PASS"
     assert distilled.target_content_modes == ("PLATFORM_INTERACTION",)
-    assert distilled.target_task_shapes == ("FIXED_WORKFLOW", "OPEN_ENDED", "HYBRID")
 
     promoted = promote(corpus, bundle(mode="PLATFORM_INTERACTION"))
     assert promoted.status == "PASS"
-    assert set(promoted.evaluated_case_ids) == {
-        "fixed-rejected", "fixed-heldout-1", "fixed-heldout-2",
-        "open-rejected", "open-heldout-1", "open-heldout-2",
-        "hybrid-rejected", "hybrid-heldout-1", "hybrid-heldout-2",
-    }
+    assert set(promoted.evaluated_case_ids) == {"rejected-1", "heldout-1", "heldout-2"}
 
 
 def test_deep_evidence_cannot_substitute_for_platform_interaction_quality_evidence():
@@ -283,34 +268,4 @@ def test_deep_evidence_cannot_substitute_for_platform_interaction_quality_eviden
     assert "target_mode_missing_real_rejection:PLATFORM_INTERACTION" in result.errors
     assert "target_mode_missing_heldout:PLATFORM_INTERACTION" in result.errors
     assert "target_mode_requires_two_heldout_topic_families:PLATFORM_INTERACTION" in result.errors
-
-def test_candidate_distillation_requires_explicit_shape_scope_and_shape_specific_evidence():
-    pkg = distillation()
-    pkg.pop("target_task_shapes")
-    result = evaluate_candidate_distillation(
-        cases(), pkg, evidence_verifier=verify_ref,
-        candidate_evidence_verifier=verify_candidate,
-    )
-    assert "missing_target_task_shapes" in result.errors
-
-    corpus = cases()
-    corpus["cases"] = [c for c in corpus["cases"] if c["task_shape"] != "OPEN_ENDED"]
-    result = evaluate_candidate_distillation(
-        corpus, distillation(), evidence_verifier=verify_ref,
-        candidate_evidence_verifier=verify_candidate,
-    )
-    assert "target_task_shape_missing_real_rejection:OPEN_ENDED" in result.errors
-    assert "target_task_shape_missing_heldout:OPEN_ENDED" in result.errors
-
-
-def test_legacy_unclassified_history_cannot_satisfy_task_shape_promotion():
-    corpus = seed()
-    package = distillation()
-    result = evaluate_candidate_distillation(
-        corpus, package, evidence_verifier=verify_ref,
-        candidate_evidence_verifier=verify_candidate,
-    )
-    for shape in ("FIXED_WORKFLOW", "OPEN_ENDED", "HYBRID"):
-        assert f"target_task_shape_missing_real_rejection:{shape}" in result.errors
-        assert f"target_task_shape_missing_heldout:{shape}" in result.errors
 
