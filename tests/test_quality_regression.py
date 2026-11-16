@@ -138,7 +138,7 @@ def test_complete_case_requires_immutable_artifact_binding():
     corpus["cases"][0].pop("artifact_bindings")
     result = evaluate_corpus_readiness(corpus)
     assert result.status == "FAIL"
-    assert "complete_case_missing_artifact_bindings:rejected-1" in result.errors
+    assert "complete_case_missing_artifact_bindings:fixed-rejected" in result.errors
 
 
 def test_two_distinct_heldout_families_are_required():
@@ -230,11 +230,11 @@ def test_semantic_verifier_can_reject_real_but_irrelevant_refs():
 
 def test_position_swap_and_instability_fail_closed():
     b = bundle(personal=True); b["judge_runs"] = [r for r in b["judge_runs"] if not (r["case_id"] == "fixed-heldout-1" and r["candidate_position"] == "B")]
-    assert "position_swap_required:heldout-1" in promote(cases(), b, personal=True).errors
+    assert "position_swap_required:fixed-heldout-1" in promote(cases(), b, personal=True).errors
     b = bundle(personal=True)
     for r in b["judge_runs"]:
         if r["case_id"] == "hybrid-rejected" and r["candidate_position"] == "B": r["preference"] = "A"
-    assert any(x.startswith("position_swap_instability:rejected-1") for x in promote(cases(), b, personal=True).errors)
+    assert any(x.startswith("position_swap_instability:hybrid-rejected") for x in promote(cases(), b, personal=True).errors)
 
 
 def test_hard_invariant_regression_blocks_promotion():
@@ -245,7 +245,7 @@ def test_hard_invariant_regression_blocks_promotion():
 
 
 def test_unverified_trace_blocks_promotion():
-    result = promote(cases(), bundle(personal=True), personal=True, ref=lambda ref: verify_ref(ref) and ref != "trace://heldout-1/B")
+    result = promote(cases(), bundle(personal=True), personal=True, ref=lambda ref: verify_ref(ref) and ref != "trace://fixed-heldout-1/B")
     assert any(x.startswith("unverified_evidence_ref:") for x in result.errors)
 
 def test_platform_interaction_is_a_first_class_quality_regression_mode():
@@ -283,4 +283,34 @@ def test_deep_evidence_cannot_substitute_for_platform_interaction_quality_eviden
     assert "target_mode_missing_real_rejection:PLATFORM_INTERACTION" in result.errors
     assert "target_mode_missing_heldout:PLATFORM_INTERACTION" in result.errors
     assert "target_mode_requires_two_heldout_topic_families:PLATFORM_INTERACTION" in result.errors
+
+def test_candidate_distillation_requires_explicit_shape_scope_and_shape_specific_evidence():
+    pkg = distillation()
+    pkg.pop("target_task_shapes")
+    result = evaluate_candidate_distillation(
+        cases(), pkg, evidence_verifier=verify_ref,
+        candidate_evidence_verifier=verify_candidate,
+    )
+    assert "missing_target_task_shapes" in result.errors
+
+    corpus = cases()
+    corpus["cases"] = [c for c in corpus["cases"] if c["task_shape"] != "OPEN_ENDED"]
+    result = evaluate_candidate_distillation(
+        corpus, distillation(), evidence_verifier=verify_ref,
+        candidate_evidence_verifier=verify_candidate,
+    )
+    assert "target_task_shape_missing_real_rejection:OPEN_ENDED" in result.errors
+    assert "target_task_shape_missing_heldout:OPEN_ENDED" in result.errors
+
+
+def test_legacy_unclassified_history_cannot_satisfy_task_shape_promotion():
+    corpus = seed()
+    package = distillation()
+    result = evaluate_candidate_distillation(
+        corpus, package, evidence_verifier=verify_ref,
+        candidate_evidence_verifier=verify_candidate,
+    )
+    for shape in ("FIXED_WORKFLOW", "OPEN_ENDED", "HYBRID"):
+        assert f"target_task_shape_missing_real_rejection:{shape}" in result.errors
+        assert f"target_task_shape_missing_heldout:{shape}" in result.errors
 

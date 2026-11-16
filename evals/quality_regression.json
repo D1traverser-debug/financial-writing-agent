@@ -143,7 +143,13 @@
       "all_quality_evidence_status": "EMPTY",
       "promotion_eligible_count": 0,
       "interpretation": "Useful historical diagnostics only; do not count as complete blind independent quality cases."
-    }
+    },
+    "task_shape_generalization_status": "NOT_READY",
+    "task_shape_missing": [
+      "FIXED_WORKFLOW: complete real-user rejection plus two held-out topic families",
+      "OPEN_ENDED: complete real-user rejection plus two held-out topic families",
+      "HYBRID: complete real-user rejection plus two held-out topic families"
+    ]
   },
   "diagnostic_samples": [
     {
