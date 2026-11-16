@@ -327,3 +327,65 @@ The stage projection is canonical in `financial_writing_agent.task_requirements`
 - DELIVERY: ALL, DELIVERY and requested product scopes.
 
 Each product pass receives ALL plus its own scope, with requirements effective at or before that stage. Shared research receives only product-scoped requirements that affect RESEARCH; later-stage requirements are not prematurely imposed. Owner requirement satisfaction and portfolio-stage satisfaction must return the same requirement IDs for the same task and stage. New requirement mutations reject scopes not represented in the requested outputs and reject active scope/stage pairs for which no corresponding pass or delivery stage exists. The `full_universe_research_pool` typed research-package gate is active only when its scope is active in the task.
+
+
+## 11. General writing stability and adaptive expression (2026-11-16)
+
+This requirement applies to **the whole Financial Writing product and every new writing task**. No individual article, topic, industry, company or historical task is the system objective. A task is a test instance of the product, not the product definition.
+
+### 11.1 One stable workflow for all topics
+
+Every task follows the same canonical business workflow:
+
+\`INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT\`.
+
+The shared research spine, evidence admission, adversarial challenge, thesis adjudication, editorial planning, drafting, revision, final review and delivery obligations do not disappear merely because the user gives a short prompt, a new topic, source materials or an explicit angle.
+
+The depth and specific evidence work are calibrated to the task's materiality, scope and user instructions. A requirement such as exhaustive listed-company universe coverage is activated only when the user/task scope requires it; it is not imposed on every finance article.
+
+### 11.2 Stable process, adaptive research, open expression
+
+The stable invariants are:
+- recover the user's actual goal, reader, scope and deliverable;
+- use prior knowledge as a hypothesis and revalidate material/current claims;
+- research from appropriate sources and maintain claim/evidence traceability;
+- test competing explanations, counterevidence and uncertainty before selecting a thesis;
+- preserve the reasoning and evidence needed by the editorial stage;
+- design a reader-specific article promise and information progression;
+- draft from audited material rather than copying source prose;
+- review factual integrity, reasoning, originality, authorial expression, reader value and compliance;
+- repair material failures at the earliest affected stage and invalidate stale downstream evidence;
+- verify the actual deliverable and report unresolved conditions honestly.
+
+The following remain deliberately adaptive: narrative engine, title angle, opening strategy, section order, paragraph rhythm, degree of technical explanation, level of detail, tone and voice. **Form follows content and reader purpose.** A StoryBlueprint is a planning aid, not a prose template. Do not impose one universal opening, sentence geometry, rhetorical pattern, paragraph length or slang style.
+
+### 11.3 What “stable” means
+
+Stability means that different tasks reliably meet the same substantive quality obligations while making different editorial choices when their material and readers differ. It does not mean identical wording or article structure.
+
+A task may be called successful only when:
+1. every applicable user requirement is satisfied with visible article/output evidence, or explicitly remains OPEN/BLOCKED;
+2. material factual claims have current, correctly attributed and traceable support;
+3. the selected thesis survives meaningful alternatives and counterevidence;
+4. the published argument preserves the audited research conclusions and uncertainty boundaries;
+5. the chosen form serves the target reader and the actual material rather than a fixed template;
+6. semantic review cites actual text spans and findings; a self-issued PASS label is not independent acceptance;
+7. the requested Word/product outputs are present, readable and mechanically verified.
+
+### 11.4 Cross-topic quality acceptance
+
+System-wide quality cannot be inferred from one article, one topic family, one successful CI run, a pass count, a title-candidate count, a phrase-frequency scan or a schema-valid artifact.
+
+General editorial quality is evaluated across multiple topic families and separately for every target content mode. The existing promotion contract remains binding: each target mode requires a complete real-user rejection case and at least two complete held-out topic families, immutable artifact bindings, semantically verified candidate/counterexample evidence, blind pairwise candidate-versus-baseline judging with position swap, and zero hard-invariant regressions.
+
+Historical self-reviewed articles are valuable diagnostic material and must be harvested, but they cannot be relabeled as independent quality evidence. Silence or delivery status is not user acceptance. Personalized writing DNA additionally requires an actual positive user-approved or post-publication performance anchor.
+
+### 11.5 No task-specific overfitting
+
+A defect found in one article must be traced to its shared root cause and tested against valid neighboring tasks before becoming a general rule. Preserve the distinction between:
+- a global invariant that should hold for all tasks;
+- a conditional research method that applies only when material;
+- an editorial strategy that is selected for this particular reader and topic;
+- a one-off user instruction or article-specific correction.
+
+Do not turn a single task's topic, source list, company universe, wording, narrative engine or status into the definition of Financial Writing.

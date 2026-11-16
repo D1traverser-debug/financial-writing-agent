@@ -1,0 +1,83 @@
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from financial_writing_agent.models import TaskContract
+from financial_writing_agent.quality_regression import evaluate_corpus_readiness
+from financial_writing_agent.story_quality import NarrativeEngine
+from financial_writing_agent.workflow_spec import BUSINESS_STAGE_NAMES
+from financial_writing_agent.writing_kernel import LONGFORM_PRODUCT_PASSES, SHARED_RESEARCH_PASSES
+
+ROOT = Path(__file__).resolve().parents[1]
+
+
+def _json(path: str):
+    return json.loads((ROOT / path).read_text(encoding="utf-8"))
+
+
+def test_different_financial_topics_keep_the_same_canonical_workflow_and_shared_spine():
+    prompts = [
+        "AI网络安全需求变化与上市公司经营兑现",
+        "黄酒高端化与经销渠道重构",
+        "冰雪经济的客流、设备和消费链条",
+        "Meta新模型对企业软件工作流的影响",
+        "某上市公司三季报与现金流质量",
+        "宏观政策变化对行业需求和利润的传导",
+        "根据用户提供的两份公告分析事件影响",
+    ]
+    contracts = [TaskContract(prompt=prompt) for prompt in prompts]
+    expected_outputs = [item.value for item in contracts[0].required_outputs]
+
+    assert BUSINESS_STAGE_NAMES == (
+        "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL", "TITLE",
+        "DRAFT", "EDITORIAL_AUDIT", "DELIVERY", "MECHANICAL_AUDIT",
+        "FINAL_AUDIT",
+    )
+    assert all([item.value for item in contract.required_outputs] == expected_outputs
+               for contract in contracts)
+    assert tuple(item.value for item in SHARED_RESEARCH_PASSES) == (
+        "KNOWLEDGE_RECALL", "RESEARCH_DISCOVERY", "RESEARCH_ADVERSARIAL",
+        "PRIVATE_RESEARCH_SYNTHESIS", "THESIS_ADJUDICATION",
+    )
+    assert tuple(item.value for item in LONGFORM_PRODUCT_PASSES) == (
+        "STORY_ARCHITECTURE", "HEADLINE_ADJUDICATION", "DRAFT_GENERATION",
+        "READER_RETENTION_AUDIT", "EDITORIAL_TRIM", "ORIGINALITY_AUDIT",
+        "FACT_INTEGRITY_AUDIT", "STYLE_AUDIT", "FINAL_SYNTHESIS",
+    )
+
+
+def test_general_stability_contract_separates_fixed_process_from_adaptive_expression():
+    contract = _json("config/EXECUTION_CONTRACT.json")
+    stability = contract["general_writing_stability"]
+    assert stability["applies_to"] == "ALL_FINANCIAL_WRITING_TASKS__NOT_ONE_ARTICLE_OR_TOPIC"
+    assert stability["fixed_business_workflow"] == contract["workflow"]
+    assert stability["topic_specific_research_modules"].startswith("CONDITIONAL_BY_USER_SCOPE")
+    assert stability["expression_policy"].startswith("CONTENT_LED")
+    assert stability["self_review_promotion_evidence"] is False
+    assert stability["single_article_completion_is_system_completion"] is False
+    assert len(NarrativeEngine) >= 8
+
+
+def test_historical_cross_topic_samples_are_diagnostic_not_quality_promotion_cases():
+    corpus = _json("evals/quality_regression.json")
+    samples = corpus["diagnostic_samples"]
+    assert len(samples) >= 4
+    assert len({sample["topic_family"] for sample in samples}) >= 4
+
+    for sample in samples:
+        assert sample["assurance"] == "CHAT_SELF_REVIEW"
+        assert sample["quality_evidence_status"] == "EMPTY"
+        assert sample["promotion_eligible"] is False
+        assert len(sample["artifact_bindings"]) >= 3
+        assert all(binding["identity_type"] == "GIT_BLOB_SHA"
+                   and binding["identity"]
+                   for binding in sample["artifact_bindings"])
+
+    readiness = evaluate_corpus_readiness(corpus)
+    assert readiness.status == "NOT_READY"
+    assert "at_least_two_complete_heldout_topic_families" in readiness.missing_requirements
+    assert set(readiness.complete_case_ids) == {
+        "offshore-wind-2026-10-10-real-user-rejection-01",
+        "rutile-2026-10-06-cross-topic-heldout-01",
+    }

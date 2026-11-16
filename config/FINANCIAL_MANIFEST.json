@@ -155,5 +155,22 @@
     "tests_passed": 720,
     "source_line_coverage_percent": 88,
     "company_decision_map_bound_to_validated_research_package": true
+  },
+  "general_writing_stability": {
+    "status": "OPEN__CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_YET_VERIFIED",
+    "scope": "ALL_FINANCIAL_WRITING_TASKS",
+    "contract": "config/EXECUTION_CONTRACT.json#general_writing_stability",
+    "audit": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+    "diagnostic_historical_samples": 4,
+    "diagnostic_samples_assurance": "CHAT_SELF_REVIEW",
+    "diagnostic_samples_quality_evidence": "EMPTY",
+    "diagnostic_samples_promotion_eligible": false,
+    "quality_corpus_complete_cases": 2,
+    "complete_heldout_topic_families": 1,
+    "finance_deep_status": "DIAGNOSTIC_ONLY__SECOND_HELDOUT_TOPIC_FAMILY_REQUIRED",
+    "finance_broad_status": "UNAUTHORIZED__MODE_SPECIFIC_REJECTION_AND_HELDOUT_EVIDENCE_REQUIRED",
+    "fixed_workflow": "CANONICAL_TEN_STAGE_ARTICLE_GRAPH_AND_SHARED_INTERNAL_RESEARCH_SPINE",
+    "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
+    "no_single_article_is_system_objective": true
   }
 }

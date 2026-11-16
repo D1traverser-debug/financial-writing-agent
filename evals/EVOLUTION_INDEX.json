@@ -145,7 +145,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Independently review the live PR #84 head after re-reading exact GitHub head and CI. Verified code head 4bf06f63fdf7e228b3153ec909a38abe8596f272 passed exact-head CI 43819176634 with 720 tests. PR #84 remains Draft. Provider Action deployment requires a separate host and owner approval. The active cross-border v3 article remains RESEARCH with 0/4 real deliverables; its V2 source references are historical and require current-source revalidation. Do not modify CAOS.",
+    "next_legal_phase": "Treat Financial Writing as a system-wide product, not an individual article task. Execute and independently evaluate real writing tasks across multiple topic families and every target content mode using the same canonical workflow while allowing content-led narrative and voice. Harvest historical outputs as diagnostics only unless independent evidence exists. Do not modify CAOS. PR #84 remains Draft; Provider Action deployment and independent review remain separate.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -612,13 +612,13 @@
     "scoped_owner_demand": "Financial retains its intrinsic requirements, business process, finance-domain decision evidence, execution loops, knowledge/method CRUD, failure repair and independent acceptance. CAOS governs cross-project cognition, root-cause/method comparison, decision rechallenge and cross-domain learning externally in the active ChatGPT session. No external parent runtime/API dependency is introduced.",
     "latest_requirement_scope_dataflow_candidate": {
       "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
-      "status": "CANDIDATE__EXACT_CODE_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN",
+      "status": "CANDIDATE__GENERAL_STABILITY_CONTRACT_PENDING_EXACT_HEAD_CI__NOT_MERGED",
       "branch": "repair/financial-requirement-bound-owner-stage-coordinator-20261114",
       "pull_request": 84,
       "base_branch": "main",
       "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-      "candidate_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-      "exact_head_ci_run": 43819176634,
+      "candidate_head_sha": "dfced20fc5fa594cd9f6df753f906b875e5fa6b2",
+      "exact_head_ci_run": 43820293511,
       "exact_head_ci_conclusion": "success",
       "tests_passed": 720,
       "source_line_coverage_percent": 88,
@@ -661,28 +661,46 @@
         "LEGACY_PRIVATE_RESEARCH_1_0_DELIVERY_FRESHNESS_IS_RECHECKED",
         "STORY_ARCHITECTURE_RECEIVES_PUBLICATION_DISTILLATION_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS",
         "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS",
-        "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE"
+        "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE",
+        "GENERAL_WRITING_STABILITY_CONTRACT_DEFINED_FOR_ALL_TOPICS",
+        "FIXED_BUSINESS_WORKFLOW_AND_SHARED_RESEARCH_SPINE_SEPARATED_FROM_ADAPTIVE_EXPRESSION",
+        "FOUR_HISTORICAL_CROSS_TOPIC_ARTICLE_PAIRS_INVENTORIED_AS_CHAT_SELF_REVIEW_DIAGNOSTICS_ONLY",
+        "CROSS_TOPIC_QUALITY_CORPUS_GAP_EXPLICITLY_REMAINS_OPEN"
       ],
       "limitations": [
         "PROVIDER_ACTION_NOT_DEPLOYED",
         "PRIVATE_SKILL_PLUGIN_INSTALLATION_AND_FRESH_SESSION_INVOCATION_NOT_VERIFIED",
         "INDEPENDENT_CURRENT_HEAD_REVIEW_NOT_OBTAINED",
-        "CURRENT_REAL_ARTICLE_REMAINS_RESEARCH_0_OF_4_DELIVERABLES",
         "REAL_ARTICLE_FACTUAL_AND_EDITORIAL_QUALITY_NOT_VERIFIED",
         "FINANCIAL_MAIN_BRANCH_HYGIENE_OPEN",
-        "ORIGINAL_USER_ARTICLE_PROMPT_SOURCE_NOT_VERIFIED",
-        "V2_RESEARCH_ARTIFACTS_ARE_HISTORICAL_FIXTURES__CURRENT_FACTS_REQUIRE_REVALIDATION",
         "NO_EXPLICIT_OWNER_MERGE_AUTHORIZATION_ESTABLISHED",
         "RESEARCH_PACKAGE_EVIDENCE_REFS_ARE_NOW_PROVIDER_READ_BACK__FACT_ENTAILMENT_REMAINS_SEMANTIC",
-        "STORY_ARCHITECTURE_DATAFLOW_IS_NOW_DECLARED_AND_ENFORCED__REAL_MODEL_QUALITY_REMAINS_UNVERIFIED"
+        "STORY_ARCHITECTURE_DATAFLOW_IS_NOW_DECLARED_AND_ENFORCED__REAL_MODEL_QUALITY_REMAINS_UNVERIFIED",
+        "CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_VERIFIED",
+        "HISTORICAL_CROSS_TOPIC_ARTICLE_SAMPLES_ARE_CHAT_SELF_REVIEW_ONLY_AND_NOT_QUALITY_EVIDENCE",
+        "QUALITY_CORPUS_HAS_ONLY_ONE_COMPLETE_HELDOUT_TOPIC_FAMILY",
+        "FINANCE_BROAD_QUALITY_CORPUS_NOT_READY",
+        "LIVE_MODEL_EXECUTION_AND_INDEPENDENT_READER_ACCEPTANCE_NOT_VERIFIED"
       ],
-      "audit_ref": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-      "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-03",
-      "next_legal_step": "INDEPENDENT_REVIEW_OF_LIVE_PR_84_HEAD__NO_MAINLINE_PROMOTION_CLAIM_WITHOUT_AUTHORIZED_REVIEW_AND_EXACT_MAIN_CI__PROVIDER_ACTION_AND_REAL_ARTICLE_EXECUTION_REMAIN_SEPARATE",
+      "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+      "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-04",
+      "next_legal_step": "RUN_CROSS_TOPIC_REAL_ARTICLE_QUALITY_EVALUATION_ACROSS_MULTIPLE_TOPIC_FAMILIES_AND_EACH_TARGET_CONTENT_MODE__DO_NOT_ANCHOR_SYSTEM_COMPLETION_TO_ONE_ARTICLE",
       "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB"
     },
-    "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.3"
+    "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+    "problem_journal_revision": "2.4",
+    "general_writing_stability": {
+      "status": "OPEN__SYSTEM_WIDE_CROSS_TOPIC_QUALITY_NOT_VERIFIED",
+      "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+      "fixed_process": "ONE_CANONICAL_TEN_STAGE_WORKFLOW_AND_SHARED_RESEARCH_SPINE",
+      "adaptive_expression": "CONTENT_LED__FORM_FOLLOWS_CONTENT",
+      "historical_diagnostic_samples": 4,
+      "independent_quality_evidence_for_these_samples": 0,
+      "quality_corpus_complete_cases": 2,
+      "heldout_topic_families": 1,
+      "finance_broad_authorized_for_quality_promotion": false,
+      "system_completion_can_be_inferred_from_one_article": false
+    }
   },
   "system_engineering_simulation_20261112": {
     "owner": "FINANCIAL_WRITING_OWNER",
@@ -734,13 +752,13 @@
   "updated_at": "2026-11-16",
   "current_system_candidate": {
     "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
-    "status": "CANDIDATE__EXACT_CODE_HEAD_CI_PASS__NOT_MERGED__INDEPENDENT_REVIEW_OPEN",
+    "status": "CANDIDATE__GENERAL_STABILITY_CONTRACT_PENDING_EXACT_HEAD_CI__NOT_MERGED",
     "branch": "repair/financial-requirement-bound-owner-stage-coordinator-20261114",
     "pull_request": 84,
     "base_branch": "main",
     "base_sha": "b2098e69367f78c452e0a595bf95d86388d6a449",
-    "candidate_head_sha": "4bf06f63fdf7e228b3153ec909a38abe8596f272",
-    "exact_head_ci_run": 43819176634,
+    "candidate_head_sha": "dfced20fc5fa594cd9f6df753f906b875e5fa6b2",
+    "exact_head_ci_run": 43820293511,
     "exact_head_ci_conclusion": "success",
     "tests_passed": 720,
     "source_line_coverage_percent": 88,
@@ -783,24 +801,30 @@
       "LEGACY_PRIVATE_RESEARCH_1_0_DELIVERY_FRESHNESS_IS_RECHECKED",
       "STORY_ARCHITECTURE_RECEIVES_PUBLICATION_DISTILLATION_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS",
       "EXACT_HEAD_717_TEST_CI_AND_WHOLE_TREE_AUDIT_PASS",
-      "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE"
+      "TOP_LEVEL_COMPANY_DECISION_MAP_AND_CHANGE_CONDITIONS_EXACTLY_MATCH_VALIDATED_RESEARCH_PACKAGE",
+      "GENERAL_WRITING_STABILITY_CONTRACT_DEFINED_FOR_ALL_TOPICS",
+      "FIXED_BUSINESS_WORKFLOW_AND_SHARED_RESEARCH_SPINE_SEPARATED_FROM_ADAPTIVE_EXPRESSION",
+      "FOUR_HISTORICAL_CROSS_TOPIC_ARTICLE_PAIRS_INVENTORIED_AS_CHAT_SELF_REVIEW_DIAGNOSTICS_ONLY",
+      "CROSS_TOPIC_QUALITY_CORPUS_GAP_EXPLICITLY_REMAINS_OPEN"
     ],
     "limitations": [
       "PROVIDER_ACTION_NOT_DEPLOYED",
       "PRIVATE_SKILL_PLUGIN_INSTALLATION_AND_FRESH_SESSION_INVOCATION_NOT_VERIFIED",
       "INDEPENDENT_CURRENT_HEAD_REVIEW_NOT_OBTAINED",
-      "CURRENT_REAL_ARTICLE_REMAINS_RESEARCH_0_OF_4_DELIVERABLES",
       "REAL_ARTICLE_FACTUAL_AND_EDITORIAL_QUALITY_NOT_VERIFIED",
       "FINANCIAL_MAIN_BRANCH_HYGIENE_OPEN",
-      "ORIGINAL_USER_ARTICLE_PROMPT_SOURCE_NOT_VERIFIED",
-      "V2_RESEARCH_ARTIFACTS_ARE_HISTORICAL_FIXTURES__CURRENT_FACTS_REQUIRE_REVALIDATION",
       "NO_EXPLICIT_OWNER_MERGE_AUTHORIZATION_ESTABLISHED",
       "RESEARCH_PACKAGE_EVIDENCE_REFS_ARE_NOW_PROVIDER_READ_BACK__FACT_ENTAILMENT_REMAINS_SEMANTIC",
-      "STORY_ARCHITECTURE_DATAFLOW_IS_NOW_DECLARED_AND_ENFORCED__REAL_MODEL_QUALITY_REMAINS_UNVERIFIED"
+      "STORY_ARCHITECTURE_DATAFLOW_IS_NOW_DECLARED_AND_ENFORCED__REAL_MODEL_QUALITY_REMAINS_UNVERIFIED",
+      "CROSS_TOPIC_REAL_ARTICLE_QUALITY_NOT_VERIFIED",
+      "HISTORICAL_CROSS_TOPIC_ARTICLE_SAMPLES_ARE_CHAT_SELF_REVIEW_ONLY_AND_NOT_QUALITY_EVIDENCE",
+      "QUALITY_CORPUS_HAS_ONLY_ONE_COMPLETE_HELDOUT_TOPIC_FAMILY",
+      "FINANCE_BROAD_QUALITY_CORPUS_NOT_READY",
+      "LIVE_MODEL_EXECUTION_AND_INDEPENDENT_READER_ACCEPTANCE_NOT_VERIFIED"
     ],
-    "audit_ref": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-03",
-    "next_legal_step": "INDEPENDENT_REVIEW_OF_LIVE_PR_84_HEAD__NO_MAINLINE_PROMOTION_CLAIM_WITHOUT_AUTHORIZED_REVIEW_AND_EXACT_MAIN_CI__PROVIDER_ACTION_AND_REAL_ARTICLE_EXECUTION_REMAIN_SEPARATE",
+    "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261116-04",
+    "next_legal_step": "RUN_CROSS_TOPIC_REAL_ARTICLE_QUALITY_EVALUATION_ACROSS_MULTIPLE_TOPIC_FAMILIES_AND_EACH_TARGET_CONTENT_MODE__DO_NOT_ANCHOR_SYSTEM_COMPLETION_TO_ONE_ARTICLE",
     "candidate_head_semantics": "VERIFIED_CODE_HEAD__LIVE_PR_HEAD_AND_EXACT_PR_CI_MUST_BE_RE_READ_FROM_GITHUB"
   }
 }

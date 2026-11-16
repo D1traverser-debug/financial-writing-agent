@@ -582,5 +582,69 @@
     "reject_inactive_scope": "TRUE",
     "reject_impossible_scope_stage_pair": "TRUE",
     "full_universe_research_gate": "ACTIVE_ONLY_WHEN_REQUIREMENT_SCOPE_MATCHES_REQUESTED_OUTPUTS"
+  },
+  "general_writing_stability": {
+    "applies_to": "ALL_FINANCIAL_WRITING_TASKS__NOT_ONE_ARTICLE_OR_TOPIC",
+    "fixed_business_workflow": [
+      "INTAKE",
+      "RESEARCH",
+      "RESEARCH_AUDIT",
+      "EDITORIAL",
+      "TITLE",
+      "DRAFT",
+      "EDITORIAL_AUDIT",
+      "DELIVERY",
+      "MECHANICAL_AUDIT",
+      "FINAL_AUDIT"
+    ],
+    "fixed_shared_research_spine": [
+      "KNOWLEDGE_RECALL",
+      "RESEARCH_DISCOVERY",
+      "RESEARCH_ADVERSARIAL",
+      "PRIVATE_RESEARCH_SYNTHESIS",
+      "THESIS_ADJUDICATION",
+      "RESEARCH_AUDIT"
+    ],
+    "fixed_product_quality_spine": [
+      "EDITORIAL",
+      "TITLE",
+      "DRAFT",
+      "READER_RETENTION_AUDIT",
+      "EDITORIAL_TRIM",
+      "ORIGINALITY_AUDIT",
+      "FACT_INTEGRITY_AUDIT",
+      "STYLE_AUDIT",
+      "FINAL_SYNTHESIS",
+      "DELIVERY",
+      "MECHANICAL_AUDIT",
+      "FINAL_AUDIT"
+    ],
+    "topic_specific_research_modules": "CONDITIONAL_BY_USER_SCOPE_AND_MATERIAL_RELEVANCE__NOT_FORCED_ON_EVERY_TASK",
+    "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_STORY_TEMPLATE",
+    "stable_outcome_dimensions": [
+      "USER_INTENT_AND_REQUIREMENT_FIDELITY",
+      "CURRENT_SOURCE_AND_FACTUAL_TRACEABILITY",
+      "REASONING_CAUSALITY_AND_COUNTEREVIDENCE",
+      "THESIS_AND_READER_VALUE",
+      "EDITORIAL_COHERENCE_AND_NATURAL_AUTHORIAL_EXPRESSION",
+      "COMPLIANCE_AND_DELIVERY_INTEGRITY"
+    ],
+    "stability_does_not_mean": [
+      "IDENTICAL_HEADLINE_OR_OPENING_FORMULA",
+      "IDENTICAL_NARRATIVE_ENGINE_OR_SECTION_GEOMETRY",
+      "FIXED_SENTENCE_OR_PARAGRAPH_LENGTH",
+      "FORCING_ALL_DOMAIN_MODULES_WHEN_NOT_MATERIAL",
+      "IDENTICAL_WORDING_ACROSS_REPEATED_RUNS"
+    ],
+    "quality_evaluation": "CROSS_TOPIC_FAMILIES_AND_EACH_TARGET_CONTENT_MODE__BLIND_PAIRWISE_WITH_IMMUTABLE_ARTIFACT_BINDING",
+    "self_review_promotion_evidence": false,
+    "promotion_requires": [
+      "ONE_COMPLETE_REAL_USER_REJECTION_CASE_PER_TARGET_CONTENT_MODE",
+      "AT_LEAST_TWO_COMPLETE_HELD_OUT_TOPIC_FAMILIES_PER_TARGET_CONTENT_MODE",
+      "SEMANTICALLY_VERIFIED_CANDIDATE_DISTILLATION_AND_COUNTEREXAMPLES",
+      "BLIND_PAIRWISE_JUDGE_RUNS_WITH_POSITION_SWAP_AND_CASE_BINDING",
+      "ZERO_HARD_INVARIANT_REGRESSIONS"
+    ],
+    "single_article_completion_is_system_completion": false
   }
 }

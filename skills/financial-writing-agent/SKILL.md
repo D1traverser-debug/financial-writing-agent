@@ -70,7 +70,7 @@ Method lifecycle: candidate → revise pending → independent validation/promot
 
 `EVOLUTION_INDEX.json` is the sole current system-status authority; keep failure chronology and rejected hypotheses in the problem journal. Each repair restores the full goal, compares shared causes, seeks counterexamples, tests negative and valid-neighbor cases, reads back exact results and preserves OPEN conditions. Engineering, provider integration, client activation, independent review, article quality and delivery are separate gates.
 
-Before claiming completion, replay every user goal through actual pass inputs, source evidence, Deep/Broad prose, review, revision and Word. Probe missing/changed/conflicting inputs. A pass DAG or mock PASS is not an executed article. For resumable execution, also prove each stage artifact was persisted, provider-read back, matched to its task/requirement digest and admitted by the single Article Aggregate before continuing. A complete in-memory pass trace is not a persisted workflow.
+Before claiming completion, replay each goal through actual research, Deep/Broad prose, review, revision and Word; probe missing/changed/conflicting inputs. For system-wide stability, evaluate multiple topic families and prior accepted/rejected artifacts: keep the core workflow fixed while story form and voice remain content-led. A pass DAG/mock PASS is not an article; each resumable stage artifact must be persisted, provider-read back, digest-matched and owner-admitted.
 
 ## Effect writes
 `financial_writing_agent.standalone_runtime.py` verifies signed provider admission (article v1.1; method v1.0), effect receipt v1.0, atomic CAS and exact reread. No signer means no mutation; legacy history stays unbound.

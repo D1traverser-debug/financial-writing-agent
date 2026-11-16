@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.3`
+Journal revision: `2.4`
 Updated: `2026-11-16`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -681,3 +681,34 @@ Status: CANDIDATE_REPAIR_EXACT_HEAD_CI_PASS__NOT_PROMOTED__REAL_ARTICLE_OUTCOME_
 **Remaining OPEN conditions.** PR #84 remains DRAFT and unmerged; no independent current-head review has been obtained. Provider Action is NOT_DEPLOYED. The cross-border v3 task remains RESEARCH with 0/4 real deliverables, no quality evidence and no Research-stage artifact. Its prompt is only 跨境电商; V2 sources are historical fixtures and require current-source revalidation. Source-byte readback is not factual entailment. Real article quality, editorial acceptance and reader outcomes remain unverified. No CAOS source or configuration was changed.
 
 **Next legal action.** Review the exact live PR #84 head and its exact CI; keep the candidate separate from main until the repository's review and promotion requirements are satisfied. Provider hosting and real article execution are separate decisions.
+
+
+---
+
+## P-20261116-04 — System-wide writing stability was incorrectly narrowed to one article task (2026-11-16)
+
+Status: \`GENERAL_STABILITY_CONTRACT_ADDED__CROSS_TOPIC_QUALITY_EVIDENCE_OPEN\`
+
+**User correction.** The cross-border-ecommerce article/task was one example that exposed Financial Writing defects; it is not the product objective. The actual requirement is that every Financial Writing task should be as stable as possible. Most of the process is reusable and fixed; narrative form and expression remain open because they depend on the topic, material and reader.
+
+**Root causes.**
+1. The previous continuation treated the current article's task state as the next system objective, so a single task-specific blocker was repeatedly surfaced as if it defined the Financial Writing product.
+2. Engineering verification had more detail than cross-topic editorial evidence. The current quality corpus has only two complete cases: one real user rejection and one external held-out benchmark, with only one held-out topic family and only FINANCE_DEEP represented.
+3. Four historical article workspaces cover different topic families, but their editorial audits are CHAT_SELF_REVIEW and their owner states have empty quality_evidence. They are useful diagnostic samples, not independent quality acceptance.
+4. Prior Financial evolution already showed that fixed opening, sentence and rhetorical geometry can make one machine template replace another. Reintroducing rigid expression rules would damage the actual goal.
+
+**Selected system-wide correction.**
+- Define one stable Financial workflow and shared research spine for every topic; preserve task-specific requirements and evidence depth without changing the canonical process.
+- Make topic-specific research modules conditional on actual user scope and material relevance. Full-universe requirements remain task-scoped.
+- Keep narrative engine, title angle, opening strategy, section order, paragraph rhythm, technical depth and voice content-led. No universal article template or prose quotas.
+- Harvest four existing cross-topic Deep/Broad pairs as immutable diagnostic samples, explicitly marked CHAT_SELF_REVIEW with empty quality evidence and ineligible for promotion.
+- Add executable regression tests that prove topic changes do not alter the canonical business workflow, expression remains non-template-driven, and diagnostic samples cannot be mistaken for independent promotion cases.
+- Define cross-topic, per-content-mode quality acceptance without treating one article as the system objective.
+
+**Evidence inventory.** Existing diagnostic topic families: technology/security sector event; consumer beverage/channel transformation; consumer tourism/industry multi-company; technology event/enterprise application mapping. All four existing tasks reached FINAL_AUDIT and have Deep/Broad outputs, but their audits are CHAT_SELF_REVIEW and quality_evidence is empty. The corpus remains NOT_READY: two complete cases, one held-out family; FINANCE_BROAD remains unauthorized for quality promotion.
+
+**Verification target.** Base PR head before this revision: \`dfced20fc5fa594cd9f6df753f906b875e5fa6b2\`; exact-head CI run \`43820293511\` passed 720 tests. The new general-stability contract, diagnostic inventory and regression test in this revision require a new exact-head CI; no result is pre-claimed.
+
+**Remaining OPEN conditions.** Real blind independent quality review across multiple held-out topic families and every target content mode; user-approved positive samples for personalized writing DNA; live model execution and provider-backed stage persistence; independent current-head review; Provider Action deployment. No CAOS source or configuration was changed.
+
+**Next legal action.** Continue Financial Writing as a system-wide product. Execute and independently evaluate real articles across multiple topic families and each target content mode using the same workflow and content-led expression. Do not anchor completion to any single article task.

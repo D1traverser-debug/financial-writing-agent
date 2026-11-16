@@ -107,8 +107,12 @@
     "GENERAL_EDITORIAL_QUALITY": {
       "status": "NOT_READY__HELDOUT_DIVERSITY_INSUFFICIENT",
       "authorized_content_modes": [],
-      "diagnostic_only_content_modes": ["FINANCE_DEEP"],
-      "unauthorized_content_modes": ["FINANCE_BROAD"],
+      "diagnostic_only_content_modes": [
+        "FINANCE_DEEP"
+      ],
+      "unauthorized_content_modes": [
+        "FINANCE_BROAD"
+      ],
       "known_missing": [
         "a second complete FINANCE_DEEP held-out case from a distinct topic family with immutable artifact binding",
         "a concrete candidate-distillation package comparing at least two mechanisms with semantically verified change/counterexample evidence after corpus readiness is restored",
@@ -123,6 +127,152 @@
         "all general editorial quality readiness requirements",
         "at least one real accepted article or post-publication positive performance anchor"
       ]
+    },
+    "cross_topic_diagnostic_inventory": {
+      "sample_count": 4,
+      "topic_families": [
+        "technology_security_sector_event",
+        "consumer_beverage_channel_transformation",
+        "consumer_tourism_industry_multi_company",
+        "technology_event_enterprise_application_mapping"
+      ],
+      "all_assurance": "CHAT_SELF_REVIEW",
+      "all_quality_evidence_status": "EMPTY",
+      "promotion_eligible_count": 0,
+      "interpretation": "Useful historical diagnostics only; do not count as complete blind independent quality cases."
     }
+  },
+  "diagnostic_samples": [
+    {
+      "sample_id": "ai-security-20261012",
+      "task_id": "fw-20261012-ai-security-6dd14859",
+      "topic_family": "technology_security_sector_event",
+      "content_modes": [
+        "FINANCE_DEEP",
+        "FINANCE_BROAD"
+      ],
+      "state_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
+      "assurance": "CHAT_SELF_REVIEW",
+      "quality_evidence_status": "EMPTY",
+      "promotion_eligible": false,
+      "artifact_bindings": [
+        {
+          "ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_DEEP.json",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "93117e559e467cfcd4aaca8c75ccee7d9be92a01"
+        },
+        {
+          "ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/publication/FINANCE_BROAD.json",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "12b3549ad7e4af542d2538c3715cf30c400e3b6b"
+        },
+        {
+          "ref": "workspaces/articles/fw-20261012-ai-security-6dd14859/reviews/EDITORIAL_AUDIT.json",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "5f2f8ffd0aa267906796c72d67c35961235b3d89"
+        }
+      ],
+      "limitation": "Historical cross-topic sample; same-session review is not independent editorial evidence."
+    },
+    {
+      "sample_id": "huangjiu-channel-20261015",
+      "task_id": "huangjiu-high-end-channel-20261015",
+      "topic_family": "consumer_beverage_channel_transformation",
+      "content_modes": [
+        "FINANCE_DEEP",
+        "FINANCE_BROAD"
+      ],
+      "state_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
+      "assurance": "CHAT_SELF_REVIEW",
+      "quality_evidence_status": "EMPTY",
+      "promotion_eligible": false,
+      "artifact_bindings": [
+        {
+          "ref": "workspaces/articles/huangjiu-high-end-channel-20261015/publication/FINANCE_DEEP.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "c7229c81b89567af00e7d63ba0b97d852ae48ee5"
+        },
+        {
+          "ref": "workspaces/articles/huangjiu-high-end-channel-20261015/publication/FINANCE_BROAD.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "1d744ea85da3d4b8c5498c7e049113757a117cbc"
+        },
+        {
+          "ref": "workspaces/articles/huangjiu-high-end-channel-20261015/FEEDBACK_2026-10-15.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "83befaa6ef57374e58e15270db146dbf40861d7b"
+        }
+      ],
+      "limitation": "Contains a real user feedback trail; the final self-review is not an independent quality acceptance."
+    },
+    {
+      "sample_id": "ice-snow-economy-20261013",
+      "task_id": "ice-snow-economy-20261013",
+      "topic_family": "consumer_tourism_industry_multi_company",
+      "content_modes": [
+        "FINANCE_DEEP",
+        "FINANCE_BROAD"
+      ],
+      "state_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
+      "assurance": "CHAT_SELF_REVIEW",
+      "quality_evidence_status": "EMPTY",
+      "promotion_eligible": false,
+      "artifact_bindings": [
+        {
+          "ref": "workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_DEEP.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "79be75d2cfe1a58a30a1a5b547a82d223c168a38"
+        },
+        {
+          "ref": "workspaces/articles/ice-snow-economy-20261013/publication/FINANCE_BROAD.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "9aa181f5534cbea111a2cfaa8a7abafa07451da1"
+        },
+        {
+          "ref": "workspaces/articles/ice-snow-economy-20261013/reviews/EDITORIAL_AUDIT.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "6452c3fc9cd4bb1b28936971de076d2f3f5766bc"
+        }
+      ],
+      "limitation": "Historical cross-topic sample; same-session review is not independent editorial evidence."
+    },
+    {
+      "sample_id": "meta-ai-20261013",
+      "task_id": "meta-muse-wonder-ai-20261013",
+      "topic_family": "technology_event_enterprise_application_mapping",
+      "content_modes": [
+        "FINANCE_DEEP",
+        "FINANCE_BROAD"
+      ],
+      "state_status": "DELIVERED_CHAT_REVIEWED__CERTIFICATION_OPEN",
+      "assurance": "CHAT_SELF_REVIEW",
+      "quality_evidence_status": "EMPTY",
+      "promotion_eligible": false,
+      "artifact_bindings": [
+        {
+          "ref": "workspaces/articles/meta-muse-wonder-ai-20261013/publication/FINANCE_DEEP.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "1e539f99757bcde1f9c5459d2236bd578491da5c"
+        },
+        {
+          "ref": "workspaces/articles/meta-muse-wonder-ai-20261013/publication/FINANCE_BROAD.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "9a9f81f520c45630f75b2e8daa9362c947c31e87"
+        },
+        {
+          "ref": "workspaces/articles/meta-muse-wonder-ai-20261013/reviews/EDITORIAL_AUDIT.md",
+          "identity_type": "GIT_BLOB_SHA",
+          "identity": "07af3972746643d53ecf3d306f67cea5e870135b"
+        }
+      ],
+      "limitation": "Historical cross-topic sample; same-session review is not independent editorial evidence."
+    }
+  ],
+  "stability_contract": {
+    "applies_to": "ALL_FINANCIAL_WRITING_TASKS",
+    "fixed_workflow_ref": "config/EXECUTION_CONTRACT.json#general_writing_stability",
+    "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
+    "diagnostic_samples_are_not_promotion_evidence": true,
+    "system_stability_requires_cross_topic_and_per_mode_evidence": true
   }
 }
