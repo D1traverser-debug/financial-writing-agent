@@ -520,6 +520,10 @@ def _verify_portfolio_stage_artifact_context(
             "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
         )
         refs = [ref.strip() for ref in item["evidence_refs"]]
+        _require(
+            len(refs) == len(set(refs)),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
         if stage_path not in refs:
             refs.append(stage_path)
         expected_satisfaction.append({
@@ -538,10 +542,15 @@ def _verify_portfolio_stage_artifact_context(
             and all(isinstance(ref, str) and ref.strip() for ref in item["evidence_refs"]),
             "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
         )
+        owner_refs = [ref.strip() for ref in item["evidence_refs"]]
+        _require(
+            len(owner_refs) == len(set(owner_refs)),
+            "FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+        )
         observed_satisfaction.append({
             "requirement_id": item["requirement_id"],
             "result": "SATISFIED",
-            "evidence_refs": [ref.strip() for ref in item["evidence_refs"]],
+            "evidence_refs": owner_refs,
             "notes": str(item.get("notes", "")).strip(),
         })
     expected_satisfaction.sort(key=lambda item: item["requirement_id"])

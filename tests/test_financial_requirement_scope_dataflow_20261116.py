@@ -216,6 +216,7 @@ def test_full_universe_requirement_is_active_only_when_its_product_is_requested(
         [None],
         [7],
         ["same-ref", "same-ref"],
+        ["same-ref", " same-ref "],
     ],
 )
 def test_owner_requirement_satisfaction_rejects_invalid_or_duplicate_evidence_refs(evidence_refs):

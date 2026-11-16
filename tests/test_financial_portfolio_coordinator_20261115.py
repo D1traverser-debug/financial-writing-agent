@@ -434,6 +434,17 @@ def test_portfolio_stage_requirement_satisfaction_must_match_owner_receipt():
     assert result["requirement_satisfaction_count"] == 1
 
     candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction"][0]["evidence_refs"] = [
+        "source-ref://deep-complete", " source-ref://deep-complete ", path,
+    ]
+    with pytest.raises(
+        FinancialAdmissionError,
+        match="FINANCIAL_PORTFOLIO_STAGE_REQUIREMENT_SATISFACTION_INVALID",
+    ):
+        standalone_runtime._verify_portfolio_stage_artifact_context(
+            stage_bytes, context, candidate,
+        )
+
+    candidate["execution_receipts"][-1]["input_bindings"]["task_requirement_satisfaction"][0]["evidence_refs"] = [
         "source-ref://different-evidence", path,
     ]
     with pytest.raises(

@@ -269,9 +269,10 @@ def _normalize_requirement_satisfaction(
             and all(isinstance(ref, str) and bool(ref.strip()) for ref in evidence_refs),
             f"requirement {requirement_id} requires evidence_refs as nonempty strings",
         )
+        normalized_refs = [ref.strip() for ref in evidence_refs]
         _require(
-            len(evidence_refs) == len(set(evidence_refs)),
-            f"requirement {requirement_id} evidence_refs must be unique",
+            len(normalized_refs) == len(set(normalized_refs)),
+            f"requirement {requirement_id} evidence_refs must be unique after normalization",
         )
         requirement = due_by_id[requirement_id]
         normalized.append(
@@ -279,7 +280,7 @@ def _normalize_requirement_satisfaction(
                 "requirement_id": requirement_id,
                 "requirement_sha256": _canonical_digest(requirement),
                 "result": "SATISFIED",
-                "evidence_refs": [ref.strip() for ref in evidence_refs],
+                "evidence_refs": normalized_refs,
                 "notes": str(entry.get("notes", "")).strip(),
             }
         )
