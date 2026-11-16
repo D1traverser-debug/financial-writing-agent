@@ -33,6 +33,11 @@ WRITING_KERNEL_VERSION = "1.0"
 QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 REQUIREMENT_CAPABILITY_ID = "github_chat_requirement_governance"
 REQUIREMENT_SATISFACTION_VERSION = "1.0"
+PORTFOLIO_EXECUTION_CONTRACT_VERSION = "1.0"
+PORTFOLIO_COORDINATED_STAGES = frozenset({
+    "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL",
+    "TITLE", "DRAFT", "EDITORIAL_AUDIT",
+})
 
 
 class CurrentAdmissionError(ValueError):
@@ -207,6 +212,13 @@ def bind_current_governance_receipt(state: dict[str, Any]) -> None:
     if private_version in SUPPORTED_PRIVATE_RESEARCH_CONTRACT_VERSIONS:
         bindings["private_research_contract_version"] = str(private_version)
     bindings["quality_admission_path"] = QUALITY_ADMISSION_PATH
+    portfolio_version = state.get("portfolio_execution_contract_version")
+    if portfolio_version is not None:
+        _require(
+            portfolio_version == PORTFOLIO_EXECUTION_CONTRACT_VERSION,
+            "unsupported portfolio_execution_contract_version",
+        )
+        bindings["portfolio_execution_contract_version"] = portfolio_version
     _bind_requirement_receipt(state)
 
 
@@ -407,6 +419,7 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     state["task_requirement_contract_version"] = REQUIREMENT_CONTRACT_VERSION
     state["task_requirement_authority"] = empty_requirement_authority()
     state["task_requirement_digest"] = authority_digest(state["task_requirement_authority"])
+    state["portfolio_execution_contract_version"] = PORTFOLIO_EXECUTION_CONTRACT_VERSION
     bind_current_governance_receipt(state)
     validate_state(state)
     return state
@@ -424,6 +437,40 @@ def _validate_pre_requirement_migration_state(state: Mapping[str, Any]) -> None:
     _validate_persisted_quality_evidence(state)
 
 
+def portfolio_context_required_for_stage(state: Mapping[str, Any]) -> bool:
+    """New/current tasks must advance portfolio-owned stages through the coordinator."""
+    return (
+        state.get("portfolio_execution_contract_version")
+        == PORTFOLIO_EXECUTION_CONTRACT_VERSION
+        and state.get("current_stage") in PORTFOLIO_COORDINATED_STAGES
+    )
+
+
+def _validate_portfolio_execution_binding(state: Mapping[str, Any]) -> None:
+    version = state.get("portfolio_execution_contract_version")
+    receipts = state.get("execution_receipts", [])
+    latest_bindings = (
+        receipts[-1].get("input_bindings", {})
+        if isinstance(receipts, list) and receipts and isinstance(receipts[-1], Mapping)
+        else {}
+    )
+    bound_version = (
+        latest_bindings.get("portfolio_execution_contract_version")
+        if isinstance(latest_bindings, Mapping) else None
+    )
+    if version is None:
+        _require(
+            bound_version is None,
+            "portfolio execution contract marker cannot be removed from an admitted task",
+        )
+        return
+    _require(
+        version == PORTFOLIO_EXECUTION_CONTRACT_VERSION
+        and bound_version == version,
+        "portfolio execution contract must be bound by the latest owner receipt",
+    )
+
+
 def validate_state(state: Mapping[str, Any]) -> None:
     owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
@@ -434,6 +481,7 @@ def validate_state(state: Mapping[str, Any]) -> None:
     )
     _validate_persisted_quality_evidence(state)
     _validate_requirement_binding(state)
+    _validate_portfolio_execution_binding(state)
 
 
 def requirement_context_for_scope(state: Mapping[str, Any], scope: str) -> dict[str, Any]:
@@ -757,6 +805,11 @@ def advance_state(
             "stage": after["current_stage"],
             "generation": generation,
         }
+        # A legacy task is promoted to the coordinator contract only when its
+        # first typed context is bound to the owner transition.
+        after["portfolio_execution_contract_version"] = (
+            PORTFOLIO_EXECUTION_CONTRACT_VERSION
+        )
 
     if planned_invalidated:
         missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]

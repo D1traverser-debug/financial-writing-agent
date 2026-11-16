@@ -8,8 +8,11 @@ from uuid import uuid4
 
 import pytest
 
+from financial_writing_agent import portfolio_coordinator
 from financial_writing_agent.current_admission import validate_state
 from financial_writing_agent.private_research import REQUIRED_MODULES
+from financial_writing_agent.writing_kernel import WritingPass
+from test_financial_portfolio_execution_20261114 import _executor, _seed
 from financial_writing_agent.standalone_runtime import (
     DOMAIN_ID, FinancialAdmissionError, FinancialEffectUnverified,
     _blob_sha, admit_article_action, observe_article,
@@ -79,6 +82,18 @@ class Provider:
     def source(self, ref):
         return self.sources.get(ref)
 
+    def write_artifact_bundle(self, files):
+        batch = dict(files)
+        for path, content in batch.items():
+            if path in self.artifacts and self.artifacts[path] != content:
+                raise RuntimeError("immutable artifact path already contains different bytes")
+        self.artifacts.update(batch)
+        return {
+            "blob_shas": {
+                path: _blob_sha(content) for path, content in batch.items()
+            }
+        }
+
 
 def proposal(op, *, sha=None, params=None, task_id="solo-article-01", action=None):
     return {
@@ -108,6 +123,40 @@ def create(p):
     return run(p, proposal("CREATE_ARTICLE", params={
         "prompt": "中国跨境电商公司经济性报道", "source_refs": [],
     }))
+
+
+def _run_portfolio_stage(p, *, seed_inputs=None, execute_pass=None):
+    path = "workspaces/articles/solo-article-01/STATE.json"
+    return portfolio_coordinator.run_next_portfolio_stage(
+        "solo-article-01",
+        expected_state_blob_sha=p.read(path)["blob_sha"],
+        seed_inputs=seed_inputs,
+        execute_pass=execute_pass,
+        state_reader=p.read,
+        artifact_reader=p.artifact,
+        portfolio_context_reader=p.artifact,
+        artifact_bundle_writer=p.write_artifact_bundle,
+        authorization_verifier=signed_action_authorization,
+        bundle_cas_writer=p.write_bundle,
+        effect_attestation_signer=signed_action_effect,
+        effect_receipt_reader=p.read_effect,
+        source_snapshot_reader=p.source,
+    )
+
+
+def _portfolio_research_executor():
+    calls = []
+    fallback = _executor(calls)
+
+    def execute(node, inputs):
+        result = fallback(node, inputs)
+        if node == WritingPass.PRIVATE_RESEARCH_SYNTHESIS:
+            result["private_research_brief"] = _brief()
+        elif node == WritingPass.THESIS_ADJUDICATION:
+            result["decision_envelope"] = _decision()
+        return result
+
+    return execute
 
 
 def test_standalone_can_create_and_observe_real_financial_article_without_parent():
@@ -217,7 +266,7 @@ def test_signed_legacy_action_cannot_be_appended_after_effect_bound_history():
     p = Provider()
     create(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
-    run(p, proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"]))
+    _run_portfolio_stage(p, seed_inputs=_seed())
     state = p.read(path)["state"]
     last = state["execution_receipts"][-1]
     bindings = last["input_bindings"]
@@ -313,13 +362,15 @@ def test_standalone_feedback_stays_on_single_current_owner_article():
     assert state["open_system_impact"][0]["status"] == "OPEN"
 
 
-def test_standalone_advance_from_intake_to_research():
+def test_standalone_advance_from_intake_to_research_uses_portfolio_coordinator():
     p = Provider()
     create(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
-    result = run(p, proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"]))
-    assert result["stage"] == "RESEARCH"
-    assert result["required_stage_artifact_verified"] is None
+    result = _run_portfolio_stage(p, seed_inputs=_seed())
+    assert result["executed_stage"] == "INTAKE"
+    assert result["next_stage"] == "RESEARCH"
+    assert p.read(path)["state"]["current_stage"] == "RESEARCH"
+    assert p.read(path)["state"]["portfolio_execution_contract_version"] == "1.0"
 
 
 def _decision():
@@ -351,40 +402,33 @@ def _prepare_sources(p):
         }
 
 
-def research_proposal(p, artifact_path=None, fake_sha=None):
-    path = "workspaces/articles/solo-article-01/STATE.json"
-    artifact = artifact_path or "workspaces/articles/solo-article-01/stages/RESEARCH.json"
-    content = b'{"synthetic":"source"}\n'
-    p.artifacts[artifact] = content
-    _prepare_sources(p)
-    return proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"], params={
-        "decision_envelope": _decision(), "private_research_brief": _brief(),
-        "artifact_key": "RESEARCH", "artifact_path": artifact,
-        "artifact_blob_sha": fake_sha or _blob_sha(content),
-    })
-
-
-def test_standalone_research_artifact_bytes_checked_before_stage_commit():
+def test_standalone_research_stage_runs_through_coordinator_and_verifies_owner_readback():
     p = Provider()
     create(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
-    run(p, proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"]))
-    req = research_proposal(p)
-    out = run(p, req)
-    assert out["stage"] == "RESEARCH_AUDIT"
-    assert out["required_stage_artifact_verified"]["artifact_key"] == "RESEARCH"
+    _run_portfolio_stage(p, seed_inputs=_seed())
+    _prepare_sources(p)
+    out = _run_portfolio_stage(
+        p,
+        execute_pass=_portfolio_research_executor(),
+    )
+    assert out["executed_stage"] == "RESEARCH"
+    assert out["next_stage"] == "RESEARCH_AUDIT"
+    assert out["owner_admission"]["required_stage_artifact_verified"]["artifact_key"] == "RESEARCH"
+    assert out["owner_admission"]["portfolio_stage_artifact_readback"]["owner_outcome_verified"] is True
     validate_state(p.read(path)["state"])
 
 
-def test_forged_artifact_digest_does_not_advance_financial_workflow():
+def test_current_financial_task_rejects_direct_internal_stage_advance_without_coordinator_context():
     p = Provider()
     create(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
-    run(p, proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"]))
-    req = research_proposal(p, fake_sha="f" * 40)
     before = deepcopy(p.store)
-    with pytest.raises(FinancialAdmissionError, match="FINANCIAL_STAGE_ARTIFACT_BYTES_SHA_MISMATCH"):
-        run(p, req)
+    with pytest.raises(
+        FinancialAdmissionError,
+        match="FINANCIAL_PORTFOLIO_CONTEXT_REQUIRED_FOR_CURRENT_TASK",
+    ):
+        run(p, proposal("ADVANCE_STAGE", sha=p.read(path)["blob_sha"]))
     assert p.store == before
 
 

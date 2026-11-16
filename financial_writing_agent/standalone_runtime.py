@@ -1315,6 +1315,14 @@ def admit_article_action(
             state, effect_receipt_reader=effect_receipt_reader,
             current_state_blob_sha=previous_sha,
         )
+        if (
+            op == "ADVANCE_STAGE"
+            and current_admission.portfolio_context_required_for_stage(state)
+        ):
+            _require(
+                isinstance(params.get("portfolio_context_ref"), Mapping),
+                "FINANCIAL_PORTFOLIO_CONTEXT_REQUIRED_FOR_CURRENT_TASK",
+            )
         call = {
             "previous_state_blob_sha": previous_sha,
             "executor_identity": f"financial:{r['action_id']}",

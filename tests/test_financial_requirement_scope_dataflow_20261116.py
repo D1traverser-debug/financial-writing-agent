@@ -236,3 +236,67 @@ def test_owner_requirement_satisfaction_rejects_invalid_or_duplicate_evidence_re
                 "evidence_refs": evidence_refs,
             }],
         )
+
+
+def test_new_tasks_bind_coordinator_execution_contract_and_cannot_downgrade():
+    state = current_admission.build_initial_state(
+        task_id="coordinator-contract-new",
+        prompt="Write a financial article",
+        source_refs=[],
+        executor_identity="test",
+    )
+    assert state["portfolio_execution_contract_version"] == "1.0"
+    assert state["execution_receipts"][-1]["input_bindings"][
+        "portfolio_execution_contract_version"
+    ] == "1.0"
+    assert current_admission.portfolio_context_required_for_stage(state) is True
+
+    downgraded = dict(state)
+    downgraded.pop("portfolio_execution_contract_version")
+    with pytest.raises(
+        CurrentAdmissionError,
+        match="portfolio execution contract marker cannot be removed",
+    ):
+        current_admission.validate_state(downgraded)
+
+
+def test_legacy_task_is_upgraded_only_when_first_coordinator_context_is_owner_bound():
+    state = current_admission.build_initial_state(
+        task_id="coordinator-contract-legacy",
+        prompt="Write a financial article",
+        source_refs=[],
+        executor_identity="test",
+    )
+    legacy = dict(state)
+    legacy.pop("portfolio_execution_contract_version")
+    legacy["execution_receipts"] = [
+        {
+            **receipt,
+            "input_bindings": dict(receipt["input_bindings"]),
+        }
+        for receipt in state["execution_receipts"]
+    ]
+    legacy["execution_receipts"][-1]["input_bindings"].pop(
+        "portfolio_execution_contract_version"
+    )
+    current_admission.validate_state(legacy)
+    assert current_admission.portfolio_context_required_for_stage(legacy) is False
+
+    upgraded = current_admission.advance_state(
+        legacy,
+        previous_state_blob_sha="a" * 40,
+        executor_identity="test",
+        portfolio_context_ref={
+            "path": "workspaces/articles/coordinator-contract-legacy/portfolio/contexts/1.json",
+            "blob_sha": "b" * 40,
+            "sha256": "c" * 64,
+            "stage": "RESEARCH",
+            "generation": 1,
+        },
+    )
+    assert upgraded["current_stage"] == "RESEARCH"
+    assert upgraded["portfolio_execution_contract_version"] == "1.0"
+    assert upgraded["execution_receipts"][-1]["input_bindings"][
+        "portfolio_execution_contract_version"
+    ] == "1.0"
+    assert current_admission.portfolio_context_required_for_stage(upgraded) is True
