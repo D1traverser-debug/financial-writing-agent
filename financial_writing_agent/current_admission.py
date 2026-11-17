@@ -28,12 +28,27 @@ from .task_requirements import (
     empty_requirement_authority,
     validate_requirement_authority,
 )
+from .task_intake import (
+    TASK_INTAKE_CONTRACT_VERSION,
+    TaskIntakeError,
+    build_task_intake_review_challenge,
+    canonical_sha256 as task_intake_canonical_sha256,
+    validate_task_intake_manifest,
+    verify_task_intake_review,
+)
+from .goal_outcome import (
+    GoalOutcomeError,
+    verify_goal_outcome_review,
+    verify_persisted_goal_outcome_review,
+)
 
 WRITING_KERNEL_VERSION = "1.0"
 QUALITY_ADMISSION_PATH = "financial_writing_agent.current_admission"
 REQUIREMENT_CAPABILITY_ID = "github_chat_requirement_governance"
 REQUIREMENT_SATISFACTION_VERSION = "1.0"
 PORTFOLIO_EXECUTION_CONTRACT_VERSION = "1.0"
+TASK_INTAKE_STATE_FIELD = "task_intake_contract_version"
+GOAL_OUTCOME_REVIEW_HISTORY_FIELD = "goal_outcome_review_history"
 PORTFOLIO_COORDINATED_STAGES = frozenset({
     "INTAKE", "RESEARCH", "RESEARCH_AUDIT", "EDITORIAL",
     "TITLE", "DRAFT", "EDITORIAL_AUDIT",
@@ -408,8 +423,8 @@ def _validate_persisted_quality_evidence(state: Mapping[str, Any]) -> None:
         )
 
 
-def build_initial_state(**kwargs: Any) -> dict[str, Any]:
-    """Create every new current Financial task through the current Article Aggregate root."""
+def build_initial_state(*, goal_first: bool = False, **kwargs: Any) -> dict[str, Any]:
+    """Create a current Financial task; production-created tasks use goal-first intake."""
     state = owner_guard.build_initial_state(
         _current_admission_token=owner_guard._CURRENT_ADMISSION_TOKEN,
         **kwargs,
@@ -421,6 +436,11 @@ def build_initial_state(**kwargs: Any) -> dict[str, Any]:
     state["task_requirement_authority"] = empty_requirement_authority()
     state["task_requirement_digest"] = authority_digest(state["task_requirement_authority"])
     state["portfolio_execution_contract_version"] = PORTFOLIO_EXECUTION_CONTRACT_VERSION
+    if goal_first:
+        state[TASK_INTAKE_STATE_FIELD] = TASK_INTAKE_CONTRACT_VERSION
+        state["execution_receipts"][0]["input_bindings"][TASK_INTAKE_STATE_FIELD] = (
+            TASK_INTAKE_CONTRACT_VERSION
+        )
     bind_current_governance_receipt(state)
     validate_state(state)
     return state
@@ -472,6 +492,201 @@ def _validate_portfolio_execution_binding(state: Mapping[str, Any]) -> None:
     )
 
 
+def _validate_task_intake_state(state: Mapping[str, Any]) -> None:
+    marker = state.get(TASK_INTAKE_STATE_FIELD)
+    fields = (
+        "task_intake_manifest",
+        "task_intake_manifest_sha256",
+        "task_intake_review_attestation",
+    )
+    receipts = state.get("execution_receipts", [])
+    initial_bindings = (
+        receipts[0].get("input_bindings", {})
+        if isinstance(receipts, list) and receipts and isinstance(receipts[0], Mapping)
+        else {}
+    )
+    if marker is None:
+        _require(
+            initial_bindings.get(TASK_INTAKE_STATE_FIELD) is None,
+            "TASK_INTAKE_CONTRACT_MARKER_REMOVED_FROM_INITIAL_RECEIPT",
+        )
+        _require(
+            not any(name in state for name in fields),
+            "task intake evidence cannot exist without the goal-first intake contract",
+        )
+        return
+    _require(
+        marker == TASK_INTAKE_CONTRACT_VERSION
+        and initial_bindings.get(TASK_INTAKE_STATE_FIELD) == TASK_INTAKE_CONTRACT_VERSION,
+        "unsupported or unbound task_intake_contract_version",
+    )
+    authority = validate_requirement_authority(state.get("task_requirement_authority"))
+    if state.get("current_stage") == "INTAKE":
+        _require(
+            authority["revision"] == 0 and not authority["active_requirements"],
+            "goal-first INTAKE must not pre-populate task requirement authority",
+        )
+        _require(
+            not any(name in state for name in fields),
+            "goal-first INTAKE evidence is admitted only by the INTAKE transition",
+        )
+        return
+    _require(
+        all(name in state for name in fields),
+        "goal-first task cannot leave INTAKE without its admitted manifest and independent review",
+    )
+    try:
+        normalized = validate_task_intake_manifest(
+            state.get("task_intake_manifest"),
+            task_id=str(state["task_id"]),
+            prompt=str(state["prompt"]),
+            required_outputs=list(state.get("required_outputs", [])),
+        )
+    except TaskIntakeError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
+    _require(
+        normalized == state.get("task_intake_manifest"),
+        "TASK_INTAKE_MANIFEST_NOT_CANONICALLY_NORMALIZED",
+    )
+    manifest_sha = task_intake_canonical_sha256(normalized)
+    _require(
+        state.get("task_intake_manifest_sha256") == manifest_sha,
+        "TASK_INTAKE_MANIFEST_DIGEST_MISMATCH",
+    )
+    intake_review_sha = _canonical_digest(state.get("task_intake_review_attestation"))
+    intake_receipts = [
+        receipt for receipt in receipts
+        if isinstance(receipt, Mapping)
+        and isinstance(receipt.get("input_bindings"), Mapping)
+        and receipt["input_bindings"].get(TASK_INTAKE_STATE_FIELD) == TASK_INTAKE_CONTRACT_VERSION
+        and receipt["input_bindings"].get("task_intake_manifest_sha256") == manifest_sha
+        and receipt["input_bindings"].get("task_intake_review_attestation_sha256") == intake_review_sha
+    ]
+    _require(
+        len(intake_receipts) == 1,
+        "TASK_INTAKE_ADMISSION_RECEIPT_MISSING_OR_DUPLICATED",
+    )
+    intake_bindings = intake_receipts[0]["input_bindings"]
+    _require(
+        intake_bindings.get("task_intake_manifest_sha256") == manifest_sha
+        and intake_bindings.get("task_intake_review_attestation_sha256")
+        == _canonical_digest(state.get("task_intake_review_attestation"))
+        and intake_bindings.get("initial_requirement_revision") == 1,
+        "TASK_INTAKE_ADMISSION_RECEIPT_BINDING_MISMATCH",
+    )
+    initial_requirements = [
+        item["requirement"]
+        for item in normalized["requirements"]
+    ]
+    initial_history = [
+        item.get("current")
+        for item in authority["history"]
+        if item.get("revision") == 1 and item.get("action") == "ADD"
+    ]
+    _require(
+        sorted(initial_requirements, key=lambda item: item["requirement_id"])
+        == sorted(initial_history, key=lambda item: item["requirement_id"]),
+        "TASK_INTAKE_INITIAL_REQUIREMENT_AUTHORITY_MISMATCH",
+    )
+    challenge = build_task_intake_review_challenge(
+        task_id=str(state["task_id"]),
+        prompt=str(state["prompt"]),
+        manifest=normalized,
+        required_outputs=list(state.get("required_outputs", [])),
+    )
+    try:
+        verify_task_intake_review(
+            state.get("task_intake_review_attestation"),
+            challenge=challenge,
+            historical=True,
+        )
+    except TaskIntakeError as exc:
+        raise CurrentAdmissionError(str(exc)) from exc
+
+
+def _validate_goal_outcome_state(state: Mapping[str, Any]) -> None:
+    marker = state.get(TASK_INTAKE_STATE_FIELD)
+    history = state.get(GOAL_OUTCOME_REVIEW_HISTORY_FIELD, [])
+    _require(isinstance(history, list), "goal outcome review history must be a list")
+    review_receipts = [
+        receipt for receipt in state.get("execution_receipts", [])
+        if isinstance(receipt, Mapping)
+        and isinstance(receipt.get("input_bindings"), Mapping)
+        and receipt["input_bindings"].get("goal_outcome_review_attestation_sha256")
+    ]
+    _require(
+        len(review_receipts) == len(history),
+        "GOAL_OUTCOME_REVIEW_HISTORY_RECEIPT_COUNT_MISMATCH",
+    )
+    receipts_by_digest = {
+        receipt["input_bindings"]["goal_outcome_review_attestation_sha256"]: receipt
+        for receipt in review_receipts
+    }
+    for entry in history:
+        _require(isinstance(entry, Mapping), "goal outcome review history entry must be an object")
+        attestation = entry.get("attestation")
+        _require(isinstance(attestation, Mapping), "goal outcome review history attestation missing")
+        digest = _canonical_digest(attestation)
+        _require(
+            entry.get("attestation_sha256") == digest,
+            "GOAL_OUTCOME_REVIEW_HISTORY_DIGEST_MISMATCH",
+        )
+        receipt = receipts_by_digest.get(digest)
+        _require(isinstance(receipt, Mapping), "GOAL_OUTCOME_REVIEW_HISTORY_RECEIPT_MISSING")
+        bindings = receipt["input_bindings"]
+        _require(
+            bindings.get("goal_outcome_review_decision") == entry.get("decision")
+            == attestation.get("decision")
+            and bindings.get("goal_outcome_requirement_results_sha256")
+            == attestation.get("requirement_results_sha256"),
+            "GOAL_OUTCOME_REVIEW_HISTORY_RECEIPT_BINDING_MISMATCH",
+        )
+        try:
+            verified = verify_persisted_goal_outcome_review(
+                attestation, require_pass=False,
+            )
+        except GoalOutcomeError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
+        _require(
+            entry.get("decision") == verified.get("decision"),
+            "GOAL_OUTCOME_REVIEW_HISTORY_DECISION_MISMATCH",
+        )
+    active = state.get("goal_outcome_review")
+    if marker != TASK_INTAKE_CONTRACT_VERSION:
+        _require(
+            active is None and not history,
+            "goal outcome review evidence requires goal-first intake contract",
+        )
+        return
+    if state.get("status") == owner_guard.TERMINAL_STATUS:
+        _require(isinstance(active, Mapping), "GOAL_OUTCOME_TERMINAL_STATE_REQUIRES_INDEPENDENT_PASS")
+        _require(
+            bool(history)
+            and history[-1].get("decision") == "PASS"
+            and history[-1].get("attestation") == active,
+            "GOAL_OUTCOME_ACTIVE_PASS_MUST_BE_LATEST_ADMITTED_REVIEW",
+        )
+        try:
+            verified = verify_persisted_goal_outcome_review(active, state=state)
+        except GoalOutcomeError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
+        _require(
+            verified.get("decision") == "PASS",
+            "GOAL_OUTCOME_TERMINAL_STATE_REQUIRES_INDEPENDENT_PASS",
+        )
+        _require(
+            verified.get("requirement_results_sha256") == _canonical_digest(
+                verified.get("requirement_results", [])
+            ),
+            "GOAL_OUTCOME_TERMINAL_REQUIREMENT_RESULTS_DIGEST_MISMATCH",
+        )
+    else:
+        _require(
+            active is None,
+            "GOAL_OUTCOME_ACTIVE_PASS_CANNOT_SURVIVE_NONTERMINAL_STATE",
+        )
+
+
 def validate_state(state: Mapping[str, Any]) -> None:
     owner_guard._validate_base_state(state)
     _require(state.get("writing_kernel_version") == WRITING_KERNEL_VERSION, "current Financial state must bind writing_kernel_version=1.0")
@@ -483,6 +698,8 @@ def validate_state(state: Mapping[str, Any]) -> None:
     _validate_persisted_quality_evidence(state)
     _validate_requirement_binding(state)
     _validate_portfolio_execution_binding(state)
+    _validate_task_intake_state(state)
+    _validate_goal_outcome_state(state)
 
 
 def requirement_context_for_scope(state: Mapping[str, Any], scope: str) -> dict[str, Any]:
@@ -697,6 +914,9 @@ def advance_state(
     publication_fitnesses: list[Mapping[str, Any]] | None = None,
     requirement_satisfaction: list[Mapping[str, Any]] | None = None,
     portfolio_context_ref: Mapping[str, Any] | None = None,
+    task_intake_manifest: Mapping[str, Any] | None = None,
+    task_intake_review_attestation: Mapping[str, Any] | None = None,
+    goal_outcome_review: Mapping[str, Any] | None = None,
     **kwargs: Any,
 ) -> dict[str, Any]:
     """Single public Article Aggregate transition for current writing-kernel tasks."""
@@ -711,6 +931,100 @@ def advance_state(
         )
     quality = working.setdefault("quality_evidence", {})
     evidence_bindings: dict[str, Any] = {}
+
+    intake_reviewed: dict[str, Any] | None = None
+    if stage == "INTAKE" and state.get(TASK_INTAKE_STATE_FIELD) == TASK_INTAKE_CONTRACT_VERSION:
+        _require(
+            isinstance(portfolio_context_ref, Mapping),
+            "TASK_INTAKE_PORTFOLIO_CONTEXT_REQUIRED",
+        )
+        try:
+            normalized_manifest = validate_task_intake_manifest(
+                task_intake_manifest,
+                task_id=str(state["task_id"]),
+                prompt=str(state["prompt"]),
+                required_outputs=list(state.get("required_outputs", [])),
+            )
+            challenge = build_task_intake_review_challenge(
+                task_id=str(state["task_id"]),
+                prompt=str(state["prompt"]),
+                manifest=normalized_manifest,
+                required_outputs=list(state.get("required_outputs", [])),
+            )
+            intake_reviewed = verify_task_intake_review(
+                task_intake_review_attestation,
+                challenge=challenge,
+            )
+        except TaskIntakeError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
+        _require(
+            state["task_requirement_authority"].get("revision") == 0,
+            "TASK_INTAKE_INITIAL_REQUIREMENT_AUTHORITY_MUST_BE_EMPTY",
+        )
+        upserts = [
+            item["requirement"]
+            for item in normalized_manifest["requirements"]
+        ]
+        try:
+            for item in upserts:
+                validate_requirement_applicability(item, state.get("required_outputs", []))
+            initial_authority, _ = apply_requirement_changes(
+                state["task_requirement_authority"],
+                upserts=upserts,
+                evidence_ref=normalized_manifest["source_message_ref"],
+            )
+        except RequirementError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
+        working["task_requirement_authority"] = initial_authority
+        working["task_requirement_digest"] = authority_digest(initial_authority)
+        working["task_intake_manifest"] = normalized_manifest
+        working["task_intake_manifest_sha256"] = challenge["manifest_sha256"]
+        working["task_intake_review_attestation"] = deepcopy(dict(task_intake_review_attestation or {}))
+        evidence_bindings["task_intake_contract_version"] = TASK_INTAKE_CONTRACT_VERSION
+        evidence_bindings["task_intake_manifest_sha256"] = challenge["manifest_sha256"]
+        evidence_bindings["task_intake_review_attestation_sha256"] = _canonical_digest(
+            task_intake_review_attestation
+        )
+        evidence_bindings["initial_requirement_revision"] = initial_authority["revision"]
+    elif any(value is not None for value in (
+        task_intake_manifest, task_intake_review_attestation,
+    )):
+        raise CurrentAdmissionError("TASK_INTAKE_EVIDENCE_ONLY_ALLOWED_AT_GOAL_FIRST_INTAKE")
+
+    verified_goal_review: dict[str, Any] | None = None
+    if stage == "FINAL_AUDIT" and state.get(TASK_INTAKE_STATE_FIELD) == TASK_INTAKE_CONTRACT_VERSION:
+        try:
+            verified_goal_review = verify_goal_outcome_review(
+                goal_outcome_review,
+                state=state,
+            )
+        except GoalOutcomeError as exc:
+            raise CurrentAdmissionError(str(exc)) from exc
+        decision = str(verified_goal_review.get("decision"))
+        review_status = str(kwargs.get("review_status"))
+        _require(
+            review_status == decision,
+            "GOAL_OUTCOME_DECISION_MUST_MATCH_FINAL_AUDIT_REVIEW_STATUS",
+        )
+        if decision == "REVISE":
+            _require(
+                kwargs.get("revision_target") == verified_goal_review.get("revision_target"),
+                "GOAL_OUTCOME_REVISION_TARGET_MISMATCH",
+            )
+        else:
+            _require(
+                kwargs.get("revision_target") is None,
+                "GOAL_OUTCOME_NON_REVISION_DECISION_CANNOT_SET_REVISION_TARGET",
+            )
+        evidence_bindings["goal_outcome_review_attestation_sha256"] = _canonical_digest(
+            goal_outcome_review
+        )
+        evidence_bindings["goal_outcome_review_decision"] = decision
+        evidence_bindings["goal_outcome_requirement_results_sha256"] = verified_goal_review.get(
+            "requirement_results_sha256"
+        )
+    elif goal_outcome_review is not None:
+        raise CurrentAdmissionError("GOAL_OUTCOME_REVIEW_ONLY_ALLOWED_AT_GOAL_FIRST_FINAL_AUDIT")
 
     satisfaction = _normalize_requirement_satisfaction(state, stage, requirement_satisfaction)
     if satisfaction:
@@ -816,6 +1130,20 @@ def advance_state(
         missing = [key for key in planned_invalidated if key in after.get("quality_evidence", {})]
         _require(not missing, f"owner revision failed to invalidate quality evidence: {missing}")
         evidence_bindings["invalidated_quality_evidence"] = ",".join(planned_invalidated)
+
+    if verified_goal_review is not None:
+        attestation = deepcopy(dict(goal_outcome_review or {}))
+        history = list(after.get(GOAL_OUTCOME_REVIEW_HISTORY_FIELD, []))
+        history.append({
+            "attestation": attestation,
+            "attestation_sha256": _canonical_digest(attestation),
+            "decision": verified_goal_review["decision"],
+        })
+        after[GOAL_OUTCOME_REVIEW_HISTORY_FIELD] = history
+        if verified_goal_review["decision"] == "PASS":
+            after["goal_outcome_review"] = attestation
+        else:
+            after.pop("goal_outcome_review", None)
 
     bind_current_governance_receipt(after)
     receipt = after["execution_receipts"][-1]

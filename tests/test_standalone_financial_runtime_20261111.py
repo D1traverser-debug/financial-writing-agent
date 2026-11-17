@@ -121,7 +121,7 @@ def run(p, request, auth=None, owner_reader=None):
 
 def create(p):
     return run(p, proposal("CREATE_ARTICLE", params={
-        "prompt": "中国跨境电商公司经济性报道", "source_refs": [],
+        "prompt": "中国游戏行业公司经济性报道", "source_refs": [],
     }))
 
 
@@ -197,6 +197,8 @@ def test_standalone_can_create_and_observe_real_financial_article_without_parent
     path = "workspaces/articles/solo-article-01/STATE.json"
     assert "caos" not in json.dumps(created).lower()
     state = p.read(path)["state"]
+    assert state["task_intake_contract_version"] == "1.0"
+    assert state["execution_receipts"][0]["input_bindings"]["task_intake_contract_version"] == "1.0"
     validate_state(state)
     observation = observe_article(
         "solo-article-01", state_reader=p.read, effect_receipt_reader=p.read_effect,
@@ -293,8 +295,13 @@ def test_signed_authorization_v1_0_is_preserved_as_effect_unbound_legacy_history
 
 def test_signed_legacy_action_cannot_be_appended_after_effect_bound_history():
     p = Provider()
-    create(p)
+    create_legacy(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
+    run(p, proposal("ATTACH_FEEDBACK", sha=p.read(path)["blob_sha"], params={
+        "sample": {"sample_type": "USER_REJECTION", "summary": "synthetic first signed action"},
+        "system_impact": {"signal_id": "synthetic-legacy-rollback-001", "status": "OPEN",
+                          "trigger_sample_type": "USER_REJECTION"},
+    }))
     _run_portfolio_stage(p, seed_inputs=_seed())
     state = p.read(path)["state"]
     last = state["execution_receipts"][-1]
@@ -350,7 +357,7 @@ def test_legacy_self_attested_receipts_are_reported_as_legacy_not_signed():
 
 def test_direct_financial_routing_and_requirement_change_revises_article_only():
     p = Provider()
-    create(p)
+    create_legacy(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
     result = run(p, proposal("CHANGE_REQUIREMENTS", sha=p.read(path)["blob_sha"], params={
         "evidence_ref": "chat://owner/explicit-scoped-instruction",
@@ -391,9 +398,9 @@ def test_standalone_feedback_stays_on_single_current_owner_article():
     assert state["open_system_impact"][0]["status"] == "OPEN"
 
 
-def test_standalone_advance_from_intake_to_research_uses_portfolio_coordinator():
+def test_standalone_legacy_intake_to_research_uses_portfolio_coordinator():
     p = Provider()
-    create(p)
+    create_legacy(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
     result = _run_portfolio_stage(p, seed_inputs=_seed())
     assert result["executed_stage"] == "INTAKE"
@@ -431,9 +438,9 @@ def _prepare_sources(p):
         }
 
 
-def test_standalone_research_stage_runs_through_coordinator_and_verifies_owner_readback():
+def test_standalone_legacy_research_stage_runs_through_coordinator_and_verifies_owner_readback():
     p = Provider()
-    create(p)
+    create_legacy(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
     _run_portfolio_stage(p, seed_inputs=_seed())
     _prepare_sources(p)

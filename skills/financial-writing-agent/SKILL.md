@@ -17,6 +17,7 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 
 
+
 ## Canonical files and CRUD
 
 - **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
@@ -29,7 +30,9 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 ## Human interaction protocol
 
-At intake, reconstruct the full intent and classify each clause: goal, requirement, correction, preference, suggestion, issue, question or approval. Keep user outcomes distinct from implementation proposals. For ambiguity, infer a safe reversible path, state material assumptions and proceed; ask one focused question only when deliverable, authority or risk changes. Do not outsource architecture decisions to the user when evidence supports a choice.
+At intake, classify every user clause as goal, requirement, correction, preference, suggestion, issue, question or approval. Keep binding outcomes separate from implementation ideas; infer reversible assumptions and ask only when missing information changes deliverable, authority or risk.
+
+New standalone tasks bind `task_intake_contract_version=1.0`; INTAKE cannot exit without a prompt-bound `TaskIntakeManifest` and signed independent `task_intake_review`. Map prompt clauses to requirements/preferences, separate nonbinding ideas, and bind outputs, success criteria, execution profile and knowledge/capability routes. Admit revision 1 of TaskRequirementAuthority and its digest in the first Portfolio Context. Resume must match the manifest/profile; markerless legacy tasks remain legacy. Details: `docs/task_intake_and_goal_outcome.md`.
 
 Binding requirement changes need the complete normalized upsert/retire set and explicit owner confirmation. Irreversible external actions need authorization; ordinary research, analysis and drafting do not. Report what was read, written, verified, blocked and left OPEN.
 
@@ -39,7 +42,9 @@ For defects: recover the reader outcome; test evidence and counterevidence; comp
 
 Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
 
-Scopes derive from `required_outputs`. RESEARCH receives ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope; EDITORIAL/TITLE receive ALL+Deep/Broad; DRAFT/audit receive ALL+requested products; DELIVERY receives ALL+DELIVERY+requested products. Owner/portfolio due checks share one projection. Product passes get ALL+own scope through the current stage. Reject inactive scopes and impossible stage pairs; apply the full-universe gate only to its requested product.
+At `FINAL_AUDIT`, goal-first tasks require signed `independent_goal_outcome_review` bound to actual current Word binaries. It must assess every active requirement and success criterion with evidence. Only all-SATISFIED PASS may terminate; REVISE uses the existing allowed target; FAIL blocks. Visible-delivery readback remains separate. Reviewer PASS is not user acceptance.
+
+Scopes derive from `required_outputs`: RESEARCH gets ALL, research/private-research and active product scopes; later stages receive only their active scopes. Reject inactive scopes and invalid stage pairs. Full-universe gates apply only to the requested product.
 
 Revisions invalidate downstream evidence; preserve history. Recover first; respect consent. Never claim persistence/readback without a real run.
 
@@ -47,7 +52,7 @@ Revisions invalidate downstream evidence; preserve history. Recover first; respe
 
 ### Fixed workflow, adaptive expression
 
-All article tasks use the same ten-stage workflow. A prompt-bound `writing_execution_profile` in Portfolio Context 1.1 records the invariant workflow, exact requirements/preferences and scoped locked/open decision-domain bindings. Derive it with `references/execution_profile.md`: LOCKED requires active explicit/corrective IDs; OPEN carries no hard IDs. It is context, not a router or authority. TaskRequirementAuthority remains authoritative; every semantic pass receives the same profile. Requirement changes refresh it and invalidate affected evidence. Context 1.0 remains readable.
+All tasks use the same ten-stage workflow. Portfolio Context 1.1 binds the prompt-specific WritingExecutionProfile (requirements/preferences and scoped LOCKED/OPEN decisions); TaskRequirementAuthority remains the sole authority. Requirement changes refresh the profile and invalidate affected evidence. Context 1.0 remains readable.
 
 1. Research material value-chain and company economics from current issuer, regulator and filing sources; distinguish direct financial exposure from theme association and preserve counterevidence.
 2. Complete the fifteen applicable PrivateResearchBrief 1.1 modules; keep evidence gaps, uncertainty and rejected hypotheses visible.
@@ -62,7 +67,7 @@ Use GitHub connector and `fetch_file` for reads; stage code only on candidate br
 
 ## Current research and publication evidence
 
-Research facts need exact source text/family, retrieval time, body hash, period/unit/direction and contradiction review. Governed sources expire after seven days; stale or changed sources reopen RESEARCH. Require contracted source-family diversity and two heterogeneous no-delta sweeps before bounded saturation. Hashes prove identity, not entailment; unread/unrelated refs cannot satisfy requirements. Read Financial-owned `research.md`, `private_research.md`, `market_explanation.md`, `claim_trace.py` and `PrivateResearchBrief` for schemas. Separate verified fact, supported mechanism, interpretation and unresolved claims; never fabricate facts, coverage or citations.
+Research facts need exact source text/family, retrieval time, body hash, period/unit/direction and contradiction review. Sources expire after seven days; stale or changed sources reopen RESEARCH. Require source-family diversity and two heterogeneous no-delta sweeps before saturation. Hashes prove identity, not entailment. Use the Financial research, market-explanation, claim-trace and PrivateResearchBrief schemas; separate facts, mechanisms, interpretations and unknowns.
 
 PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE, PAYOFF. Same-chat review may clear INTERNAL_DELIVERY_READINESS only against exact draft bytes; Word remains uncertified. Publication certification requires independently verified review. Deliver actual `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, if contracted, `PRIVATE_RESEARCH_DOCX`; verify binaries, rendered PDF/PNG pages, visual inspection and current-session access. Filename, hash, PASS or CI alone proves neither delivery nor reader quality.
 

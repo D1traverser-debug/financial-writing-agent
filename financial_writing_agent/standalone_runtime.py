@@ -67,6 +67,7 @@ STAGE_KEYS = frozenset({
     "revision_target", "delivery_artifacts", "audit_artifact",
     "decision_envelope", "private_research_brief", "story_blueprints",
     "publication_fitnesses", "requirement_satisfaction", "portfolio_context_ref",
+    "task_intake_manifest", "task_intake_review_attestation", "goal_outcome_review",
     "supplemental_delivery_artifacts",
 })
 FEEDBACK_KEYS = frozenset({"sample", "system_impact"})
@@ -1320,6 +1321,7 @@ def admit_article_action(
                  "FINANCIAL_ARTICLE_PROMPT_REQUIRED")
         candidate = current_admission.build_initial_state(
             task_id=r["task_id"], executor_identity=f"financial:{r['action_id']}",
+            goal_first=True,
             **params,
         )
         previous_sha = None

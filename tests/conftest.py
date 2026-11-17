@@ -18,3 +18,7 @@ def _financial_synthetic_provider_trust(monkeypatch):
     monkeypatch.setenv("FINANCIAL_METHOD_REVIEW_PROVIDER_ID", "synthetic-method-review-provider")
     monkeypatch.setenv("FINANCIAL_EDITORIAL_REVIEW_KEY", "synthetic-editorial-review-key-never-deploy-0123456789abcdef0123456789abcdef")
     monkeypatch.setenv("FINANCIAL_EDITORIAL_REVIEW_PROVIDER_ID", "synthetic-editorial-review-provider")
+    monkeypatch.setenv("FINANCIAL_INTAKE_REVIEW_KEY", "synthetic-intake-review-key-never-deploy-0123456789abcdef0123456789abcdef")
+    monkeypatch.setenv("FINANCIAL_INTAKE_REVIEW_PROVIDER_ID", "synthetic-intake-review-provider")
+    monkeypatch.setenv("FINANCIAL_GOAL_REVIEW_KEY", "synthetic-goal-review-key-never-deploy-0123456789abcdef0123456789abcdef")
+    monkeypatch.setenv("FINANCIAL_GOAL_REVIEW_PROVIDER_ID", "synthetic-goal-review-provider")

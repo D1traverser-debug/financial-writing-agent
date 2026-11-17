@@ -430,3 +430,19 @@ The following are reusable quality obligations, with conditional applicability:
 - **Authorial prose:** paragraphs contribute evidence, mechanism, comparison, counterevidence, boundary or payoff. Remove model scaffolding, abstract staging and generic conditional conclusions. Do not simulate humanity with slang or cosmetic sentence randomization.
 
 These obligations do not prescribe a single opening, story engine, section order, paragraph length, tone or narrative rhythm. The selected form still follows the topic, evidence and reader.
+
+
+## 12. Goal-first intake and independent user-outcome closure (2026-11-17)
+
+This applies to every new standalone-created Financial Writing task. A task is not allowed to begin research merely because an empty Article Aggregate and Portfolio Context exist.
+
+1. **Complete intent capture before execution.** The original task prompt is decomposed into source-bound instruction units: goal, requirement, correction, preference, suggestion, issue, question, approval or context. Binding requirements and preferences must map to exact source excerpts. Nonbinding ideas remain nonbinding. The manifest binds the immutable output contract, success criteria, WritingExecutionProfile, and required knowledge/capability routes.
+2. **Independent intake challenge.** A separate trusted reviewer checks the manifest against the complete prompt, including omitted clauses, negation, exceptions, scope widening, output omissions, unresolved questions and missing routes. A model-generated manifest or a Boolean PASS is not independent evidence.
+3. **Atomic first authority.** The INTAKE transition creates revision 1 of the existing TaskRequirementAuthority from the reviewed manifest and binds its exact digest and scoped projections into the first Portfolio Context. Research cannot start with an empty requirement projection. Resume must match the admitted manifest digest and recompute scope from the one owner state.
+4. **Independent final user-goal review.** At FINAL_AUDIT, a separate trusted reviewer evaluates the actual current Word deliverables against every active user requirement and every declared success criterion. The review is bound to the exact task, prompt, requirement revision, deliverable metadata and binary hashes, and supplies evidence references for each result.
+5. **Decision semantics.** PASS requires every requirement and success criterion to be SATISFIED. REVISE requires an unmet item and a revision target already allowed by the canonical workflow graph. FAIL blocks in place and does not invent a revision route. The signed review history is receipt-bound and preserved in the single Article Aggregate.
+6. **Separate assurance levels.** A reviewer PASS is not user acceptance. Visible-delivery readback remains a separate gate. Legacy tasks without the new intake marker remain readable and are not retroactively certified.
+
+Acceptance requires positive tests for complete intake, requirement projection, final PASS/REVISE/FAIL behavior and persisted history, plus negative tests for missing, stale, tampered, partial or misbound evidence. Synthetic tests establish code contracts only; they do not prove a live provider, real independent reviewer, production secret custody, actual article quality or user acceptance.
+
+Implementation contract: `docs/task_intake_and_goal_outcome.md`.
