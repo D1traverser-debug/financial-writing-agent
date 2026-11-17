@@ -297,6 +297,11 @@ def test_signed_legacy_action_cannot_be_appended_after_effect_bound_history():
     p = Provider()
     create_legacy(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
+    run(p, proposal("ATTACH_FEEDBACK", sha=p.read(path)["blob_sha"], params={
+        "sample": {"sample_type": "USER_REJECTION", "summary": "synthetic first signed action"},
+        "system_impact": {"signal_id": "synthetic-legacy-rollback-001", "status": "OPEN",
+                          "trigger_sample_type": "USER_REJECTION"},
+    }))
     _run_portfolio_stage(p, seed_inputs=_seed())
     state = p.read(path)["state"]
     last = state["execution_receipts"][-1]
