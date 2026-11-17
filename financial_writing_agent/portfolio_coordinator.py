@@ -9,7 +9,21 @@ from uuid import uuid4
 from . import current_admission, standalone_runtime
 from .path_identity import require_article_path
 from .full_universe_research import validate_full_universe_decision_handoff
-from .task_requirements import RequirementError, requirement_applies_to_task
+from .task_requirements import (
+    RequirementError,
+    active_requirements_for_scope,
+    apply_requirement_changes,
+    authority_digest,
+    requirement_applies_to_task,
+    validate_requirement_applicability,
+)
+from .task_intake import (
+    TASK_INTAKE_CONTRACT_VERSION,
+    TaskIntakeError,
+    build_task_intake_review_challenge,
+    validate_task_intake_manifest,
+    verify_task_intake_review,
+)
 from .writing_kernel import (
     INTERNAL_PORTFOLIO_STAGE_SEQUENCE,
     _all_requirement_scopes,
@@ -387,6 +401,87 @@ def _owner_action_parameters(
     return params
 
 
+
+
+def _prepare_goal_first_intake(
+    state: Mapping[str, Any],
+    seed_inputs: Mapping[str, Any] | None,
+    required_outputs: list[str],
+) -> dict[str, Any]:
+    """Validate the original goal and derive the exact first requirement projection."""
+    if not isinstance(seed_inputs, Mapping):
+        raise PortfolioCoordinatorError("PORTFOLIO_GOAL_FIRST_INTAKE_INPUTS_REQUIRED")
+    if state.get("task_intake_contract_version") != TASK_INTAKE_CONTRACT_VERSION:
+        raise PortfolioCoordinatorError("PORTFOLIO_GOAL_FIRST_INTAKE_CONTRACT_MISMATCH")
+    try:
+        manifest = validate_task_intake_manifest(
+            seed_inputs.get("task_intake_manifest"),
+            task_id=str(state["task_id"]),
+            prompt=str(state["prompt"]),
+            required_outputs=required_outputs,
+        )
+        challenge = build_task_intake_review_challenge(
+            task_id=str(state["task_id"]),
+            prompt=str(state["prompt"]),
+            manifest=manifest,
+            required_outputs=required_outputs,
+        )
+        raw_review = seed_inputs.get("task_intake_review_attestation")
+        verify_task_intake_review(raw_review, challenge=challenge)
+    except TaskIntakeError as exc:
+        raise PortfolioCoordinatorError(str(exc)) from exc
+
+    authority_before = state.get("task_requirement_authority", {})
+    if authority_before.get("revision") != 0:
+        raise PortfolioCoordinatorError("PORTFOLIO_GOAL_FIRST_INTAKE_AUTHORITY_NOT_EMPTY")
+    upserts = [item["requirement"] for item in manifest["requirements"]]
+    try:
+        for requirement in upserts:
+            validate_requirement_applicability(requirement, required_outputs)
+        authority, _ = apply_requirement_changes(
+            authority_before,
+            upserts=upserts,
+            evidence_ref=manifest["source_message_ref"],
+        )
+    except RequirementError as exc:
+        raise PortfolioCoordinatorError("PORTFOLIO_GOAL_FIRST_REQUIREMENT_PROJECTION_INVALID") from exc
+
+    modes = _portfolio_modes(required_outputs)
+    interaction_required = "PLATFORM_INTERACTION_PACK_DOCX" in required_outputs
+    scopes = _all_requirement_scopes(modes, interaction_required)
+    digest = authority_digest(authority)
+    contexts = {
+        scope: {
+            "contract_version": "1.0",
+            "revision": authority["revision"],
+            "digest": digest,
+            "requirements": active_requirements_for_scope(authority, scope),
+        }
+        for scope in scopes
+    }
+
+    profile = manifest["writing_execution_profile"]
+    supplied_profile = seed_inputs.get("writing_execution_profile")
+    if supplied_profile is not None and supplied_profile != profile:
+        raise PortfolioCoordinatorError("PORTFOLIO_GOAL_FIRST_PROFILE_MANIFEST_MISMATCH")
+    normalized_seed = {
+        key: value for key, value in seed_inputs.items()
+        if key not in {
+            "task_id", "requirement_digest", "task_requirement_contexts",
+            "task_intake_manifest", "task_intake_review_attestation",
+        }
+    }
+    normalized_seed["writing_execution_profile"] = profile
+    normalized_seed["task_intake_manifest_sha256"] = challenge["manifest_sha256"]
+    return {
+        "manifest": manifest,
+        "review_attestation": dict(raw_review),
+        "manifest_sha256": challenge["manifest_sha256"],
+        "requirement_digest": digest,
+        "requirement_contexts": contexts,
+        "normalized_seed": normalized_seed,
+    }
+
 def run_next_portfolio_stage(
     task_id: str,
     *,
@@ -429,20 +524,32 @@ def run_next_portfolio_stage(
         raise PortfolioCoordinatorError("PORTFOLIO_OWNER_STATE_NOT_IN_PROGRESS")
 
     required_outputs = list(state.get("required_outputs", []))
-    contexts = _requirement_contexts(state, required_outputs)
     owner_stage = str(state["current_stage"])
+    intake_payload = None
+    if owner_stage == "INTAKE" and state.get("task_intake_contract_version") == TASK_INTAKE_CONTRACT_VERSION:
+        intake_payload = _prepare_goal_first_intake(state, seed_inputs, required_outputs)
+        contexts = intake_payload["requirement_contexts"]
+    else:
+        contexts = _requirement_contexts(state, required_outputs)
     context_ref = _latest_context_ref(state)
     context: dict[str, Any]
 
     if context_ref is None:
         if owner_stage not in {"INTAKE", "RESEARCH"}:
             raise PortfolioCoordinatorError("PORTFOLIO_RESUME_CONTEXT_REF_MISSING")
-        if not isinstance(seed_inputs, Mapping):
-            raise PortfolioCoordinatorError("PORTFOLIO_INITIAL_SEED_INPUTS_REQUIRED")
-        normalized_seed = {
-            key: value for key, value in seed_inputs.items()
-            if key not in {"task_id", "requirement_digest", "task_requirement_contexts"}
-        }
+        if state.get("task_intake_contract_version") == TASK_INTAKE_CONTRACT_VERSION and owner_stage != "INTAKE":
+            raise PortfolioCoordinatorError("PORTFOLIO_GOAL_FIRST_CONTEXT_MISSING_AFTER_INTAKE")
+        if intake_payload is not None:
+            normalized_seed = dict(intake_payload["normalized_seed"])
+            context_requirement_digest = intake_payload["requirement_digest"]
+        else:
+            if not isinstance(seed_inputs, Mapping):
+                raise PortfolioCoordinatorError("PORTFOLIO_INITIAL_SEED_INPUTS_REQUIRED")
+            normalized_seed = {
+                key: value for key, value in seed_inputs.items()
+                if key not in {"task_id", "requirement_digest", "task_requirement_contexts"}
+            }
+            context_requirement_digest = state["task_requirement_digest"]
         normalized_seed["source_prompt_sha256"] = hashlib.sha256(
             str(state.get("prompt", "")).encode("utf-8")
         ).hexdigest()
@@ -450,7 +557,7 @@ def run_next_portfolio_stage(
             normalized_seed,
             required_outputs=required_outputs,
             task_id=task_id,
-            requirement_digest=state["task_requirement_digest"],
+            requirement_digest=context_requirement_digest,
             requirement_contexts=contexts,
             current_stage="RESEARCH",
         )
@@ -478,6 +585,9 @@ def run_next_portfolio_stage(
                 raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_PROMPT_BINDING_MISMATCH")
         if context.get("required_output_kinds") != sorted(required_outputs):
             raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_OUTPUT_CONTRACT_MISMATCH")
+        if state.get("task_intake_contract_version") == TASK_INTAKE_CONTRACT_VERSION:
+            if context.get("seed_inputs", {}).get("task_intake_manifest_sha256") != state.get("task_intake_manifest_sha256"):
+                raise PortfolioCoordinatorError("PORTFOLIO_CONTEXT_INTAKE_MANIFEST_BINDING_MISMATCH")
         # Recompute scoped requirements on every resume. A matching top-level
         # digest alone is not proof that the persisted context carries the current
         # per-scope projection.
@@ -513,7 +623,13 @@ def run_next_portfolio_stage(
             "task_id": task_id,
             "operation": "ADVANCE_STAGE",
             "expected_state_blob_sha": state_sha,
-            "parameters": {"portfolio_context_ref": next_context_ref},
+            "parameters": {
+                "portfolio_context_ref": next_context_ref,
+                **({
+                    "task_intake_manifest": intake_payload["manifest"],
+                    "task_intake_review_attestation": intake_payload["review_attestation"],
+                } if intake_payload is not None else {}),
+            },
         }
         admission = standalone_runtime.admit_article_action(
             proposal,

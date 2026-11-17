@@ -17,6 +17,7 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 
 
+
 ## Canonical files and CRUD
 
 - **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
@@ -31,6 +32,8 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 At intake, reconstruct the full intent and classify each clause: goal, requirement, correction, preference, suggestion, issue, question or approval. Keep user outcomes distinct from implementation proposals. For ambiguity, infer a safe reversible path, state material assumptions and proceed; ask one focused question only when deliverable, authority or risk changes. Do not outsource architecture decisions to the user when evidence supports a choice.
 
+New standalone-created tasks bind `task_intake_contract_version=1.0`. They cannot leave INTAKE until the complete prompt-bound `TaskIntakeManifest` is validated and a separate trusted reviewer signs `task_intake_review`. The manifest must map every binding requirement and preference to its source clause, preserve nonbinding ideas separately, bind the exact output contract and success criteria, validate the writing execution profile, and declare required knowledge/capability routes. The INTAKE transition creates revision 1 of TaskRequirementAuthority from the reviewed manifest and binds its exact digest into the initial Portfolio Context. Do not create a context with an empty requirement projection and fill requirements later. Resume must match the persisted manifest digest and profile. Legacy tasks without the marker retain their historical compatibility; do not silently retrofit them. Contract details: `docs/task_intake_and_goal_outcome.md`.
+
 Binding requirement changes need the complete normalized upsert/retire set and explicit owner confirmation. Irreversible external actions need authorization; ordinary research, analysis and drafting do not. Report what was read, written, verified, blocked and left OPEN.
 
 ## Decision Loop and Execution Loop
@@ -38,6 +41,8 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 For defects: recover the reader outcome; test evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk and reversibility. Use DecisionEnvelope; choose a bounded action.
 
 Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
+
+At `FINAL_AUDIT`, a goal-first task must also pass the independent user-goal outcome gate. Read the exact current Word binaries, extract their actual text, build `goal_outcome.build_goal_outcome_challenge`, and obtain a separate `independent_goal_outcome_review` attestation. The review must cover every active requirement and every manifest success criterion, with evidence references and exact hashes for the current article deliverables. Pass the attestation as `goal_outcome_review` in the final action. PASS alone is not enough: the signed review must say PASS, every requirement and success criterion must be satisfied, the final state must persist the proof, and the visible-delivery readback must also pass. REVISE routes to the signed allowed revision target; FAIL blocks. Never infer user acceptance from an independent review.
 
 Scopes derive from `required_outputs`. RESEARCH receives ALL, RESEARCH, PRIVATE_RESEARCH and every requested product scope; EDITORIAL/TITLE receive ALL+Deep/Broad; DRAFT/audit receive ALL+requested products; DELIVERY receives ALL+DELIVERY+requested products. Owner/portfolio due checks share one projection. Product passes get ALL+own scope through the current stage. Reject inactive scopes and impossible stage pairs; apply the full-universe gate only to its requested product.
 

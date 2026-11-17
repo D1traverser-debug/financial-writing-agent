@@ -121,7 +121,7 @@ def run(p, request, auth=None, owner_reader=None):
 
 def create(p):
     return run(p, proposal("CREATE_ARTICLE", params={
-        "prompt": "中国跨境电商公司经济性报道", "source_refs": [],
+        "prompt": "中国游戏行业公司经济性报道", "source_refs": [],
     }))
 
 
@@ -391,9 +391,9 @@ def test_standalone_feedback_stays_on_single_current_owner_article():
     assert state["open_system_impact"][0]["status"] == "OPEN"
 
 
-def test_standalone_advance_from_intake_to_research_uses_portfolio_coordinator():
+def test_standalone_legacy_intake_to_research_uses_portfolio_coordinator():
     p = Provider()
-    create(p)
+    create_legacy(p)
     path = "workspaces/articles/solo-article-01/STATE.json"
     result = _run_portfolio_stage(p, seed_inputs=_seed())
     assert result["executed_stage"] == "INTAKE"
