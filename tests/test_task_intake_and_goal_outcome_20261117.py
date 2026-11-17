@@ -500,7 +500,7 @@ def test_goal_review_revise_decision_is_valid_history_but_never_an_active_pass()
     attestation = _goal_attestation(
         state, decision="REVISE", unmet_id="topic-focus",
     )
-    with pytest.raises(GoalOutcomeError, match="GOAL_OUTCOME_INDEPENDENT_REVIEW_ATTESTATION_INVALID"):
+    with pytest.raises(GoalOutcomeError, match="GOAL_OUTCOME_PERSISTED_REVIEW_INVALID"):
         verify_persisted_goal_outcome_review(attestation, state=state)
     historical = verify_persisted_goal_outcome_review(
         attestation, require_pass=False,

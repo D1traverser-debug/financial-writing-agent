@@ -553,12 +553,14 @@ def _validate_task_intake_state(state: Mapping[str, Any]) -> None:
         state.get("task_intake_manifest_sha256") == manifest_sha,
         "TASK_INTAKE_MANIFEST_DIGEST_MISMATCH",
     )
+    intake_review_sha = _canonical_digest(state.get("task_intake_review_attestation"))
     intake_receipts = [
         receipt for receipt in receipts
         if isinstance(receipt, Mapping)
-        and receipt.get("stage") == "INTAKE"
         and isinstance(receipt.get("input_bindings"), Mapping)
         and receipt["input_bindings"].get(TASK_INTAKE_STATE_FIELD) == TASK_INTAKE_CONTRACT_VERSION
+        and receipt["input_bindings"].get("task_intake_manifest_sha256") == manifest_sha
+        and receipt["input_bindings"].get("task_intake_review_attestation_sha256") == intake_review_sha
     ]
     _require(
         len(intake_receipts) == 1,
@@ -609,7 +611,6 @@ def _validate_goal_outcome_state(state: Mapping[str, Any]) -> None:
     review_receipts = [
         receipt for receipt in state.get("execution_receipts", [])
         if isinstance(receipt, Mapping)
-        and receipt.get("stage") == "FINAL_AUDIT"
         and isinstance(receipt.get("input_bindings"), Mapping)
         and receipt["input_bindings"].get("goal_outcome_review_attestation_sha256")
     ]

@@ -53,7 +53,7 @@ def _native_action(p, operation, *, parameters=None, reader=None, grant=True):
 
 def _used_method_state():
     p = Provider()
-    create(p)
+    create_legacy(p)
     _catalog_write(p, _active_catalog())
     _run_portfolio_stage(p, seed_inputs=_seed())
     _prepare_sources(p)
@@ -128,7 +128,7 @@ def test_retired_method_prevents_stale_work_and_reopens_earliest_affected_stage(
 
 def test_method_catalog_omission_cannot_be_bypassed_when_knowledge_is_claimed_in_research():
     p = Provider()
-    create(p)
+    create_legacy(p)
     _run_portfolio_stage(p, seed_inputs=_seed())
     _prepare_sources(p)
     decision = deepcopy(_decision())
