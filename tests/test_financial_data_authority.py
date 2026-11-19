@@ -74,9 +74,13 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     )
     assert manifest["chatgpt_native_runtime"]["source_crud_status"].startswith("NOT_DEPLOYED")
     assert manifest["provider_action_endpoint"]["source_store_connector"].startswith("CONNECTED_GOOGLE_DRIVE")
-    assert "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS" in (
-        manifest["provider_action_endpoint"]["required_for"]
-    )
+    assert set(manifest["provider_action_endpoint"]["required_for"]) == {
+        "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
+        "CANONICAL_REQUIREMENT_MUTATION",
+        "METHOD_CATALOG_MUTATION",
+        "SIGNED_CANONICAL_ACTION_AND_EFFECT_RECEIPTS",
+        "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS",
+    }
     source_capability = next(
         item for item in capabilities["capabilities"]
         if item["id"] == "versioned_source_file_crud_and_drive_readback"
