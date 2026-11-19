@@ -4,7 +4,7 @@
 
 Use this route when the hosted Financial Provider Action is unavailable but the user still needs research, analysis, article drafts or Word deliverables. It is the normal session-only route when the active ChatGPT session has the required research and document tools; do not make the user choose between internal implementation options or repeat requirements already available.
 
-This route preserves the Financial content contract while separating content production from canonical task admission and state mutation. It is not a second task ledger, a free-form shortcut, or evidence that the canonical workflow has completed.
+This route preserves the Financial content contract while separating content production from canonical task admission and state mutation. No canonical writes occur in this mode. It is not a second task ledger, a free-form shortcut, or evidence that the canonical workflow has completed.
 
 ## 1. Recover the goal and establish the session brief
 
