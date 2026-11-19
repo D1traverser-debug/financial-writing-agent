@@ -104,6 +104,14 @@ def test_source_update_rejects_overwrite_and_skipped_version_sequence():
         append_source_version(record, _version(3, b"skipped version"))
 
 
+def test_unavailable_drive_version_cannot_become_current():
+    record = _record()
+    quarantined = _version(2, b"unverified payload", status="QUARANTINED")
+
+    with pytest.raises(ValueError, match="must be AVAILABLE"):
+        append_source_version(record, quarantined)
+
+
 def test_retire_blocks_new_bindings_and_restore_reenables_them():
     record = _record()
     retired = retire_source(record, at=BASE + timedelta(days=3))
