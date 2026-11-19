@@ -174,6 +174,8 @@ class SourceBinding(StrictModel):
     drive_file_id: str = Field(min_length=1)
     drive_revision_id: str = Field(min_length=1)
     source_type: SourceType
+    scope: SourceScope
+    rights_basis: RightsBasis
     publisher: str = ""
     canonical_url: str | None = None
     raw_sha256: str
@@ -198,6 +200,78 @@ class SourceBinding(StrictModel):
         if self.published_at is not None:
             _require_aware(self.published_at, "published_at")
         return self
+
+
+
+class SourceBindingSet(StrictModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
+    schema_version: Literal["1.0"] = "1.0"
+    task_id: str = Field(min_length=1)
+    research_revision: int = Field(ge=1)
+    private_research_brief_sha256: str
+    research_package_sha256: str | None = None
+    admitted_at: datetime
+    bindings: tuple[SourceBinding, ...] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def validate_task_binding_set(self):
+        _require_aware(self.admitted_at, "admitted_at")
+        for field in ("private_research_brief_sha256", "research_package_sha256"):
+            value = getattr(self, field)
+            if value is not None and _SHA256.fullmatch(value) is None:
+                raise ValueError(f"{field} must be a lowercase SHA-256 digest")
+        if any(binding.task_id != self.task_id for binding in self.bindings):
+            raise ValueError("every source binding must belong to the binding-set task_id")
+        source_refs = [binding.source_ref for binding in self.bindings]
+        if len(source_refs) != len(set(source_refs)):
+            raise ValueError("source binding set cannot contain duplicate source_ref entries")
+        drive_file_ids = [binding.drive_file_id for binding in self.bindings]
+        if len(drive_file_ids) != len(set(drive_file_ids)):
+            raise ValueError("source binding set cannot alias one Drive file across source refs")
+        return self
+
+
+def validate_source_binding_coverage(
+    binding_set: SourceBindingSet,
+    *,
+    task_id: str,
+    evidence_refs: list[str] | tuple[str, ...],
+) -> SourceBindingSet:
+    """Require exact, task-scoped source bindings for every admitted research evidence ref."""
+    if binding_set.task_id != task_id:
+        raise ValueError("source binding set task_id does not match the current article task")
+    normalized: list[str] = []
+    for ref in evidence_refs:
+        if not isinstance(ref, str) or not ref.strip():
+            raise ValueError("research evidence source refs must be non-empty strings")
+        value = ref.strip()
+        if not value.startswith("financial-source://"):
+            raise ValueError("raw external URLs are discovery inputs, not admitted research evidence refs")
+        try:
+            _, identity = value.split("://", 1)
+            source_id, version_id = identity.split("/", 1)
+            if "/" in version_id:
+                raise ValueError("invalid source reference path")
+            canonical = source_reference(source_id, version_id)
+        except (ValueError, TypeError) as exc:
+            raise ValueError("research evidence ref must be an exact financial-source:// reference") from exc
+        if canonical != value:
+            raise ValueError("research evidence ref must use its canonical exact-version form")
+        normalized.append(value)
+    if not normalized:
+        raise ValueError("research evidence requires at least one exact source binding")
+    if len(normalized) != len(set(normalized)):
+        raise ValueError("research evidence refs cannot contain duplicates")
+    bound = {binding.source_ref for binding in binding_set.bindings}
+    required = set(normalized)
+    if bound != required:
+        missing = sorted(required - bound)
+        unused = sorted(bound - required)
+        raise ValueError(
+            f"source binding coverage must be exact; missing={missing}, unused={unused}"
+        )
+    return binding_set
 
 
 def create_source_record(
@@ -295,6 +369,8 @@ def bind_source_version(record: SourceRecord, *, version_id: str, task_id: str) 
         drive_file_id=version.drive_object.file_id,
         drive_revision_id=version.drive_object.revision_id,
         source_type=record.source_type,
+        scope=record.scope,
+        rights_basis=version.rights_basis,
         publisher=record.publisher,
         canonical_url=record.canonical_url,
         raw_sha256=version.drive_object.raw_sha256,
