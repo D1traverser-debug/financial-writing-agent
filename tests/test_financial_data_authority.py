@@ -42,7 +42,7 @@ def test_private_repository_gate_and_drive_source_folder_are_explicit():
     assert source["raw_folder_path"] == "ChatGPT/Financial Writing Agent/00_Source_Library"
     assert source["raw_folder_id_ref"] == "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
     assert source["raw_folder_visibility"] == "PRIVATE_VERIFIED_NOT_SHARED_2026_11_19"
-    assert source["status"] == "FOLDER_PROVISIONED__SOURCE_PROVIDER_NOT_DEPLOYED"
+    assert source["status"] == "FOLDER_PROVISIONED__DOMAIN_TRANSITIONS_IMPLEMENTED__SOURCE_PROVIDER_NOT_DEPLOYED"
     assert data["operations"]["source_create"].startswith("BLOCKED")
 
 
@@ -72,7 +72,8 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     assert manifest["chatgpt_native_runtime"]["source_provider"].endswith(
         "GOOGLE_DRIVE_SOURCE_ADAPTER"
     )
-    assert manifest["chatgpt_native_runtime"]["source_crud_status"].startswith("NOT_DEPLOYED")
+    assert manifest["chatgpt_native_runtime"]["source_crud_status"].startswith("DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED")
+    assert manifest["chatgpt_native_runtime"]["source_domain_model"] == "financial_writing_agent.source_lifecycle"
     assert manifest["provider_action_endpoint"]["source_store_connector"].startswith("CONNECTED_GOOGLE_DRIVE")
     assert set(manifest["provider_action_endpoint"]["required_for"]) == {
         "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
@@ -85,7 +86,7 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
         item for item in capabilities["capabilities"]
         if item["id"] == "versioned_source_file_crud_and_drive_readback"
     )
-    assert source_capability["assurance"].startswith("NOT_IMPLEMENTED")
+    assert source_capability["assurance"].startswith("DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED")
     assert "CONNECTED_GOOGLE_DRIVE_ACCESS_TO_PRIVATE_FINANCIAL_SOURCE_FOLDER" in (
         capabilities["required_external_capabilities_at_execution"]
     )
@@ -100,7 +101,7 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     )
     assert execution["chatgpt_native_execution"]["source_file_crud_status"] == "NOT_DEPLOYED"
     assert execution["standalone_governance"]["source_file_mutation"]["status"].startswith(
-        "NOT_IMPLEMENTED"
+        "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED"
     )
 
 
@@ -108,7 +109,12 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     contract = _json("config/SOURCE_STORAGE_CONTRACT.json")
 
     assert contract["domain_id"] == "financial_writing"
-    assert contract["status"].startswith("DESIGN_ONLY__PRIVATE_DRIVE_FOLDER_PROVISIONED")
+    assert contract["status"].startswith("DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED")
+    assert contract["domain_model_module"] == "financial_writing_agent.source_lifecycle"
+    assert set(contract["domain_model_functions"]) == {
+        "create_source_record", "append_source_version", "retire_source",
+        "restore_source", "bind_source_version",
+    }
     assert contract["canonical_store"]["raw_object_store"]["provider"] == "GOOGLE_DRIVE"
     assert contract["canonical_store"]["raw_object_store"]["folder_id_ref"] == (
         "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
