@@ -41,7 +41,7 @@
   "external_inputs": {
     "chat": "Source of user intent and explicit approval; never a shadow article-state store.",
     "research_sources": "Evidence inputs resolved through the canonical Google Drive source library with exact source/version identity, retrieval time, content hash, source family and contradiction review.",
-    "github_provider": "Code, rules, article state and method catalog only. Canonical article/method writes remain blocked while the repository is public and the hosted Financial Provider Action is NOT_DEPLOYED.",
+    "github_provider": "Code, rules, article state and method catalog. The owner accepts existing public visibility; canonical writes remain blocked until the authenticated hosted Financial Provider Action is deployed and signed admission/effect readback is available.",
     "temporary_files": "Ephemeral work products only; never canonical state.",
     "google_drive_source_library": "Canonical source metadata, immutable source versions and lifecycle events; authenticated Google Drive connector with exact readback."
   },
@@ -50,9 +50,10 @@
   "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
   "repository_security": {
     "observed_visibility": "PUBLIC",
-    "historical_content": "EXISTING_HISTORICAL_ARTICLE_AND_RESEARCH_ARTIFACTS_REQUIRE_OWNER_PRIVACY_REVIEW",
-    "canonical_private_article_writes": "BLOCKED_UNTIL_REPOSITORY_PRIVATE_AND_PROVIDER_DEPLOYED",
-    "source_library_data_boundary": "PRIVATE_GOOGLE_DRIVE_ONLY__NO_SOURCE_METADATA_OR_TASK_BINDINGS_WRITTEN_TO_PUBLIC_GITHUB"
+    "owner_visibility_decision": "ACCEPTED_PUBLIC_VISIBILITY__NO_CHANGE_REQUESTED",
+    "historical_content": "EXISTING_PUBLIC_ARTICLE_AND_RESEARCH_ARTIFACTS_OWNER_ACCEPTED__NO_MIGRATION_REQUESTED",
+    "canonical_article_writes": "BLOCKED_UNTIL_HOSTED_PROVIDER_DEPLOYED_AND_SIGNED_AUTHORIZATION_AVAILABLE",
+    "source_library_data_boundary": "PRIVATE_GOOGLE_DRIVE_ONLY__NO_SOURCE_FILES_OR_PRIVATE_SOURCE_METADATA_OR_TASK_BINDINGS_WRITTEN_TO_PUBLIC_GITHUB"
   },
   "source_library": {
     "provider": "GOOGLE_DRIVE",

@@ -62,7 +62,7 @@ Public accessibility is not permission to copy an entire copyrighted article. Ne
 
 The Python adapter `financial_writing_agent.source_readback.build_bound_source_reader` verifies exact Drive file ID, parent folder, optional revision, MIME type, byte size, raw SHA-256, normalized-text SHA-256 and source family. It adapts the result to `financial_writing_agent.current_research_sources.verify_current_research_sources`.
 
-Direct authenticated Google Drive connector actions provide source-library CRUD in Session Draft Delivery. This does not authorize mutation of article `STATE.json`, article requirements, signed receipts or the reusable-method catalog. Canonical task bindings remain in the Article Aggregate and require the hosted Financial Provider Action. The current repository is public; do not add private article state, private research artifacts, source metadata or task bindings to it.
+Direct authenticated Google Drive connector actions provide source-library CRUD in Session Draft Delivery. This does not authorize mutation of article `STATE.json`, article requirements, signed receipts or the reusable-method catalog. Canonical task bindings remain in the Article Aggregate and require the hosted Financial Provider Action. The owner accepts the existing public repository visibility; no visibility change or migration is requested. Do not place original source files, private source metadata or task bindings in public GitHub. Article state remains GitHub's single authority, but canonical writes still require the deployed authenticated Financial Provider Action.
 
 ## Current provisioned state
 

@@ -58,7 +58,8 @@ def main():
     require(contract["execution_modes"]["SESSION_DRAFT_DELIVERY"]["source_library_crud_allowed"] is True,"session source-library CRUD route missing")
     require(contract["execution_modes"]["SESSION_DRAFT_DELIVERY"]["source_library_does_not_authorize_article_state_or_method_mutation"] is True,"source CRUD crossed canonical mutation boundary")
     require(manifest["source_library"]["status"].startswith("PROVISIONED_EMPTY") and manifest["provider_action_endpoint"]["status"]=="NOT_DEPLOYED","source library or provider deployment status drift")
-    require(data["repository_security"]["canonical_private_article_writes"]=="BLOCKED_UNTIL_REPOSITORY_PRIVATE_AND_PROVIDER_DEPLOYED","public repository private-write boundary drift")
+    require(data["repository_security"]["owner_visibility_decision"]=="ACCEPTED_PUBLIC_VISIBILITY__NO_CHANGE_REQUESTED","owner repository visibility decision drift")
+    require(data["repository_security"]["canonical_article_writes"]=="BLOCKED_UNTIL_HOSTED_PROVIDER_DEPLOYED_AND_SIGNED_AUTHORIZATION_AVAILABLE","canonical article write provider boundary drift")
 
     require(caps["independent_parent_free"] is True and caps["independence_clause"]=="NO_EXTERNAL_PARENT_REPOSITORY_OR_CONTROLLER__HOSTED_FINANCIAL_PROVIDER_ACTION_IS_ONLY_THE_TRUSTED_TRANSPORT_AND_ADMISSION_ADAPTER","external runtime dependency declared")
     require(contract["execution"]["route_selection"]=="DIRECT_FINANCIAL_ONLY" and contract["execution"]["direct_domain_activation"] is True,"execution is no longer direct Financial")

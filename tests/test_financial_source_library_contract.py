@@ -17,7 +17,7 @@ def test_google_drive_source_library_is_canonical_and_does_not_need_private_gith
 
     assert contract["canonical_store"]["metadata_and_lifecycle_authority"]["provider"] == "GOOGLE_DRIVE"
     assert contract["canonical_store"]["registry_tabs"] == ["Sources", "Versions", "Events"]
-    assert contract["canonical_store"]["repository_visibility"] == "UNCHANGED_FOR_SOURCE_LIBRARY_ONLY"
+    assert contract["canonical_store"]["repository_visibility"] == "OWNER_ACCEPTED_PUBLIC__NO_CHANGE_REQUESTED"
     assert contract["canonical_store"]["no_parallel_source_metadata_ledger"] is True
     assert contract["canonical_store"]["no_parallel_article_ledger"] is True
     assert contract["identity"]["drive_revision_id_required"] is False
