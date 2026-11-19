@@ -194,7 +194,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "Main HEAD 1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc adds goal-first intake and independent user-goal outcome review. Exact-main push CI run 44042260375 succeeded: 770 tests, 87% statement coverage, 355 tracked files, 140 Python AST parses, 55 JSON parses, 59,979 decoded text lines, zero warnings/errors. This is engineering evidence only. All seven external gates remain OPEN; the live cross-border v3 article remains RESEARCH with 0/4 outputs and zero quality evidence. Next legal work is approved deployment/verification of the Financial Provider Action and separate trusted reviewer, native Skill installation/fresh-session invocation, independent technical review, real cross-topic and per-product article evaluation, and GitHub main protection/branch hygiene. Do not resume the historical article unless explicitly requested.",
+    "next_legal_phase": "Completed integration chain: PR #84, PR #85, PR #86, PR #87, PR #88 and PR #89 are merged in dependency order; their exact-head and mainline receipts remain preserved in the candidate records. The latest observed main push is 1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc (2026-11-17), with exact-main CI run 44042260375 passing 770 tests at 87% statement coverage; this push is recorded separately from the last PR-integrated independently validated main head 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea / CI 43924128311. Goal-first intake and final user-goal review are now present as code contracts only. All seven external gates remain OPEN; the live cross-border v3 article remains RESEARCH with 0/4 outputs and zero quality evidence. Next legal work is approved deployment/verification of the Financial Provider Action and separate trusted reviewer, native Skill installation/fresh-session invocation, independent technical review, real cross-topic and per-product article evaluation, and GitHub main protection/branch hygiene. Do not resume the historical article unless explicitly requested.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -741,7 +741,7 @@
       "exact_main_ci_tests_passed": 727
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.6",
+    "problem_journal_revision": "2.7",
     "general_writing_stability": {
       "status": "OPEN__SYSTEM_WIDE_CROSS_TOPIC_QUALITY_NOT_VERIFIED",
       "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
@@ -839,7 +839,25 @@
         "source_line_coverage_percent": 88,
         "status": "MERGED_TO_MAIN__ENGINEERING_PASS__EDITORIAL_ACCEPTANCE_OPEN"
       },
-      "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea"
+      "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+      "latest_observed_main_push": {
+        "main_commit": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+        "event": "PUSH",
+        "ci_run": 44042260375,
+        "ci_conclusion": "success",
+        "tests_passed": 770,
+        "source_line_coverage_percent": 87,
+        "whole_tree_inventory": {
+          "tracked_files": 355,
+          "python_ast_parsed": 140,
+          "json_parsed": 55,
+          "decoded_text_lines": 59979,
+          "warnings": 0,
+          "errors": 0
+        },
+        "skill_utf8_bytes": 11541,
+        "assurance": "EXACT_MAIN_CI_PASS__NOT_PR_REVIEW_OR_EXTERNAL_PRODUCT_ACCEPTANCE"
+      }
     },
     "current_execution_profile_decision_binding_candidate": {
       "id": "FIN-WRITING-EXECUTION-PROFILE-DECISION-BINDING-20261117",
@@ -877,6 +895,24 @@
       "exact_main_ci_conclusion": "success",
       "exact_main_ci_tests_passed": 758,
       "merged_at": "2026-11-16T17:59:36Z"
+    },
+    "latest_observed_main_push": {
+      "main_commit": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+      "event": "PUSH",
+      "ci_run": 44042260375,
+      "ci_conclusion": "success",
+      "tests_passed": 770,
+      "source_line_coverage_percent": 87,
+      "whole_tree_inventory": {
+        "tracked_files": 355,
+        "python_ast_parsed": 140,
+        "json_parsed": 55,
+        "decoded_text_lines": 59979,
+        "warnings": 0,
+        "errors": 0
+      },
+      "skill_utf8_bytes": 11541,
+      "assurance": "EXACT_MAIN_CI_PASS__NOT_PR_REVIEW_OR_EXTERNAL_PRODUCT_ACCEPTANCE"
     }
   },
   "system_engineering_simulation_20261112": {
