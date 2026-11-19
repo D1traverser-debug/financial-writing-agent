@@ -476,9 +476,19 @@
         "append_source_version",
         "retire_source",
         "restore_source",
-        "bind_source_version"
+        "bind_source_version",
+        "validate_source_binding_coverage"
       ],
-      "planned_provider_entrypoint": "financial_writing_agent.source_provider.admit_source_action"
+      "planned_provider_entrypoint": "financial_writing_agent.source_provider.admit_source_action",
+      "domain_model_types": [
+        "DriveObjectReference",
+        "SourceVersion",
+        "SourceRecord",
+        "SourceBinding",
+        "SourceBindingSet"
+      ],
+      "task_binding_schema": "financial_writing_agent.source_lifecycle.SourceBindingSet",
+      "exact_evidence_ref_coverage_required": true
     }
   },
   "goal_method_governance": {
