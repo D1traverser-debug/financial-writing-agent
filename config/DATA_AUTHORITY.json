@@ -6,13 +6,33 @@
   "operating_skill": "skills/financial-writing-agent/SKILL.md",
   "domain_manifest": "config/FINANCIAL_MANIFEST.json",
   "execution_contract": "config/EXECUTION_CONTRACT.json",
+  "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
   "article_state_pattern": "workspaces/articles/{task_id}/STATE.json",
   "method_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
   "system_evolution": "evals/EVOLUTION_INDEX.json",
   "editorial_readiness": "evals/quality_regression.json",
+  "repository_security": {
+    "required_visibility": "PRIVATE",
+    "observed_visibility_at_2026_11_19": "PUBLIC",
+    "canonical_private_data_writes": "BLOCKED_UNTIL_PRIVATE_VISIBILITY_AND_LIVE_PROVIDER_READBACK",
+    "preserve_existing_git_history": true,
+    "do_not_add_private_source_originals_while_public": true
+  },
+  "source_library": {
+    "root": "sources/",
+    "contract": "config/SOURCE_STORAGE_CONTRACT.json",
+    "source_record": "sources/{source_id}/SOURCE.json",
+    "immutable_version_root": "sources/{source_id}/versions/{version_id}/",
+    "versioned_reference": "financial-source://{source_id}/{version_id}",
+    "task_binding": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+    "status": "DESIGNED_NOT_ACTIVE__PRIVATE_REPOSITORY_AND_PROVIDER_GATES_OPEN",
+    "current_research_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
+    "verifier_is_not_crud_manager": true
+  },
   "article_workspace": {
     "state": "STATE.json",
     "research": "research/",
+    "source_bindings": "research/SOURCE_BINDINGS.json",
     "editorial": "editorial/",
     "stage_outputs": "stages/",
     "reviews": "reviews/",
@@ -24,7 +44,12 @@
     "read": "Read the task STATE.json and its exact referenced artifacts; observe_article returns the validated stage and next action.",
     "update": "Change requirements through current_admission.apply_task_requirement_change; preserve append-only history and invalidate dependent evidence.",
     "delete": "Do not erase historical receipts or accepted evidence. Retire requirements/methods through lifecycle operations; delete only disposable unreferenced temporary artifacts.",
-    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace."
+    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace.",
+    "source_create": "BLOCKED until the canonical repository is PRIVATE and the hosted Financial Provider Action is live; then create a source identity, immutable first version, provenance manifest, and signed effect receipt atomically.",
+    "source_read": "Read only by exact source_id and version_id; verify raw-byte SHA-256, normalized-text SHA-256, Git blob identities, and provenance.",
+    "source_update": "Append a new immutable source version and CAS-update the current-version pointer; never overwrite an admitted version.",
+    "source_delete": "RETIRE by default; preserve existing article bindings and history. Hard delete is forbidden for referenced sources and requires a separate approved history/backup purge for legal erasure.",
+    "source_list_search": "Search source metadata and return exact version-pinned references; filename-only matching is not authoritative."
   },
   "method_operations": [
     "CREATE",
@@ -39,10 +64,11 @@
   ],
   "external_inputs": {
     "chat": "Source of user intent and explicit approval; never a shadow article-state store.",
-    "research_sources": "Evidence inputs with exact source, date and content provenance.",
-    "github_provider": "Durable file storage and exact read/write/readback authority.",
-    "temporary_files": "Ephemeral work products only; never canonical state."
+    "research_sources": "External URLs and uploaded files must be admitted into the canonical versioned source library before they can become durable task evidence.",
+    "github_provider": "Canonical storage and exact CAS/readback authority only after repository privacy and live Provider Action gates are verified.",
+    "temporary_files": "Ephemeral work products only; never canonical state or a substitute source library."
   },
   "no_parallel_article_ledger": true,
+  "no_parallel_source_ledger": true,
   "no_external_parent_runtime": true
 }
