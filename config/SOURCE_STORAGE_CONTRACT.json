@@ -57,12 +57,14 @@
     "bind_retrieval_time_and_source_family": true,
     "parser_or_extractor_version_required": true,
     "update_source_pointer_only_through_github_cas": true,
-    "prior_versions_remain_readable": true
+    "prior_versions_remain_readable": true,
+    "raw_sha256_semantics": "SHA-256 of the exact immutable Drive file payload. That payload is the original source bytes only when storage_policy=RAW_PRESERVED; otherwise it is the permitted excerpt object or metadata manifest. Never label an excerpt/manifest digest as a digest of the full original article.",
+    "normalized_text_sha256_semantics": "SHA-256 of the normalized text actually retained and returned by the provider. For excerpt/metadata policies it covers only that retained excerpt/metadata, not an unretained full source body."
   },
   "crud": {
-    "create": "Upload a new immutable original file into the private Drive source folder, fetch/read back the exact Drive file/revision, compute raw SHA-256, then create the GitHub SOURCE.json record and signed effect receipt in one conditional Git commit. Do not admit the source if readback fails.",
-    "read": "Read GitHub SOURCE.json by source_id/version_id, resolve the exact Drive file_id and revision_id, fetch the original bytes, and verify raw SHA-256, normalized-text SHA-256, Drive metadata, and GitHub blob identities. Filename-only matching is never authoritative.",
-    "update": "Create a new Drive file for the new version; never replace old bytes. After exact Drive readback, CAS-update the GitHub source record/current-version pointer and append the signed effect receipt. Existing article bindings stay pinned to the old version.",
+    "create": "Upload a new immutable Drive evidence file whose payload follows storage_policy: original source bytes only for RAW_PRESERVED, permitted excerpts/metadata for METADATA_AND_EXCERPT_ONLY, and a metadata manifest for LINK_ONLY. Read back the exact Drive file/revision and bytes, compute raw_sha256 over the stored Drive payload, then create the GitHub SOURCE.json record and signed effect receipt in one conditional Git commit. Do not admit the source if readback fails.",
+    "read": "Read GitHub SOURCE.json by source_id/version_id, resolve the exact Drive file_id and revision_id, fetch the stored Drive payload, and verify raw_sha256 over those exact stored bytes, normalized_text_sha256 over the retained text, Drive metadata, and GitHub blob identities. Filename-only matching is never authoritative. Do not imply full-source verification when policy stores only an excerpt or metadata.",
+    "update": "Create a new Drive file for the new immutable version; never replace old bytes. Its payload must follow the new version's storage_policy and must not copy restricted full text. After exact Drive readback and digest verification, CAS-update the GitHub source record/current-version pointer and append the signed effect receipt. Existing article bindings stay pinned to the old version.",
     "delete": "Default DELETE semantics are RETIRE in the GitHub source record: prevent new task bindings while preserving all Drive versions and existing task references. RESTORE is explicit. Physical Drive deletion is forbidden for any source referenced by an article, evidence ledger, receipt, or audit. Legal erasure requires a separately approved history/backup purge.",
     "list_search": "List/search GitHub source records by metadata and return exact source_id/version_id references; use the Drive folder only to locate/read the corresponding immutable objects. Do not treat a folder listing as the business registry."
   },
@@ -123,7 +125,7 @@
   },
   "source_reader": {
     "current_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
-    "resolver": "Financial Provider Action resolves financial-source:// through the GitHub source record, reads the exact Drive file/revision, and returns verified bytes/text and provenance.",
+    "resolver": "Financial Provider Action resolves financial-source:// through the GitHub source record, reads the exact Drive file/revision, and returns the verified stored payload, retained text, and provenance. It must disclose whether the payload is original bytes, permitted excerpt, or metadata manifest.",
     "verifier_role": "Verify exact source bytes, normalized text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
     "current_status": "NO_DRIVE_SOURCE_RESOLVER_OR_SOURCE_CRUD_PROVIDER_IS_DEPLOYED"
   },
