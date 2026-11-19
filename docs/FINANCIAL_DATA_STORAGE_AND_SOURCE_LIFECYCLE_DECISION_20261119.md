@@ -9,11 +9,11 @@
 Use a two-plane storage design with distinct object ownership:
 
 - **GitHub Financial Writing repository:** owns code, rules, schemas, article state, source identity/lifecycle metadata, exact task-source bindings, and signed effect receipts.
-- **Google Drive:** owns original binary source files, immutable source-version objects, and large raw materials.
+- **Google Drive:** owns immutable source-version evidence objects and large raw materials. Original source bytes are retained only when rights permit; restricted sources retain only permitted excerpts/metadata or a metadata manifest.
 - **Notion:** may provide reusable research knowledge and evidence-link notes, but is not the raw-source file authority.
 - **ChatGPT Library:** continuity/navigation and historical attachments only; not the raw-source authority.
 
-This is not two competing business-state ledgers. Drive owns file bytes; GitHub owns the source identity/version mapping and article business state. Every article binds an exact Drive file ID, Drive revision ID, and SHA-256 through the GitHub task state.
+This is not two competing business-state ledgers. Drive owns the exact retained evidence payload bytes; GitHub owns the source identity/version mapping and article business state. Every article binds an exact Drive file ID, Drive revision ID, and SHA-256 through the GitHub task state.
 
 ## 2. Verified current-state findings
 
