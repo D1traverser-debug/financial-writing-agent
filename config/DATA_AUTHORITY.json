@@ -29,8 +29,8 @@
     "status": "FOLDER_PROVISIONED__DOMAIN_TRANSITIONS_IMPLEMENTED__SOURCE_PROVIDER_NOT_DEPLOYED",
     "current_research_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
     "verifier_is_not_crud_manager": true,
-    "raw_folder_id_ref": "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
-    "raw_parent_folder_id_ref": "PROVIDER_CONFIGURATION:FINANCIAL_PROJECT_DRIVE_FOLDER_ID"
+    "raw_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+    "raw_parent_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_PROJECT_DRIVE_FOLDER_ID"
   },
   "article_workspace": {
     "state": "STATE.json",
