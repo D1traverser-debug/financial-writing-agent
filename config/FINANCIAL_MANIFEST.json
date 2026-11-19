@@ -185,10 +185,10 @@
     "expression_policy": "CONTENT_LED__FORM_FOLLOWS_CONTENT__NO_SINGLE_UNIVERSAL_TEMPLATE",
     "no_single_article_is_system_objective": true,
     "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
-    "latest_ci_run": 43924128311,
+    "latest_ci_run": 44042260375,
     "latest_ci_conclusion": "success",
-    "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully.",
-    "last_completed_ci_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
+    "latest_ci_summary": "770 passed; 87% Python statement coverage; exact main push commit 1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc CI run 44042260375. Engineering only; live provider, independent review and article quality remain open.",
+    "last_completed_ci_head": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
     "publishing_portfolio": {
       "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
       "products": [
@@ -258,8 +258,8 @@
       "pull_request_merged": true,
       "semantic_exception": "SOURCE_IDENTITY_MAY_REMAIN_WHEN_MATERIAL_TO_THE_CLAIM"
     },
-    "latest_main_head_sha": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
-    "latest_main_head_ci_run": 43924128311,
+    "latest_main_head_sha": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+    "latest_main_head_ci_run": 44042260375,
     "latest_main_head_ci_conclusion": "success",
     "execution_profile": {
       "name": "WritingExecutionProfile",
@@ -290,7 +290,7 @@
       "exact_main_ci_run": 43908728749,
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
     },
-    "latest_main_head_ci_semantics": "LATEST_INDEPENDENTLY_VALIDATED_FUNCTIONAL_MAINLINE_COMMIT__STATUS_EVIDENCE_FOLLOWUPS_ARE_SEPARATELY_TESTED",
+    "latest_main_head_ci_semantics": "DIRECT_MAIN_PUSH_EXACT_HEAD_CI_PASS__NO_PR_REVIEW__EXTERNAL_PRODUCTION_ACCEPTANCE_OPEN",
     "execution_profile_decision_binding_implementation": {
       "pull_request": 89,
       "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
