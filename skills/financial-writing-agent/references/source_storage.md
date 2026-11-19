@@ -1,6 +1,6 @@
 # Financial Writing — Source File Storage and Intake Rules
 
-**Status:** The private Drive folder is provisioned. Canonical source CRUD is not active until the GitHub repository is Private and the hosted Financial Provider Action has a working Drive adapter.
+**Status:** The private Drive folder and deterministic source lifecycle models are provisioned. Canonical source CRUD is not active until the GitHub repository is Private and the hosted Financial Provider Action has a working Drive adapter.
 
 ## Storage ownership
 
