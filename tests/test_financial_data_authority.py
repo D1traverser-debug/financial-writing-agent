@@ -74,6 +74,11 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     )
     assert manifest["chatgpt_native_runtime"]["source_crud_status"].startswith("DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED")
     assert manifest["chatgpt_native_runtime"]["source_domain_model"] == "financial_writing_agent.source_lifecycle"
+    source_receipt = manifest["provider_action_effect_receipt"]["source_asset_contract"]
+    assert source_receipt["task_binding_set"]["schema"] == (
+        "financial_writing_agent.source_lifecycle.SourceBindingSet"
+    )
+    assert source_receipt["task_binding_set"]["exact_evidence_ref_coverage_required"] is True
     assert manifest["provider_action_endpoint"]["source_store_connector"].startswith("CONNECTED_GOOGLE_DRIVE")
     assert set(manifest["provider_action_endpoint"]["required_for"]) == {
         "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
@@ -90,6 +95,9 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     assert "CONNECTED_GOOGLE_DRIVE_ACCESS_TO_PRIVATE_FINANCIAL_SOURCE_FOLDER" in (
         capabilities["required_external_capabilities_at_execution"]
     )
+    assert "EXACT_SOURCE_BINDING_SET_COVERAGE_AGAINST_PRIVATE_RESEARCH_BRIEF_AND_RESEARCH_PACKAGE" in (
+        capabilities["required_provider_action_requirements"]
+    )
     assert execution["authority"]["source_storage_contract"] == (
         "config/SOURCE_STORAGE_CONTRACT.json"
     )
@@ -105,6 +113,10 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     assert source_mutation["domain_model_module"] == "financial_writing_agent.source_lifecycle"
     assert source_mutation["planned_entrypoint"] == "financial_writing_agent.source_provider.admit_source_action"
     assert source_mutation["planned_provider_entrypoint"] == "financial_writing_agent.source_provider.admit_source_action"
+    assert source_mutation["task_binding_schema"] == (
+        "financial_writing_agent.source_lifecycle.SourceBindingSet"
+    )
+    assert source_mutation["exact_evidence_ref_coverage_required"] is True
 
 
 def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_provider():
@@ -115,8 +127,18 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert contract["domain_model_module"] == "financial_writing_agent.source_lifecycle"
     assert set(contract["domain_model_functions"]) == {
         "create_source_record", "append_source_version", "retire_source",
-        "restore_source", "bind_source_version",
+        "restore_source", "bind_source_version", "validate_source_binding_coverage",
     }
+    assert set(contract["domain_model_types"]) == {
+        "DriveObjectReference", "SourceVersion", "SourceRecord",
+        "SourceBinding", "SourceBindingSet",
+    }
+    assert contract["task_binding"]["schema"] == (
+        "financial_writing_agent.source_lifecycle.SourceBindingSet"
+    )
+    assert "scope" in contract["task_binding"]["fields"]
+    assert "rights_basis" in contract["task_binding"]["fields"]
+    assert "exact equality" in contract["research_admission"]["exact_coverage_rule"]
     assert contract["canonical_store"]["raw_object_store"]["provider"] == "GOOGLE_DRIVE"
     assert contract["canonical_store"]["raw_object_store"]["folder_id_ref"] == (
         "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
