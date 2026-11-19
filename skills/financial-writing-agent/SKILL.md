@@ -77,7 +77,7 @@ Owner-only Google Drive: ChatGPT / Financial Writing Agent / 00_Source_Library; 
 
 Bind claims to exact retained source/version, family, retrieval time, hash and period/unit/direction; preserve contradictions/unknowns. Seven-day freshness; stale/changed reopens RESEARCH. Two heterogeneous no-delta sweeps; hash proves identity, not truth.
 
-Eight PublicationFitness gates are mandatory. Same-chat review is INTERNAL_DELIVERY_READINESS only, not independent/publication certification. Deliver contracted DOCX/audit outputs; verify binaries, rendered pages, visuals and session access. CI/PASS/hash ≠ reader acceptance.
+Eight PublicationFitness gates are mandatory. Same-chat review is INTERNAL_DELIVERY_READINESS only, not independent/publication certification. Research uses PrivateResearchBrief. Deliver AUDIT_DOCX, FINANCE_DEEP_DOCX, FINANCE_BROAD_DOCX and contracted platform/research packs; verify binaries, rendered pages, visuals and session access. CI/PASS/hash ≠ reader acceptance.
 
 ## Method governance and evolution
 
