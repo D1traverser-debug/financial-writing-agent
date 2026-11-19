@@ -72,7 +72,7 @@ The GitHub source record maps `source_id/version_id` to:
 - exact Drive folder ID;
 - exact Drive file ID;
 - exact Drive revision ID;
-- raw-byte SHA-256;
+- stored-payload SHA-256;
 - normalized-text SHA-256;
 - source family/type, publisher, URL, published/retrieved timestamps;
 - media type, size, storage/rights policy, and extraction tool/version.
@@ -134,7 +134,7 @@ The Drive folder exists, but this provider integration is NOT_DEPLOYED. Direct c
 - News-reading scripts and Word-document merge inputs are a separate file-processing workflow. They are not Financial Writing inputs and must not be auto-ingested.
 - Notion IndustryBase/EventBase/ArticleBase/EvidenceCache pages are reusable knowledge and evidence-link notes, not original source bytes. Revalidate their facts and source dates before use.
 - ChatGPT Library old recovery entries and historical attachments are not source authority.
-- Public primary documents may be preserved when lawful. News/paywalled material must not be copied in full by default; retain URL, metadata, permitted short excerpts, and retrieval/body digests unless rights or license permit full storage.
+- Public primary documents may be preserved when lawful. News/paywalled material must not be copied in full by default; retain URL, metadata, permitted short excerpts, and digests of the exact retained payload/text unless rights or license permit full storage.
 
 ## 8. Immediate security gate
 
