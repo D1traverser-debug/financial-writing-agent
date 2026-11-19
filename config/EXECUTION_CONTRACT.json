@@ -466,7 +466,7 @@
     "cross_project_cognition_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
     "external_provider_host_required": true,
     "source_file_mutation": {
-      "planned_entrypoint": "financial_writing_agent.source_lifecycle.admit_source_action",
+      "planned_entrypoint": "financial_writing_agent.source_provider.admit_source_action",
       "status": "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED__PROVIDER_ADAPTER_NOT_DEPLOYED",
       "real_write_requirement": "DRIVE_EXACT_FILE_REVISION_AND_BYTE_READBACK__GITHUB_EXPECTED_SHA_CAS__SIGNED_SOURCE_EFFECT_RECEIPT",
       "cross_store_recovery": "RECONCILE_ORPHAN_DRIVE_OBJECTS_AFTER_FAILED_GITHUB_COMMIT__NEVER_SILENTLY_DELETE",
