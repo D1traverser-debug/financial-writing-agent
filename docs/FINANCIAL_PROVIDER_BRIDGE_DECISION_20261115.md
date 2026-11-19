@@ -55,6 +55,16 @@ Reuse the existing provider_attestation.py contracts unless a versioned Decision
 - Use HTTPS, strict request schemas, bounded payloads, audit logging without secrets, replay protection, rate limits and explicit revocation.
 - Canonical state writes must respect the repository's branch-protection policy. Do not silently add an App bypass or write directly to main until the branch-protection and state-write design is independently verified.
 
+### 3.4 Drive-backed source-file adapter — 2026-11-19 extension
+
+Financial source originals are stored in the private Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library` (folder ID `1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ`). GitHub remains the authority for source identity/lifecycle metadata, signed source-action effects, article state, and exact task-source bindings. This is a raw-object/control-plane split, not a second article-state authority.
+
+The hosted Financial Provider Action must therefore add a least-privilege Google Drive adapter limited to this folder. For CREATE or ADD_VERSION it must upload a new immutable Drive file, fetch the exact file ID and revision, read the actual bytes, recompute SHA-256, and only then commit the GitHub source record plus signed effect receipt through expected-SHA CAS and exact readback. Existing Drive versions must never be overwritten.
+
+Drive upload and GitHub metadata admission are not one atomic transaction. If the Drive upload succeeds but GitHub CAS fails, the object remains unreferenced and must be reconciled; it must not be silently deleted. If a committed GitHub source record points to missing or changed Drive bytes, source use is blocked. Timeouts remain unknown until both providers are read back.
+
+The existing GitHub App contract remains responsible for canonical article-state and method/source-metadata writes. The Drive adapter is an additional narrowly scoped capability, not a second controller. The folder is provisioned and verified owner-only, but the hosted Drive source adapter and source CRUD tools are **NOT_DEPLOYED**. The existing Skill-only client cannot claim source-file CRUD or provider-attested source admission.
+
 ## 4. ChatGPT tool surface
 
 The hosted endpoint should expose a narrow Financial-only tool set, at minimum:
