@@ -201,6 +201,9 @@ class SourceBinding(StrictModel):
         for field in ("raw_sha256", "normalized_text_sha256"):
             if _SHA256.fullmatch(getattr(self, field)) is None:
                 raise ValueError(f"{field} must be a lowercase SHA-256 digest")
+        version_match = _VERSION_ID.fullmatch(self.version_id)
+        if version_match is None or version_match.group("digest") != self.raw_sha256[:12]:
+            raise ValueError("source binding version ID digest suffix must match its stored Drive payload")
         _require_aware(self.retrieved_at, "retrieved_at")
         if self.published_at is not None:
             _require_aware(self.published_at, "published_at")
