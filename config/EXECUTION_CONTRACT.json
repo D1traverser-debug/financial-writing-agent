@@ -467,9 +467,18 @@
     "external_provider_host_required": true,
     "source_file_mutation": {
       "planned_entrypoint": "financial_writing_agent.source_lifecycle.admit_source_action",
-      "status": "NOT_IMPLEMENTED__DRIVE_FOLDER_PROVISIONED__PROVIDER_ADAPTER_NOT_DEPLOYED",
+      "status": "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED__PROVIDER_ADAPTER_NOT_DEPLOYED",
       "real_write_requirement": "DRIVE_EXACT_FILE_REVISION_AND_BYTE_READBACK__GITHUB_EXPECTED_SHA_CAS__SIGNED_SOURCE_EFFECT_RECEIPT",
-      "cross_store_recovery": "RECONCILE_ORPHAN_DRIVE_OBJECTS_AFTER_FAILED_GITHUB_COMMIT__NEVER_SILENTLY_DELETE"
+      "cross_store_recovery": "RECONCILE_ORPHAN_DRIVE_OBJECTS_AFTER_FAILED_GITHUB_COMMIT__NEVER_SILENTLY_DELETE",
+      "domain_model_module": "financial_writing_agent.source_lifecycle",
+      "domain_model_functions": [
+        "create_source_record",
+        "append_source_version",
+        "retire_source",
+        "restore_source",
+        "bind_source_version"
+      ],
+      "planned_provider_entrypoint": "financial_writing_agent.source_provider.admit_source_action"
     }
   },
   "goal_method_governance": {
