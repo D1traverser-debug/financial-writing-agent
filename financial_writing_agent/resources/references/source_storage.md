@@ -4,7 +4,7 @@
 
 ## Storage ownership
 
-- Raw original bytes and immutable version files: Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library`.
+- Immutable Drive evidence files: original source bytes only when rights permit; otherwise permitted excerpts/metadata or a metadata manifest, according to storage policy.
 - Source identity, lifecycle metadata, and signed source-action effects: GitHub `sources/{source_id}/SOURCE.json` and `sources/{source_id}/actions/{action_id}.effect.json`.
 - Exact article source bindings: GitHub `workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json`.
 - Canonical reference: `financial-source://{source_id}/{version_id}`; each binding resolves to an exact Drive file ID, revision ID, and SHA-256.
@@ -15,9 +15,9 @@ Pure source identity, version, scope, retirement, restoration, and exact-binding
 
 ## CRUD rules
 
-- **Create:** upload a new Drive file, read back the exact file/revision and bytes, compute SHA-256, then admit the GitHub source record and signed effect receipt through provider CAS/readback.
-- **Read:** resolve by source ID and version ID, not filename; verify Drive revision, raw SHA-256, normalized-text SHA-256, and provenance.
-- **Update:** create a new Drive file/version. Never overwrite an admitted version. CAS-update the GitHub source record only after exact Drive readback.
+- **Create:** upload a new Drive file, read back the exact file/revision and bytes, compute SHA-256 over the exact stored payload (not unretained full-source text), then admit the GitHub source record and signed effect receipt through provider CAS/readback.
+- **Read:** resolve by source ID and version ID, not filename; verify Drive revision, stored-payload SHA-256, retained-text SHA-256, and provenance; do not imply full-source verification when only an excerpt/metadata object is stored.
+- **Update:** create a new Drive evidence file/version with payload governed by storage policy. Never overwrite an admitted version. CAS-update the GitHub source record only after exact Drive readback.
 - **Delete:** RETIRE by default. Preserve old Drive versions and existing article bindings. Hard deletion of referenced sources is forbidden.
 - **List/search:** search the GitHub source registry by metadata; Drive folder listing is object discovery, not the source business registry.
 
