@@ -4,7 +4,7 @@
 
 ## Storage ownership
 
-- Raw original bytes and immutable version files: Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library` (folder ID `1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ`).
+- Raw original bytes and immutable version files: Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library`.
 - Source identity, lifecycle metadata, and signed source-action effects: GitHub `sources/{source_id}/SOURCE.json` and `sources/{source_id}/actions/{action_id}.effect.json`.
 - Exact article source bindings: GitHub `workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json`.
 - Canonical reference: `financial-source://{source_id}/{version_id}`; each binding resolves to an exact Drive file ID, revision ID, and SHA-256.
