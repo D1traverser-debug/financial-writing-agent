@@ -79,6 +79,7 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
         "financial_writing_agent.source_lifecycle.SourceBindingSet"
     )
     assert source_receipt["task_binding_set"]["exact_evidence_ref_coverage_required"] is True
+    assert source_receipt["task_binding_set"]["decision_envelope_sha256_required"] is True
     assert source_receipt["task_binding_set"]["source_ref_collector"] == (
         "financial_writing_agent.source_lifecycle.collect_research_source_refs"
     )
@@ -126,6 +127,7 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     assert source_mutation["source_ref_collector"] == (
         "financial_writing_agent.source_lifecycle.collect_research_source_refs"
     )
+    assert "decision_envelope_sha256" in source_mutation["task_binding_envelope_fields"]
 
 
 def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_provider():
@@ -146,6 +148,7 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert contract["task_binding"]["schema"] == (
         "financial_writing_agent.source_lifecycle.SourceBindingSet"
     )
+    assert "decision_envelope_sha256" in contract["task_binding"]["envelope_fields"]
     assert "scope" in contract["task_binding"]["fields"]
     assert "rights_basis" in contract["task_binding"]["fields"]
     assert "source_task_id" in contract["task_binding"]["fields"]
