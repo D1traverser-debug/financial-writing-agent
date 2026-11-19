@@ -51,7 +51,10 @@
     "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
     "session_draft_delivery_without_provider": true,
     "session_draft_delivery_status": "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED",
-    "canonical_owner_state_and_method_mutation_requires_hosted_provider": true
+    "canonical_owner_state_and_method_mutation_requires_hosted_provider": true,
+    "source_library_provider": "AUTHENTICATED_GOOGLE_DRIVE_CONNECTOR",
+    "source_library_crud": "DIRECT_CONNECTOR_CREATE_READ_APPEND_VERSION_RETIRE_RESTORE_WITH_EXACT_READBACK",
+    "source_library_registry": "GOOGLE_DRIVE_FINANCIAL_SOURCE_REGISTRY__SOURCES_VERSIONS_EVENTS"
   },
   "provider_adapter_role": "REQUIRED_TRUSTED_EXECUTION_PROVIDER__NOT_DEPLOYED",
   "provider_action_effect_receipt": {
@@ -351,5 +354,26 @@
   },
   "external_host_required_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
   "provider_action_required_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
-  "execution_mode_contract": "config/EXECUTION_CONTRACT.json#execution_modes"
+  "execution_mode_contract": "config/EXECUTION_CONTRACT.json#execution_modes",
+  "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
+  "source_library": {
+    "provider": "GOOGLE_DRIVE",
+    "status": "PROVISIONED_EMPTY__CONNECTOR_CRUD_INTEGRATION_TESTED__SOURCE_ROWS_EMPTY",
+    "root_folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
+    "registry_path": "00_Registry/Financial Source Registry",
+    "registry_tabs": [
+      "Sources",
+      "Versions",
+      "Events"
+    ],
+    "source_object_path": "01_Sources/{source_id}/versions/{version_id}",
+    "retired_path": "99_Retired/{source_id}",
+    "visibility": "OWNER_ONLY_PRIVATE__READBACK_VERIFIED",
+    "repository_visibility_change": "NOT_REQUIRED_FOR_SOURCE_LIBRARY",
+    "source_file_crud": "CREATE_READ_APPEND_VERSION_RETIRE_RESTORE",
+    "source_version_identity": "NEW_IMMUTABLE_DRIVE_FILE_ID_PLUS_RAW_SHA256__REVISION_ID_OPTIONAL",
+    "canonical_article_state_mutation": false,
+    "article_binding_authority": "ARTICLE_AGGREGATE__PROVIDER_ACTION_NOT_DEPLOYED",
+    "no_source_data_in_public_repository": true
+  }
 }

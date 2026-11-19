@@ -26,7 +26,10 @@
     "data_authority": "config/DATA_AUTHORITY.json",
     "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
     "caos_governance_contract": "config/CAOS_GOVERNANCE.json",
-    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md"
+    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+    "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
+    "source_library_provider": "GOOGLE_DRIVE",
+    "source_library_registry": "00_Registry/Financial Source Registry"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -761,7 +764,19 @@
         "PUBLICATION_CERTIFIED",
         "METHOD_PROMOTED",
         "CANONICAL_STATE_PERSISTED"
-      ]
+      ],
+      "source_library_crud_allowed": true,
+      "source_library_provider": "AUTHENTICATED_GOOGLE_DRIVE_CONNECTOR",
+      "source_library_scope": [
+        "CREATE_SOURCE",
+        "READ_SOURCE",
+        "APPEND_IMMUTABLE_VERSION",
+        "RETIRE_SOURCE",
+        "RESTORE_SOURCE",
+        "SEARCH_SOURCE"
+      ],
+      "source_library_requires_exact_drive_and_registry_readback": true,
+      "source_library_does_not_authorize_article_state_or_method_mutation": true
     },
     "CANONICAL_OWNER_EXECUTION": {
       "status_without_provider": "BLOCKED__KEEP_AFFECTED_CANONICAL_ACTION_OPEN",
@@ -773,5 +788,22 @@
       "method_catalog_mutation_allowed": true,
       "provider_unavailable_behavior": "DO_NOT_SUBSTITUTE_DIRECT_GITHUB_WRITES__MODEL_SIGNED_RECEIPTS__OR_SYNTHETIC_CALLBACKS"
     }
+  },
+  "source_library": {
+    "provider": "GOOGLE_DRIVE",
+    "contract": "config/SOURCE_STORAGE_CONTRACT.json",
+    "registry_tabs": [
+      "Sources",
+      "Versions",
+      "Events"
+    ],
+    "immutable_version_file_ids": true,
+    "append_only_events": true,
+    "exact_source_ref": "financial-source://{source_id}/{version_id}",
+    "drive_revision_id_required": false,
+    "session_connector_crud_allowed": true,
+    "canonical_article_binding_owner": "Article Aggregate",
+    "no_parallel_article_ledger": true,
+    "repository_visibility_change_required": false
   }
 }

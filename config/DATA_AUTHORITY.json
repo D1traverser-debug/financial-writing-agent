@@ -1,7 +1,7 @@
 {
   "schema_version": "1.0",
   "domain_id": "financial_writing",
-  "status": "CURRENT_SINGLE_SOURCE_OF_TRUTH",
+  "status": "GITHUB_ARTICLE_AND_METHOD_AUTHORITY__GOOGLE_DRIVE_SOURCE_LIBRARY_AUTHORITY",
   "business_authority": "github://D1traverser-debug/financial-writing-agent@main",
   "operating_skill": "skills/financial-writing-agent/SKILL.md",
   "domain_manifest": "config/FINANCIAL_MANIFEST.json",
@@ -17,14 +17,16 @@
     "stage_outputs": "stages/",
     "reviews": "reviews/",
     "delivery": "delivery/",
-    "feedback": "feedback/"
+    "feedback": "feedback/",
+    "source_bindings": "research/SOURCE_BINDINGS.json (canonical provider-only artifact; never written in session-only mode or duplicated in the Drive source registry)"
   },
   "operations": {
     "create": "Create one task-scoped STATE.json through current_admission.build_initial_state.",
     "read": "Read the task STATE.json and its exact referenced artifacts; observe_article returns the validated stage and next action.",
     "update": "Change requirements through current_admission.apply_task_requirement_change; preserve append-only history and invalidate dependent evidence.",
     "delete": "Do not erase historical receipts or accepted evidence. Retire requirements/methods through lifecycle operations; delete only disposable unreferenced temporary artifacts.",
-    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace."
+    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace.",
+    "source_library": "Create/read/version/retire/restore source objects through the owner-only Google Drive connector; append Sources, Versions and Events rows; verify exact readback."
   },
   "method_operations": [
     "CREATE",
@@ -39,10 +41,38 @@
   ],
   "external_inputs": {
     "chat": "Source of user intent and explicit approval; never a shadow article-state store.",
-    "research_sources": "Evidence inputs with exact source, date and content provenance.",
-    "github_provider": "Durable file storage and exact read/write/readback authority.",
-    "temporary_files": "Ephemeral work products only; never canonical state."
+    "research_sources": "Evidence inputs resolved through the canonical Google Drive source library with exact source/version identity, retrieval time, content hash, source family and contradiction review.",
+    "github_provider": "Code, rules, article state and method catalog only. Canonical article/method writes remain blocked while the repository is public and the hosted Financial Provider Action is NOT_DEPLOYED.",
+    "temporary_files": "Ephemeral work products only; never canonical state.",
+    "google_drive_source_library": "Canonical source metadata, immutable source versions and lifecycle events; authenticated Google Drive connector with exact readback."
   },
   "no_parallel_article_ledger": true,
-  "no_external_parent_runtime": true
+  "no_external_parent_runtime": true,
+  "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
+  "repository_security": {
+    "observed_visibility": "PUBLIC",
+    "historical_content": "EXISTING_HISTORICAL_ARTICLE_AND_RESEARCH_ARTIFACTS_REQUIRE_OWNER_PRIVACY_REVIEW",
+    "canonical_private_article_writes": "BLOCKED_UNTIL_REPOSITORY_PRIVATE_AND_PROVIDER_DEPLOYED",
+    "source_library_data_boundary": "PRIVATE_GOOGLE_DRIVE_ONLY__NO_SOURCE_METADATA_OR_TASK_BINDINGS_WRITTEN_TO_PUBLIC_GITHUB"
+  },
+  "source_library": {
+    "provider": "GOOGLE_DRIVE",
+    "root_folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
+    "registry_path": "00_Registry/Financial Source Registry",
+    "registry_tabs": [
+      "Sources",
+      "Versions",
+      "Events"
+    ],
+    "source_object_path": "01_Sources/{source_id}/versions/{version_id}",
+    "retired_path": "99_Retired/{source_id}",
+    "data_owner": "GOOGLE_DRIVE_SOURCE_REGISTRY_AND_IMMUTABLE_VERSION_FILES",
+    "access": "OWNER_ONLY_PRIVATE__LIVE_READBACK_VERIFIED",
+    "current_state": "PROVISIONED_EMPTY__CONNECTOR_CRUD_INTEGRATION_TESTED__NO_USER_SOURCE_ROWS",
+    "source_refs": "financial-source://{source_id}/{version_id}",
+    "source_version_policy": "APPEND_ONLY_NEW_DRIVE_FILE_ID__RAW_SHA256__OPTIONAL_REVISION_ID",
+    "task_bindings": "SESSION_ONLY_IN_MEMORY_AND_WORK_BRIEF__CANONICAL_ARTICLE_AGGREGATE_ONLY_AFTER_PROVIDER_DEPLOYMENT",
+    "no_parallel_source_metadata_ledger": true,
+    "no_parallel_article_ledger": true
+  }
 }
