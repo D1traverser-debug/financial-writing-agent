@@ -160,3 +160,16 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     )
     assert "news-reading scripts" in contract["input_boundary"]["excluded_by_default"]
     assert "Word document merge inputs" in contract["input_boundary"]["excluded_by_default"]
+    admission = contract["research_admission"]
+    assert admission["canonical_evidence_reference_scheme"] == (
+        "financial-source://{source_id}/{version_id}"
+    )
+    assert admission["raw_url_semantics"].startswith("DISCOVERY_OR_CITATION_METADATA_ONLY")
+    assert admission["no_unbound_evidence"] is True
+    assert admission["no_floating_latest_reference"] is True
+    assert "exact equality" in admission["exact_coverage_rule"]
+    assert "SOURCE_BINDINGS.json" in admission["exact_coverage_rule"]
+    assert "raw external URLs used as admitted research evidence refs" in admission["provider_must_reject"]
+    assert "TaskContract.source_refs may contain user-supplied discovery URLs" in (
+        admission["compatibility_boundary"]
+    )
