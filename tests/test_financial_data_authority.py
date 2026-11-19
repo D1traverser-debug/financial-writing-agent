@@ -40,7 +40,7 @@ def test_private_repository_gate_and_drive_source_folder_are_explicit():
     assert security["preserve_existing_git_history"] is True
     assert security["do_not_add_private_source_metadata_or_task_bindings_while_public"] is True
     assert source["raw_folder_path"] == "ChatGPT/Financial Writing Agent/00_Source_Library"
-    assert source["raw_folder_id_ref"] == "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
+    assert source["raw_folder_id_ref"] == "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
     assert source["raw_folder_visibility"] == "PRIVATE_VERIFIED_NOT_SHARED_2026_11_19"
     assert source["status"] == "FOLDER_PROVISIONED__DOMAIN_TRANSITIONS_IMPLEMENTED__SOURCE_PROVIDER_NOT_DEPLOYED"
     assert data["operations"]["source_create"].startswith("BLOCKED")
@@ -117,7 +117,7 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     }
     assert contract["canonical_store"]["raw_object_store"]["provider"] == "GOOGLE_DRIVE"
     assert contract["canonical_store"]["raw_object_store"]["folder_id_ref"] == (
-        "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
+        "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
     )
     assert contract["canonical_store"]["metadata_and_lifecycle_authority"]["provider"] == "GITHUB"
     assert contract["canonical_store"]["repository_visibility_required"] == "PRIVATE"
