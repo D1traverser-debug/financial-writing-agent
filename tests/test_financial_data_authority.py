@@ -138,6 +138,7 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     )
     assert "scope" in contract["task_binding"]["fields"]
     assert "rights_basis" in contract["task_binding"]["fields"]
+    assert "source_task_id" in contract["task_binding"]["fields"]
     assert "exact equality" in contract["research_admission"]["exact_coverage_rule"]
     assert contract["canonical_store"]["raw_object_store"]["provider"] == "GOOGLE_DRIVE"
     assert contract["canonical_store"]["raw_object_store"]["folder_id_ref"] == (
