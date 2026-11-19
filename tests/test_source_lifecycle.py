@@ -118,7 +118,9 @@ def test_retire_blocks_new_bindings_and_restore_reenables_them():
 
 def test_task_only_source_cannot_be_reused_by_another_article():
     record = _record(scope="TASK_ONLY", task_id="article-A")
-    assert bind_source_version(record, version_id=record.current_version_id, task_id="article-A")
+    binding = bind_source_version(record, version_id=record.current_version_id, task_id="article-A")
+    assert binding.source_task_id == "article-A"
+    assert binding.scope == "TASK_ONLY"
     with pytest.raises(ValueError, match="cannot be reused by another task"):
         bind_source_version(record, version_id=record.current_version_id, task_id="article-B")
 
