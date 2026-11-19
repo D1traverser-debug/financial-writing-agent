@@ -101,12 +101,13 @@
     "envelope_fields": [
       "task_id",
       "research_revision",
+      "decision_envelope_sha256",
       "private_research_brief_sha256",
       "research_package_sha256",
       "admitted_at",
       "bindings"
     ],
-    "exact_coverage": "Set of binding.source_ref values must equal the set of all canonical financial-source:// refs in the admitted PrivateResearchBrief and ResearchPackage evidence ledger."
+    "exact_coverage": "Set of binding.source_ref values must equal the set of all source refs collected from the exact admitted DecisionEnvelope, PrivateResearchBrief, and ResearchPackage artifacts whose digests are pinned in the binding-set envelope."
   },
   "provider_surface": {
     "read_only": [
