@@ -104,8 +104,8 @@
     },
     {
       "id": "versioned_source_file_crud_and_drive_readback",
-      "source": "config/SOURCE_STORAGE_CONTRACT.json + Financial Provider Action + private Google Drive source folder",
-      "assurance": "NOT_IMPLEMENTED__PRIVATE_DRIVE_FOLDER_PROVISIONED__SOURCE_RESOLVER_CRUD_AND_SIGNED_GITHUB_BINDING_OPEN"
+      "source": "financial_writing_agent.source_lifecycle + config/SOURCE_STORAGE_CONTRACT.json + Financial Provider Action",
+      "assurance": "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED__PRIVATE_DRIVE_FOLDER_PROVISIONED__DRIVE_PROVIDER_AND_SIGNED_GITHUB_BINDING_NOT_DEPLOYED"
     }
   ],
   "required_external_capabilities_at_execution": [
