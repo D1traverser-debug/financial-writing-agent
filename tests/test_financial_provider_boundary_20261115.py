@@ -96,3 +96,10 @@ def test_provider_unavailability_does_not_block_structured_session_draft_deliver
     assert scopes["SESSION_DRAFT_DELIVERY"]["provider_action_required"] is False
     assert scopes["CANONICAL_OWNER_EXECUTION"]["provider_action_required"] is True
     assert "SESSION_DRAFT_DELIVERY" in skill
+    guide = ROOT / "docs/SESSION_DRAFT_DELIVERY.md"
+    assert guide.is_file()
+    assert len(skill.encode("utf-8")) <= 12000
+    guide_text = guide.read_text(encoding="utf-8")
+    assert "no canonical" in guide_text.lower()
+    assert "PUBLICATION_CERTIFICATION" in guide_text
+    assert "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED" in guide_text

@@ -17,6 +17,8 @@ def main() -> None:
     assert manifest["external_parent_required"] is False
     assert manifest["external_host_required_scope"] == "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY"
     assert manifest["chatgpt_native_runtime"]["session_draft_delivery_without_provider"] is True
+    assert (ROOT / "docs/SESSION_DRAFT_DELIVERY.md").is_file()
+    assert (ROOT / manifest["skill_entrypoint"]).stat().st_size <= 12000
     modes = contract["execution_modes"]
     assert modes["SESSION_DRAFT_DELIVERY"]["provider_action_required"] is False
     assert modes["SESSION_DRAFT_DELIVERY"]["canonical_article_state_mutation_allowed"] is False
