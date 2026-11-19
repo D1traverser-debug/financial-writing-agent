@@ -37,7 +37,7 @@
     "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
     "provider_action_status": "NOT_DEPLOYED",
     "required_source_store_connector": "CONNECTED_GOOGLE_DRIVE_WITH_ACCESS_TO_THE_PRIVATE_FINANCIAL_SOURCE_FOLDER",
-    "source_store_folder_id_ref": "FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
+    "source_store_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
@@ -50,7 +50,7 @@
     "readback_protocol": "FETCH_EXACT_COMMITTED_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BLOBS",
     "requires_hosted_python_mcp": true,
     "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
-    "source_object_store": "PRIVATE_GOOGLE_DRIVE_FOLDER__CONFIGURED_VIA_FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+    "source_object_store": "PRIVATE_GOOGLE_DRIVE_FOLDER__REQUIRES_FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
     "source_crud_status": "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED__DRIVE_PROVIDER_ADAPTER_NOT_DEPLOYED",
     "source_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_WITH_LEAST_PRIVILEGE_GOOGLE_DRIVE_SOURCE_ADAPTER",
     "source_write_protocol": "DRIVE_RAW_FILE_UPLOAD_AND_EXACT_FILE_REVISION_BYTE_READBACK__THEN_GITHUB_SOURCE_METADATA_AND_SIGNED_EFFECT_RECEIPT_EXPECTED_SHA_CAS",
@@ -114,7 +114,7 @@
       "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS"
     ],
     "source_store_connector": "CONNECTED_GOOGLE_DRIVE__PRIVATE_SOURCE_FOLDER_ONLY",
-    "source_store_folder_id_ref": "FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
+    "source_store_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
   },
   "task_requirement_scope_contract": {
     "source": "financial_writing_agent.task_requirements",
