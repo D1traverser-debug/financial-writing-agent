@@ -1,8 +1,8 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.6`
-Updated: `2026-11-17`
+Journal revision: `2.7`
+Updated: `2026-11-19`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
 Purpose: one chronological problem/repair history for Financial maintenance; prior parent/child references are provenance only and do not create a live controller or routing dependency.
@@ -869,3 +869,34 @@ Status: `MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW
 **Mainline integration (2026-11-17).** PR #89 was squash-merged to main as `44eeaea6f871ed4006d7e98a36dd9375a5fc87ea`. Final PR head `fabdd6a0b41ffeaf509350720f3b8e370525bcb0` passed exact-head CI run [43922363378](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43922363378): 758 tests, 88% statement coverage. The merged main SHA passed exact main CI run [43924128311](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43924128311): 758 tests, 88% statement coverage; whole-tree audit: 351 tracked files, 137 Python AST parses, 55 JSON parses, 57,952 decoded text lines, zero warnings/errors.
 
 **Current status.** The schema-level authority-binding defect is integrated. No separate external technical reviewer submitted a review; the merge is engineering integration only. Real model profile replay, independent technical/editorial review, reader acceptance and live Financial Provider Action remain OPEN. No CAOS source or runtime was modified.
+
+
+---
+
+## P-20261117-03 — Goal-first intake and independent user-goal outcome closure (2026-11-17; re-audited 2026-11-19)
+
+Status: `ENGINEERING_CI_PASS__EXTERNAL_PRODUCTION_ACCEPTANCE_OPEN`
+
+**Trigger.** The existing Financial owner graph could create a new task with an empty requirement authority and begin research before the complete original user request had been decomposed and admitted. The final workflow could verify stage receipts and Word binaries without independently proving that every active user requirement and declared success criterion was satisfied by the delivered text.
+
+**Competing mechanisms.**
+1. Add more intake and final-audit prompt instructions — rejected as insufficient because prose alone cannot authenticate a separate reviewer or bind owner-state transitions to the exact manifest and deliverable bytes.
+2. Add a second task registry/controller — rejected because it would split task identity, requirement authority and article state.
+3. Replace the existing Article Aggregate — rejected as unnecessary and destructive to historical compatibility.
+4. Extend the existing owner aggregate with a prompt-bound intake manifest, separate trusted review and final goal-outcome receipt — selected because it preserves one Financial owner, one state authority and the canonical ten-stage workflow.
+
+**Implemented on main.**
+- Standalone `CREATE_ARTICLE` sets `goal_first=True`.
+- The intake manifest binds the original prompt digest, categorized instruction units, source excerpts, binding requirements/preferences, nonbinding ideas, requested outputs, success criteria, execution profile and knowledge/capability routes.
+- A separate trusted intake reviewer signs the exact manifest challenge.
+- INTAKE admits revision 1 of the existing TaskRequirementAuthority and binds the manifest/review digests into the first Portfolio Context; research cannot start with an empty requirement projection.
+- FINAL_AUDIT builds a challenge from the exact current Word deliverables, binary hashes and extracted text, and requires one result plus evidence for every active requirement and success criterion. PASS/REVISE/FAIL semantics are enforced and review history is receipt-bound.
+- Legacy tasks without the new marker remain readable and are not retroactively certified.
+
+**Exact-head verification.** Main commit `1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc` passed [CI run 44042260375](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44042260375): 770 tests passed; 87% Python statement coverage (9,051 statements, 1,207 missed); Portfolio Coordinator 87%, Standalone Runtime 89%, Writing Kernel 81%. Whole-tree audit: 355 tracked files, 140 Python AST parses, 55 JSON parses, 59,979 decoded text lines, zero warnings/errors. Four synthetic Word product/page renders and negative business replay succeeded. Financial Skill size is 11,541 UTF-8 bytes, under the 12,000-byte limit.
+
+**Root-cause and assurance boundary.** This closes the code-contract gap for prompt-bound initial requirement admission and independent goal-outcome review. It does not prove that a real separate reviewer or hosted Financial Provider Action is deployed. The CI's reviewer signatures are synthetic fixtures. The active cross-border v3 task remains at RESEARCH with 0/4 real outputs and zero quality-evidence items. The system remains NOT_READY.
+
+**External gates still OPEN.** Original goal/semantic correction; legal article graph/recovery; method CRUD/impact; authenticated provider CAS; native Financial Skill activation; independent external adversarial review; GitHub main-branch hygiene. Main branch protection currently reports disabled, and this change arrived as a direct push rather than a reviewed PR.
+
+**Next legal action.** Deploy the Financial-owned provider and separate reviewer only through an explicitly approved host; verify live signatures, CAS, readback and revocation; verify native Skill activation in a fresh session; obtain an independent technical review; then evaluate real articles across topic families and requested products. Do not infer completion from synthetic CI or resume the historical article without explicit user direction. No CAOS source or runtime was modified.

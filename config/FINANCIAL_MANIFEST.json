@@ -187,7 +187,7 @@
     "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
     "latest_ci_run": 43924128311,
     "latest_ci_conclusion": "success",
-    "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully.",
+    "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully. This remains the last PR-integrated independently validated mainline head; later direct main pushes are tracked separately.",
     "last_completed_ci_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
     "publishing_portfolio": {
       "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
@@ -290,7 +290,7 @@
       "exact_main_ci_run": 43908728749,
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
     },
-    "latest_main_head_ci_semantics": "LATEST_INDEPENDENTLY_VALIDATED_FUNCTIONAL_MAINLINE_COMMIT__STATUS_EVIDENCE_FOLLOWUPS_ARE_SEPARATELY_TESTED",
+    "latest_main_head_ci_semantics": "LATEST_PR_INTEGRATED_MAIN_HEAD_WITH_EXACT_CI__DIRECT_PUSHES_RECORDED_SEPARATELY",
     "execution_profile_decision_binding_implementation": {
       "pull_request": 89,
       "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
@@ -313,6 +313,24 @@
       "independent_technical_review": "NOT_OBTAINED",
       "real_model_semantic_acceptance": "OPEN",
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN"
+    },
+    "latest_observed_main_push": {
+      "main_commit": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+      "event": "PUSH",
+      "ci_run": 44042260375,
+      "ci_conclusion": "success",
+      "tests_passed": 770,
+      "source_line_coverage_percent": 87,
+      "whole_tree_inventory": {
+        "tracked_files": 355,
+        "python_ast_parsed": 140,
+        "json_parsed": 55,
+        "decoded_text_lines": 59979,
+        "warnings": 0,
+        "errors": 0
+      },
+      "skill_utf8_bytes": 11541,
+      "assurance": "EXACT_MAIN_CI_PASS__NOT_PR_REVIEW_OR_EXTERNAL_PRODUCT_ACCEPTANCE"
     }
   }
 }

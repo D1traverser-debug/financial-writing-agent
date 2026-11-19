@@ -59,7 +59,8 @@ def test_pr84_requirement_scope_candidate_matches_live_merge_receipts():
 
     phase = index["active_system_assessment"]["next_legal_phase"]
     assert "PR #84 remains Draft" not in phase
-    assert "PR #84" in phase and "PR #85" in phase and "PR #86" in phase and "PR #87" in phase and "PR #88" in phase
+    assert "Completed integration chain" in phase
+    assert "PR #84" in phase and "PR #85" in phase and "PR #86" in phase and "PR #87" in phase and "PR #88" in phase and "PR #89" in phase
     latest_validated_head = index["active_system_assessment"]["general_writing_stability"]["latest_main_head_sha"]
     assert manifest["general_writing_stability"]["last_completed_ci_head"] == latest_validated_head
 
@@ -101,6 +102,11 @@ def test_last_independently_validated_main_head_ci_is_recorded_separately_from_l
     assert stability["latest_main_head_ci_conclusion"] == "success"
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == stability["latest_main_head_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == stability["latest_main_head_ci_run"]
+    observed = index["current_goal_first_intake_candidate"]
+    assert observed["main_commit"] == "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc"
+    assert observed["exact_main_ci_run"] == 44042260375
+    assert manifest["general_writing_stability"]["latest_observed_main_push"]["main_commit"] == observed["main_commit"]
+    assert manifest["general_writing_stability"]["latest_observed_main_push"]["ci_run"] == observed["exact_main_ci_run"]
 
 def test_current_integration_status_candidate_has_exact_code_head_ci_and_stack_boundary():
     index = _json("evals/EVOLUTION_INDEX.json")
