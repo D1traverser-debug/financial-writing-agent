@@ -126,7 +126,7 @@
   "source_reader": {
     "current_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
     "resolver": "Financial Provider Action resolves financial-source:// through the GitHub source record, reads the exact Drive file/revision, and returns the verified stored payload, retained text, and provenance. It must disclose whether the payload is original bytes, permitted excerpt, or metadata manifest.",
-    "verifier_role": "Verify exact source bytes, normalized text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
+    "verifier_role": "Verify exact stored Drive payload bytes, retained normalized-text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
     "current_status": "NO_DRIVE_SOURCE_RESOLVER_OR_SOURCE_CRUD_PROVIDER_IS_DEPLOYED"
   },
   "rights_and_retention": {
