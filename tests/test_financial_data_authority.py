@@ -100,9 +100,11 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
         "GOOGLE_DRIVE_SOURCE_ADAPTER"
     )
     assert execution["chatgpt_native_execution"]["source_file_crud_status"] == "NOT_DEPLOYED"
-    assert execution["standalone_governance"]["source_file_mutation"]["status"].startswith(
-        "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED"
-    )
+    source_mutation = execution["standalone_governance"]["source_file_mutation"]
+    assert source_mutation["status"].startswith("DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED")
+    assert source_mutation["domain_model_module"] == "financial_writing_agent.source_lifecycle"
+    assert source_mutation["planned_entrypoint"] == "financial_writing_agent.source_provider.admit_source_action"
+    assert source_mutation["planned_provider_entrypoint"] == "financial_writing_agent.source_provider.admit_source_action"
 
 
 def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_provider():
