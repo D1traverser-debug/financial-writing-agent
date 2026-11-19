@@ -25,6 +25,10 @@ Therefore the existing declaration that no hosted provider is required conflicts
 
 The Skill remains the single business entrypoint and the ChatGPT model remains the active semantic orchestrator. The Provider Action only authenticates, validates, executes deterministic admission/persistence, and returns exact receipts.
 
+### Scope clarification — provider absence is not a content-production stop
+
+The selected hosted Provider Action is required only for canonical owner-state/method mutations and the signed evidence that admits those mutations. It is not a prerequisite for all user-facing research, analysis, drafting or Word delivery. When the provider is absent, the active ChatGPT session may use the structured `SESSION_DRAFT_DELIVERY` mode in `config/EXECUTION_CONTRACT.json`; this mode is explicitly noncanonical, uses conversation attachments (or private Library only on explicit request), and cannot claim independent intake/final review or terminal owner-state completion. This keeps the business security boundary without making the whole writing product unusable.
+
 ## 3. Required provider contract
 
 ### 3.1 Identity and owner intent

@@ -33,6 +33,19 @@ Recover the complete user request and available corrections before asking follow
 
 No second task ledger is introduced: `workspaces/articles/<task_id>/STATE.json`, `knowledge/METHOD_KNOWLEDGE_CATALOG.json`, `evals/EVOLUTION_INDEX.json` and `docs/product_requirements.md` remain the sole respective authorities. Candidate branches are disposable implementation vehicles, not additional business owners.
 
+## Provider-unavailable session draft delivery
+
+The hosted Provider Action is required for canonical Article Aggregate and method-catalog mutations, not for every user-visible writing activity. When it is unavailable, the active ChatGPT session may use `SESSION_DRAFT_DELIVERY` if the required research and document tools are present:
+
+- Read existing article state and source artifacts only; do not change them.
+- Build a prompt-bound, owner-visible session work brief. It is not an admitted goal-first TaskIntakeManifest and does not create a canonical task.
+- Follow the Financial research, Research Audit, Deep/Broad, interaction and eight-gate content obligations in the current session.
+- Generate contracted Word files, reread exact bytes and bind SHA-256. Render/inspect pages when possible; otherwise report visual verification OPEN.
+- Deliver files as conversation attachments. Private Library persistence requires an explicit user request; do not write article material to the public GitHub repository by default.
+- Same-chat review can establish INTERNAL_DELIVERY_READINESS only. Independent editorial quality and PUBLICATION_CERTIFICATION remain OPEN.
+
+The route's only completion label is `SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED`. It cannot create/advance `STATE.json`, mutate the method catalog, or claim signed independent intake, signed final outcome review, canonical persistence or user acceptance. The canonical provider path remains fail-closed for those actions.
+
 ## Optional Python provider-adapter contract
 
 The module financial_writing_agent.standalone_runtime exports observe_article and admit_article_action.

@@ -146,7 +146,15 @@ Each gate cites text location/excerpt/finding. MAJOR/CRITICAL findings block PAS
 
 Research Audit separately validates the admitted private brief semantically; syntactic module completion with placeholder evidence is not enough.
 
-The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact persisted DRAFT bytes were reread and bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
+The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact DRAFT bytes are available as a rereadable artifact (canonical readback or current-session attachment) and are bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
+
+#### Provider-unavailable session draft delivery
+
+When the hosted Provider Action is unavailable, safe user-facing content production must remain available if the active ChatGPT session has the required research and document tools. `SESSION_DRAFT_DELIVERY` follows the same Financial content obligations and applicable semantic passes, but it is explicitly noncanonical: it uses an owner-visible session work brief rather than an admitted TaskIntakeManifest, creates no `STATE.json`, performs no canonical stage transition or method mutation, and does not claim signed independent intake or final review.
+
+The route may produce the contracted audit, Deep, Broad and interaction DOCX outputs (plus private research output when requested). Exact session artifact bytes must be reread and SHA-256-bound before INTERNAL_DELIVERY_READINESS. Same-chat review is not independent publication certification; independent editorial quality remains OPEN. Files are delivered as conversation attachments; private Library persistence requires an explicit user request. Do not write article research or deliverables to the public GitHub repository by default. If rendering or another required tool is unavailable, leave that specific proof gate OPEN rather than claiming completion.
+
+The exact session completion label is `SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED`. This mode does not weaken the canonical task contract: formal task creation, state transitions, binding requirement changes, method mutations and terminal closure still require the hosted Provider Action and their existing independent evidence. It is not a free-form fallback or a second task ledger.
 
 ### PR-13 — Focused internal pass architecture and portfolio orchestration
 
