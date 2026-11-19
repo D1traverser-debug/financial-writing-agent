@@ -496,6 +496,15 @@
         "DecisionEnvelope",
         "PrivateResearchBrief",
         "ResearchPackage"
+      ],
+      "task_binding_envelope_fields": [
+        "task_id",
+        "research_revision",
+        "decision_envelope_sha256",
+        "private_research_brief_sha256",
+        "research_package_sha256",
+        "admitted_at",
+        "bindings"
       ]
     }
   },
