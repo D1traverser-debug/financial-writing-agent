@@ -181,12 +181,12 @@ def source_record_from_registry_rows(
         prior_version_id = _text(event, "prior_version_id", required=False)
         resulting_version_id = _text(event, "resulting_version_id")
         occurred_at = _datetime(event, "occurred_at")
+        if index == 0 and occurred_at < versions[0].created_at:
+            raise SourceRegistryError("CREATE event predates the first source version")
         if occurred_at < updated_at:
             raise SourceRegistryError("source lifecycle event time moved backwards")
 
         if index == 0:
-            if occurred_at < versions[0].created_at:
-                raise SourceRegistryError("CREATE event predates the first source version")
             if operation != "CREATE":
                 raise SourceRegistryError("source lifecycle must begin with a CREATE event")
             if prior_status is not None or prior_version_id is not None:
