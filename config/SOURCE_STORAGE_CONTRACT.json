@@ -7,10 +7,10 @@
     "raw_object_store": {
       "provider": "GOOGLE_DRIVE",
       "folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
-      "folder_id": "1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ",
-      "parent_folder_id": "1ab4eqBF2UTNYk8tWgIve40Z38lFuwhQt",
       "visibility": "PRIVATE_VERIFIED_NOT_SHARED_2026_11_19",
-      "owner_only_permission_verified": true
+      "owner_only_permission_verified": true,
+      "folder_id_ref": "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+      "parent_folder_id_ref": "PROVIDER_CONFIGURATION:FINANCIAL_PROJECT_DRIVE_FOLDER_ID"
     },
     "metadata_and_lifecycle_authority": {
       "provider": "GITHUB",
