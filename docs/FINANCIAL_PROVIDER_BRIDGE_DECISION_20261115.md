@@ -57,7 +57,7 @@ Reuse the existing provider_attestation.py contracts unless a versioned Decision
 
 ### 3.4 Drive-backed source-file adapter — 2026-11-19 extension
 
-Financial source originals are stored in the private Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library` (folder ID `1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ`). GitHub remains the authority for source identity/lifecycle metadata, signed source-action effects, article state, and exact task-source bindings. This is a raw-object/control-plane split, not a second article-state authority.
+Financial source originals are stored in the private Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library`. GitHub remains the authority for source identity/lifecycle metadata, signed source-action effects, article state, and exact task-source bindings. This is a raw-object/control-plane split, not a second article-state authority.
 
 The hosted Financial Provider Action must therefore add a least-privilege Google Drive adapter limited to this folder. For CREATE or ADD_VERSION it must upload a new immutable Drive file, fetch the exact file ID and revision, read the actual bytes, recompute SHA-256, and only then commit the GitHub source record plus signed effect receipt through expected-SHA CAS and exact readback. Existing Drive versions must never be overwritten.
 
