@@ -49,7 +49,7 @@
     "delete": "Do not erase historical receipts or accepted evidence. Retire requirements/methods through lifecycle operations; delete only disposable unreferenced temporary artifacts.",
     "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace.",
     "source_create": "BLOCKED until the GitHub repository is PRIVATE and the hosted provider is live; upload an immutable original to the private Drive folder, read it back, then atomically admit GitHub source metadata and an effect receipt.",
-    "source_read": "Resolve exact source_id/version_id through GitHub metadata; read the exact Drive file_id/revision_id and verify raw-byte SHA-256, normalized-text SHA-256, and provenance.",
+    "source_read": "Resolve exact source_id/version_id through GitHub metadata; read the exact Drive file_id/revision_id and verify the stored-payload SHA-256, retained normalized-text SHA-256, and provenance.",
     "source_update": "Upload a new Drive file for the new version; never overwrite old bytes. After exact readback, CAS-update GitHub source metadata and append a signed effect receipt.",
     "source_delete": "RETIRE in GitHub by default; preserve Drive originals and existing article bindings. Hard delete is forbidden for referenced sources and requires a separate approved history/backup purge for legal erasure.",
     "source_list_search": "Search GitHub source metadata and return exact version-pinned references; Drive folder listing is only raw-object discovery, not the business registry."
