@@ -172,4 +172,4 @@ The source library is not production-ready until all are true:
 - Positive and negative tests cover create/read/version update/retire/restore/list, stale SHA, replay, wrong actor, altered bytes, Drive revision mismatch, cross-task scope, and timeout reconciliation.
 - A real source file is ingested, reread by exact Drive file/revision, bound to one article, and independently checked.
 
-**Current result:** private Drive source folder provisioned and verified; no source file ingested; source CRUD NOT_IMPLEMENTED; GitHub privacy gate OPEN; Provider Action NOT_DEPLOYED.
+**Current result:** private Drive source folder provisioned and verified; no source file ingested; deterministic source models/transitions implemented; Drive/GitHub source CRUD provider NOT_DEPLOYED; GitHub privacy gate OPEN.
