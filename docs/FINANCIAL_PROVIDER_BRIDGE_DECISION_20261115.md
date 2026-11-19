@@ -75,8 +75,9 @@ The hosted endpoint should expose a narrow Financial-only tool set, at minimum:
 4. run_portfolio_stage: execute one current business stage, persist its immutable stage/context artifacts, read them back and admit the Article Aggregate transition.
 5. observe_method_catalog and admit_method_action: method CRUD through the same owner/effect boundary.
 6. request_owner_confirmation / confirm_owner_change: separate challenge and exact-digest confirmation for binding requirement changes.
+7. list_sources / observe_source / read_source_version / admit_source_action: Drive-backed source discovery, exact-version reads, and owner-authorized CREATE / ADD_VERSION / RETIRE / RESTORE with GitHub source-record/effect CAS.
 
-No tool may report a stage as persisted or complete without provider readback and an admitted effect receipt. The Skill-only package remains useful for reasoning but is not a production mutation client.
+No tool may report a stage as persisted or complete, or a source version as admitted, without exact provider readback and an admitted effect receipt. The Skill-only package remains useful for reasoning but is not a production mutation client.
 
 ## 5. Deployment and external gates
 
@@ -95,7 +96,9 @@ No tool may report a stage as persisted or complete without provider readback an
 4. Deploy to an approved HTTPS host and connect/install the companion ChatGPT action.
 5. In a fresh ChatGPT session, prove real tool invocation and exact owner-message/approval binding.
 6. Execute positive and negative provider tests: wrong actor, wrong audience, altered payload, stale SHA, replayed nonce, concurrent CAS, partial write, timeout after commit, wrong task, wrong stage and altered readback.
-7. Run the actual article from its current admitted state only after provider acceptance; revalidate current research and preserve the full task-specific company-universe requirements.
-8. Obtain independent editorial/business review and actual delivery/reader evidence. Keep all remaining system gates OPEN until their evidence exists.
+7. Verify the private Drive source folder, then test the source two-phase protocol: upload/readback, GitHub source-record/effect CAS, orphan-object reconciliation, exact Drive revision mismatch, and timeout-after-upload/after-commit recovery.
+8. Ingest one explicitly authorized real source file, reread the exact Drive file/revision, verify raw and normalized SHA-256, bind it to one article task, and independently validate the binding.
+9. Run the actual article from its current admitted state only after provider acceptance; revalidate current research and preserve the full task-specific company-universe requirements.
+10. Obtain independent editorial/business review and actual delivery/reader evidence. Keep all remaining system gates OPEN until their evidence exists.
 
 **Stop rule:** A green CI, installed Skill, GitHub connector write, Git commit, synthetic HMAC or successful mock callback is not proof of a live Financial Provider Action.
