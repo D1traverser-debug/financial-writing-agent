@@ -60,6 +60,34 @@ def test_article_workspace_binds_exact_source_versions_without_duplicate_ledger(
     assert "actual DOCX" in data["operations"]["delivery"]
 
 
+def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter():
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    capabilities = _json("config/FINANCIAL_CAPABILITIES.json")
+    execution = _json("config/EXECUTION_CONTRACT.json")
+
+    assert manifest["source_storage_contract"] == "config/SOURCE_STORAGE_CONTRACT.json"
+    assert manifest["chatgpt_native_runtime"]["source_crud_status"].startswith("NOT_DEPLOYED")
+    assert manifest["provider_action_endpoint"]["source_store_connector"].startswith("CONNECTED_GOOGLE_DRIVE")
+    assert "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS" in (
+        manifest["provider_action_endpoint"]["required_for"]
+    )
+    source_capability = next(
+        item for item in capabilities["capabilities"]
+        if item["id"] == "versioned_source_file_crud_and_drive_readback"
+    )
+    assert source_capability["assurance"].startswith("NOT_IMPLEMENTED")
+    assert "CONNECTED_GOOGLE_DRIVE_ACCESS_TO_PRIVATE_FINANCIAL_SOURCE_FOLDER" in (
+        capabilities["required_external_capabilities_at_execution"]
+    )
+    assert execution["authority"]["source_storage_contract"] == (
+        "config/SOURCE_STORAGE_CONTRACT.json"
+    )
+    assert execution["chatgpt_native_execution"]["source_file_crud_status"] == "NOT_DEPLOYED"
+    assert execution["standalone_governance"]["source_file_mutation"]["status"].startswith(
+        "NOT_IMPLEMENTED"
+    )
+
+
 def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_provider():
     contract = _json("config/SOURCE_STORAGE_CONTRACT.json")
 
