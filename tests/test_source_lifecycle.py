@@ -48,10 +48,10 @@ def _version(sequence, payload, *, created_at=None, source_family="official", st
     )
 
 
-def _record(*, scope="GLOBAL_REUSABLE", task_id=None, source_type="PUBLIC_PRIMARY_DOCUMENT", first=None):
+def _record(*, scope="GLOBAL_REUSABLE", task_id=None, source_type="PUBLIC_PRIMARY_DOCUMENT", first=None, source_id=SOURCE_ID):
     first = first or _version(1, b"official report v1")
     return create_source_record(
-        source_id=SOURCE_ID,
+        source_id=source_id,
         source_type=source_type,
         title="Official filing",
         publisher="Issuer",
@@ -265,6 +265,27 @@ def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_ref
         validate_source_binding_coverage(
             binding_set,
             task_id="article-2",
+            evidence_refs=[binding.source_ref],
+        )
+
+    record2 = _record(source_id="src_" + "b" * 24)
+    binding2 = bind_source_version(
+        record2,
+        version_id=record2.current_version_id,
+        task_id="article-1",
+    )
+    binding_set_with_unused = SourceBindingSet(
+        task_id="article-1",
+        research_revision=3,
+        private_research_brief_sha256="a" * 64,
+        research_package_sha256="b" * 64,
+        admitted_at=BASE + timedelta(days=2),
+        bindings=(binding, binding2),
+    )
+    with pytest.raises(ValueError, match="unused"):
+        validate_source_binding_coverage(
+            binding_set_with_unused,
+            task_id="article-1",
             evidence_refs=[binding.source_ref],
         )
 
