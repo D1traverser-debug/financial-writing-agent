@@ -24,7 +24,7 @@ At the audit point:
 - The tracked tree contains seven article task workspaces and 128 workspace paths.
 - Those workspaces include private-research briefs, company-universe data, article stages, audit records, feedback, and task state.
 - `config/DATA_AUTHORITY.json` declares this repository as the business authority but does not define a raw-source file store.
-- `financial_writing_agent/current_research_sources.py` verifies provider-returned source bytes, hashes, source families, and freshness. It does not create, store, version, list, update, retire, or delete source files.
+- `financial_writing_agent/current_research_sources.py` verifies provider-returned normalized text, text hashes, source families, and freshness. It does not create, store, version, list, update, retire, or delete source files.
 - `financial_writing_agent/resources.py` reads packaged policy resources; it is not a business-file manager.
 - `financial_writing_agent/artifact_hygiene.py` validates task-artifact lifecycle labels; it is not source-file CRUD.
 - The current source reader is an injected callback. The hosted Financial Provider Action is not deployed, so canonical owner-state, method, and source mutations are not available through the current Skill-only session.
@@ -88,7 +88,7 @@ A task must pin an exact version. A floating `latest` reference is forbidden in 
 | Operation | Required behavior |
 |---|---|
 | Create | Upload a new immutable original to the private Drive folder; fetch/read back the exact file/revision; compute SHA-256; then commit the GitHub source record and signed effect receipt atomically with expected-SHA CAS and exact readback. |
-| Read | Resolve the exact source/version through GitHub metadata; read the exact Drive file/revision; verify raw bytes, normalized text, and metadata digests. |
+| Read | Resolve the exact source/version through GitHub metadata; read the exact Drive file/revision; verify the exact stored Drive payload bytes, retained normalized text, and metadata digests. |
 | Update | Upload a new Drive file for the new version. Never overwrite an admitted version. After Drive readback, CAS-update the GitHub source record and append the signed effect receipt. |
 | Delete | Default to RETIRE in the GitHub source record. Prevent new task bindings but preserve Drive originals and historical article references. RESTORE is explicit. |
 | Hard delete | Forbidden for any source referenced by an article, evidence ledger, receipt, or audit. Legal erasure requires a separately approved history/backup purge. |
