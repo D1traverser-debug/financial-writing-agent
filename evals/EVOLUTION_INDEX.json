@@ -193,7 +193,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order. PR #89 (WritingExecutionProfile 1.1 scoped decision-domain binding) is also merged: final PR head fabdd6a0b41ffeaf509350720f3b8e370525bcb0 passed exact PR CI run 43922363378 (758 tests, 88% statement coverage); merged main SHA 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea passed exact main CI run 43924128311 (758 tests, 88% statement coverage). No separate external technical review was obtained; this merge is engineering integration only. The next business step is real model profile replay across representative prompt families and independent cross-topic article evaluation. Real reader acceptance, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified. PR #95 is an additional Draft candidate for Fact Audit and Platform Interaction decision-context dataflow: atomic exact code head fc64deb4562bf6851eda1e3e33847f8cb2b32be8 passed CI 44583877013 (775 tests, 87% statement coverage). It is not merged; independent technical review is open. The next legal step is review of PR #95, then fresh-session Skill activation and real multi-topic article/independent editorial evidence. Quality remains NOT_READY. Full PR snapshot head fc64deb4562bf6851eda1e3e33847f8cb2b32be8 also passed exact PR CI 44583877013 (775 tests, 87% coverage; 35/35 steps).",
+    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order. PR #89 (WritingExecutionProfile 1.1 scoped decision-domain binding) is also merged: final PR head fabdd6a0b41ffeaf509350720f3b8e370525bcb0 passed exact PR CI run 43922363378 (758 tests, 88% statement coverage); merged main SHA 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea passed exact main CI run 43924128311 (758 tests, 88% statement coverage). No separate external technical review was obtained; this merge is engineering integration only. The next business step is real model profile replay across representative prompt families and independent cross-topic article evaluation. Real reader acceptance, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified. PR #95 is an additional Draft candidate for Fact Audit and Platform Interaction decision-context dataflow: atomic exact code head fc64deb4562bf6851eda1e3e33847f8cb2b32be8 passed CI 44583877013 (775 tests, 87% statement coverage). It is not merged; independent technical review is open. The next legal step is review of PR #95, then fresh-session Skill activation and real multi-topic article/independent editorial evidence. Quality remains NOT_READY. Full PR snapshot head 04135390164910e37845d2229e902cf4fab607bc also passed exact PR CI 44584458264 (775 tests, 87% coverage; 35/35 steps).",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -928,8 +928,8 @@
       "plugin_release_updated": false,
       "merged_main_sha": null,
       "next_legal_step": "Obtain independent technical review of PR #95; if accepted, integrate through protected main, package/verify the Skill in a fresh session, then conduct real multi-topic article runs with independent product-specific review.",
-      "latest_pr_snapshot_head_sha": "fc64deb4562bf6851eda1e3e33847f8cb2b32be8",
-      "latest_pr_snapshot_ci_run": 44583877013,
+      "latest_pr_snapshot_head_sha": "04135390164910e37845d2229e902cf4fab607bc",
+      "latest_pr_snapshot_ci_run": 44584458264,
       "latest_pr_snapshot_ci_conclusion": "success",
       "latest_pr_snapshot_tests_passed": 775,
       "latest_pr_snapshot_source_line_coverage_percent": 87,
@@ -937,7 +937,7 @@
         "tracked_files": 356,
         "python_ast_parsed": 140,
         "json_parsed": 55,
-        "decoded_text_lines": 60590,
+        "decoded_text_lines": 60603,
         "warnings": 0,
         "errors": 0
       },
@@ -1311,8 +1311,8 @@
     "plugin_release_updated": false,
     "merged_main_sha": null,
     "next_legal_step": "Obtain independent technical review of PR #95; if accepted, integrate through protected main, package/verify the Skill in a fresh session, then conduct real multi-topic article runs with independent product-specific review.",
-    "latest_pr_snapshot_head_sha": "fc64deb4562bf6851eda1e3e33847f8cb2b32be8",
-    "latest_pr_snapshot_ci_run": 44583877013,
+    "latest_pr_snapshot_head_sha": "04135390164910e37845d2229e902cf4fab607bc",
+    "latest_pr_snapshot_ci_run": 44584458264,
     "latest_pr_snapshot_ci_conclusion": "success",
     "latest_pr_snapshot_tests_passed": 775,
     "latest_pr_snapshot_source_line_coverage_percent": 87,
@@ -1320,7 +1320,7 @@
       "tracked_files": 356,
       "python_ast_parsed": 140,
       "json_parsed": 55,
-      "decoded_text_lines": 60590,
+      "decoded_text_lines": 60603,
       "warnings": 0,
       "errors": 0
     },

@@ -75,7 +75,7 @@ Obtain independent technical review of PR #95. If accepted, integrate it through
 
 ## Full PR snapshot verification
 
-The full PR snapshot at `fc64deb4562bf6851eda1e3e33847f8cb2b32be8`, including the problem journal, evolution index and audit report, passed [exact PR snapshot CI run 44583877013](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44583877013): 775 tests passed, 87% overall Python statement coverage, Writing Kernel 81%, all 35 workflow steps successful. Whole-tree audit: 356 tracked files, 140 Python AST parses, 55 JSON parses, 60,590 decoded text lines, zero warnings/errors. This is the full candidate snapshot check; it remains engineering evidence and does not close independent review, live-client activation or real editorial acceptance.
+The full PR snapshot at `04135390164910e37845d2229e902cf4fab607bc`, including the problem journal, evolution index and audit report, passed [exact PR snapshot CI run 44584458264](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44584458264): 775 tests passed, 87% overall Python statement coverage, Writing Kernel 81%, all 35 workflow steps successful. Whole-tree audit: 356 tracked files, 140 Python AST parses, 55 JSON parses, 60,603 decoded text lines, zero warnings/errors. This is the full candidate snapshot check; it remains engineering evidence and does not close independent review, live-client activation or real editorial acceptance.
 
 
 ## Branch-history integrity correction
