@@ -321,6 +321,8 @@ def append_source_version(record: SourceRecord, version: SourceVersion) -> Sourc
         raise ValueError("source versions are immutable and cannot be overwritten")
     if version.drive_object.file_id in {item.drive_object.file_id for item in record.versions}:
         raise ValueError("each immutable source version must use a new Drive file ID")
+    if version.status != "AVAILABLE":
+        raise ValueError("a new current source version must be AVAILABLE after exact Drive readback")
     match = _VERSION_ID.fullmatch(version.version_id)
     expected = max(
         int(_VERSION_ID.fullmatch(item.version_id).group("sequence"))
