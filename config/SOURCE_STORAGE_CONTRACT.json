@@ -79,6 +79,7 @@
       "drive_revision_id",
       "source_type",
       "scope",
+      "source_task_id",
       "rights_basis",
       "publisher",
       "canonical_url",
