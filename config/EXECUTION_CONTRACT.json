@@ -26,7 +26,10 @@
     "data_authority": "config/DATA_AUTHORITY.json",
     "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
     "caos_governance_contract": "config/CAOS_GOVERNANCE.json",
-    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md"
+    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+    "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
+    "source_metadata_root": "sources/{source_id}",
+    "raw_source_object_store": "GOOGLE_DRIVE_PRIVATE_FOLDER__1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -461,7 +464,13 @@
       "new_events_may_not_roll_back_after_effect_bound_history": true
     },
     "cross_project_cognition_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
-    "external_provider_host_required": true
+    "external_provider_host_required": true,
+    "source_file_mutation": {
+      "planned_entrypoint": "financial_writing_agent.source_lifecycle.admit_source_action",
+      "status": "NOT_IMPLEMENTED__DRIVE_FOLDER_PROVISIONED__PROVIDER_ADAPTER_NOT_DEPLOYED",
+      "real_write_requirement": "DRIVE_EXACT_FILE_REVISION_AND_BYTE_READBACK__GITHUB_EXPECTED_SHA_CAS__SIGNED_SOURCE_EFFECT_RECEIPT",
+      "cross_store_recovery": "RECONCILE_ORPHAN_DRIVE_OBJECTS_AFTER_FAILED_GITHUB_COMMIT__NEVER_SILENTLY_DELETE"
+    }
   },
   "goal_method_governance": {
     "authority": "FINANCIAL_WRITING_OWNER",
@@ -529,7 +538,7 @@
   "chatgpt_native_execution": {
     "active_for_skill_sessions": true,
     "orchestrator": "CHATGPT_MODEL_WITH_FINANCIAL_SKILL",
-    "persistence_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP",
+    "persistence_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP_AND_GOOGLE_DRIVE_SOURCE_ADAPTER",
     "read_operations": [
       "get_repo",
       "fetch_file"
@@ -554,7 +563,10 @@
     "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__OWNER_STATE_AND_METHOD_CATALOG_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK",
     "required_provider_action": "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
     "provider_action_status": "NOT_DEPLOYED",
-    "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED"
+    "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED",
+    "source_raw_object_store": "PRIVATE_GOOGLE_DRIVE_FOLDER__1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ",
+    "source_file_crud_status": "NOT_DEPLOYED",
+    "canonical_source_mutation": "HOSTED_PROVIDER_ACTION_ONLY__DIRECT_MODEL_DRIVE_OR_GITHUB_WRITES_NOT_ADMITTED"
   },
   "governance": {
     "system": "CAOS",
