@@ -5,7 +5,7 @@ description: Independent Chinese financial research, A-share economics, Deep/Bro
 
 # Financial Writing — Independent Operating Skill
 
-Financial Writing owns its complete workflow: goal, article state, research, decisions, writing, review, delivery and evolution. It has one business owner, one article-state authority and one Skill. No CAOS runtime, parent controller or local daemon is required. Canonical owner-state/method writes require a Financial-owned hosted Provider Action (transport/admission only, not a parent controller); it is NOT_DEPLOYED.
+Financial Writing owns its complete workflow: goal, article state, research, decisions, writing, review, delivery and evolution. It has one business owner, one article-state authority and one Skill. No CAOS runtime, parent controller or local daemon is required. Canonical owner-state, method, and source-file writes require the Financial-owned hosted Provider Action; it is NOT_DEPLOYED.
 
 CAOS governance for material/systemic decisions and cross-project work is defined in `CAOS_FINANCIAL_ENTRY.md` and `config/CAOS_GOVERNANCE.json`; it is session-level only, with no runtime/API dependency or permission authority.
 
@@ -23,6 +23,7 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 - **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
 - **Article create/read/update:** create one `workspaces/articles/<task_id>/STATE.json`; read through `observe_article` and the exact task files; change requirements through the current admission path, preserving history and invalidating dependent evidence.
 - **Article workspace:** research evidence under `research/`, stage outputs under `stages/`, editorial/story assets under `editorial/`, audit receipts under `reviews/`, Word/rendered deliverables under `delivery/`, and user feedback under `feedback/`. The task's `STATE.json` binds their identities and lifecycle.
+- **Source files:** private Drive holds rights-permitted originals or allowed excerpt/metadata payloads; GitHub owns source metadata and task bindings. CRUD is blocked until the repo is Private and the hosted Provider Action is live; see `references/source_storage.md`. Exclude unrelated attachments, news scripts and Word merges.
 - **Delete semantics:** do not erase accepted history or receipts. Retire a requirement/method through its lifecycle operation; remove only proven disposable temporary artifacts. A replacement must not silently rewrite an older article.
 - **Reusable methods:** the only method catalog is `knowledge/METHOD_KNOWLEDGE_CATALOG.json`. It supports create, read/query, staged revise, discard pending, promote, challenge, retire, restore and impact verification. Pending changes never silently replace the active method.
 - **System evolution:** `evals/EVOLUTION_INDEX.json` owns current system status; `evals/quality_regression.json` owns editorial-readiness baselines. Do not create another global task index or parallel method store.
@@ -63,7 +64,7 @@ All tasks use the same ten-stage workflow. Portfolio Context 1.1 binds the promp
 
 ## Standalone runtime and trust boundary
 
-Use GitHub connector and `fetch_file` for reads; stage code only on candidate branches via `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`. Do not direct-update `main`; Git CAS is not owner approval. Canonical owner-state/method writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py`, signed provider admission, effect receipt, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path.
+Use GitHub connector and `fetch_file` for reads; stage code only on candidate branches via `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`. Do not direct-update `main`; Git CAS is not owner approval. Canonical owner-state/method/source writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py` or the future source lifecycle adapter, signed provider admission, effect receipt, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path.
 
 ## Current research and publication evidence
 

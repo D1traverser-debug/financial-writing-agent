@@ -16,7 +16,7 @@
   "current_admission": "financial_writing_agent.current_admission",
   "provider_adapter": "financial_writing_agent.standalone_runtime",
   "method_evolution_authority": "evals/EVOLUTION_INDEX.json",
-  "permission_policy": "AUTHENTICATED_FINANCIAL_PROVIDER_ACTION__EXPLICIT_OWNER_CONFIRMATION__SIGNED_ACTION_AND_EFFECT__ATOMIC_GITHUB_CAS_AND_EXACT_READBACK",
+  "permission_policy": "AUTHENTICATED_FINANCIAL_PROVIDER_ACTION__EXPLICIT_OWNER_CONFIRMATION__SIGNED_ACTION_AND_EFFECT__ATOMIC_GITHUB_CAS_AND_EXACT_READBACK__LEAST_PRIVILEGE_GOOGLE_DRIVE_SOURCE_FOLDER_ACCESS_AND_EXACT_FILE_REVISION_READBACK",
   "readiness_ceiling": "CURRENT_PRODUCT_NOT_READY_UNTIL_INDEPENDENT_READER_AND_REAL_ARTICLE_EVIDENCE",
   "owner_intent_provenance": "financial_writing_agent.intent_governance",
   "requirement_write_authentication": "COMPLETE_CURRENT_CONVERSATION_MESSAGE_PLUS_EXPLICIT_OWNER_CONFIRMATION_OF_NORMALIZED_MUTATION",
@@ -35,7 +35,9 @@
     "custom_hosted_service_required": true,
     "version": "0.1.4",
     "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
-    "provider_action_status": "NOT_DEPLOYED"
+    "provider_action_status": "NOT_DEPLOYED",
+    "required_source_store_connector": "CONNECTED_GOOGLE_DRIVE_WITH_ACCESS_TO_THE_PRIVATE_FINANCIAL_SOURCE_FOLDER",
+    "source_store_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
@@ -47,7 +49,13 @@
     "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
     "readback_protocol": "FETCH_EXACT_COMMITTED_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BLOBS",
     "requires_hosted_python_mcp": true,
-    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT"
+    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
+    "source_object_store": "PRIVATE_GOOGLE_DRIVE_FOLDER__REQUIRES_FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+    "source_crud_status": "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED__DRIVE_PROVIDER_ADAPTER_NOT_DEPLOYED",
+    "source_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_WITH_LEAST_PRIVILEGE_GOOGLE_DRIVE_SOURCE_ADAPTER",
+    "source_write_protocol": "DRIVE_RAW_FILE_UPLOAD_AND_EXACT_FILE_REVISION_BYTE_READBACK__THEN_GITHUB_SOURCE_METADATA_AND_SIGNED_EFFECT_RECEIPT_EXPECTED_SHA_CAS",
+    "source_readback_protocol": "FETCH_EXACT_DRIVE_FILE_ID_AND_REVISION_AND_RECOMPUTE_SHA256__FETCH_EXACT_GITHUB_SOURCE_METADATA_AND_EFFECT_BLOBS",
+    "source_domain_model": "financial_writing_agent.source_lifecycle"
   },
   "provider_adapter_role": "REQUIRED_TRUSTED_EXECUTION_PROVIDER__NOT_DEPLOYED",
   "provider_action_effect_receipt": {
@@ -71,6 +79,30 @@
       "atomic_bundle_with_catalog_json": true,
       "exact_catalog_and_effect_blob_readback": true,
       "deterministic_action_replay": true
+    },
+    "source_asset_contract": {
+      "path_pattern": "sources/{source_id}/actions/{action_id}.effect.json",
+      "source_record_and_effect_receipt_atomic_bundle": true,
+      "drive_object_readback_before_github_commit": true,
+      "exact_drive_file_id_revision_and_sha256_required": true,
+      "prior_source_versions_immutable": true,
+      "task_binding_set": {
+        "schema": "financial_writing_agent.source_lifecycle.SourceBindingSet",
+        "path_pattern": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+        "bound_to_research_revision": true,
+        "private_research_brief_sha256_required": true,
+        "research_package_sha256_optional": true,
+        "exact_evidence_ref_coverage_required": true,
+        "raw_external_urls_rejected_as_admitted_evidence": true,
+        "source_ref_collector": "financial_writing_agent.source_lifecycle.collect_research_source_refs",
+        "coverage_validator": "financial_writing_agent.source_lifecycle.validate_source_binding_coverage",
+        "coverage_artifacts": [
+          "DecisionEnvelope",
+          "PrivateResearchBrief",
+          "ResearchPackage"
+        ],
+        "decision_envelope_sha256_required": true
+      }
     }
   },
   "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
@@ -90,7 +122,16 @@
     "required": true,
     "protocol": "MCP_OVER_HTTPS",
     "status": "NOT_DEPLOYED",
-    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md"
+    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md",
+    "required_for": [
+      "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
+      "CANONICAL_REQUIREMENT_MUTATION",
+      "METHOD_CATALOG_MUTATION",
+      "SIGNED_CANONICAL_ACTION_AND_EFFECT_RECEIPTS",
+      "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS"
+    ],
+    "source_store_connector": "CONNECTED_GOOGLE_DRIVE__PRIVATE_SOURCE_FOLDER_ONLY",
+    "source_store_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
   },
   "task_requirement_scope_contract": {
     "source": "financial_writing_agent.task_requirements",
@@ -314,5 +355,6 @@
       "real_model_semantic_acceptance": "OPEN",
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN"
     }
-  }
+  },
+  "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json"
 }

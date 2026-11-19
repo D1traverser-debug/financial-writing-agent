@@ -55,6 +55,16 @@ Reuse the existing provider_attestation.py contracts unless a versioned Decision
 - Use HTTPS, strict request schemas, bounded payloads, audit logging without secrets, replay protection, rate limits and explicit revocation.
 - Canonical state writes must respect the repository's branch-protection policy. Do not silently add an App bypass or write directly to main until the branch-protection and state-write design is independently verified.
 
+### 3.4 Drive-backed source-file adapter — 2026-11-19 extension
+
+Financial source-version evidence objects are stored in the private Google Drive folder `ChatGPT/Financial Writing Agent/00_Source_Library`. Original bytes are retained only when rights permit; restricted sources retain permitted excerpts/metadata or a metadata manifest. GitHub remains the authority for source identity/lifecycle metadata, signed source-action effects, article state, and exact task-source bindings. This is a raw-object/control-plane split, not a second article-state authority.
+
+The hosted Financial Provider Action must therefore add a least-privilege Google Drive adapter limited to this folder. For CREATE or ADD_VERSION it must upload a new immutable Drive evidence file whose payload follows the storage policy, fetch the exact file ID and revision, read the stored bytes, recompute the stored-payload SHA-256, and only then commit the GitHub source record plus signed effect receipt through expected-SHA CAS and exact readback. Existing Drive versions must never be overwritten.
+
+Drive upload and GitHub metadata admission are not one atomic transaction. If the Drive upload succeeds but GitHub CAS fails, the object remains unreferenced and must be reconciled; it must not be silently deleted. If a committed GitHub source record points to missing or changed stored Drive bytes, source use is blocked. The digest must not be described as a digest of unretained full-source text. Timeouts remain unknown until both providers are read back.
+
+The existing GitHub App contract remains responsible for canonical article-state and method/source-metadata writes. The Drive adapter is an additional narrowly scoped capability, not a second controller. The folder is provisioned and verified owner-only, but the hosted Drive source adapter and source CRUD tools are **NOT_DEPLOYED**. The existing Skill-only client cannot claim source-file CRUD or provider-attested source admission.
+
 ## 4. ChatGPT tool surface
 
 The hosted endpoint should expose a narrow Financial-only tool set, at minimum:
@@ -65,8 +75,9 @@ The hosted endpoint should expose a narrow Financial-only tool set, at minimum:
 4. run_portfolio_stage: execute one current business stage, persist its immutable stage/context artifacts, read them back and admit the Article Aggregate transition.
 5. observe_method_catalog and admit_method_action: method CRUD through the same owner/effect boundary.
 6. request_owner_confirmation / confirm_owner_change: separate challenge and exact-digest confirmation for binding requirement changes.
+7. list_sources / observe_source / read_source_version / admit_source_action: Drive-backed source discovery, exact-version reads, and owner-authorized CREATE / ADD_VERSION / RETIRE / RESTORE with GitHub source-record/effect CAS.
 
-No tool may report a stage as persisted or complete without provider readback and an admitted effect receipt. The Skill-only package remains useful for reasoning but is not a production mutation client.
+No tool may report a stage as persisted or complete, or a source version as admitted, without exact provider readback and an admitted effect receipt. The Skill-only package remains useful for reasoning but is not a production mutation client.
 
 ## 5. Deployment and external gates
 
@@ -85,7 +96,9 @@ No tool may report a stage as persisted or complete without provider readback an
 4. Deploy to an approved HTTPS host and connect/install the companion ChatGPT action.
 5. In a fresh ChatGPT session, prove real tool invocation and exact owner-message/approval binding.
 6. Execute positive and negative provider tests: wrong actor, wrong audience, altered payload, stale SHA, replayed nonce, concurrent CAS, partial write, timeout after commit, wrong task, wrong stage and altered readback.
-7. Run the actual article from its current admitted state only after provider acceptance; revalidate current research and preserve the full task-specific company-universe requirements.
-8. Obtain independent editorial/business review and actual delivery/reader evidence. Keep all remaining system gates OPEN until their evidence exists.
+7. Verify the private Drive source folder, then test the source two-phase protocol: upload/readback, GitHub source-record/effect CAS, orphan-object reconciliation, exact Drive revision mismatch, and timeout-after-upload/after-commit recovery.
+8. Ingest one explicitly authorized real source file, reread the exact Drive file/revision, verify raw and normalized SHA-256, bind it to one article task, and independently validate the binding.
+9. Run the actual article from its current admitted state only after provider acceptance; revalidate current research and preserve the full task-specific company-universe requirements.
+10. Obtain independent editorial/business review and actual delivery/reader evidence. Keep all remaining system gates OPEN until their evidence exists.
 
 **Stop rule:** A green CI, installed Skill, GitHub connector write, Git commit, synthetic HMAC or successful mock callback is not proof of a live Financial Provider Action.

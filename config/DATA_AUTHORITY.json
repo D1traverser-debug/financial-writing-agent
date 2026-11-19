@@ -6,13 +6,36 @@
   "operating_skill": "skills/financial-writing-agent/SKILL.md",
   "domain_manifest": "config/FINANCIAL_MANIFEST.json",
   "execution_contract": "config/EXECUTION_CONTRACT.json",
+  "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
   "article_state_pattern": "workspaces/articles/{task_id}/STATE.json",
   "method_catalog": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
   "system_evolution": "evals/EVOLUTION_INDEX.json",
   "editorial_readiness": "evals/quality_regression.json",
+  "repository_security": {
+    "required_visibility": "PRIVATE",
+    "observed_visibility_at_2026_11_19": "PUBLIC",
+    "canonical_private_data_writes": "BLOCKED_UNTIL_PRIVATE_VISIBILITY_AND_LIVE_PROVIDER_READBACK",
+    "preserve_existing_git_history": true,
+    "do_not_add_private_source_metadata_or_task_bindings_while_public": true
+  },
+  "source_library": {
+    "raw_object_provider": "GOOGLE_DRIVE",
+    "raw_folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
+    "raw_folder_visibility": "PRIVATE_VERIFIED_NOT_SHARED_2026_11_19",
+    "metadata_authority": "sources/{source_id}/SOURCE.json",
+    "effect_receipts": "sources/{source_id}/actions/{action_id}.effect.json",
+    "versioned_reference": "financial-source://{source_id}/{version_id}",
+    "task_binding": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+    "status": "FOLDER_PROVISIONED__DOMAIN_TRANSITIONS_IMPLEMENTED__SOURCE_PROVIDER_NOT_DEPLOYED",
+    "current_research_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
+    "verifier_is_not_crud_manager": true,
+    "raw_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+    "raw_parent_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_PROJECT_DRIVE_FOLDER_ID"
+  },
   "article_workspace": {
     "state": "STATE.json",
     "research": "research/",
+    "source_bindings": "research/SOURCE_BINDINGS.json",
     "editorial": "editorial/",
     "stage_outputs": "stages/",
     "reviews": "reviews/",
@@ -24,7 +47,12 @@
     "read": "Read the task STATE.json and its exact referenced artifacts; observe_article returns the validated stage and next action.",
     "update": "Change requirements through current_admission.apply_task_requirement_change; preserve append-only history and invalidate dependent evidence.",
     "delete": "Do not erase historical receipts or accepted evidence. Retire requirements/methods through lifecycle operations; delete only disposable unreferenced temporary artifacts.",
-    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace."
+    "delivery": "Store actual DOCX, render receipts and verified page evidence under the same article delivery workspace.",
+    "source_create": "BLOCKED until the GitHub repository is PRIVATE and the hosted provider is live; upload an immutable original to the private Drive folder, read it back, then atomically admit GitHub source metadata and an effect receipt.",
+    "source_read": "Resolve exact source_id/version_id through GitHub metadata; read the exact Drive file_id/revision_id and verify the stored-payload SHA-256, retained normalized-text SHA-256, and provenance.",
+    "source_update": "Upload a new Drive file for the new version; never overwrite old bytes. After exact readback, CAS-update GitHub source metadata and append a signed effect receipt.",
+    "source_delete": "RETIRE in GitHub by default; preserve Drive originals and existing article bindings. Hard delete is forbidden for referenced sources and requires a separate approved history/backup purge for legal erasure.",
+    "source_list_search": "Search GitHub source metadata and return exact version-pinned references; Drive folder listing is only raw-object discovery, not the business registry."
   },
   "method_operations": [
     "CREATE",
@@ -39,10 +67,13 @@
   ],
   "external_inputs": {
     "chat": "Source of user intent and explicit approval; never a shadow article-state store.",
-    "research_sources": "Evidence inputs with exact source, date and content provenance.",
-    "github_provider": "Durable file storage and exact read/write/readback authority.",
-    "temporary_files": "Ephemeral work products only; never canonical state."
+    "research_sources": "External URLs and uploaded files become durable evidence only after the exact policy-permitted Drive payload is stored/read back (original bytes only when RAW_PRESERVED; otherwise permitted excerpt/metadata) and the GitHub source record binds the exact Drive file ID, revision, stored-payload digest, and retained-text digest.",
+    "google_drive_source_store": "Private raw-source object store at the declared folder ID; stores immutable original files and large raw materials, not article state.",
+    "github_provider": "Canonical authority for article state, source identity/lifecycle metadata, task bindings, methods, and exact CAS/readback; writes blocked until repository privacy and live Provider Action are verified.",
+    "notion": "Reusable knowledge and evidence-link notes only; not the raw-source file store or Financial task-state authority.",
+    "temporary_files": "Ephemeral work products only; never canonical state or a substitute source library."
   },
   "no_parallel_article_ledger": true,
+  "no_parallel_source_metadata_ledger": true,
   "no_external_parent_runtime": true
 }
