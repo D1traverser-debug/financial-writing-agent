@@ -278,6 +278,7 @@ def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_ref
     binding_set = SourceBindingSet(
         task_id="article-1",
         research_revision=3,
+        decision_envelope_sha256="c" * 64,
         private_research_brief_sha256="a" * 64,
         research_package_sha256="b" * 64,
         admitted_at=BASE + timedelta(days=2),
