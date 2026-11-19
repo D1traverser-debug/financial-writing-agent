@@ -9,8 +9,8 @@
       "folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
       "visibility": "PRIVATE_VERIFIED_NOT_SHARED_2026_11_19",
       "owner_only_permission_verified": true,
-      "folder_id_ref": "PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
-      "parent_folder_id_ref": "PROVIDER_CONFIGURATION:FINANCIAL_PROJECT_DRIVE_FOLDER_ID"
+      "folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+      "parent_folder_id_ref": "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_PROJECT_DRIVE_FOLDER_ID"
     },
     "metadata_and_lifecycle_authority": {
       "provider": "GITHUB",
