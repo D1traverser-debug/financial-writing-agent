@@ -176,3 +176,27 @@ Preferred initial configuration, subject to testing:
 - The historical cross-border v3 article remains at RESEARCH with 0/4 outputs; this system task does not resume it.
 
 **Decision:** Cloud Run is the preferred Python host candidate. The immediate next step is a local no-credential provider prototype plus a ChatGPT plan/client-eligibility check. Cloud deployment remains blocked until owner authorization, eligible write-capable ChatGPT client, billing controls, identity, repository policy and independent review are verified.
+
+
+## 11. Exact repository implementation inventory (main HEAD `1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc`)
+
+The source-tree check found the following provider-related production/test assets:
+
+**Present**
+- `financial_writing_agent/provider_attestation.py`: validates signed provider attestations, action authorizations, effect receipts and separate method-review attestations. It is a verifier, not a complete host service.
+- `tests/trusted_provider_testkit.py`: creates synthetic HMAC attestations for tests. This is test-only and must never be imported as a production signer.
+- `docs/FINANCIAL_PROVIDER_ACTION_PROTOCOL_V1_20261115.md`: detailed draft transport, tool, CAS, error and acceptance contract.
+- `docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md`: hosting/provider boundary decision.
+
+**Not present in the inspected main tree**
+- Production provider signer/key-management adapter.
+- MCP Streamable HTTP server or tool-registration entrypoint.
+- OAuth authorization-server endpoints, discovery metadata, PKCE/session binding, refresh-token rotation or revocation implementation.
+- GitHub App installation-token acquisition and least-privilege API adapter.
+- Production GitHub blobs/tree/commit/ref CAS writer and exact post-write readback adapter.
+- Durable operational nonce/action idempotency and timeout-after-commit reconciliation store.
+- Provider-owned owner-confirmation UI.
+- Separate independent-reviewer service/key deployment.
+- Provider container build file, Cloud Run service definition or deployment pipeline.
+
+**Implication:** the current repo contains the business-side verification contracts and a detailed protocol, but not a deployable Provider Action. Do not label this as a near-complete deployment or merely a hosting configuration task. It is a bounded but substantial implementation project. The next code candidate must implement the transport/authentication/persistence adapter against the existing callbacks, with dependency-injected test doubles and adversarial integration tests, while leaving business rules in the existing Financial runtime.
