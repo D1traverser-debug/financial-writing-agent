@@ -78,6 +78,8 @@
       "drive_file_id",
       "drive_revision_id",
       "source_type",
+      "scope",
+      "rights_basis",
       "publisher",
       "canonical_url",
       "source_family",
@@ -93,7 +95,17 @@
     ],
     "immutable_after_research_admission": true,
     "research_revision_invalidates_dependent_bindings": true,
-    "cross_task_reuse_requires_source_scope_permission": true
+    "cross_task_reuse_requires_source_scope_permission": true,
+    "schema": "financial_writing_agent.source_lifecycle.SourceBindingSet",
+    "envelope_fields": [
+      "task_id",
+      "research_revision",
+      "private_research_brief_sha256",
+      "research_package_sha256",
+      "admitted_at",
+      "bindings"
+    ],
+    "exact_coverage": "Set of binding.source_ref values must equal the set of all canonical financial-source:// refs in the admitted PrivateResearchBrief and ResearchPackage evidence ledger."
   },
   "provider_surface": {
     "read_only": [
@@ -120,7 +132,8 @@
       "exact_drive_file_revision_and_byte_readback",
       "atomic_github_source_record_and_effect_receipt_commit",
       "exact_github_blob_readback",
-      "idempotent_reconciliation_after_drive_upload_or_github_commit_timeout"
+      "idempotent_reconciliation_after_drive_upload_or_github_commit_timeout",
+      "exact_task_source_binding_coverage_and_scope_validation"
     ]
   },
   "source_reader": {
@@ -169,7 +182,8 @@
     "append_source_version",
     "retire_source",
     "restore_source",
-    "bind_source_version"
+    "bind_source_version",
+    "validate_source_binding_coverage"
   ],
   "research_admission": {
     "canonical_evidence_reference_scheme": "financial-source://{source_id}/{version_id}",
@@ -187,5 +201,12 @@
       "duplicate source_ref entries or ambiguous source identity"
     ],
     "compatibility_boundary": "TaskContract.source_refs may contain user-supplied discovery URLs at INTAKE. After source admission, all durable PrivateResearchBrief and ResearchPackage evidence references must use exact financial-source:// references."
-  }
+  },
+  "domain_model_types": [
+    "DriveObjectReference",
+    "SourceVersion",
+    "SourceRecord",
+    "SourceBinding",
+    "SourceBindingSet"
+  ]
 }
