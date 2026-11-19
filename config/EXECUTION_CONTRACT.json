@@ -29,7 +29,7 @@
     "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md",
     "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
     "source_metadata_root": "sources/{source_id}",
-    "raw_source_object_store": "GOOGLE_DRIVE_PRIVATE_FOLDER__CONFIGURED_VIA_FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
+    "raw_source_object_store": "GOOGLE_DRIVE_PRIVATE_FOLDER__REQUIRES_FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -573,7 +573,7 @@
     "required_provider_action": "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
     "provider_action_status": "NOT_DEPLOYED",
     "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED",
-    "source_raw_object_store": "PRIVATE_GOOGLE_DRIVE_FOLDER__CONFIGURED_VIA_FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
+    "source_raw_object_store": "PRIVATE_GOOGLE_DRIVE_FOLDER__REQUIRES_FINANCIAL_SOURCE_DRIVE_FOLDER_ID",
     "source_file_crud_status": "NOT_DEPLOYED",
     "canonical_source_mutation": "HOSTED_PROVIDER_ACTION_ONLY__DIRECT_MODEL_DRIVE_OR_GITHUB_WRITES_NOT_ADMITTED",
     "source_provider": "FINANCIAL_HOSTED_PROVIDER_ACTION_WITH_LEAST_PRIVILEGE_GOOGLE_DRIVE_SOURCE_ADAPTER"
