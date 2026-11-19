@@ -11,6 +11,7 @@ from financial_writing_agent.source_lifecycle import (
     SourceVersion,
     append_source_version,
     bind_source_version,
+    collect_research_source_refs,
     create_source_record,
     retire_source,
     restore_source,
@@ -229,6 +230,42 @@ def test_source_domain_records_and_versions_are_immutable_values():
     with pytest.raises(ValidationError):
         record.versions[0].drive_object.file_id = "replacement-file"
 
+
+
+def test_research_source_collector_covers_decision_brief_and_package_refs():
+    ref1 = "financial-source://" + SOURCE_ID + "/v0001-" + "a" * 12
+    ref2 = "financial-source://src_" + "b" * 24 + "/v0001-" + "b" * 12
+    ref3 = "financial-source://src_" + "c" * 24 + "/v0001-" + "c" * 12
+
+    refs = collect_research_source_refs(
+        {
+            "evidence": [{"ref": ref1}],
+            "root_scope_hypotheses": [{
+                "supporting_evidence_refs": [ref2],
+                "falsification_or_rejection_refs": [ref1],
+            }],
+            "architecture_reassessment_refs": [ref3],
+            "problem_record_ref": "problem://not-a-source-file",
+        },
+        {"modules": {"industry": {"evidence_refs": [ref1, ref2]}}},
+        {
+            "evidence_ledger": [{"source": ref3}],
+            "universe_coverage": {"recall_sources": [ref1, ref3]},
+            "cognition": {"prior_knowledge_refs": ["notion://knowledge/123"]},
+            "canonical_url": "https://example.com/source.pdf",
+        },
+    )
+
+    assert refs == sorted({ref1, ref2, ref3})
+
+
+def test_research_source_collector_rejects_malformed_source_reference_fields():
+    with pytest.raises(ValueError, match="must be a list"):
+        collect_research_source_refs({"evidence_refs": "not-a-list"})
+    with pytest.raises(ValueError, match="non-empty source reference"):
+        collect_research_source_refs({"evidence": [{"ref": ""}]})
+    with pytest.raises(ValueError, match="mapping artifacts"):
+        collect_research_source_refs(["not-a-mapping"])
 
 
 def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_refs():
