@@ -134,9 +134,25 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         outputs=("originality_findings",),
     ),
     WritingPass.FACT_INTEGRITY_AUDIT: PassContract(
-        purpose="recheck material current claims, numbers, causal boundaries and company comparisons against evidence",
-        required_inputs=("edited_draft", "evidence_ledger", "product_mode"),
-        forbidden_jobs=("style editing that changes meaning",),
+        purpose=(
+            "recheck material claims, numbers, causal boundaries and company comparisons "
+            "against admitted audited evidence and the adjudicated research decision"
+        ),
+        required_inputs=(
+            "edited_draft",
+            "evidence_ledger",
+            "audited_evidence",
+            "selected_thesis",
+            "company_decision_map",
+            "change_conditions",
+            "publication_distillation",
+            "product_mode",
+        ),
+        forbidden_jobs=(
+            "style editing that changes meaning",
+            "treat numeric/source traceability as semantic company-attribution proof",
+            "pass a material comparison without checking each company-metric-period-direction binding",
+        ),
         outputs=("fact_findings",),
     ),
     WritingPass.STYLE_AUDIT: PassContract(
@@ -154,18 +170,48 @@ PASS_CONTRACTS: dict[WritingPass, PassContract] = {
         outputs=("publication_candidate", "publication_fitness"),
     ),
     WritingPass.PLATFORM_INTERACTION_ADAPTATION: PassContract(
-        purpose="independently write native short-form products from audited evidence for the actual target platforms",
-        required_inputs=("selected_thesis", "audited_evidence", "reader_job",
-                         "voice_evidence", "platform_context", "product_scope"),
-        forbidden_jobs=("truncate or paraphrase a long-form article as the interaction product",
-                        "invent urgency, fake intimacy or canned engagement"),
+        purpose=(
+            "independently write native short-form products from the selected thesis, "
+            "adjudicated comparison and audited evidence for the actual target platforms"
+        ),
+        required_inputs=(
+            "selected_thesis",
+            "company_decision_map",
+            "change_conditions",
+            "publication_distillation",
+            "audited_evidence",
+            "reader_job",
+            "voice_evidence",
+            "platform_context",
+            "product_scope",
+        ),
+        forbidden_jobs=(
+            "truncate or paraphrase a long-form article as the interaction product",
+            "invent urgency, fake intimacy or canned engagement",
+            "change company-to-metric attribution or remove material change conditions",
+        ),
         outputs=("platform_interaction_pack",),
     ),
     WritingPass.PLATFORM_INTERACTION_AUDIT: PassContract(
-        purpose="audit the interaction product's facts, originality, platform fit, reader value and compliance",
-        required_inputs=("platform_interaction_pack", "audited_evidence", "material_sources", "product_scope"),
-        forbidden_jobs=("accept platform labels as proof of native fit",
-                        "treat post count or engagement prompts as reader-value evidence"),
+        purpose=(
+            "audit the interaction product's facts, company attribution, originality, "
+            "platform fit, reader value and compliance against the same admitted decision"
+        ),
+        required_inputs=(
+            "platform_interaction_pack",
+            "selected_thesis",
+            "company_decision_map",
+            "change_conditions",
+            "publication_distillation",
+            "audited_evidence",
+            "material_sources",
+            "product_scope",
+        ),
+        forbidden_jobs=(
+            "accept platform labels as proof of native fit",
+            "treat post count or engagement prompts as reader-value evidence",
+            "treat numeric/source traceability as semantic company-attribution proof",
+        ),
         outputs=("platform_interaction_fitness",),
     ),
 }

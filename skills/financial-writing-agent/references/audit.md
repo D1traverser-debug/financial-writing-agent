@@ -76,6 +76,19 @@ A `MAJOR` or `CRITICAL` finding cannot coexist with a gate PASS. Any gate REVISE
 
 Check every material current number, policy/rule state, company claim, causal boundary and comparative statement against the audited evidence base. Distinguish observed fact from inference. For event-led work, verify chronology and current status rather than quoting one policy phase out of sequence. A fact mismatch returns to RESEARCH or DRAFT depending on cause.
 
+For every material quantitative or comparative claim, normalize the claim before deciding PASS:
+- **entity** — the exact company, organization, product or other subject the claim is about;
+- **metric** — the exact financial/operating indicator, not a nearby or broader metric;
+- **period** — the reporting period and comparison baseline;
+- **value and unit** — the number, currency/scale and percentage basis where applicable;
+- **direction** — increase/decrease/flat, positive/negative, acceleration/deceleration;
+- **comparison scope** — the named comparator, denominator and whether the statement is absolute or relative;
+- **evidence binding** — the exact audited evidence reference supporting that entity-metric-period relation.
+
+For multi-company comparisons, check each company row independently against the audited evidence and the adjudicated `company_decision_map`. Do not infer attribution from sentence order, adjacency, list order or an aggregate statement. If the prose says “A increased while B declined”, verify A's direction and B's direction separately for the same metric and compatible periods. Check the claim against `selected_thesis`, `publication_distillation` and `change_conditions`; the article must not reverse a material comparison or erase a condition that limits the conclusion.
+
+A source excerpt containing the correct number is not enough if the company, metric, period or direction is attached to the wrong value. If any material binding is ambiguous, unsupported or contradictory, return REVISE and cite the exact sentence and evidence refs. Numeric-token matching, source readback and paragraph-to-source traceability are not semantic entailment and must never be presented as proof of correct company attribution.
+
 ### RETENTION
 
 Read as a cold target reader. Locate where the reader is likely to stop, skip or feel the article is repeating itself. Inspect title/opening, information gain per section, timing of company examples, transitions/open loops and whether the article still has a reason to continue after early orientation.
