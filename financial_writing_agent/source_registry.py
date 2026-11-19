@@ -108,6 +108,9 @@ def sheet_values_to_rows(
 
 
 def _version_from_row(row: Mapping[str, Any]) -> SourceVersion:
+    version_id = _text(row, "version_id")
+    if _integer(row, "sequence") != _version_sequence(version_id):
+        raise SourceRegistryError("source version sequence column does not match version_id")
     revision_id = _text(row, "drive_revision_id", required=False)
     drive_object = DriveObjectReference(
         folder_id=_text(row, "drive_folder_id"),
@@ -121,7 +124,7 @@ def _version_from_row(row: Mapping[str, Any]) -> SourceVersion:
         extractor_version=_text(row, "extractor_version"),
     )
     return SourceVersion(
-        version_id=_text(row, "version_id"),
+        version_id=version_id,
         created_at=_datetime(row, "created_at"),
         published_at=_optional_datetime(row, "published_at"),
         retrieved_at=_datetime(row, "retrieved_at"),
@@ -148,6 +151,10 @@ def source_record_from_registry_rows(
     versions.sort(key=lambda item: _version_sequence(item.version_id))
     if not versions:
         raise SourceRegistryError("source has no available version history")
+    if _text(source_row, "initial_rights_basis") != versions[0].rights_basis:
+        raise SourceRegistryError("Sources initial_rights_basis disagrees with the first version")
+    if _text(source_row, "initial_storage_policy") != versions[0].storage_policy:
+        raise SourceRegistryError("Sources initial_storage_policy disagrees with the first version")
     sequences = [_version_sequence(item.version_id) for item in versions]
     if sequences != list(range(1, len(sequences) + 1)):
         raise SourceRegistryError("source version history must be contiguous from v0001")
@@ -164,6 +171,7 @@ def source_record_from_registry_rows(
 
     for index, event in enumerate(events):
         action_id = _text(event, "action_id")
+        _text(event, "actor")
         if action_id in seen_actions:
             raise SourceRegistryError("source lifecycle action_id must be unique")
         seen_actions.add(action_id)
@@ -177,6 +185,8 @@ def source_record_from_registry_rows(
             raise SourceRegistryError("source lifecycle event time moved backwards")
 
         if index == 0:
+            if occurred_at < versions[0].created_at:
+                raise SourceRegistryError("CREATE event predates the first source version")
             if operation != "CREATE":
                 raise SourceRegistryError("source lifecycle must begin with a CREATE event")
             if prior_status is not None or prior_version_id is not None:
@@ -195,6 +205,8 @@ def source_record_from_registry_rows(
                     raise SourceRegistryError("ADD_VERSION must append the next contiguous version")
                 if resulting_version_id != versions[-1].version_id:
                     raise SourceRegistryError("ADD_VERSION must point to the newest source version")
+                if occurred_at < known_versions[resulting_version_id].created_at:
+                    raise SourceRegistryError("ADD_VERSION event predates its source version")
             elif operation == "RETIRE":
                 if status != "ACTIVE" or resulting_status != "RETIRED" or resulting_version_id != current_version_id:
                     raise SourceRegistryError("RETIRE requires ACTIVE to RETIRED without changing the current version")
@@ -242,6 +254,22 @@ def source_records_from_registry_snapshot(
     source_ids = [_text(row, "source_id") for row in sources]
     if len(source_ids) != len(set(source_ids)):
         raise SourceRegistryError("Sources contains duplicate source_id rows")
+    source_id_set = set(source_ids)
+    version_source_ids = {_text(row, "source_id") for row in versions}
+    event_source_ids = {_text(row, "source_id") for row in events}
+    if not version_source_ids.issubset(source_id_set):
+        raise SourceRegistryError("Versions contains orphan source_id rows")
+    if not event_source_ids.issubset(source_id_set):
+        raise SourceRegistryError("Events contains orphan source_id rows")
+    version_keys = [(_text(row, "source_id"), _text(row, "version_id")) for row in versions]
+    if len(version_keys) != len(set(version_keys)):
+        raise SourceRegistryError("Versions contains duplicate source/version rows")
+    file_ids = [_text(row, "drive_file_id") for row in versions]
+    if len(file_ids) != len(set(file_ids)):
+        raise SourceRegistryError("Drive file IDs must be unique across source versions")
+    action_ids = [_text(row, "action_id") for row in events]
+    if len(action_ids) != len(set(action_ids)):
+        raise SourceRegistryError("Events contains duplicate action_id rows")
     return tuple(
         source_record_from_registry_rows(source_row, versions, events)
         for source_row in sources
