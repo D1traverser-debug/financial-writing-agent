@@ -477,7 +477,8 @@
         "retire_source",
         "restore_source",
         "bind_source_version",
-        "validate_source_binding_coverage"
+        "validate_source_binding_coverage",
+        "collect_research_source_refs"
       ],
       "planned_provider_entrypoint": "financial_writing_agent.source_provider.admit_source_action",
       "domain_model_types": [
@@ -488,7 +489,14 @@
         "SourceBindingSet"
       ],
       "task_binding_schema": "financial_writing_agent.source_lifecycle.SourceBindingSet",
-      "exact_evidence_ref_coverage_required": true
+      "exact_evidence_ref_coverage_required": true,
+      "source_ref_collector": "financial_writing_agent.source_lifecycle.collect_research_source_refs",
+      "coverage_validator": "financial_writing_agent.source_lifecycle.validate_source_binding_coverage",
+      "coverage_artifacts": [
+        "DecisionEnvelope",
+        "PrivateResearchBrief",
+        "ResearchPackage"
+      ]
     }
   },
   "goal_method_governance": {
