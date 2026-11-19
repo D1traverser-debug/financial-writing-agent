@@ -35,7 +35,8 @@
     "custom_hosted_service_required": true,
     "version": "0.1.4",
     "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
-    "provider_action_status": "NOT_DEPLOYED"
+    "provider_action_status": "NOT_DEPLOYED",
+    "session_draft_delivery_supported": true
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
@@ -47,7 +48,10 @@
     "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
     "readback_protocol": "FETCH_EXACT_COMMITTED_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BLOBS",
     "requires_hosted_python_mcp": true,
-    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT"
+    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
+    "session_draft_delivery_without_provider": true,
+    "session_draft_delivery_status": "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED",
+    "canonical_owner_state_and_method_mutation_requires_hosted_provider": true
   },
   "provider_adapter_role": "REQUIRED_TRUSTED_EXECUTION_PROVIDER__NOT_DEPLOYED",
   "provider_action_effect_receipt": {
@@ -90,7 +94,19 @@
     "required": true,
     "protocol": "MCP_OVER_HTTPS",
     "status": "NOT_DEPLOYED",
-    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md"
+    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md",
+    "required_for": [
+      "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
+      "CANONICAL_REQUIREMENT_MUTATION",
+      "METHOD_CATALOG_MUTATION",
+      "SIGNED_CANONICAL_ACTION_AND_EFFECT_RECEIPTS"
+    ],
+    "not_required_for": [
+      "READ_ONLY_CONTEXT_RECOVERY",
+      "SESSION_ONLY_RESEARCH_AND_ANALYSIS",
+      "SESSION_ONLY_DRAFT_AND_WORD_DELIVERY_WITH_INTERNAL_READINESS"
+    ],
+    "client_activation_gate": "VERIFY_A_WRITE_CAPABLE_CHATGPT_CLIENT_PATH_BEFORE_DEPLOYMENT__SERVER_DEPLOYMENT_ALONE_IS_NOT_CLIENT_ACTIVATION"
   },
   "task_requirement_scope_contract": {
     "source": "financial_writing_agent.task_requirements",
@@ -314,5 +330,8 @@
       "real_model_semantic_acceptance": "OPEN",
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN"
     }
-  }
+  },
+  "external_host_required_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
+  "provider_action_required_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
+  "execution_mode_contract": "config/EXECUTION_CONTRACT.json#execution_modes"
 }

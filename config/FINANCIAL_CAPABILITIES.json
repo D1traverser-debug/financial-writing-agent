@@ -101,6 +101,11 @@
       "id": "research_to_editorial_dataflow",
       "source": "financial_writing_agent.writing_kernel.PASS_CONTRACTS[STORY_ARCHITECTURE]",
       "assurance": "PUBLICATION_DISTILLATION__COMPANY_DECISION_MAP__CHANGE_CONDITIONS_ARE_REQUIRED_MODEL_CALLBACK_INPUTS__FULL_UNIVERSE_MAP_MUST_MATCH_VALIDATED_RESEARCH_PACKAGE"
+    },
+    {
+      "id": "session_draft_delivery_without_provider",
+      "source": "ChatGPT active session + connected research sources + Python/document tools + conversation file delivery",
+      "assurance": "STRUCTURED_SESSION_ONLY_CONTENT_WORK__EXACT_FILE_HASH_READBACK__INTERNAL_DELIVERY_READINESS_ONLY__NO_CANONICAL_STATE_OR_METHOD_MUTATION"
     }
   ],
   "required_external_capabilities_at_execution": [
@@ -115,7 +120,7 @@
     "ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK",
     "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_ENDPOINT_WITH_AUTHENTICATED_OWNER_IDENTITY"
   ],
-  "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS",
+  "missing_capability_rule": "BLOCK_ONLY_AFFECTED_ACTION_WITH_OPEN_STATUS__ALLOW_SESSION_DRAFT_DELIVERY_WHEN_CANONICAL_PROVIDER_IS_MISSING",
   "independence_clause": "NO_EXTERNAL_PARENT_REPOSITORY_OR_CONTROLLER__HOSTED_FINANCIAL_PROVIDER_ACTION_IS_ONLY_THE_TRUSTED_TRANSPORT_AND_ADMISSION_ADAPTER",
   "conditional_capabilities_for_independent_acceptance": [
     "SEPARATE_INDEPENDENT_REVIEWER_FOR_EDITORIAL_ACCEPTANCE",
@@ -137,5 +142,48 @@
     "portfolio_due_stage": "financial_writing_agent.writing_kernel._due_requirements_for_stage",
     "same_projection": true,
     "full_universe_scope_aware": true
+  },
+  "required_external_capabilities_scope": "UNION_OF_CANONICAL_EXECUTION_REQUIREMENTS__NOT_A_GLOBAL_GATE_FOR_SESSION_DRAFT_DELIVERY",
+  "session_draft_delivery_capabilities": [
+    "MODEL_OR_CHAT_EXECUTOR_FOR_SEMANTIC_WORK",
+    "RESEARCH_SOURCE_ACCESS_FOR_CURRENT_FACTS",
+    "PYTHON_OR_DOCUMENT_TOOL_FOR_DOCX_GENERATION",
+    "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF_WHEN_AVAILABLE"
+  ],
+  "execution_mode_scopes": {
+    "SESSION_DRAFT_DELIVERY": {
+      "provider_action_required": false,
+      "signed_independent_intake_review_required": false,
+      "signed_independent_final_outcome_review_required": false,
+      "canonical_article_state_mutation_allowed": false,
+      "method_catalog_mutation_allowed": false,
+      "required_capabilities": [
+        "MODEL_OR_CHAT_EXECUTOR_FOR_SEMANTIC_WORK",
+        "RESEARCH_SOURCE_ACCESS_FOR_CURRENT_FACTS",
+        "PYTHON_OR_DOCUMENT_TOOL_FOR_DOCX_GENERATION",
+        "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF_WHEN_AVAILABLE"
+      ],
+      "status": "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED"
+    },
+    "CANONICAL_OWNER_EXECUTION": {
+      "provider_action_required": true,
+      "signed_independent_intake_review_required": true,
+      "signed_action_and_effect_receipts_required": true,
+      "independent_final_outcome_review_required": true,
+      "canonical_article_state_mutation_allowed": true,
+      "method_catalog_mutation_allowed": true,
+      "required_capabilities": [
+        "MODEL_OR_CHAT_EXECUTOR_FOR_SEMANTIC_WORK",
+        "RESEARCH_SOURCE_ACCESS_FOR_CURRENT_FACTS",
+        "CONNECTED_GITHUB_CONNECTOR_WITH_READ_WRITE_PERMISSION",
+        "PYTHON_OR_DOCUMENT_TOOL_FOR_DOCX_GENERATION",
+        "DOCX_RENDER_TOOLING_FOR_VISUAL_PROOF",
+        "EXPLICIT_OWNER_CONFIRMATION_IN_CURRENT_CHAT_FOR_BINDING_REQUIREMENT_CHANGES",
+        "AUTHENTICATED_PROVIDER_ACTION_SIGNER_FOR_OWNER_STATE_OR_METHOD_MUTATION",
+        "PROVIDER_SIGNED_ACTION_EFFECT_ATTESTATION_FOR_EACH_OWNER_OR_METHOD_MUTATION",
+        "ATOMIC_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BUNDLE_CAS_WITH_EXACT_READBACK",
+        "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_ENDPOINT_WITH_AUTHENTICATED_OWNER_IDENTITY"
+      ]
+    }
   }
 }

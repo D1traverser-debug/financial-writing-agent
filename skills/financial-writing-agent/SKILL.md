@@ -40,7 +40,7 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 For defects: recover the reader outcome; test evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk and reversibility. Use DecisionEnvelope; choose a bounded action.
 
-Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
+Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; canonical task creation/transition and method mutation remain OPEN. When the user needs a deliverable now, use SESSION_DRAFT_DELIVERY without claiming canonical admission.
 
 At `FINAL_AUDIT`, goal-first tasks require signed `independent_goal_outcome_review` bound to actual current Word binaries. It must assess every active requirement and success criterion with evidence. Only all-SATISFIED PASS may terminate; REVISE uses the existing allowed target; FAIL blocks. Visible-delivery readback remains separate. Reviewer PASS is not user acceptance.
 
@@ -64,6 +64,20 @@ All tasks use the same ten-stage workflow. Portfolio Context 1.1 binds the promp
 ## Standalone runtime and trust boundary
 
 Use GitHub connector and `fetch_file` for reads; stage code only on candidate branches via `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`. Do not direct-update `main`; Git CAS is not owner approval. Canonical owner-state/method writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py`, signed provider admission, effect receipt, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path.
+
+## Provider-unavailable session draft delivery
+
+When the hosted Provider Action is unavailable and the user still needs research, writing or Word deliverables, use `SESSION_DRAFT_DELIVERY` by default if the current session has the required research and document tools. Do not ask the user to choose an implementation route.
+
+This is a structured, user-visible content workflow, not a canonical Financial task:
+1. Recover the current user goal, corrections and accessible prior context. For an existing article, read its canonical state and files read-only; do not alter them.
+2. Build an owner-visible, prompt-bound session work brief. It is not an admitted `TaskIntakeManifest`, carries no independent intake signature and does not create `STATE.json`.
+3. Follow the Financial content contract, applicable PrivateResearchBrief modules, research-audit boundary, separate Deep/Broad branches, interaction branch when requested, and all eight PublicationFitness obligations. The model may orchestrate the semantic passes, but must not claim that Python callback validators or owner-stage admission ran.
+4. Generate the contracted DOCX and audit outputs with the available Python/document tools. Reread the exact output bytes and compute SHA-256. Render and inspect pages when tooling is available; otherwise keep visual proof OPEN.
+5. Same-chat review may report INTERNAL_DELIVERY_READINESS only against the exact reread session artifact bytes. Keep independent editorial quality and PUBLICATION_CERTIFICATION OPEN.
+6. Deliver the files as conversation attachments. Use the private Library only when the user explicitly asks for durable private storage. Do not write article research or deliverables to the public GitHub repository by default.
+
+The only valid completion label is `SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED`. Never claim canonical task creation, stage advancement, signed independent intake/final review, method promotion, canonical persistence, publication certification or user acceptance. A user request to mutate canonical state, change binding requirements, mutate the method catalog or formally close a task remains OPEN until the real provider and required independent evidence are available. This mode is not a free-form shortcut and does not create a second task ledger.
 
 ## Current research and publication evidence
 
