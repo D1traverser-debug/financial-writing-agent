@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from financial_writing_agent.source_lifecycle import (
     DriveObjectReference,
+    SourceRecord,
     SourceVersion,
     append_source_version,
     bind_source_version,
@@ -159,3 +160,57 @@ def test_source_record_rejects_active_pointer_to_unavailable_version():
     unavailable = _version(1, b"missing original", status="MISSING")
     with pytest.raises(ValidationError, match="ACTIVE source must point to an AVAILABLE"):
         _record(first=unavailable)
+
+
+
+def test_source_record_requires_complete_ordered_history_and_latest_pointer():
+    record = _record()
+    version2 = _version(2, b"official report v2")
+    updated = append_source_version(record, version2)
+
+    stale_pointer = updated.model_dump()
+    stale_pointer["current_version_id"] = record.current_version_id
+    with pytest.raises(ValidationError, match="newest immutable version"):
+        SourceRecord.model_validate(stale_pointer)
+
+    skipped_start = _version(2, b"first stored version cannot start at two")
+    with pytest.raises(ValidationError, match="must start at v0001"):
+        SourceRecord(
+            source_id=SOURCE_ID,
+            source_type="PUBLIC_PRIMARY_DOCUMENT",
+            title="Invalid history",
+            scope="GLOBAL_REUSABLE",
+            task_id=None,
+            created_at=skipped_start.created_at,
+            updated_at=skipped_start.created_at,
+            current_version_id=skipped_start.version_id,
+            versions=(skipped_start,),
+        )
+
+    stale_updated_at = updated.model_dump()
+    stale_updated_at["updated_at"] = record.updated_at
+    with pytest.raises(ValidationError, match="cannot precede the newest source version"):
+        SourceRecord.model_validate(stale_updated_at)
+
+
+def test_each_source_version_requires_a_new_drive_file_object():
+    record = _record()
+    version2 = _version(2, b"official report v2")
+    duplicate_drive_object = version2.drive_object.model_copy(
+        update={"file_id": record.versions[0].drive_object.file_id}
+    )
+    duplicate_version = version2.model_copy(update={"drive_object": duplicate_drive_object})
+
+    with pytest.raises(ValueError, match="new Drive file ID"):
+        append_source_version(record, duplicate_version)
+
+
+def test_source_domain_records_and_versions_are_immutable_values():
+    record = _record()
+
+    with pytest.raises(ValidationError):
+        record.status = "RETIRED"
+    with pytest.raises(AttributeError):
+        record.versions.append(record.versions[0])
+    with pytest.raises(ValidationError):
+        record.versions[0].drive_object.file_id = "replacement-file"
