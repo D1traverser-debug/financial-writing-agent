@@ -2,7 +2,7 @@ from __future__ import annotations
 
 import re
 from datetime import datetime
-from typing import Literal
+from typing import Any, Literal, Mapping
 
 from pydantic import ConfigDict, Field, model_validator
 
