@@ -48,12 +48,12 @@ Root cause: **the semantic audit's declared input boundary was narrower than the
 ## Exact code-head verification
 
 - PR: [#95](https://github.com/D1traverser-debug/financial-writing-agent/pull/95)
-- Candidate code head: `5648b8d33c719d0bac2cafcb6040fd008fbaa18a`
-- Exact-head CI: [44581315518](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44581315518) — `success`
+- Candidate code head: `fc64deb4562bf6851eda1e3e33847f8cb2b32be8`
+- Exact-head CI: [44583877013](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44583877013) — `success`
 - Tests: 774 passed.
 - Python statement coverage: 87% overall (9,051 statements; 1,207 missed).
 - Module coverage: Portfolio Coordinator 87%; Standalone Runtime 89%; Writing Kernel 81%.
-- Whole-tree audit: 355 tracked files, 140 Python AST parses, 55 JSON parses, 60,283 decoded text lines, zero warnings and zero errors.
+- Whole-tree audit: 356 tracked files, 140 Python AST parses, 55 JSON parses, 60,590 decoded text lines, zero warnings and zero errors.
 - Standalone wheel build/install, DOCX render smoke, four synthetic Word product/page checks and Financial negative-case business replay passed.
 - Financial Skill size: 11,985 UTF-8 bytes, within the 12,000-byte router ceiling.
 
@@ -75,7 +75,7 @@ Obtain independent technical review of PR #95. If accepted, integrate it through
 
 ## Full PR snapshot verification
 
-The full PR snapshot at `57c30a97f5d1942e5957bc8b4f66cbeba3ba372e`, including the problem journal, evolution index and audit report, passed [exact PR snapshot CI run 44582600390](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44582600390): 775 tests passed, 87% overall Python statement coverage, Writing Kernel 81%, all 35 workflow steps successful. Whole-tree audit: 356 tracked files, 140 Python AST parses, 55 JSON parses, 60,581 decoded text lines, zero warnings/errors. This is the full candidate snapshot check; it remains engineering evidence and does not close independent review, live-client activation or real editorial acceptance.
+The full PR snapshot at `fc64deb4562bf6851eda1e3e33847f8cb2b32be8`, including the problem journal, evolution index and audit report, passed [exact PR snapshot CI run 44583877013](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44583877013): 775 tests passed, 87% overall Python statement coverage, Writing Kernel 81%, all 35 workflow steps successful. Whole-tree audit: 356 tracked files, 140 Python AST parses, 55 JSON parses, 60,590 decoded text lines, zero warnings/errors. This is the full candidate snapshot check; it remains engineering evidence and does not close independent review, live-client activation or real editorial acceptance.
 
 
 ## Branch-history integrity correction
