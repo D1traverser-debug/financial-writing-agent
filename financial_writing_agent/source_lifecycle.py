@@ -81,8 +81,8 @@ class SourceVersion(StrictModel):
         _require_aware(self.retrieved_at, "retrieved_at")
         if self.published_at is not None:
             _require_aware(self.published_at, "published_at")
-        if self.retrieved_at < self.created_at:
-            raise ValueError("retrieved_at cannot precede version creation")
+        if self.created_at < self.retrieved_at:
+            raise ValueError("version creation cannot precede source retrieval")
         if (
             self.storage_policy == "RAW_PRESERVED"
             and self.rights_basis not in {"USER_PROVIDED", "PUBLIC_PRIMARY", "LICENSED"}
@@ -152,14 +152,22 @@ class SourceBinding(StrictModel):
     source_id: str
     version_id: str
     source_ref: str
+    drive_folder_id: str = Field(min_length=1)
     drive_file_id: str = Field(min_length=1)
     drive_revision_id: str = Field(min_length=1)
+    source_type: SourceType
+    publisher: str = ""
+    canonical_url: str | None = None
     raw_sha256: str
     normalized_text_sha256: str
     source_family: str = Field(min_length=1)
     retrieved_at: datetime
     published_at: datetime | None = None
+    media_type: str = Field(min_length=1)
     storage_policy: StoragePolicy
+    drive_file_size_bytes: int = Field(gt=0)
+    extractor_name: str = Field(min_length=1)
+    extractor_version: str = Field(min_length=1)
 
     @model_validator(mode="after")
     def validate_exact_binding(self):
@@ -263,12 +271,20 @@ def bind_source_version(record: SourceRecord, *, version_id: str, task_id: str) 
         source_id=record.source_id,
         version_id=version.version_id,
         source_ref=source_reference(record.source_id, version.version_id),
+        drive_folder_id=version.drive_object.folder_id,
         drive_file_id=version.drive_object.file_id,
         drive_revision_id=version.drive_object.revision_id,
+        source_type=record.source_type,
+        publisher=record.publisher,
+        canonical_url=record.canonical_url,
         raw_sha256=version.drive_object.raw_sha256,
         normalized_text_sha256=version.drive_object.normalized_text_sha256,
         source_family=version.source_family,
         retrieved_at=version.retrieved_at,
         published_at=version.published_at,
+        media_type=version.drive_object.media_type,
         storage_policy=version.storage_policy,
+        drive_file_size_bytes=version.drive_object.size_bytes,
+        extractor_name=version.drive_object.extractor_name,
+        extractor_version=version.drive_object.extractor_version,
     )
