@@ -124,13 +124,15 @@ def test_source_version_rejects_bad_hash_and_unlicensed_full_news_storage():
             extractor_version="1",
         )
 
-    with pytest.raises(ValidationError, match="RAW_PRESERVED requires"):
-        _version(
-            1,
-            b"news article",
-            source_family="news",
-            rights_basis="PUBLIC_PRIMARY",
-        ).model_copy(update={"storage_policy": "RAW_PRESERVED"})
+    news_version = _version(
+        1,
+        b"news article",
+        source_family="news",
+        storage_policy="RAW_PRESERVED",
+        rights_basis="PUBLIC_PRIMARY",
+    )
+    with pytest.raises(ValidationError, match="full news-media preservation"):
+        _record(source_type="NEWS_MEDIA", first=news_version)
 
 
 def test_news_media_defaults_to_metadata_or_excerpt_storage_without_full_copy():
