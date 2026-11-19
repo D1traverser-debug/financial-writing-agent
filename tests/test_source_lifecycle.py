@@ -307,6 +307,24 @@ def test_source_binding_rejects_version_id_digest_mismatch():
         type(binding).model_validate(raw)
 
 
+def test_binding_set_cannot_precede_source_retrieval():
+    record = _record()
+    binding = bind_source_version(
+        record,
+        version_id=record.current_version_id,
+        task_id="article-1",
+    )
+
+    with pytest.raises(ValidationError, match="cannot be admitted before its source retrieval"):
+        SourceBindingSet(
+            task_id="article-1",
+            research_revision=1,
+            private_research_brief_sha256="a" * 64,
+            admitted_at=BASE,
+            bindings=(binding,),
+        )
+
+
 def test_binding_set_rejects_cross_task_and_duplicate_bindings():
     record = _record()
     binding = bind_source_version(
