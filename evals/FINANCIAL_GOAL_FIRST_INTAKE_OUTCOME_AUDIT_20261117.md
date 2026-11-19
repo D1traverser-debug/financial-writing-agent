@@ -72,13 +72,7 @@ The implementation is directionally consistent with the product boundary. Its as
 
 ## 6. Status-record drift found
 
-At the time of this audit, `main` had advanced to `1f6745a...` and exact-main CI run 44042260375 had succeeded, while:
-- `evals/EVOLUTION_INDEX.json` still identified `44eeaea...` / CI 43924128311 as the latest mainline evidence;
-- `config/FINANCIAL_MANIFEST.json` still pointed to the PR #89 main SHA and 758-test CI;
-- `evals/PROBLEM_EVOLUTION_JOURNAL.md` ended at P-20261117-02;
-- `evals/PROBLEM_EVOLUTION_JOURNAL_INDEX.json` still identified P-20261117-02 as the latest incident.
-
-This status synchronization is the scope of the accompanying candidate documentation change. It does not change article state, requirement state, method catalog state, signatures, permissions or historical receipts.
+At the time of this audit, `main` had advanced to `1f6745a...` and exact-main CI run 44042260375 had succeeded. The existing `latest_main_head_sha` / CI 43924128311 fields intentionally represented the last PR-integrated independently validated mainline head, not every later push. The defect was that the 2026-11-17 direct main push had no separate observed-main-push record in the evolution index or manifest, while the journal/index remained at P-20261117-02 / revision 2.6. The candidate now preserves the PR-integrated head and records the later direct push separately, updates the journal to 2.7, and adds regression coverage for that distinction. It does not change article state, requirement state, method catalog state, signatures, permissions or historical receipts.
 
 ## 7. Remaining legal work
 
@@ -90,3 +84,26 @@ This status synchronization is the scope of the accompanying candidate documenta
 6. Complete GitHub main protection and branch/archive hygiene using actual repository administration evidence.
 
 Do not claim system completion from this commit, CI, synthetic reviewer fixtures or same-session critique. No CAOS source mutation is permitted.
+
+
+## 8. Cross-domain research-method transfer review: A-share methodology
+
+Reviewed the current A-share mainline at `a45c8000396a366fdd8a8e2c878d25504b560e9f`, including `docs/INTELLIGENCE_CORE_ARCHITECTURE.md`, `skills/a-share-event-driven-agent/references/research.md`, `ashare_event_agent/schemas.py`, and `ashare_event_agent/resources/references/industry.md`.
+
+### Transferable to Financial Writing as candidate methods
+
+- **Research recall must exceed publication selection.** A-share preserves a broad All-News Event Ledger, including weak, negative, disproved, rumor, calendar and no-trade events. Financial can apply the same principle to private research: retain relevant counterevidence and weak/disconfirmed branches before editorial selection; do not let the desired article thesis prune research.
+- **Many-to-many evidence graph.** A-share's EventCard → IndustryNode → StockMapping allows one event to map to many value-chain nodes and one company to appear under multiple events/nodes. Financial can reuse this as a research representation principle for event/value-chain/company mapping, while keeping its own article/task identity and output contracts.
+- **Auditable universe completeness.** A-share's UniversePackage requires each exclusion to have a durable reason and requires node-level exclusions to be explicit. Financial can adapt this to company-pool research: each in-scope company must be included or explicitly excluded with a reason; a boolean `COMPLETE` or a list of citations is not proof of universe completeness.
+- **Two materially different research sweeps and an auditable stop reason.** A-share's IndustryResearchPackage requires at least two sweeps and a stop reason. Financial can adapt the research-diversity and saturation principle, provided the sweeps are genuinely different in source/failure-mode coverage rather than duplicated queries.
+- **Positive and negative evidence remain first-class.** A-share's EventCard, EvidenceRecord and StockMapping retain negative evidence and confidence. Financial can apply this to source ledgers and claim review, while independently validating source recency and claim entailment.
+
+### Non-transferable A-share mechanisms
+
+- U0/U1 recall pools, Leader-First ranking, limit-up recall grades, buyability, market-day freeze, role hypotheses and premarket/post-close state belong to A-share trading/review. They must not be copied into Financial article state or treated as writing workflow stages.
+- The A-share Intelligence Core document is explicitly a future shared-research boundary/non-executable design, not a live shared service. It does not authorize cross-domain state migration or direct shared-store writes.
+- A-share's strategy-rule promotion via frozen replay is not interchangeable with Financial's article-method promotion and reader/editorial evidence. The two domains may share evidence-governance principles, not business-state authorities or acceptance criteria.
+
+### Adoption decision
+
+These are **research candidates**, not promoted Financial methods. No Financial method catalog entry was created or changed. Promotion requires Financial-scoped fit/misfit analysis, counterexamples, article-mode-specific regression evidence, owner authorization and the canonical Financial method-effect path. This preserves the single Financial method authority and avoids copying A-share market-state semantics into writing.
