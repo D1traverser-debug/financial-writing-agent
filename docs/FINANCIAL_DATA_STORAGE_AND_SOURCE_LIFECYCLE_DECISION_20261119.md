@@ -81,7 +81,7 @@ Canonical source reference:
 
 `financial-source://{source_id}/{version_id}`
 
-A task must pin an exact version. A floating `latest` reference is forbidden in admitted research.
+A task must pin an exact version. A floating `latest` reference is forbidden in admitted research. User-supplied URLs may remain INTAKE discovery inputs or canonical URL metadata, but every durable PrivateResearchBrief and ResearchPackage evidence reference must use `financial-source://` and must have exactly one binding in that task's `SOURCE_BINDINGS.json`. The provider must reject raw URLs at the admitted-evidence boundary, unbound refs, cross-task bindings, and any mismatch in Drive file ID, revision ID, or stored-payload digest.
 
 ## 5. Source-file lifecycle
 
