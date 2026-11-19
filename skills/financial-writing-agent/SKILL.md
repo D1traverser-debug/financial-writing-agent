@@ -71,7 +71,7 @@ Use SESSION_DRAFT_DELIVERY when Provider Action is absent; follow docs/SESSION_D
 
 ## Persistent source library
 
-Owner-only Drive: ChatGPT / Financial Writing Agent / 00_Source_Library; registry: Financial Source Registry (Sources, Versions, Events). Drive/Sheets connectors provide exact-readback CRUD. New immutable file per version; revision optional. News: excerpt/metadata or link-only. Exact refs: financial-source://{source_id}/{version_id}. No task-binding tab: session refs stay in work brief; canonical bindings remain in Article Aggregate after Provider Action. Keep private source metadata out of public GitHub. See docs/FINANCIAL_SOURCE_LIBRARY.md.
+Owner-only Google Drive: ChatGPT / Financial Writing Agent / 00_Source_Library; registry: Financial Source Registry (Sources, Versions, Events). Drive/Sheets connectors provide exact-readback CRUD. New immutable file per version; revision optional. News: excerpt/metadata or link-only. Exact refs: financial-source://{source_id}/{version_id}. No task-binding tab: session refs stay in work brief; canonical bindings remain in Article Aggregate after Provider Action. Keep private source metadata out of public GitHub. See docs/FINANCIAL_SOURCE_LIBRARY.md.
 
 ## Evidence and publication gates
 

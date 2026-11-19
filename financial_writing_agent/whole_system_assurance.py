@@ -30,7 +30,7 @@ REQUIREMENT_IMPLEMENTATION_PATHS: dict[str, tuple[str, ...]] = {
     "PR-02": ("financial_writing_agent/intent_governance.py", "financial_writing_agent/owner_lifecycle.py"),
     "PR-03": ("financial_writing_agent/method_governance.py", "knowledge/METHOD_KNOWLEDGE_CATALOG.json"),
     "PR-04": ("financial_writing_agent/private_research.py", "financial_writing_agent/company_identity.py"),
-    "PR-04A": ("financial_writing_agent/current_research_sources.py", "financial_writing_agent/private_research.py"),
+    "PR-04A": ("financial_writing_agent/current_research_sources.py", "financial_writing_agent/private_research.py", "financial_writing_agent/source_lifecycle.py", "financial_writing_agent/source_registry.py", "financial_writing_agent/source_readback.py"),
     "PR-05": ("financial_writing_agent/cognition_governance.py",),
     "PR-06": ("financial_writing_agent/task_publication.py", "financial_writing_agent/story_quality.py"),
     "PR-07": ("financial_writing_agent/story_quality.py", "financial_writing_agent/routing.py"),
