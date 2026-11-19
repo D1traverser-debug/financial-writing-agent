@@ -17,7 +17,8 @@
     "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
     "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
     "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
-    "evals/FINANCIAL_EXECUTION_PROFILE_DECISION_BINDING_AUDIT_20261117.md"
+    "evals/FINANCIAL_EXECUTION_PROFILE_DECISION_BINDING_AUDIT_20261117.md",
+    "evals/FINANCIAL_GOAL_FIRST_INTAKE_OUTCOME_AUDIT_20261117.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -193,7 +194,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order. PR #89 (WritingExecutionProfile 1.1 scoped decision-domain binding) is also merged: final PR head fabdd6a0b41ffeaf509350720f3b8e370525bcb0 passed exact PR CI run 43922363378 (758 tests, 88% statement coverage); merged main SHA 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea passed exact main CI run 43924128311 (758 tests, 88% statement coverage). No separate external technical review was obtained; this merge is engineering integration only. The next business step is real model profile replay across representative prompt families and independent cross-topic article evaluation. Real reader acceptance, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified.",
+    "next_legal_phase": "Main HEAD 1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc adds goal-first intake and independent user-goal outcome review. Exact-main push CI run 44042260375 succeeded: 770 tests, 87% statement coverage, 355 tracked files, 140 Python AST parses, 55 JSON parses, 59,979 decoded text lines, zero warnings/errors. This is engineering evidence only. All seven external gates remain OPEN; the live cross-border v3 article remains RESEARCH with 0/4 outputs and zero quality evidence. Next legal work is approved deployment/verification of the Financial Provider Action and separate trusted reviewer, native Skill installation/fresh-session invocation, independent technical review, real cross-topic and per-product article evaluation, and GitHub main protection/branch hygiene. Do not resume the historical article unless explicitly requested.",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -205,7 +206,10 @@
       "No verified real external reader outcome; current article quality and delivery remain unverified.",
       "No live provider-signed article-state or method-catalog effect receipt has been emitted and reread; synthetic CI is not production provider evidence.",
       "The original full user article prompt is not independently recovered from the current task record; only the two scoped full-universe corrections are currently source-linked.",
-      "The v2 research artifacts referenced by cross-border v3 are historical fixtures, not current factual evidence; revalidate material sources before use."
+      "The v2 research artifacts referenced by cross-border v3 are historical fixtures, not current factual evidence; revalidate material sources before use.",
+      "Main HEAD 1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc passed exact-main CI run 44042260375 (770 tests, 87% coverage); goal-first intake and user-goal review are code-contract evidence only.",
+      "No live Financial Provider Action or separate trusted reviewer is deployed/observed; the new intake/final-review signatures are not production attestations.",
+      "Main branch protection is disabled (protected=false; required checks disabled); the 2026-11-17 change was a direct push, not an independently reviewed PR."
     ],
     "boundary": "ONE_FINANCIAL_EVOLUTION_OWNER__NO_NEW_TASK_INDEX_OR_PARALLEL_ARTICLE_STATE",
     "previous_review_ref": "evals/FINANCIAL_STANDALONE_REBUILD_AUDIT_20261111.md",
@@ -929,7 +933,7 @@
     "exact_main_ci_run": 43626092503,
     "exact_main_ci_conclusion": "success"
   },
-  "updated_at": "2026-11-17",
+  "updated_at": "2026-11-19",
   "current_system_candidate": {
     "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
     "status": "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_ARTICLE_QUALITY_OPEN",
@@ -1182,5 +1186,46 @@
     "exact_main_ci_conclusion": "success",
     "exact_main_ci_tests_passed": 758,
     "merged_at": "2026-11-16T17:59:36Z"
+  },
+  "problem_journal_revision": "2.7",
+  "current_goal_first_intake_candidate": {
+    "id": "FIN-GOAL-FIRST-INTAKE-USER-OUTCOME-20261117",
+    "status": "MAIN_COMMIT_EXACT_MAIN_CI_PASS__LIVE_PROVIDER_AND_EXTERNAL_REVIEW_OPEN",
+    "main_commit": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+    "event": "PUSH",
+    "exact_main_ci_run": 44042260375,
+    "exact_main_ci_conclusion": "success",
+    "tests_passed": 770,
+    "source_line_coverage_percent": 87,
+    "whole_tree_inventory": {
+      "tracked_files": 355,
+      "python_ast_parsed": 140,
+      "json_parsed": 55,
+      "decoded_text_lines": 59979,
+      "warnings": 0,
+      "errors": 0
+    },
+    "skill_utf8_bytes": 11541,
+    "verified": [
+      "STANDALONE_CREATE_ARTICLE_SETS_GOAL_FIRST_INTAKE_MARKER",
+      "INTAKE_MANIFEST_BINDS_COMPLETE_PROMPT_OUTPUTS_SUCCESS_CRITERIA_PROFILE_AND_ROUTES",
+      "INDEPENDENT_INTAKE_REVIEW_BINDS_EXACT_MANIFEST_AND_PROMPT",
+      "INITIAL_REQUIREMENT_REVISION_AND_SCOPED_CONTEXTS_ARE_ATOMICALLY_ADMITTED",
+      "FINAL_GOAL_REVIEW_BINDS_ACTIVE_REQUIREMENTS_SUCCESS_CRITERIA_AND_WORD_BINARY_HASHES",
+      "PASS_REVISE_FAIL_SEMANTICS_AND_RECEIPT_BOUND_HISTORY_TESTED",
+      "LEGACY_TASKS_REMAIN_READ_COMPATIBLE",
+      "EXACT_HEAD_CI_AND_WHOLE_TREE_AUDIT_PASS"
+    ],
+    "limitations": [
+      "NO_LIVE_FINANCIAL_PROVIDER_ACTION",
+      "NO_LIVE_SEPARATE_TRUSTED_REVIEWER",
+      "NO_NATIVE_SKILL_FRESH_SESSION_ACTIVATION_EVIDENCE",
+      "NO_INDEPENDENT_EXTERNAL_TECHNICAL_REVIEW",
+      "NO_REAL_ARTICLE_OR_READER_ACCEPTANCE",
+      "MAIN_BRANCH_PROTECTION_DISABLED",
+      "CURRENT_CROSS_BORDER_V3_REMAINS_RESEARCH_0_OF_4_OUTPUTS"
+    ],
+    "audit_ref": "evals/FINANCIAL_GOAL_FIRST_INTAKE_OUTCOME_AUDIT_20261117.md",
+    "next_legal_step": "Deploy and verify the approved Financial Provider Action and separate trusted reviewer; then verify fresh-session Skill activation, obtain independent technical review, and conduct real cross-topic per-product article evaluation. Keep system NOT_READY until all seven external gates and business quality evidence are satisfied."
   }
 }
