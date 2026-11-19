@@ -242,6 +242,54 @@ class SourceBindingSet(StrictModel):
         return self
 
 
+_SOURCE_REF_LIST_FIELDS = frozenset({
+    "evidence_refs",
+    "source_refs",
+    "recall_sources",
+    "saturation_evidence_refs",
+    "supporting_evidence_refs",
+    "falsification_or_rejection_refs",
+    "architecture_reassessment_refs",
+})
+_SOURCE_REF_SINGLE_FIELDS = frozenset({"source", "source_ref", "ref"})
+
+
+def collect_research_source_refs(*artifacts: Mapping[str, Any]) -> list[str]:
+    """Collect source-bearing refs from the complete admitted RESEARCH evidence graph.
+
+    User intake URLs and canonical_url metadata are deliberately excluded. The
+    provider passes DecisionEnvelope, PrivateResearchBrief, and ResearchPackage
+    here before exact task-binding coverage is admitted.
+    """
+    refs: set[str] = set()
+
+    def walk(value: Any) -> None:
+        if isinstance(value, Mapping):
+            for key, child in value.items():
+                if key in _SOURCE_REF_LIST_FIELDS:
+                    if not isinstance(child, (list, tuple)):
+                        raise ValueError(f"{key} must be a list of source references")
+                    for item in child:
+                        if not isinstance(item, str) or not item.strip():
+                            raise ValueError(f"{key} contains an invalid source reference")
+                        refs.add(item.strip())
+                elif key in _SOURCE_REF_SINGLE_FIELDS:
+                    if not isinstance(child, str) or not child.strip():
+                        raise ValueError(f"{key} must contain a non-empty source reference")
+                    refs.add(child.strip())
+                else:
+                    walk(child)
+        elif isinstance(value, (list, tuple)):
+            for item in value:
+                walk(item)
+
+    for artifact in artifacts:
+        if not isinstance(artifact, Mapping):
+            raise ValueError("research source collection requires mapping artifacts")
+        walk(artifact)
+    return sorted(refs)
+
+
 def validate_source_binding_coverage(
     binding_set: SourceBindingSet,
     *,
