@@ -107,7 +107,7 @@
       "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS"
     ],
     "source_store_connector": "CONNECTED_GOOGLE_DRIVE__PRIVATE_SOURCE_FOLDER_ONLY",
-    "source_store_folder_id": "1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ"
+    "source_store_folder_id_ref": "FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
   },
   "task_requirement_scope_contract": {
     "source": "financial_writing_agent.task_requirements",
