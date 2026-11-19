@@ -23,7 +23,7 @@ BASE = datetime(2026, 11, 19, 10, 0, tzinfo=timezone.utc)
 SOURCE_ID = "src_" + "a" * 24
 
 
-def _version(sequence, payload, *, created_at=None, source_family="official", storage_policy="RAW_PRESERVED", rights_basis="PUBLIC_PRIMARY", status="AVAILABLE"):
+def _version(sequence, payload, *, created_at=None, source_family="official", storage_policy="RAW_PRESERVED", rights_basis="PUBLIC_PRIMARY", status="AVAILABLE", file_id=None):
     created_at = created_at or BASE + timedelta(days=sequence)
     raw_sha = hashlib.sha256(payload).hexdigest()
     normalized_sha = hashlib.sha256(payload.lower()).hexdigest()
@@ -37,7 +37,7 @@ def _version(sequence, payload, *, created_at=None, source_family="official", st
         status=status,
         drive_object=DriveObjectReference(
             folder_id="private-drive-folder",
-            file_id=f"drive-file-{sequence}",
+            file_id=file_id or f"drive-file-{sequence}",
             revision_id=f"drive-revision-{sequence}",
             media_type="application/pdf",
             size_bytes=len(payload),
@@ -316,7 +316,10 @@ def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_ref
             evidence_refs=[binding.source_ref],
         )
 
-    record2 = _record(source_id="src_" + "b" * 24)
+    record2 = _record(
+        source_id="src_" + "b" * 24,
+        first=_version(1, b"another official report", file_id="drive-file-other"),
+    )
     binding2 = bind_source_version(
         record2,
         version_id=record2.current_version_id,
