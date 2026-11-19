@@ -7,7 +7,7 @@
 - Immutable Drive evidence files: original source bytes only when rights permit; otherwise permitted excerpts/metadata or a metadata manifest, according to storage policy.
 - Source identity, lifecycle metadata, and signed source-action effects: GitHub `sources/{source_id}/SOURCE.json` and `sources/{source_id}/actions/{action_id}.effect.json`.
 - Exact article source bindings: GitHub `workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json`.
-- Canonical reference: `financial-source://{source_id}/{version_id}`; each binding resolves to an exact Drive file ID, revision ID, stored-payload SHA-256, and retained-text SHA-256. The binding set is pinned to a research revision and its evidence digests.
+- Canonical reference: `financial-source://{source_id}/{version_id}`; each binding resolves to an exact Drive file ID, revision ID, stored-payload SHA-256, and retained-text SHA-256. The binding set is pinned to the exact DecisionEnvelope, PrivateResearchBrief, and ResearchPackage digests for that research revision.
 
 ## Domain logic
 
