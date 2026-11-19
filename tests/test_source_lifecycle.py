@@ -26,7 +26,7 @@ def _version(sequence, payload, *, created_at=None, source_family="official", st
     return SourceVersion(
         version_id=f"v{sequence:04d}-{raw_sha[:12]}",
         created_at=created_at,
-        retrieved_at=created_at + timedelta(seconds=1),
+        retrieved_at=created_at - timedelta(seconds=1),
         source_family=source_family,
         storage_policy=storage_policy,
         rights_basis=rights_basis,
@@ -65,6 +65,14 @@ def test_create_and_bind_pins_exact_drive_file_revision_and_hashes():
 
     assert binding.source_ref == f"financial-source://{SOURCE_ID}/{record.current_version_id}"
     assert binding.drive_file_id == "drive-file-1"
+    assert binding.drive_folder_id == "private-drive-folder"
+    assert binding.source_type == "PUBLIC_PRIMARY_DOCUMENT"
+    assert binding.publisher == "Issuer"
+    assert binding.canonical_url == "https://example.com/filing.pdf"
+    assert binding.media_type == "application/pdf"
+    assert binding.drive_file_size_bytes == len(b"official report v1")
+    assert binding.extractor_name == "pymupdf"
+    assert binding.extractor_version == "1.26.0"
     assert binding.drive_revision_id == "drive-revision-1"
     assert binding.raw_sha256 == record.versions[0].drive_object.raw_sha256
     assert binding.normalized_text_sha256 == record.versions[0].drive_object.normalized_text_sha256
