@@ -3,7 +3,7 @@
   "domain_id": "financial_writing",
   "status": "DOMAIN_MODELS_AND_TRANSITIONS_IMPLEMENTED__DRIVE_PROVIDER_NOT_DEPLOYED",
   "canonical_store": {
-    "model": "GITHUB_SOURCE_REGISTRY_AND_ARTICLE_STATE__GOOGLE_DRIVE_IMMUTABLE_RAW_OBJECTS",
+    "model": "GITHUB_SOURCE_REGISTRY_AND_ARTICLE_STATE__GOOGLE_DRIVE_IMMUTABLE_SOURCE_EVIDENCE_OBJECTS",
     "raw_object_store": {
       "provider": "GOOGLE_DRIVE",
       "folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
