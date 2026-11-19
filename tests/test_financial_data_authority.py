@@ -152,7 +152,7 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert "scope" in contract["task_binding"]["fields"]
     assert "rights_basis" in contract["task_binding"]["fields"]
     assert "source_task_id" in contract["task_binding"]["fields"]
-    assert "exact equality" in contract["research_admission"]["exact_coverage_rule"]
+    assert "must equal" in contract["research_admission"]["exact_coverage_rule"]
     assert set(contract["research_admission"]["source_ref_collector"]["artifacts"]) == {
         "DecisionEnvelope", "PrivateResearchBrief", "ResearchPackage",
     }
@@ -207,7 +207,7 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert admission["raw_url_semantics"].startswith("DISCOVERY_OR_CITATION_METADATA_ONLY")
     assert admission["no_unbound_evidence"] is True
     assert admission["no_floating_latest_reference"] is True
-    assert "exact equality" in admission["exact_coverage_rule"]
+    assert "must equal" in admission["exact_coverage_rule"]
     assert "SOURCE_BINDINGS.json" in admission["exact_coverage_rule"]
     assert "raw external URLs used as admitted research evidence refs" in admission["provider_must_reject"]
     assert "TaskContract.source_refs may contain user-supplied discovery URLs" in (
