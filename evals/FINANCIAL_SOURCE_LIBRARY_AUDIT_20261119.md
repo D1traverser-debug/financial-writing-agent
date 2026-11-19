@@ -2,8 +2,8 @@
 
 **Date:** 2026-11-19  
 **Candidate:** PR #93 — Integrate session-only Financial delivery and persistent Drive source library  
-**Candidate HEAD:** `5f2b1ee9d24f19148435fb90e21f556634fda8c7`  
-**Exact-head CI:** [run 44536910962](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44536910962)  
+**Implementation code HEAD:** `d46f052e2785bbcdf7ca4edf8b217ba30aa3a366`  
+**Exact-head CI:** [run 44539095976](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44539095976)  
 **Status:** `ENGINEERING_CANDIDATE_PASS__NOT_MERGED__EXTERNAL_ACCEPTANCE_OPEN`
 
 ## 1. Executive finding
@@ -80,10 +80,10 @@ Canonical article/method writes remain blocked until the hosted Financial Provid
 
 Run 44536910962 completed successfully:
 
-- **817 tests passed.**
+- **819 tests passed.**
 - **86% overall Python statement coverage.**
-- Source modules: lifecycle 86%, readback 85%, registry 78%.
-- Whole-tree audit: 366 tracked files, 147 Python AST parses, 56 JSON parses, 62,734 decoded text lines, zero warnings and zero errors.
+- Source modules: lifecycle 87%, readback 85%, registry 78%.
+- Whole-tree audit: 367 tracked files, 147 Python AST parses, 56 JSON parses, 62,894 decoded text lines, zero warnings and zero errors.
 - Wheel build and isolated-install smoke passed.
 - DOCX render smoke passed.
 - All four synthetic Word product binaries opened, rendered and passed byte/page-hash checks.
@@ -91,7 +91,16 @@ Run 44536910962 completed successfully:
 
 Synthetic CI proves engineering behavior under fixtures. It does not prove real article quality, independent editorial acceptance, reader outcomes or a deployed provider.
 
-## 7. Remaining gates
+## 7. Adversarial review repairs
+
+The Codex review of the prior code head `d69781dea584060f6a6adda605c4def5b17ea422` found two P2 defects. Both were repaired in implementation code head `d46f052e2785bbcdf7ca4edf8b217ba30aa3a366`, and both review threads were resolved after exact-head CI passed:
+
+1. **Historical version replay:** an ADD_VERSION(v2) event was incorrectly required to point to the newest version row even when v3 already existed. Replay now checks each event against the preceding current version and enforces contiguous increments; after all events, the final current version must equal the newest stored version. A three-version CREATE → ADD_VERSION(v2) → ADD_VERSION(v3) regression test covers this.
+2. **Source-level retention on append:** `append_source_version` used `model_copy(update=...)`, bypassing SourceRecord-wide validation. It now reconstructs through `SourceRecord.model_validate`, so a NEWS_MEDIA source cannot append RAW_PRESERVED content under PUBLIC_PRIMARY rights. A regression test covers the prohibited transition.
+
+Exact-head CI run 44539095976 passed 819 tests after these fixes. A refreshed Codex review was requested against this implementation head; its receipt is pending. This automated review is not a substitute for independent external technical review.
+
+## 8. Remaining gates
 
 1. Hosted Financial Provider Action deployment and live signed CAS/readback.
 2. Separate trusted reviewer deployment and live verification.
@@ -101,7 +110,7 @@ Synthetic CI proves engineering behavior under fixtures. It does not prove real 
 6. Independent editorial and reader-quality evidence across topics and requested products.
 7. Main-branch protection and repository branch hygiene.
 
-## 8. Promotion decision
+## 9. Promotion decision
 
 Keep PR #93 open. Do not merge solely because CI is green. Obtain independent review and owner acceptance before promotion. The older PR #94 source-metadata-in-GitHub proposal conflicts with the Drive registry authority selected here; its source-storage portion must not be merged independently. Other changes in PR #94 require separate reconciliation.
 

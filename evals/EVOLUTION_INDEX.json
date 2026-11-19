@@ -18,7 +18,8 @@
     "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
     "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
     "evals/FINANCIAL_EXECUTION_PROFILE_DECISION_BINDING_AUDIT_20261117.md",
-    "evals/FINANCIAL_GOAL_FIRST_INTAKE_OUTCOME_AUDIT_20261117.md"
+    "evals/FINANCIAL_GOAL_FIRST_INTAKE_OUTCOME_AUDIT_20261117.md",
+    "evals/FINANCIAL_SOURCE_LIBRARY_AUDIT_20261119.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -741,7 +742,7 @@
       "exact_main_ci_tests_passed": 727
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.7",
+    "problem_journal_revision": "2.8",
     "general_writing_stability": {
       "status": "OPEN__SYSTEM_WIDE_CROSS_TOPIC_QUALITY_NOT_VERIFIED",
       "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
@@ -1223,7 +1224,7 @@
     "exact_main_ci_tests_passed": 758,
     "merged_at": "2026-11-16T17:59:36Z"
   },
-  "problem_journal_revision": "2.7",
+  "problem_journal_revision": "2.8",
   "current_goal_first_intake_candidate": {
     "id": "FIN-GOAL-FIRST-INTAKE-USER-OUTCOME-20261117",
     "status": "MAIN_COMMIT_EXACT_MAIN_CI_PASS__LIVE_PROVIDER_AND_EXTERNAL_REVIEW_OPEN",
@@ -1263,5 +1264,55 @@
     ],
     "audit_ref": "evals/FINANCIAL_GOAL_FIRST_INTAKE_OUTCOME_AUDIT_20261117.md",
     "next_legal_step": "Deploy and verify the approved Financial Provider Action and separate trusted reviewer; then verify fresh-session Skill activation, obtain independent technical review, and conduct real cross-topic per-product article evaluation. Keep system NOT_READY until all seven external gates and business quality evidence are satisfied."
+  },
+  "current_source_library_candidate": {
+    "id": "FIN-PERSISTENT-DRIVE-SOURCE-LIBRARY-20261119",
+    "status": "CANDIDATE_EXACT_HEAD_CI_PASS__CODEX_REVIEW_REFRESH_PENDING__INDEPENDENT_REVIEW_AND_PROMOTION_OPEN",
+    "branch": "repair/session-draft-delivery-20261119",
+    "pull_request": 93,
+    "base_branch": "main",
+    "base_sha": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+    "implementation_code_head_sha": "d46f052e2785bbcdf7ca4edf8b217ba30aa3a366",
+    "exact_head_ci_run": 44539095976,
+    "exact_head_ci_conclusion": "success",
+    "tests_passed": 819,
+    "source_line_coverage_percent": 86,
+    "coverage_statements": 9634,
+    "coverage_missed": 1303,
+    "module_coverage": {
+      "source_lifecycle_percent": 87,
+      "source_readback_percent": 85,
+      "source_registry_percent": 78
+    },
+    "whole_tree_inventory": {
+      "tracked_files": 367,
+      "python_ast_parsed": 147,
+      "json_parsed": 56,
+      "decoded_text_lines": 62894,
+      "warnings": 0,
+      "errors": 0
+    },
+    "verified": [
+      "OWNER_ONLY_GOOGLE_DRIVE_SOURCE_ROOT_AND_THREE_TAB_REGISTRY_READBACK",
+      "DISPOSABLE_CONNECTOR_CREATE_UPLOAD_READBACK_HASH_VERSION_APPEND_RETIRE_RESTORE_TEST_PASS",
+      "IMMUTABLE_DRIVE_FILE_ID_PLUS_RAW_SHA256__REVISION_ID_OPTIONAL",
+      "STRICT_SOURCE_REGISTRY_RECONSTRUCTION_AND_EXACT_SOURCE_READBACK",
+      "THREE_VERSION_HISTORICAL_EVENT_REPLAY_REGRESSION_PASS",
+      "NEWS_MEDIA_APPEND_RETENTION_REVALIDATION_REGRESSION_PASS",
+      "EXACT_HEAD_CI_819_TESTS_AND_WHOLE_TREE_AUDIT_PASS",
+      "FOUR_SYNTHETIC_WORD_PRODUCT_BINARY_AND_PAGE_RENDER_SMOKES_PASS"
+    ],
+    "limitations": [
+      "PRODUCTION_SOURCE_REGISTRY_EMPTY__NO_USER_SOURCE_INGESTED",
+      "FINANCIAL_PROVIDER_ACTION_NOT_DEPLOYED__CANONICAL_ARTICLE_AND_METHOD_WRITES_BLOCKED",
+      "FRESH_SESSION_NATIVE_SKILL_ACTIVATION_NOT_VERIFIED",
+      "REFRESHED_CODEX_REVIEW_PENDING",
+      "INDEPENDENT_EXTERNAL_TECHNICAL_REVIEW_NOT_OBTAINED",
+      "NO_REAL_ARTICLE_EDITORIAL_OR_READER_ACCEPTANCE",
+      "PR_93_NOT_MERGED"
+    ],
+    "audit_ref": "evals/FINANCIAL_SOURCE_LIBRARY_AUDIT_20261119.md",
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261119-01",
+    "next_legal_step": "OBTAIN_REFRESHED_CODEX_REVIEW_AND_INDEPENDENT_TECHNICAL_REVIEW__RECONCILE_FINDINGS__SEEK_EXPLICIT_OWNER_ACCEPTANCE_BEFORE_PROMOTION"
   }
 }

@@ -1,7 +1,7 @@
 # Financial Writing — Problem & Evolution Journal
 
 Status: `DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS`
-Journal revision: `2.7`
+Journal revision: `2.8`
 Updated: `2026-11-19`
 Backfill window: `2026-10-10` through `2026-10-15`
 Owner: `DOMAIN:financial_writing`
@@ -900,3 +900,31 @@ Status: `ENGINEERING_CI_PASS__EXTERNAL_PRODUCTION_ACCEPTANCE_OPEN`
 **External gates still OPEN.** Original goal/semantic correction; legal article graph/recovery; method CRUD/impact; authenticated provider CAS; native Financial Skill activation; independent external adversarial review; GitHub main-branch hygiene. Main branch protection currently reports disabled, and this change arrived as a direct push rather than a reviewed PR.
 
 **Next legal action.** Deploy the Financial-owned provider and separate reviewer only through an explicitly approved host; verify live signatures, CAS, readback and revocation; verify native Skill activation in a fresh session; obtain an independent technical review; then evaluate real articles across topic families and requested products. Do not infer completion from synthetic CI or resume the historical article without explicit user direction. No CAOS source or runtime was modified.
+
+---
+
+## P-20261119-01 — Persistent source-version replay and append-time retention invariants (2026-11-19)
+
+Status: `CANDIDATE_REPAIRED__EXACT_HEAD_CI_PASS__PROMOTION_AND_INDEPENDENT_REVIEW_OPEN`
+
+**Trigger.** The persistent Drive source library passed its first exact-head CI, but adversarial review found two defects in the new lifecycle/registry path that would emerge only after a source acquired more than two versions or when a news-media record was updated.
+
+**Observed defects.**
+1. Registry replay compared every historical ADD_VERSION event with the final newest version row. A valid CREATE → ADD_VERSION(v2) → ADD_VERSION(v3) history therefore rejected the earlier v2 event once v3 existed.
+2. `append_source_version` used Pydantic `model_copy(update=...)`, which bypassed SourceRecord-wide validation. A NEWS_MEDIA record could append a RAW_PRESERVED version with PUBLIC_PRIMARY rights even though the source-level retention rule prohibits that combination.
+
+**Selected repair.**
+- During event replay, validate each ADD_VERSION against the preceding current version and require the next contiguous sequence. After replay, require the final current version to equal the newest stored version.
+- Rebuild the updated record through `SourceRecord.model_validate` so every source-level invariant is re-evaluated on append.
+- Add regression tests for three-version event replay and rejection of the prohibited NEWS_MEDIA append.
+
+**Rejected alternatives.**
+- Removing version-sequence checks would permit gaps and invalid event histories.
+- Enforcing only SourceVersion-level rights would leave the source-type retention rule bypassable.
+- Accepting CI from the previous code head would not verify the repair.
+
+**Exact-head evidence.** Implementation code head `d46f052e2785bbcdf7ca4edf8b217ba30aa3a366` passed GitHub Actions run [44539095976](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44539095976): 819 tests passed, 86% overall Python statement coverage; lifecycle 87%, readback 85%, registry 78%. Whole-tree audit: 367 tracked files, 147 Python AST parses, 56 JSON parses, 62,894 decoded text lines, zero warnings/errors. Both prior-head Codex findings were repaired and their threads resolved. A fresh Codex review was requested for this implementation head; its receipt is pending.
+
+**Boundary.** This is candidate-level engineering evidence. PR #93 remains open and unmerged. Independent external technical review and explicit owner acceptance remain outstanding. The hosted Financial Provider Action is NOT_DEPLOYED; canonical article/method writes remain blocked. Production source registry rows remain empty. No real article, editorial or reader acceptance is claimed. No CAOS source/runtime or Financial article business state was modified.
+
+**Next legal action.** Obtain the refreshed review and independent technical review, reconcile any further findings, then seek explicit owner acceptance before promotion. Keep the Financial system NOT_READY until its separate live-provider, trusted-reviewer, native-client and real editorial acceptance gates are satisfied.
