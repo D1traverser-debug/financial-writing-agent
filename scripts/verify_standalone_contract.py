@@ -15,6 +15,13 @@ def main() -> None:
     contract = json.loads((ROOT / "config/EXECUTION_CONTRACT.json").read_text(encoding="utf-8"))
     assert manifest["controller"] == capabilities["owner"] == contract["authority"]["controller"] == "FINANCIAL_WRITING_OWNER"
     assert manifest["external_parent_required"] is False
+    assert manifest["external_host_required_scope"] == "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY"
+    assert manifest["chatgpt_native_runtime"]["session_draft_delivery_without_provider"] is True
+    modes = contract["execution_modes"]
+    assert modes["SESSION_DRAFT_DELIVERY"]["provider_action_required"] is False
+    assert modes["SESSION_DRAFT_DELIVERY"]["canonical_article_state_mutation_allowed"] is False
+    assert modes["CANONICAL_OWNER_EXECUTION"]["provider_action_required"] is True
+    assert modes["CANONICAL_OWNER_EXECUTION"]["signed_action_and_effect_receipts_required"] is True
     assert manifest["external_host_required"] is True
     assert manifest["provider_action_required"] is True
     assert manifest["client_skill_plugin"]["custom_hosted_service_required"] is True

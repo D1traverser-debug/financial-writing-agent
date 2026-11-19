@@ -63,3 +63,36 @@ def test_provider_decision_rejects_public_issue_comment_command_bus_and_paid_inf
     assert "issue-comment command bus is rejected" in decision
     assert "No paid compute" in decision
     assert "authenticated provider confirmation surface" in decision
+
+
+def test_provider_unavailability_does_not_block_structured_session_draft_delivery():
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    capabilities = _json("config/FINANCIAL_CAPABILITIES.json")
+    execution = _json("config/EXECUTION_CONTRACT.json")
+    skill = (ROOT / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+
+    assert manifest["external_host_required"] is True
+    assert manifest["external_host_required_scope"] == (
+        "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY"
+    )
+    assert manifest["provider_action_required_scope"] == (
+        "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY"
+    )
+    assert manifest["chatgpt_native_runtime"]["session_draft_delivery_without_provider"] is True
+
+    session = execution["execution_modes"]["SESSION_DRAFT_DELIVERY"]
+    canonical = execution["execution_modes"]["CANONICAL_OWNER_EXECUTION"]
+    assert session["provider_action_required"] is False
+    assert session["canonical_article_state_mutation_allowed"] is False
+    assert session["method_catalog_mutation_allowed"] is False
+    assert session["completion_status"] == (
+        "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED"
+    )
+    assert canonical["provider_action_required"] is True
+    assert canonical["signed_independent_intake_review_required"] is True
+    assert canonical["signed_action_and_effect_receipts_required"] is True
+
+    scopes = capabilities["execution_mode_scopes"]
+    assert scopes["SESSION_DRAFT_DELIVERY"]["provider_action_required"] is False
+    assert scopes["CANONICAL_OWNER_EXECUTION"]["provider_action_required"] is True
+    assert "SESSION_DRAFT_DELIVERY" in skill

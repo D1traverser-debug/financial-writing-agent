@@ -41,6 +41,12 @@ def main():
     require(native["orchestrator"]=="CHATGPT_MODEL_WITH_FINANCIAL_SKILL" and native["persistence_provider"]=="FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP","native ChatGPT runtime/provider missing")
     require(native["requires_hosted_python_mcp"] is True and native["write_protocol"]=="GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE","native provider CAS contract drift")
     require(manifest["external_parent_required"] is False and manifest["external_host_required"] is True and manifest["provider_action_required"] is True,"Financial-owned provider host requirement drift")
+    require(manifest["external_host_required_scope"]=="CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY" and manifest["provider_action_required_scope"]=="CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY","Provider host scope broadened beyond canonical mutations")
+    require(manifest["chatgpt_native_runtime"]["session_draft_delivery_without_provider"] is True,"session-only draft delivery route missing")
+    modes=contract["execution_modes"]
+    require(modes["SESSION_DRAFT_DELIVERY"]["provider_action_required"] is False and modes["SESSION_DRAFT_DELIVERY"]["canonical_article_state_mutation_allowed"] is False and modes["SESSION_DRAFT_DELIVERY"]["method_catalog_mutation_allowed"] is False,"session draft delivery acquired canonical mutation authority")
+    require(modes["CANONICAL_OWNER_EXECUTION"]["provider_action_required"] is True and modes["CANONICAL_OWNER_EXECUTION"]["signed_action_and_effect_receipts_required"] is True,"canonical provider/effect boundary weakened")
+    require(caps["execution_mode_scopes"]["SESSION_DRAFT_DELIVERY"]["provider_action_required"] is False and caps["execution_mode_scopes"]["CANONICAL_OWNER_EXECUTION"]["provider_action_required"] is True,"capability execution-mode scope drift")
     require(manifest["provider_action_endpoint"]["protocol"]=="MCP_OVER_HTTPS" and manifest["provider_action_endpoint"]["status"]=="NOT_DEPLOYED","Financial provider endpoint deployment state drift")
     require(caps["independent_parent_free"] is True and caps["independence_clause"]=="NO_EXTERNAL_PARENT_REPOSITORY_OR_CONTROLLER__HOSTED_FINANCIAL_PROVIDER_ACTION_IS_ONLY_THE_TRUSTED_TRANSPORT_AND_ADMISSION_ADAPTER","external runtime dependency declared")
     require(contract["execution"]["route_selection"]=="DIRECT_FINANCIAL_ONLY" and contract["execution"]["direct_domain_activation"] is True,"execution is no longer direct Financial")
@@ -50,7 +56,7 @@ def main():
     require(data["no_parallel_article_ledger"] is True and data["no_external_parent_runtime"] is True,"parallel state or external parent runtime enabled")
     for relative in RETIRED_ARTIFACTS: require(not (ROOT/relative).exists(),f"retired Financial artifact remains: {relative}")
     skill=(ROOT/manifest["skill_entrypoint"]).read_text(encoding="utf-8")
-    for marker in ("Independent Operating Skill","CAOS_FINANCIAL_ENTRY.md","CAOS governance","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no runtime/API dependency or permission authority","article","originality","create_blob","create_tree","create_commit","update_ref","expected_sha","fetch_file"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty/runtime protocol: {marker}")
+    for marker in ("Independent Operating Skill","CAOS_FINANCIAL_ENTRY.md","CAOS governance","Decision Loop","Execution Loop","PrivateResearchBrief","FINANCE_DEEP_DOCX","FINANCE_BROAD_DOCX","standalone_runtime.py","no runtime/API dependency or permission authority","article","originality","create_blob","create_tree","create_commit","update_ref","expected_sha","fetch_file","SESSION_DRAFT_DELIVERY"): require(marker.lower() in skill.lower(),f"operating Skill lacks Financial duty/runtime protocol: {marker}")
     from financial_writing_agent.standalone_runtime import DOMAIN_ID,OPERATIONS
     require(DOMAIN_ID=="financial_writing","Financial standalone module domain drift")
     require({"CREATE_ARTICLE","ADVANCE_STAGE","CHANGE_REQUIREMENTS","ATTACH_FEEDBACK","RESUME_BLOCKED","RECORD_PROACTIVE_RESOLUTION","REVIEW_SYSTEM_IMPACT"}<=OPERATIONS,"owner mutation operations incomplete")
