@@ -80,7 +80,7 @@ class SourceVersion(StrictModel):
         if match is None:
             raise ValueError("version_id must be vNNNN-<raw_sha256_prefix>")
         if match.group("digest") != self.drive_object.raw_sha256[:12]:
-            raise ValueError("version_id digest suffix must match the original Drive object")
+            raise ValueError("version_id digest suffix must match the exact stored Drive object")
         _require_aware(self.created_at, "created_at")
         _require_aware(self.retrieved_at, "retrieved_at")
         if self.published_at is not None:
