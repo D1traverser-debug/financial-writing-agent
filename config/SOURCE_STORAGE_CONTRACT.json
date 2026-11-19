@@ -184,13 +184,14 @@
     "retire_source",
     "restore_source",
     "bind_source_version",
-    "validate_source_binding_coverage"
+    "validate_source_binding_coverage",
+    "collect_research_source_refs"
   ],
   "research_admission": {
     "canonical_evidence_reference_scheme": "financial-source://{source_id}/{version_id}",
     "raw_url_semantics": "DISCOVERY_OR_CITATION_METADATA_ONLY__NOT_AN_ADMITTED_DURABLE_RESEARCH_EVIDENCE_REFERENCE",
     "task_binding_path": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
-    "exact_coverage_rule": "The exact set of financial-source:// references in the admitted PrivateResearchBrief modules and ResearchPackage evidence ledger must equal the exact source_ref set in that task's SOURCE_BINDINGS.json.",
+    "exact_coverage_rule": "The exact set of source refs collected from DecisionEnvelope, PrivateResearchBrief modules, and all source-bearing fields in ResearchPackage must equal the exact source_ref set in that task's SOURCE_BINDINGS.json.",
     "task_scope_rule": "Every binding task_id must equal the current article task_id; TASK_ONLY sources cannot be reused by another task; GLOBAL_REUSABLE sources require explicit reusable scope in the source record.",
     "no_unbound_evidence": true,
     "no_floating_latest_reference": true,
@@ -201,7 +202,34 @@
       "version references that do not match the exact Drive file ID, revision ID, and stored-payload digest",
       "duplicate source_ref entries or ambiguous source identity"
     ],
-    "compatibility_boundary": "TaskContract.source_refs may contain user-supplied discovery URLs at INTAKE. After source admission, all durable PrivateResearchBrief and ResearchPackage evidence references must use exact financial-source:// references."
+    "compatibility_boundary": "TaskContract.source_refs may contain user-supplied discovery URLs at INTAKE. After source admission, all durable PrivateResearchBrief and ResearchPackage evidence references must use exact financial-source:// references.",
+    "source_ref_collector": {
+      "function": "financial_writing_agent.source_lifecycle.collect_research_source_refs",
+      "artifacts": [
+        "DecisionEnvelope",
+        "PrivateResearchBrief",
+        "ResearchPackage"
+      ],
+      "field_keys": [
+        "evidence_refs",
+        "source_refs",
+        "recall_sources",
+        "saturation_evidence_refs",
+        "supporting_evidence_refs",
+        "falsification_or_rejection_refs",
+        "architecture_reassessment_refs",
+        "source",
+        "source_ref",
+        "ref"
+      ],
+      "excludes": [
+        "TaskContract.source_refs",
+        "canonical_url",
+        "prior_knowledge_refs",
+        "problem_record_ref"
+      ],
+      "exact_coverage_function": "financial_writing_agent.source_lifecycle.validate_source_binding_coverage"
+    }
   },
   "domain_model_types": [
     "DriveObjectReference",
