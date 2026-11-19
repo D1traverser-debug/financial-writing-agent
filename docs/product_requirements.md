@@ -454,3 +454,8 @@ This applies to every new standalone-created Financial Writing task. A task is n
 Acceptance requires positive tests for complete intake, requirement projection, final PASS/REVISE/FAIL behavior and persisted history, plus negative tests for missing, stale, tampered, partial or misbound evidence. Synthetic tests establish code contracts only; they do not prove a live provider, real independent reviewer, production secret custody, actual article quality or user acceptance.
 
 Implementation contract: `docs/task_intake_and_goal_outcome.md`.
+
+
+### PR-19 — Persistent source library and versioned CRUD
+
+Financial Writing must maintain one owner-controlled, durable source library with create, read, search, update, retire and restore operations. Google Drive is the sole authority for source metadata, lifecycle events and immutable source-version objects; its registry has exactly Sources, Versions and Events tabs. Each accepted version uses a new Drive file ID and exact payload/text hashes. Drive revision ID is recorded when exposed but is optional. Updates never overwrite prior versions; DELETE means RETIRE and can be reversed by RESTORE. News-media content defaults to metadata/permitted excerpt or link-only. Research uses exact financial-source://{source_id}/{version_id} refs. The source registry is not a second article ledger: session bindings remain in memory/work briefs, while canonical task bindings belong to the Article Aggregate through the hosted Provider Action. No private source metadata or task bindings may be written to the public GitHub repository.

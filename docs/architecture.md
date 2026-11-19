@@ -307,3 +307,12 @@ New Portfolio Context schema 1.1 stores a prompt-bound `WritingExecutionProfile`
 TaskRequirementAuthority remains the sole source of binding user requirements; DecisionEnvelope remains the authority for material editorial judgments. Every semantic pass receives the same persisted profile. Requirement changes require a refreshed profile and invalidate dependent evidence. Historical Portfolio Context 1.0 remains readable; new contexts use 1.1. The profile is a derived execution projection, not proof that the model interpreted the user's intent correctly.
 
 The system invariant is **fixed process, adaptive content**: every article task follows the same business lifecycle and evidence/QA obligations; research depth and specialist modules are conditional on materiality; thesis, angle, narrative engine, opening, title, section order, paragraph rhythm, technical depth and voice remain content-led unless explicitly locked by the user.
+
+
+## 22. Persistent source library authority
+
+Source identity, source metadata, immutable versions and lifecycle events have one authority: the owner-only Google Drive library at ChatGPT / Financial Writing Agent / 00_Source_Library. Its Financial Source Registry contains Sources, Versions and Events. GitHub stores code, rules, schemas, article state and method catalog; it must not receive source files, private source metadata or task bindings while public.
+
+Each version uses a new immutable Drive file ID and exact raw SHA-256. A Drive revision ID is recorded when available but is not mandatory. Updates append a new version; RETIRE and RESTORE are lifecycle operations, not physical deletion. News-media retention defaults to metadata/excerpt or link-only.
+
+The source registry is not an article ledger. Session Draft Delivery may use the authenticated Drive connector for source CRUD and keep task bindings in memory/session artifacts. Canonical bindings remain in the Article Aggregate and require the hosted Provider Action. The Provider Action is NOT_DEPLOYED; canonical article and method writes remain blocked. See config/SOURCE_STORAGE_CONTRACT.json and docs/FINANCIAL_SOURCE_LIBRARY.md.

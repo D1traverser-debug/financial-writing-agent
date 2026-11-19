@@ -69,11 +69,15 @@ Use GitHub connector and `fetch_file` for reads; stage code only on candidate br
 
 Use SESSION_DRAFT_DELIVERY when Provider Action is absent; follow docs/SESSION_DRAFT_DELIVERY.md. No canonical state or method writes. SHA-256-bind reread DOCX; same-chat readiness only, publication certification OPEN. Deliver attachments; Library only on request. Completion: SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED.
 
-## Current research and publication evidence
+## Persistent source library
 
-Research facts need exact source text/family, retrieval time, body hash, period/unit/direction and contradiction review. Sources expire after seven days; stale or changed sources reopen RESEARCH. Require source-family diversity and two heterogeneous no-delta sweeps before saturation. Hashes prove identity, not entailment. Use the Financial research, market-explanation, claim-trace and PrivateResearchBrief schemas; separate facts, mechanisms, interpretations and unknowns.
+Owner-only Drive: ChatGPT / Financial Writing Agent / 00_Source_Library; registry: Financial Source Registry (Sources, Versions, Events). Drive/Sheets connectors provide exact-readback CRUD. New immutable file per version; revision optional. News: excerpt/metadata or link-only. Exact refs: financial-source://{source_id}/{version_id}. No task-binding tab: session refs stay in work brief; canonical bindings remain in Article Aggregate after Provider Action. Keep private source metadata out of public GitHub. See docs/FINANCIAL_SOURCE_LIBRARY.md.
 
-PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE, PAYOFF. Same-chat review may clear INTERNAL_DELIVERY_READINESS only against exact draft bytes; Word remains uncertified. Publication certification requires independently verified review. Deliver actual `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, if contracted, `PRIVATE_RESEARCH_DOCX`; verify binaries, rendered PDF/PNG pages, visual inspection and current-session access. Filename, hash, PASS or CI alone proves neither delivery nor reader quality.
+## Evidence and publication gates
+
+Bind claims to exact retained source/version, family, retrieval time, hash and period/unit/direction; preserve contradictions/unknowns. Seven-day freshness; stale/changed reopens RESEARCH. Two heterogeneous no-delta sweeps; hash proves identity, not truth.
+
+Eight PublicationFitness gates are mandatory. Same-chat review is INTERNAL_DELIVERY_READINESS only, not independent/publication certification. Deliver contracted DOCX/audit outputs; verify binaries, rendered pages, visuals and session access. CI/PASS/hash ≠ reader acceptance.
 
 ## Method governance and evolution
 

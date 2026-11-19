@@ -56,3 +56,16 @@ If a required tool, source or artifact is unavailable, state the exact limitatio
 - If the user explicitly requests a canonical state or method action, keep that specific action OPEN until the real Provider Action and its required independent evidence are available. Session draft production may continue separately when useful, but it does not satisfy or silently close that canonical action.
 
 The route's only authority is to produce and deliver noncanonical session content. It does not alter the single Financial owner, canonical Article Aggregate, ten-stage business graph, method catalog or independent acceptance requirements.
+
+
+## 6. Persistent source library
+
+Session Draft Delivery may use the owner-only Google Drive library at ChatGPT / Financial Writing Agent / 00_Source_Library. Its sole registry is Financial Source Registry, with Sources, Versions and Events tabs. Use the connected Drive and Sheets connectors for source-file CRUD and registry read/append operations; do not write source files, private source metadata or task bindings to the public GitHub repository.
+
+For CREATE, search Sources by canonical URL/title and check duplicate IDs. Select the lawful retention policy first. Store user-provided/licensed/public-primary bytes only when permitted; news media default to a permitted short excerpt plus metadata or link-only. Create a source folder and immutable version folder, upload the exact retained payload, then read back the exact Drive file ID, parent folder, MIME type, size, available revision ID, stored bytes and extracted text. Compute SHA-256 over the exact stored payload and retained normalized text. Only then append the Sources row, Versions row and CREATE event; read all three back before treating the source as AVAILABLE.
+
+Use exact references `financial-source://{source_id}/{version_id}`. A version is never overwritten. UPDATE creates a new Drive file ID and appends a Versions row plus ADD_VERSION event. DELETE means RETIRE; RESTORE is explicit. The Events tab is append-only and its row order is lifecycle order. If a multi-step write fails after upload or a registry append, leave the object quarantined/unbound and reconcile it; never silently delete or claim success.
+
+Python helpers are in `financial_writing_agent.source_registry` and `financial_writing_agent.source_readback`. Use `source_records_from_registry_snapshot` to validate the three-tab snapshot and `verify_source_version_readback` / `build_bound_source_reader` to verify file identity, optional revision, MIME type, byte size, raw hash, retained-text hash and source family.
+
+The source registry has no task-binding tab. In session-only mode, keep SourceBindingSet in memory and exact references in the session work brief/deliverables. Do not claim canonical task admission. Canonical bindings remain part of the Article Aggregate and require the hosted Financial Provider Action. Source-library CRUD does not authorize article STATE.json or method-catalog writes.
