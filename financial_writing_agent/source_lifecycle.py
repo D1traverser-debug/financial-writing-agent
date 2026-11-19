@@ -175,6 +175,7 @@ class SourceBinding(StrictModel):
     drive_revision_id: str = Field(min_length=1)
     source_type: SourceType
     scope: SourceScope
+    source_task_id: str | None = None
     rights_basis: RightsBasis
     publisher: str = ""
     canonical_url: str | None = None
@@ -193,6 +194,10 @@ class SourceBinding(StrictModel):
     def validate_exact_binding(self):
         if self.source_ref != source_reference(self.source_id, self.version_id):
             raise ValueError("source_ref must bind the exact source_id and version_id")
+        if self.scope == "TASK_ONLY" and self.source_task_id != self.task_id:
+            raise ValueError("TASK_ONLY source binding must preserve and match its owner task_id")
+        if self.scope == "GLOBAL_REUSABLE" and self.source_task_id is not None:
+            raise ValueError("GLOBAL_REUSABLE source binding must not carry a source_task_id")
         for field in ("raw_sha256", "normalized_text_sha256"):
             if _SHA256.fullmatch(getattr(self, field)) is None:
                 raise ValueError(f"{field} must be a lowercase SHA-256 digest")
@@ -370,6 +375,7 @@ def bind_source_version(record: SourceRecord, *, version_id: str, task_id: str) 
         drive_revision_id=version.drive_object.revision_id,
         source_type=record.source_type,
         scope=record.scope,
+        source_task_id=record.task_id,
         rights_basis=version.rights_basis,
         publisher=record.publisher,
         canonical_url=record.canonical_url,
