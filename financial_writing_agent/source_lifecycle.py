@@ -231,6 +231,8 @@ class SourceBindingSet(StrictModel):
                 raise ValueError(f"{field} must be a lowercase SHA-256 digest")
         if any(binding.task_id != self.task_id for binding in self.bindings):
             raise ValueError("every source binding must belong to the binding-set task_id")
+        if any(binding.retrieved_at > self.admitted_at for binding in self.bindings):
+            raise ValueError("source binding set cannot be admitted before its source retrieval")
         source_refs = [binding.source_ref for binding in self.bindings]
         if len(source_refs) != len(set(source_refs)):
             raise ValueError("source binding set cannot contain duplicate source_ref entries")
