@@ -136,6 +136,11 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert contract["identity"]["latest_version_alias_allowed"] is False
     assert contract["version_contract"]["one_new_drive_file_per_immutable_source_version"] is True
     assert contract["version_contract"]["overwrite_existing_drive_version_forbidden"] is True
+    assert "exact immutable Drive file payload" in contract["version_contract"]["raw_sha256_semantics"]
+    assert "only when storage_policy=RAW_PRESERVED" in contract["version_contract"]["raw_sha256_semantics"]
+    assert "not an unretained full source body" in contract["version_contract"]["normalized_text_sha256_semantics"]
+    assert "permitted excerpts/metadata" in contract["crud"]["create"]
+    assert "Do not imply full-source verification" in contract["crud"]["read"]
     assert set(contract["crud"]) == {
         "create", "read", "update", "delete", "list_search",
     }
