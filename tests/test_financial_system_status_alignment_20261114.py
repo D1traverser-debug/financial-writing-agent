@@ -177,7 +177,7 @@ def test_pr95_fact_audit_dataflow_candidate_is_ci_verified_but_not_merged():
     assert candidate["candidate_code_head_sha"] == "fc64deb4562bf6851eda1e3e33847f8cb2b32be8"
     assert candidate["exact_head_ci_run"] == 44583877013
     assert candidate["exact_head_ci_conclusion"] == "success"
-    assert candidate["tests_passed"] == 774
+    assert candidate["tests_passed"] == 775
     assert candidate["source_line_coverage_percent"] == 87
     assert candidate["module_coverage"]["writing_kernel_percent"] == 81
     assert candidate["skill_utf8_bytes"] == 11985
