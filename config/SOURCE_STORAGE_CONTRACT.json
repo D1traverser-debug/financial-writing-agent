@@ -1,0 +1,125 @@
+{
+  "schema_version": "1.0",
+  "domain_id": "financial_writing",
+  "status": "DESIGN_ONLY__BLOCKED_UNTIL_PRIVATE_REPOSITORY_AND_LIVE_PROVIDER",
+  "canonical_store": {
+    "provider": "GITHUB_GIT_OBJECTS",
+    "repository_authority": "config/DATA_AUTHORITY.json#business_authority",
+    "required_repository_visibility": "PRIVATE",
+    "activation_status": "BLOCKED_UNTIL_RUNTIME_VISIBILITY_AND_PROVIDER_READBACK_VERIFIED",
+    "no_external_fallback": true,
+    "rationale": "Article state, method catalog, source records, and signed effects must share one authenticated Git CAS/readback authority. A second file store would create split authority before migration is designed."
+  },
+  "paths": {
+    "source_root": "sources/",
+    "source_record": "sources/{source_id}/SOURCE.json",
+    "version_root": "sources/{source_id}/versions/{version_id}/",
+    "version_manifest": "sources/{source_id}/versions/{version_id}/MANIFEST.json",
+    "original_bytes": "sources/{source_id}/versions/{version_id}/original.{safe_extension}",
+    "normalized_text": "sources/{source_id}/versions/{version_id}/normalized.txt",
+    "source_effect_receipt": "sources/{source_id}/actions/{action_id}.effect.json",
+    "task_binding": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json"
+  },
+  "identity": {
+    "source_id": "Opaque stable identifier minted by the trusted provider; never derive identity from a mutable filename or title.",
+    "version_id": "Monotonic per-source version plus a digest suffix; each version is immutable.",
+    "reference_scheme": "financial-source://{source_id}/{version_id}",
+    "exact_reference_required": true,
+    "latest_version_alias_allowed": false
+  },
+  "version_contract": {
+    "immutable_version_payload": true,
+    "preserve_original_bytes_when_storage_policy_allows": true,
+    "preserve_normalized_text_and_extractor_identity": true,
+    "record_raw_sha256": true,
+    "record_normalized_text_sha256": true,
+    "record_git_blob_sha_for_each_stored_file": true,
+    "bind_retrieval_time_and_source_family": true,
+    "parser_or_extractor_version_required": true,
+    "metadata_changes_create_new_manifest_revision": true,
+    "overwriting_an_existing_version_forbidden": true
+  },
+  "crud": {
+    "create": "Create a source identity, immutable first version, provenance manifest, and signed effect receipt in one conditional Git commit; read back every exact blob.",
+    "read": "Read by exact source_id and version_id; verify the source record, version manifest, original-byte digest, normalized-text digest, and Git blob identities. Never resolve a task citation to an unpinned latest version.",
+    "update": "Append a new immutable version and update the source's current-version pointer with expected-SHA CAS; preserve all prior versions and append an effect event.",
+    "delete": "Default DELETE semantics are RETIRE: prevent new task bindings while preserving versions and existing task references. RESTORE is explicit. Physical deletion is forbidden for any source referenced by an article, evidence ledger, receipt, or audit. Legal erasure requires a separately approved history/backup purge procedure.",
+    "list_search": "List and search source records by metadata (title, publisher, source family, source type, company/topic, publication date, retrieval date, status, and digest); results must return exact source_id/version_id references."
+  },
+  "task_binding": {
+    "path": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+    "fields": [
+      "source_id",
+      "version_id",
+      "source_ref",
+      "source_type",
+      "publisher",
+      "canonical_url",
+      "source_family",
+      "published_at",
+      "retrieved_at",
+      "media_type",
+      "storage_policy",
+      "raw_sha256",
+      "normalized_text_sha256",
+      "original_git_blob_sha",
+      "normalized_git_blob_sha",
+      "extractor_name",
+      "extractor_version"
+    ],
+    "immutable_after_research_admission": true,
+    "research_revision_invalidates_dependent_bindings": true,
+    "cross_task_reuse_requires_source_scope_permission": true
+  },
+  "provider_surface": {
+    "read_only": [
+      "list_sources",
+      "observe_source",
+      "read_source_version"
+    ],
+    "owner_mutations": [
+      "admit_source_action"
+    ],
+    "mutation_operations": [
+      "CREATE",
+      "ADD_VERSION",
+      "RETIRE",
+      "RESTORE"
+    ],
+    "required_controls": [
+      "authenticated_owner_identity",
+      "exact_action_digest_and_owner_confirmation",
+      "provider_signed_action_and_effect_receipt",
+      "expected_blob_sha_compare_and_swap",
+      "atomic_source_record_and_effect_receipt_commit",
+      "exact_blob_readback",
+      "idempotent_reconciliation_after_timeout"
+    ]
+  },
+  "source_reader": {
+    "current_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
+    "resolver": "Financial Provider Action resolves financial-source:// references to exact immutable source versions.",
+    "verifier_role": "Verify exact bytes, normalized text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
+    "current_status": "NO_SOURCE_RESOLVER_OR_SOURCE_CRUD_PROVIDER_IS_DEPLOYED"
+  },
+  "rights_and_retention": {
+    "user_supplied_files": "Preserve original bytes in the private store unless the user requests otherwise or a legal restriction applies.",
+    "public_primary_documents": "Preserve source bytes when lawful and within provider storage limits; always retain provenance and exact retrieval metadata.",
+    "news_or_paywalled_material": "Do not copy full copyrighted articles by default; retain URL, bibliographic metadata, permitted short excerpts, and retrieval/body digests unless the user has rights or a license.",
+    "oversized_files": "Fail closed when Git/provider limits are exceeded; do not silently substitute public storage, temporary files, Drive, or Library as canonical storage.",
+    "publication": "Never publish source originals or private research artifacts without explicit authorization."
+  },
+  "activation_gates": [
+    "Repository metadata confirms PRIVATE visibility.",
+    "Hosted Financial Provider Action is deployed and installed with least-privilege access to the canonical repository.",
+    "Source resolver and source CRUD actions execute through the trusted provider, not direct model-authored Git commits.",
+    "Positive and negative tests pass for create/read/version-update/retire/restore/list, stale SHA, replay, wrong actor, altered bytes, cross-task scope, and exact readback.",
+    "A real source file is ingested, reread by exact version, bound to one article task, and independently verified."
+  ],
+  "non_goals": [
+    "This contract does not create a news-reading-script workflow.",
+    "This contract does not treat a URL, filename, chat attachment, or temporary path as a durable source record.",
+    "This contract does not make ChatGPT Library or Google Drive a second canonical source store.",
+    "This contract does not retroactively rewrite historical article states or their receipts."
+  ]
+}
