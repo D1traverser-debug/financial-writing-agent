@@ -184,8 +184,8 @@ def test_pr95_fact_audit_dataflow_candidate_is_ci_verified_but_not_merged():
     assert candidate["merged_main_sha"] is None
     assert candidate["plugin_version_at_candidate"] == "0.1.4"
     assert candidate["plugin_release_updated"] is False
-    assert candidate["latest_pr_snapshot_head_sha"] == "9cab036e771d8f255bb3c7aceb4f4e82104010a9"
-    assert candidate["latest_pr_snapshot_ci_run"] == 44584955756
+    assert candidate["latest_pr_snapshot_head_sha"] == "b72e688dabaf1ad9adb9fd5b08e6fc003c8ee07d"
+    assert candidate["latest_pr_snapshot_ci_run"] == 44585493699
     assert candidate["latest_pr_snapshot_ci_conclusion"] == "success"
     assert candidate["latest_pr_snapshot_tests_passed"] == 775
     assert candidate["latest_pr_snapshot_workflow_steps_passed"] == 35
