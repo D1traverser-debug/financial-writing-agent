@@ -93,7 +93,14 @@
         "private_research_brief_sha256_required": true,
         "research_package_sha256_optional": true,
         "exact_evidence_ref_coverage_required": true,
-        "raw_external_urls_rejected_as_admitted_evidence": true
+        "raw_external_urls_rejected_as_admitted_evidence": true,
+        "source_ref_collector": "financial_writing_agent.source_lifecycle.collect_research_source_refs",
+        "coverage_validator": "financial_writing_agent.source_lifecycle.validate_source_binding_coverage",
+        "coverage_artifacts": [
+          "DecisionEnvelope",
+          "PrivateResearchBrief",
+          "ResearchPackage"
+        ]
       }
     }
   },
