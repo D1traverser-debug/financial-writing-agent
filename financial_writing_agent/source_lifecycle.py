@@ -4,7 +4,7 @@ import re
 from datetime import datetime
 from typing import Literal
 
-from pydantic import Field, model_validator
+from pydantic import ConfigDict, Field, model_validator
 
 from .schemas import StrictModel
 
@@ -41,6 +41,8 @@ def source_reference(source_id: str, version_id: str) -> str:
 
 
 class DriveObjectReference(StrictModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
     folder_id: str = Field(min_length=1)
     file_id: str = Field(min_length=1)
     revision_id: str = Field(min_length=1)
@@ -60,6 +62,8 @@ class DriveObjectReference(StrictModel):
 
 
 class SourceVersion(StrictModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
     version_id: str
     created_at: datetime
     published_at: datetime | None = None
@@ -92,6 +96,8 @@ class SourceVersion(StrictModel):
 
 
 class SourceRecord(StrictModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
     schema_version: Literal["1.0"] = "1.0"
     domain_id: Literal["financial_writing"] = "financial_writing"
     source_id: str
@@ -104,8 +110,8 @@ class SourceRecord(StrictModel):
     status: SourceStatus = "ACTIVE"
     created_at: datetime
     updated_at: datetime
-    current_version_id: str | None = None
-    versions: list[SourceVersion] = Field(min_length=1)
+    current_version_id: str
+    versions: tuple[SourceVersion, ...] = Field(min_length=1)
 
     @model_validator(mode="after")
     def validate_source_record(self):
@@ -129,11 +135,21 @@ class SourceRecord(StrictModel):
         ]
         if sequences != sorted(sequences):
             raise ValueError("source versions must be ordered by ascending sequence")
+        if sequences[0] != 1:
+            raise ValueError("source version history must start at v0001")
         if any(right != left + 1 for left, right in zip(sequences, sequences[1:])):
             raise ValueError("source version sequence must be contiguous")
-        if self.current_version_id not in version_ids:
-            raise ValueError("current_version_id must identify an existing immutable version")
-        current = next(item for item in self.versions if item.version_id == self.current_version_id)
+        if self.current_version_id != version_ids[-1]:
+            raise ValueError("current_version_id must identify the newest immutable version")
+        version_created_at = [item.created_at for item in self.versions]
+        if version_created_at != sorted(version_created_at):
+            raise ValueError("source version creation times must be ordered")
+        drive_file_ids = [item.drive_object.file_id for item in self.versions]
+        if len(drive_file_ids) != len(set(drive_file_ids)):
+            raise ValueError("each immutable source version must use a new Drive file ID")
+        if self.updated_at < self.versions[-1].created_at:
+            raise ValueError("updated_at cannot precede the newest source version")
+        current = self.versions[-1]
         if self.status == "ACTIVE" and current.status != "AVAILABLE":
             raise ValueError("ACTIVE source must point to an AVAILABLE current version")
         if self.source_type == "NEWS_MEDIA":
@@ -147,6 +163,8 @@ class SourceRecord(StrictModel):
 
 
 class SourceBinding(StrictModel):
+    model_config = ConfigDict(extra="forbid", str_strip_whitespace=True, frozen=True)
+
     schema_version: Literal["1.0"] = "1.0"
     task_id: str = Field(min_length=1)
     source_id: str
@@ -228,7 +246,7 @@ def append_source_version(record: SourceRecord, version: SourceVersion) -> Sourc
         raise ValueError("new source version cannot predate the current source record")
     return record.model_copy(
         update={
-            "versions": [*record.versions, version],
+            "versions": (*record.versions, version),
             "current_version_id": version.version_id,
             "updated_at": version.created_at,
         }
