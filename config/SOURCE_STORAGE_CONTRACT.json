@@ -125,7 +125,7 @@
   },
   "source_reader": {
     "current_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
-    "resolver": "Financial Provider Action resolves financial-source:// through the GitHub source record, reads the exact Drive file/revision, and returns the verified stored payload, retained text, and provenance. It must disclose whether the payload is original bytes, permitted excerpt, or metadata manifest.",
+    "resolver": "Financial Provider Action resolves only financial-source:// references through the GitHub source record, reads the exact Drive file/revision, and returns the verified stored payload, retained text, and provenance. It rejects raw external URLs at the durable research-evidence boundary. It must disclose whether the payload is original bytes, permitted excerpt, or metadata manifest.",
     "verifier_role": "Verify exact stored Drive payload bytes, retained normalized-text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
     "current_status": "NO_DRIVE_SOURCE_RESOLVER_OR_SOURCE_CRUD_PROVIDER_IS_DEPLOYED"
   },
@@ -154,7 +154,8 @@
     "Hosted Financial Provider Action is deployed with least-privilege Google Drive access to this folder and least-privilege GitHub App access to the Financial repository.",
     "Source resolver and source CRUD actions execute through the trusted provider, not direct model-authored GitHub commits or unverified Drive writes.",
     "Positive and negative tests pass for create/read/version-update/retire/restore/list, stale SHA, replay, wrong actor, altered bytes, cross-task scope, Drive revision mismatch, and timeout reconciliation.",
-    "A real source file is ingested, reread by exact Drive file/revision, bound to one article task, and independently verified."
+    "A real source file is ingested, reread by exact Drive file/revision, bound to one article task, and independently verified.",
+    "Before RESEARCH admission, validate exact equality between canonical source refs in PrivateResearchBrief/ResearchPackage and the current task SOURCE_BINDINGS.json; reject raw URLs and unbound refs."
   ],
   "non_goals": [
     "This contract does not create a news-reading-script workflow.",
@@ -169,5 +170,22 @@
     "retire_source",
     "restore_source",
     "bind_source_version"
-  ]
+  ],
+  "research_admission": {
+    "canonical_evidence_reference_scheme": "financial-source://{source_id}/{version_id}",
+    "raw_url_semantics": "DISCOVERY_OR_CITATION_METADATA_ONLY__NOT_AN_ADMITTED_DURABLE_RESEARCH_EVIDENCE_REFERENCE",
+    "task_binding_path": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+    "exact_coverage_rule": "The exact set of financial-source:// references in the admitted PrivateResearchBrief modules and ResearchPackage evidence ledger must equal the exact source_ref set in that task's SOURCE_BINDINGS.json.",
+    "task_scope_rule": "Every binding task_id must equal the current article task_id; TASK_ONLY sources cannot be reused by another task; GLOBAL_REUSABLE sources require explicit reusable scope in the source record.",
+    "no_unbound_evidence": true,
+    "no_floating_latest_reference": true,
+    "provider_must_reject": [
+      "raw external URLs used as admitted research evidence refs",
+      "financial-source:// references missing from the task SOURCE_BINDINGS.json",
+      "bindings for another task",
+      "version references that do not match the exact Drive file ID, revision ID, and stored-payload digest",
+      "duplicate source_ref entries or ambiguous source identity"
+    ],
+    "compatibility_boundary": "TaskContract.source_refs may contain user-supplied discovery URLs at INTAKE. After source admission, all durable PrivateResearchBrief and ResearchPackage evidence references must use exact financial-source:// references."
+  }
 }
