@@ -44,6 +44,9 @@ def _verify_exact_readback(
     if observed.get("media_type") != media_type:
         raise SourceReadbackError("DRIVE_SOURCE_MEDIA_TYPE_MISMATCH")
 
+    observed_size = observed.get("size_bytes")
+    if isinstance(observed_size, bool) or observed_size != size_bytes:
+        raise SourceReadbackError("DRIVE_SOURCE_SIZE_MISMATCH")
     payload = _payload_bytes(observed.get("payload"))
     if len(payload) != size_bytes:
         raise SourceReadbackError("DRIVE_SOURCE_SIZE_MISMATCH")

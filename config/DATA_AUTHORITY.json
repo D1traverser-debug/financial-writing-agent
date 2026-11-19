@@ -17,8 +17,7 @@
     "stage_outputs": "stages/",
     "reviews": "reviews/",
     "delivery": "delivery/",
-    "feedback": "feedback/",
-    "source_bindings": "research/SOURCE_BINDINGS.json (canonical provider-only artifact; never written in session-only mode or duplicated in the Drive source registry)"
+    "feedback": "feedback/"
   },
   "operations": {
     "create": "Create one task-scoped STATE.json through current_admission.build_initial_state.",

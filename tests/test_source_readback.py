@@ -110,7 +110,7 @@ def test_bound_reader_supports_immutable_drive_files_without_revision_ids():
         ({"revision_id": "another-revision"}, "REVISION_ID_MISMATCH"),
         ({"media_type": "text/plain"}, "MEDIA_TYPE_MISMATCH"),
         ({"size_bytes": 1}, "SIZE_MISMATCH"),
-        ({"payload": b"altered source payload bytes"}, "RAW_SHA256_MISMATCH"),
+        ({"payload": b"wrong original source payload"}, "RAW_SHA256_MISMATCH"),
         ({"text": "altered normalized source text with sufficient length"}, "NORMALIZED_TEXT_SHA256_MISMATCH"),
         ({"source_family": "secondary-source"}, "FAMILY_MISMATCH"),
     ],
