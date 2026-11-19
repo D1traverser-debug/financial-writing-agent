@@ -6,6 +6,7 @@ from pydantic import ValidationError
 
 from financial_writing_agent.source_lifecycle import (
     DriveObjectReference,
+    SourceBindingSet,
     SourceRecord,
     SourceVersion,
     append_source_version,
@@ -13,6 +14,7 @@ from financial_writing_agent.source_lifecycle import (
     create_source_record,
     retire_source,
     restore_source,
+    validate_source_binding_coverage,
 )
 
 
@@ -68,6 +70,8 @@ def test_create_and_bind_pins_exact_drive_file_revision_and_hashes():
     assert binding.drive_file_id == "drive-file-1"
     assert binding.drive_folder_id == "private-drive-folder"
     assert binding.source_type == "PUBLIC_PRIMARY_DOCUMENT"
+    assert binding.scope == "GLOBAL_REUSABLE"
+    assert binding.rights_basis == "PUBLIC_PRIMARY"
     assert binding.publisher == "Issuer"
     assert binding.canonical_url == "https://example.com/filing.pdf"
     assert binding.media_type == "application/pdf"
@@ -214,3 +218,77 @@ def test_source_domain_records_and_versions_are_immutable_values():
         record.versions.append(record.versions[0])
     with pytest.raises(ValidationError):
         record.versions[0].drive_object.file_id = "replacement-file"
+
+
+
+def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_refs():
+    record = _record()
+    binding = bind_source_version(
+        record,
+        version_id=record.current_version_id,
+        task_id="article-1",
+    )
+    binding_set = SourceBindingSet(
+        task_id="article-1",
+        research_revision=3,
+        private_research_brief_sha256="a" * 64,
+        research_package_sha256="b" * 64,
+        admitted_at=BASE + timedelta(days=2),
+        bindings=(binding,),
+    )
+
+    assert validate_source_binding_coverage(
+        binding_set,
+        task_id="article-1",
+        evidence_refs=[binding.source_ref],
+    ) == binding_set
+
+    with pytest.raises(ValueError, match="raw external URLs"):
+        validate_source_binding_coverage(
+            binding_set,
+            task_id="article-1",
+            evidence_refs=["https://example.com/filing.pdf"],
+        )
+    with pytest.raises(ValueError, match="exact source binding"):
+        validate_source_binding_coverage(
+            binding_set,
+            task_id="article-1",
+            evidence_refs=[],
+        )
+    with pytest.raises(ValueError, match="must be exact"):
+        validate_source_binding_coverage(
+            binding_set,
+            task_id="article-1",
+            evidence_refs=[binding.source_ref, "financial-source://src_" + "b" * 24 + "/v0001-" + "c" * 12],
+        )
+    with pytest.raises(ValueError, match="does not match"):
+        validate_source_binding_coverage(
+            binding_set,
+            task_id="article-2",
+            evidence_refs=[binding.source_ref],
+        )
+
+
+def test_binding_set_rejects_cross_task_and_duplicate_bindings():
+    record = _record()
+    binding = bind_source_version(
+        record,
+        version_id=record.current_version_id,
+        task_id="article-1",
+    )
+    with pytest.raises(ValidationError, match="belong to the binding-set task_id"):
+        SourceBindingSet(
+            task_id="article-2",
+            research_revision=1,
+            private_research_brief_sha256="a" * 64,
+            admitted_at=BASE + timedelta(days=2),
+            bindings=(binding,),
+        )
+    with pytest.raises(ValidationError, match="duplicate source_ref"):
+        SourceBindingSet(
+            task_id="article-1",
+            research_revision=1,
+            private_research_brief_sha256="a" * 64,
+            admitted_at=BASE + timedelta(days=2),
+            bindings=(binding, binding),
+        )
