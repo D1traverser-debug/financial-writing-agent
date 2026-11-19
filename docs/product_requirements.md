@@ -86,6 +86,9 @@ The brief is the private analytical workbench, not the public article. It must i
 
 `business strongest` and `most likely to become a short-horizon market core` are separate judgments. A company list, a few representative companies or one composite score cannot substitute for the brief.
 
+
+**Persistent source evidence and versioning.** Source metadata, immutable source versions and lifecycle history live in the owner-only Google Drive Source Library, whose single registry contains Sources, Versions and Events. Research evidence must cite exact `financial-source://{source_id}/{version_id}` refs, not floating URLs or latest-version aliases. Every update creates a new Drive file ID and hashes the exact retained payload and text; prior versions remain readable. News-media storage defaults to permitted excerpts/metadata or link-only. Session bindings remain in the work brief; canonical task bindings belong only in the Article Aggregate through the authenticated Provider Action. This registry is not a second article-state ledger.
+
 ### PR-05 — Decision Envelope for material judgments
 
 Before executing a material judgment, Financial must represent objective, evidence, learned items, challenged assumptions, at least two credible alternatives, fit/misfit/failure modes, counterexamples, rejected paths, selected candidate/rationale, search saturation, verification plan, remaining unknowns and evolution disposition. Mechanical actions do not require a full envelope.
@@ -146,7 +149,15 @@ Each gate cites text location/excerpt/finding. MAJOR/CRITICAL findings block PAS
 
 Research Audit separately validates the admitted private brief semantically; syntactic module completion with placeholder evidence is not enough.
 
-The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact persisted DRAFT bytes were reread and bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
+The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact DRAFT bytes are available as a rereadable artifact (canonical readback or current-session attachment) and are bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
+
+#### Provider-unavailable session draft delivery
+
+When the hosted Provider Action is unavailable, safe user-facing content production must remain available if the active ChatGPT session has the required research and document tools. `SESSION_DRAFT_DELIVERY` follows the same Financial content obligations and applicable semantic passes, but it is explicitly noncanonical: it uses an owner-visible session work brief rather than an admitted TaskIntakeManifest, creates no `STATE.json`, performs no canonical stage transition or method mutation, and does not claim signed independent intake or final review.
+
+The route may produce the contracted audit, Deep, Broad and interaction DOCX outputs (plus private research output when requested). Exact session artifact bytes must be reread and SHA-256-bound before INTERNAL_DELIVERY_READINESS. Same-chat review is not independent publication certification; independent editorial quality remains OPEN. Files are delivered as conversation attachments; private Library persistence requires an explicit user request. Do not write article research or deliverables to the public GitHub repository by default. If rendering or another required tool is unavailable, leave that specific proof gate OPEN rather than claiming completion.
+
+The exact session completion label is `SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED`. This mode does not weaken the canonical task contract: formal task creation, state transitions, binding requirement changes, method mutations and terminal closure still require the hosted Provider Action and their existing independent evidence. It is not a free-form fallback or a second task ledger.
 
 ### PR-13 — Focused internal pass architecture and portfolio orchestration
 

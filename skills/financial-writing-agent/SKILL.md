@@ -40,7 +40,7 @@ Binding requirement changes need the complete normalized upsert/retire set and e
 
 For defects: recover the reader outcome; test evidence and counterevidence; compare requirement, source, mechanism, narrative, runtime, artifact, reader and authority; falsify the preferred option; compare reuse/adapt/replace/remove by value, risk and reversibility. Use DecisionEnvelope; choose a bounded action.
 
-Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only. Provider Action NOT_DEPLOYED; no canonical persistence or owner-state writes until live.
+Execute, read back, correct and rerun negative/neighbor tests. Owner graph: INTAKE → RESEARCH → RESEARCH_AUDIT → EDITORIAL → TITLE → DRAFT → EDITORIAL_AUDIT → DELIVERY → MECHANICAL_AUDIT → FINAL_AUDIT. The 16 semantic passes are model-orchestrated. `portfolio_coordinator.run_next_portfolio_stage` runs one task-bound stage, persists typed artifact+context atomically, reads back/cross-binds them, then admits via `standalone_runtime.py`. Model supplies pass outputs; provider authenticates/persists. `execute_portfolio_writing` is test replay only.
 
 At `FINAL_AUDIT`, goal-first tasks require signed `independent_goal_outcome_review` bound to actual current Word binaries. It must assess every active requirement and success criterion with evidence. Only all-SATISFIED PASS may terminate; REVISE uses the existing allowed target; FAIL blocks. Visible-delivery readback remains separate. Reviewer PASS is not user acceptance.
 
@@ -65,11 +65,19 @@ All tasks use the same ten-stage workflow. Portfolio Context 1.1 binds the promp
 
 Use GitHub connector and `fetch_file` for reads; stage code only on candidate branches via `create_blob` → `create_tree` → `create_commit` → `update_ref(expected_sha)`. Do not direct-update `main`; Git CAS is not owner approval. Canonical owner-state/method writes require hosted Financial Provider Action: owner auth, `standalone_runtime.py`, signed provider admission, effect receipt, atomic CAS and exact readback. NOT_DEPLOYED; no substitute path.
 
-## Current research and publication evidence
+## Provider-unavailable session draft delivery
 
-Research facts need exact source text/family, retrieval time, body hash, period/unit/direction and contradiction review. Sources expire after seven days; stale or changed sources reopen RESEARCH. Require source-family diversity and two heterogeneous no-delta sweeps before saturation. Hashes prove identity, not entailment. Use the Financial research, market-explanation, claim-trace and PrivateResearchBrief schemas; separate facts, mechanisms, interpretations and unknowns.
+Use SESSION_DRAFT_DELIVERY when Provider Action is absent; follow docs/SESSION_DRAFT_DELIVERY.md. No canonical state or method writes. SHA-256-bind reread DOCX; same-chat readiness only, publication certification OPEN. Deliver attachments; Library only on request. Completion: SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED.
 
-PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE, PAYOFF. Same-chat review may clear INTERNAL_DELIVERY_READINESS only against exact draft bytes; Word remains uncertified. Publication certification requires independently verified review. Deliver actual `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, if contracted, `PRIVATE_RESEARCH_DOCX`; verify binaries, rendered PDF/PNG pages, visual inspection and current-session access. Filename, hash, PASS or CI alone proves neither delivery nor reader quality.
+## Persistent source library
+
+Owner-only Google Drive: ChatGPT / Financial Writing Agent / 00_Source_Library; registry: Financial Source Registry (Sources, Versions, Events). Drive/Sheets connectors provide exact-readback CRUD. New immutable file per version; revision optional. News: excerpt/metadata or link-only. Exact refs: financial-source://{source_id}/{version_id}. No task-binding tab: session refs stay in work brief; canonical bindings remain in Article Aggregate after Provider Action. Keep private source metadata out of public GitHub. See docs/FINANCIAL_SOURCE_LIBRARY.md.
+
+## Evidence and publication gates
+
+Bind claims to exact retained source/version, family, retrieval time, hash and period/unit/direction; preserve contradictions/unknowns. Seven-day freshness; stale/changed reopens RESEARCH. Two heterogeneous no-delta sweeps; hash proves identity, not truth.
+
+Eight PublicationFitness gates are mandatory. Same-chat review is INTERNAL_DELIVERY_READINESS only, not independent/publication certification. Research uses PrivateResearchBrief. Deliver AUDIT_DOCX, FINANCE_DEEP_DOCX, FINANCE_BROAD_DOCX and contracted platform/research packs; verify binaries, rendered pages, visuals and session access. CI/PASS/hash ≠ reader acceptance.
 
 ## Method governance and evolution
 

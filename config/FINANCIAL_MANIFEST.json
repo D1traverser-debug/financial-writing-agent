@@ -35,7 +35,8 @@
     "custom_hosted_service_required": true,
     "version": "0.1.4",
     "required_companion_action": "FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
-    "provider_action_status": "NOT_DEPLOYED"
+    "provider_action_status": "NOT_DEPLOYED",
+    "session_draft_delivery_supported": true
   },
   "system_completion_authority": "financial_writing_agent.acceptance_gates",
   "system_completion_status": "NOT_READY__EXTERNAL_PROVIDER_AND_CLIENT_REVIEW_OPEN",
@@ -47,7 +48,13 @@
     "write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA__OWNER_STATE_OR_METHOD_CATALOG_AND_SIGNED_EFFECT_RECEIPT_ATOMIC_BUNDLE",
     "readback_protocol": "FETCH_EXACT_COMMITTED_OWNER_STATE_OR_METHOD_CATALOG_AND_EFFECT_RECEIPT_BLOBS",
     "requires_hosted_python_mcp": true,
-    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT"
+    "python_adapter_role": "REQUIRED_PROVIDER_ACTION_RUNTIME__NOT_CALLABLE_IN_SKILL_ONLY_CHAT",
+    "session_draft_delivery_without_provider": true,
+    "session_draft_delivery_status": "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED",
+    "canonical_owner_state_and_method_mutation_requires_hosted_provider": true,
+    "source_library_provider": "AUTHENTICATED_GOOGLE_DRIVE_CONNECTOR",
+    "source_library_crud": "DIRECT_CONNECTOR_CREATE_READ_APPEND_VERSION_RETIRE_RESTORE_WITH_EXACT_READBACK",
+    "source_library_registry": "GOOGLE_DRIVE_FINANCIAL_SOURCE_REGISTRY__SOURCES_VERSIONS_EVENTS"
   },
   "provider_adapter_role": "REQUIRED_TRUSTED_EXECUTION_PROVIDER__NOT_DEPLOYED",
   "provider_action_effect_receipt": {
@@ -90,7 +97,19 @@
     "required": true,
     "protocol": "MCP_OVER_HTTPS",
     "status": "NOT_DEPLOYED",
-    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md"
+    "decision_ref": "docs/FINANCIAL_PROVIDER_BRIDGE_DECISION_20261115.md",
+    "required_for": [
+      "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
+      "CANONICAL_REQUIREMENT_MUTATION",
+      "METHOD_CATALOG_MUTATION",
+      "SIGNED_CANONICAL_ACTION_AND_EFFECT_RECEIPTS"
+    ],
+    "not_required_for": [
+      "READ_ONLY_CONTEXT_RECOVERY",
+      "SESSION_ONLY_RESEARCH_AND_ANALYSIS",
+      "SESSION_ONLY_DRAFT_AND_WORD_DELIVERY_WITH_INTERNAL_READINESS"
+    ],
+    "client_activation_gate": "VERIFY_A_WRITE_CAPABLE_CHATGPT_CLIENT_PATH_BEFORE_DEPLOYMENT__SERVER_DEPLOYMENT_ALONE_IS_NOT_CLIENT_ACTIVATION"
   },
   "task_requirement_scope_contract": {
     "source": "financial_writing_agent.task_requirements",
@@ -187,7 +206,7 @@
     "latest_candidate_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
     "latest_ci_run": 43924128311,
     "latest_ci_conclusion": "success",
-    "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully.",
+    "latest_ci_summary": "758 passed; 88% Python statement coverage; PR #89 squash-merge main commit exact-head CI completed successfully. This remains the last PR-integrated independently validated mainline head; later direct main pushes are tracked separately.",
     "last_completed_ci_head": "44eeaea6f871ed4006d7e98a36dd9375a5fc87ea",
     "publishing_portfolio": {
       "applies_to": "ALL_FINANCIAL_WRITING_TASKS_WHEN_PORTFOLIO_OUTPUTS_ARE_REQUESTED",
@@ -290,7 +309,7 @@
       "exact_main_ci_run": 43908728749,
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_EDITORIAL_ACCEPTANCE_OPEN"
     },
-    "latest_main_head_ci_semantics": "LATEST_INDEPENDENTLY_VALIDATED_FUNCTIONAL_MAINLINE_COMMIT__STATUS_EVIDENCE_FOLLOWUPS_ARE_SEPARATELY_TESTED",
+    "latest_main_head_ci_semantics": "LATEST_PR_INTEGRATED_MAIN_HEAD_WITH_EXACT_CI__DIRECT_PUSHES_RECORDED_SEPARATELY",
     "execution_profile_decision_binding_implementation": {
       "pull_request": 89,
       "candidate_code_head_sha": "d7db51af2b7d9c91489b489929528ce39cd6c951",
@@ -313,6 +332,48 @@
       "independent_technical_review": "NOT_OBTAINED",
       "real_model_semantic_acceptance": "OPEN",
       "status": "MERGED_TO_MAIN__ENGINEERING_PASS__REAL_MODEL_SEMANTIC_ACCEPTANCE_OPEN"
+    },
+    "latest_observed_main_push": {
+      "main_commit": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+      "event": "PUSH",
+      "ci_run": 44042260375,
+      "ci_conclusion": "success",
+      "tests_passed": 770,
+      "source_line_coverage_percent": 87,
+      "whole_tree_inventory": {
+        "tracked_files": 355,
+        "python_ast_parsed": 140,
+        "json_parsed": 55,
+        "decoded_text_lines": 59979,
+        "warnings": 0,
+        "errors": 0
+      },
+      "skill_utf8_bytes": 11541,
+      "assurance": "EXACT_MAIN_CI_PASS__NOT_PR_REVIEW_OR_EXTERNAL_PRODUCT_ACCEPTANCE"
     }
+  },
+  "external_host_required_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
+  "provider_action_required_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
+  "execution_mode_contract": "config/EXECUTION_CONTRACT.json#execution_modes",
+  "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
+  "source_library": {
+    "provider": "GOOGLE_DRIVE",
+    "status": "PROVISIONED_EMPTY__CONNECTOR_CRUD_INTEGRATION_TESTED__SOURCE_ROWS_EMPTY",
+    "root_folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
+    "registry_path": "00_Registry/Financial Source Registry",
+    "registry_tabs": [
+      "Sources",
+      "Versions",
+      "Events"
+    ],
+    "source_object_path": "01_Sources/{source_id}/versions/{version_id}",
+    "retired_path": "99_Retired/{source_id}",
+    "visibility": "OWNER_ONLY_PRIVATE__READBACK_VERIFIED",
+    "repository_visibility_change": "NOT_REQUIRED_FOR_SOURCE_LIBRARY",
+    "source_file_crud": "CREATE_READ_APPEND_VERSION_RETIRE_RESTORE",
+    "source_version_identity": "NEW_IMMUTABLE_DRIVE_FILE_ID_PLUS_RAW_SHA256__REVISION_ID_OPTIONAL",
+    "canonical_article_state_mutation": false,
+    "article_binding_authority": "ARTICLE_AGGREGATE__PROVIDER_ACTION_NOT_DEPLOYED",
+    "no_source_data_in_public_repository": true
   }
 }

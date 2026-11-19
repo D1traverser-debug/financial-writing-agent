@@ -20,6 +20,18 @@ For a safe candidate change: read the exact `main` SHA and file identities, crea
 
 See [Financial standalone interface](docs/STANDALONE_INTERFACE.md) and [whole-chain governance and falsification](docs/FINANCIAL_WHOLE_CONTROL_CHAIN_DECISION_20261114.md) for evidence boundaries.
 
+## Provider-unavailable session draft delivery
+
+The hosted Provider Action is required only for canonical article-state and method-catalog mutations. Its absence does not have to block user-facing content work. When the current session has research and document tools, the Skill may run the structured content workflow as `SESSION_DRAFT_DELIVERY`: recover the prompt into an owner-visible session brief, research, build the requested Deep/Broad/interaction products, generate Word files, reread exact bytes and provide internal delivery-readiness evidence. Deliver outputs as conversation attachments; use the private Library only on explicit request. Do not write article content to the public repository by default.
+
+This route does **not** create or advance `STATE.json`, admit the signed goal-first intake contract, mutate the method catalog, or claim independent review. Its only completion label is `SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED`. Canonical state changes and publication certification remain separate OPEN gates.
+
+## Persistent source library
+
+Original sources and source metadata live in the owner-only Google Drive library at `ChatGPT/Financial Writing Agent/00_Source_Library`. Its single registry is `00_Registry/Financial Source Registry` (Sources, Versions, Events). Versions are immutable; ordinary deletion means RETIRE/RESTORE. News media default to permitted excerpts/metadata or link-only.
+
+Session Draft Delivery may manage this library through the connected Drive connector with exact readback. This does not create a canonical article task, persist task bindings in Drive, write article state to the public GitHub repository or mutate the method catalog. See `docs/FINANCIAL_SOURCE_LIBRARY.md`.
+
 ## Canonical file map
 
 | Purpose | Canonical location |

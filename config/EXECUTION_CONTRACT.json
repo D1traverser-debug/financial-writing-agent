@@ -26,7 +26,10 @@
     "data_authority": "config/DATA_AUTHORITY.json",
     "governance_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
     "caos_governance_contract": "config/CAOS_GOVERNANCE.json",
-    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md"
+    "caos_governance_entrypoint": "CAOS_FINANCIAL_ENTRY.md",
+    "source_storage_contract": "config/SOURCE_STORAGE_CONTRACT.json",
+    "source_library_provider": "GOOGLE_DRIVE",
+    "source_library_registry": "00_Registry/Financial Source Registry"
   },
   "identity": {
     "article_id_semantics": "FINANCIAL_DOMAIN_ARTICLE_ID",
@@ -345,7 +348,11 @@
       "missing_input_behavior": "BLOCK_EDITORIAL_PASS_BEFORE_MODEL_CALLBACK",
       "purpose": "Preserve private-research publication choices and company-level comparative judgments into product-specific Deep/Broad StoryBlueprints",
       "company_decision_map_binding": "TOP_LEVEL_MAP_AND_CHANGE_CONDITIONS_MUST_MATCH_VALIDATED_RESEARCH_PACKAGE"
-    }
+    },
+    "session_draft_delivery_allowed": true,
+    "session_draft_delivery_contract": "execution_modes.SESSION_DRAFT_DELIVERY",
+    "provider_unavailable_behavior": "BLOCK_CANONICAL_STATE_AND_METHOD_MUTATION_ONLY__CONTINUE_STRUCTURED_SESSION_DRAFT_DELIVERY_WHEN_REQUIRED_TOOLS_EXIST",
+    "session_draft_delivery_status": "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED"
   },
   "knowledge_and_evolution": {
     "topic_and_method_knowledge_are_distinct": true,
@@ -461,7 +468,9 @@
       "new_events_may_not_roll_back_after_effect_bound_history": true
     },
     "cross_project_cognition_authority": "CAOS_CHAT_GOVERNED_EXTERNAL",
-    "external_provider_host_required": true
+    "external_provider_host_required": true,
+    "external_provider_host_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY",
+    "provider_unavailable_behavior": "BLOCK_CANONICAL_OWNER_STATE_AND_METHOD_MUTATIONS_ONLY__ALLOW_SESSION_DRAFT_DELIVERY_WITH_EXPLICIT_NONCANONICAL_STATUS"
   },
   "goal_method_governance": {
     "authority": "FINANCIAL_WRITING_OWNER",
@@ -554,7 +563,10 @@
     "business_effect_receipt_contract": "SIGNED_ACTION_EFFECT_RECEIPT_V1_0__OWNER_STATE_AND_METHOD_CATALOG_ATOMIC_BUNDLE_CAS__EXACT_BLOB_READBACK",
     "required_provider_action": "HOSTED_FINANCIAL_PROVIDER_ACTION_MCP_OVER_HTTPS",
     "provider_action_status": "NOT_DEPLOYED",
-    "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED"
+    "canonical_owner_state_and_method_mutation": "HOSTED_FINANCIAL_PROVIDER_ACTION_ONLY__DIRECT_GITHUB_CONNECTOR_WRITES_REJECTED",
+    "session_draft_delivery_without_provider": true,
+    "canonical_mutation_requires_hosted_provider": true,
+    "provider_action_scope": "CANONICAL_OWNER_STATE_AND_METHOD_CATALOG_MUTATIONS_ONLY"
   },
   "governance": {
     "system": "CAOS",
@@ -718,5 +730,80 @@
         "authority": "TASK_REQUIREMENT_AUTHORITY_REMAINS_SOLE_BINDING_REQUIREMENT_SOURCE"
       }
     }
+  },
+  "execution_modes": {
+    "SESSION_DRAFT_DELIVERY": {
+      "status": "AVAILABLE_WHEN_REQUIRED_SESSION_RESEARCH_AND_DOCUMENT_TOOLS_ARE_CONNECTED",
+      "provider_action_required": false,
+      "signed_independent_intake_review_required": false,
+      "signed_independent_final_outcome_review_required": false,
+      "canonical_article_state_mutation_allowed": false,
+      "method_catalog_mutation_allowed": false,
+      "work_scope": [
+        "READ_ONLY_CONTEXT_RECOVERY",
+        "PROMPT_BOUND_OWNER_VISIBLE_SESSION_WORK_BRIEF",
+        "RESEARCH_AND_RESEARCH_AUDIT",
+        "PRIVATE_RESEARCH_SYNTHESIS",
+        "DEEP_AND_BROAD_STORY_AND_DRAFT",
+        "PLATFORM_INTERACTION_PACK_WHEN_REQUESTED",
+        "EIGHT_GATE_INTERNAL_DELIVERY_READINESS",
+        "DOCX_GENERATION_AND_EXACT_FILE_READBACK",
+        "USER_VISIBLE_FILE_DELIVERY"
+      ],
+      "task_intake_status": "SESSION_WORK_BRIEF__NOT_CANONICAL_TASK_INTAKE",
+      "artifact_storage": "CONVERSATION_ATTACHMENTS__PRIVATE_LIBRARY_ONLY_ON_EXPLICIT_USER_REQUEST__NO_PUBLIC_GITHUB_ARTICLE_WRITE_BY_DEFAULT",
+      "review_scope": "INTERNAL_DELIVERY_READINESS_ONLY__SAME_CHAT_REVIEW_IS_NOT_INDEPENDENT",
+      "publication_certification": "OPEN__SEPARATE_AUTHENTICATED_REVIEWER_REQUIRED",
+      "completion_status": "SESSION_DRAFT_DELIVERED__NONCANONICAL__NOT_PUBLICATION_CERTIFIED",
+      "visual_proof": "RENDER_AND_INSPECT_IF_AVAILABLE__OTHERWISE_KEEP_VISUAL_GATE_OPEN",
+      "prohibited_claims": [
+        "CANONICAL_TASK_CREATED",
+        "CANONICAL_STAGE_ADVANCED",
+        "SIGNED_INDEPENDENT_INTAKE_REVIEW",
+        "SIGNED_INDEPENDENT_GOAL_OUTCOME_PASS",
+        "PUBLICATION_CERTIFIED",
+        "METHOD_PROMOTED",
+        "CANONICAL_STATE_PERSISTED"
+      ],
+      "source_library_crud_allowed": true,
+      "source_library_provider": "AUTHENTICATED_GOOGLE_DRIVE_CONNECTOR",
+      "source_library_scope": [
+        "CREATE_SOURCE",
+        "READ_SOURCE",
+        "APPEND_IMMUTABLE_VERSION",
+        "RETIRE_SOURCE",
+        "RESTORE_SOURCE",
+        "SEARCH_SOURCE"
+      ],
+      "source_library_requires_exact_drive_and_registry_readback": true,
+      "source_library_does_not_authorize_article_state_or_method_mutation": true
+    },
+    "CANONICAL_OWNER_EXECUTION": {
+      "status_without_provider": "BLOCKED__KEEP_AFFECTED_CANONICAL_ACTION_OPEN",
+      "provider_action_required": true,
+      "signed_independent_intake_review_required": true,
+      "signed_action_and_effect_receipts_required": true,
+      "independent_final_outcome_review_required": true,
+      "canonical_article_state_mutation_allowed": true,
+      "method_catalog_mutation_allowed": true,
+      "provider_unavailable_behavior": "DO_NOT_SUBSTITUTE_DIRECT_GITHUB_WRITES__MODEL_SIGNED_RECEIPTS__OR_SYNTHETIC_CALLBACKS"
+    }
+  },
+  "source_library": {
+    "provider": "GOOGLE_DRIVE",
+    "contract": "config/SOURCE_STORAGE_CONTRACT.json",
+    "registry_tabs": [
+      "Sources",
+      "Versions",
+      "Events"
+    ],
+    "immutable_version_file_ids": true,
+    "append_only_events": true,
+    "exact_source_ref": "financial-source://{source_id}/{version_id}",
+    "drive_revision_id_required": false,
+    "session_connector_crud_allowed": true,
+    "canonical_article_binding_owner": "Article Aggregate",
+    "no_parallel_article_ledger": true,
+    "repository_visibility_change_required": false
   }
 }

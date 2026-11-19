@@ -61,10 +61,12 @@ def test_problem_journal_preserves_historical_parent_queue_as_archival_provenanc
         "P-20261116-03",
         "P-20261116-04",
         "P-20261117-02",
+        "P-20261117-03",
+        "P-20261119-01",
     }
     for entry in required_entries:
         assert entry in journal
-    assert "Journal revision: `2.6`" in journal
+    assert "Journal revision: `2.8`" in journal
     assert "DURABLE_PROBLEM_HISTORY__NOT_CURRENT_SYSTEM_STATUS" in journal
     assert "PROMOTED__EXECUTABLE_POLICY_AND_TRAJECTORY_VERIFIED__LIVE_ARTICLE_OBSERVATION_OPEN" in journal
     assert "CI #1034" in journal
@@ -106,7 +108,7 @@ def test_machine_index_preserves_parent_history_without_live_parent_handoff():
     assert latest_incident_id.startswith("P-")
     assert payload["latest_incident_ref"].endswith(f"#{latest_incident_id}")
     assert {"P-20261116-01", "P-20261116-02", "P-20261116-03", "P-20261116-04"} <= set(payload["open_items_at_2026_11_16"])
-    assert latest_incident_id in payload["open_items_at_2026_11_17"]
+    assert latest_incident_id in payload["candidate_repaired_items_at_2026_11_19"]
     assert "executable_proactive_resolution_promotion_receipt" in payload
     assert "executable_proactive_resolution_candidate" not in payload
     receipt = payload["executable_proactive_resolution_promotion_receipt"]

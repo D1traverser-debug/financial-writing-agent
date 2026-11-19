@@ -1,0 +1,107 @@
+{
+  "schema_version": "1.2",
+  "domain_id": "financial_writing",
+  "status": "DRIVE_SOURCE_LIBRARY_PROVISIONED_EMPTY__CONNECTOR_CRUD_TESTED__RESEARCH_READBACK_IMPLEMENTED",
+  "canonical_store": {
+    "model": "GOOGLE_DRIVE_SOURCE_REGISTRY_AND_IMMUTABLE_SOURCE_OBJECTS__GITHUB_ARTICLE_STATE_AND_METHOD_CATALOG",
+    "provider": "GOOGLE_DRIVE",
+    "root_folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
+    "registry_path": "00_Registry/Financial Source Registry",
+    "registry_tabs": [
+      "Sources",
+      "Versions",
+      "Events"
+    ],
+    "source_object_path": "01_Sources/{source_id}/versions/{version_id}/original",
+    "retired_path": "99_Retired/{source_id}",
+    "visibility": "OWNER_ONLY_PRIVATE__LIVE_READBACK_VERIFIED",
+    "repository_visibility": "OWNER_ACCEPTED_PUBLIC__NO_CHANGE_REQUESTED",
+    "repository_data_boundary": "NO_SOURCE_FILES_OR_PRIVATE_SOURCE_METADATA_OR_TASK_BINDINGS_IN_PUBLIC_GITHUB",
+    "metadata_and_lifecycle_authority": {
+      "provider": "GOOGLE_DRIVE",
+      "registry_path": "00_Registry/Financial Source Registry",
+      "registry_tabs": [
+        "Sources",
+        "Versions",
+        "Events"
+      ]
+    },
+    "source_object_authority": "GOOGLE_DRIVE_IMMUTABLE_VERSION_FILES",
+    "article_state_authority": "workspaces/articles/{task_id}/STATE.json",
+    "method_catalog_authority": "knowledge/METHOD_KNOWLEDGE_CATALOG.json",
+    "article_binding_root": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+    "article_binding_write_status": "PROVIDER_ONLY__BLOCKED_WHILE_PROVIDER_UNDEPLOYED",
+    "no_parallel_source_metadata_ledger": true,
+    "no_parallel_article_ledger": true,
+    "rationale": "Google Drive owns source identity metadata, lifecycle events and immutable source payloads. GitHub remains the code, article-state and method-catalog authority. The owner has accepted the existing public repository visibility; no visibility change or migration is requested. Do not add original source files, private source metadata or task bindings to public GitHub. Canonical article and method writes remain blocked solely because the hosted Provider Action is not deployed and signed owner admission/effect readback is required."
+  },
+  "identity": {
+    "source_id": "src_<24 lowercase hex>",
+    "version_id": "vNNNN-<first 12 lowercase hex of exact stored payload SHA-256>",
+    "source_ref": "financial-source://{source_id}/{version_id}",
+    "drive_file_id_required": true,
+    "drive_revision_id_required": false,
+    "revision_identity": "A new immutable Drive file ID plus exact raw SHA-256 is mandatory; record the Drive revision ID when the connector exposes it.",
+    "source_version_file_id_must_be_unique": true,
+    "collision_check": "Search Sources by source_id and canonical_url before committing a new identity."
+  },
+  "registry": {
+    "Sources": "One immutable identity row per source_id, including title, publisher, URL, type, scope, task restriction and source folder ID.",
+    "Versions": "One immutable row per version, including exact Drive file/revision identity, stored payload hash, retained-text hash, source family, retrieval/publication times, rights and extractor metadata.",
+    "Events": "Append-only CREATE, ADD_VERSION, RETIRE, RESTORE and BLOCK lifecycle events. Google Sheets row order is authoritative event order.",
+    "task_bindings": "Not stored in the source registry. Session-only bindings remain in memory and the session work brief; canonical task bindings belong to the Article Aggregate only after provider deployment and repository privacy verification."
+  },
+  "crud": {
+    "create": "Search for duplicates; mint source_id and v0001 from the exact retained payload; create source/version folders; upload only rights-permitted bytes, excerpt or metadata manifest; read back exact file ID, parent, optional revision, size, payload and extracted text; verify both hashes; append Sources, Versions and CREATE rows; read all rows back before reporting AVAILABLE.",
+    "read": "Resolve source_id/version_id through the registry, fetch by exact Drive file ID, and verify parent folder, optional revision, MIME type, byte size, raw SHA-256, retained-text SHA-256 and source family. Filename matching is never authoritative.",
+    "update": "Create a new version folder and new Drive file ID; never overwrite an accepted version. Verify the new payload, append one Versions row and ADD_VERSION event, then read back the registry. Old versions remain readable.",
+    "delete": "Ordinary delete means RETIRE: append a RETIRE event and move the source folder to 99_Retired. Keep referenced files and event history; do not physically delete.",
+    "restore": "Move the source folder back to 01_Sources and append a RESTORE event. Verify both lifecycle status and current-version availability.",
+    "list_search": "Search the Sources registry by source_id, title, publisher, URL, type or tags; use Drive folder listing only for object discovery, never as identity authority."
+  },
+  "storage_policies": {
+    "RAW_PRESERVED": "Only user-provided, licensed or public-primary source material whose retention is lawful.",
+    "METADATA_AND_EXCERPT_ONLY": "Store bibliographic metadata and only a permitted short excerpt; hash exactly what is retained.",
+    "LINK_ONLY": "Store metadata and canonical URL; do not claim that the source body was preserved or byte-verified."
+  },
+  "research_binding": {
+    "reference_scheme": "financial-source://{source_id}/{version_id}",
+    "session_mode": "Build an in-memory SourceBindingSet pinned to the current research revision and exact artifact digests; retain its refs in the session work brief and deliverables.",
+    "canonical_mode": "Persist task bindings only inside the Article Aggregate through the hosted Provider Action after repository privacy and provider gates pass.",
+    "exact_coverage": "Every source ref in the admitted DecisionEnvelope, PrivateResearchBrief and ResearchPackage must equal the exact bound source_ref set.",
+    "raw_urls": "Discovery inputs only; never admitted durable research evidence refs.",
+    "no_floating_latest_reference": true
+  },
+  "execution_boundary": {
+    "session_source_crud": "DIRECT_AUTHENTICATED_GOOGLE_DRIVE_CONNECTOR__EXACT_READBACK_REQUIRED",
+    "session_draft_delivery": "May create, read, append immutable versions, retire and restore source objects and registry rows. It may not create canonical article state, persist a second task ledger or mutate the method catalog.",
+    "canonical_article_and_method_writes": "Hosted Financial Provider Action remains NOT_DEPLOYED; canonical writes stay blocked.",
+    "public_repository": "The owner accepts the current public visibility. Do not add original source files, private source metadata or task bindings to public GitHub. Article state remains the single GitHub authority; canonical writes require the deployed authenticated Provider Action."
+  },
+  "source_reader": {
+    "adapter": "financial_writing_agent.source_readback.build_bound_source_reader",
+    "verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
+    "required_readback": [
+      "file_id",
+      "folder_id",
+      "revision_id_when_available",
+      "media_type",
+      "size_bytes",
+      "raw_payload",
+      "normalized_text",
+      "source_family"
+    ],
+    "verification": "Exact file/folder identity, optional revision, MIME type, byte size, raw SHA-256, retained-text SHA-256 and source family."
+  },
+  "rights_and_retention": {
+    "news_media": "Default to METADATA_AND_EXCERPT_ONLY or LINK_ONLY. Public accessibility is not permission to retain a full copyrighted article.",
+    "excerpts": "Hash only the exact excerpt/metadata stored; never label it as a full-article hash.",
+    "publication": "Never publish source originals or private research artifacts without explicit authorization."
+  },
+  "provisioned_state": {
+    "drive_root": "OWNER_ONLY_PRIVATE__READBACK_VERIFIED",
+    "registry": "THREE_TABS_CREATED_AND_HEADERS_READ_BACK",
+    "integration_test": "CREATE_UPLOAD_READBACK_HASH_VERSION_APPEND_RETIRE_RESTORE_TESTED_WITH_DISPOSABLE_FIXTURES",
+    "production_rows": "EMPTY__NO_USER_SOURCE_HAS_BEEN_INGESTED"
+  }
+}
