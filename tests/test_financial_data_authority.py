@@ -79,6 +79,12 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
         "financial_writing_agent.source_lifecycle.SourceBindingSet"
     )
     assert source_receipt["task_binding_set"]["exact_evidence_ref_coverage_required"] is True
+    assert source_receipt["task_binding_set"]["source_ref_collector"] == (
+        "financial_writing_agent.source_lifecycle.collect_research_source_refs"
+    )
+    assert set(source_receipt["task_binding_set"]["coverage_artifacts"]) == {
+        "DecisionEnvelope", "PrivateResearchBrief", "ResearchPackage",
+    }
     assert manifest["provider_action_endpoint"]["source_store_connector"].startswith("CONNECTED_GOOGLE_DRIVE")
     assert set(manifest["provider_action_endpoint"]["required_for"]) == {
         "CANONICAL_ARTICLE_STATE_CREATE_OR_ADVANCE",
@@ -117,6 +123,9 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
         "financial_writing_agent.source_lifecycle.SourceBindingSet"
     )
     assert source_mutation["exact_evidence_ref_coverage_required"] is True
+    assert source_mutation["source_ref_collector"] == (
+        "financial_writing_agent.source_lifecycle.collect_research_source_refs"
+    )
 
 
 def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_provider():
@@ -128,6 +137,7 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert set(contract["domain_model_functions"]) == {
         "create_source_record", "append_source_version", "retire_source",
         "restore_source", "bind_source_version", "validate_source_binding_coverage",
+        "collect_research_source_refs",
     }
     assert set(contract["domain_model_types"]) == {
         "DriveObjectReference", "SourceVersion", "SourceRecord",
@@ -140,6 +150,10 @@ def test_drive_source_storage_contract_defines_versioned_crud_and_fail_closed_pr
     assert "rights_basis" in contract["task_binding"]["fields"]
     assert "source_task_id" in contract["task_binding"]["fields"]
     assert "exact equality" in contract["research_admission"]["exact_coverage_rule"]
+    assert set(contract["research_admission"]["source_ref_collector"]["artifacts"]) == {
+        "DecisionEnvelope", "PrivateResearchBrief", "ResearchPackage",
+    }
+    assert "prior_knowledge_refs" in contract["research_admission"]["source_ref_collector"]["excludes"]
     assert contract["canonical_store"]["raw_object_store"]["provider"] == "GOOGLE_DRIVE"
     assert contract["canonical_store"]["raw_object_store"]["folder_id_ref"] == (
         "REQUIRED_PRIVATE_PROVIDER_CONFIGURATION:FINANCIAL_SOURCE_DRIVE_FOLDER_ID"
