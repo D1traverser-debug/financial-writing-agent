@@ -1,50 +1,70 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
   "domain_id": "financial_writing",
-  "status": "DESIGN_ONLY__BLOCKED_UNTIL_PRIVATE_REPOSITORY_AND_LIVE_PROVIDER",
+  "status": "DESIGN_ONLY__PRIVATE_DRIVE_FOLDER_PROVISIONED__SOURCE_PROVIDER_NOT_DEPLOYED",
   "canonical_store": {
-    "provider": "GITHUB_GIT_OBJECTS",
-    "repository_authority": "config/DATA_AUTHORITY.json#business_authority",
-    "required_repository_visibility": "PRIVATE",
-    "activation_status": "BLOCKED_UNTIL_RUNTIME_VISIBILITY_AND_PROVIDER_READBACK_VERIFIED",
-    "no_external_fallback": true,
-    "rationale": "Article state, method catalog, source records, and signed effects must share one authenticated Git CAS/readback authority. A second file store would create split authority before migration is designed."
+    "model": "GITHUB_SOURCE_REGISTRY_AND_ARTICLE_STATE__GOOGLE_DRIVE_IMMUTABLE_RAW_OBJECTS",
+    "raw_object_store": {
+      "provider": "GOOGLE_DRIVE",
+      "folder_path": "ChatGPT/Financial Writing Agent/00_Source_Library",
+      "folder_id": "1l9STZjrrqg37_qKrBcKZ2zRkjC7pM0MQ",
+      "parent_folder_id": "1ab4eqBF2UTNYk8tWgIve40Z38lFuwhQt",
+      "visibility": "PRIVATE_VERIFIED_NOT_SHARED_2026_11_19",
+      "owner_only_permission_verified": true
+    },
+    "metadata_and_lifecycle_authority": {
+      "provider": "GITHUB",
+      "repository": "github://D1traverser-debug/financial-writing-agent@main",
+      "source_record_root": "sources/{source_id}/SOURCE.json",
+      "source_effect_root": "sources/{source_id}/actions/{action_id}.effect.json"
+    },
+    "article_state_authority": "workspaces/articles/{task_id}/STATE.json",
+    "article_binding_root": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
+    "repository_visibility_required": "PRIVATE",
+    "repository_activation_status": "BLOCKED_UNTIL_RUNTIME_VISIBILITY_AND_PROVIDER_READBACK_VERIFIED",
+    "no_parallel_article_ledger": true,
+    "no_parallel_source_metadata_ledger": true,
+    "rationale": "Drive stores original binary source objects and large files; GitHub owns source identity/lifecycle metadata, exact task bindings, and article state. This is an object-store/control-plane split, not two competing business-state authorities."
   },
   "paths": {
-    "source_root": "sources/",
-    "source_record": "sources/{source_id}/SOURCE.json",
-    "version_root": "sources/{source_id}/versions/{version_id}/",
-    "version_manifest": "sources/{source_id}/versions/{version_id}/MANIFEST.json",
-    "original_bytes": "sources/{source_id}/versions/{version_id}/original.{safe_extension}",
-    "normalized_text": "sources/{source_id}/versions/{version_id}/normalized.txt",
-    "source_effect_receipt": "sources/{source_id}/actions/{action_id}.effect.json",
-    "task_binding": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json"
+    "drive_source_root": "ChatGPT/Financial Writing Agent/00_Source_Library/",
+    "drive_source_folder": "ChatGPT/Financial Writing Agent/00_Source_Library/{source_id}/",
+    "drive_version_root": "ChatGPT/Financial Writing Agent/00_Source_Library/{source_id}/versions/{version_id}/",
+    "drive_original_bytes": ".../{version_id}/original.{safe_extension}",
+    "drive_version_manifest": ".../{version_id}/MANIFEST.json",
+    "github_source_record": "sources/{source_id}/SOURCE.json",
+    "github_source_effect_receipt": "sources/{source_id}/actions/{action_id}.effect.json",
+    "article_task_binding": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json"
   },
   "identity": {
     "source_id": "Opaque stable identifier minted by the trusted provider; never derive identity from a mutable filename or title.",
-    "version_id": "Monotonic per-source version plus a digest suffix; each version is immutable.",
+    "version_id": "Monotonic per-source version plus a raw SHA-256 digest suffix, allocated under GitHub expected-SHA CAS.",
     "reference_scheme": "financial-source://{source_id}/{version_id}",
-    "exact_reference_required": true,
+    "resolver": "GitHub SOURCE.json maps the logical source/version reference to the exact Drive file ID and revision ID.",
+    "drive_file_id_required": true,
+    "drive_revision_id_required": true,
     "latest_version_alias_allowed": false
   },
   "version_contract": {
-    "immutable_version_payload": true,
+    "one_new_drive_file_per_immutable_source_version": true,
+    "overwrite_existing_drive_version_forbidden": true,
     "preserve_original_bytes_when_storage_policy_allows": true,
-    "preserve_normalized_text_and_extractor_identity": true,
+    "preserve_drive_file_id_and_revision_id": true,
     "record_raw_sha256": true,
     "record_normalized_text_sha256": true,
-    "record_git_blob_sha_for_each_stored_file": true,
+    "record_drive_file_size_and_mime_type": true,
+    "record_github_metadata_blob_sha": true,
     "bind_retrieval_time_and_source_family": true,
     "parser_or_extractor_version_required": true,
-    "metadata_changes_create_new_manifest_revision": true,
-    "overwriting_an_existing_version_forbidden": true
+    "update_source_pointer_only_through_github_cas": true,
+    "prior_versions_remain_readable": true
   },
   "crud": {
-    "create": "Create a source identity, immutable first version, provenance manifest, and signed effect receipt in one conditional Git commit; read back every exact blob.",
-    "read": "Read by exact source_id and version_id; verify the source record, version manifest, original-byte digest, normalized-text digest, and Git blob identities. Never resolve a task citation to an unpinned latest version.",
-    "update": "Append a new immutable version and update the source's current-version pointer with expected-SHA CAS; preserve all prior versions and append an effect event.",
-    "delete": "Default DELETE semantics are RETIRE: prevent new task bindings while preserving versions and existing task references. RESTORE is explicit. Physical deletion is forbidden for any source referenced by an article, evidence ledger, receipt, or audit. Legal erasure requires a separately approved history/backup purge procedure.",
-    "list_search": "List and search source records by metadata (title, publisher, source family, source type, company/topic, publication date, retrieval date, status, and digest); results must return exact source_id/version_id references."
+    "create": "Upload a new immutable original file into the private Drive source folder, fetch/read back the exact Drive file/revision, compute raw SHA-256, then create the GitHub SOURCE.json record and signed effect receipt in one conditional Git commit. Do not admit the source if readback fails.",
+    "read": "Read GitHub SOURCE.json by source_id/version_id, resolve the exact Drive file_id and revision_id, fetch the original bytes, and verify raw SHA-256, normalized-text SHA-256, Drive metadata, and GitHub blob identities. Filename-only matching is never authoritative.",
+    "update": "Create a new Drive file for the new version; never replace old bytes. After exact Drive readback, CAS-update the GitHub source record/current-version pointer and append the signed effect receipt. Existing article bindings stay pinned to the old version.",
+    "delete": "Default DELETE semantics are RETIRE in the GitHub source record: prevent new task bindings while preserving all Drive versions and existing task references. RESTORE is explicit. Physical Drive deletion is forbidden for any source referenced by an article, evidence ledger, receipt, or audit. Legal erasure requires a separately approved history/backup purge.",
+    "list_search": "List/search GitHub source records by metadata and return exact source_id/version_id references; use the Drive folder only to locate/read the corresponding immutable objects. Do not treat a folder listing as the business registry."
   },
   "task_binding": {
     "path": "workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json",
@@ -52,6 +72,9 @@
       "source_id",
       "version_id",
       "source_ref",
+      "drive_folder_id",
+      "drive_file_id",
+      "drive_revision_id",
       "source_type",
       "publisher",
       "canonical_url",
@@ -62,8 +85,7 @@
       "storage_policy",
       "raw_sha256",
       "normalized_text_sha256",
-      "original_git_blob_sha",
-      "normalized_git_blob_sha",
+      "drive_file_size_bytes",
       "extractor_name",
       "extractor_version"
     ],
@@ -89,37 +111,53 @@
     "required_controls": [
       "authenticated_owner_identity",
       "exact_action_digest_and_owner_confirmation",
+      "least_privilege_google_drive_access_to_source_folder",
+      "least_privilege_github_app_access_to_financial_repository",
       "provider_signed_action_and_effect_receipt",
-      "expected_blob_sha_compare_and_swap",
-      "atomic_source_record_and_effect_receipt_commit",
-      "exact_blob_readback",
-      "idempotent_reconciliation_after_timeout"
+      "expected_blob_sha_compare_and_swap_for_github_metadata",
+      "exact_drive_file_revision_and_byte_readback",
+      "atomic_github_source_record_and_effect_receipt_commit",
+      "exact_github_blob_readback",
+      "idempotent_reconciliation_after_drive_upload_or_github_commit_timeout"
     ]
   },
   "source_reader": {
     "current_verifier": "financial_writing_agent.current_research_sources.verify_current_research_sources",
-    "resolver": "Financial Provider Action resolves financial-source:// references to exact immutable source versions.",
-    "verifier_role": "Verify exact bytes, normalized text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
-    "current_status": "NO_SOURCE_RESOLVER_OR_SOURCE_CRUD_PROVIDER_IS_DEPLOYED"
+    "resolver": "Financial Provider Action resolves financial-source:// through the GitHub source record, reads the exact Drive file/revision, and returns verified bytes/text and provenance.",
+    "verifier_role": "Verify exact source bytes, normalized text digest, source family, retrieval freshness, and task binding; it is not the source CRUD manager.",
+    "current_status": "NO_DRIVE_SOURCE_RESOLVER_OR_SOURCE_CRUD_PROVIDER_IS_DEPLOYED"
   },
   "rights_and_retention": {
-    "user_supplied_files": "Preserve original bytes in the private store unless the user requests otherwise or a legal restriction applies.",
+    "user_supplied_files": "Preserve original bytes in the private Drive store unless the user requests otherwise or a legal restriction applies.",
     "public_primary_documents": "Preserve source bytes when lawful and within provider storage limits; always retain provenance and exact retrieval metadata.",
     "news_or_paywalled_material": "Do not copy full copyrighted articles by default; retain URL, bibliographic metadata, permitted short excerpts, and retrieval/body digests unless the user has rights or a license.",
-    "oversized_files": "Fail closed when Git/provider limits are exceeded; do not silently substitute public storage, temporary files, Drive, or Library as canonical storage.",
+    "oversized_files": "Fail closed when Drive/provider limits are exceeded; do not silently substitute public storage, temporary files, Library, or Notion as canonical storage.",
     "publication": "Never publish source originals or private research artifacts without explicit authorization."
   },
+  "input_boundary": {
+    "eligible_sources": "Files explicitly supplied for the current Financial task or sources deliberately acquired during its current research.",
+    "excluded_by_default": [
+      "news-reading scripts",
+      "Word document merge inputs",
+      "unrelated recent conversation attachments",
+      "historical Library files not explicitly selected for this task",
+      "Notion knowledge pages as raw source originals"
+    ],
+    "new_article_rule": "A normal new article is NEW_TASK; it does not inherit prior task attachments or source bindings.",
+    "continuation_rule": "Only explicit continuation may read the named article STATE and its exact bound source versions."
+  },
   "activation_gates": [
-    "Repository metadata confirms PRIVATE visibility.",
-    "Hosted Financial Provider Action is deployed and installed with least-privilege access to the canonical repository.",
-    "Source resolver and source CRUD actions execute through the trusted provider, not direct model-authored Git commits.",
-    "Positive and negative tests pass for create/read/version-update/retire/restore/list, stale SHA, replay, wrong actor, altered bytes, cross-task scope, and exact readback.",
-    "A real source file is ingested, reread by exact version, bound to one article task, and independently verified."
+    "The canonical Financial GitHub repository is verified PRIVATE because it currently contains private research and article artifacts.",
+    "The Google Drive source folder remains PRIVATE and its exact folder ID is verified.",
+    "Hosted Financial Provider Action is deployed with least-privilege Google Drive access to this folder and least-privilege GitHub App access to the Financial repository.",
+    "Source resolver and source CRUD actions execute through the trusted provider, not direct model-authored GitHub commits or unverified Drive writes.",
+    "Positive and negative tests pass for create/read/version-update/retire/restore/list, stale SHA, replay, wrong actor, altered bytes, cross-task scope, Drive revision mismatch, and timeout reconciliation.",
+    "A real source file is ingested, reread by exact Drive file/revision, bound to one article task, and independently verified."
   ],
   "non_goals": [
     "This contract does not create a news-reading-script workflow.",
     "This contract does not treat a URL, filename, chat attachment, or temporary path as a durable source record.",
-    "This contract does not make ChatGPT Library or Google Drive a second canonical source store.",
+    "This contract does not make Notion, ChatGPT Library, or temporary files a second raw-source store.",
     "This contract does not retroactively rewrite historical article states or their receipts."
   ]
 }
