@@ -12,6 +12,7 @@ from financial_writing_agent.writing_kernel import (
     SHARED_RESEARCH_PASSES,
     WritingPass,
     validate_kernel,
+    validate_pass_dataflow,
 )
 
 
@@ -139,3 +140,130 @@ def test_story_architecture_consumes_private_research_distillation_and_adjudicat
     # _invoke_pass forwards exactly required_inputs, so these are real model inputs,
     # not merely data that happens to remain in the surrounding shared context.
     assert validate_kernel() == []
+
+
+
+def test_fact_integrity_audit_receives_the_admitted_evidence_and_adjudicated_comparison():
+    from financial_writing_agent.writing_kernel import _invoke_pass
+
+    node = WritingPass.FACT_INTEGRITY_AUDIT
+    required = set(PASS_CONTRACTS[node].required_inputs)
+    expected = {
+        "edited_draft",
+        "evidence_ledger",
+        "audited_evidence",
+        "selected_thesis",
+        "company_decision_map",
+        "change_conditions",
+        "publication_distillation",
+        "product_mode",
+    }
+    assert required == expected
+    assert validate_pass_dataflow() == []
+
+    company_map = {
+        "material_companies": ["甲公司", "乙公司"],
+        "dimensions": [{
+            "dimension": "经营现金流方向",
+            "company_assessments": {
+                "甲公司": "同比增长",
+                "乙公司": "同比下降",
+            },
+            "evidence_refs": ["issuer-a-q3", "issuer-b-q3"],
+        }],
+    }
+    audited_evidence = {
+        "admission": "PASS",
+        "evidence_refs": ["issuer-a-q3", "issuer-b-q3"],
+        "source_snapshots": {"issuer-a-q3": "sha-a", "issuer-b-q3": "sha-b"},
+    }
+    current = {
+        "edited_draft": "甲公司增长，乙公司下降。",
+        "evidence_ledger": [{"claim": "两家公司现金流方向不同。"}],
+        "audited_evidence": audited_evidence,
+        "selected_thesis": {"statement": "同一行业下现金流兑现出现分化。"},
+        "company_decision_map": company_map,
+        "change_conditions": ["后续季度现金流方向反转"],
+        "publication_distillation": {"core_comparison": "甲增乙降"},
+        "product_mode": "FINANCE_DEEP",
+    }
+    observed = {}
+
+    def execute_pass(actual_node, provided):
+        assert actual_node == node
+        observed.update(provided)
+        return {"fact_findings": {"status": "REVISE", "evidence": ["公司方向对应需复核"]}}
+
+    _invoke_pass(
+        node,
+        current,
+        execute_pass=execute_pass,
+        trace=[],
+        scope="FINANCE_DEEP",
+    )
+    assert set(observed) == expected
+    assert observed["audited_evidence"] == audited_evidence
+    assert observed["company_decision_map"] == company_map
+    assert observed["change_conditions"] == ["后续季度现金流方向反转"]
+
+
+def test_platform_interaction_branches_preserve_the_same_company_decision_context():
+    required_context = {
+        "selected_thesis",
+        "company_decision_map",
+        "change_conditions",
+        "publication_distillation",
+        "audited_evidence",
+    }
+    for node in (
+        WritingPass.PLATFORM_INTERACTION_ADAPTATION,
+        WritingPass.PLATFORM_INTERACTION_AUDIT,
+    ):
+        assert required_context <= set(PASS_CONTRACTS[node].required_inputs)
+    assert validate_pass_dataflow() == []
+
+
+def test_execution_and_manifest_contracts_declare_fact_and_interaction_dataflow():
+    root = Path(__file__).resolve().parents[1]
+    execution = json.loads(
+        (root / "config/EXECUTION_CONTRACT.json").read_text(encoding="utf-8")
+    )
+    manifest = json.loads(
+        (root / "config/FINANCIAL_MANIFEST.json").read_text(encoding="utf-8")
+    )
+    fact_inputs = list(PASS_CONTRACTS[WritingPass.FACT_INTEGRITY_AUDIT].required_inputs)
+    interaction_adaptation_inputs = list(
+        PASS_CONTRACTS[WritingPass.PLATFORM_INTERACTION_ADAPTATION].required_inputs
+    )
+    interaction_audit_inputs = list(
+        PASS_CONTRACTS[WritingPass.PLATFORM_INTERACTION_AUDIT].required_inputs
+    )
+    declared = execution["execution"]["fact_integrity_audit_dataflow"]
+    assert declared["required_inputs"] == fact_inputs
+    assert declared["missing_input_behavior"] == (
+        "BLOCK_FACT_INTEGRITY_AUDIT_BEFORE_MODEL_CALLBACK"
+    )
+    interaction = execution["execution"]["platform_interaction_dataflow"]
+    assert interaction["adaptation_required_inputs"] == interaction_adaptation_inputs
+    assert interaction["audit_required_inputs"] == interaction_audit_inputs
+    assert manifest["fact_integrity_audit_dataflow"] == declared
+    assert manifest["platform_interaction_dataflow"] == interaction
+
+
+def test_financial_skill_loads_the_authoritative_claim_attribution_audit():
+    root = Path(__file__).resolve().parents[1]
+    skill = (root / "skills/financial-writing-agent/SKILL.md").read_text(encoding="utf-8")
+    audit = (
+        root / "skills/financial-writing-agent/references/audit.md"
+    ).read_text(encoding="utf-8")
+    packaged_audit = (
+        root / "financial_writing_agent/resources/references/audit.md"
+    ).read_text(encoding="utf-8")
+
+    assert "skills/financial-writing-agent/references/audit.md" in skill
+    assert "company_decision_map" in skill
+    assert "entity, metric, period, value/unit, direction" in skill
+    assert "sentence order" in skill
+    assert "semantic entailment" in skill
+    assert audit == packaged_audit
+    assert "check each company row independently" in audit
