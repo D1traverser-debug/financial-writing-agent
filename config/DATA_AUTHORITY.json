@@ -67,7 +67,7 @@
   ],
   "external_inputs": {
     "chat": "Source of user intent and explicit approval; never a shadow article-state store.",
-    "research_sources": "External URLs and uploaded files are admitted as durable evidence only after their exact original bytes are stored/read back in the private Drive source library and the GitHub source record binds the exact file ID, revision, and digest.",
+    "research_sources": "External URLs and uploaded files become durable evidence only after the exact policy-permitted Drive payload is stored/read back (original bytes only when RAW_PRESERVED; otherwise permitted excerpt/metadata) and the GitHub source record binds the exact Drive file ID, revision, stored-payload digest, and retained-text digest.",
     "google_drive_source_store": "Private raw-source object store at the declared folder ID; stores immutable original files and large raw materials, not article state.",
     "github_provider": "Canonical authority for article state, source identity/lifecycle metadata, task bindings, methods, and exact CAS/readback; writes blocked until repository privacy and live Provider Action are verified.",
     "notion": "Reusable knowledge and evidence-link notes only; not the raw-source file store or Financial task-state authority.",
