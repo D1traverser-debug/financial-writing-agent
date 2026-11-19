@@ -66,6 +66,12 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     execution = _json("config/EXECUTION_CONTRACT.json")
 
     assert manifest["source_storage_contract"] == "config/SOURCE_STORAGE_CONTRACT.json"
+    assert manifest["chatgpt_native_runtime"]["persistence_provider"] == (
+        "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP"
+    )
+    assert manifest["chatgpt_native_runtime"]["source_provider"].endswith(
+        "GOOGLE_DRIVE_SOURCE_ADAPTER"
+    )
     assert manifest["chatgpt_native_runtime"]["source_crud_status"].startswith("NOT_DEPLOYED")
     assert manifest["provider_action_endpoint"]["source_store_connector"].startswith("CONNECTED_GOOGLE_DRIVE")
     assert "SOURCE_FILE_CRUD__DRIVE_OBJECT_READBACK__GITHUB_SOURCE_METADATA_AND_EFFECT_CAS" in (
@@ -81,6 +87,12 @@ def test_manifest_capabilities_and_execution_contract_bind_drive_source_adapter(
     )
     assert execution["authority"]["source_storage_contract"] == (
         "config/SOURCE_STORAGE_CONTRACT.json"
+    )
+    assert execution["chatgpt_native_execution"]["persistence_provider"] == (
+        "FINANCIAL_HOSTED_PROVIDER_ACTION_USING_LEAST_PRIVILEGE_GITHUB_APP"
+    )
+    assert execution["chatgpt_native_execution"]["source_provider"].endswith(
+        "GOOGLE_DRIVE_SOURCE_ADAPTER"
     )
     assert execution["chatgpt_native_execution"]["source_file_crud_status"] == "NOT_DEPLOYED"
     assert execution["standalone_governance"]["source_file_mutation"]["status"].startswith(
