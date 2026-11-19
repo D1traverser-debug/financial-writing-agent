@@ -325,6 +325,7 @@ def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_ref
     binding_set_with_unused = SourceBindingSet(
         task_id="article-1",
         research_revision=3,
+        decision_envelope_sha256="c" * 64,
         private_research_brief_sha256="a" * 64,
         research_package_sha256="b" * 64,
         admitted_at=BASE + timedelta(days=2),
@@ -365,6 +366,7 @@ def test_binding_set_cannot_precede_source_retrieval():
         SourceBindingSet(
             task_id="article-1",
             research_revision=1,
+        decision_envelope_sha256="c" * 64,
             private_research_brief_sha256="a" * 64,
             admitted_at=BASE,
             bindings=(binding,),
@@ -382,6 +384,7 @@ def test_binding_set_rejects_cross_task_and_duplicate_bindings():
         SourceBindingSet(
             task_id="article-2",
             research_revision=1,
+        decision_envelope_sha256="c" * 64,
             private_research_brief_sha256="a" * 64,
             admitted_at=BASE + timedelta(days=2),
             bindings=(binding,),
@@ -390,6 +393,7 @@ def test_binding_set_rejects_cross_task_and_duplicate_bindings():
         SourceBindingSet(
             task_id="article-1",
             research_revision=1,
+        decision_envelope_sha256="c" * 64,
             private_research_brief_sha256="a" * 64,
             admitted_at=BASE + timedelta(days=2),
             bindings=(binding, binding),
