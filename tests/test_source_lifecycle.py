@@ -292,6 +292,21 @@ def test_binding_set_pins_one_research_revision_and_exact_canonical_evidence_ref
         )
 
 
+def test_source_binding_rejects_version_id_digest_mismatch():
+    record = _record()
+    binding = bind_source_version(
+        record,
+        version_id=record.current_version_id,
+        task_id="article-1",
+    )
+    raw = binding.model_dump()
+    raw["version_id"] = "v0001-" + "f" * 12
+    raw["source_ref"] = f"financial-source://{binding.source_id}/{raw['version_id']}"
+
+    with pytest.raises(ValidationError, match="digest suffix must match"):
+        type(binding).model_validate(raw)
+
+
 def test_binding_set_rejects_cross_task_and_duplicate_bindings():
     record = _record()
     binding = bind_source_version(
