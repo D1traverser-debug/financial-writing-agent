@@ -100,7 +100,8 @@
           "DecisionEnvelope",
           "PrivateResearchBrief",
           "ResearchPackage"
-        ]
+        ],
+        "decision_envelope_sha256_required": true
       }
     }
   },
