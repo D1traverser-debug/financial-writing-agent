@@ -101,6 +101,36 @@ def test_registry_round_trip_tracks_append_only_versions_and_lifecycle_events():
     assert rebuilt.updated_at == restored.updated_at
 
 
+def test_registry_replays_three_immutable_versions_in_historical_event_order():
+    v1 = _version(1, b"version one", file_id="file-v1", folder_id="version-folder-v1")
+    record = create_source_record(
+        source_id="src_" + "a" * 24,
+        source_type="PUBLIC_PRIMARY_DOCUMENT",
+        title="Issuer filing",
+        publisher="Issuer",
+        canonical_url=None,
+        scope="GLOBAL_REUSABLE",
+        task_id=None,
+        first_version=v1,
+    )
+    source_row, _ = source_registry_rows(record, source_folder_id="source-folder")
+    v2 = _version(2, b"version two", file_id="file-v2", folder_id="version-folder-v2")
+    after_v2 = append_source_version(record, v2)
+    v3 = _version(3, b"version three", file_id="file-v3", folder_id="version-folder-v3")
+    after_v3 = append_source_version(after_v2, v3)
+    _, version_rows = source_registry_rows(after_v3, source_folder_id="source-folder")
+    events = [
+        _event("evt-create", record.source_id, "CREATE", record.created_at, None, "ACTIVE", None, v1.version_id, v1.drive_object.raw_sha256),
+        _event("evt-version-2", record.source_id, "ADD_VERSION", after_v2.updated_at, "ACTIVE", "ACTIVE", v1.version_id, v2.version_id, v2.drive_object.raw_sha256),
+        _event("evt-version-3", record.source_id, "ADD_VERSION", after_v3.updated_at, "ACTIVE", "ACTIVE", v2.version_id, v3.version_id, v3.drive_object.raw_sha256),
+    ]
+
+    rebuilt = source_record_from_registry_rows(source_row, version_rows, events)
+
+    assert [item.version_id for item in rebuilt.versions] == [v1.version_id, v2.version_id, v3.version_id]
+    assert rebuilt.current_version_id == v3.version_id
+
+
 def test_registry_requires_create_event_and_rejects_unknown_version():
     v1 = _version(1, b"version one", file_id="file-v1", folder_id="version-folder-v1")
     record = create_source_record(

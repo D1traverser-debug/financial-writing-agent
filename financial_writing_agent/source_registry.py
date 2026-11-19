@@ -203,8 +203,6 @@ def source_record_from_registry_rows(
                     raise SourceRegistryError("ADD_VERSION points to an unknown source version")
                 if _version_sequence(resulting_version_id) != _version_sequence(current_version_id) + 1:
                     raise SourceRegistryError("ADD_VERSION must append the next contiguous version")
-                if resulting_version_id != versions[-1].version_id:
-                    raise SourceRegistryError("ADD_VERSION must point to the newest source version")
                 if occurred_at < known_versions[resulting_version_id].created_at:
                     raise SourceRegistryError("ADD_VERSION event predates its source version")
             elif operation == "RETIRE":
@@ -226,6 +224,9 @@ def source_record_from_registry_rows(
         status = resulting_status
         current_version_id = resulting_version_id
         updated_at = occurred_at
+
+    if current_version_id != versions[-1].version_id:
+        raise SourceRegistryError("source lifecycle must admit the newest stored version")
 
     return SourceRecord(
         source_id=source_id,

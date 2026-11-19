@@ -173,6 +173,25 @@ def test_news_media_defaults_to_metadata_or_excerpt_storage_without_full_copy():
     assert record.versions[0].storage_policy == "METADATA_AND_EXCERPT_ONLY"
 
 
+def test_append_revalidates_source_level_news_media_retention_rules():
+    first = _version(
+        1,
+        b"permitted excerpt",
+        storage_policy="METADATA_AND_EXCERPT_ONLY",
+        rights_basis="METADATA_ONLY",
+    )
+    record = _record(source_type="NEWS_MEDIA", first=first)
+    later_raw = _version(
+        2,
+        b"full media article body",
+        storage_policy="RAW_PRESERVED",
+        rights_basis="PUBLIC_PRIMARY",
+    )
+
+    with pytest.raises(ValidationError, match="full news-media preservation"):
+        append_source_version(record, later_raw)
+
+
 def test_source_record_rejects_active_pointer_to_unavailable_version():
     unavailable = _version(1, b"missing original", status="MISSING")
     with pytest.raises(ValidationError, match="ACTIVE source must point to an AVAILABLE"):

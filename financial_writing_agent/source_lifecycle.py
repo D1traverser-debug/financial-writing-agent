@@ -409,13 +409,15 @@ def append_source_version(record: SourceRecord, version: SourceVersion) -> Sourc
         raise ValueError("new source version must use the next contiguous sequence")
     if version.created_at < record.updated_at:
         raise ValueError("new source version cannot predate the current source record")
-    return record.model_copy(
-        update={
+    updated = record.model_dump(mode="python")
+    updated.update(
+        {
             "versions": (*record.versions, version),
             "current_version_id": version.version_id,
             "updated_at": version.created_at,
         }
     )
+    return SourceRecord.model_validate(updated)
 
 
 def retire_source(record: SourceRecord, *, at: datetime) -> SourceRecord:
