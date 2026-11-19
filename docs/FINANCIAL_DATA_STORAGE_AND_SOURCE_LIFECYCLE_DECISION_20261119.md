@@ -48,8 +48,8 @@ ChatGPT/
 ```
 
 Drive folder:
-- Project folder ID is held in private provider configuration.
-- Source library folder ID is held in private provider configuration.
+- Project folder ID must be supplied through private provider configuration at deployment; it is not configured yet.
+- Source library folder ID must be supplied through private provider configuration at deployment; it is not configured yet.
 - The parent and source folders were read back as `shared=false`, with owner-only permission metadata.
 
 The folder is currently empty. No historical documents or unrelated attachments were moved into it.
