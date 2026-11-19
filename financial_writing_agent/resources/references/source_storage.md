@@ -9,6 +9,10 @@
 - Exact article source bindings: GitHub `workspaces/articles/{task_id}/research/SOURCE_BINDINGS.json`.
 - Canonical reference: `financial-source://{source_id}/{version_id}`; each binding resolves to an exact Drive file ID, revision ID, and SHA-256.
 
+## Domain logic
+
+Pure source identity, version, scope, retirement, restoration, and exact-binding validation is implemented in `financial_writing_agent.source_lifecycle`. This module performs no Drive or GitHub I/O; the trusted provider adapter remains a separate, unimplemented layer.
+
 ## CRUD rules
 
 - **Create:** upload a new Drive file, read back the exact file/revision and bytes, compute SHA-256, then admit the GitHub source record and signed effect receipt through provider CAS/readback.
