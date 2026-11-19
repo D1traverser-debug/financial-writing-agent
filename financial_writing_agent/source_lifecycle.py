@@ -217,6 +217,7 @@ class SourceBindingSet(StrictModel):
     schema_version: Literal["1.0"] = "1.0"
     task_id: str = Field(min_length=1)
     research_revision: int = Field(ge=1)
+    decision_envelope_sha256: str
     private_research_brief_sha256: str
     research_package_sha256: str | None = None
     admitted_at: datetime
@@ -225,7 +226,7 @@ class SourceBindingSet(StrictModel):
     @model_validator(mode="after")
     def validate_task_binding_set(self):
         _require_aware(self.admitted_at, "admitted_at")
-        for field in ("private_research_brief_sha256", "research_package_sha256"):
+        for field in ("decision_envelope_sha256", "private_research_brief_sha256", "research_package_sha256"):
             value = getattr(self, field)
             if value is not None and _SHA256.fullmatch(value) is None:
                 raise ValueError(f"{field} must be a lowercase SHA-256 digest")
