@@ -16,8 +16,8 @@
     "evals/PROBLEM_EVOLUTION_JOURNAL.md",
     "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
     "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
-    "evals/FINANCIAL_INTEGRATION_STATUS_SYNC_AUDIT_20261116.md",
-    "evals/FINANCIAL_EXECUTION_PROFILE_DECISION_BINDING_AUDIT_20261117.md"
+    "evals/FINANCIAL_EXECUTION_PROFILE_DECISION_BINDING_AUDIT_20261117.md",
+    "evals/FINANCIAL_FACT_AUDIT_DATAFLOW_REPAIR_20261120.md"
   ],
   "current_candidate": {
     "id": "FIN-CROSS-BORDER-POST-REBUILD-20261016",
@@ -193,7 +193,7 @@
       "ci_run": 1416,
       "result": "214 passed"
     },
-    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order. PR #89 (WritingExecutionProfile 1.1 scoped decision-domain binding) is also merged: final PR head fabdd6a0b41ffeaf509350720f3b8e370525bcb0 passed exact PR CI run 43922363378 (758 tests, 88% statement coverage); merged main SHA 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea passed exact main CI run 43924128311 (758 tests, 88% statement coverage). No separate external technical review was obtained; this merge is engineering integration only. The next business step is real model profile replay across representative prompt families and independent cross-topic article evaluation. Real reader acceptance, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified.",
+    "next_legal_phase": "PR #84, PR #85, PR #86, PR #87 and PR #88 are merged to Financial main in dependency order. PR #89 (WritingExecutionProfile 1.1 scoped decision-domain binding) is also merged: final PR head fabdd6a0b41ffeaf509350720f3b8e370525bcb0 passed exact PR CI run 43922363378 (758 tests, 88% statement coverage); merged main SHA 44eeaea6f871ed4006d7e98a36dd9375a5fc87ea passed exact main CI run 43924128311 (758 tests, 88% statement coverage). No separate external technical review was obtained; this merge is engineering integration only. The next business step is real model profile replay across representative prompt families and independent cross-topic article evaluation. Real reader acceptance, live Financial Provider Action and fresh-session Skill activation remain OPEN. No CAOS source or runtime was modified. PR #95 is an additional Draft candidate for Fact Audit and Platform Interaction decision-context dataflow: atomic exact code head fc64deb4562bf6851eda1e3e33847f8cb2b32be8 passed CI 44583877013 (775 tests, 87% statement coverage). It is not merged; independent technical review is open. The next legal step is review of PR #95, then fresh-session Skill activation and real multi-topic article/independent editorial evidence. Quality remains NOT_READY. Full PR snapshot head b72e688dabaf1ad9adb9fd5b08e6fc003c8ee07d also passed exact PR CI 44585493699 (775 tests, 87% coverage; 35/35 steps).",
     "existing_task_ref": "workspaces/articles/cross-border-ecommerce-20261016-v3/STATE.json",
     "user_action_now": "The owner explicitly reopened CAOS governance integration on 2026-11-15 across the A-share, Novel, Financial Writing and Video domains. Financial adopts only CAOS external ChatGPT-session governance; retain its standalone runtime, Financial-only business-state/effect authority and existing article history. Do not restore the old hosted parent bridge, modify CAOS source, rewrite history or alter article business state.",
     "not_completion_evidence": [
@@ -737,7 +737,7 @@
       "exact_main_ci_tests_passed": 727
     },
     "latest_requirement_scope_dataflow_audit": "evals/FINANCIAL_REQUIREMENT_SCOPE_DATAFLOW_AUDIT_20261116.md",
-    "problem_journal_revision": "2.6",
+    "problem_journal_revision": "2.7",
     "general_writing_stability": {
       "status": "OPEN__SYSTEM_WIDE_CROSS_TOPIC_QUALITY_NOT_VERIFIED",
       "audit_ref": "evals/FINANCIAL_GENERAL_WRITING_STABILITY_AUDIT_20261116.md",
@@ -873,6 +873,80 @@
       "exact_main_ci_conclusion": "success",
       "exact_main_ci_tests_passed": 758,
       "merged_at": "2026-11-16T17:59:36Z"
+    },
+    "current_fact_audit_dataflow_candidate": {
+      "id": "FIN-FACT-AUDIT-COMPANY-ATTRIBUTION-DATAFLOW-20261120",
+      "status": "DRAFT_CANDIDATE__ATOMIC_COMMIT_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__NOT_MERGED",
+      "branch": "repair/fact-and-interaction-audit-dataflow-20261120",
+      "pull_request": 95,
+      "base_branch": "main",
+      "base_sha": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+      "candidate_code_head_sha": "fc64deb4562bf6851eda1e3e33847f8cb2b32be8",
+      "exact_head_ci_run": 44583877013,
+      "exact_head_ci_conclusion": "success",
+      "tests_passed": 775,
+      "source_line_coverage_percent": 87,
+      "coverage_statements": 9051,
+      "coverage_missed": 1207,
+      "module_coverage": {
+        "portfolio_coordinator_percent": 87,
+        "standalone_runtime_percent": 89,
+        "writing_kernel_percent": 81
+      },
+      "whole_tree_inventory": {
+        "tracked_files": 356,
+        "python_ast_parsed": 140,
+        "json_parsed": 55,
+        "decoded_text_lines": 60590,
+        "warnings": 0,
+        "errors": 0
+      },
+      "skill_utf8_bytes": 11985,
+      "verified": [
+        "FACT_INTEGRITY_AUDIT_RECEIVES_RESEARCH_AUDIT_ADMITTED_EVIDENCE",
+        "FACT_INTEGRITY_AUDIT_RECEIVES_SELECTED_THESIS_COMPANY_DECISION_MAP_CHANGE_CONDITIONS_AND_PUBLICATION_DISTILLATION",
+        "INVOKE_PASS_FORWARDS_EXACT_DECLARED_REQUIRED_INPUTS",
+        "PLATFORM_INTERACTION_ADAPTATION_AND_AUDIT_PRESERVE_THE_SAME_DECISION_CONTEXT",
+        "CLAIM_ATTRIBUTION_PROTOCOL_CHECKS_ENTITY_METRIC_PERIOD_VALUE_UNIT_DIRECTION_COMPARATOR_AND_EVIDENCE_BINDING",
+        "FINANCIAL_SKILL_LOADS_AUTHORITATIVE_AUDIT_REFERENCE_AND_RUNTIME_MIRROR_IS_BYTE_IDENTICAL",
+        "EXECUTION_CONTRACT_AND_MANIFEST_DATAFLOW_DECLARATIONS_MATCH_PASS_CONTRACTS",
+        "TEN_STAGE_WORKFLOW_AND_EXISTING_PRODUCT_MODES_UNCHANGED",
+        "EXACT_HEAD_CI_ALL_STEPS_PASS_WHEEL_DOCX_AND_NEGATIVE_REPLAY_PASS"
+      ],
+      "limitations": [
+        "INDEPENDENT_TECHNICAL_REVIEW_NOT_OBTAINED",
+        "PR95_DRAFT_NOT_MERGED",
+        "PRIVATE_PLUGIN_REMAINS_0_1_4__NEW_RELEASE_AND_FRESH_SESSION_ACTIVATION_NOT_VERIFIED",
+        "FINANCIAL_PROVIDER_ACTION_NOT_DEPLOYED",
+        "NO_REAL_CURRENT_MODEL_ARTICLE_EXECUTION_OR_INDEPENDENT_EDITORIAL_ACCEPTANCE",
+        "SEMANTIC_ENTAILMENT_REMAINS_MODEL_AUDIT__NOT_DETERMINISTICALLY_PROVEN",
+        "REAL_CROSS_TOPIC_QUALITY_AND_READER_ACCEPTANCE_REMAIN_NOT_READY"
+      ],
+      "audit_ref": "evals/FINANCIAL_FACT_AUDIT_DATAFLOW_REPAIR_20261120.md",
+      "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261120-01",
+      "plugin_version_at_candidate": "0.1.4",
+      "plugin_release_updated": false,
+      "merged_main_sha": null,
+      "next_legal_step": "Obtain independent technical review of PR #95; if accepted, integrate through protected main, package/verify the Skill in a fresh session, then conduct real multi-topic article runs with independent product-specific review.",
+      "latest_pr_snapshot_head_sha": "b72e688dabaf1ad9adb9fd5b08e6fc003c8ee07d",
+      "latest_pr_snapshot_ci_run": 44585493699,
+      "latest_pr_snapshot_ci_conclusion": "success",
+      "latest_pr_snapshot_tests_passed": 775,
+      "latest_pr_snapshot_source_line_coverage_percent": 87,
+      "latest_pr_snapshot_whole_tree_inventory": {
+        "tracked_files": 356,
+        "python_ast_parsed": 140,
+        "json_parsed": 55,
+        "decoded_text_lines": 60603,
+        "warnings": 0,
+        "errors": 0
+      },
+      "latest_pr_snapshot_workflow_steps_passed": 35,
+      "previous_pre_atomic_code_head_sha": "5648b8d33c719d0bac2cafcb6040fd008fbaa18a",
+      "previous_pre_atomic_exact_head_ci_run": 44581315518,
+      "branch_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA",
+      "atomic_candidate_commit": true,
+      "main_unchanged": true
     }
   },
   "system_engineering_simulation_20261112": {
@@ -929,7 +1003,7 @@
     "exact_main_ci_run": 43626092503,
     "exact_main_ci_conclusion": "success"
   },
-  "updated_at": "2026-11-17",
+  "updated_at": "2026-11-20",
   "current_system_candidate": {
     "id": "FIN-REQUIREMENT-SCOPE-STAGE-DATAFLOW-20261116",
     "status": "MERGED_TO_MAIN__EXACT_MAIN_CI_PASS__INDEPENDENT_REVIEW_OPEN__REAL_ARTICLE_QUALITY_OPEN",
@@ -1182,5 +1256,79 @@
     "exact_main_ci_conclusion": "success",
     "exact_main_ci_tests_passed": 758,
     "merged_at": "2026-11-16T17:59:36Z"
+  },
+  "current_fact_audit_dataflow_candidate": {
+    "id": "FIN-FACT-AUDIT-COMPANY-ATTRIBUTION-DATAFLOW-20261120",
+    "status": "DRAFT_CANDIDATE__ATOMIC_COMMIT_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__NOT_MERGED",
+    "branch": "repair/fact-and-interaction-audit-dataflow-20261120",
+    "pull_request": 95,
+    "base_branch": "main",
+    "base_sha": "1f6745a39412c8adbbd7e1d5cbd05cae1d6ef4dc",
+    "candidate_code_head_sha": "fc64deb4562bf6851eda1e3e33847f8cb2b32be8",
+    "exact_head_ci_run": 44583877013,
+    "exact_head_ci_conclusion": "success",
+    "tests_passed": 775,
+    "source_line_coverage_percent": 87,
+    "coverage_statements": 9051,
+    "coverage_missed": 1207,
+    "module_coverage": {
+      "portfolio_coordinator_percent": 87,
+      "standalone_runtime_percent": 89,
+      "writing_kernel_percent": 81
+    },
+    "whole_tree_inventory": {
+      "tracked_files": 356,
+      "python_ast_parsed": 140,
+      "json_parsed": 55,
+      "decoded_text_lines": 60590,
+      "warnings": 0,
+      "errors": 0
+    },
+    "skill_utf8_bytes": 11985,
+    "verified": [
+      "FACT_INTEGRITY_AUDIT_RECEIVES_RESEARCH_AUDIT_ADMITTED_EVIDENCE",
+      "FACT_INTEGRITY_AUDIT_RECEIVES_SELECTED_THESIS_COMPANY_DECISION_MAP_CHANGE_CONDITIONS_AND_PUBLICATION_DISTILLATION",
+      "INVOKE_PASS_FORWARDS_EXACT_DECLARED_REQUIRED_INPUTS",
+      "PLATFORM_INTERACTION_ADAPTATION_AND_AUDIT_PRESERVE_THE_SAME_DECISION_CONTEXT",
+      "CLAIM_ATTRIBUTION_PROTOCOL_CHECKS_ENTITY_METRIC_PERIOD_VALUE_UNIT_DIRECTION_COMPARATOR_AND_EVIDENCE_BINDING",
+      "FINANCIAL_SKILL_LOADS_AUTHORITATIVE_AUDIT_REFERENCE_AND_RUNTIME_MIRROR_IS_BYTE_IDENTICAL",
+      "EXECUTION_CONTRACT_AND_MANIFEST_DATAFLOW_DECLARATIONS_MATCH_PASS_CONTRACTS",
+      "TEN_STAGE_WORKFLOW_AND_EXISTING_PRODUCT_MODES_UNCHANGED",
+      "EXACT_HEAD_CI_ALL_STEPS_PASS_WHEEL_DOCX_AND_NEGATIVE_REPLAY_PASS"
+    ],
+    "limitations": [
+      "INDEPENDENT_TECHNICAL_REVIEW_NOT_OBTAINED",
+      "PR95_DRAFT_NOT_MERGED",
+      "PRIVATE_PLUGIN_REMAINS_0_1_4__NEW_RELEASE_AND_FRESH_SESSION_ACTIVATION_NOT_VERIFIED",
+      "FINANCIAL_PROVIDER_ACTION_NOT_DEPLOYED",
+      "NO_REAL_CURRENT_MODEL_ARTICLE_EXECUTION_OR_INDEPENDENT_EDITORIAL_ACCEPTANCE",
+      "SEMANTIC_ENTAILMENT_REMAINS_MODEL_AUDIT__NOT_DETERMINISTICALLY_PROVEN",
+      "REAL_CROSS_TOPIC_QUALITY_AND_READER_ACCEPTANCE_REMAIN_NOT_READY"
+    ],
+    "audit_ref": "evals/FINANCIAL_FACT_AUDIT_DATAFLOW_REPAIR_20261120.md",
+    "problem_ref": "evals/PROBLEM_EVOLUTION_JOURNAL.md#P-20261120-01",
+    "plugin_version_at_candidate": "0.1.4",
+    "plugin_release_updated": false,
+    "merged_main_sha": null,
+    "next_legal_step": "Obtain independent technical review of PR #95; if accepted, integrate through protected main, package/verify the Skill in a fresh session, then conduct real multi-topic article runs with independent product-specific review.",
+    "latest_pr_snapshot_head_sha": "b72e688dabaf1ad9adb9fd5b08e6fc003c8ee07d",
+    "latest_pr_snapshot_ci_run": 44585493699,
+    "latest_pr_snapshot_ci_conclusion": "success",
+    "latest_pr_snapshot_tests_passed": 775,
+    "latest_pr_snapshot_source_line_coverage_percent": 87,
+    "latest_pr_snapshot_whole_tree_inventory": {
+      "tracked_files": 356,
+      "python_ast_parsed": 140,
+      "json_parsed": 55,
+      "decoded_text_lines": 60603,
+      "warnings": 0,
+      "errors": 0
+    },
+    "latest_pr_snapshot_workflow_steps_passed": 35,
+    "previous_pre_atomic_code_head_sha": "5648b8d33c719d0bac2cafcb6040fd008fbaa18a",
+    "previous_pre_atomic_exact_head_ci_run": 44581315518,
+    "branch_write_protocol": "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA",
+    "atomic_candidate_commit": true,
+    "main_unchanged": true
   }
 }

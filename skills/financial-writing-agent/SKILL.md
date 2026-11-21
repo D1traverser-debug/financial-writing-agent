@@ -20,13 +20,12 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 ## Canonical files and CRUD
 
-- **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
-- **Article create/read/update:** create one `workspaces/articles/<task_id>/STATE.json`; read through `observe_article` and the exact task files; change requirements through the current admission path, preserving history and invalidating dependent evidence.
-- **Article workspace:** research evidence under `research/`, stage outputs under `stages/`, editorial/story assets under `editorial/`, audit receipts under `reviews/`, Word/rendered deliverables under `delivery/`, and user feedback under `feedback/`. The task's `STATE.json` binds their identities and lifecycle.
-- **Delete semantics:** do not erase accepted history or receipts. Retire a requirement/method through its lifecycle operation; remove only proven disposable temporary artifacts. A replacement must not silently rewrite an older article.
-- **Reusable methods:** the only method catalog is `knowledge/METHOD_KNOWLEDGE_CATALOG.json`. It supports create, read/query, staged revise, discard pending, promote, challenge, retire, restore and impact verification. Pending changes never silently replace the active method.
-- **System evolution:** `evals/EVOLUTION_INDEX.json` owns current system status; `evals/quality_regression.json` owns editorial-readiness baselines. Do not create another global task index or parallel method store.
-- **Policy mirrors:** the Skill reference modules and `financial_writing_agent/resources/references/` are the two delivery surfaces for the same Financial-owned policy. They must remain byte-identical. There is no third root `references/` copy.
+- **Sole entry/state:** this Skill is Financial's only operating entry; CAOS is governance-only. Article CRUD uses one `workspaces/articles/<task_id>/STATE.json` via `observe_article` and `current_admission.py`; every requirement change preserves history and invalidates downstream evidence.
+- **Task layout:** `research/`, `stages/`, `editorial/`, `reviews/`, `delivery/` and `feedback/` hold source evidence, stage/blueprint outputs, audits, Word/renders and feedback bound to that STATE.
+- **Lifecycle:** retire requirements/methods; preserve accepted history/receipts. Only proven disposable artifacts may be removed. Never silently rewrite a prior article.
+- **Method CRUD:** `knowledge/METHOD_KNOWLEDGE_CATALOG.json` alone supports create, read/query, staged revision, discard, promotion, challenge, retirement, restoration and impact verification; pending edits never replace active rules.
+- **Evolution:** `evals/EVOLUTION_INDEX.json` tracks system status; `evals/quality_regression.json` tracks editorial readiness. No shadow global index or method store.
+- **Mirrors:** `skills/financial-writing-agent/references/` and `financial_writing_agent/resources/references/` must remain byte-identical; no third `references/` copy.
 
 ## Human interaction protocol
 
@@ -58,8 +57,9 @@ All tasks use the same ten-stage workflow. Portfolio Context 1.1 binds the promp
 2. Complete the fifteen applicable PrivateResearchBrief 1.1 modules; keep evidence gaps, uncertainty and rejected hypotheses visible.
 3. Re-read scoped requirements before major stages. Deep selects from audited research; a user-specified exhaustive company universe is task-specific, never a universal quota.
 4. Build independent Deep and Broad StoryBlueprints. Deep serves company economics; Broad serves non-expert acquisition; Interaction is a first-class product, not a shortened article.
-5. Draft from sourced notes, trace material claims, and run all eight PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF.
-6. Deliver contracted DOCX and audit outputs; verify binaries, rendered pages, visual quality and exact links. CI and same-chat PASS are not independent acceptance.
+5. For real session-generated Word outside the canonical builder, run `scripts/real_delivery_preflight.py` on the exact contracted portfolio and reject failed typography, H1 color/bold, risks, company/skim emphasis, missing files and identical Deep/Broad prose. This receipt is mechanical-only, not independent source truth. See `docs/REAL_PORTFOLIO_DELIVERY_PREFLIGHT.md`.
+6. Draft from sourced notes, trace material claims, and run all eight PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF.
+7. Deliver contracted DOCX and audit outputs; verify binaries, rendered pages, visual quality and exact links. CI and same-chat PASS are not independent acceptance.
 
 ## Standalone runtime and trust boundary
 
@@ -69,7 +69,7 @@ Use GitHub connector and `fetch_file` for reads; stage code only on candidate br
 
 Research facts need exact source text/family, retrieval time, body hash, period/unit/direction and contradiction review. Sources expire after seven days; stale or changed sources reopen RESEARCH. Require source-family diversity and two heterogeneous no-delta sweeps before saturation. Hashes prove identity, not entailment. Use the Financial research, market-explanation, claim-trace and PrivateResearchBrief schemas; separate facts, mechanisms, interpretations and unknowns.
 
-PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE, PAYOFF. Same-chat review may clear INTERNAL_DELIVERY_READINESS only against exact draft bytes; Word remains uncertified. Publication certification requires independently verified review. Deliver actual `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, if contracted, `PRIVATE_RESEARCH_DOCX`; verify binaries, rendered PDF/PNG pages, visual inspection and current-session access. Filename, hash, PASS or CI alone proves neither delivery nor reader quality.
+PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE, PAYOFF. For `FACT_INTEGRITY_AUDIT` and `PLATFORM_INTERACTION_AUDIT`, load `skills/financial-writing-agent/references/audit.md` (mirror: `financial_writing_agent/resources/references/audit.md`). Fact audit gets `audited_evidence`, `selected_thesis`, `company_decision_map`, `change_conditions`, `publication_distillation`; check each material claim's entity, metric, period, value/unit, direction, comparator and evidence ref. Never infer attribution from sentence order or aggregate numbers; numeric/source trace is not semantic entailment. Same-chat review clears INTERNAL_DELIVERY_READINESS only against exact draft bytes; Word stays uncertified. Certification needs independent review. Deliver `AUDIT_DOCX`, `FINANCE_DEEP_DOCX`, `FINANCE_BROAD_DOCX`, `PLATFORM_INTERACTION_PACK_DOCX` and, if contracted, `PRIVATE_RESEARCH_DOCX`; verify binaries, renders and access. Filename, hash, PASS or CI alone prove neither delivery nor reader quality.
 
 ## Method governance and evolution
 

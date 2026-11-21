@@ -869,3 +869,40 @@ Status: `MERGED_TO_MAIN__EXACT_PR_AND_MAIN_CI_PASS__INDEPENDENT_TECHNICAL_REVIEW
 **Mainline integration (2026-11-17).** PR #89 was squash-merged to main as `44eeaea6f871ed4006d7e98a36dd9375a5fc87ea`. Final PR head `fabdd6a0b41ffeaf509350720f3b8e370525bcb0` passed exact-head CI run [43922363378](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43922363378): 758 tests, 88% statement coverage. The merged main SHA passed exact main CI run [43924128311](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/43924128311): 758 tests, 88% statement coverage; whole-tree audit: 351 tracked files, 137 Python AST parses, 55 JSON parses, 57,952 decoded text lines, zero warnings/errors.
 
 **Current status.** The schema-level authority-binding defect is integrated. No separate external technical reviewer submitted a review; the merge is engineering integration only. Real model profile replay, independent technical/editorial review, reader acceptance and live Financial Provider Action remain OPEN. No CAOS source or runtime was modified.
+
+
+---
+
+## P-20261120-01 — Fact audit lacked the admitted company-comparison context (2026-11-20)
+
+Status: `CANDIDATE_FIX__EXACT_CODE_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__NOT_MERGED`
+
+**Trigger.** A recent multi-company finance draft attached a cash-flow direction to the wrong company even though the underlying figures were present in research. The observed failure raised a more important question than “why did the writer swap two labels?”: could the fact-audit model independently see the admitted company comparison and catch the mismatch?
+
+**Competing hypotheses.**
+1. The writer made a one-off attribution typo — plausible for the sentence, insufficient to explain the audit's inability to verify the mapping.
+2. A deterministic company-name/number regex is missing — rejected as the root repair; lexical co-occurrence cannot prove entity/metric/period/direction entailment.
+3. A new specialist agent or business stage is required — rejected; the existing Fact Integrity and Interaction Audit responsibilities are correctly placed.
+4. The pass input contract is incomplete — selected after source inspection: `_invoke_pass` forwards only declared required inputs, while Fact Audit did not declare the admitted evidence and adjudicated comparison context.
+
+**Root cause.** The former `FACT_INTEGRITY_AUDIT` contract received `edited_draft`, `evidence_ledger` and `product_mode`, but omitted `audited_evidence`, `selected_thesis`, `company_decision_map`, `change_conditions` and `publication_distillation`. The same context omission existed in platform-interaction adaptation/audit. Shared-state availability did not imply model visibility.
+
+**Selected repair.**
+- Expand the existing Fact Integrity pass input contract to receive admitted evidence and the research decision it must verify.
+- Pass the same decision context into platform-interaction adaptation and audit.
+- Require claim-level checking of entity, metric, period, value/unit, direction, comparator/scope and exact evidence binding; verify every company row independently.
+- Route the Financial Skill to the authoritative audit reference and keep its packaged runtime mirror byte-identical.
+- Declare the dataflow in the execution contract and manifest; add regression tests for actual input forwarding and contract parity.
+- Preserve the canonical ten-stage workflow, existing product modes and single Financial owner. Do not add a new stage or pretend lexical checks prove semantics.
+
+**Exact code-head verification.** PR #95 candidate code head `fc64deb4562bf6851eda1e3e33847f8cb2b32be8` passed [CI run 44583877013](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44583877013): 775 tests passed, 87% overall Python statement coverage and 81% Writing Kernel coverage; all workflow steps succeeded. Whole-tree audit: 355 tracked files, 140 Python AST parses, 55 JSON parses, 60,590 decoded text lines, zero warnings/errors. Skill size: 11,985 UTF-8 bytes.
+
+**Remaining OPEN.** PR #95 is Draft and not merged; independent technical review is open. The private plugin remains at 0.1.4 and fresh-session activation is unverified. Financial Provider Action is NOT_DEPLOYED. No real current-model article or independent editorial acceptance was produced by this repair. Semantic entailment remains a model-audit responsibility, not a deterministic guarantee. No CAOS source or runtime was modified.
+
+**Next legal action.** Obtain independent technical review of PR #95. After accepted integration, package and verify the Skill in a fresh session; then run real multi-topic Financial tasks and independent product-specific editorial review. Do not promote quality from CI or same-session review.
+
+
+**Full PR snapshot verification.** After the journal, evolution index and audit report were added, PR snapshot head `b72e688dabaf1ad9adb9fd5b08e6fc003c8ee07d` passed [CI run 44585493699](https://github.com/D1traverser-debug/financial-writing-agent/actions/runs/44585493699): 775 tests passed, 87% overall coverage, Writing Kernel 81%, all 35 workflow steps successful. Whole-tree audit: 356 tracked files, 140 Python AST parses, 55 JSON parses, 60,603 decoded text lines, zero warnings/errors. The candidate remains Draft and not merged; independent review, fresh-session plugin activation, live provider execution and real article acceptance remain OPEN.
+
+
+**Branch-history integrity correction.** The initial candidate was assembled through multiple Contents API commits, which did not follow the repository's required atomic candidate-write protocol. Before review, the candidate branch is being reconstructed from unchanged `main` as one Git tree/commit using `create_blob → create_tree → create_commit → update_ref(expected_sha)`. The update is guarded by the observed branch-head lease; `main` remains untouched. CI must be rerun on the reconstructed exact head. This process correction does not alter the repair scope.

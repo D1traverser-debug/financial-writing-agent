@@ -161,3 +161,43 @@ def test_pr89_decision_domain_binding_is_merged_with_exact_pr_and_main_ci():
     assert manifest["general_writing_stability"]["latest_main_head_sha"] == candidate["merged_main_sha"]
     assert manifest["general_writing_stability"]["latest_main_head_ci_run"] == candidate["exact_main_ci_run"]
     assert manifest["general_writing_stability"]["execution_profile"]["schema_version"] == "1.1"
+
+
+
+def test_pr95_fact_audit_dataflow_candidate_is_ci_verified_but_not_merged():
+    index = _json("evals/EVOLUTION_INDEX.json")
+    manifest = _json("config/FINANCIAL_MANIFEST.json")
+    candidate = index["current_fact_audit_dataflow_candidate"]
+
+    assert candidate == index["active_system_assessment"]["current_fact_audit_dataflow_candidate"]
+    assert candidate["pull_request"] == 95
+    assert candidate["status"] == (
+        "DRAFT_CANDIDATE__ATOMIC_COMMIT_EXACT_HEAD_CI_PASS__INDEPENDENT_REVIEW_OPEN__NOT_MERGED"
+    )
+    assert candidate["candidate_code_head_sha"] == "fc64deb4562bf6851eda1e3e33847f8cb2b32be8"
+    assert candidate["exact_head_ci_run"] == 44583877013
+    assert candidate["exact_head_ci_conclusion"] == "success"
+    assert candidate["tests_passed"] == 775
+    assert candidate["source_line_coverage_percent"] == 87
+    assert candidate["module_coverage"]["writing_kernel_percent"] == 81
+    assert candidate["skill_utf8_bytes"] == 11985
+    assert candidate["merged_main_sha"] is None
+    assert candidate["plugin_version_at_candidate"] == "0.1.4"
+    assert candidate["plugin_release_updated"] is False
+    assert candidate["latest_pr_snapshot_head_sha"] == "b72e688dabaf1ad9adb9fd5b08e6fc003c8ee07d"
+    assert candidate["latest_pr_snapshot_ci_run"] == 44585493699
+    assert candidate["latest_pr_snapshot_ci_conclusion"] == "success"
+    assert candidate["latest_pr_snapshot_tests_passed"] == 775
+    assert candidate["latest_pr_snapshot_workflow_steps_passed"] == 35
+    assert candidate["branch_write_protocol"] == "GIT_BLOB_TREE_COMMIT_UPDATE_REF_EXPECTED_SHA"
+    assert candidate["atomic_candidate_commit"] is True
+    assert candidate["main_unchanged"] is True
+    assert candidate["latest_pr_snapshot_whole_tree_inventory"]["decoded_text_lines"] == 60603
+    assert candidate["latest_pr_snapshot_whole_tree_inventory"]["tracked_files"] == 356
+    assert manifest["fact_integrity_audit_dataflow"]["required_inputs"] == [
+        "edited_draft", "evidence_ledger", "audited_evidence", "selected_thesis",
+        "company_decision_map", "change_conditions", "publication_distillation",
+        "product_mode",
+    ]
+    assert "company_decision_map" in manifest["platform_interaction_dataflow"]["adaptation_required_inputs"]
+    assert "company_decision_map" in manifest["platform_interaction_dataflow"]["audit_required_inputs"]

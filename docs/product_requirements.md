@@ -146,6 +146,12 @@ Each gate cites text location/excerpt/finding. MAJOR/CRITICAL findings block PAS
 
 Research Audit separately validates the admitted private brief semantically; syntactic module completion with placeholder evidence is not enough.
 
+The `FACT_INTEGRITY_AUDIT` must receive the final edited draft, the research evidence ledger, the Research-Audit-admitted evidence, the selected thesis, the adjudicated company decision map, change conditions and publication distillation. A fact audit that sees only the prose and a partial evidence list is incomplete, even if its callback returns PASS.
+
+For every material quantitative or comparative claim, the audit checks the complete relation: **entity → metric → reporting period → value/unit → direction → comparator/scope → exact evidence reference**. Multi-company statements are checked company by company; attribution must not be inferred from sentence order, adjacency, list order or aggregate correctness. The same decision context must reach platform-interaction adaptation and audit so short-form outputs cannot silently reverse or erase material comparisons.
+
+Numeric-token matching, source readback and paragraph-to-source traceability are provenance controls, not proof of semantic entailment. An unresolved company/metric/period/direction binding is REVISE, with the exact text location and evidence references. This is an existing audit responsibility and dataflow correction, not a new business stage or a universal article template.
+
 The writing workflow distinguishes INTERNAL_DELIVERY_READINESS from PUBLICATION_CERTIFICATION. A same-chat reviewer may mark all eight internal text-evidence gates PASS for draft Word export only when the exact persisted DRAFT bytes were reread and bound by SHA-256; the resulting delivery is explicitly uncertified and must retain independent editorial quality OPEN. Without this explicit scope, CHAT_SELF_REVIEW remains forbidden from issuing a publication PASS. Independent publication certification still requires a separate authenticated reviewer of exact draft bytes. A failed gate must REVISE or FAIL, never be waived to finish the workflow.
 
 ### PR-13 — Focused internal pass architecture and portfolio orchestration

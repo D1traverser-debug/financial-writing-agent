@@ -345,6 +345,55 @@
       "missing_input_behavior": "BLOCK_EDITORIAL_PASS_BEFORE_MODEL_CALLBACK",
       "purpose": "Preserve private-research publication choices and company-level comparative judgments into product-specific Deep/Broad StoryBlueprints",
       "company_decision_map_binding": "TOP_LEVEL_MAP_AND_CHANGE_CONDITIONS_MUST_MATCH_VALIDATED_RESEARCH_PACKAGE"
+    },
+    "fact_integrity_audit_dataflow": {
+      "required_inputs": [
+        "edited_draft",
+        "evidence_ledger",
+        "audited_evidence",
+        "selected_thesis",
+        "company_decision_map",
+        "change_conditions",
+        "publication_distillation",
+        "product_mode"
+      ],
+      "produced_by": {
+        "audited_evidence": "RESEARCH_AUDIT_BOUNDARY",
+        "selected_thesis": "THESIS_ADJUDICATION",
+        "company_decision_map": "THESIS_ADJUDICATION",
+        "change_conditions": "THESIS_ADJUDICATION",
+        "publication_distillation": "PRIVATE_RESEARCH_SYNTHESIS"
+      },
+      "enforcement": "PassContract.required_inputs__AND__writing_kernel._invoke_pass",
+      "missing_input_behavior": "BLOCK_FACT_INTEGRITY_AUDIT_BEFORE_MODEL_CALLBACK",
+      "semantic_rule": "VERIFY_EACH_ENTITY_METRIC_PERIOD_VALUE_UNIT_DIRECTION_COMPARATOR_AND_EVIDENCE_BINDING",
+      "assurance_boundary": "MODEL_SEMANTIC_AUDIT_REQUIRED__NUMERIC_SOURCE_TRACE_IS_NOT_SEMANTIC_ENTAILMENT"
+    },
+    "platform_interaction_dataflow": {
+      "adaptation_required_inputs": [
+        "selected_thesis",
+        "company_decision_map",
+        "change_conditions",
+        "publication_distillation",
+        "audited_evidence",
+        "reader_job",
+        "voice_evidence",
+        "platform_context",
+        "product_scope"
+      ],
+      "audit_required_inputs": [
+        "platform_interaction_pack",
+        "selected_thesis",
+        "company_decision_map",
+        "change_conditions",
+        "publication_distillation",
+        "audited_evidence",
+        "material_sources",
+        "product_scope"
+      ],
+      "enforcement": "PassContract.required_inputs__AND__writing_kernel._invoke_pass",
+      "missing_input_behavior": "BLOCK_RELEVANT_INTERACTION_PASS_BEFORE_MODEL_CALLBACK",
+      "assurance_boundary": "INDEPENDENT_PRODUCT_AUDIT_REQUIRED__SAME_EVIDENCE_DECISION_CONTEXT"
     }
   },
   "knowledge_and_evolution": {
