@@ -433,7 +433,7 @@ def check_docx(
         else:
             risk_p = risk_paragraphs[0]
             last_visible = next((p for p in reversed(doc.paragraphs) if p.text.strip()), None)
-            if risk_p is not last_visible:
+            if risk_p._element is not (last_visible._element if last_visible is not None else None):
                 errors.append("risk disclaimer must be the final visible paragraph")
             risk_text = risk_p.text.strip()[len("风险提示：") :].strip()
             if not risk_text:
