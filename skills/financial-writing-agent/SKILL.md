@@ -58,8 +58,9 @@ All tasks use the same ten-stage workflow. Portfolio Context 1.1 binds the promp
 2. Complete the fifteen applicable PrivateResearchBrief 1.1 modules; keep evidence gaps, uncertainty and rejected hypotheses visible.
 3. Re-read scoped requirements before major stages. Deep selects from audited research; a user-specified exhaustive company universe is task-specific, never a universal quota.
 4. Build independent Deep and Broad StoryBlueprints. Deep serves company economics; Broad serves non-expert acquisition; Interaction is a first-class product, not a shortened article.
-5. Draft from sourced notes, trace material claims, and run all eight PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF.
-6. Deliver contracted DOCX and audit outputs; verify binaries, rendered pages, visual quality and exact links. CI and same-chat PASS are not independent acceptance.
+5. For real session-generated Word outside the canonical builder, run `scripts/real_delivery_preflight.py` on the exact contracted portfolio and reject failed typography, H1 color/bold, risks, company/skim emphasis, missing files and identical Deep/Broad prose. This receipt is mechanical-only, not independent source truth. See `docs/REAL_PORTFOLIO_DELIVERY_PREFLIGHT.md`.
+6. Draft from sourced notes, trace material claims, and run all eight PublicationFitness gates: FACT_INTEGRITY, RETENTION, COMPANY_GROUNDING, STRUCTURE_NUMBERING, ORIGINALITY, AUTHORIAL_STYLE, COMPLIANCE and PAYOFF.
+7. Deliver contracted DOCX and audit outputs; verify binaries, rendered pages, visual quality and exact links. CI and same-chat PASS are not independent acceptance.
 
 ## Standalone runtime and trust boundary
 
