@@ -20,13 +20,12 @@ Act with connected tools; do not ask the user to invent a plan or repeat accessi
 
 ## Canonical files and CRUD
 
-- **Single Financial operating entry:** this Skill. The CAOS entry is governance-only.
-- **Article create/read/update:** create one `workspaces/articles/<task_id>/STATE.json`; read through `observe_article` and the exact task files; change requirements through the current admission path, preserving history and invalidating dependent evidence.
-- **Article workspace:** research evidence under `research/`, stage outputs under `stages/`, editorial/story assets under `editorial/`, audit receipts under `reviews/`, Word/rendered deliverables under `delivery/`, and user feedback under `feedback/`. The task's `STATE.json` binds their identities and lifecycle.
-- **Delete semantics:** do not erase accepted history or receipts. Retire a requirement/method through its lifecycle operation; remove only proven disposable temporary artifacts. A replacement must not silently rewrite an older article.
-- **Reusable methods:** the only method catalog is `knowledge/METHOD_KNOWLEDGE_CATALOG.json`. It supports create, read/query, staged revise, discard pending, promote, challenge, retire, restore and impact verification. Pending changes never silently replace the active method.
-- **System evolution:** `evals/EVOLUTION_INDEX.json` owns current system status; `evals/quality_regression.json` owns editorial-readiness baselines. Do not create another global task index or parallel method store.
-- **Policy mirrors:** the Skill reference modules and `financial_writing_agent/resources/references/` are the two delivery surfaces for the same Financial-owned policy. They must remain byte-identical. There is no third root `references/` copy.
+- **Sole entry/state:** this Skill is Financial's only operating entry; CAOS is governance-only. Article CRUD uses one `workspaces/articles/<task_id>/STATE.json` via `observe_article` and `current_admission.py`; every requirement change preserves history and invalidates downstream evidence.
+- **Task layout:** `research/`, `stages/`, `editorial/`, `reviews/`, `delivery/` and `feedback/` hold source evidence, stage/blueprint outputs, audits, Word/renders and feedback bound to that STATE.
+- **Lifecycle:** retire requirements/methods; preserve accepted history/receipts. Only proven disposable artifacts may be removed. Never silently rewrite a prior article.
+- **Method CRUD:** `knowledge/METHOD_KNOWLEDGE_CATALOG.json` alone supports create, read/query, staged revision, discard, promotion, challenge, retirement, restoration and impact verification; pending edits never replace active rules.
+- **Evolution:** `evals/EVOLUTION_INDEX.json` tracks system status; `evals/quality_regression.json` tracks editorial readiness. No shadow global index or method store.
+- **Mirrors:** `skills/financial-writing-agent/references/` and `financial_writing_agent/resources/references/` must remain byte-identical; no third `references/` copy.
 
 ## Human interaction protocol
 
