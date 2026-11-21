@@ -42,6 +42,7 @@ def preflight(manifest: dict[str, Any], *, manifest_dir: Path) -> dict[str, Any]
     if not isinstance(evidence, dict):
         evidence = {}
     policy = load_packaged_policy()
+    visible_text: dict[str, str] = {}
     for kind in required:
         if kind not in ALLOWED_KINDS:
             continue
@@ -60,6 +61,7 @@ def preflight(manifest: dict[str, Any], *, manifest_dir: Path) -> dict[str, Any]
         if path is not None:
             try:
                 doc = Document(path)
+                visible_text[kind] = "\\n".join(p.text.strip() for p in doc.paragraphs if p.text.strip())
                 if not any(p.text.strip() for p in doc.paragraphs) and not doc.tables:
                     item_errors.append("EMPTY_DOCUMENT")
                 if kind == "PLATFORM_INTERACTION_PACK_DOCX" and doc.tables:
@@ -97,6 +99,12 @@ def preflight(manifest: dict[str, Any], *, manifest_dir: Path) -> dict[str, Any]
             "errors": item_errors,
         }
         errors.extend(f"{kind}:{error}" for error in item_errors)
+    if (visible_text.get("FINANCE_DEEP_DOCX")
+            and visible_text.get("FINANCE_DEEP_DOCX") == visible_text.get("FINANCE_BROAD_DOCX")):
+        error = "DEEP_BROAD_IDENTICAL_VISIBLE_PROSE"
+        errors.append(error)
+        items["FINANCE_BROAD_DOCX"]["errors"].append(error)
+        items["FINANCE_BROAD_DOCX"]["mechanical_status"] = "FAIL"
     return {
         "schema_version": "1.0",
         "task_id": manifest.get("task_id"),

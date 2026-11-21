@@ -12,11 +12,14 @@ from scripts.real_delivery_preflight import main, preflight
 
 def make_article(tmp_path, name="test"):
     policy = load_packaged_policy()
+    lead = "国电南瑞**订单增长**，但需要核验。"
+    if name == "broad":
+        lead = "从读者日常账本切入，国电南瑞**订单增长**，仍需核验。"
     article = ArticleDocument(
         title="可核查的财经标题",
         stock_names=["国电南瑞"],
         blocks=[
-            Block(kind="lead", text="国电南瑞**订单增长**，但需要核验。"),
+            Block(kind="lead", text=lead),
             Block(kind="h1", text="成本与收入"),
             Block(kind="body", text="**利润变化**取决于实际结算。"),
             Block(kind="h1", text="风险提示与免责声明"),
@@ -110,3 +113,21 @@ def test_preflight_positive_is_only_mechanical_not_editorial_or_owner_certificat
     assert result["publication_certification"] == "OPEN"
     assert result["company_universe_completeness"] == "NOT_VERIFIED_BY_THIS_GATE"
     assert result["financial_fact_entailment"] == "NOT_VERIFIED_BY_THIS_GATE"
+
+
+def test_preflight_rejects_longform_copy_paste_not_distinct_products(tmp_path):
+    deep, _ = make_article(tmp_path, "deep")
+    broad, _ = make_article(tmp_path, "copy")
+    m = {
+        "task_id": "real-task",
+        "required_outputs": ["FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX"],
+        "artifacts": {"FINANCE_DEEP_DOCX": str(deep), "FINANCE_BROAD_DOCX": str(broad)},
+        "article_evidence": {
+            k: {"stock_names": ["国电南瑞"], "required_bold_anchors": ["订单增长", "利润变化"]}
+            for k in ("FINANCE_DEEP_DOCX", "FINANCE_BROAD_DOCX")
+        },
+    }
+    result = preflight(m, manifest_dir=tmp_path)
+    assert result["mechanical_status"] == "FAIL"
+    assert "DEEP_BROAD_IDENTICAL_VISIBLE_PROSE" in result["errors"]
+    assert result["publication_certification"] == "OPEN"

@@ -26,3 +26,5 @@ A positive receipt certifies **SESSION_FILE_MECHANICAL_CHECK_ONLY**. The code ex
 * ChatGPT native entry selection/obedience: remains NOT_TESTED. An executable CLI does not impose a platform-level tool hook.
 
 If a future valid neighboring task needs a different authorized typography or delivery contract, change the canonical policy through the Financial requirement process and test both positive and negative examples; do not hardcode the ice/snow article into general rules.
+
+For a task requiring both Deep and Broad, identical visible prose in the two files is an additional hard negative. Distinct bytes alone are not sufficient, and different visible prose is **not proof** of independent reader journeys; this remains a semantic editorial obligation.
