@@ -8,6 +8,7 @@ from pathlib import Path
 from typing import Any, Iterable
 
 from docx import Document
+from docx.enum.text import WD_ALIGN_PARAGRAPH
 
 from .models import ArtifactKind, TaskContract
 
@@ -343,12 +344,24 @@ def _check_typography(doc: Document, policy: dict, errors: list[str]) -> None:
     nonempty = [p for p in doc.paragraphs if p.text.strip()]
     if nonempty:
         _check_run_sizes(nonempty[0], title_pt, "title", errors)
+        if nonempty[0].alignment != WD_ALIGN_PARAGRAPH.CENTER:
+            errors.append("title must be centered")
+        if any(run.text and run.bold is not True for run in nonempty[0].runs):
+            errors.append("title must be explicitly bold")
 
     circled = re.compile(r"^[①-⑳]")
     h2_prefix = re.compile(r"^（\d+）")
     for p in nonempty[1:]:
         if p.style and p.style.name == "Heading 1":
             _check_run_sizes(p, h1_pt, "H1", errors)
+            for run in (r for r in p.runs if r.text):
+                if run.bold is not True:
+                    errors.append(f"H1 must be bold: {p.text[:60]!r}")
+                    break
+            for run in (r for r in p.runs if r.text):
+                if run.font.color.rgb is None or str(run.font.color.rgb).upper() != str(word["h1_rgb"]).upper():
+                    errors.append(f"H1 color drift: expected {word['h1_rgb']}, got {run.font.color.rgb} in {p.text[:60]!r}")
+                    break
         elif h2_prefix.match(p.text.strip()):
             _check_run_sizes(p, h2_pt, "H2", errors)
         elif circled.match(p.text.strip()):
@@ -419,6 +432,9 @@ def check_docx(
             errors.append(f"multiple risk disclaimer paragraphs found: {len(risk_paragraphs)}")
         else:
             risk_p = risk_paragraphs[0]
+            last_visible = next((p for p in reversed(doc.paragraphs) if p.text.strip()), None)
+            if risk_p._element is not (last_visible._element if last_visible is not None else None):
+                errors.append("risk disclaimer must be the final visible paragraph")
             risk_text = risk_p.text.strip()[len("风险提示：") :].strip()
             if not risk_text:
                 errors.append("risk/disclaimer body must not be empty")
